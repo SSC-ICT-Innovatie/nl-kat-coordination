@@ -17,8 +17,8 @@ kat:
 up: build
 	docker compose up -d
 	sleep 2
-	$(exec) python manage.py createsuperuser --no-input || (sleep 2 && $(exec) python manage.py createsuperuser --no-input)
-	make init -j 4
+	-$(exec) python manage.py createsuperuser --no-input || (sleep 2 && $(exec) python manage.py createsuperuser --no-input)
+	make init
 	make seed
 
 kat_parallel: frontend up images
@@ -40,7 +40,6 @@ ifeq ($(UNAME),Darwin)
 else
 	docker compose build --pull --build-arg USER_UID="$$(id -u)" --build-arg USER_GID="$$(id -g)"
 endif
-	$(run) python manage.py migrate
 
 reset:
 	make clean
