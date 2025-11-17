@@ -174,6 +174,16 @@ class XTDBNaturalKeyModel(XTDBModel):
         abstract = True
 
 
+class ObjectTask(XTDBNaturalKeyModel):
+    task_id = models.CharField(max_length=36)  # UUID as string (36 chars with hyphens)
+    type = models.CharField(max_length=32, default="plugin")
+    plugin_id = models.CharField(max_length=64)
+    input_object = models.CharField()
+    output_object = models.CharField()
+
+    _natural_key_attrs = ["task_id", "output_object"]
+
+
 class Asset(XTDBModel):
     class Meta:
         managed = False

@@ -98,7 +98,8 @@ class KATMultiModelPermissions(KATModelPermissions):
         models = {key.lower(): model for key, model in object_type_by_name().items()}
 
         for key in request.data:
-            perms.extend(self.get_required_permissions(request.method, models[key]))
+            if key in models:
+                perms.extend(self.get_required_permissions(request.method, models[key]))
 
         return perms
 

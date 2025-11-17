@@ -23,6 +23,7 @@ from objects.models import (
     IPAddress,
     IPPort,
     Network,
+    ObjectTask,
     Software,
 )
 from objects.serializers import (
@@ -45,9 +46,29 @@ from objects.serializers import (
 )
 from openkat.permissions import KATMultiModelPermissions
 from openkat.viewsets import ManyModelViewSet
+from tasks.models import Task
 
 
-class ObjectViewSet(ViewSet):
+class ObjectTaskResultMixin:
+    def perform_create(self, serializer):
+        results = serializer.save()
+
+        if "task_id" in self.request.GET:  # type: ignore[attr-defined]
+            task = Task.objects.get(pk=self.request.GET["task_id"])  # type: ignore[attr-defined]
+            if not isinstance(results, list):
+                results = [results]
+
+            for result in results:
+                ObjectTask(
+                    task_id=str(task.pk),  # Convert UUID to string for XTDB
+                    type=task.type,
+                    plugin_id=task.data.get("plugin_id"),
+                    input_object=task.data.get("input_data"),
+                    output_object=result.pk,
+                ).save()
+
+
+class ObjectViewSet(ViewSet, ObjectTaskResultMixin):
     permission_classes = (KATMultiModelPermissions,)
     serializers = (
         HostnameSerializer,
@@ -76,30 +97,30 @@ class ObjectViewSet(ViewSet):
             models = request.data[object_type]
             serializer = serializer_class(data=models, many=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            self.perform_create(serializer)
             response[object_type] = serializer.data
 
         return JsonResponse(status=HTTPStatus.CREATED, data=response)
 
 
-class FindingTypeViewSet(ManyModelViewSet):
+class FindingTypeViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = FindingTypeSerializer
     queryset = FindingType.objects.all()
     filterset_fields = ("code",)
 
 
-class FindingViewSet(ManyModelViewSet):
+class FindingViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = FindingSerializer
     queryset = Finding.objects.all()
 
 
-class NetworkViewSet(ManyModelViewSet):
+class NetworkViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = NetworkSerializer
     queryset = Network.objects.all()
     filterset_fields = ("name",)
 
 
-class HostnameViewSet(ManyModelViewSet):
+class HostnameViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = HostnameSerializer
     queryset = Hostname.objects.prefetch_related(
         "dnsarecord_set",
@@ -141,64 +162,64 @@ class HostnameViewSet(ManyModelViewSet):
         return Response({"deleted": total}, status=HTTPStatus.OK)
 
 
-class IPAddressViewSet(ManyModelViewSet):
+class IPAddressViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = IPAddressSerializer
     queryset = IPAddress.objects.all()
     filterset_fields = ("address",)
 
 
-class IPPortViewSet(ManyModelViewSet):
+class IPPortViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = IPPortSerializer
     queryset = IPPort.objects.all()
     filterset_fields = ("address", "protocol", "port", "tls", "service")
 
 
-class SoftwareViewSet(ManyModelViewSet):
+class SoftwareViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = SoftwareSerializer
     queryset = Software.objects.all()
     filterset_fields = ("name", "version", "cpi", "ports")
 
 
-class DNSARecordViewSet(ManyModelViewSet):
+class DNSARecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSARecordSerializer
     queryset = DNSARecord.objects.all()
 
 
-class DNSAAAARecordViewSet(ManyModelViewSet):
+class DNSAAAARecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSAAAARecordSerializer
     queryset = DNSAAAARecord.objects.all()
 
 
-class DNSPTRRecordViewSet(ManyModelViewSet):
+class DNSPTRRecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSPTRRecordSerializer
     queryset = DNSPTRRecord.objects.all()
 
 
-class DNSCNAMERecordViewSet(ManyModelViewSet):
+class DNSCNAMERecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSCNAMERecordSerializer
     queryset = DNSCNAMERecord.objects.all()
 
 
-class DNSMXRecordViewSet(ManyModelViewSet):
+class DNSMXRecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSMXRecordSerializer
     queryset = DNSMXRecord.objects.all()
 
 
-class DNSNSRecordViewSet(ManyModelViewSet):
+class DNSNSRecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSNSRecordSerializer
     queryset = DNSNSRecord.objects.all()
 
 
-class DNSCAARecordViewSet(ManyModelViewSet):
+class DNSCAARecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSCAARecordSerializer
     queryset = DNSCAARecord.objects.all()
 
 
-class DNSTXTRecordViewSet(ManyModelViewSet):
+class DNSTXTRecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSTXTRecordSerializer
     queryset = DNSTXTRecord.objects.all()
 
 
-class DNSSRVRecordViewSet(ManyModelViewSet):
+class DNSSRVRecordViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = DNSSRVRecordSerializer
     queryset = DNSSRVRecord.objects.all()

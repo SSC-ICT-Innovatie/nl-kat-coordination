@@ -13,9 +13,11 @@ from objects.models import (
     IPAddress,
     IPPort,
     Network,
+    ObjectTask,
     Software,
     XTDBOrganization,
 )
+from tasks.models import Task
 
 
 def test_finding_api(drf_client, xtdb, organization):
@@ -178,6 +180,7 @@ def test_hostname_api(drf_client, xtdb):
         "scan_level": 2,  # Still intact
         "organizations": [],
     }
+    assert ObjectTask.objects.count() == 0
 
 
 def test_ip_api(drf_client, xtdb):
@@ -516,3 +519,202 @@ def test_hostname_delete_dns_plugin_new(drf_client, xtdb):
     hn = drf_client.get("/api/v1/objects/hostname/?name=example.com").json()
     dns_records = hn["results"][0]["dns_records"]
     assert len(dns_records) == 0
+
+
+def test_object_task_created_for_single_object_via_individual_viewset(drf_client, xtdb, organization):
+    Network.objects.create(name="internet")
+
+    task = Task.objects.create(
+        organization=organization, type="plugin", data={"plugin_id": "dns_plugin", "input_data": "internet|example.com"}
+    )
+
+    hostname_data = {"network": "internet", "name": "test.com"}
+    response = drf_client.post(f"/api/v1/objects/hostname/?task_id={task.id}", json=hostname_data)
+
+    assert response.status_code == 201
+    created_hostname = response.json()
+
+    object_tasks = ObjectTask.objects.filter(task_id=str(task.id))
+    assert object_tasks.count() == 1
+
+    object_task = object_tasks.first()
+    assert object_task.task_id == str(task.id)
+    assert object_task.type == "plugin"
+    assert object_task.plugin_id == "dns_plugin"
+    assert object_task.input_object == "internet|example.com"
+    assert object_task.output_object == created_hostname["id"]
+
+
+def test_object_task_created_for_multiple_objects_via_individual_viewset(drf_client, xtdb, organization):
+    Network.objects.create(name="internet")
+    task = Task.objects.create(
+        organization=organization, type="plugin", data={"plugin_id": "dns_plugin", "input_data": "internet|example.com"}
+    )
+
+    hostnames_data = [
+        {"network": "internet", "name": "test1.com"},
+        {"network": "internet", "name": "test2.com"},
+        {"network": "internet", "name": "test3.com"},
+    ]
+    response = drf_client.post(f"/api/v1/objects/hostname/?task_id={task.id}", json=hostnames_data)
+
+    assert response.status_code == 201
+    created_hostnames = response.json()
+    assert len(created_hostnames) == 3
+
+    object_tasks = ObjectTask.objects.filter(task_id=str(task.id))
+    assert object_tasks.count() == 3
+
+    # Verify each ObjectTask has correct data
+    created_ids = {h["id"] for h in created_hostnames}
+    for object_task in object_tasks:
+        assert object_task.task_id == str(task.id)
+        assert object_task.type == "plugin"
+        assert object_task.plugin_id == "dns_plugin"
+        assert object_task.input_object == "internet|example.com"
+        assert object_task.output_object in created_ids
+
+
+def test_object_task_created_via_generic_objectviewset_single_type(drf_client, xtdb, organization):
+    Network.objects.create(name="internet")
+
+    # Create a task
+    task = Task.objects.create(
+        organization=organization,
+        type="plugin",
+        data={"plugin_id": "port_scanner", "input_data": "internet|192.168.1.1"},
+    )
+
+    objects_data = {
+        "ipaddress": [
+            {"network": "internet", "address": "192.168.1.1"},
+            {"network": "internet", "address": "192.168.1.2"},
+        ]
+    }
+    response = drf_client.post(f"/api/v1/objects/?task_id={task.id}", json=objects_data)
+
+    assert response.status_code == 201
+    created_ips = response.json()["ipaddress"]
+    assert len(created_ips) == 2
+
+    object_tasks = ObjectTask.objects.filter(task_id=str(task.id))
+    assert object_tasks.count() == 2
+
+    created_ids = {ip["id"] for ip in created_ips}
+    for object_task in object_tasks:
+        assert object_task.task_id == str(task.id)
+        assert object_task.type == "plugin"
+        assert object_task.plugin_id == "port_scanner"
+        assert object_task.input_object == "internet|192.168.1.1"
+        assert object_task.output_object in created_ids
+
+
+def test_object_task_created_via_generic_objectviewset_multiple_types(drf_client, xtdb, organization):
+    Network.objects.create(name="internet")
+    task = Task.objects.create(
+        organization=organization,
+        type="plugin",
+        data={"plugin_id": "comprehensive_scan", "input_data": "internet|example.com"},
+    )
+
+    objects_data = {
+        "hostname": [
+            {"network": "internet", "name": "web.example.com"},
+            {"network": "internet", "name": "api.example.com"},
+        ],
+        "ipaddress": [{"network": "internet", "address": "10.0.0.1"}, {"network": "internet", "address": "10.0.0.2"}],
+    }
+
+    response = drf_client.post(f"/api/v1/objects/?task_id={task.id}", json=objects_data)
+
+    assert response.status_code == 201
+    result = response.json()
+    assert "hostname" in result
+    assert "ipaddress" in result
+
+    created_hostnames = result["hostname"]
+    created_ips = result["ipaddress"]
+    assert len(created_hostnames) == 2
+    assert len(created_ips) == 2
+
+    object_tasks = ObjectTask.objects.filter(task_id=str(task.id))
+    assert object_tasks.count() == 4  # 2 hostnames + 2 IPs
+
+    all_created_ids = {h["id"] for h in created_hostnames} | {ip["id"] for ip in created_ips}
+    for object_task in object_tasks:
+        assert object_task.task_id == str(task.id)
+        assert object_task.type == "plugin"
+        assert object_task.plugin_id == "comprehensive_scan"
+        assert object_task.input_object == "internet|example.com"
+        assert object_task.output_object in all_created_ids
+
+
+def test_no_object_task_created_without_task_id(drf_client, xtdb):
+    Network.objects.create(name="internet")
+    hostname_data = {"network": "internet", "name": "test.com"}
+    response = drf_client.post("/api/v1/objects/hostname/", json=hostname_data)
+
+    assert response.status_code == 201
+    assert ObjectTask.objects.count() == 0
+
+
+def test_object_task_with_different_task_types(drf_client, xtdb, organization):
+    Network.objects.create(name="internet")
+    task = Task.objects.create(
+        organization=organization, type="boefje", data={"plugin_id": "dns_boefje", "input_data": "internet|example.com"}
+    )
+
+    hostname_data = {"network": "internet", "name": "test.com"}
+    response = drf_client.post(f"/api/v1/objects/hostname/?task_id={task.id}", json=hostname_data)
+    assert response.status_code == 201
+
+    object_task = ObjectTask.objects.filter(task_id=str(task.id)).first()
+    assert object_task is not None
+    assert object_task.type == "boefje"
+
+
+def test_object_task_created_for_dns_records(drf_client, xtdb, organization):
+    Network.objects.create(name="internet")
+    hostname = Hostname.objects.create(network=Network.objects.get(name="internet"), name="example.com")
+    ip_address = IPAddress.objects.create(network=Network.objects.get(name="internet"), address="192.0.2.1")
+
+    task = Task.objects.create(
+        organization=organization,
+        type="plugin",
+        data={"plugin_id": "dns_resolver", "input_data": "internet|example.com"},
+    )
+
+    dns_data = {"hostname": hostname.pk, "ip_address": ip_address.pk, "ttl": 3600}
+    response = drf_client.post(f"/api/v1/objects/dnsarecord/?task_id={task.id}", json=dns_data)
+
+    assert response.status_code == 201
+    created_record = response.json()
+
+    object_tasks = ObjectTask.objects.filter(task_id=str(task.id))
+    assert object_tasks.count() == 1
+
+    object_task = object_tasks.first()
+    assert object_task.output_object == created_record["id"]
+    assert object_task.plugin_id == "dns_resolver"
+
+
+def test_object_task_for_network_creation(drf_client, xtdb, organization):
+    task = Task.objects.create(
+        organization=organization,
+        type="plugin",
+        data={"plugin_id": "network_discovery", "input_data": "scan_request_123"},
+    )
+
+    networks_data = [{"name": "net1"}, {"name": "net2"}]
+    response = drf_client.post(f"/api/v1/objects/network/?task_id={task.id}", json=networks_data)
+
+    assert response.status_code == 201
+    created_networks = response.json()
+    assert len(created_networks) == 2
+
+    object_tasks = ObjectTask.objects.filter(task_id=str(task.id))
+    assert object_tasks.count() == 2
+
+    for object_task in object_tasks:
+        assert object_task.plugin_id == "network_discovery"
+        assert object_task.input_object == "scan_request_123"
