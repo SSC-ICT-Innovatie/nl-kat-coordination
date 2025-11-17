@@ -17,13 +17,13 @@ All necessary credentials are generated in a `.env` file.
 
 After installation, the following services should be running:
 
-| Container           | Usage                                     |
-| ------------------- | ----------------------------------------- |
-| openkat (:8000)     | Django Application                        |
-| postgres (:5432)    | Operational Database                      |
-| xtdb (:5433)        | Bitemporal Document Database              |
-| worker (serverless) | Celery Worker                             |
-| redis (:6379)       | Celery Message Broker and Caching/Locking |
+| Container        | Usage                                     |
+| ---------------- | ----------------------------------------- |
+| openkat (:8000)  | Django Application                        |
+| postgres (:5432) | Operational Database                      |
+| xtdb (:5433)     | Bitemporal Document Database              |
+| worker (no port) | Celery Worker                             |
+| redis (:6379)    | Celery Message Broker and Caching/Locking |
 
 Again, the initial credentials are stored in the `.env` file. In particular,
 `DJANGO_SUPERUSER_EMAIL` and `DJANGO_SUPERUSER_PASSWORD` can be used to log in at http://localhost:8000/en/login/.
@@ -72,7 +72,7 @@ plugin on an \_object set*
 ## Object Sets
 
 The [object sets](http://localhost:8000/en/object-sets/) are a subset of objects of the same type, i.e. hostnames or
-ipaddresses currently. They can be used to filter the ipaddress and hostname pages and schedules a plugin for a
+ipaddresses currently. They can be used to filter the ipaddress and hostname pages and schedule a plugin for a
 specific subset of data. As typically the object type and scan level is not enough granularity to define how and
 when certain objects should be scanned, this is a particularly useful feature for larger installations.
 
