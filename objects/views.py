@@ -129,28 +129,9 @@ class NetworkListView(OrganizationFilterMixin, FilterView):
     filterset_class = NetworkFilter
     ordering = ["-_valid_from"]
 
-    def get_queryset(self) -> "QuerySet[Network]":
-        queryset = super().get_queryset()
-
-        object_set_id = self.request.GET.get("object_set")
-        if object_set_id:
-            object_set = ObjectSet.objects.get(id=object_set_id)
-            queryset = object_set.get_query_objects()
-
-        return queryset
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["breadcrumbs"] = [{"url": reverse("objects:network_list"), "text": _("Networks")}]
-
-        object_set_id = self.request.GET.get("object_set")
-        if object_set_id:
-            object_set = ObjectSet.objects.get(id=object_set_id)
-            if object_set.all_objects:
-                messages.warning(
-                    self.request,
-                    _('"{}" has static objects that are ignored. Only the query is applied.').format(object_set.name),
-                )
 
         return context
 
@@ -389,7 +370,9 @@ class IPAddressListView(OrganizationFilterMixin, FilterView):
         queryset = super().get_queryset()
         object_set_id = self.request.GET.get("object_set")
         if object_set_id:
-            queryset = ObjectSet.objects.get(id=object_set_id).get_query_objects()
+            queryset = ObjectSet.objects.get(
+                id=object_set_id, object_type=ContentType.objects.get_for_model(IPAddress)
+            ).get_query_objects(queryset)
 
         return queryset
 
@@ -399,7 +382,7 @@ class IPAddressListView(OrganizationFilterMixin, FilterView):
 
         object_set_id = self.request.GET.get("object_set")
         if object_set_id:
-            obj_set = ObjectSet.objects.get(id=object_set_id)
+            obj_set = ObjectSet.objects.get(id=object_set_id, object_type=ContentType.objects.get_for_model(IPAddress))
             if obj_set.all_objects:
                 messages.warning(
                     self.request,
@@ -719,8 +702,9 @@ class HostnameListView(OrganizationFilterMixin, FilterView):
 
         object_set_id = self.request.GET.get("object_set")
         if object_set_id:
-            object_set = ObjectSet.objects.get(id=object_set_id)
-            queryset = object_set.get_query_objects()
+            queryset = ObjectSet.objects.get(
+                id=object_set_id, object_type=ContentType.objects.get_for_model(Hostname)
+            ).get_query_objects(queryset)
 
         return queryset
 
@@ -730,11 +714,11 @@ class HostnameListView(OrganizationFilterMixin, FilterView):
 
         object_set_id = self.request.GET.get("object_set")
         if object_set_id:
-            object_set = ObjectSet.objects.get(id=object_set_id)
-            if object_set.all_objects:
+            obj_set = ObjectSet.objects.get(id=object_set_id, object_type=ContentType.objects.get_for_model(Hostname))
+            if obj_set.all_objects:
                 messages.warning(
                     self.request,
-                    _('"{}" has static objects that are ignored. Only the query is applied.').format(object_set.name),
+                    _('"{}" has static objects that are ignored. Only the query is applied.').format(obj_set.name),
                 )
 
         context["object_sets"] = ObjectSet.objects.filter(object_type=ContentType.objects.get_for_model(Hostname))

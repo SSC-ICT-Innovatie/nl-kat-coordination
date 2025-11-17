@@ -1,9 +1,11 @@
 from urllib.parse import quote
 
 from django.contrib.contenttypes.models import ContentType
+from pytest_django.asserts import assertContains, assertNotContains
 
-from objects.models import Hostname, IPAddress, IPPort, Network, Protocol, Software
+from objects.models import Hostname, IPAddress, IPPort, Network, Protocol, Software, XTDBOrganization
 from objects.views import HostnameListView, IPAddressListView, IPPortSoftwareDeleteView
+from tasks.models import ObjectSet
 from tests.conftest import setup_request
 
 
@@ -150,3 +152,132 @@ def test_ipport_software_delete(rf, superuser_member, xtdb):
     port.refresh_from_db()
     assert port.software.count() == 0
     assert software not in port.software.all()
+
+
+def test_ipaddress_list_view_filtered_by_object_set_and_organization(
+    rf, superuser_member, client_member, organization, organization_b, xtdb
+):
+    network = Network.objects.create(name="internet")
+
+    # Create IP addresses for organization A
+    ip1_org_a = IPAddress.objects.create(address="1.1.1.1", network=network)
+    ip1_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
+
+    ip2_org_a = IPAddress.objects.create(address="2.2.2.2", network=network)
+    ip2_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
+
+    # Create IP addresses for organization B
+    ip1_org_b = IPAddress.objects.create(address="3.3.3.3", network=network)
+    ip1_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
+
+    ip2_org_b = IPAddress.objects.create(address="4.4.4.4", network=network)
+    ip2_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
+
+    # Create an object set that matches all IP addresses (using empty query which matches all)
+    ipaddress_ct = ContentType.objects.get_for_model(IPAddress)
+    object_set = ObjectSet.objects.create(
+        name="Test IP Set",
+        object_type=ipaddress_ct,
+        object_query="",  # Empty query matches all objects
+    )
+
+    # Request list view with object set filter AND organization filter
+    request = setup_request(
+        rf.get("objects:ipaddress_list", {"object_set": object_set.pk, "organization": organization.code}),
+        client_member.user,
+    )
+    response = IPAddressListView.as_view()(request)
+    assert response.status_code == 200
+
+    assertContains(response, "1.1.1.1")
+    assertContains(response, "2.2.2.2")
+    assertNotContains(response, "3.3.3.3")
+    assertNotContains(response, "4.4.4.4")
+
+    # Organization code filter not necessary for client member
+    request = setup_request(rf.get("objects:ipaddress_list", {"object_set": object_set.pk}), client_member.user)
+    response = IPAddressListView.as_view()(request)
+    assert response.status_code == 200
+
+    assertContains(response, "1.1.1.1")
+    assertContains(response, "2.2.2.2")
+    assertNotContains(response, "3.3.3.3")
+    assertNotContains(response, "4.4.4.4")
+
+    # superusers see everything
+    request = setup_request(rf.get("objects:ipaddress_list", {"object_set": object_set.pk}), superuser_member.user)
+    response = IPAddressListView.as_view()(request)
+    assert response.status_code == 200
+
+    assertContains(response, "1.1.1.1")
+    assertContains(response, "2.2.2.2")
+    assertContains(response, "3.3.3.3")
+    assertContains(response, "4.4.4.4")
+
+    # except when filtered
+    request = setup_request(
+        rf.get("objects:ipaddress_list", {"object_set": object_set.pk, "organization": organization.code}),
+        superuser_member.user,
+    )
+    response = IPAddressListView.as_view()(request)
+    assert response.status_code == 200
+
+    assertContains(response, "1.1.1.1")
+    assertContains(response, "2.2.2.2")
+    assertNotContains(response, "3.3.3.3")
+    assertNotContains(response, "4.4.4.4")
+
+
+def test_hostname_list_view_filtered_by_object_set_and_organization(
+    rf, superuser_member, client_member, organization, organization_b, xtdb
+):
+    network = Network.objects.create(name="internet")
+
+    # Create hostnames for organization A
+    h1_org_a = Hostname.objects.create(name="test1.example.com", network=network)
+    h1_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
+
+    h2_org_b = Hostname.objects.create(name="test2.example.com", network=network)
+    h2_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
+
+    # Create an object set that matches all hostnames (using empty query which matches all)
+    hostname_ct = ContentType.objects.get_for_model(Hostname)
+    object_set = ObjectSet.objects.create(
+        name="Test Hostname Set",
+        object_type=hostname_ct,
+        object_query="",  # Empty query matches all objects
+    )
+
+    # Request list view with object set filter AND organization filter
+    request = setup_request(
+        rf.get("objects:hostname_list", {"object_set": object_set.pk, "organization": organization.code}),
+        client_member.user,
+    )
+    response = HostnameListView.as_view()(request)
+
+    assertContains(response, "test1.example.com")
+    assertNotContains(response, "test2.example.com")
+
+    # Request list view with object set filter AND organization filter
+    request = setup_request(rf.get("objects:hostname_list", {"object_set": object_set.pk}), client_member.user)
+    response = HostnameListView.as_view()(request)
+
+    assertContains(response, "test1.example.com")
+    assertNotContains(response, "test2.example.com")
+
+    # Request list view with object set filter AND organization filter
+    request = setup_request(
+        rf.get("objects:hostname_list", {"object_set": object_set.pk, "organization": organization.code}),
+        superuser_member.user,
+    )
+    response = HostnameListView.as_view()(request)
+
+    assertContains(response, "test1.example.com")
+    assertNotContains(response, "test2.example.com")
+
+    # Request list view with object set filter AND organization filter
+    request = setup_request(rf.get("objects:hostname_list", {"object_set": object_set.pk}), superuser_member.user)
+    response = HostnameListView.as_view()(request)
+
+    assertContains(response, "test1.example.com")
+    assertContains(response, "test2.example.com")

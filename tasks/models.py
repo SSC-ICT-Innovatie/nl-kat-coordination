@@ -2,6 +2,7 @@ import uuid
 from typing import Any
 
 import recurrence.fields
+import structlog
 from celery import Celery
 from celery.result import AsyncResult
 from django.contrib.contenttypes.models import ContentType
@@ -13,6 +14,8 @@ from djangoql.queryset import apply_search
 
 from files.models import File
 from objects.models import NoOrgQLSchema
+
+logger = structlog.get_logger(__name__)
 
 
 class TaskStatus(models.TextChoices):
@@ -52,22 +55,29 @@ class ObjectSet(models.Model):
     # concrete objects
     all_objects = ArrayField(models.CharField(), default=list, blank=True)
 
-    def get_query_objects(self, **filters: Any) -> QuerySet:
+    def get_query_objects(self, queryset: QuerySet | None = None, **filters: Any) -> QuerySet:
         if self.object_query is None:
             return self.object_type.model_class().objects.none()
 
-        qs = self.object_type.model_class().objects.all().filter(**filters)
+        if queryset is None:
+            queryset = self.object_type.model_class().objects.all().filter(**filters)
+        else:
+            if queryset.model != self.object_type.model_class():
+                return self.object_type.model_class().objects.none()
+
+            queryset = queryset.filter(**filters)
 
         if self.object_query == "":
-            return qs
+            return queryset
 
         try:
-            return apply_search(qs, self.object_query, NoOrgQLSchema)
-        except DjangoQLError:
-            return qs
+            return apply_search(queryset, self.object_query, NoOrgQLSchema)
+        except DjangoQLError as e:
+            logger.warning("Invalid DjangoQL query: %s", str(e))
+            return queryset
 
-    def traverse_objects(self, **filters: Any) -> list[int]:
-        return list(set(self.all_objects).union({x.pk for x in self.get_query_objects(**filters)}))
+    def traverse_objects(self, queryset: QuerySet | None = None, **filters: Any) -> list[int]:
+        return list(set(self.all_objects).union({x.pk for x in self.get_query_objects(queryset, **filters)}))
 
     def __str__(self):
         return self.name or super().__str__()
