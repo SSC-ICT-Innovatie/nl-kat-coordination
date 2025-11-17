@@ -19,7 +19,7 @@ from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from django_filters.views import FilterView
 
 from objects.models import FindingType, Hostname, IPAddress
-from openkat.mixins import OrganizationFilterMixin
+from openkat.mixins import OrganizationFilterMixin, filter_queryset_orgs_for_user
 from openkat.permissions import KATModelPermissionRequiredMixin
 from plugins.models import Plugin
 from tasks.models import ObjectSet, Schedule, Task, TaskStatus
@@ -511,7 +511,13 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
         ]
 
         if self.object.object_query is not None:
-            context["objects"] = self.object.get_query_objects()[: self.PREVIEW_SIZE]
+            queryset = filter_queryset_orgs_for_user(
+                self.object.object_type.model_class().objects.all(),
+                self.request.user,
+                set(self.request.GET.getlist("organization")),
+            )
+
+            context["objects"] = self.object.get_query_objects(queryset)[: self.PREVIEW_SIZE]
         else:
             context["objects"] = None
 
