@@ -80,6 +80,7 @@ class Command(BaseCommand):
         group_admin, _ = Group.objects.get_or_create(name=GROUP_ADMIN)
         admin_perms = self.get_permissions(
             [
+                # Custom permissions
                 "download_file",
                 "run_plugin",
                 "run_businessrule",
@@ -87,6 +88,7 @@ class Command(BaseCommand):
                 "can_set_clearance_level",
                 "can_scan_organization",
                 "can_enable_disable_schedule",
+                # Generic write permissions
                 "add_objectset",
                 "change_objectset",
                 "delete_objectset",
