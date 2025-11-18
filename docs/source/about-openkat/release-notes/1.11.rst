@@ -1,0 +1,76 @@
+============
+OpenKAT 1.11
+============
+
+This release has a major refactor of the environment variables used to configure
+OpenKAT. Every variables has been reviewed and defaults changed, naming has been
+made more consistent and datatype validation improved. Most importantly, you can
+now find comprehensive documentation about all environment settings at
+:doc:`/installation-and-deployment/environment-settings/index`. This documentation is now automatically generated
+from the source code itself and should always be fully up-to-date with the main
+branch.
+
+This release also includes backwards compatibility for the old variable names
+for most settings. We recommend to check your configuration files and rename
+them. OpenKAT will log a warning if you use the old variable names instead of
+the new ones.
+
+A new boefje, normalizer and bit for TLS Ciphers has been added. Findings will
+be created when support for old TLS ciphers are detected. The severity of the
+findings created follows the current policy of the Ministry of Health, Welfare
+and Sport.
+
+A few scripts have been added that make it easier to install, upgrade and debug
+OpenKAT on Debian. See :doc:`/installation-and-deployment/scripts` for more information. Thanks to Rob
+Musquetier for contributing the scripts.
+
+New Features
+============
+
+ * New reverse DNS boefje has been added. Thanks to Robin Visser for
+   contributing this boefje!
+ * Finding can be muted in bulk and filters on the finding page have been
+   improved.
+ * Tasks can be manually rerun with a button on the task page.
+ * The task pages have been improved and the normalizer details show the objects
+   yielded.
+ * Question OOIs have been added.
+ * The port classification bit can be configured to create one aggregate finding
+   for each IP address instead of a finding for each open port.
+ * Which ports are considered common open ports, database ports and sysadmin
+   ports can also be configured in the port classification bit.
+ * New organization members can be uploaded with a CSV file.
+ * The env and code hashes of boefje job are stored in bytes.
+ * The Expect-CT header finding has been removed because the header is
+   deprecated.
+
+Bug fixes
+=========
+
+ * Report generation timeout has been increased and configurable using
+   KEIKO_REPORT_TIMEOUT in rocky.
+ * Problems with sorting in KAT-alogus have been fixed.
+ * RabbitMQ connections and HTTP Sessions are correctly cached in Octopoes.
+ * Several problems with connections to RabbitMQ and error handling have been
+   fixed.
+ * WPScan API token is made optional.
+ * A problem with the many ports open normalizer throwing an exception has been
+   fixed.
+ * Enable/disable boefjes notification correctly shows name instead of ID.
+ * Wrongly displayed clearance level in organization member list has been fixed.
+ * A task will be rescheduled if no results in bytes are found after a grace
+   period
+ * The nmap boefje will only report open ports reducing the amount of data in
+   the nmap output.
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.11.0>`_.

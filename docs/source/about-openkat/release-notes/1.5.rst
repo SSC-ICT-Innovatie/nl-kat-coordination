@@ -1,0 +1,101 @@
+===========
+OpenKAT 1.5
+===========
+
+The main feature of the 1.5 release of OpenKAT is the ability to scan multiple
+organizations from one OpenKAT instance and manage the data and users for each
+of them. It comes with an API to automatically deploy organizations and users
+from an external source.
+
+This gives you the ability to manage OpenKAT for a large group of organizations
+while maintaining the separation of data and users for each of them. It also
+allows you to supply credentials to users within those organizations and to give
+them access to their own data, make reports etc.
+
+In addition to this several other features have been added that support this use
+case, such as the ability to filter and manage and add objects in bulk and add
+scanning and inheritance of scan levels from a higher level. They were requested
+by some of our large scale partners and we will continue working on such
+features in the forthcoming releases.
+
+New Features
+============
+
+* Most importantly, this is the first version of KAT that offers fully
+  implemented multi-organization support. New organizations can be added in the
+  Rocky admin interface (/admin), after which databases in xtdb and KAT-alogus
+  will be automatically added. Clients can be added for each organization that
+  cannot view data of other organizations
+* Certificates can now be created without having a relation to a website
+* IPAddresses now inherit a scan level from a netblock if that netblock is known
+* NMAP can now scan ip ranges
+* Rocky now offers bulk actions for the deletion of OOIs and giving clearance levels to OOIs
+* Rocky now offers filtering options based on clearance levels and clearance level types
+
+Upgrading
+=========
+
+For the new multi organization feature to work XTDB needs to be changed to the
+multinode version that can be found at
+https://github.com/dekkers/xtdb-http-multinode.
+
+Containers
+----------
+
+The container image of the XTDB container can be changed to
+"ghcr.io/dekkers/xtdb-http-multinode:v1.0.0". This image will automatically
+detect that the volume was created by the original XTDB image and migrate
+everything. By the default it will create a new node with the name "_dev", but
+this can be changed using the XTDB_MIGRATION_NODE_NAME environment variable.
+
+The XTDB_TYPE env setting for the Octopoes container also needs to be changed to
+"xtdb-multinode".
+
+Debian packages
+---------------
+
+If you have previously installed XTDB with the provided setup-xtdb.sh script,
+then you should first stop XTDB and remove this from the system before
+installing the new xtdb-http-multinode Debian package:
+
+.. code-block:: sh
+
+    systemctl stop xtdb@default.service
+    rm -r /usr/lib/systemd/system/xtdb@.service /etc/xtdb /opt/xtdb
+
+The data in /var/lib/xtdb needs to be moved to specific node directory. If you
+use "_dev" as the code for the current organization (which is the default), you
+have to do the following:
+
+.. code-block:: sh
+
+    mkdir /var/lib/xtdb/_dev
+    mv /var/lib/xtdb/default_documents /var/lib/xtdb/_dev/documents
+    mv /var/lib/xtdb/default_tx-log /var/lib/xtdb/_dev/tx-log
+    mv /var/lib/xtdb/default_indexes /var/lib/xtdb/_dev/indexes
+
+You can then download the Debian package from
+https://github.com/dekkers/xtdb-http-multinode/releases/tag/v1.0.0 and install
+it using:
+
+.. code-block:: sh
+
+    apt install rocksdb-tools
+    dpkg -i xtdb-http-multinode.deb
+
+It should start automatically, the log should indicate that the node _dev has
+started:
+
+.. code-block:: sh
+
+    journalctl -u xtdb-http-multinode.service
+
+It will listen on 127.0.0.1 port 3000 by default just like the setup-xtdb.sh did
+before, if you changed this you need to change this again in /etc/default/xtdb-http-multinode.
+
+In /etc/kat/octopoes.conf XTDB_TYPE needs to be changed to "xtdb-multinode".
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.5.0>`_.

@@ -1,0 +1,78 @@
+===========
+OpenKAT 1.7
+===========
+
+This is the first release from the new monorepo where all 7 different
+repositories that we had before are merged into one repository that contains
+everything. This means that contributions that have new OOIs, new boefjes, new
+bits and new findings now need only one PR instead of several PRs in different
+repos that need to be merged in the correct order. The way KAT is released and
+deployed has not changed, we still provide container images and Debian packages
+for each service.
+
+There is also a new release of xtdb-http-multinode. The 1.0.4 version changes
+the JVM options to make the JVM exit on an out of memory error instead of
+continuing in a broken state. Upgrading to this version is recommended. The
+Debian package can be found
+`here <https://github.com/dekkers/xtdb-http-multinode/releases/tag/v1.0.4>`__
+and the container image
+`here <https://github.com/dekkers/xtdb-http-multinode/pkgs/container/xtdb-http-multinode/83293625?tag=v1.0.4>`__.
+
+New Features
+============
+
+ * ADR validator boefje and normalizer to check Dutch API Design Rules.
+ * Webpage capture boefje for taking screenshots of websites.
+ * Normalizer for Burp Suite export.
+ * The web interface has a new look and feel.
+ * The workflow of enabling a boefje with required settings has been improved.
+ * Filtering and sorting on KAT-alogus page has been improved.
+ * Raw file upload page has been added.
+ * Findings have been changed to be more informative to the end-user.
+ * Added the option to bulk set the clearance level to "inherint" on the objects
+   page.
+ * Mula changed to using PostgreSQL everywhere and SQLite is no longer supported
+   as database.
+
+Upgrading
+=========
+
+In this release we stopped supporting SQLite as database because there were too
+many problems to keep supporting it. If you were previously using SQLite you
+need to switch your database to PostgreSQL.
+
+Debian packages
+---------------
+
+The Debian package previously defaulted to using the in-memory SQLite for the
+scheduler (mula). This needs to be changed to PostgreSQL. This will also fix
+that previously with the in-memory SQLite all the tasks were gone if the
+scheduler got restarted.
+
+Creating a database for the scheduler needs to be done in the same as the other
+databases were done during installation. First start with generating a random
+password for PostgreSQL. Insert this password into the connection string for the
+Mula DB in `/etc/kat/mula.conf`. For example:
+
+.. code-block:: sh
+
+    SCHEDULER_DB_DSN=postgresql://mula:<password>@localhost/mula_db
+
+Create a new database and user for Mula:
+
+.. code-block:: sh
+
+    sudo -u postgres createdb mula_db
+    sudo -u postgres createuser mula -P
+    sudo -u postgres psql -c 'GRANT ALL ON DATABASE mula_db TO mula;'
+
+Initialize the Mula database:
+
+.. code-block:: sh
+
+    sudo -u kat update-mula-db
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.7.0>`_.

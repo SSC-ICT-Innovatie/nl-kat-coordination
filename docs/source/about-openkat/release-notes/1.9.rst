@@ -1,0 +1,38 @@
+===========
+OpenKAT 1.9
+===========
+
+Basic support for Config OOIs has been added. Not every organization has the
+same policy and also different objects might need different treatment and Config
+OOIs will provide an easy way to change the behaviour of bits. The first
+configurable parameter is the max age of the HSTS header in the
+check_hsts_header bit. More configurable parameters will be added in the future.
+
+Performance improvements have been made in several areas. Support for
+OpenTelemetry has also been added to get better insight into performance. Work
+on more performance improvements is still ongoing.
+
+New Features
+============
+
+ * Improved raw output download in case of boefje/normalizer crashed.
+ * Openmetric endpoint has been added to bytes and mula.
+ * The version is displayed in the web interface in the footer.
+
+Bug fixes
+=========
+
+ * Special characters are correctly escaped in Keiko.
+ * The release candidate Debian packages have the correct version.
+ * Organization names that have namespaces conflicts with URLs are denied.
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.9.0>`_.

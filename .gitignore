@@ -35,3 +35,7 @@ coverage.xml
 .coverage*
 .python-version
 .benchmarks
+# Docs
+docs/_build/
+docs/source/_static/d3.min.js
+docs/source/_static/mermaid.min.js

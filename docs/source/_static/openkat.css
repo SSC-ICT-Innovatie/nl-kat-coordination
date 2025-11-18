@@ -1,0 +1,9 @@
+/* Custom OpenKAT styling */
+
+.rst-content .admonition-title {
+    background-color: #ca005d;
+}
+
+.wy-side-nav-search {
+    background-color: #ca005d;
+}

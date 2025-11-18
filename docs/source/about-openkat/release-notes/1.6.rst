@@ -1,0 +1,25 @@
+===========
+OpenKAT 1.6
+===========
+
+The main new feature of OpenKAT 1.6 is support for email security with DKIM,
+DMARC and SPF being added to the data model, boefjes, normalizers and bits. This
+release also offers a lot of smaller improvements in installation, interface,
+maintenance and documentation.
+
+ * Settings can now be copied from one organisation to another in the
+   KAT-alogus. This has been built in such a way that we can add bulk actions in
+   the near future.
+ * Uploaded documents are added to Bytes, hashed and timestamped just like all
+   other raw data, which gives gives you the certainty about the date time of
+   upload and the consistency of the document at a later stage - just like with
+   all data included in Bytes.
+ * A new look for OpenKAT is not be visible right away but a lot of changes in
+   both Manon and OpenKat 'manon' for the interface allows you to personalize
+   OpenKAT with ease.
+ * The documentation has been revamped and is available at https://docs.openkat.nl.
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.6.0>`_.

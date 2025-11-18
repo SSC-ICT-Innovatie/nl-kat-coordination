@@ -1,0 +1,55 @@
+============
+OpenKAT 1.12
+============
+
+The KAT-alogus has been extended to show both the boefjes and normalizers. The
+normalizers don't have a detail page yet, this is planned for the next release.
+
+Information about which filters where used to create a report has been added to
+the reports. The report will also include a link to the OpenKAT installation
+that can be used to reproduce the report. The link in the report can be disabled
+by setting `ROCKY_REPORT_PERMALINKS` to `False`.
+
+The number of gunicorn workers in the Debian packages has been set to a fixed
+number instead of basing the number of workers on the number of cores. This
+fixes a problem that installing all the packages on a single machine with a lot
+of cores it would start too many processes and run out of memory.
+
+New Features
+============
+
+ * A new boefje and normalizer for checking security.txt has been added.
+ * When downloading a report on the findings page the active filters are used to
+   create the report.
+ * The superuser has access to every organisation. Before this change you would
+   need to manually add the superuser as a member of each organization.
+
+Bug fixes
+=========
+
+ * The severity level for CVEs were one level too low because the maximum score
+   of each severity was used as the minimum score. Thanks to Jordy van den
+   Elshout for contributing the fix!
+ * Rescheduling a task that is already running is correctly handled now.
+ * HSTS findings are only created on https resource and not on http resources.
+ * Indentation and counter of child OOIs in OOI tree view has been fixed.
+ * The task list will show the plugin name instead of the plugin id in the task list.
+ * A boefje can only be enabled if the user has the correct clearance.
+ * We correct redirect back to the original page when we prompt for login after
+   session timeout.
+ * The home directory is set correct in the Debian packages.
+ * Handling of systemd units has been fixed in the Debian packages. This means
+   that after installing the services will be automatically started and after
+   upgrading they will be automatically restarted.
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/minvws/nl-kat-coordination/releases/tag/v1.12.0>`_.

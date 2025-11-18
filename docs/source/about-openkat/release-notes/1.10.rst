@@ -1,0 +1,76 @@
+============
+OpenKAT 1.10
+============
+
+The most visible change is that the user interface got major improvements and
+uses the latest version of Manon. There are still some minor issues left that
+will be fixed in upcoming releases.
+
+Finding types have been moved from Rocky database to Octopoes/XTDB and types are
+an OOI now. Having the findings together with finding types in XTDB means that
+we can query, aggregate and/or filter the findings based on findingtypes or
+severity in XTDB. By doing those queries completely in XTDB we fixed several
+performance issues. Finding types are added by boefjes which will also give more
+flexibility adding/changing/updating finding types in the future.
+
+The CVE finding boefje will download the CVE information from
+https://cve.openkat.dev/. It is also possible to run your own instance of this
+API, see :doc:`/installation-and-deployment/cveapi` for more information.
+
+The Python version used in the container images have been updated to 3.11.
+Python 3.11 is a lot faster so this should also make OpenKAT faster. Django
+version has also been updated to version 4.2.
+
+This release also provides packages for Debian 12 (bookworm). We recommend
+everyone to upgrade their machines to Debian 12 because the included Python 3.11
+will give a big performance boost. Debian 11 packages will still be provided
+until December 2023 as described in :ref:`installation-and-deployment/production-debian-environment:Supported distributions`.
+
+New Features
+============
+
+ * Two factor auth can be disabled. We recommend that this only be used for
+   development/test installations or when external authentication is in use.
+ * External authentication support using Django's standard middleware that uses
+   REMOTE_USER. See :doc:`/installation-and-deployment/external-authentication` how to configure this.
+ * The used signing provider is stored alongside rawfiles to make it possible to
+   switch providers and still check older rawfiles.
+ * The task list has better filters.
+ * Environment variables for boefjes aren't tutomatically inherited from the
+   runner process anymore and need to be set explicitly.
+ * New masscan boefje for scanning IP ranges. This boefje should work better for
+   large ranges than the nmap IP range boefje.
+ * New external asset database boefje that can query an external database HTTP
+   API to import IPs, netblocks and hostnames.
+
+Bug fixes
+=========
+
+ * Sleeping is only done when all queues are empty. This makes it possible to
+   increase the boefjes/normalizer poll interval without a decrease in
+   throughput.
+ * The Fierce boefje got some fixes.
+ * A number of bugs in the scheduler have been fixed.
+
+Upgrading
+=========
+
+Django 4.2 requires that the trusted origins for CSRF protection is set. This
+can be done using the `DJANGO_CSRF_TRUSTED_ORIGINS` variable. It is a good idea
+to also set `DJANGO_ALLOWED_HOSTS` to the used hostnames, detailed instructions
+are written in the :doc:`/installation-and-deployment/hardening` section.
+
+If you configured system environment settings for boefjes or relied on existing
+system variables being inherited by boefjes you need to explicitly set those
+variables using either the boefje settings in the KAT-alogus or system
+environment variables provided to the boefje process prepended with `BOEFJE_`.
+See environment variables section of the :doc:`/installation-and-deployment/environment-settings/boefjes` documentation for more
+information.
+
+The normal instructions for upgrading :ref:`Upgrading Debian`
+or upgrading :ref:`Upgrading_Containers` should be followed.
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.10.0>`_.

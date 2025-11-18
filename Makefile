@@ -1,4 +1,4 @@
-.PHONY: build run test export_migrations debian clean plugins up
+.PHONY: build run test export_migrations debian clean plugins up docs
 HIDE:=$(if $(VERBOSE),,@)
 
 UNAME := $(shell uname)
@@ -106,3 +106,16 @@ ifeq ($(UNAME), Darwin)  # Different sed on MacOS
 else
 	$(HIDE) grep -o "{%\([_A-Z]*\)}" .env-dist | sort -u | while read v; do sed -i "s/$$v/$$(openssl rand -hex 25)/g" .env; done
 endif
+
+docs:
+	@mkdir -p docs/source/_static
+	curl -sL -o - https://registry.npmjs.org/d3/-/d3-7.9.0.tgz | tar -Oxzf - package/dist/d3.min.js > docs/source/_static/d3.min.js
+	curl -sL -o - https://registry.npmjs.org/mermaid/-/mermaid-11.3.0.tgz | tar -Oxzf - package/dist/mermaid.min.js > docs/source/_static/mermaid.min.js
+ifeq ($(UNAME),Darwin)
+	echo "f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539  docs/source/_static/d3.min.js" | shasum -a 256 --check || exit 1
+	echo "0d2b6f2361e7e0ce466a6ed458e03daa5584b42ef6926c3beb62eb64670ca261  docs/source/_static/mermaid.min.js" | shasum -a 256 --check || exit 1
+else
+	echo "f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539  docs/source/_static/d3.min.js" | sha256sum --check || exit 1
+	echo "0d2b6f2361e7e0ce466a6ed458e03daa5584b42ef6926c3beb62eb64670ca261  docs/source/_static/mermaid.min.js" | sha256sum --check || exit 1
+endif
+	uv run --with sphinx --with sphinx-rtd-theme --with myst-parser --with sphinxcontrib-mermaid --with autodoc_pydantic sphinx-build -b html docs/source docs/_build

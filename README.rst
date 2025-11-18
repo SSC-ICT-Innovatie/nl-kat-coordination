@@ -25,14 +25,6 @@ Documentation
 - Technical documentation
 - Our `Figma / UX designs <https://docs.openkat.nl/ux_design/figma.html>`_.
 
-Brochures
-=========
-
-The high level documentation on OpenKAT explains the purpose and operation of OpenKAT at the management level:
-
-- `the 'TL;DR' of 2 pages (English) <https://github.com/minvws/nl-kat-coordination/blob/main/docs/source/introduction/pdf/OpenKAT%20handout_ENG.pdf>`_
-- `the extensive brochure on OpenKAT (Dutch) <https://github.com/minvws/nl-kat-coordination/blob/main/docs/source/introduction/pdf/introductie%20OpenKAT%20V20220621.pdf>`_
-
 Current release
 ===============
 

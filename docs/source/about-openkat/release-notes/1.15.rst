@@ -1,0 +1,77 @@
+======================
+OpenKAT 1.15 (Roeltje)
+======================
+
+This release includes some big optimizations in the new reporting functionality
+that was introduced in 1.14. Measurements show that generating a report on 100
+objects is approximately 20 times faster. The reports in general also got a lot
+of improvements and bugfixes.
+
+New Features
+============
+
+ * The types the normalizer consumes link to upload page now. The produces list
+   has been fixed and link to the object page.
+ * Support for adding and checking CAA records has been added.
+ * Token authentication for APIs has been added.
+ * Reports show both when the report has been created and the selected valid time.
+ * With CSV upload it is possible to also set the clearance level.
+ * More CSP checks have been added.
+ * Scan profiles can be declared through normalizers.
+ * It possible to select all OOIs for aggregate reports.
+ * Plugin page in reporting flow is skipped if all plugins are enabled.
+ * Setting to limit size of IP range has been added to nmap boefje.
+ * Added settings for database pool size config.
+ * The KAT findings database has been updated.
+ * New findings report has been added to replace the old one.
+ * Improved metrics collection in the scheduler.
+ * Extra checks for findings have been added to the dns report.
+
+Bug fixes
+=========
+
+ * Multireport doesn't have wrong preselection in form
+ * Render dicts and list ooi attrs as jsonfield so that all OOIs can be manually added.
+ * Install and update script check for sudo
+ * Error handling in reporting has been improved
+ * Fixed several bugs in mail report.
+ * Fixed a bug in open ports report.
+ * Fix broken wordpress check in wpscan boefje.
+ * Add timeouts to CVE API downloader.
+ * Forms will check if the required number of checkboxes are checked.
+ * Primary buttons are properly aligned to the left and export buttons in the report are placed properly.
+ * Do not show an error in tasks stats if no tasks have run yet.
+ * Health page is accessible during onboarding.
+ * Wrong domain count in systems report has been fixed.
+ * Do not log an error on token refresh in bytes client.
+ * Fix settings of kat_dns boefje not being used.
+ * Ignore certificate errors in security txt boefje instead of returning an error.
+ * Vulnerabilities in vulnerability report are sorted.
+ * Duplicate OOIs have been removed in the reports.
+ * Our HSTS check has been changed to case insensitive.
+ * Give an error when future observed at date is selected.
+ * Fix removal of findings when domain does not exist anymore.
+ * Fix error with unicode in octopoes.
+ * Fixes for table overflowing the PDF report.
+ * Set a timeout on hanging test ssl container,
+ * Raise exception if boefje input OOI has been deleted.
+ * Filter out undeserializable objects from xtdb query, gets rid of "could not deserialize value" octopoes worker log messages.
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Debian packages
+---------------
+
+1.14 was the last release to provide Debian packages for Debian 11. If you are
+still running Debian 11 you need to upgrade to Debian 12 to be able to upgrade
+to OpenKAT 1.15.
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/minvws/nl-kat-coordination/releases/tag/v1.15.0>`_.

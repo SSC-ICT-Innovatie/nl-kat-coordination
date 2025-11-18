@@ -1,0 +1,71 @@
+============================================
+OpenKAT 1.20
+============================================
+
+In this release we have added deduplication of boefje tasks. This means that
+when the same object is in multiple organizations, we only run the boefje once
+and use the output in every organization. If you have users from multiple
+organizations it might be possible that a user can conclude from the
+deduplication that an object is also in another organization in the same
+install. This might not be desirable, so this is by default disabled and can be
+enabled by setting `BOEFJES_DEDUPLICATE`.
+
+In 1.20 we finished the containerization of all boefjes. All boefjes are run
+sandboxed as containers now.
+
+Asset reports have been made optional and can be disabled by setting
+`ASSET_REPORTS`. This is advised when you are creating reports on a large number
+of objects.
+
+New Features
+============
+
+* Report sections can be added to a dashboard.
+* Organizations are ordered by name everywhere in the web interface.
+* Added warnings when you don't have permissions to set a clearance level or an indemnification is missing.
+* A number of design / style issues have been fixed / improved in the web interface.
+* Performance of mute findings has been improved and the mute findings button moved to the top of the page.
+* Number of calls from mula to octopoes have been optimized.
+* More settings and env variables are hidden in debug mode to prevent logging of credentials
+* Auth token can only be used to in the API tokens, not in the other views.
+* The boefje containers can only talk to the boefje API in the developer docker-compose.yml or when using the updated docker-compose.release-example.yml, not to the other services.
+* The question object has been changed to also show the current answer.
+* The onboarding has been improved and simplified.
+
+
+Bug fixes
+=========
+
+* Make it possible to use SSL with PostgreSQL without a client certificate.
+* Fixed handling of a boefje task that fails.
+* Fixed dnssec false positives with cnames.
+* Fixed bug that report runner would lose the database connection and not reconnect.
+* Fixed AttributeError in onboarding when WebURL could not be found.
+* Several bugs in multi organization report have been fixed.
+* Fixed observed_at in report links.
+* Fixed filters on organization members page.
+
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Boefje container images
+-----------------------
+
+The boefje container images of 1.19 are not compatible with 1.20. The simplest
+way to use the latest boefje images is to delete them and let docker download
+the latest version:
+
+.. code-block:: sh
+
+    docker image rm ghcr.io/minvws/openkat/dns-sec:latest ghcr.io/minvws/openkat/export-http:latest ghcr.io/minvws/openkat/nmap:latest
+
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/minvws/nl-kat-coordination/releases/tag/v1.20.0>`_.
