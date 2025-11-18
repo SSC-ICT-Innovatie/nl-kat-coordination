@@ -131,25 +131,31 @@
                                             {# TODO: Permissions #}
                                             <a class="button"
                                                href="{% url "task_list" %}?schedule_id={{ schedule.id }}">{% translate "View tasks" %}</a>
-                                            <form action="{% url "run_schedule" schedule.id %}" method="post">
-                                                {% csrf_token %}
-                                                <button class="ghost" type="submit">
-                                                    <span class="icon ti-refresh"></span>
-                                                    {% translate "Rerun now" %}
-                                                </button>
-                                            </form>
-                                            <a class="button ghost"
-                                               href="{% url "schedule_detail" pk=schedule.id %}">
-                                                <span class="icon ti-edit"></span>
-                                                {% translate "Edit" %}
-                                            </a>
-                                            <form action="{% url "delete_schedule" schedule.id %}" method="post">
-                                                {% csrf_token %}
-                                                <button class="ghost destructive" type="submit">
-                                                    <span class="icon ti-trash"></span>
-                                                    {% translate "Delete" %}
-                                                </button>
-                                            </form>
+                                            {% if perms.plugins.run_plugin %}
+                                                <form action="{% url "run_schedule" schedule.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button class="ghost" type="submit">
+                                                        <span class="icon ti-refresh"></span>
+                                                        {% translate "Run now" %}
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                            {% if perms.tasks.change_schedule %}
+                                                <a class="button ghost"
+                                                   href="{% url "schedule_detail" pk=schedule.id %}">
+                                                    <span class="icon ti-edit"></span>
+                                                    {% translate "Edit" %}
+                                                </a>
+                                            {% endif %}
+                                            {% if perms.tasks.delete_schedule %}
+                                                <form action="{% url "delete_schedule" schedule.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button class="ghost destructive" type="submit">
+                                                        <span class="icon ti-trash"></span>
+                                                        {% translate "Delete" %}
+                                                    </button>
+                                                </form>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

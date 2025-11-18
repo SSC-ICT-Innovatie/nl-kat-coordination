@@ -51,6 +51,9 @@ class Plugin(models.Model):
 
     objects = models.Manager()
 
+    class Meta:
+        permissions = [("run_plugin", "Can run a plugin")]
+
     def repository(self) -> str | None:
         if not self.oci_arguments:
             return None

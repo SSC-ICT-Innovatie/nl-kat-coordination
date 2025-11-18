@@ -102,16 +102,18 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if plugin.consumed_types %}
-                            <a href="{% url 'add_task' %}?plugin={{ plugin.id }}">
-                                <button type="submit">{% translate "Run" %}</button>
-                            </a>
-                        {% elif not plugin.files_in_arguments %}
-                            <form action="{% url 'add_task' %}" method="post">
-                                {% csrf_token %}
-                                <input type="hidden" name="plugin" value="{{ plugin.id }}">
-                                <button type="submit">{% translate "Run" %}</button>
-                            </form>
+                        {% if perms.plugins.run_plugin %}
+                            {% if plugin.consumed_types %}
+                                <a href="{% url 'add_task' %}?plugin={{ plugin.id }}">
+                                    <button type="submit">{% translate "Run" %}</button>
+                                </a>
+                            {% elif not plugin.files_in_arguments %}
+                                <form action="{% url 'add_task' %}" method="post">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="plugin" value="{{ plugin.id }}">
+                                    <button type="submit">{% translate "Run" %}</button>
+                                </form>
+                            {% endif %}
                         {% endif %}
                     </td>
                 </tr>
