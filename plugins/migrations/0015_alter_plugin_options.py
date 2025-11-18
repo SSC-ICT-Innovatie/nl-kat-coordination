@@ -4,14 +4,8 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
-    dependencies = [
-        ('plugins', '0014_plugin_permissions'),
-    ]
+    dependencies = [("plugins", "0014_plugin_permissions")]
 
     operations = [
-        migrations.AlterModelOptions(
-            name='plugin',
-            options={'permissions': [('run_plugin', 'Can run a plugin')]},
-        ),
+        migrations.AlterModelOptions(name="plugin", options={"permissions": [("run_plugin", "Can run a plugin")]})
     ]
