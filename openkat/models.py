@@ -116,7 +116,6 @@ class Organization(models.Model):
 
     class Meta:
         permissions = (
-            ("can_switch_organization", "Can switch organization"),
             ("can_scan_organization", "Can scan organization"),
             ("can_set_clearance_level", "Can set clearance level"),
             ("can_access_all_organizations", "Can access all organizations"),

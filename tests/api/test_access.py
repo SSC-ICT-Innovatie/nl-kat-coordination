@@ -95,6 +95,21 @@ def test_jwt_object_permission(organization):
     response = client.get("/api/v1/file/")
     assert response.status_code == 200
 
+    response = client.get(f"/api/v1/file/{f1.pk}/download/")
+    assert response.status_code == 403
+
+    token = JWTTokenAuthentication.generate(
+        {"files.view_file": {"pks": [f1.pk]}, "files.download_file": {"pks": [f1.pk]}}
+    )
+    client.credentials(HTTP_AUTHORIZATION="Token " + token)
+
+    response = client.get(f"/api/v1/file/{f1.pk}/download/")
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "text/plain; charset=utf-8"
+    assert response.headers["content-length"] == str(f1.file.size)
+    assert response.headers["content-disposition"] == 'attachment; filename="f1.txt"'
+    assert response.file.read() == b"first\n"
+
     response = client.get(f"/api/v1/file/{f1.pk}/")
     assert response.status_code == 200
     assert response.json() == {
@@ -116,6 +131,9 @@ def test_jwt_object_permission(organization):
     }
 
     response = client.post("/api/v1/file/", json={})
+    assert response.status_code == 403
+
+    response = client.get(f"/api/v1/file/{f2.pk}/download/")
     assert response.status_code == 403
 
 

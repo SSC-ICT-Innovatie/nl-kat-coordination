@@ -111,10 +111,10 @@
                                             {% endif %}
                                         </div>
                                         <div class="button-container">
-                                            {% if perms.tools.can_add_boefje %}
+                                            {% if perms.plugins.add_plugin %}
                                                 <a class="button ghost" href="{% url "update_plugin" pk=variant.id %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit plugin" %}</a>
                                             {% endif %}
-                                            {% if perms.openkat.can_delete_boefje %}
+                                            {% if perms.plugins.delete_plugin %}
                                                 <a class="button ghost destructive"
                                                    href="{% url "delete_plugin" plugin.id %}">
                                                     {% translate "Delete plugin" %}

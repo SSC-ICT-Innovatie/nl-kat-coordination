@@ -5,12 +5,10 @@ from django.contrib import admin
 from django.urls import include, path
 from django.views.generic.base import TemplateView
 from django.views.i18n import JavaScriptCatalog
-from django_downloadview import ObjectDownloadView
 from rest_framework import routers
 from two_factor.urls import urlpatterns as tf_urls
 
-from files.models import File
-from files.viewsets import FileViewSet
+from files.viewsets import FileDownloadView, FileViewSet
 from objects.urls import object_router
 from openkat.views.account import AccountView
 from openkat.views.indemnification_add import IndemnificationAddView
@@ -49,7 +47,7 @@ urlpatterns = [
     path("api/v1/objects/", include(object_router.urls)),
     path("", include(tf_urls)),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
-    path("api/v1/file/<slug:pk>/download/", ObjectDownloadView.as_view(model=File, file_field="file"), name="download"),
+    path("api/v1/file/<slug:pk>/download/", FileDownloadView.as_view(actions={"get": "get"}), name="download"),
 ]
 urlpatterns += i18n_patterns(
     path("<organization_code>/account/", AccountView.as_view(), name="account_detail"),

@@ -13,7 +13,7 @@
         <li {% if view == "variants" %}aria-current="page"{% endif %}>
             <a href="{% url "plugin_detail_variants" pk=plugin.id %}">{% translate "Variants" %}</a>
         </li>
-        {% if perms.openkat.can_add_boefje %}
+        {% if perms.openkat.add_plugin %}
             <li {% if view == "settings" %}aria-current="page"{% endif %}>
                 <a href="{% url "update_plugin" pk=plugin.id %}">{% translate "Settings" %}</a>
             </li>

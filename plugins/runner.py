@@ -168,13 +168,17 @@ class PluginRunner:
         if tmp_file:
             environment["IN_FILE"] = str(tmp_file.pk)
             perms["files.view_file"] = {"pks": [tmp_file.pk]}  # This plugin has access to one file
+            perms["files.download_file"] = {"pks": [tmp_file.pk]}
 
         for cmd in command:
             for file_pk in re.findall(r"\{file/(\d+)\}", cmd):
                 if "files.view_file" not in perms:
                     perms["files.view_file"] = {"pks": []}
+                if "files.download_file" not in perms:
+                    perms["files.download_file"] = {"pks": []}
 
-                perms["files.view_file"]["pks"].append(file_pk)
+                perms["files.view_file"]["pks"].append(int(file_pk))
+                perms["files.download_file"]["pks"].append(int(file_pk))
 
         perms |= plugin.permissions  # Plugins can define extra permissions
         environment["OPENKAT_TOKEN"] = JWTTokenAuthentication.generate(perms)
