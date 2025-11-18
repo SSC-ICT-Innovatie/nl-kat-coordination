@@ -25,6 +25,9 @@ class File(models.Model):
 
         return super().save(*args, **kwargs)
 
+    class Meta:
+        permissions = (("download_file", "Can download files"),)
+
 
 class GenericContent(ContentFile):
     def __init__(self, content: str | bytes):

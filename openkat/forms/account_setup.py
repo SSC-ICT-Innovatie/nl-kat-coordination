@@ -8,8 +8,7 @@ from openkat.enums import SCAN_LEVEL
 from openkat.forms.base import BaseOpenKATForm, BaseOpenKATModelForm
 from openkat.models import (
     GROUP_ADMIN,
-    GROUP_CLIENT,
-    GROUP_REDTEAM,
+    GROUP_READ_ONLY,
     ORGANIZATION_CODE_LENGTH,
     Organization,
     OrganizationMember,
@@ -80,8 +79,7 @@ class AccountTypeSelectForm(forms.Form):
     ACCOUNT_TYPE_CHOICES = [
         ("", _("--- Please select one of the available options ----")),
         (GROUP_ADMIN, GROUP_ADMIN),
-        (GROUP_REDTEAM, GROUP_REDTEAM),
-        (GROUP_CLIENT, GROUP_CLIENT),
+        (GROUP_READ_ONLY, GROUP_READ_ONLY),
     ]
 
     account_type = forms.CharField(
@@ -110,16 +108,12 @@ class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPaw
         self.organization = kwargs.pop("organization")
         self.account_type = kwargs.pop("account_type")
         super().__init__(*args, **kwargs)
-        if self.account_type != GROUP_REDTEAM:
-            self.fields.pop("trusted_clearance_level")
+        self.fields.pop("trusted_clearance_level")
 
     def register_member(self):
         user = self.register_user()
         member = OrganizationMember.objects.create(user=user, organization=self.organization)
         member.groups.add(Group.objects.get(name=self.account_type))
-
-        if self.account_type == GROUP_REDTEAM:
-            member.trusted_clearance_level = self.cleaned_data.get("trusted_clearance_level")
 
         if self.account_type == GROUP_ADMIN:
             member.trusted_clearance_level = 4

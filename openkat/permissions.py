@@ -1,8 +1,42 @@
+from collections.abc import Sequence
+
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.core.exceptions import ImproperlyConfigured
+from django.views import View
 from django.views.generic import CreateView, DeleteView, UpdateView
 from rest_framework.permissions import DjangoModelPermissions
+from rest_framework.request import Request
 
 from objects.models import object_type_by_name
+
+
+def has_token_permission(request: Request, perms: Sequence[str], action: str | None = "retrieve") -> bool:
+    if not hasattr(request, "auth") or not isinstance(request.auth, dict):
+        return False
+
+    token_perms = request.auth.get("permissions", {})
+
+    if not isinstance(token_perms, dict):
+        return False
+
+    for view_perm in perms:
+        if view_perm not in token_perms:
+            return False
+
+        if not isinstance(token_perms[view_perm], dict) or token_perms[view_perm] == {}:
+            continue
+
+        if action == "retrieve":
+            continue  # The checks below apply to the "list" action only
+
+        if "search" in token_perms[view_perm] and request.GET.get("search") not in token_perms[view_perm]["search"]:
+            return False
+
+        if "limit" in token_perms[view_perm] and int(request.GET.get("limit")) != int(token_perms[view_perm]["limit"]):
+            return False
+
+    # The auth token has all required permissions
+    return True
 
 
 class KATModelPermissions(DjangoModelPermissions):
@@ -25,7 +59,7 @@ class KATModelPermissions(DjangoModelPermissions):
         KATMultiModelPermissions
         """
 
-        if self.has_token_permission(request, view):
+        if has_token_permission(request, self._view_perms(request, view), view.action):
             return True
 
         if not request.user or (not request.user.is_authenticated and self.authenticated_users_only):
@@ -34,7 +68,13 @@ class KATModelPermissions(DjangoModelPermissions):
         if getattr(view, "_ignore_model_permissions", False):
             return True
 
-        return request.user.has_perms(self.view_perms(request, view))
+        return request.user.has_perms(self._view_perms(request, view))
+
+    def has_object_permission(self, request, view, obj):
+        if self.has_token_object_permission(request, view, obj):
+            return True
+
+        return super().has_permission(request, view)
 
     def has_token_permission(self, request, view):
         if not hasattr(request, "auth") or not isinstance(request.auth, dict):
@@ -45,7 +85,7 @@ class KATModelPermissions(DjangoModelPermissions):
         if not isinstance(token_perms, dict):
             return False
 
-        for view_perm in self.view_perms(request, view):
+        for view_perm in self._view_perms(request, view):
             if view_perm not in token_perms:
                 return False
 
@@ -66,14 +106,11 @@ class KATModelPermissions(DjangoModelPermissions):
         # The auth token has all required permissions
         return True
 
-    def view_perms(self, request, view):
-        return self.get_required_permissions(request.method, self._queryset(view).model)
-
-    def has_object_permission(self, request, view, obj):
+    def has_token_object_permission(self, request, view, obj):
         if not hasattr(request, "auth") or not isinstance(request.auth, dict):
-            return super().has_permission(request, view)
+            return False
 
-        view_perms = self.view_perms(request, view)
+        view_perms = self._view_perms(request, view)
         token_perms = request.auth.get("permissions", {})
 
         if not isinstance(token_perms, dict):
@@ -91,9 +128,14 @@ class KATModelPermissions(DjangoModelPermissions):
 
         return True
 
+    def _view_perms(self, request: Request, view: View) -> list[str]:
+        view_perms = set(view.permission_required) if hasattr(view, "permission_required") else set()
+
+        return list(set(self.get_required_permissions(request.method, self._queryset(view).model)) | view_perms)
+
 
 class KATMultiModelPermissions(KATModelPermissions):
-    def view_perms(self, request, view):
+    def _view_perms(self, request, view):
         perms: list[str] = []
         models = {key.lower(): model for key, model in object_type_by_name().items()}
 
@@ -114,10 +156,13 @@ class KATModelPermissionRequiredMixin(PermissionRequiredMixin):
     }
 
     def get_permission_required(self) -> list[str]:
-        permissions_required: list[str] = []
+        try:
+            permissions_required = list(super().get_permission_required())
+        except ImproperlyConfigured:
+            permissions_required = []
 
         if not issubclass(self.__class__, CreateView | UpdateView | DeleteView):
-            return list(super().get_permission_required())
+            return permissions_required
 
         kwargs = {"app_label": self.model._meta.app_label, "model_name": self.model._meta.model_name}
 

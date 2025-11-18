@@ -21,9 +21,8 @@ from onboarding.view_helpers import (
 )
 from openkat.exceptions import OpenKATError
 from openkat.forms import MemberRegistrationForm, OnboardingOrganizationUpdateForm, OrganizationForm
-from openkat.messaging import clearance_level_warning_dns_report
 from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
-from openkat.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Organization, OrganizationMember
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization, OrganizationMember
 from openkat.views.account import ObjectClearanceMixin
 from openkat.views.indemnification_add import IndemnificationAddView
 
@@ -37,9 +36,6 @@ class OnboardingStart(OrganizationView):
         if self.organization_member.has_perms(ONBOARDING_PERMISSIONS):
             return redirect("step_introduction", kwargs={"organization_code": self.organization.code})
         return redirect("plugin_list")
-
-
-# REDTEAMER FLOW
 
 
 class OnboardingIntroductionView(
@@ -264,7 +260,7 @@ class OnboardingAccountCreationMixin(
         return kwargs
 
 
-# Account setup for multiple user accounts: redteam, admins, clients
+# Account setup for multiple user accounts: admins, clients
 
 
 class OnboardingChooseUserTypeView(
@@ -290,36 +286,10 @@ class OnboardingAccountSetupAdminView(RegistrationBreadcrumbsMixin, OnboardingAc
     account_type = GROUP_ADMIN
 
     def get_success_url(self) -> str:
-        return reverse_lazy("step_account_setup_red_teamer", kwargs={"organization_code": self.organization.code})
-
-    def form_valid(self, form):
-        name = form.cleaned_data["name"]
-        self.add_success_notification(name)
-        return super().form_valid(form)
-
-    def add_success_notification(self, name):
-        success_message = _("{name} successfully created.").format(name=name)
-        messages.add_message(self.request, messages.SUCCESS, success_message)
-
-
-class OnboardingAccountSetupRedTeamerView(RegistrationBreadcrumbsMixin, OnboardingAccountCreationMixin):
-    """
-    Step 2: Create an redteamer account with redteam rights
-    """
-
-    template_name = "account/step_5_account_setup_red_teamer.html"
-    form_class = MemberRegistrationForm
-    current_step = 4
-    account_type = GROUP_REDTEAM
-
-    def get_success_url(self, **kwargs):
         return reverse_lazy("step_account_setup_client", kwargs={"organization_code": self.organization.code})
 
     def form_valid(self, form):
         name = form.cleaned_data["name"]
-        trusted_clearance_level = form.cleaned_data.get("trusted_clearance_level")
-        if trusted_clearance_level and int(trusted_clearance_level) < DNS_REPORT_LEAST_CLEARANCE_LEVEL:
-            clearance_level_warning_dns_report(self.request, trusted_clearance_level)
         self.add_success_notification(name)
         return super().form_valid(form)
 
@@ -336,7 +306,7 @@ class OnboardingAccountSetupClientView(RegistrationBreadcrumbsMixin, OnboardingA
     template_name = "account/step_6_account_setup_client.html"
     form_class = MemberRegistrationForm
     current_step = 4
-    account_type = GROUP_CLIENT
+    account_type = GROUP_READ_ONLY
 
     def get_success_url(self, **kwargs):
         return reverse_lazy("complete_onboarding", kwargs={"organization_code": self.organization.code})
@@ -353,7 +323,7 @@ class OnboardingAccountSetupClientView(RegistrationBreadcrumbsMixin, OnboardingA
 
 class CompleteOnboarding(OrganizationView):
     """
-    Complete onboarding for redteamers and superusers.
+    Complete onboarding for superusers.
     """
 
     def get(self, request, *args, **kwargs):

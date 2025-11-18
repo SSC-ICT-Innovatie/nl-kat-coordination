@@ -58,11 +58,6 @@ urlpatterns = [
         name="step_account_setup_admin",
     ),
     path(
-        "<organization_code>/step/account-setup/red-teamer/",
-        views.OnboardingAccountSetupRedTeamerView.as_view(),
-        name="step_account_setup_red_teamer",
-    ),
-    path(
         "<organization_code>/step/account-setup/client/",
         views.OnboardingAccountSetupClientView.as_view(),
         name="step_account_setup_client",

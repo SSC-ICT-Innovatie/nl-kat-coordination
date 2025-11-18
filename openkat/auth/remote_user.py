@@ -9,9 +9,7 @@ logger = structlog.get_logger(__name__)
 
 
 class RemoteUserBackend(BaseRemoteUserBackend):
-    """
-    Custom RemoteUserBackend that adds users to default organizations and groups.
-    """
+    """Custom RemoteUserBackend that adds users to default organizations and groups."""
 
     def configure_user(self, request, user, created=True):
         if settings.REMOTE_USER_DEFAULT_ORGANIZATIONS:

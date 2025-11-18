@@ -26,7 +26,7 @@ from rest_framework.test import APIClient
 
 from objects.models import Hostname, Network
 from openkat.management.commands.create_authtoken import create_auth_token
-from openkat.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Indemnification, Organization, OrganizationMember
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Indemnification, Organization, OrganizationMember
 from tasks.models import Task as TaskDB
 from tasks.tasks import run_plugin
 
@@ -144,19 +144,8 @@ def add_admin_group_permissions(member):
     group.permissions.set(admin_permissions)
 
 
-def add_redteam_group_permissions(member):
-    group = Group.objects.get(name=GROUP_REDTEAM)
-    member.groups.add(group)
-    redteam_permissions = list(
-        Permission.objects.filter(codename__in=["can_scan_organization", "can_set_clearance_level"]).values_list(
-            "id", flat=True
-        )
-    )
-    group.permissions.set(redteam_permissions)
-
-
 def add_client_group_permissions(member):
-    group = Group.objects.get(name=GROUP_CLIENT)
+    group = Group.objects.get(name=GROUP_READ_ONLY)
     member.groups.add(group)
     client_permissions = [Permission.objects.get(codename="can_scan_organization").id]
     group.permissions.set(client_permissions)
@@ -164,8 +153,7 @@ def add_client_group_permissions(member):
 
 @pytest.fixture(autouse=True)
 def seed_groups(db):
-    Group.objects.get_or_create(name=GROUP_CLIENT)
-    Group.objects.get_or_create(name=GROUP_REDTEAM)
+    Group.objects.get_or_create(name=GROUP_READ_ONLY)
     Group.objects.get_or_create(name=GROUP_ADMIN)
 
 
@@ -258,20 +246,6 @@ def admin_member_b(adminuser_b, organization_b):
 
 
 @pytest.fixture
-def redteamuser(django_user_model):
-    return create_user(
-        django_user_model, "redteamer@openkat.nl", "RedteamRedteam123!!", "Redteam name", "default_redteam"
-    )
-
-
-@pytest.fixture
-def redteam_member(redteamuser, organization):
-    member = create_member(redteamuser, organization)
-    add_redteam_group_permissions(member)
-    return member
-
-
-@pytest.fixture
 def clientuser(django_user_model):
     return create_user(django_user_model, "client@openkat.nl", "ClientClient123!!", "Client name", "default_client")
 
@@ -348,24 +322,6 @@ def setup_request(request, user):
 
 def get_stub_path(file_name: str) -> Path:
     return Path(__file__).parent / "stubs" / file_name
-
-
-@pytest.fixture
-def drf_admin_client(create_drf_client, admin_user):
-    client = create_drf_client(admin_user)
-    # We need to set this so that the test client doesn't throw an
-    # exception, but will return error in the API we can test
-    client.raise_request_exception = False
-    return client
-
-
-@pytest.fixture
-def drf_redteam_client(create_drf_client, redteamuser):
-    client = create_drf_client(redteamuser)
-    # We need to set this so that the test client doesn't throw an
-    # exception, but will return error in the API we can test
-    client.raise_request_exception = False
-    return client
 
 
 # Mark tests using the xtdb fixture automatically with django_db and require access to the "xtdb" database

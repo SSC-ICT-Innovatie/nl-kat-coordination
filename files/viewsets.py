@@ -1,4 +1,5 @@
-from rest_framework import viewsets
+from django_downloadview import ObjectDownloadView
+from rest_framework import mixins, viewsets
 from structlog import get_logger
 
 from files.models import File
@@ -29,3 +30,8 @@ class FileViewSet(viewsets.ModelViewSet):
             TaskResult.objects.create(file=file, task_id=self.request.GET["task_id"])
 
         process_raw_file(file)
+
+
+class FileDownloadView(viewsets.GenericViewSet, mixins.RetrieveModelMixin, ObjectDownloadView):
+    queryset = File.objects.all()
+    permission_required = ("files.view_file", "files.download_file")

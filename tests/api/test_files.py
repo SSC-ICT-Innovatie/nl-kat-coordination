@@ -18,6 +18,14 @@ def test_file_list_api(drf_client, xtdb, organization):
     assert response["results"][0]["type"] == "json"
     assert response["results"][0]["id"] == file.id
 
+    response = drf_client.get(f"/api/v1/file/{file.pk}/download/")
+
+    assert response.status_code == 200
+    assert response.headers["content-type"] == "application/json; charset=utf-8"
+    assert response.headers["content-length"] == str(file.file.size)
+    assert response.headers["content-disposition"] == 'attachment; filename="test.json"'
+    assert response.file.read() == b'{"test": "data"}'
+
 
 def test_file_create_api(drf_client, xtdb):
     test_file = SimpleUploadedFile("api_test.json", b'{"created": "via API"}', content_type="application/json")

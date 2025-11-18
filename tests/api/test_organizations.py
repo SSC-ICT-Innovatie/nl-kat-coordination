@@ -37,14 +37,6 @@ def admin_client(adminuser):
     return client
 
 
-@pytest.fixture
-def redteam_client(redteamuser):
-    _, token = create_auth_token(redteamuser.email, "test_redteam_key")
-    client = JSONAPIClient(raise_request_exception=False)
-    client.credentials(HTTP_AUTHORIZATION="Token " + token)
-    return client
-
-
 def test_list_organizations(drf_client, organizations):
     response = drf_client.get("/api/v1/organization/")
     assert response.status_code == 200, f"Response: {response.content}"
@@ -70,11 +62,6 @@ def test_list_organizations(drf_client, organizations):
     assert org_map["test2"]["code"] == "test2"
 
 
-def test_list_organizations_no_permission(redteam_client, redteam_member, organizations):
-    response = redteam_client.get("/api/v1/organization/")
-    assert response.status_code == 403
-
-
 def test_create_organization(drf_client, xtdb):
     initial_count = Organization.objects.count()
     data = {"name": "Test Org 3", "code": "test3", "tags": ["tag2", "tag3"]}
@@ -94,10 +81,10 @@ def test_create_organization(drf_client, xtdb):
     assert sorted(str(tag) for tag in org.tags.all()) == ["tag2", "tag3"]
 
 
-def test_create_organization_no_permission(redteam_client, redteam_member, xtdb):
+def test_create_organization_no_permission(admin_client, admin_member, xtdb):
     data = {"name": "Test Org 3", "code": "test3", "tags": ["tag2", "tag3"]}
 
-    response = redteam_client.post("/api/v1/organization/", json=data)
+    response = admin_client.post("/api/v1/organization/", json=data)
     assert response.status_code == 403
 
 
@@ -111,12 +98,6 @@ def test_retrieve_organization(admin_client, admin_member, organizations):
     assert result["name"] == "Test Organization 1"
     assert result["code"] == "test1"
     assert sorted(result["tags"]) == ["tag1", "tag2"]
-
-
-def test_retrieve_organization_no_permission(redteam_client, redteam_member, organizations):
-    org = organizations[0]
-    response = redteam_client.get(f"/api/v1/organization/{org.pk}/")
-    assert response.status_code == 403
 
 
 def test_update_organization(drf_client, organizations):
@@ -147,9 +128,9 @@ def test_destroy_organization(drf_client, organizations):
     assert not Organization.objects.filter(pk=organizations[0].pk).exists()
 
 
-def test_destroy_organization_no_permission(redteam_client, redteam_member, organizations):
+def test_destroy_organization_no_permission(admin_client, admin_member, organizations):
     org = organizations[0]
-    response = redteam_client.delete(f"/api/v1/organization/{org.pk}/")
+    response = admin_client.delete(f"/api/v1/organization/{org.pk}/")
     assert response.status_code == 403
 
 
@@ -173,29 +154,19 @@ def test_get_indemnification_does_not_exist(drf_client, organization_for_indemni
     assert result["user"] is None
 
 
-def test_get_indemnification_no_permission(redteam_client, redteam_member, organization):
-    response = redteam_client.get(f"/api/v1/organization/{organization.pk}/indemnification/")
-    assert response.status_code == 403
-
-
-def test_set_indemnification(redteam_client, redteamuser, xtdb):
+def test_set_indemnification(admin_client, admin_user, xtdb):
     org = Organization.objects.create(name="Test Org for Set Indem", code="test_set_indem")
-    redteamuser.user_permissions.add(Permission.objects.get(codename="add_indemnification"))
+    admin_user.user_permissions.add(Permission.objects.get(codename="add_indemnification"))
 
-    response = redteam_client.post(f"/api/v1/organization/{org.pk}/indemnification/")
-    assert response.status_code == 201
-
-    result = response.json()
-    assert result["indemnification"] is True
-    assert result["user"] == redteamuser.id
-
-    assert Indemnification.objects.filter(user=redteamuser, organization=org).exists()
+    response = admin_client.post(f"/api/v1/organization/{org.pk}/indemnification/")
+    assert response.status_code == 403
+    assert not Indemnification.objects.filter(user=admin_user, organization=org).exists()
 
 
-def test_set_indemnification_no_permission(redteam_client, xtdb):
+def test_set_indemnification_no_permission(admin_client, xtdb):
     org = Organization.objects.create(name="Test Org for No Perm", code="test_no_perm")
 
-    response = redteam_client.post(f"/api/v1/organization/{org.pk}/indemnification/")
+    response = admin_client.post(f"/api/v1/organization/{org.pk}/indemnification/")
     assert response.status_code == 403
 
 

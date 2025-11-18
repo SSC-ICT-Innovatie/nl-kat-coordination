@@ -5,7 +5,6 @@ from onboarding.views import (
     OnboardingAccountSetupAdminView,
     OnboardingAccountSetupClientView,
     OnboardingAccountSetupIntroView,
-    OnboardingAccountSetupRedTeamerView,
     OnboardingIntroductionRegistrationView,
     OnboardingOrganizationSetupView,
     OnboardingOrganizationUpdateView,
@@ -13,7 +12,7 @@ from onboarding.views import (
 from tests.conftest import setup_request
 
 
-def test_admin_onboarding_registration(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_admin_onboarding_registration(rf, superuser_member, admin_member, client_member):
     """
     This onboarding is before an organization has been created and it is only visible for superusers.
     """
@@ -32,18 +31,12 @@ def test_admin_onboarding_registration(rf, superuser_member, admin_member, redte
 
     with pytest.raises(PermissionDenied):
         OnboardingIntroductionRegistrationView.as_view()(
-            setup_request(rf.get("step_introduction_registration"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
-
-    with pytest.raises(PermissionDenied):
-        OnboardingIntroductionRegistrationView.as_view()(
             setup_request(rf.get("step_introduction_registration"), client_member.user),
             organization_code=client_member.organization.code,
         )
 
 
-def test_onboarding_organization_setup(rf, superuser, adminuser, redteamuser, clientuser):
+def test_onboarding_organization_setup(rf, superuser, adminuser, clientuser):
     response_superuser = OnboardingOrganizationSetupView.as_view()(
         setup_request(rf.get("step_organization_setup"), superuser)
     )
@@ -55,13 +48,10 @@ def test_onboarding_organization_setup(rf, superuser, adminuser, redteamuser, cl
         OnboardingOrganizationSetupView.as_view()(setup_request(rf.get("step_organization_setup"), adminuser))
 
     with pytest.raises(PermissionDenied):
-        OnboardingOrganizationSetupView.as_view()(setup_request(rf.get("step_organization_setup"), redteamuser))
-
-    with pytest.raises(PermissionDenied):
         OnboardingOrganizationSetupView.as_view()(setup_request(rf.get("step_organization_setup"), clientuser))
 
 
-def test_onboarding_organization_update(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_onboarding_organization_update(rf, superuser_member, admin_member, client_member):
     response_superuser = OnboardingOrganizationUpdateView.as_view()(
         setup_request(rf.get("step_organization_update"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -77,18 +67,12 @@ def test_onboarding_organization_update(rf, superuser_member, admin_member, redt
 
     with pytest.raises(PermissionDenied):
         OnboardingOrganizationUpdateView.as_view()(
-            setup_request(rf.get("step_organization_update"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
-
-    with pytest.raises(PermissionDenied):
-        OnboardingOrganizationUpdateView.as_view()(
             setup_request(rf.get("step_organization_update"), client_member.user),
             organization_code=client_member.organization.code,
         )
 
 
-def test_onboarding_account_setup_intro(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_onboarding_account_setup_intro(rf, superuser_member, admin_member, client_member):
     response_superuser = OnboardingAccountSetupIntroView.as_view()(
         setup_request(rf.get("step_account_setup_intro"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -104,18 +88,12 @@ def test_onboarding_account_setup_intro(rf, superuser_member, admin_member, redt
 
     with pytest.raises(PermissionDenied):
         OnboardingAccountSetupIntroView.as_view()(
-            setup_request(rf.get("step_account_setup_intro"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
-
-    with pytest.raises(PermissionDenied):
-        OnboardingAccountSetupIntroView.as_view()(
             setup_request(rf.get("step_account_setup_intro"), client_member.user),
             organization_code=client_member.organization.code,
         )
 
 
-def test_onboarding_create_admin_member(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_onboarding_create_admin_member(rf, superuser_member, admin_member, client_member):
     response_superuser = OnboardingAccountSetupAdminView.as_view()(
         setup_request(rf.get("step_account_setup_admin"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -131,45 +109,12 @@ def test_onboarding_create_admin_member(rf, superuser_member, admin_member, redt
 
     with pytest.raises(PermissionDenied):
         OnboardingAccountSetupAdminView.as_view()(
-            setup_request(rf.get("step_account_setup_admin"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
-
-    with pytest.raises(PermissionDenied):
-        OnboardingAccountSetupAdminView.as_view()(
             setup_request(rf.get("step_account_setup_admin"), client_member.user),
             organization_code=client_member.organization.code,
         )
 
 
-def test_onboarding_create_redteam_member(rf, superuser_member, admin_member, redteam_member, client_member):
-    response_superuser = OnboardingAccountSetupRedTeamerView.as_view()(
-        setup_request(rf.get("step_account_setup_red_teamer"), superuser_member.user),
-        organization_code=superuser_member.organization.code,
-    )
-    response_admin = OnboardingAccountSetupRedTeamerView.as_view()(
-        setup_request(rf.get("step_account_setup_red_teamer"), admin_member.user),
-        organization_code=admin_member.organization.code,
-    )
-
-    # Only superusers and admins can create redteamers
-    assert response_superuser.status_code == 200
-    assert response_admin.status_code == 200
-
-    with pytest.raises(PermissionDenied):
-        OnboardingAccountSetupRedTeamerView.as_view()(
-            setup_request(rf.get("step_account_setup_red_teamer"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
-
-    with pytest.raises(PermissionDenied):
-        OnboardingAccountSetupRedTeamerView.as_view()(
-            setup_request(rf.get("step_account_setup_red_teamer"), client_member.user),
-            organization_code=client_member.organization.code,
-        )
-
-
-def test_onboarding_create_client_member(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_onboarding_create_client_member(rf, superuser_member, admin_member, client_member):
     response_superuser = OnboardingAccountSetupClientView.as_view()(
         setup_request(rf.get("step_account_setup_client"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -182,12 +127,6 @@ def test_onboarding_create_client_member(rf, superuser_member, admin_member, red
     # Only superusers and admins can create clients
     assert response_superuser.status_code == 200
     assert response_admin.status_code == 200
-
-    with pytest.raises(PermissionDenied):
-        OnboardingAccountSetupClientView.as_view()(
-            setup_request(rf.get("step_account_setup_client"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
 
     with pytest.raises(PermissionDenied):
         OnboardingAccountSetupClientView.as_view()(

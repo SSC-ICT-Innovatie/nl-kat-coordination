@@ -92,7 +92,7 @@ REMOTE_USER_FALLBACK = env.bool("REMOTE_USER_FALLBACK", False)
 
 if REMOTE_USER_HEADER:
     # Optional list of default organizations to add remote users to,
-    # format: space separated list of ORGANIZATION_CODE:GROUP_NAME, e.g. `test:admin test2:redteam`
+    # format: space separated list of ORGANIZATION_CODE:GROUP_NAME, e.g. `test:admin test2:read-only`
     REMOTE_USER_DEFAULT_ORGANIZATIONS = env.list("REMOTE_USER_DEFAULT_ORGANIZATIONS", default=[])
     AUTHENTICATION_BACKENDS = ["openkat.auth.remote_user.RemoteUserBackend"]
     if REMOTE_USER_FALLBACK:

@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 
 from objects.models import SEVERITY_SCORE_LOOKUP, FindingType, Hostname, Network, object_type_by_name
-from openkat.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Organization
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization
 from plugins.models import BusinessRule, Plugin
 from plugins.plugins.business_rules import get_rules
 from plugins.sync import sync
@@ -31,19 +31,124 @@ class Command(BaseCommand):
 
         return permission_objects
 
-    def setup_kat_groups(self):
-        self.group_admin, self.group_admin_created = Group.objects.get_or_create(name=GROUP_ADMIN)
-        self.group_redteam, self.group_redteam_created = Group.objects.get_or_create(name=GROUP_REDTEAM)
-        self.group_client, self.group_client_created = Group.objects.get_or_create(name=GROUP_CLIENT)
-
     def handle(self, *args, **options):
         self.setup_kat_groups()
-        self.setup_group_permissions()
         self.seed_objects()
         self.seed_finding_types()
         self.sync_orgs()
         sync()
         self.seed_business_rules()
+
+        logging.info("OpenKAT has been setup successfully")
+
+    def setup_kat_groups(self):
+        group_client, _ = Group.objects.get_or_create(name=GROUP_READ_ONLY)
+        perms = self.get_permissions(
+            [
+                "view_organization",
+                "view_organizationtag",
+                "view_organizationmember",
+                "view_objectset",
+                "view_schedule",
+                "view_task",
+                "view_plugin",
+                "view_businessrule",
+                "view_network",
+                "view_networkorganization",
+                "view_ipaddress",
+                "view_ipaddressorganization",
+                "view_ipport",
+                "view_hostname",
+                "view_hostnameorganization",
+                "view_findingtype",
+                "view_finding",
+                "view_findingorganization",
+                "view_dnsarecord",
+                "view_dnsaaaarecord",
+                "view_dnsptrrecord",
+                "view_dnscnamerecord",
+                "view_dnsmxrecord",
+                "view_dnsnsrecord",
+                "view_dnscaarecord",
+                "view_dnstxtrecord",
+                "view_dnssrvrecord",
+                "view_software",
+                "view_report",
+            ]
+        )
+        group_client.permissions.set(perms)
+        group_admin, _ = Group.objects.get_or_create(name=GROUP_ADMIN)
+        admin_perms = self.get_permissions(
+            [
+                # Custom permissions
+                "download_file",
+                "run_plugin",
+                "run_businessrule",
+                "can_access_all_organizations",
+                "can_set_clearance_level",
+                "can_scan_organization",
+                "can_enable_disable_schedule",
+                # Missing read permissions
+                "view_file",
+                "view_task_result",
+                # Generic write permissions
+                "add_file",
+                "change_file",
+                "delete_file",
+                "add_task_result",
+                "change_task_result",
+                "delete_task_result",
+                "add_objectset",
+                "change_objectset",
+                "delete_objectset",
+                "add_schedule",
+                "change_schedule",
+                "delete_schedule",
+                "add_task",
+                "change_task",
+                "delete_task",
+                "add_plugin",
+                "change_plugin",
+                "delete_plugin",
+                "add_businessrule",
+                "change_businessrule",
+                "delete_businessrule",
+                "add_network",
+                "change_network",
+                "delete_network",
+                "add_networkorganization",
+                "change_networkorganization",
+                "delete_networkorganization",
+                "add_ipaddress",
+                "change_ipaddress",
+                "delete_ipaddress",
+                "add_ipaddressorganization",
+                "change_ipaddressorganization",
+                "delete_ipaddressorganization",
+                "add_ipport",
+                "change_ipport",
+                "delete_ipport",
+                "add_hostname",
+                "change_hostname",
+                "delete_hostname",
+                "add_hostnameorganization",
+                "change_hostnameorganization",
+                "delete_hostnameorganization",
+                "add_findingtype",
+                "change_findingtype",
+                "delete_findingtype",
+                "add_finding",
+                "change_finding",
+                "delete_finding",
+                "add_findingorganization",
+                "change_findingorganization",
+                "delete_findingorganization",
+                "add_report",
+                "change_report",
+                "delete_report",
+            ]
+        )
+        group_admin.permissions.set(perms + admin_perms)
 
     def seed_objects(self):
         Network.objects.get_or_create(name="internet", declared=True)
@@ -110,28 +215,3 @@ class Command(BaseCommand):
             rule.save()
 
         logging.info("Business rules seeded successfully")
-
-    def setup_group_permissions(self):
-        redteamer_permissions = ["can_scan_organization", "can_set_clearance_level"]
-
-        redteam_permissions = self.get_permissions(redteamer_permissions)
-        self.group_redteam.permissions.set(redteam_permissions)
-
-        admin_permissions = self.get_permissions(
-            redteamer_permissions
-            + [
-                "view_organization",
-                "view_organizationmember",
-                "add_organizationmember",
-                "change_organization",
-                "can_scan_organization",
-                "change_organizationmember",
-                "add_indemnification",
-            ]
-        )
-        self.group_admin.permissions.set(admin_permissions)
-
-        client_permissions = self.get_permissions(["can_scan_organization"])
-        self.group_client.permissions.set(client_permissions)
-
-        logging.info("OPENKAT HAS BEEN SETUP SUCCESSFULLY")

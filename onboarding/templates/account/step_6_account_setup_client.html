@@ -31,7 +31,7 @@
                     <div class="button-container">
                         <a href="{% url "complete_onboarding" organization.code %}"
                            class="button">{% translate "Finish organization setup" %}</a>
-                        <a href="{% url "step_account_setup_red_teamer" organization.code %}"
+                        <a href="{% url "step_account_setup_admin" organization.code %}"
                            class="button ghost">{% translate "Go back to previous step" %}</a>
                     </div>
                 {% endif %}
