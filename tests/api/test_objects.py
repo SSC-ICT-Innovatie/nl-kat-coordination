@@ -541,7 +541,6 @@ def test_object_task_created_for_single_object_via_individual_viewset(drf_client
     assert object_task.task_id == str(task.id)
     assert object_task.type == "plugin"
     assert object_task.plugin_id == "dns_plugin"
-    assert object_task.input_object == "internet|example.com"
     assert object_task.output_object == created_hostname["id"]
 
 
@@ -571,7 +570,6 @@ def test_object_task_created_for_multiple_objects_via_individual_viewset(drf_cli
         assert object_task.task_id == str(task.id)
         assert object_task.type == "plugin"
         assert object_task.plugin_id == "dns_plugin"
-        assert object_task.input_object == "internet|example.com"
         assert object_task.output_object in created_ids
 
 
@@ -605,7 +603,6 @@ def test_object_task_created_via_generic_objectviewset_single_type(drf_client, x
         assert object_task.task_id == str(task.id)
         assert object_task.type == "plugin"
         assert object_task.plugin_id == "port_scanner"
-        assert object_task.input_object == "internet|192.168.1.1"
         assert object_task.output_object in created_ids
 
 
@@ -645,7 +642,6 @@ def test_object_task_created_via_generic_objectviewset_multiple_types(drf_client
         assert object_task.task_id == str(task.id)
         assert object_task.type == "plugin"
         assert object_task.plugin_id == "comprehensive_scan"
-        assert object_task.input_object == "internet|example.com"
         assert object_task.output_object in all_created_ids
 
 
@@ -717,4 +713,3 @@ def test_object_task_for_network_creation(drf_client, xtdb, organization):
 
     for object_task in object_tasks:
         assert object_task.plugin_id == "network_discovery"
-        assert object_task.input_object == "scan_request_123"

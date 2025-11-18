@@ -1,6 +1,8 @@
 from http import HTTPStatus
 from typing import Any
 
+import structlog
+from django.db import DatabaseError
 from django.http import JsonResponse
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -48,6 +50,8 @@ from openkat.permissions import KATMultiModelPermissions
 from openkat.viewsets import ManyModelViewSet
 from tasks.models import Task
 
+logger = structlog.getLogger(__name__)
+
 
 class ObjectTaskResultMixin:
     def perform_create(self, serializer):
@@ -58,14 +62,21 @@ class ObjectTaskResultMixin:
             if not isinstance(results, list):
                 results = [results]
 
+            object_tasks = []
             for result in results:
-                ObjectTask(
-                    task_id=str(task.pk),  # Convert UUID to string for XTDB
-                    type=task.type,
-                    plugin_id=task.data.get("plugin_id"),
-                    input_object=task.data.get("input_data"),
-                    output_object=result.pk,
-                ).save()
+                object_tasks.append(
+                    ObjectTask(
+                        task_id=str(task.pk),  # Convert UUID to string for XTDB
+                        type=task.type,
+                        plugin_id=task.data.get("plugin_id"),
+                        output_object=result.pk,
+                    )
+                )
+
+            try:
+                ObjectTask.objects.bulk_create(object_tasks)
+            except DatabaseError as e:
+                logger.error("Failed to save object task mapping: %s", str(e))
 
 
 class ObjectViewSet(ViewSet, ObjectTaskResultMixin):
