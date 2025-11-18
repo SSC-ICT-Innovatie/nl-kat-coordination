@@ -88,7 +88,16 @@ class Command(BaseCommand):
                 "can_set_clearance_level",
                 "can_scan_organization",
                 "can_enable_disable_schedule",
+                # Missing read permissions
+                "view_file",
+                "view_task_result",
                 # Generic write permissions
+                "add_file",
+                "change_file",
+                "delete_file",
+                "add_task_result",
+                "change_task_result",
+                "delete_task_result",
                 "add_objectset",
                 "change_objectset",
                 "delete_objectset",
