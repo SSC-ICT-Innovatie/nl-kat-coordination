@@ -80,13 +80,14 @@
                                             </div>
                                         {% endif %}
                                         <div class="button-container">
-                                            {# TODO: Permissions #}
                                             <a class="button"
                                                href="{% url "schedule_list" %}?object_set={{ object_set.id }}">{% translate "View schedules" %}</a>
-                                            <form action="{% url 'delete_object_set' object_set.id %}" method="post">
-                                                {% csrf_token %}
-                                                <button class="ghost destructive" type="submit">{% translate "Delete" %}</button>
-                                            </form>
+                                            {% if perms.tasks.delete_objectset %}
+                                                <form action="{% url 'delete_object_set' object_set.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button class="ghost destructive" type="submit">{% translate "Delete" %}</button>
+                                                </form>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-18 09:51+0000\n"
+"POT-Creation-Date: 2025-11-18 12:37+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -2395,9 +2395,8 @@ msgstr ""
 msgid "View tasks"
 msgstr ""
 
-#: tasks/templates/schedule_list.html tasks/templates/task.html
-#: tasks/templates/task_table.html
-msgid "Rerun now"
+#: tasks/templates/schedule_list.html
+msgid "Run now"
 msgstr ""
 
 #: tasks/templates/task.html
@@ -2406,6 +2405,10 @@ msgstr ""
 
 #: tasks/templates/task.html
 msgid "Details of the task created in organization"
+msgstr ""
+
+#: tasks/templates/task.html tasks/templates/task_table.html
+msgid "Rerun now"
 msgstr ""
 
 #: tasks/templates/task.html tasks/views.py
