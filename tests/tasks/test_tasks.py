@@ -58,7 +58,7 @@ def test_run_schedule(organization, xtdb, celery: Celery, docker, plugin_contain
     assert kwargs["volumes"][settings.ENTRYPOINT_VOLUME] == {"bind": "/plugin", "mode": "ro"}
     assert kwargs["environment"]["PLUGIN_ID"] == plugin.plugin_id
     assert kwargs["environment"]["OPENKAT_API"] == f"{settings.OPENKAT_HOST}/api/v1"
-    assert kwargs["environment"]["UPLOAD_URL"] == f"{settings.OPENKAT_HOST}/api/v1/file/?task_id={tasks[0].id}"
+    assert kwargs["environment"]["UPLOAD_URL"] == f"{settings.OPENKAT_HOST}/api/v1/file/"
     assert "OPENKAT_TOKEN" in kwargs["environment"]
     assert kwargs["detach"] is True
 

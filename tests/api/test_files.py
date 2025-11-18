@@ -3,6 +3,7 @@ from io import BytesIO
 from django.core.files.uploadedfile import SimpleUploadedFile
 
 from files.models import File
+from openkat.auth.jwt_auth import JWTTokenAuthentication
 from tasks.models import TaskResult
 
 
@@ -91,12 +92,19 @@ def test_file_type_filter(drf_client, xtdb, organization):
 
 
 def test_file_with_task_result(drf_client, task_db, xtdb):
-    """Test creating a file and linking it to a task via task_id query parameter"""
     test_file = SimpleUploadedFile("task_result.json", b'{"task": "result"}', content_type="application/json")
 
-    response = drf_client.post(f"/api/v1/file/?task_id={task_db.id}", data={"file": test_file}, format="multipart")
+    response = drf_client.post("/api/v1/file/", data={"file": test_file}, format="multipart")
     assert response.status_code == 201
+    assert TaskResult.objects.count() == 0
 
+    drf_client.credentials(
+        HTTP_AUTHORIZATION="Token "
+        + JWTTokenAuthentication.generate({"files.add_file": {}}, {"task_id": str(task_db.pk)})
+    )
+    test_file2 = SimpleUploadedFile("task_result2.json", b'{"task": "result2"}', content_type="application/json")
+    response = drf_client.post("/api/v1/file/", data={"file": test_file2}, format="multipart")
+    assert response.status_code == 201
     file_id = response.json()["id"]
 
     task_result = TaskResult.objects.filter(file_id=file_id, task_id=task_db.id).first()

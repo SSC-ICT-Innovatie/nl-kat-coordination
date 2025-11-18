@@ -26,8 +26,12 @@ class FileViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         file = serializer.save()
 
-        if "task_id" in self.request.GET:
-            TaskResult.objects.create(file=file, task_id=self.request.GET["task_id"])
+        if (
+            hasattr(self.request, "auth")
+            and isinstance(self.request.auth, dict)
+            and self.request.auth.get("task_id") is not None
+        ):
+            TaskResult.objects.create(file=file, task_id=self.request.auth.get("task_id"))
 
         process_raw_file(file)
 

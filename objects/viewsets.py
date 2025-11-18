@@ -2,7 +2,6 @@ from http import HTTPStatus
 from typing import Any
 
 import structlog
-from django.db import DatabaseError
 from django.http import JsonResponse
 from rest_framework.decorators import action
 from rest_framework.request import Request
@@ -57,8 +56,12 @@ class ObjectTaskResultMixin:
     def perform_create(self, serializer):
         results = serializer.save()
 
-        if "task_id" in self.request.GET:  # type: ignore[attr-defined]
-            task = Task.objects.get(pk=self.request.GET["task_id"])  # type: ignore[attr-defined]
+        if (
+            hasattr(self.request, "auth")  # type: ignore[attr-defined]
+            and isinstance(self.request.auth, dict)  # type: ignore[attr-defined]
+            and self.request.auth.get("task_id") is not None  # type: ignore[attr-defined]
+        ):
+            task = Task.objects.get(pk=self.request.auth.get("task_id"))  # type: ignore[attr-defined]
             if not isinstance(results, list):
                 results = [results]
 
@@ -72,11 +75,7 @@ class ObjectTaskResultMixin:
                         output_object=result.pk,
                     )
                 )
-
-            try:
-                ObjectTask.objects.bulk_create(object_tasks)
-            except DatabaseError as e:
-                logger.error("Failed to save object task mapping: %s", str(e))
+            ObjectTask.objects.bulk_create(object_tasks)
 
 
 class ObjectViewSet(ViewSet, ObjectTaskResultMixin):

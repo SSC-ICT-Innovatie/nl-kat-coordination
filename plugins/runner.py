@@ -109,6 +109,7 @@ class PluginRunner:
         use_stdout = str(output) == "-"
         plugin = Plugin.objects.get(plugin_id=plugin_id)
         environment = {"PLUGIN_ID": plugin.plugin_id, "OPENKAT_API": f"{settings.OPENKAT_HOST}/api/v1"}
+
         tmp_file = None
         has_placeholder = plugin.types_in_arguments() or any("{file}" in arg for arg in plugin.oci_arguments)
 
@@ -151,8 +152,6 @@ class PluginRunner:
         # Configure where plugin output should go
         if use_stdout:
             environment["UPLOAD_URL"] = "/dev/null"  # CLI mode: don't upload
-        elif task_id:
-            environment["UPLOAD_URL"] = f"{settings.OPENKAT_HOST}/api/v1/file/?task_id={task_id}"
         else:
             environment["UPLOAD_URL"] = f"{settings.OPENKAT_HOST}/api/v1/file/"
 
@@ -181,7 +180,9 @@ class PluginRunner:
                 perms["files.download_file"]["pks"].append(int(file_pk))
 
         perms |= plugin.permissions  # Plugins can define extra permissions
-        environment["OPENKAT_TOKEN"] = JWTTokenAuthentication.generate(perms)
+        additional_data = {} if task_id is None else {"task_id": str(task_id)}
+
+        environment["OPENKAT_TOKEN"] = JWTTokenAuthentication.generate(perms, additional_data)
 
         # Add signal handler to kill the container as well (for cancelling tasks)
         original_handler = signal.getsignal(signal.SIGTERM)

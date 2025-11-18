@@ -25,6 +25,7 @@ from pytest_django.lazy_django import skip_if_no_django
 from rest_framework.test import APIClient
 
 from objects.models import Hostname, Network
+from openkat.auth.jwt_auth import JWTTokenAuthentication
 from openkat.management.commands.create_authtoken import create_auth_token
 from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Indemnification, Organization, OrganizationMember
 from tasks.models import Task as TaskDB
@@ -69,6 +70,26 @@ def drf_client(superuser) -> APIClient:
     _, token = create_auth_token(superuser.email, "test_key")
     client = JSONAPIClient(raise_request_exception=True)
     client.credentials(HTTP_AUTHORIZATION="Token " + token)
+
+    return client
+
+
+@pytest.fixture
+def plugin_drf_client(task_db) -> APIClient:
+    client = JSONAPIClient(raise_request_exception=True)
+    client.credentials(
+        HTTP_AUTHORIZATION="Token "
+        + JWTTokenAuthentication.generate(
+            {
+                "files.add_file": {},
+                "objects.add_hostname": {},
+                "objects.add_dnsarecord": {},
+                "objects.add_network": {},
+                "objects.add_ipaddress": {},
+            },
+            {"task_id": str(task_db.pk)},
+        )
+    )
 
     return client
 
@@ -306,7 +327,9 @@ def hostname(xtdb):
 
 @pytest.fixture
 def task_db(organization) -> TaskDB:
-    return TaskDB.objects.create(organization=organization, type="plugin", data={}, status="completed")
+    return TaskDB.objects.create(
+        organization=organization, type="plugin", data={"plugin_id": "test_dns"}, status="completed"
+    )
 
 
 def setup_request(request, user):
