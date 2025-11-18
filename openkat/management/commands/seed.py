@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 
 from objects.models import SEVERITY_SCORE_LOOKUP, FindingType, Hostname, Network, object_type_by_name
-from openkat.models import GROUP_READ_ONLY, Organization
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization
 from plugins.models import BusinessRule, Plugin
 from plugins.plugins.business_rules import get_rules
 from plugins.sync import sync
@@ -77,6 +77,67 @@ class Command(BaseCommand):
             ]
         )
         group_client.permissions.set(perms)
+        group_admin, _ = Group.objects.get_or_create(name=GROUP_ADMIN)
+        admin_perms = self.get_permissions(
+            [
+                "download_file",
+                "run_plugin",
+                "run_businessrule",
+                "can_access_all_organizations",
+                "can_set_clearance_level",
+                "can_scan_organization",
+                "can_enable_disable_schedule",
+                "add_objectset",
+                "change_objectset",
+                "delete_objectset",
+                "add_schedule",
+                "change_schedule",
+                "delete_schedule",
+                "add_task",
+                "change_task",
+                "delete_task",
+                "add_plugin",
+                "change_plugin",
+                "delete_plugin",
+                "add_businessrule",
+                "change_businessrule",
+                "delete_businessrule",
+                "add_network",
+                "change_network",
+                "delete_network",
+                "add_networkorganization",
+                "change_networkorganization",
+                "delete_networkorganization",
+                "add_ipaddress",
+                "change_ipaddress",
+                "delete_ipaddress",
+                "add_ipaddressorganization",
+                "change_ipaddressorganization",
+                "delete_ipaddressorganization",
+                "add_ipport",
+                "change_ipport",
+                "delete_ipport",
+                "add_hostname",
+                "change_hostname",
+                "delete_hostname",
+                "add_hostnameorganization",
+                "change_hostnameorganization",
+                "delete_hostnameorganization",
+                "add_findingtype",
+                "change_findingtype",
+                "delete_findingtype",
+                "add_finding",
+                "change_finding",
+                "delete_finding",
+                "add_findingorganization",
+                "change_findingorganization",
+                "delete_findingorganization",
+                "add_report",
+                "change_report",
+                "delete_report",
+            ]
+        )
+        group_admin.permissions.set(perms + admin_perms)
 
     def seed_objects(self):
         Network.objects.get_or_create(name="internet", declared=True)
