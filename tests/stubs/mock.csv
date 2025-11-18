@@ -1,7 +1,5 @@
 full_name,email,account_type,trusted_clearance_level,acknowledged_clearance_level
-test user,c@c.nl,clients,2,2
-test user,d@c.nl,redteam,1,4
-test userr,d@a.nl,redteam,1,4
+test user,c@c.nl,read-only,2,2
 userr,a@b.dl,admin,0,2
 userr,a.dl,admin,0,2
 userr,a@b.ul,admin,0,9

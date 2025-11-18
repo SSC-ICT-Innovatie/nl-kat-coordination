@@ -22,8 +22,7 @@ from knox.settings import CONSTANTS
 from openkat.enums import MAX_SCAN_LEVEL
 
 GROUP_ADMIN = "admin"
-GROUP_REDTEAM = "redteam"
-GROUP_CLIENT = "clients"
+GROUP_READ_ONLY = "read-only"
 
 logger = structlog.get_logger(__name__)
 

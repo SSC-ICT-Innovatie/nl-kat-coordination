@@ -8,7 +8,7 @@ def test_indemnification_present(superuser_member):
     assert superuser_member.user.indemnification_set.exists()
 
 
-def test_account_detail_perms(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_account_detail_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = AccountView.as_view()(
         setup_request(rf.get("account_detail"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -18,23 +18,16 @@ def test_account_detail_perms(rf, superuser_member, admin_member, redteam_member
         setup_request(rf.get("account_detail"), admin_member.user), organization_code=admin_member.organization.code
     )
 
-    response_redteam = AccountView.as_view()(
-        setup_request(rf.get("account_detail"), redteam_member.user), organization_code=redteam_member.organization.code
-    )
-
     response_client = AccountView.as_view()(
         setup_request(rf.get("account_detail"), client_member.user), organization_code=client_member.organization.code
     )
     assert response_superuser.status_code == 200
     assert response_admin.status_code == 200
-    assert response_redteam.status_code == 200
     assert response_client.status_code == 200
 
     # There is already text having clearance outside the perms sections, so header tags must be included
     check_text = "<h2>Object Clearance</h2>"
 
     assertContains(response_superuser, check_text)
-    assertContains(response_redteam, check_text)
-
     assertNotContains(response_admin, check_text)
     assertNotContains(response_client, check_text)

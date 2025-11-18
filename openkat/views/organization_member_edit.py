@@ -6,7 +6,7 @@ from django.views.generic import UpdateView
 
 from openkat.forms import OrganizationMemberEditForm
 from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
-from openkat.models import GROUP_CLIENT, OrganizationMember
+from openkat.models import GROUP_READ_ONLY, OrganizationMember
 
 
 class OrganizationMemberEditView(
@@ -32,7 +32,7 @@ class OrganizationMemberEditView(
             form.fields["blocked"].disabled = True
 
         # Since clients aren't allowed to scan and set clearance levels, disable the truste clearance level field.
-        if GROUP_CLIENT in group:
+        if GROUP_READ_ONLY in group:
             form.fields["trusted_clearance_level"].disabled = True
         return form
 

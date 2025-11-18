@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 
 from objects.models import SEVERITY_SCORE_LOOKUP, FindingType, Hostname, Network, object_type_by_name
-from openkat.models import GROUP_CLIENT, Organization
+from openkat.models import GROUP_READ_ONLY, Organization
 from plugins.models import BusinessRule, Plugin
 from plugins.plugins.business_rules import get_rules
 from plugins.sync import sync
@@ -31,12 +31,8 @@ class Command(BaseCommand):
 
         return permission_objects
 
-    def setup_kat_groups(self):
-        self.group_client, self.group_client_created = Group.objects.get_or_create(name=GROUP_CLIENT)
-
     def handle(self, *args, **options):
         self.setup_kat_groups()
-        self.setup_group_permissions()
         self.seed_objects()
         self.seed_finding_types()
         self.sync_orgs()
@@ -44,6 +40,43 @@ class Command(BaseCommand):
         self.seed_business_rules()
 
         logging.info("OpenKAT has been setup successfully")
+
+    def setup_kat_groups(self):
+        group_client, _ = Group.objects.get_or_create(name=GROUP_READ_ONLY)
+        perms = self.get_permissions(
+            [
+                "view_organization",
+                "view_organizationtag",
+                "view_organizationmember",
+                "view_objectset",
+                "view_schedule",
+                "view_task",
+                "view_plugin",
+                "view_businessrule",
+                "view_network",
+                "view_networkorganization",
+                "view_ipaddress",
+                "view_ipaddressorganization",
+                "view_ipport",
+                "view_hostname",
+                "view_hostnameorganization",
+                "view_findingtype",
+                "view_finding",
+                "view_findingorganization",
+                "view_dnsarecord",
+                "view_dnsaaaarecord",
+                "view_dnsptrrecord",
+                "view_dnscnamerecord",
+                "view_dnsmxrecord",
+                "view_dnsnsrecord",
+                "view_dnscaarecord",
+                "view_dnstxtrecord",
+                "view_dnssrvrecord",
+                "view_software",
+                "view_report",
+            ]
+        )
+        group_client.permissions.set(perms)
 
     def seed_objects(self):
         Network.objects.get_or_create(name="internet", declared=True)
@@ -110,39 +143,3 @@ class Command(BaseCommand):
             rule.save()
 
         logging.info("Business rules seeded successfully")
-
-    def setup_group_permissions(self):
-        perms = self.get_permissions(
-            [
-                "view_organization",
-                "view_organizationtag",
-                "view_organizationmember",
-                "view_objectset",
-                "view_schedule",
-                "view_task",
-                "view_plugin",
-                "view_businessrule",
-                "view_network",
-                "view_networkorganization",
-                "view_ipaddress",
-                "view_ipaddressorganization",
-                "view_ipport",
-                "view_hostname",
-                "view_hostnameorganization",
-                "view_findingtype",
-                "view_finding",
-                "view_findingorganization",
-                "view_dnsarecord",
-                "view_dnsaaaarecord",
-                "view_dnsptrrecord",
-                "view_dnscnamerecord",
-                "view_dnsmxrecord",
-                "view_dnsnsrecord",
-                "view_dnscaarecord",
-                "view_dnstxtrecord",
-                "view_dnssrvrecord",
-                "view_software",
-                "view_report",
-            ]
-        )
-        self.group_client.permissions.set(perms)
