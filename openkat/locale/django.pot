@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-10 12:22+0000\n"
+"POT-Creation-Date: 2025-11-18 09:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -979,10 +979,6 @@ msgid "Scan level updated successfully"
 msgstr ""
 
 #: objects/views.py
-msgid "\"{}\" has static objects that are ignored. Only the query is applied."
-msgstr ""
-
-#: objects/views.py
 msgid "Organizations updated successfully."
 msgstr ""
 
@@ -1056,6 +1052,10 @@ msgstr ""
 #: objects/views.py
 #, python-brace-format
 msgid "Organization with code '{code}' not found."
+msgstr ""
+
+#: objects/views.py
+msgid "\"{}\" has static objects that are ignored. Only the query is applied."
 msgstr ""
 
 #: objects/views.py
