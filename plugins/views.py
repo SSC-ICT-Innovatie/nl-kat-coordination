@@ -4,6 +4,7 @@ import django_filters
 from django import forms
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
@@ -429,7 +430,7 @@ class BusinessRuleForm(forms.ModelForm):
         return instance
 
 
-class BusinessRuleCreateView(CreateView):
+class BusinessRuleCreateView(KATModelPermissionRequiredMixin, CreateView):
     model = BusinessRule
     form_class = BusinessRuleForm
     template_name = "plugins/business_rule_form.html"
@@ -446,7 +447,7 @@ class BusinessRuleCreateView(CreateView):
         return context
 
 
-class BusinessRuleUpdateView(UpdateView):
+class BusinessRuleUpdateView(KATModelPermissionRequiredMixin, UpdateView):
     model = BusinessRule
     form_class = BusinessRuleForm
     template_name = "plugins/business_rule_form.html"
@@ -463,12 +464,12 @@ class BusinessRuleUpdateView(UpdateView):
         return context
 
 
-class BusinessRuleDeleteView(DeleteView):
+class BusinessRuleDeleteView(KATModelPermissionRequiredMixin, DeleteView):
     model = BusinessRule
     success_url = reverse_lazy("business_rule_list")
 
 
-class BusinessRuleToggleView(UpdateView):
+class BusinessRuleToggleView(KATModelPermissionRequiredMixin, UpdateView):
     model = BusinessRule
     fields: list[str] = []
 
@@ -494,7 +495,7 @@ class BusinessRuleToggleView(UpdateView):
         return reverse_lazy("business_rule_list")
 
 
-class BusinessRuleRunView(DetailView):
+class BusinessRuleRunView(PermissionRequiredMixin, DetailView):
     object: BusinessRule
     model = BusinessRule
 

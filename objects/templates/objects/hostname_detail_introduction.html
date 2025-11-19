@@ -9,13 +9,15 @@
             {% endblocktranslate %}
         </p>
     </div>
-    <div class="horizontal-view toolbar">
-        <form action="{% url 'objects:delete_hostname' hostname.pk %}"
-              method="post">
-            {% csrf_token %}
-            <button type="submit" class="ghost destructive">{% translate "Delete" %}</button>
-        </form>
-    </div>
+    {% if perms.objects.delete_hostname %}
+        <div class="horizontal-view toolbar">
+            <form action="{% url 'objects:delete_hostname' hostname.pk %}"
+                  method="post">
+                {% csrf_token %}
+                <button type="submit" class="ghost destructive">{% translate "Delete" %}</button>
+            </form>
+        </div>
+    {% endif %}
 </div>
 <nav class="tabs"
      aria-label="{% translate "List of views for plugin detail page" %}">

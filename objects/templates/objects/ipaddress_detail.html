@@ -76,28 +76,30 @@
                     </dl>
                 </div>
             </div>
-            <div>
-                <h2>{% translate "Manage Organizations" %}</h2>
-                <form method="post"
-                      action="{% url 'objects:ipaddress_manage_organizations' ipaddress.pk %}">
-                    {% csrf_token %}
-                    <div>
-                        <label for="id_organizations">{% translate "Select Organizations" %}:</label>
-                        <select name="organizations" id="id_organizations" multiple size="5">
-                            {% for org in all_organizations %}
-                                <option value="{{ org.pk }}"
-                                        {% if org in ipaddress.organizations.all %}selected{% endif %}>
-                                    {{ org.name }} ({{ org.code }})
-                                </option>
-                            {% endfor %}
-                        </select>
-                        <p>
-                            <small>{% translate "Hold Ctrl (Cmd on Mac) to select multiple organizations" %}</small>
-                        </p>
-                    </div>
-                    <button type="submit">{% translate "Update Organizations" %}</button>
-                </form>
-            </div>
+            {% if perms.openkat.can_access_all_organizations %}
+                <div>
+                    <h2>{% translate "Manage Organizations" %}</h2>
+                    <form method="post"
+                          action="{% url 'objects:ipaddress_manage_organizations' ipaddress.pk %}">
+                        {% csrf_token %}
+                        <div>
+                            <label for="id_organizations">{% translate "Select Organizations" %}:</label>
+                            <select name="organizations" id="id_organizations" multiple size="5">
+                                {% for org in all_organizations %}
+                                    <option value="{{ org.pk }}"
+                                            {% if org in ipaddress.organizations.all %}selected{% endif %}>
+                                        {{ org.name }} ({{ org.code }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <p>
+                                <small>{% translate "Hold Ctrl (Cmd on Mac) to select multiple organizations" %}</small>
+                            </p>
+                        </div>
+                        <button type="submit">{% translate "Update Organizations" %}</button>
+                    </form>
+                </div>
+            {% endif %}
             <div class="horizontal-scroll">
                 <h2>{% translate "IP ports" %}</h2>
                 {% if ipaddress.ipport_set.all %}

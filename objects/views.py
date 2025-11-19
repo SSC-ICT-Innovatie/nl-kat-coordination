@@ -46,7 +46,7 @@ from objects.models import (
     Software,
     XTDBOrganization,
 )
-from openkat.mixins import OrganizationFilterMixin
+from openkat.mixins import OrganizationFilterMixin, filter_queryset_orgs_for_user
 from openkat.models import Organization
 from openkat.permissions import KATModelPermissionRequiredMixin
 from plugins.models import Plugin
@@ -500,11 +500,12 @@ class IPAddressTasksDetailView(OrganizationFilterMixin, ListView):
 
     def get_queryset(self) -> "QuerySet[Task]":
         ipaddress = IPAddress.objects.get(pk=self.kwargs.get("pk"))
-        return Task.objects.filter(data__input_data__has_any_keys=[str(ipaddress.address)]).annotate(
+        qs = Task.objects.filter(data__input_data__has_any_keys=[str(ipaddress.address)]).annotate(
             plugin_name=Subquery(
                 Plugin.objects.filter(plugin_id=KeyTextTransform("plugin_id", OuterRef("data"))).values("name")
             )
         )
+        return filter_queryset_orgs_for_user(qs, self.request.user, set(self.request.GET.getlist("organization")))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -839,11 +840,13 @@ class HostnameTasksDetailView(OrganizationFilterMixin, ListView):
 
     def get_queryset(self) -> "QuerySet[Task]":
         hostname = Hostname.objects.get(pk=self.kwargs.get("pk"))
-        return Task.objects.filter(data__input_data__has_any_keys=[str(hostname.name)]).annotate(
+        qs = Task.objects.filter(data__input_data__has_any_keys=[str(hostname.name)]).annotate(
             plugin_name=Subquery(
                 Plugin.objects.filter(plugin_id=KeyTextTransform("plugin_id", OuterRef("data"))).values("name")
             )
         )
+
+        return filter_queryset_orgs_for_user(qs, self.request.user, set(self.request.GET.getlist("organization")))
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

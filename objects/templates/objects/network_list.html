@@ -30,7 +30,7 @@
                                 <th>{% translate "Scan Level" %}</th>
                                 <th>{% translate "Scan type" %}</th>
                                 <th>{% translate "Last Seen" %}</th>
-                                <th></th>
+                                {% if perms.objects.delete_network %}<th></th>{% endif %}
                             </tr>
                         </thead>
                         <tbody>
@@ -65,18 +65,20 @@
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <form action="{% url 'objects:delete_network' network.pk %}"
-                                              method="post"
-                                              id="object-delete-{{ network.pk }}">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    form="object-delete-{{ network.pk }}"
-                                                    class="icon ti-trash action-button">
-                                                {% translate "Delete" %}
-                                            </button>
-                                        </form>
-                                    </td>
+                                    {% if perms.objects.delete_network %}
+                                        <td>
+                                            <form action="{% url 'objects:delete_network' network.pk %}"
+                                                  method="post"
+                                                  id="object-delete-{{ network.pk }}">
+                                                {% csrf_token %}
+                                                <button type="submit"
+                                                        form="object-delete-{{ network.pk }}"
+                                                        class="icon ti-trash action-button">
+                                                    {% translate "Delete" %}
+                                                </button>
+                                            </form>
+                                        </td>
+                                    {% endif %}
                                 </tr>
                             {% endfor %}
                         </tbody>
