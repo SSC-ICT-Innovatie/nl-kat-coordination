@@ -1,36 +1,36 @@
 /* Accordion - Variables */
 
-$accordion-gap: 0;
+$accordion-gap: null !default;
 
 /* Button */
-$accordion-button-padding: 0.75rem 0;
-$accordion-button-justify-content: flex-start;
-$accordion-button-background-color: transparent;
-$accordion-button-text-color: $colors-blue-600;
+$accordion-button-padding: null !default;
+$accordion-button-justify-content: null !default;
+$accordion-button-background-color: null !default;
+$accordion-button-text-color: null !default;
 
 /* Button icon */
 
 /* Side menu button before */
-$accordion-button-icon-before-font-size: 1.25rem;
-$accordion-button-icon-after-font-size: 1.25rem;
+$accordion-button-icon-before-font-size: null !default;
+$accordion-button-icon-after-font-size: null !default;
 
 /* add content within "", this could be text or a unicode for an icon */
 
 /* Choose before or after */
-$accordion-button-icon-font-family: $icon-font-family;
+$accordion-button-icon-font-family: null !default;
 
 /* content on the button when the menu is collapsed */
-$accordion-button-icon-before-open-content: "\ea5f";
-$accordion-button-icon-after-open-content: none;
+$accordion-button-icon-before-open-content: null !default;
+$accordion-button-icon-after-open-content: null !default;
 
 /* content on the button when the menu is expanded */
-$accordion-button-icon-before-close-content: "\ea62";
-$accordion-button-icon-after-close-content: none;
-$accordion-button-icon-after-margin-left: auto;
+$accordion-button-icon-before-close-content: null !default;
+$accordion-button-icon-after-close-content: null !default;
+$accordion-button-icon-after-margin-left: null !default;
 
 /* Content */
-$accordion-content-gap: 1.5rem;
-$accordion-content-border-width: 0 0 1px 0;
-$accordion-content-background-color: $colors-white;
-$accordion-content-text-color: $application-base-text-color;
-$accordion-content-padding: 1.5rem 2rem 2rem 2rem;
+$accordion-content-gap: null !default;
+$accordion-content-border-width: null !default;
+$accordion-content-background-color: null !default;
+$accordion-content-text-color: null !default;
+$accordion-content-padding: null !default;
