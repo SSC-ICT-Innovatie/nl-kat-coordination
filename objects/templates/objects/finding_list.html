@@ -42,7 +42,9 @@
                                 <th>{% translate "Object" %}</th>
                                 <th>{% translate "Risk score" %}</th>
                                 <th>{% translate "Last seen" %}</th>
-                                <th>{% translate "Delete" %}</th>
+                                {% if perms.objects.delete_finding %}
+                                    <th>{% translate "Delete" %}</th>
+                                {% endif %}
                                 <th></th>
                             </tr>
                         </thead>
@@ -78,12 +80,14 @@
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <form action="{% url 'objects:delete_finding' finding.pk %}" method="post">
-                                            {% csrf_token %}
-                                            <button type="submit" class="icon ti-trash action-button">{% translate "Delete" %}</button>
-                                        </form>
-                                    </td>
+                                    {% if perms.objects.delete_finding %}
+                                        <td>
+                                            <form action="{% url 'objects:delete_finding' finding.pk %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="icon ti-trash action-button">{% translate "Delete" %}</button>
+                                            </form>
+                                        </td>
+                                    {% endif %}
                                     <td class="actions sticky-cell">
                                         <button type="button"
                                                 class="expando-button"

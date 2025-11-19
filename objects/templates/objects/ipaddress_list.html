@@ -48,37 +48,47 @@
                         {% include "objects/modals/delete_bulk_objects_modal.html" with form="ipaddress_list_form" %}
                         {% include "objects/modals/edit_scan_level_modal.html" with form="ipaddress_list_form" type="object_list" %}
 
-                        <div class="dropdown">
-                            <button aria-controls="action-dropdown"
-                                    aria-expanded="false"
-                                    class="dropdown-button ghost">
-                                {% translate "Actions" %}
-                                <span aria-hidden="true" class="icon ti-chevron-down"></span>
-                            </button>
-                            <div id="action-dropdown" class="dropdown-list left">
-                                <ul>
-                                    <li>
-                                        <button type="submit" name="action" value="scan" form="ipaddress_list_form">
-                                            <i class="icon ti-zoom-scan"></i>{% translate "Scan" %}
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button type="submit"
-                                                name="action"
-                                                value="create-object-set"
-                                                form="ipaddress_list_form">
-                                            <i class="icon ti-library-plus"></i>{% translate "Create object set" %}
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <a href="#edit-scan-level-modal"><i class="icon ti-paw"></i>{% translate "Set scan level" %}</a>
-                                    </li>
-                                    <li>
-                                        <a href="#delete-objects-modal" class="destructive"><i class="icon ti-trash"></i>{% translate "Delete" %}</a>
-                                    </li>
-                                </ul>
+                        {% if perms.openkat.run_plugin or perms.tasks.add_objectset or perms.openkat.can_set_clearance_level or perms.objects.delete_ipaddress %}
+                            <div class="dropdown">
+                                <button aria-controls="action-dropdown"
+                                        aria-expanded="false"
+                                        class="dropdown-button ghost">
+                                    {% translate "Actions" %}
+                                    <span aria-hidden="true" class="icon ti-chevron-down"></span>
+                                </button>
+                                <div id="action-dropdown" class="dropdown-list left">
+                                    <ul>
+                                        {% if perms.openkat.run_plugin %}
+                                            <li>
+                                                <button type="submit" name="action" value="scan" form="ipaddress_list_form">
+                                                    <i class="icon ti-zoom-scan"></i>{% translate "Scan" %}
+                                                </button>
+                                            </li>
+                                        {% endif %}
+                                        {% if perms.tasks.add_objectset %}
+                                            <li>
+                                                <button type="submit"
+                                                        name="action"
+                                                        value="create-object-set"
+                                                        form="ipaddress_list_form">
+                                                    <i class="icon ti-library-plus"></i>{% translate "Create object set" %}
+                                                </button>
+                                            </li>
+                                        {% endif %}
+                                        {% if perms.openkat.can_set_clearance_level %}
+                                            <li>
+                                                <a href="#edit-scan-level-modal"><i class="icon ti-paw"></i>{% translate "Set scan level" %}</a>
+                                            </li>
+                                        {% endif %}
+                                        {% if perms.objects.delete_ipaddress %}
+                                            <li>
+                                                <a href="#delete-objects-modal" class="destructive"><i class="icon ti-trash"></i>{% translate "Delete" %}</a>
+                                            </li>
+                                        {% endif %}
+                                    </ul>
+                                </div>
                             </div>
-                        </div>
+                        {% endif %}
                     </div>
                     <div class="horizontal-scroll sticky-column">
                         <table class="nowrap">
