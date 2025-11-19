@@ -195,9 +195,7 @@ class Network(Asset):
         validators=[MinValueValidator(0), MaxValueValidator(MAX_SCAN_LEVEL)], null=True, blank=True
     )
     declared: models.BooleanField = models.BooleanField(default=False)
-    organizations = models.ManyToManyField(
-        XTDBOrganization, blank=True, related_name="networks", through="NetworkOrganization"
-    )
+    organizations = models.ManyToManyField(XTDBOrganization, related_name="networks", through="NetworkOrganization")
 
     def __str__(self) -> str:
         return self.name
@@ -218,7 +216,7 @@ class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
     )
     declared: models.BooleanField = models.BooleanField(default=False)
     organizations = models.ManyToManyField(
-        XTDBOrganization, blank=True, related_name="ipaddresses", through="IPAddressOrganization"
+        XTDBOrganization, related_name="ipaddresses", through="IPAddressOrganization"
     )
 
     _natural_key_attrs = ["network", "address"]
@@ -338,9 +336,7 @@ class Hostname(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
         validators=[MinValueValidator(0), MaxValueValidator(MAX_SCAN_LEVEL)], null=True, blank=True
     )
     declared: models.BooleanField = models.BooleanField(default=False)
-    organizations = models.ManyToManyField(
-        XTDBOrganization, blank=True, related_name="hostnames", through="HostnameOrganization"
-    )
+    organizations = models.ManyToManyField(XTDBOrganization, related_name="hostnames", through="HostnameOrganization")
 
     _natural_key_attrs = ["network", "name"]
 
