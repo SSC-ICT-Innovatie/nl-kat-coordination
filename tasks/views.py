@@ -510,18 +510,23 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
             {"url": reverse("object_set_detail", kwargs={"pk": self.object.pk}), "text": _("Object set detail")},
         ]
 
+        org_codes = set(self.request.GET.getlist("organization"))
         if self.object.object_query is not None:
             queryset = filter_queryset_orgs_for_user(
                 self.object.object_type.model_class().objects.all(),
                 self.request.user,
-                set(self.request.GET.getlist("organization")),
+                org_codes,
             )
 
             context["objects"] = self.object.get_query_objects(queryset)[: self.PREVIEW_SIZE]
         else:
             context["objects"] = None
 
-        context["all_objects"] = self.object.object_type.model_class().objects.filter(pk__in=self.object.all_objects)
+        context["all_objects"] = filter_queryset_orgs_for_user(
+            self.object.object_type.model_class().objects.filter(pk__in=self.object.all_objects),
+            self.request.user,
+            org_codes,
+        )
 
         return context
 
