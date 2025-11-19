@@ -328,3 +328,150 @@ Hence, the `...org_path` from option 3 will be replaced with `"raw_files"`:
 Full text search should not be implemented by a relational database such as PostgreSQL or in S3,
 as they are not made for this use-case. As [this post](https://hackernoon.com/an-overview-of-sql-antipatterns)
 mentions, If we need full-text search in the future, we could consider other technologies such as ElasticSearch.
+
+## Implementation
+
+The raw storage system has been implemented according to the proposal with the following design choices and
+refinements:
+
+### Database Models
+
+The final implementation consists of the following models, where the app name of the `scheduler` has been renamed to `tasks`:
+
+```mermaid
+classDiagram
+  direction BT
+
+  class tasks_task {
+    uuid id
+    type
+    jsonb data
+    status
+    created_at
+    ended_at
+    modified_at
+    organization_id
+    schedule_id
+  }
+
+  class tasks_taskresult {
+    id
+    task_id
+    file_id
+  }
+
+  class files_file {
+    id
+    file (FileField)
+    type
+    organizations (ManyToMany)
+    created_at
+  }
+
+  tasks_taskresult --> tasks_task
+  tasks_taskresult --> files_file : OneToOneField
+```
+
+**Key model decisions:**
+
+1. **File Model** (`files.models.File`):
+
+   - Uses Django's `FileField` for storage abstraction
+   - `type` field is auto-populated from file extension if not provided
+   - `organizations` is a `ManyToManyField` allowing files to be shared across organizations
+   - `created_at` timestamp for auditing and cleanup
+   - Custom `download_file` permission for access control
+
+2. **TaskResult Model** (`tasks.models.TaskResult`):
+
+   - Links Tasks to Files through a `OneToOneField` relationship
+   - Prevents duplicate file-task associations
+   - Allows files to exist independently of tasks (nullable relationship)
+
+3. **BoefjeMeta and NormalizerMeta**: Dropped as proposed, with their data now stored in the generic `Task.data`
+   JSON field.
+
+### File Storage and Organization
+
+The implementation uses the following directory structure:
+
+```
+files/{date}/{type}/{filename}
+```
+
+Where:
+
+- `{date}` is the creation date (YYYY-MM-DD format) for time-based organization and archival
+- `{type}` is the file type (auto-detected from extension or manually specified)
+- `{filename}` is a UUID-based unique identifier
+
+This structure supports the proposed access patterns while allowing for efficient data cleanup and archival based on
+date ranges.
+
+**Custom ContentFile Classes** were implemented to standardize file creation patterns:
+
+- `GenericContent`: For miscellaneous files under `data/{uuid}`
+- `TemporaryContent`: For temporary files under `tmp/{uuid}`
+- `PluginContent`: For plugin-generated files under `{plugin_id}/{uuid}`
+- `ReportContent`: For reports under `reports/{name}.pdf`
+
+These classes ensure consistent naming and organization across different file types.
+
+### Storage Backend Configuration
+
+The implementation supports both local and S3-compatible storage backends through Django's Storage API:
+
+1. **Local Storage** (default): Uses `django.core.files.storage.FileSystemStorage`
+
+   - Files stored in `MEDIA_ROOT` directory
+   - Suitable for development and small deployments
+
+2. **S3 Storage** (when `USE_S3=True`): Uses `storages.backends.s3.S3Storage` from `django-storages`
+   - Configured via `AWS_STORAGE_BUCKET_NAME`
+   - `AWS_S3_FILE_OVERWRITE=False` to prevent accidental overwrites
+   - Supports any S3-compatible object storage
+
+### Secure File Downloads with django-downloadview
+
+To securely serve media files while maintaining proper access control, the implementation uses
+[django-downloadview](https://github.com/jazzband/django-downloadview):
+
+1. **FileDownloadView** (`files.viewsets.FileDownloadView`):
+
+   - Extends `ObjectDownloadView` for permission-based file serving
+   - Requires both `files.view_file` and `files.download_file` permissions
+   - Prevents unauthorized access to raw files
+
+2. **Smart Download Middleware**:
+   - When configured with `DOWNLOADVIEW_BACKEND` and `DESTINATION_URL`, Django can delegate file serving to
+     optimized file servers (e.g., Nginx's X-Accel-Redirect or Apache's X-Sendfile)
+   - Reduces Django's memory footprint for large file downloads
+   - Supports URL rewriting from source (`/media/files/`) to destination URLs
+
+### Additional Implementation Details
+
+1. **Automatic Task-File Association**: Files uploaded with a `task_id` in the authentication context (JWT payload) are
+   automatically linked to their task via TaskResult creation.
+
+2. **Type Detection**: File types are automatically detected from file extensions when not explicitly provided.
+
+3. **Organization Access**: The many-to-many relationship with organizations allows:
+
+   - Files to be shared across multiple organizations (FR 5)
+   - Easy filtering by organization for access control
+   - Efficient organization-wide data deletion (Ex 2)
+
+4. **Timestamping**: Postponed to version 2.1/2.2 as proposed. The `created_at` timestamp provides basic auditing
+   capabilities in the interim.
+
+### Migration Notes
+
+The transition from the legacy Bytes service to this implementation involved:
+
+- Migrating from dedicated BoefjeMeta/NormalizerMeta/RawFile tables to the generic Task and File models
+- Moving raw file storage from custom file handling to Django's FileField
+- Implementing permission-based access control for file downloads
+- Establishing the new directory structure for file organization
+
+This implementation successfully addresses all functional requirements (FR 1-5) and provides a foundation for
+future extensibility requirements.
