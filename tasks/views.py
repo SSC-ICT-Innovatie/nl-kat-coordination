@@ -513,9 +513,7 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
         org_codes = set(self.request.GET.getlist("organization"))
         if self.object.object_query is not None:
             queryset = filter_queryset_orgs_for_user(
-                self.object.object_type.model_class().objects.all(),
-                self.request.user,
-                org_codes,
+                self.object.object_type.model_class().objects.all(), self.request.user, org_codes
             )
 
             context["objects"] = self.object.get_query_objects(queryset)[: self.PREVIEW_SIZE]
