@@ -9,7 +9,7 @@ Here you can see three options:
 - Profile
 - Logout
 
-.. image:: img/user-settings.png
+.. image:: img/user-settings.jpg
   :alt: User settings
 
 My organization
@@ -18,7 +18,7 @@ This page shows you an overview of all your organizations. You can select and go
 or change the settings of the individual organizations.
 Changing the settings will lead you to the Settings page of the selected organization.
 
-.. image:: img/user-settings-my-organizations.png
+.. image:: img/user-settings-my-organizations.jpg
   :alt: My organizations
 
 
@@ -31,5 +31,5 @@ For example: if you have been given L2, this means you can only set objects to a
 To actually change the clearance level of an object, you also need to accept the clearance and responsibility,
 which you can do at the bottom of the profile page. See :doc:`../basic-concepts/scan-levels-and-indemnification` for more information about the meaning of these clearance levels.
 
-.. image:: img/user-settings-profile.png
+.. image:: img/user-settings-profile.jpg
   :alt: Profile

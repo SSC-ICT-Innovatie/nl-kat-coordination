@@ -6,7 +6,7 @@ Objects overview
 The Objects page lists all discovered objects in OpenKAT. Objects can be anything, like DNS records, hostnames, IP addresses, software, software versions, ports, etc.
 Objects are discovered through scanning plugins and created automatically as new information is found. On a new installation you'll see the following objects by default:
 
-.. image:: img/objects-clean-install.png
+.. image:: img/objects.jpg
   :alt: Overview of default objects
 
 The table gives an overview on the following items:
@@ -32,5 +32,5 @@ Object details can be found by clicking on an object on the Objects page. Object
 - **Findings:** the findings tab shows all findings that are linked to this object. Different objects have different findings, meaning that the Findings tab for a hostname is likely different from the findings tab for an IP address.
 
 
-.. image:: img/object-details.png
+.. image:: img/object-details.jpg
   :alt: object detail page

@@ -91,8 +91,8 @@ urlpatterns += i18n_patterns(
         name="download_organization_member_template",
     ),
     path("<organization_code>/members/upload/", MembersUploadView.as_view(), name="organization_member_upload"),
-    path("<organization_code>/settings", OrganizationSettingsView.as_view(), name="organization_settings"),
-    path("<organization_code>/members", OrganizationMemberListView.as_view(), name="organization_member_list"),
+    path("<organization_code>/settings/", OrganizationSettingsView.as_view(), name="organization_settings"),
+    path("<organization_code>/members/", OrganizationMemberListView.as_view(), name="organization_member_list"),
     path(
         "<organization_code>/members/edit/<int:pk>/",
         OrganizationMemberEditView.as_view(),

@@ -8,5 +8,5 @@ Each finding can be viewed in the tree or graph by clicking the corresponding ic
 
 A finding is also an object in the data model. This simply means that the finding can also be found on the Objects page.
 
-.. image:: img/findings.png
+.. image:: img/findings.jpg
   :alt: Findings

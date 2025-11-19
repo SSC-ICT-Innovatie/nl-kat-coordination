@@ -28,7 +28,7 @@ Generating a Report
 
    Click the "Generate Report" button to start creating a new report.
 
-   .. image:: img/generate-report-01.png
+   .. image:: img/generate-report-01.jpg
      :alt: Reports page with Generate report button
 
 3. **Configure Report**
@@ -41,7 +41,7 @@ Generating a Report
    - **Finding Types**: Select specific finding types to focus on (optional filter)
    - **Object Set**: Select a saved object set to limit scope (optional filter)
 
-   .. image:: img/generate-report-02.png
+   .. image:: img/generate-report-02.jpg
      :alt: Report configuration page
 
 4. **Generate**
@@ -134,7 +134,7 @@ Click on a report to:
 - Download the PDF file
 - Delete the report if no longer needed
 
-.. image:: img/generate-report-05.png
+.. image:: img/generate-report-05.jpg
   :alt: Generated reports list
 
 Troubleshooting

@@ -40,7 +40,7 @@ Each object has a clearance type. The clearance type tells how the object was ad
 The objects below show different clearance types for various objects. The hostname `mispo.es` was manually added and thus is `declared`.
 The DNS zone is `inherited` based on the DNS zone plugin.
 
-.. image:: img/objects-clearance-types.png
+.. image:: img/objects-clearance-types.jpg
   :alt: different object clearance types
 
 Scan level inheritance and recalculation

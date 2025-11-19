@@ -97,7 +97,7 @@ The easiest way to get to know the system is a local installation. If you don't 
 Where is the software located?
 ==============================
 
-OpenKAT consists of separate modules that each perform a specific task. All modules are located in the `NL-KAT-Coordination <https://github.com/minvws/nl-kat-coordination>`_ repository. The :doc:`../developer-documentation/basic-principles/modules` section of the documentation goes into detail on each of these modules.
+OpenKAT consists of separate modules that each perform a specific task. All modules are located in the `NL-KAT-Coordination <https://github.com/minvws/nl-kat-coordination>`_ repository.
 
 
 What are the plans for the future?

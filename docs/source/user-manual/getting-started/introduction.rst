@@ -21,7 +21,7 @@ The scanning process
 
 OpenKAT scans, collects, analyzes and reports in an ongoing process:
 
-.. image:: img/openkat-simple-process.png
+.. image:: img/openkat-simple-process.jpg
   :alt: Simple process of OpenKAT.
 
 
@@ -41,7 +41,7 @@ An example:
 How far OpenKAT goes with its search depends on the clearance levels that are provided. Read more about it here: :doc:`../basic-concepts/scan-levels-and-indemnification`.
 
 So this is what OpenKAT does behind the scenes, in simple terms.
-If you want more details about this process, please check the :doc:`../../developer-documentation/basic-principles/index` in the developer documentation.
+If you want more details about this process, please check the :doc:`../../developer-documentation/index` in the developer documentation.
 
 
 User flow

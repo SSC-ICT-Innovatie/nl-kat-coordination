@@ -4,7 +4,7 @@ Reports
 The Reports page provides access to security reports generated from OpenKAT's scanning results.
 Reports present findings, metrics, and insights in a structured PDF format suitable for sharing with stakeholders.
 
-.. image:: img/report.png
+.. image:: img/report.jpg
   :alt: Report
 
 Report Overview

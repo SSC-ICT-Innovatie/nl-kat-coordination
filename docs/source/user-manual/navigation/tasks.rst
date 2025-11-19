@@ -18,7 +18,7 @@ The Tasks page displays a table with information about all tasks:
 - **Created**: When the task was created
 - **Organization**: Which organization the task belongs to
 
-.. image:: img/tasks-boefjes.png
+.. image:: img/tasks.jpg
   :alt: overview of tasks
 
 Task Details

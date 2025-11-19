@@ -282,14 +282,6 @@ Database Scaling
 Monitoring
 ==========
 
-Health Checks
-*************
-
-Monitor these endpoints:
-
-- ``/health/`` - Application health
-- ``/admin/`` - Admin interface (check authentication)
-
 Application Monitoring
 **********************
 

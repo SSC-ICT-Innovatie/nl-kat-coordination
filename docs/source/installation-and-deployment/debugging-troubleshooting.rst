@@ -2,24 +2,9 @@
 Debugging and troubleshooting
 =============================
 
-If OpenKAT does not function in the way you expect, there are several options to help you find the cause and solve the problem. Checking the healthpage, logs, services and usersettings are the basics.
+If OpenKAT does not function in the way you expect, there are several options to help you find the cause and solve the problem. Checking logs, services and usersettings are the basics.
 
 If you can't find it, we look forward to bugreports as well. Squashing bugs makes everyone happy. Create an issue on GitHub or send us a report on meedoen@openkat.nl.
-
-
-Healthpage
-==========
-
-The admin and superuser accounts have access to the health page. In the footer of every page, you can find a link to the Health page.
-This page shows the status of all containerized KAT modules, their version, and any self-reported warnings or errors.
-If you KAT deployment is not working properly, this is the first place to check.
-
-.. image:: img/healthpage.png
-  :alt: healthpage
-
-You can also access the health JSON endpoint programmatically at ``http<s>://your-domain.com/<org-code>/health``.
-
-If one of the modules is unhappy, the 'windows 3.11 approach' of a simple restart might be needed. Otherwise there might be a configuration issue or bug. In the latter two cases, check the issues on Github or contact the team on signal or IRC.
 
 Processes
 =========
@@ -31,7 +16,7 @@ Docker containers
 
 ``docker ps`` gives you an overview of all running Docker containers.
 
-.. image:: img/dockerps.png
+.. image:: img/dockerps.jpg
   :alt: docker containers
 
 Container logs

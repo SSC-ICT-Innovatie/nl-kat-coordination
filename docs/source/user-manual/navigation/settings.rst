@@ -10,5 +10,5 @@ The settings that can be changed on this page:
 - Add or update indemnification
 - Add tags to the organization
 
-.. image:: img/settings.png
+.. image:: img/settings.jpg
   :alt: Settings page

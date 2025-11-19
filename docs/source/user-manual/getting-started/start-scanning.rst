@@ -13,7 +13,7 @@ New objects can be created using the 'Add' button on the Objects page. This can 
 The specification of the CSV is included on the upload page.
 
 
-.. image:: img/add-object-01.png
+.. image:: img/add-object-01.jpg
   :alt: Add object button
 
 For now, click on 'Add object' to manually add an object.
@@ -21,12 +21,12 @@ For now, click on 'Add object' to manually add an object.
 On the next page, you can select the type of object you want to add. Choose the option that suits you.
 For this demonstration we will add a hostname. Click on "Add object" to continue.
 
-.. image:: img/add-object-02.png
+.. image:: img/add-object-02.jpg
   :alt: Select object type
 
 Now it is time to fill in the details of the object and continue to the next page.
 
-.. image:: img/add-object-03.png
+.. image:: img/add-object-03.jpg
   :alt: Add details about the hostname
 
 After clicking 'Add Hostname', the object will be saved and should appear on the object's detail page.
@@ -60,13 +60,13 @@ Click on the tab and then click on the 'Edit clearance level' button on the righ
 Also, if there are any warnings on this page, please follow the instructions of the warnings first.
 You might need to set an indemnification for your organization or accept your assigned clearance level.
 
-.. image:: img/add-object-04.png
+.. image:: img/add-object-04.jpg
   :alt: Clearance level tab
 
 Clicking on the button will open a pop-up.
 Here you can choose the clearance level for your object.
 
-.. image:: img/add-object-05.png
+.. image:: img/add-object-05.jpg
   :alt: Po-pup to select clearance level
 
 After continuing, the clearance level of your object has been set to the new clearance level.
@@ -83,13 +83,13 @@ After selecting the object(s), click on the 'Edit clearance level' button on the
 **Important:**
   If you cannot see this button, you might not have the right to do so. Please contact your administrator.
 
-.. image:: img/add-object-06.png
+.. image:: img/add-object-06.jpg
   :alt: Object page
 
 Clicking on the button will open a pop-up.
 Here you can choose the clearance level for your object.
 
-.. image:: img/add-object-07.png
+.. image:: img/add-object-07.jpg
   :alt: Pop-up to select clearance level
 
 After continuing, the clearance level of your object has been set to the new clearance level.
@@ -117,7 +117,7 @@ That is it! OpenKAT will now create tasks to scan your object(s).
 On the Tasks page, you can see which tasks have been created.
 It might take a while for all tasks to be completed.
 
-.. image:: img/tasks.png
+.. image:: img/tasks.jpg
   :alt: Tasks page
 
 When the tasks are completed, the results will be shown on the Findings page.

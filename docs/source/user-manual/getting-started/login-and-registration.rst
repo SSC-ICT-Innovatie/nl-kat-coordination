@@ -27,12 +27,12 @@ Two-factor authentication (2FA)
 After you log in, you will see the screen for setting up two-factor authentication. You have to scan the QR code with an authenticator application on your phone. The application on your phone will generate a token that you have to type in as a response. Every time you log in, you have to enter your username, password and 2FA token.
 
 
-.. image:: img/00-onboarding-qr-code.png
+.. image:: img/00-onboarding-qr-code.jpg
   :alt: Setting up two-factor authentication.
 
 Once you have successfully setup 2FA you will see the following screen.
 
-.. image:: img/00-onboarding-qr-success.png
+.. image:: img/00-onboarding-qr-success.jpg
   :alt: Successful setup of two-factor authentication.
 
 After this, continue to the onboarding. The onboarding starts with the registration process, which lets you create your very first organization.
