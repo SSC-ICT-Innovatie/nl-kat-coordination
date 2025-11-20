@@ -145,27 +145,27 @@ jobs:
           sudo rabbitmqctl set_permissions -p "kat" "kat" ".*" ".*" ".*"
 
       - name: Download Bytes artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: kat-bytes_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Boefjes artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: kat-boefjes_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Rocky artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: kat-rocky_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Mula artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: kat-mula_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Octopoes artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: kat-octopoes_${{ env.RELEASE_VERSION }}_ubuntu.deb
 

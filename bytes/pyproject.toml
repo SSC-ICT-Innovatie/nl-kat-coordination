@@ -38,6 +38,7 @@ dependencies = [
     "structlog>=25.2.0,<26",
     "cryptography>45",
     "boto3>=1.40",
+    "bcrypt<5",
 ]
 
 [tool.uv]
@@ -47,7 +48,7 @@ package = false
 dev = [
     "pytest>=8.3.5,<9",
     "pytest-env>=1.1.5,<2",
-    "pytest-cov>=6.1.1,<7",
+    "pytest-cov>=7",
 ]
 
 [tool.coverage.run]
