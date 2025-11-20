@@ -362,7 +362,7 @@ requires-dist = [
     { name = "myst-parser", specifier = ">=4.0.1,<5" },
     { name = "settings-doc", specifier = ">=4.3.2,<5" },
     { name = "sphinx", specifier = ">=8.1.3,<9" },
-    { name = "sphinx-icore-open-theme", specifier = "==0.1.0b3" },
+    { name = "sphinx-icore-open-theme", specifier = ">=1.0.0,<2" },
     { name = "sphinxcontrib-mermaid", specifier = ">=1.0.0,<2" },
 ]
 
@@ -765,14 +765,14 @@ wheels = [
 
 [[package]]
 name = "sphinx-icore-open-theme"
-version = "0.1.0b3"
+version = "1.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "sphinx" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/d2/a2/1020e6e83890babea0fbd5de68742a7232fb16f5e4b9662a8537def42abe/sphinx_icore_open_theme-0.1.0b3.tar.gz", hash = "sha256:aa90883a6e8b527d93d0e35677fe4bf99f68c00c05f70dedd1a3156c90afd787", size = 4435483 }
+sdist = { url = "https://files.pythonhosted.org/packages/f1/41/225aa17fd0db3c73aea919d472f57180e4c0d12732f8c6e968597a3256be/sphinx_icore_open_theme-1.0.0.tar.gz", hash = "sha256:87bf95e0b34ad5a9bdfeaab441e60ceae65312e16b74e3ff7733e078dc7a04e8", size = 4435663 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/69/29/d722058ef1ce8f4839b06dc7544fc68a0f3077d3849ce905a7a7e0c3d5b5/sphinx_icore_open_theme-0.1.0b3-py3-none-any.whl", hash = "sha256:5ed409316c62650ed64575df887dc72b615ace547fd4fad48ee8747d95e74376", size = 4388797 },
+    { url = "https://files.pythonhosted.org/packages/f0/58/6ff234a1bc543140478701e8dcb53d617c7578f50e3ec74906f3c64d6a54/sphinx_icore_open_theme-1.0.0-py3-none-any.whl", hash = "sha256:c0c862b88cf40d0f1c846d62d16fcc4ceb4d0e74b8fd8e0a4a2f490c0f4f5506", size = 4388972 },
 ]
 
 [[package]]
