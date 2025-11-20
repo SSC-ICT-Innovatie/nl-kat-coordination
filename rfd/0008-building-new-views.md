@@ -1,6 +1,6 @@
 ---
 authors: Donny Peeters <@donnype>
-state: draft
+state: implemented
 discussion:
 labels: Frontend, Organizations, Scalability
 ---
@@ -36,3 +36,68 @@ In short, we should build our main views globally and then come up with a smart 
 ### Extensibility (Potential Future Requirements)
 
 1. As a User, I want to be able to manage organizations filtered on a specific organization tag
+
+## Implementation
+
+The multi-organization view strategy from this RFD has been successfully implemented.
+Following the proposal's recommendation, global views were built first and then made filterable through a reusable abstraction.
+
+### Core Implementation Framework
+
+The implementation is based on two key components:
+
+#### 1. OrganizationFilterMixin (Backend)
+
+**Location:** `openkat/mixins.py` (lines 241-279)
+
+This mixin provides the core filtering mechanism for all views:
+
+```python
+class OrganizationFilterMixin:
+    def get_queryset(self):
+        return filter_queryset_orgs_for_user(
+            super().get_queryset(),
+            self.request.user,
+            set(self.request.GET.getlist("organization")),
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["filtered_organizations"] = get_filtered_organizations(...)
+        return context
+```
+
+**Features:**
+
+- Query parameter support: `?organization=<code>` or `?organization=<code1>&organization=<code2>`
+- Automatic permission-based filtering
+- Works with any Django ListView/DetailView/FilterView
+- Provides filtered organization context to templates
+
+#### 2. filter_queryset_orgs_for_user() Function
+
+**Location:** `openkat/mixins.py` (lines 196-238)
+
+Smart organization filtering that handles:
+
+- Global views (all organizations) for users with `can_access_all_organizations` permission
+- User-scoped organization lists (filtered by user's accessible organizations)
+- Multiple organization field patterns: `organization` (FK), `organizations` (M2M), `organization_id`
+- Unassigned objects (null organization) when user has global access
+
+**25+ views across 7 major modules** now support multi-organization filtering.
+
+### Functional Requirements Coverage
+
+- **FR 1**: Users can see and modify information globally for the entire OpenKAT install
+- **FR 2**: Users can manage information for one organization or a selection of organizations
+
+### Key Implementation Files
+
+| File                                                           | Purpose                                     |
+| -------------------------------------------------------------- | ------------------------------------------- |
+| `openkat/mixins.py`                                            | OrganizationFilterMixin and filtering logic |
+| `openkat/context_processors.py`                                | Organization context for all templates      |
+| `openkat/templates/partials/organizations_menu_dropdown.html`  | Organization selector UI                    |
+| `openkat/templates/header.html`                                | Navigation with filter preservation         |
+| `objects/views.py`, `tasks/views.py`, `plugins/views.py`, etc. | Multi-org views across all modules          |
