@@ -42,8 +42,14 @@
                             <tbody>
                                 {% for organization in object_list %}
                                     <tr>
-                                        <td>{{ organization.name }}</td>
-                                        <td>{{ organization.name }}</td>
+                                        <td>
+                                            {% if perms.openkat.view_organization %}
+                                                <a href="{% url 'organization_member_list' organization_code=organization.code %}">{{ organization.name }}</a>
+                                            </td>
+                                        {% else %}
+                                            {{ organization.name }}
+                                        {% endif %}
+                                        <td>{{ organization.code }}</td>
                                         <td>
                                             {% include "organizations/organization_tags.html" %}
 
