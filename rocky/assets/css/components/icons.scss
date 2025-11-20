@@ -1,0 +1,5 @@
+@use "../variables" as theme;
+
+.icon-eye {
+  content: theme.$ti-icon-eye;
+}

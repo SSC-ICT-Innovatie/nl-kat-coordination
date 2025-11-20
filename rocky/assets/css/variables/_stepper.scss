@@ -30,17 +30,17 @@ $stepper-item-link-text-decoration: none;
 $stepper-item-link-hover-text-decoration: underline;
 
 /* Link visited */
-$stepper-item-link-visited-text-color: $stepper-item-link-color;
-$stepper-item-link-visited-text-decoration: $stepper-item-link-text-decoration;
+$stepper-item-link-visited-text-color: null !default;
+$stepper-item-link-visited-text-decoration: null !default;
 
 /* List item all up to active step */
 $list-item-completed-font-weight: 700;
 $list-item-completed-opacity: 1;
 
 /* Above breakpoint */
-$list-item-completed-above-breakpoint-font-weight: $list-item-completed-font-weight;
-$list-item-completed-above-breakpoint-opacity: $list-item-completed-opacity;
-$list-item-completed-above-breakpoint-border-top: 2px solid $colors-purrple-500;
+$list-item-completed-above-breakpoint-font-weight: null !default;
+$list-item-completed-above-breakpoint-opacity: null !default;
+$list-item-completed-above-breakpoint-border-top: null !default;
 $list-item-completed-above-breakpoint-margin-top: -2px; /* Compensating for the active top border */
 
 /* Icon between stepper items */
@@ -56,7 +56,7 @@ $stepper-item-current-icon: "\f287";
 $stepper-item-current-icon-font-family: tabler-icons;
 $stepper-item-current-icon-display: block;
 $stepper-item-current-icon-font-weight: 400;
-$stepper-item-current-icon-color: $colors-purrple-500;
+$stepper-item-current-icon-color: null !default;
 $stepper-item-current-icon-position: absolute;
 $stepper-item-current-icon-top: -0.875rem; /* Half the size of the icon */
 $stepper-item-current-icon-bottom: auto;
@@ -67,4 +67,4 @@ $stepper-item-current-icon-left: auto;
 $stepper-item-current-icon-padding: 0;
 $stepper-item-current-icon-font-size: 1.75rem;
 $stepper-item-current-icon-height: 1.75rem;
-$stepper-item-current-icon-line-height: $stepper-item-current-icon-font-size;
+$stepper-item-current-icon-line-height: null !default;

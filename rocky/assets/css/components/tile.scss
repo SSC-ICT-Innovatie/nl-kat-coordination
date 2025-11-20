@@ -7,7 +7,7 @@ $boefje-plugin-type-label: #5b4f90;
 
 %tile-style-overrides {
   > a {
-    color: theme.$link-text-color, initial;
+    color: theme.$link-text-color;
   }
 
   > p {

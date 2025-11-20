@@ -1,13 +1,14 @@
 {
   "scripts": {
     "dev": "parcel watch assets/js/*.js assets/js/**/*.js --dist-dir assets/dist --public-url ./",
-    "build": "parcel build assets/js/*.js assets/js/**/*.js --dist-dir assets/dist --public-url ./ --no-scope-hoist",
+    "build": "yarn import-fonts && parcel build assets/js/*.js assets/js/**/*.js --dist-dir assets/dist --public-url ./ --no-scope-hoist",
+    "import-fonts": "mkdir -p assets/dist/fonts && cp -R node_modules/@minvws/manon-themes/kat/fonts/* assets/dist/fonts/",
     "test": "yarn --cwd roeltje cypress open",
     "format": "prettier --write ."
   },
   "devDependencies": {
-    "@parcel/transformer-sass": "2.6.2",
-    "parcel": "2.6.2",
+    "@parcel/transformer-sass": "2.16.1",
+    "parcel": "2.16.1",
     "prettier": "^2.7.1"
   },
   "dependencies": {
