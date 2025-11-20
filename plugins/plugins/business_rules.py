@@ -150,7 +150,7 @@ def get_rules():
         },
         "missing_spf": {
             "name": "missing_spf",
-            "description": "Checks is the hostname has valid SPF records",
+            "description": "Checks if the hostname has valid SPF records",
             "object_type": "hostname",
             "requires": ["dns"],
             "query": f"""
@@ -362,7 +362,7 @@ def get_rules():
         },
         "missing_dmarc": {
             "name": "missing_dmarc",
-            "description": "Checks is mail servers have DMARC records",
+            "description": "Checks if mail servers have DMARC records",
             "object_type": "hostname",
             "requires": ["dns"],
             "query": f"""
@@ -452,7 +452,7 @@ def get_rules():
     for software in ["mysql", "mongodb", "openssh", "rdp", "pgsql", "telnet", "db2"]:
         rules[f"{software}_detection"] = {
             "name": f"{software}_detection",
-            "description": f"Checks is {software} is running on the IPAddress.",
+            "description": f"Checks if {software} is running on the IPAddress.",
             "object_type": "ipaddress",
             "query": f"""
                 SELECT distinct ip._id, ip.address, ip.declared, ip.network_id, ip.scan_level
