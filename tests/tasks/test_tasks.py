@@ -2,10 +2,10 @@ from celery import Celery
 from django.conf import settings
 
 from files.models import File, GenericContent
-from objects.models import Hostname, Network, bulk_insert
+from objects.models import DNSNSRecord, DNSTXTRecord, Finding, FindingType, Hostname, Network, ObjectTask, bulk_insert
 from plugins.models import Plugin
 from tasks.models import Schedule, Task, TaskResult, TaskStatus
-from tasks.tasks import process_raw_file, run_plugin_task, run_schedule, run_schedule_for_organization
+from tasks.tasks import process_dns, process_raw_file, run_plugin_task, run_schedule, run_schedule_for_organization
 
 
 def test_run_schedule(organization, xtdb, celery: Celery, docker, plugin_container):
@@ -222,3 +222,31 @@ def test_find_intersecting_input_data(organization):
 
     target = ["4.com", "5.com", "6.com"]
     assert Task.objects.filter(data__input_data__has_any_keys=target).count() == 2
+
+
+def test_process_dns_result(organization, xtdb, task_db):
+    network = Network.objects.create(name="test")
+    hn = Hostname.objects.create(network=network, name="test.com")
+    finding_type = FindingType.objects.create(code="KAT-NO-SPF")
+    Finding.objects.create(finding_type=finding_type, hostname=hn)
+    hn2 = Hostname.objects.create(network=network, name="test2.com")
+    task_db.data["input_data"] = [str(hn), str(hn2)]
+    task_db.save()
+
+    ns = Hostname.objects.create(network=network, name="ns1.test.com")
+    dns_ns = DNSNSRecord.objects.create(hostname=hn, name_server=ns)
+    dns_spf = DNSTXTRecord.objects.create(hostname=hn, value="v=spf1 abc def")
+    plugin = Plugin.objects.create(
+        name="test", plugin_id=task_db.data["plugin_id"], oci_image="T", oci_arguments=["{hostname}"], scan_level=2
+    )
+
+    for obj in [hn, ns, dns_ns, dns_spf]:
+        ObjectTask.objects.create(task_id=str(task_db.pk), plugin_id=plugin.plugin_id, output_object=obj.pk)
+
+    process_dns(task_db)
+    assert Finding.objects.count() == 1
+    finding = Finding.objects.first()
+
+    assert finding.hostname_id == hn2.pk
+    assert finding.address is None
+    assert finding.finding_type_id == "KAT-NO-SPF"

@@ -16,12 +16,16 @@ from objects.models import (
     DNSARecord,
     DNSCNAMERecord,
     DNSNSRecord,
+    DNSTXTRecord,
     Finding,
     FindingOrganization,
+    FindingType,
     Hostname,
     HostnameOrganization,
     IPAddress,
     IPAddressOrganization,
+    ObjectTask,
+    bulk_insert,
 )
 from openkat.models import Organization, User
 from plugins.models import BusinessRule, Plugin
@@ -589,9 +593,50 @@ def run_plugin(
         task.ended_at = datetime.now(UTC)
         task.save()
         raise
-
+    finally:
+        process_result_task(task.pk, self.app)
     logger.info("Handled plugin", organization=organization, plugin_id=plugin_id, input_data=input_data)
     return out
+
+
+def process_result_task(task_id: uuid.UUID, celery: Celery = app) -> None:
+    process_result.bind(celery)
+    process_result.apply_async((task_id,))
+
+
+@app.task
+def process_result(task_id: uuid.UUID) -> None:
+    """
+    What if tasks partially fail? This might create false-positives or skip findings. However, in general it is not
+    possible except from within the plugin to tell for which input the task has failed, except when it is not being run
+    in parallel. But we believe that every openkat installation should aim to have a very low rate of task failure. If
+    tasks regularly fail, this should be taken care off more carefully in the plugin, or the batch size should even be
+    decreased. Retries is also an option. And when that's not possible, we still have the periodic database-wide queries
+    that should clean up the stale data due to the failure. It might be worth triggering a run_business_rules task here
+    if the task status is FAILED, but we omit that for now.
+    """
+    task = Task.objects.get(pk=task_id)
+    plugin_id = task.data.get("plugin_id")
+    PLUGIN_MAPPING = {"dns": process_dns}
+
+    if plugin_id not in PLUGIN_MAPPING:
+        return
+
+    PLUGIN_MAPPING[plugin_id](task)
+
+
+def process_dns(task: Task) -> None:
+    input_hostnames = Hostname.objects.filter(name__in=task.data["input_data"])
+    output_objects = ObjectTask.objects.filter(task_id=str(task.pk)).values_list("output_object", flat=True)
+
+    hostnames_with_spf = DNSTXTRecord.objects.filter(pk__in=output_objects, value__startswith="v=spf1").values_list(
+        "hostname", flat=True
+    )
+
+    hostnames_without_spf = set(input_hostnames.values_list("pk", flat=True)) - set(hostnames_with_spf)
+    finding_type, created = FindingType.objects.get_or_create(code="KAT-NO-SPF")
+    bulk_insert([Finding(finding_type=finding_type, hostname_id=host) for host in hostnames_without_spf])
+    Finding.objects.filter(finding_type=finding_type, hostname_id__in=hostnames_with_spf).delete()
 
 
 def process_raw_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:
