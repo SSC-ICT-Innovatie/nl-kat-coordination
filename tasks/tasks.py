@@ -19,7 +19,6 @@ from objects.models import (
     DNSTXTRecord,
     Finding,
     FindingOrganization,
-    FindingType,
     Hostname,
     HostnameOrganization,
     IPAddress,
@@ -626,17 +625,46 @@ def process_result(task_id: uuid.UUID) -> None:
 
 
 def process_dns(task: Task) -> None:
-    input_hostnames = Hostname.objects.filter(name__in=task.data["input_data"])
+    """
+    Trigger-based business rule for:
+        - missing_spf
+        - ipv6_webserver
+        - ipv6_nameserver
+    """
+    logger.info("Processing DNS task %s", task.pk)
+
+    input_hostnames = Hostname.objects.filter(name__in=task.data["input_data"]).values("pk", "dnsnsrecord_nameserver")
     output_objects = ObjectTask.objects.filter(task_id=str(task.pk)).values_list("output_object", flat=True)
 
     hostnames_with_spf = DNSTXTRecord.objects.filter(pk__in=output_objects, value__startswith="v=spf1").values_list(
         "hostname", flat=True
     )
+    hostnames_without_spf = {h["pk"] for h in input_hostnames} - set(hostnames_with_spf)
 
-    hostnames_without_spf = set(input_hostnames.values_list("pk", flat=True)) - set(hostnames_with_spf)
-    finding_type, created = FindingType.objects.get_or_create(code="KAT-NO-SPF")
-    bulk_insert([Finding(finding_type=finding_type, hostname_id=host) for host in hostnames_without_spf])
-    Finding.objects.filter(finding_type=finding_type, hostname_id__in=hostnames_with_spf).delete()
+    hostnames_with_ipv6 = DNSAAAARecord.objects.filter(pk__in=output_objects).values_list("hostname", flat=True)
+    hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is None} - set(
+        hostnames_without_spf
+    )
+    ns_hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is not None} - set(
+        hostnames_without_spf
+    )
+
+    Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
+    Finding.objects.filter(
+        finding_type_id__in=["KAT-WEBSERVER-NO-IPV6", "KAT-NAMESERVER-NO-IPV6"], hostname_id__in=hostnames_with_ipv6
+    ).delete()
+
+    findings = []
+
+    for host in hostnames_without_spf:
+        findings.append(Finding(finding_type_id="KAT-NO-SPF", hostname_id=host))
+    for host in hostnames_without_ipv6:
+        findings.append(Finding(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id=host))
+    for host in ns_hostnames_without_ipv6:
+        findings.append(Finding(finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id=host))
+
+    bulk_insert(findings)
+    logger.info("Finished processing DNS task %s", task.pk)
 
 
 def process_raw_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:
