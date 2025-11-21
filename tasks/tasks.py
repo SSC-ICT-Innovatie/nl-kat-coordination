@@ -616,13 +616,14 @@ def process_result_task(task_id: uuid.UUID, celery: Celery = app) -> None:
 @app.task
 def process_result(task_id: uuid.UUID) -> None:
     """
-    What if tasks partially fail? This might create false-positives or skip findings. However, in general it is not
-    possible except from within the plugin to tell for which input the task has failed, except when it is not being run
-    in parallel. But we believe that every openkat installation should aim to have a very low rate of task failure. If
-    tasks regularly fail, this should be taken care off more carefully in the plugin, or the batch size should even be
-    decreased. Retries is also an option. And when that's not possible, we still have the periodic database-wide queries
-    that should clean up the stale data due to the failure. It might be worth triggering a run_business_rules task here
-    if the task status is FAILED, but we omit that for now.
+    What if tasks partially fail? This might create false-positives or skip findings. However, in general it is only
+    possible from within the plugin to tell for which input the task has failed, except when it is not being run
+    in parallel. But we believe that every openkat installation should aim to have close to zero task failures. If tasks
+    regularly fail, this should be handled in the plugin or the batch size should be decreased.
+
+    When that's not possible, we still have the periodic database-wide queries that should clean up the stale data due
+    to the failure. It might be worth triggering a run_business_rules task here if the task status is FAILED, but we
+    omit that for now.
     """
     task = Task.objects.get(pk=task_id)
     plugin_id = task.data.get("plugin_id")
