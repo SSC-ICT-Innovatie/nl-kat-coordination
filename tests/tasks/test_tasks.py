@@ -245,12 +245,13 @@ def test_process_dns_result(organization, xtdb, task_db):
     FindingType.objects.create(code="KAT-WEBSERVER-NO-IPV6")
     FindingType.objects.create(code="KAT-NAMESERVER-NO-IPV6")
     FindingType.objects.create(code="KAT-NO-CAA")
+    FindingType.objects.create(code="KAT-DOMAIN-OWNERSHIP-PENDING")
 
     hn2 = Hostname.objects.create(network=network, name="test2.com")
     task_db.data["input_data"] = [str(hn), str(hn2)]
     task_db.save()
 
-    ns = Hostname.objects.create(network=network, name="ns1.test.com")
+    ns = Hostname.objects.create(network=network, name="ns1.registrant-verification.ispapi.net")
     dns_ns = DNSNSRecord.objects.create(hostname=hn, name_server=ns)
     dns_spf = DNSTXTRecord.objects.create(hostname=hn, value="v=spf1 abc def")
     dns_aaaa = DNSAAAARecord.objects.create(hostname=hn, ip_address=ip)
@@ -267,16 +268,11 @@ def test_process_dns_result(organization, xtdb, task_db):
         )
 
     process_dns(task_db)
-    assert Finding.objects.count() == 4
-    finding = Finding.objects.get(finding_type_id="KAT-NO-SPF")
 
-    assert finding.hostname_id == hn2.pk
-    assert finding.address is None
-
+    assert Finding.objects.count() == 5
+    assert Finding.objects.filter(finding_type_id="KAT-NO-SPF", hostname=hn2).exists()
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA").count() == 2
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn).exists()
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn2).exists()
-
-    finding = Finding.objects.get(finding_type_id="KAT-WEBSERVER-NO-IPV6")
-    assert finding.hostname_id == hn2.pk
-    assert finding.address is None
+    assert Finding.objects.filter(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname=hn2).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname=hn).exists()

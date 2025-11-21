@@ -682,6 +682,8 @@ def process_dns(task: Task) -> None:
         findings.append(Finding(finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id=host))
     for host in hostnames_without_caa:
         findings.append(Finding(finding_type_id="KAT-NO-CAA", hostname_id=host))
+    for host in hostnames_with_ownership_pending:
+        findings.append(Finding(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id=host))
 
     bulk_insert(findings)
     logger.info("Finished processing DNS task %s", task.pk)
