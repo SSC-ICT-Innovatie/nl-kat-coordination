@@ -631,6 +631,8 @@ def process_dns(task: Task) -> None:
         - missing_spf
         - ipv6_webserver
         - ipv6_nameserver
+        - missing_caa
+        - domain_owner_verification
     """
     logger.info("Processing DNS task %s", task.pk)
 
