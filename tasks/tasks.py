@@ -29,7 +29,7 @@ from objects.models import (
 )
 from openkat.models import Organization, User
 from plugins.models import BusinessRule, Plugin
-from plugins.plugins.business_rules import run_rules
+from plugins.plugins.business_rules import INDICATORS, run_rules
 from plugins.runner import PluginRunner
 from reports.generator import ReportPDFGenerator
 from tasks.celery import app
@@ -638,7 +638,7 @@ def process_dns(task: Task) -> None:
     output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
     records = {}
 
-    for rec_type in [DNSTXTRecord, DNSCAARecord, DNSAAAARecord]:
+    for rec_type in [DNSTXTRecord, DNSCAARecord, DNSAAAARecord, DNSNSRecord]:
         name = str(rec_type.__name__).lower()
         records[name] = [
             rec_type.from_natural_key(obj["output_object"]) for obj in output_objs if obj["output_object_type"] == name
@@ -652,16 +652,24 @@ def process_dns(task: Task) -> None:
 
     hostnames_with_ipv6 = [txt.hostname.natural_key for txt in records["dnsaaaarecord"]]
     hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is None} - set(
-        hostnames_without_spf
+        hostnames_with_ipv6
     )
     ns_hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is not None} - set(
-        hostnames_without_spf
+        hostnames_with_ipv6
     )
+
+    hostnames_with_ownership_pending = [
+        txt.hostname.natural_key for txt in records["dnsnsrecord"] if txt.name_server.name in INDICATORS
+    ]
+    hostnames_without_ownership_pending = {h["pk"] for h in input_hostnames} - set(hostnames_with_ownership_pending)
 
     Finding.objects.filter(finding_type="KAT-NO-CAA", hostname_id__in=hostnames_with_caa).delete()
     Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
     Finding.objects.filter(
         finding_type_id__in=["KAT-WEBSERVER-NO-IPV6", "KAT-NAMESERVER-NO-IPV6"], hostname_id__in=hostnames_with_ipv6
+    ).delete()
+    Finding.objects.filter(
+        finding_type="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id__in=hostnames_without_ownership_pending
     ).delete()
 
     findings = []

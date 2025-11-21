@@ -2,7 +2,18 @@ from celery import Celery
 from django.conf import settings
 
 from files.models import File, GenericContent
-from objects.models import DNSNSRecord, DNSTXTRecord, Finding, FindingType, Hostname, Network, ObjectTask, bulk_insert
+from objects.models import (
+    DNSAAAARecord,
+    DNSNSRecord,
+    DNSTXTRecord,
+    Finding,
+    FindingType,
+    Hostname,
+    IPAddress,
+    Network,
+    ObjectTask,
+    bulk_insert,
+)
 from plugins.models import Plugin
 from tasks.models import Schedule, Task, TaskResult, TaskStatus
 from tasks.tasks import process_dns, process_raw_file, run_plugin_task, run_schedule, run_schedule_for_organization
@@ -228,6 +239,8 @@ def test_process_dns_result(organization, xtdb, task_db):
     network = Network.objects.create(name="test")
     hn = Hostname.objects.create(network=network, name="test.com")
     finding_type = FindingType.objects.create(code="KAT-NO-SPF")
+    ip = IPAddress.objects.create(network=network, address="2001:db8::")
+
     Finding.objects.create(finding_type=finding_type, hostname=hn)
     FindingType.objects.create(code="KAT-WEBSERVER-NO-IPV6")
     FindingType.objects.create(code="KAT-NAMESERVER-NO-IPV6")
@@ -240,11 +253,12 @@ def test_process_dns_result(organization, xtdb, task_db):
     ns = Hostname.objects.create(network=network, name="ns1.test.com")
     dns_ns = DNSNSRecord.objects.create(hostname=hn, name_server=ns)
     dns_spf = DNSTXTRecord.objects.create(hostname=hn, value="v=spf1 abc def")
+    dns_aaaa = DNSAAAARecord.objects.create(hostname=hn, ip_address=ip)
     plugin = Plugin.objects.create(
         name="test", plugin_id=task_db.data["plugin_id"], oci_image="T", oci_arguments=["{hostname}"], scan_level=2
     )
 
-    for obj in [hn, ns, dns_ns, dns_spf]:
+    for obj in [hn, ns, dns_ns, dns_spf, dns_aaaa]:
         ObjectTask.objects.create(
             task_id=str(task_db.pk),
             plugin_id=plugin.plugin_id,
@@ -264,5 +278,5 @@ def test_process_dns_result(organization, xtdb, task_db):
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn2).exists()
 
     finding = Finding.objects.get(finding_type_id="KAT-WEBSERVER-NO-IPV6")
-    assert finding.hostname_id == hn.pk
+    assert finding.hostname_id == hn2.pk
     assert finding.address is None
