@@ -603,7 +603,7 @@ def run_plugin(
         task.save()
         raise
     finally:
-        process_result_task(task.pk, self.app)
+        process_result_task(task.pk, self._app)  # type: ignore[attr-defined]
     logger.info("Handled plugin", organization=organization, plugin_id=plugin_id, input_data=input_data)
     return out
 
