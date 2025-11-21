@@ -229,6 +229,9 @@ def test_process_dns_result(organization, xtdb, task_db):
     hn = Hostname.objects.create(network=network, name="test.com")
     finding_type = FindingType.objects.create(code="KAT-NO-SPF")
     Finding.objects.create(finding_type=finding_type, hostname=hn)
+    FindingType.objects.create(code="KAT-WEBSERVER-NO-IPV6")
+    FindingType.objects.create(code="KAT-NAMESERVER-NO-IPV6")
+
     hn2 = Hostname.objects.create(network=network, name="test2.com")
     task_db.data["input_data"] = [str(hn), str(hn2)]
     task_db.save()
@@ -244,9 +247,14 @@ def test_process_dns_result(organization, xtdb, task_db):
         ObjectTask.objects.create(task_id=str(task_db.pk), plugin_id=plugin.plugin_id, output_object=obj.pk)
 
     process_dns(task_db)
-    assert Finding.objects.count() == 1
+    assert Finding.objects.count() == 2
     finding = Finding.objects.first()
 
     assert finding.hostname_id == hn2.pk
     assert finding.address is None
     assert finding.finding_type_id == "KAT-NO-SPF"
+
+    finding = Finding.objects.last()
+    assert finding.hostname_id == hn.pk
+    assert finding.address is None
+    assert finding.finding_type_id == "KAT-WEBSERVER-NO-IPV6"
