@@ -300,7 +300,7 @@ def get_rules():
             """,  # noqa: S608
             "finding_type_code": "KAT-UNCOMMON-OPEN-PORT",
         },
-        "open_common_port": {
+        "d": {
             "name": "open_common_port",
             "description": "Checks for open common ports",
             "object_type": "ipaddress",

@@ -30,7 +30,15 @@ from objects.models import (
 )
 from openkat.models import Organization, User
 from plugins.models import BusinessRule, Plugin
-from plugins.plugins.business_rules import INDICATORS, SA_TCP_PORTS, run_rules
+from plugins.plugins.business_rules import (
+    ALL_COMMON_TCP,
+    COMMON_UDP,
+    DB_TCP_PORTS,
+    INDICATORS,
+    MICROSOFT_RDP_PORTS,
+    SA_TCP_PORTS,
+    run_rules,
+)
 from plugins.runner import PluginRunner
 from reports.generator import ReportPDFGenerator
 from tasks.celery import app
@@ -637,7 +645,7 @@ def process_dns(task: Task) -> None:
     """
     logger.info("Processing DNS task %s", task.pk)
 
-    input_hostnames = Hostname.objects.filter(name__in=task.data["input_data"]).values("pk", "dnsnsrecord_nameserver")
+    inputs = Hostname.objects.filter(name__in=task.data["input_data"]).values("pk", "dnsnsrecord_nameserver")
     output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
     records = {}
 
@@ -647,24 +655,23 @@ def process_dns(task: Task) -> None:
             rec_type.from_natural_key(obj["output_object"]) for obj in output_objs if obj["output_object_type"] == name
         ]
 
-    hostnames_with_spf = [txt.hostname.natural_key for txt in records["dnstxtrecord"] if txt.value.startswith("v=spf1")]
-    hostnames_without_spf = {h["pk"] for h in input_hostnames} - set(hostnames_with_spf)
+    input_hostname_pks = {h["pk"] for h in inputs}
+    hostnames_with_spf = {txt.hostname.natural_key for txt in records["dnstxtrecord"] if txt.value.startswith("v=spf1")}
+    hostnames_without_spf = input_hostname_pks - hostnames_with_spf
 
-    hostnames_with_caa = [caa.hostname.natural_key for caa in records["dnscaarecord"]]
-    hostnames_without_caa = {h["pk"] for h in input_hostnames} - set(hostnames_with_caa)
+    hostnames_with_caa = {caa.hostname.natural_key for caa in records["dnscaarecord"]}
+    hostnames_without_caa = input_hostname_pks - hostnames_with_caa
 
-    hostnames_with_ipv6 = [txt.hostname.natural_key for txt in records["dnsaaaarecord"]]
-    hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is None} - set(
-        hostnames_with_ipv6
-    )
-    ns_hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is not None} - set(
-        hostnames_with_ipv6
-    )
+    hostnames_with_ipv6 = {txt.hostname.natural_key for txt in records["dnsaaaarecord"]}
+    hostnames_without_ipv6 = {h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is None} - hostnames_with_ipv6
+    ns_hostnames_without_ipv6 = {
+        h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is not None
+    } - hostnames_with_ipv6
 
-    hostnames_with_ownership_pending = [
+    hostnames_with_ownership_pending = {
         txt.hostname.natural_key for txt in records["dnsnsrecord"] if txt.name_server.name in INDICATORS
-    ]
-    hostnames_without_ownership_pending = {h["pk"] for h in input_hostnames} - set(hostnames_with_ownership_pending)
+    }
+    hostnames_without_ownership_pending = input_hostname_pks - hostnames_with_ownership_pending
 
     Finding.objects.filter(finding_type="KAT-NO-CAA", hostname_id__in=hostnames_with_caa).delete()
     Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
@@ -696,21 +703,60 @@ def process_port_scan(task: Task) -> None:
     """
     Trigger-based business rule for:
         - open_sysadmin_port
+        - open_database_port
+        - open_remote_desktop_port
+        - open_uncommon_port
+        - open_common_port
     """
     logger.info("Processing port scan %s", task.pk)
 
-    input_ips = IPAddress.objects.filter(address__in=task.data["input_data"]).values("pk")
+    inputs = IPAddress.objects.filter(address__in=task.data["input_data"]).values("pk")
     output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
     ports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
 
-    ips_open_sysadmin_port = [port.address.natural_key for port in ports if port.port in SA_TCP_PORTS]
-    ips_without_sysadmin_port = {ip["pk"] for ip in input_ips} - set(ips_open_sysadmin_port)
+    ips_with_sysadmin_port = {port.address.natural_key for port in ports if port.port in SA_TCP_PORTS}
+    ips_with_database_port = {port.address.natural_key for port in ports if port.port in DB_TCP_PORTS}
+    ips_with_rdp_port = {port.address.natural_key for port in ports if port.port in MICROSOFT_RDP_PORTS}
+    ips_with_common_port = {
+        port.address.natural_key
+        for port in ports
+        if (port.protocol == "TCP" and port.port in ALL_COMMON_TCP)
+        or (port.protocol == "UDP" and port.port in COMMON_UDP)
+    }
+    ips_with_uncommon_port = {
+        port.address.natural_key
+        for port in ports
+        if (port.protocol == "TCP" and port.port not in ALL_COMMON_TCP)
+        or (port.protocol == "UDP" and port.port not in COMMON_UDP)
+    }
 
+    input_ip_pks = {ip["pk"] for ip in inputs}
+    ips_without_sysadmin_port = input_ip_pks - ips_with_sysadmin_port
+    ips_without_database_port = input_ip_pks - ips_with_database_port
+    ips_without_rdp_port = input_ip_pks - ips_with_rdp_port
+    ips_without_common_port = input_ip_pks - ips_with_common_port
+    ips_without_uncommon_port = input_ip_pks - ips_with_uncommon_port
+
+    # Delete findings where ports no longer exist
     Finding.objects.filter(finding_type="KAT-OPEN-SYSADMIN-PORT", address_id__in=ips_without_sysadmin_port).delete()
+    Finding.objects.filter(finding_type="KAT-OPEN-DATABASE-PORT", address_id__in=ips_without_database_port).delete()
+    Finding.objects.filter(finding_type="KAT-REMOTE-DESKTOP-PORT", address_id__in=ips_without_rdp_port).delete()
+    Finding.objects.filter(finding_type="KAT-OPEN-COMMON-PORT", address_id__in=ips_without_common_port).delete()
+    Finding.objects.filter(finding_type="KAT-UNCOMMON-OPEN-PORT", address_id__in=ips_without_uncommon_port).delete()
+
     findings = []
 
-    for ip in ips_open_sysadmin_port:
+    # Create findings for IPs with open ports
+    for ip in ips_with_sysadmin_port:
         findings.append(Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address_id=ip))
+    for ip in ips_with_database_port:
+        findings.append(Finding(finding_type_id="KAT-OPEN-DATABASE-PORT", address_id=ip))
+    for ip in ips_with_rdp_port:
+        findings.append(Finding(finding_type_id="KAT-REMOTE-DESKTOP-PORT", address_id=ip))
+    for ip in ips_with_common_port:
+        findings.append(Finding(finding_type_id="KAT-OPEN-COMMON-PORT", address_id=ip))
+    for ip in ips_with_uncommon_port:
+        findings.append(Finding(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address_id=ip))
 
     bulk_insert(findings)
     logger.info("Finished processing port scan task %s", task.pk)

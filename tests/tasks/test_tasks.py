@@ -288,23 +288,35 @@ def test_process_dns_result(organization, xtdb, task_db):
 
 def test_process_port_scan_result(organization, xtdb, task_db):
     network = Network.objects.create(name="test")
-    finding_type = FindingType.objects.create(code="KAT-OPEN-SYSADMIN-PORT")
+
+    FindingType.objects.create(code="KAT-OPEN-SYSADMIN-PORT")
+    FindingType.objects.create(code="KAT-OPEN-DATABASE-PORT")
+    FindingType.objects.create(code="KAT-REMOTE-DESKTOP-PORT")
+    FindingType.objects.create(code="KAT-OPEN-COMMON-PORT")
+    FindingType.objects.create(code="KAT-UNCOMMON-OPEN-PORT")
 
     ip1 = IPAddress.objects.create(network=network, address="192.168.1.1")
     ip2 = IPAddress.objects.create(network=network, address="192.168.1.2")
+    ip3 = IPAddress.objects.create(network=network, address="192.168.1.3")
+    ip4 = IPAddress.objects.create(network=network, address="192.168.1.4")
 
-    Finding.objects.create(finding_type=finding_type, address=ip1)
+    finding_type_db = FindingType.objects.get(code="KAT-OPEN-DATABASE-PORT")
+    Finding.objects.create(finding_type=finding_type_db, address=ip1)
 
     task_db.data["plugin_id"] = "nmap"
-    task_db.data["input_data"] = [str(ip1), str(ip2)]
+    task_db.data["input_data"] = [str(ip1), str(ip2), str(ip3), str(ip4)]
     task_db.save()
 
-    port_ssh = IPPort.objects.create(address=ip1, protocol="TCP", port=22)
-    port_http = IPPort.objects.create(address=ip2, protocol="TCP", port=80)
+    port_ssh = IPPort.objects.create(address=ip1, protocol="TCP", port=22)  # Sysadmin port
+    port_http = IPPort.objects.create(address=ip1, protocol="TCP", port=80)  # Common port
+    port_mysql = IPPort.objects.create(address=ip2, protocol="TCP", port=3306)  # Database port
+    port_custom = IPPort.objects.create(address=ip2, protocol="TCP", port=8888)  # Uncommon port
+    port_rdp = IPPort.objects.create(address=ip3, protocol="TCP", port=3389)  # RDP port
+    port_https = IPPort.objects.create(address=ip4, protocol="TCP", port=443)  # Common port only
 
     plugin = Plugin.objects.create(name="nmap", plugin_id="nmap", oci_image="T", oci_arguments=["{ip}"], scan_level=2)
 
-    for obj in [port_ssh, port_http]:
+    for obj in [port_ssh, port_http, port_mysql, port_custom, port_rdp, port_https]:
         ObjectTask.objects.create(
             task_id=str(task_db.pk),
             plugin_id=plugin.plugin_id,
@@ -314,5 +326,18 @@ def test_process_port_scan_result(organization, xtdb, task_db):
 
     process_port_scan(task_db)
 
-    assert Finding.objects.count() == 1
+    assert Finding.objects.count() == 8
+
     assert Finding.objects.filter(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address=ip1).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-OPEN-COMMON-PORT", address=ip1).exists()
+    assert not Finding.objects.filter(finding_type_id="KAT-OPEN-DATABASE-PORT", address=ip1).exists()
+
+    assert Finding.objects.filter(finding_type_id="KAT-OPEN-DATABASE-PORT", address=ip2).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address=ip2).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-OPEN-COMMON-PORT", address=ip2).exists()
+
+    assert Finding.objects.filter(finding_type_id="KAT-REMOTE-DESKTOP-PORT", address=ip3).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-OPEN-COMMON-PORT", address=ip3).exists()
+
+    assert Finding.objects.filter(finding_type_id="KAT-OPEN-COMMON-PORT", address=ip4).exists()
+    assert not Finding.objects.filter(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address=ip4).exists()
