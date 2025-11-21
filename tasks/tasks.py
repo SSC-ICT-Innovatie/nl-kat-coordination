@@ -24,12 +24,13 @@ from objects.models import (
     HostnameOrganization,
     IPAddress,
     IPAddressOrganization,
+    IPPort,
     ObjectTask,
     bulk_insert,
 )
 from openkat.models import Organization, User
 from plugins.models import BusinessRule, Plugin
-from plugins.plugins.business_rules import INDICATORS, run_rules
+from plugins.plugins.business_rules import INDICATORS, SA_TCP_PORTS, run_rules
 from plugins.runner import PluginRunner
 from reports.generator import ReportPDFGenerator
 from tasks.celery import app
@@ -617,7 +618,7 @@ def process_result(task_id: uuid.UUID) -> None:
     """
     task = Task.objects.get(pk=task_id)
     plugin_id = task.data.get("plugin_id")
-    PLUGIN_MAPPING = {"dns": process_dns}
+    PLUGIN_MAPPING = {"dns": process_dns, "nmap": process_port_scan}
 
     if plugin_id not in PLUGIN_MAPPING:
         return
@@ -689,6 +690,30 @@ def process_dns(task: Task) -> None:
 
     bulk_insert(findings)
     logger.info("Finished processing DNS task %s", task.pk)
+
+
+def process_port_scan(task: Task) -> None:
+    """
+    Trigger-based business rule for:
+        - open_sysadmin_port
+    """
+    logger.info("Processing port scan %s", task.pk)
+
+    input_ips = IPAddress.objects.filter(address__in=task.data["input_data"]).values("pk")
+    output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
+    ports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
+
+    ips_open_sysadmin_port = [port.address.natural_key for port in ports if port.port in SA_TCP_PORTS]
+    ips_without_sysadmin_port = {ip["pk"] for ip in input_ips} - set(ips_open_sysadmin_port)
+
+    Finding.objects.filter(finding_type="KAT-OPEN-SYSADMIN-PORT", address_id__in=ips_without_sysadmin_port).delete()
+    findings = []
+
+    for ip in ips_open_sysadmin_port:
+        findings.append(Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address_id=ip))
+
+    bulk_insert(findings)
+    logger.info("Finished processing port scan task %s", task.pk)
 
 
 def process_raw_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:

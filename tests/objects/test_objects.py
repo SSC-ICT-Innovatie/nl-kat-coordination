@@ -327,6 +327,10 @@ def test_from_natural_key():
     ip = IPAddress.from_natural_key("test|127.0.0.1")
     assert ip.address == "127.0.0.1"
 
+    port = IPPort.from_natural_key("test|127.0.0.1|TCP|80")
+    assert port.port == 80
+    assert port.protocol == "TCP"
+
     with pytest.raises(ValueError):
         IPAddress.from_natural_key("127.0.0.1")
 

@@ -10,13 +10,21 @@ from objects.models import (
     FindingType,
     Hostname,
     IPAddress,
+    IPPort,
     Network,
     ObjectTask,
     bulk_insert,
 )
 from plugins.models import Plugin
 from tasks.models import Schedule, Task, TaskResult, TaskStatus
-from tasks.tasks import process_dns, process_raw_file, run_plugin_task, run_schedule, run_schedule_for_organization
+from tasks.tasks import (
+    process_dns,
+    process_port_scan,
+    process_raw_file,
+    run_plugin_task,
+    run_schedule,
+    run_schedule_for_organization,
+)
 
 
 def test_run_schedule(organization, xtdb, celery: Celery, docker, plugin_container):
@@ -276,3 +284,35 @@ def test_process_dns_result(organization, xtdb, task_db):
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn2).exists()
     assert Finding.objects.filter(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname=hn2).exists()
     assert Finding.objects.filter(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname=hn).exists()
+
+
+def test_process_port_scan_result(organization, xtdb, task_db):
+    network = Network.objects.create(name="test")
+    finding_type = FindingType.objects.create(code="KAT-OPEN-SYSADMIN-PORT")
+
+    ip1 = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip2 = IPAddress.objects.create(network=network, address="192.168.1.2")
+
+    Finding.objects.create(finding_type=finding_type, address=ip1)
+
+    task_db.data["plugin_id"] = "nmap"
+    task_db.data["input_data"] = [str(ip1), str(ip2)]
+    task_db.save()
+
+    port_ssh = IPPort.objects.create(address=ip1, protocol="TCP", port=22)
+    port_http = IPPort.objects.create(address=ip2, protocol="TCP", port=80)
+
+    plugin = Plugin.objects.create(name="nmap", plugin_id="nmap", oci_image="T", oci_arguments=["{ip}"], scan_level=2)
+
+    for obj in [port_ssh, port_http]:
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=obj.pk,
+            output_object_type=str(obj.__class__.__name__).lower(),
+        )
+
+    process_port_scan(task_db)
+
+    assert Finding.objects.count() == 1
+    assert Finding.objects.filter(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address=ip1).exists()

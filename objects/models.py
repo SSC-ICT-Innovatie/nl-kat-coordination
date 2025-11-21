@@ -211,10 +211,10 @@ class XTDBNaturalKeyModel(XTDBModel):
                     cnt += sub_cnt
                 else:
                     field_name = field.name + "_id"
-                    fields[field_name] = parts[cnt]
+                    fields[field_name] = field.to_python(parts[cnt])
                     cnt += 1
             else:
-                fields[attr] = parts[cnt]
+                fields[attr] = field.to_python(parts[cnt])
                 cnt += 1
         return cnt, fields, parts
 
