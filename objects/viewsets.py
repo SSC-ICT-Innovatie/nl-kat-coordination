@@ -73,6 +73,7 @@ class ObjectTaskResultMixin:
                         type=task.type,
                         plugin_id=task.data.get("plugin_id"),
                         output_object=result.pk,
+                        output_object_type=str(result.__class__.__name__).lower(),
                     )
                 )
             ObjectTask.objects.bulk_create(object_tasks)

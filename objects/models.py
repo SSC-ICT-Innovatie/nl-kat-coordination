@@ -3,7 +3,7 @@ import tempfile
 from collections.abc import Collection, Sequence
 from enum import Enum
 from functools import total_ordering
-from typing import Any, ClassVar, cast
+from typing import Any, ClassVar, Self, cast
 
 import structlog
 import tagulous.models
@@ -14,6 +14,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connections, models
 from django.db.models import ForeignKey, Model
 from django.db.models.expressions import RawSQL
+from django.db.models.fields.related import RelatedField
 from django.forms.models import model_to_dict
 from django.utils.datastructures import CaseInsensitiveMapping
 from django.utils.translation import gettext_lazy as _
@@ -159,6 +160,64 @@ class XTDBNaturalKeyModel(XTDBModel):
 
         return "|".join(parts).strip("|")
 
+    @classmethod
+    def from_natural_key(cls, key: str) -> Self:
+        """
+        Build the model op using only its natural key.
+
+        IMPORTANT: this will not be consistent for fields not in the natural key. Make sure the code using this helper
+        does not rely on those fields.
+
+        :param eager: If true, allow the key to have additional parts at the end (useful building nested natural keys).
+        """
+
+        cnt, fields, parts = cls.natural_key_fields(key)
+
+        if len(fields) < len(cls._natural_key_attrs):
+            raise ValueError("Not enough attributes in natural key")
+
+        if cnt < len(parts):
+            raise ValueError("Too many attributes in natural key")
+
+        return cls(**fields)
+
+    @classmethod
+    def natural_key_fields(cls, key: str) -> tuple[int, dict[Any, Any], list[str]]:
+        parts = key.split("|")
+        fields = {}
+        cnt = 0
+
+        # Iterate through the parts, and join parts if the field is a related model with a nested natural key.
+        # For example, a DNSARecord with ["hostname", "ip_address"] and the natural key
+        # "internet|test.com|internet|127.0.0.1" will need to build a fields dict of the form
+        # {"hostname_id": "internet|test.com", "ip_address_id": "internet|127.0.0.1"}. The only way to know how to
+        # partition the `parts` is to inspect the fields through cls._meta.fields and let them try to create their
+        # natural key from the "left-over parts".
+        fields_by_name = {field.name: field for field in cls._meta.fields}
+
+        for attr in cls._natural_key_attrs:
+            if not hasattr(cls, attr):
+                raise ValueError(f"Invalid attribute in natural key: {attr}")
+            if cnt >= len(parts):
+                raise ValueError("Not enough attributes in natural key")
+
+            field = fields_by_name[attr]
+
+            if isinstance(field, RelatedField):
+                if issubclass(field.related_model, XTDBNaturalKeyModel):
+                    sub_cnt, nk_fields, _ = field.related_model.natural_key_fields("|".join(parts[cnt:]))
+                    related = field.related_model(**nk_fields)
+                    fields[field.name] = related
+                    cnt += sub_cnt
+                else:
+                    field_name = field.name + "_id"
+                    fields[field_name] = parts[cnt]
+                    cnt += 1
+            else:
+                fields[attr] = parts[cnt]
+                cnt += 1
+        return cnt, fields, parts
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         # TODO: Make sure this also is implemented in all the necessary model methods and manager methods
         if not self.id:
@@ -179,6 +238,7 @@ class ObjectTask(XTDBNaturalKeyModel):
     type = models.CharField(max_length=32, default="plugin")
     plugin_id = models.CharField(max_length=64)
     output_object = models.CharField()
+    output_object_type = models.CharField()
 
     _natural_key_attrs = ["task_id", "output_object"]
 

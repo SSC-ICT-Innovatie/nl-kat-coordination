@@ -231,6 +231,7 @@ def test_process_dns_result(organization, xtdb, task_db):
     Finding.objects.create(finding_type=finding_type, hostname=hn)
     FindingType.objects.create(code="KAT-WEBSERVER-NO-IPV6")
     FindingType.objects.create(code="KAT-NAMESERVER-NO-IPV6")
+    FindingType.objects.create(code="KAT-NO-CAA")
 
     hn2 = Hostname.objects.create(network=network, name="test2.com")
     task_db.data["input_data"] = [str(hn), str(hn2)]
@@ -244,17 +245,24 @@ def test_process_dns_result(organization, xtdb, task_db):
     )
 
     for obj in [hn, ns, dns_ns, dns_spf]:
-        ObjectTask.objects.create(task_id=str(task_db.pk), plugin_id=plugin.plugin_id, output_object=obj.pk)
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=obj.pk,
+            output_object_type=str(obj.__class__.__name__).lower(),
+        )
 
     process_dns(task_db)
-    assert Finding.objects.count() == 2
-    finding = Finding.objects.first()
+    assert Finding.objects.count() == 4
+    finding = Finding.objects.get(finding_type_id="KAT-NO-SPF")
 
     assert finding.hostname_id == hn2.pk
     assert finding.address is None
-    assert finding.finding_type_id == "KAT-NO-SPF"
 
-    finding = Finding.objects.last()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-CAA").count() == 2
+    assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn2).exists()
+
+    finding = Finding.objects.get(finding_type_id="KAT-WEBSERVER-NO-IPV6")
     assert finding.hostname_id == hn.pk
     assert finding.address is None
-    assert finding.finding_type_id == "KAT-WEBSERVER-NO-IPV6"

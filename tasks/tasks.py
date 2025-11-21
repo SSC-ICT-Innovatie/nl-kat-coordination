@@ -14,6 +14,7 @@ from files.models import File
 from objects.models import (
     DNSAAAARecord,
     DNSARecord,
+    DNSCAARecord,
     DNSCNAMERecord,
     DNSNSRecord,
     DNSTXTRecord,
@@ -634,14 +635,22 @@ def process_dns(task: Task) -> None:
     logger.info("Processing DNS task %s", task.pk)
 
     input_hostnames = Hostname.objects.filter(name__in=task.data["input_data"]).values("pk", "dnsnsrecord_nameserver")
-    output_objects = ObjectTask.objects.filter(task_id=str(task.pk)).values_list("output_object", flat=True)
+    output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
+    records = {}
 
-    hostnames_with_spf = DNSTXTRecord.objects.filter(pk__in=output_objects, value__startswith="v=spf1").values_list(
-        "hostname", flat=True
-    )
+    for rec_type in [DNSTXTRecord, DNSCAARecord, DNSAAAARecord]:
+        name = str(rec_type.__name__).lower()
+        records[name] = [
+            rec_type.from_natural_key(obj["output_object"]) for obj in output_objs if obj["output_object_type"] == name
+        ]
+
+    hostnames_with_spf = [txt.hostname.natural_key for txt in records["dnstxtrecord"] if txt.value.startswith("v=spf1")]
     hostnames_without_spf = {h["pk"] for h in input_hostnames} - set(hostnames_with_spf)
 
-    hostnames_with_ipv6 = DNSAAAARecord.objects.filter(pk__in=output_objects).values_list("hostname", flat=True)
+    hostnames_with_caa = [caa.hostname.natural_key for caa in records["dnscaarecord"]]
+    hostnames_without_caa = {h["pk"] for h in input_hostnames} - set(hostnames_with_caa)
+
+    hostnames_with_ipv6 = [txt.hostname.natural_key for txt in records["dnsaaaarecord"]]
     hostnames_without_ipv6 = {h["pk"] for h in input_hostnames if h["dnsnsrecord_nameserver"] is None} - set(
         hostnames_without_spf
     )
@@ -649,6 +658,7 @@ def process_dns(task: Task) -> None:
         hostnames_without_spf
     )
 
+    Finding.objects.filter(finding_type="KAT-NO-CAA", hostname_id__in=hostnames_with_caa).delete()
     Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
     Finding.objects.filter(
         finding_type_id__in=["KAT-WEBSERVER-NO-IPV6", "KAT-NAMESERVER-NO-IPV6"], hostname_id__in=hostnames_with_ipv6
@@ -662,6 +672,8 @@ def process_dns(task: Task) -> None:
         findings.append(Finding(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id=host))
     for host in ns_hostnames_without_ipv6:
         findings.append(Finding(finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id=host))
+    for host in hostnames_without_caa:
+        findings.append(Finding(finding_type_id="KAT-NO-CAA", hostname_id=host))
 
     bulk_insert(findings)
     logger.info("Finished processing DNS task %s", task.pk)

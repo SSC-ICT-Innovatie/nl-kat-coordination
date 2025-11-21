@@ -317,6 +317,27 @@ def test_generate_benchmark_data(xtdb):
     assert Software.objects.count() == 2
 
 
+def test_from_natural_key():
+    h = Hostname.from_natural_key("test|test.com")
+    assert h.name == "test.com"
+
+    with pytest.raises(ValueError):
+        Hostname.from_natural_key("test|test.com|2")
+
+    ip = IPAddress.from_natural_key("test|127.0.0.1")
+    assert ip.address == "127.0.0.1"
+
+    with pytest.raises(ValueError):
+        IPAddress.from_natural_key("127.0.0.1")
+
+    a = DNSARecord.from_natural_key("test|test.com|test|127.0.0.1")
+    assert a.hostname.name == "test.com"
+    assert a.ip_address.address == "127.0.0.1"
+
+    with pytest.raises(ValueError):
+        DNSARecord.from_natural_key("test|test.com|127.0.0.1")
+
+
 def test_network_create_view_get(rf, superuser_member, xtdb):
     request = setup_request(rf.get("objects:network_create"), superuser_member.user)
     response = NetworkCreateView.as_view()(request)
