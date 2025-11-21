@@ -349,7 +349,12 @@ def test_network_create_view_get(rf, superuser_member, xtdb):
 def test_network_create_view_post_success(rf, superuser_member, xtdb):
     assert Network.objects.count() == 0
 
-    request = setup_request(rf.post("objects:network_create", data={"name": "test-network"}), superuser_member.user)
+    request = setup_request(
+        rf.post(
+            "objects:network_create", data={"name": "test-network", "organizations": [superuser_member.organization.pk]}
+        ),
+        superuser_member.user,
+    )
     response = NetworkCreateView.as_view()(request)
 
     assert response.status_code == 302
@@ -409,7 +414,11 @@ def test_hostname_create_view_post_success(rf, superuser_member, xtdb):
     assert Hostname.objects.count() == 0
 
     request = setup_request(
-        rf.post("objects:hostname_create", data={"network": network.pk, "name": "example.com"}), superuser_member.user
+        rf.post(
+            "objects:hostname_create",
+            data={"network": network.pk, "name": "example.com", "organizations": [superuser_member.organization.pk]},
+        ),
+        superuser_member.user,
     )
     response = HostnameCreateView.as_view()(request)
 
@@ -429,7 +438,11 @@ def test_hostname_create_view_post_duplicate_is_idempotent(rf, superuser_member,
     Hostname.objects.create(network=network, name="existing.com")
 
     request = setup_request(
-        rf.post("objects:hostname_create", data={"network": network.pk, "name": "existing.com"}), superuser_member.user
+        rf.post(
+            "objects:hostname_create",
+            data={"network": network.pk, "name": "existing.com", "organizations": [superuser_member.organization.pk]},
+        ),
+        superuser_member.user,
     )
     response = HostnameCreateView.as_view()(request)
 
@@ -450,7 +463,14 @@ def test_hostname_create_view_post_subdomain(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
     parent = Hostname.objects.create(network=network, name="example.com")
     request = setup_request(
-        rf.post("objects:hostname_create", data={"network": network.pk, "name": "sub.example.com"}),
+        rf.post(
+            "objects:hostname_create",
+            data={
+                "network": network.pk,
+                "name": "sub.example.com",
+                "organizations": [superuser_member.organization.pk],
+            },
+        ),
         superuser_member.user,
     )
     HostnameCreateView.as_view()(request)
@@ -489,7 +509,11 @@ def test_ipaddress_create_view_post_ipv4_success(rf, superuser_member, xtdb):
     assert IPAddress.objects.count() == 0
 
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "192.0.2.1"}), superuser_member.user
+        rf.post(
+            "objects:ipaddress_create",
+            data={"network": network.pk, "address": "192.0.2.1", "organizations": [superuser_member.organization.pk]},
+        ),
+        superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)
 
@@ -507,7 +531,10 @@ def test_ipaddress_create_view_post_ipv4_success(rf, superuser_member, xtdb):
 def test_ipaddress_create_view_post_ipv6_success(rf, superuser_member, xtdb):
     network = Network.objects.create(name="test-network")
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "2001:db8::1"}),
+        rf.post(
+            "objects:ipaddress_create",
+            data={"network": network.pk, "address": "2001:db8::1", "organizations": [superuser_member.organization.pk]},
+        ),
         superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)
@@ -524,7 +551,10 @@ def test_ipaddress_create_view_post_duplicate_is_idempotent(rf, superuser_member
     IPAddress.objects.create(network=network, address="192.0.2.50")
 
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "192.0.2.50"}),
+        rf.post(
+            "objects:ipaddress_create",
+            data={"network": network.pk, "address": "192.0.2.50", "organizations": [superuser_member.organization.pk]},
+        ),
         superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)
