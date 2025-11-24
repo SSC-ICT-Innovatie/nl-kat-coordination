@@ -270,17 +270,6 @@ def test_business_rule_ipv6_nameservers(bulk_data, benchmark):
     assert result >= 0
 
 
-def test_business_rule_two_ipv6_nameservers(bulk_data, benchmark):
-    def run_rule():
-        rule = get_rules()["two_ipv6_nameservers"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    assert result >= 0
-
-
 def test_business_rule_missing_spf(bulk_data, benchmark, N):
     def run_rule():
         rule = get_rules()["missing_spf"]
@@ -431,14 +420,6 @@ def test_inverse_query_ipv6_nameservers(xtdbulk, benchmark):
     def run_inverse_query():
         with connections["xtdb"].cursor() as cursor:
             cursor.execute(get_rules()["ipv6_nameservers"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_two_ipv6_nameservers(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["two_ipv6_nameservers"]["inverse_query"])
 
     benchmark(run_inverse_query)
 

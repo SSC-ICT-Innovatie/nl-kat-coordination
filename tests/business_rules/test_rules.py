@@ -52,37 +52,6 @@ def test_ns_ipv6_query(xtdb):
     assert len(hns) == 0
 
 
-def test_at_least_two_ipv6_name_servers_query(xtdb):
-    network = Network.objects.create(name="test")
-    hn = Hostname.objects.create(network=network, name="test.com")
-    ip = IPAddress.objects.create(network=network, address="2001:ab8:d0cb::")
-
-    ns1 = Hostname.objects.create(network=network, name="ns1.test.com")
-    ns2 = Hostname.objects.create(network=network, name="ns2.test.com")
-    ns3 = Hostname.objects.create(network=network, name="ns3.test.com")
-    ns4 = Hostname.objects.create(network=network, name="ns4.test.com")
-    DNSNSRecord.objects.create(hostname=hn, name_server=ns1)
-    DNSNSRecord.objects.create(hostname=hn, name_server=ns2)
-    DNSNSRecord.objects.create(hostname=hn, name_server=ns3)
-    DNSNSRecord.objects.create(hostname=hn, name_server=ns4)
-
-    hns = Hostname.objects.raw(get_rules()["two_ipv6_nameservers"]["query"])
-    assert len(hns) == 1
-    assert hns[0].name == "test.com"
-
-    DNSAAAARecord.objects.create(hostname=ns1, ip_address=ip)
-
-    hns = Hostname.objects.raw(get_rules()["two_ipv6_nameservers"]["query"])
-    assert len(hns) == 1
-    assert hns[0].name == "test.com"
-
-    DNSAAAARecord.objects.create(hostname=ns2, ip_address=ip)
-
-    # Now two nameservers have ipv6
-    hns = Hostname.objects.raw(get_rules()["two_ipv6_nameservers"]["query"])
-    assert len(hns) == 0
-
-
 def test_missing_spf(xtdb):
     network = Network.objects.create(name="test")
     hn = Hostname.objects.create(network=network, name="test.com")
@@ -234,38 +203,6 @@ def test_ipv6_nameservers_inverse_query(xtdb):
     # Run inverse query
     with connections["xtdb"].cursor() as cursor:
         cursor.execute(get_rules()["ipv6_nameservers"]["inverse_query"])
-
-    # Verify finding was deleted
-    assert not Finding.objects.filter(pk=finding.pk).exists()
-
-
-def test_two_ipv6_nameservers_inverse_query(xtdb):
-    """Test that inverse query removes findings when second IPv6 nameserver is added"""
-    network = Network.objects.create(name="test")
-    hn = Hostname.objects.create(network=network, name="test.com")
-    ip = IPAddress.objects.create(network=network, address="2001:ab8:d0cb::")
-
-    ns1 = Hostname.objects.create(network=network, name="ns1.test.com")
-    ns2 = Hostname.objects.create(network=network, name="ns2.test.com")
-    DNSNSRecord.objects.create(hostname=hn, name_server=ns1)
-    DNSNSRecord.objects.create(hostname=hn, name_server=ns2)
-
-    # Add IPv6 to first nameserver only
-    DNSAAAARecord.objects.create(hostname=ns1, ip_address=ip)
-
-    # Create finding type and finding
-    finding_type, _ = FindingType.objects.get_or_create(code="KAT-NAMESERVER-NO-TWO-IPV6")
-    finding = Finding.objects.create(finding_type=finding_type, hostname=hn)
-
-    # Verify finding exists
-    assert Finding.objects.filter(pk=finding.pk).exists()
-
-    # Add IPv6 to second nameserver
-    DNSAAAARecord.objects.create(hostname=ns2, ip_address=ip)
-
-    # Run inverse query
-    with connections["xtdb"].cursor() as cursor:
-        cursor.execute(get_rules()["two_ipv6_nameservers"]["inverse_query"])
 
     # Verify finding was deleted
     assert not Finding.objects.filter(pk=finding.pk).exists()

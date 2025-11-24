@@ -113,41 +113,6 @@ def get_rules():
             """,  # noqa: S608
             "finding_type_code": "KAT-NAMESERVER-NO-IPV6",
         },
-        "two_ipv6_nameservers": {
-            "name": "two_ipv6_nameservers",
-            "description": "Checks if a hostname has at least two nameservers supporting IPv6",
-            "object_type": "hostname",
-            "query": f"""
-                SELECT distinct h._id, h.name, h.network_id, h.root, h.declared, h.scan_level
-                 FROM {Hostname._meta.db_table} h
-                      LEFT JOIN {DNSNSRecord._meta.db_table} ns ON h."_id" = ns."name_server_id"
-                      RIGHT JOIN {DNSNSRecord._meta.db_table} hns ON h."_id" = hns."hostname_id"
-                      LEFT JOIN {Hostname._meta.db_table} nshost ON hns.name_server_id = nshost._id
-                      LEFT JOIN {DNSAAAARecord._meta.db_table} dns ON dns.hostname_id = nshost._id
-                      LEFT JOIN {Finding._meta.db_table} f on (
-                        f.hostname_id = h._id and f.finding_type_id = 'KAT-NAMESERVER-NO-TWO-IPV6'
-                      )
-                 where f._id is null and ns._id is null
-                 having count(dns._id) < 2;
-                 """,  # noqa: S608
-            "inverse_query": f"""
-                DELETE FROM {Finding._meta.db_table}
-                WHERE _id IN (
-                    SELECT f._id
-                    FROM {Finding._meta.db_table} f
-                    INNER JOIN {Hostname._meta.db_table} h ON h._id = f.hostname_id
-                    INNER JOIN {DNSNSRecord._meta.db_table} hns ON h."_id" = hns."hostname_id"
-                    INNER JOIN {Hostname._meta.db_table} nshost ON hns.name_server_id = nshost._id
-                    INNER JOIN {DNSAAAARecord._meta.db_table} dns ON dns.hostname_id = nshost._id
-                    LEFT JOIN {DNSNSRecord._meta.db_table} ns ON h."_id" = ns."name_server_id"
-                    WHERE ns._id IS NULL
-                    AND f.finding_type_id = 'KAT-NAMESERVER-NO-TWO-IPV6'
-                    GROUP BY f._id
-                    HAVING COUNT(DISTINCT dns._id) >= 2
-                );
-            """,  # noqa: S608
-            "finding_type_code": "KAT-NAMESERVER-NO-TWO-IPV6",
-        },
         "missing_spf": {
             "name": "missing_spf",
             "description": "Checks if the hostname has valid SPF records",

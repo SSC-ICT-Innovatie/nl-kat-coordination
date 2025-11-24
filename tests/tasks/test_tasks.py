@@ -1,5 +1,6 @@
 from celery import Celery
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 
 from files.models import File, GenericContent
 from objects.models import (
@@ -15,7 +16,7 @@ from objects.models import (
     ObjectTask,
     bulk_insert,
 )
-from plugins.models import Plugin
+from plugins.models import BusinessRule, Plugin
 from tasks.models import Schedule, Task, TaskResult, TaskStatus
 from tasks.tasks import (
     process_dns,
@@ -246,15 +247,21 @@ def test_find_intersecting_input_data(organization):
 def test_process_dns_result(organization, xtdb, task_db):
     network = Network.objects.create(name="test")
     hn = Hostname.objects.create(network=network, name="test.com")
-    finding_type = FindingType.objects.create(code="KAT-NO-SPF")
     ip = IPAddress.objects.create(network=network, address="2001:db8::")
 
-    Finding.objects.create(finding_type=finding_type, hostname=hn)
-    FindingType.objects.create(code="KAT-WEBSERVER-NO-IPV6")
-    FindingType.objects.create(code="KAT-NAMESERVER-NO-IPV6")
-    FindingType.objects.create(code="KAT-NO-CAA")
-    FindingType.objects.create(code="KAT-DOMAIN-OWNERSHIP-PENDING")
+    hostname_ct = ContentType.objects.get_for_model(Hostname)
+    for code, name in [
+        ("KAT-NO-SPF", "missing_spf"),
+        ("KAT-WEBSERVER-NO-IPV6", "ipv6_webservers"),
+        ("KAT-NAMESERVER-NO-IPV6", "ipv6_nameservers"),
+        ("KAT-NO-CAA", "missing_caa"),
+        ("KAT-DOMAIN-OWNERSHIP-PENDING", "domain_owner_verification"),
+        ("KAT-NO-DMARC", "missing_dmarc"),
+    ]:
+        BusinessRule.objects.create(name=name, finding_type_code=code, object_type=hostname_ct, enabled=True)
+        FindingType.objects.create(code=code)
 
+    Finding.objects.create(finding_type_id="KAT-NO-SPF", hostname=hn)
     hn2 = Hostname.objects.create(network=network, name="test2.com")
     task_db.data["input_data"] = [str(hn), str(hn2)]
     task_db.save()
@@ -277,23 +284,168 @@ def test_process_dns_result(organization, xtdb, task_db):
 
     process_dns(task_db)
 
-    assert Finding.objects.count() == 5
+    assert Finding.objects.count() == 7
     assert Finding.objects.filter(finding_type_id="KAT-NO-SPF", hostname=hn2).exists()
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA").count() == 2
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn).exists()
     assert Finding.objects.filter(finding_type_id="KAT-NO-CAA", hostname=hn2).exists()
     assert Finding.objects.filter(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname=hn2).exists()
     assert Finding.objects.filter(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname=hn).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC").count() == 2
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=hn).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=hn2).exists()
+
+
+def test_process_dns_missing_dmarc(organization, xtdb, task_db):
+    network = Network.objects.create(name="test")
+    hostname_with_dmarc = Hostname.objects.create(network=network, name="example.com", root=True)
+    hostname_without_dmarc = Hostname.objects.create(network=network, name="other.org", root=True)
+
+    hostname_ct = ContentType.objects.get_for_model(Hostname)
+    BusinessRule.objects.create(
+        name="missing_dmarc", finding_type_code="KAT-NO-DMARC", object_type=hostname_ct, enabled=True
+    )
+    FindingType.objects.create(code="KAT-NO-DMARC")
+    Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=hostname_with_dmarc)
+
+    task_db.data["input_data"] = [str(hostname_with_dmarc), str(hostname_without_dmarc)]
+    task_db.save()
+
+    plugin = Plugin.objects.create(
+        name="test", plugin_id=task_db.data["plugin_id"], oci_image="T", oci_arguments=["{hostname}"], scan_level=2
+    )
+
+    dmarc_txt = DNSTXTRecord.objects.create(
+        hostname=hostname_with_dmarc, value="v=DMARC1; p=quarantine;", prefix="_dmarc"
+    )
+
+    for obj in [hostname_with_dmarc, hostname_without_dmarc, dmarc_txt]:
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=obj.pk,
+            output_object_type=str(obj.__class__.__name__).lower(),
+        )
+
+    process_dns(task_db)
+
+    assert not Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=hostname_with_dmarc).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=hostname_without_dmarc).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC").count() == 1
+
+
+def test_process_dns_missing_dmarc_case_insensitive(organization, xtdb, task_db):
+    network = Network.objects.create(name="test")
+    hostname = Hostname.objects.create(network=network, name="test.com")
+
+    hostname_ct = ContentType.objects.get_for_model(Hostname)
+    BusinessRule.objects.create(
+        name="missing_dmarc", finding_type_code="KAT-NO-DMARC", object_type=hostname_ct, enabled=True
+    )
+    FindingType.objects.create(code="KAT-NO-DMARC")
+
+    task_db.data["input_data"] = [str(hostname)]
+    task_db.save()
+
+    plugin = Plugin.objects.create(
+        name="test", plugin_id=task_db.data["plugin_id"], oci_image="T", oci_arguments=["{hostname}"], scan_level=2
+    )
+
+    for dmarc_value in ["v=dmarc1; p=none;", "V=DMARC1; P=NONE;", "v=DmArC1; p=reject;"]:
+        Finding.objects.filter(hostname=hostname).delete()
+        dmarc = DNSTXTRecord.objects.create(hostname=hostname, value=dmarc_value, prefix="_dmarc")
+
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=dmarc.pk,
+            output_object_type="dnstxtrecord",
+        )
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=hostname.pk,
+            output_object_type="hostname",
+        )
+
+        process_dns(task_db)
+
+        assert not Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=hostname).exists()
+        dmarc.delete()
+        ObjectTask.objects.filter(task_id=str(task_db.pk)).delete()
+
+
+def test_process_dns_missing_dmarc_root_hostnames(organization, xtdb, task_db):
+    network = Network.objects.create(name="test")
+    root_with_dmarc = Hostname.objects.create(network=network, name="has-dmarc.com", root=True)
+    subdomain_root_dmarc = Hostname.objects.create(network=network, name="mail.has-dmarc.com", root=False)
+
+    root_no_dmarc = Hostname.objects.create(network=network, name="no-dmarc.com", root=True)
+    subdomain_no_root_dmarc = Hostname.objects.create(network=network, name="mail.no-dmarc.com", root=False)
+
+    # Second root domain with DMARC, but not an input of the task
+    root_with_dmarc_2 = Hostname.objects.create(network=network, name="also-has-dmarc.org", root=True)
+    deep = Hostname.objects.create(network=network, name="deep.mail.also-has-dmarc.org", root=False)
+
+    hostname_ct = ContentType.objects.get_for_model(Hostname)
+    BusinessRule.objects.create(
+        name="missing_dmarc", finding_type_code="KAT-NO-DMARC", object_type=hostname_ct, enabled=True
+    )
+    FindingType.objects.create(code="KAT-NO-DMARC")
+    Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=root_with_dmarc)
+    Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=subdomain_root_dmarc)
+    Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=root_with_dmarc_2)
+    Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=deep)
+
+    task_db.data["input_data"] = [
+        str(root_with_dmarc),
+        str(subdomain_root_dmarc),
+        str(root_no_dmarc),
+        str(subdomain_no_root_dmarc),
+        str(deep),
+    ]
+    task_db.save()
+
+    plugin = Plugin.objects.create(
+        name="test", plugin_id=task_db.data["plugin_id"], oci_image="T", oci_arguments=["{hostname}"], scan_level=2
+    )
+
+    dmarc1 = DNSTXTRecord.objects.create(hostname=root_with_dmarc, value="v=DMARC1; p=quarantine;", prefix="_dmarc")
+    dmarc2 = DNSTXTRecord.objects.create(hostname=root_with_dmarc_2, value="v=DMARC1; p=reject;", prefix="_dmarc")
+
+    for obj in [root_with_dmarc, subdomain_root_dmarc, root_no_dmarc, subdomain_no_root_dmarc, deep, dmarc1, dmarc2]:
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=obj.pk,
+            output_object_type=str(obj.__class__.__name__).lower(),
+        )
+
+    process_dns(task_db)
+
+    assert not Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=root_with_dmarc).exists()
+    assert not Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=root_with_dmarc_2).exists()
+    assert not Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=subdomain_root_dmarc).exists()
+    assert not Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=deep).exists()
+
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=root_no_dmarc).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC", hostname=subdomain_no_root_dmarc).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-NO-DMARC").count() == 2
 
 
 def test_process_port_scan_result(organization, xtdb, task_db):
     network = Network.objects.create(name="test")
 
-    FindingType.objects.create(code="KAT-OPEN-SYSADMIN-PORT")
-    FindingType.objects.create(code="KAT-OPEN-DATABASE-PORT")
-    FindingType.objects.create(code="KAT-REMOTE-DESKTOP-PORT")
-    FindingType.objects.create(code="KAT-OPEN-COMMON-PORT")
-    FindingType.objects.create(code="KAT-UNCOMMON-OPEN-PORT")
+    ipaddress_ct = ContentType.objects.get_for_model(IPAddress)
+    for code, name in [
+        ("KAT-OPEN-SYSADMIN-PORT", "open_sysadmin_port"),
+        ("KAT-OPEN-DATABASE-PORT", "open_database_port"),
+        ("KAT-REMOTE-DESKTOP-PORT", "open_remote_desktop_port"),
+        ("KAT-OPEN-COMMON-PORT", "open_common_port"),
+        ("KAT-UNCOMMON-OPEN-PORT", "open_uncommon_port"),
+    ]:
+        FindingType.objects.create(code=code)
+        BusinessRule.objects.create(name=name, finding_type_code=code, object_type=ipaddress_ct, enabled=True)
 
     ip1 = IPAddress.objects.create(network=network, address="192.168.1.1")
     ip2 = IPAddress.objects.create(network=network, address="192.168.1.2")

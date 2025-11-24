@@ -642,14 +642,19 @@ def process_dns(task: Task) -> None:
         - ipv6_webserver
         - ipv6_nameserver
         - missing_caa
+        - missing_dmarc
         - domain_owner_verification
     """
     logger.info("Processing DNS task %s", task.pk)
 
-    inputs = Hostname.objects.filter(name__in=task.data["input_data"]).values("pk", "dnsnsrecord_nameserver")
+    enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
+    inputs = Hostname.objects.filter(name__in=task.data["input_data"]).values(
+        "pk", "name", "network_id", "root", "dnsnsrecord_nameserver"
+    )
     output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
     records = {}
 
+    # Parse the DNSRecords into objects using the natural keys. This doesn't require no database access.
     for rec_type in [DNSTXTRecord, DNSCAARecord, DNSAAAARecord, DNSNSRecord]:
         name = str(rec_type.__name__).lower()
         records[name] = [
@@ -657,46 +662,109 @@ def process_dns(task: Task) -> None:
         ]
 
     input_hostname_pks = {h["pk"] for h in inputs}
-    hostnames_with_spf = {txt.hostname.natural_key for txt in records["dnstxtrecord"] if txt.value.startswith("v=spf1")}
-    hostnames_without_spf = input_hostname_pks - hostnames_with_spf
-
-    hostnames_with_caa = {caa.hostname.natural_key for caa in records["dnscaarecord"]}
-    hostnames_without_caa = input_hostname_pks - hostnames_with_caa
-
-    hostnames_with_ipv6 = {txt.hostname.natural_key for txt in records["dnsaaaarecord"]}
-    hostnames_without_ipv6 = {h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is None} - hostnames_with_ipv6
-    ns_hostnames_without_ipv6 = {
-        h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is not None
-    } - hostnames_with_ipv6
-
-    hostnames_with_ownership_pending = {
-        txt.hostname.natural_key for txt in records["dnsnsrecord"] if txt.name_server.name in INDICATORS
-    }
-    hostnames_without_ownership_pending = input_hostname_pks - hostnames_with_ownership_pending
-
-    Finding.objects.filter(finding_type="KAT-NO-CAA", hostname_id__in=hostnames_with_caa).delete()
-    Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
-    Finding.objects.filter(
-        finding_type_id__in=["KAT-WEBSERVER-NO-IPV6", "KAT-NAMESERVER-NO-IPV6"], hostname_id__in=hostnames_with_ipv6
-    ).delete()
-    Finding.objects.filter(
-        finding_type="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id__in=hostnames_without_ownership_pending
-    ).delete()
 
     findings = []
 
-    for host in hostnames_without_spf:
-        findings.append(Finding(finding_type_id="KAT-NO-SPF", hostname_id=host))
-    for host in hostnames_without_ipv6:
-        findings.append(Finding(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id=host))
-    for host in ns_hostnames_without_ipv6:
-        findings.append(Finding(finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id=host))
-    for host in hostnames_without_caa:
-        findings.append(Finding(finding_type_id="KAT-NO-CAA", hostname_id=host))
-    for host in hostnames_with_ownership_pending:
-        findings.append(Finding(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id=host))
+    if "missing_spf" in enabled_rules:
+        hostnames_with_spf = {
+            t.hostname.natural_key for t in records["dnstxtrecord"] if t.value.lower().startswith("v=spf1")
+        }
+        hostnames_without_spf = input_hostname_pks - hostnames_with_spf
 
-    bulk_insert(findings)
+        if hostnames_with_spf:
+            Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
+
+        findings.extend([Finding(finding_type_id="KAT-NO-SPF", hostname_id=host) for host in hostnames_without_spf])
+
+    if "missing_caa" in enabled_rules:
+        hostnames_with_caa = {caa.hostname.natural_key for caa in records["dnscaarecord"]}
+        hostnames_without_caa = input_hostname_pks - hostnames_with_caa
+
+        if hostnames_with_caa:
+            Finding.objects.filter(finding_type="KAT-NO-CAA", hostname_id__in=hostnames_with_caa).delete()
+        findings.extend([Finding(finding_type_id="KAT-NO-CAA", hostname_id=host) for host in hostnames_without_caa])
+
+    if "ipv6_webservers" in enabled_rules:
+        hostnames_with_ipv6 = {txt.hostname.natural_key for txt in records["dnsaaaarecord"]}
+        hostnames_without_ipv6 = {h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is None} - hostnames_with_ipv6
+
+        if hostnames_with_ipv6:
+            Finding.objects.filter(
+                finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id__in=hostnames_with_ipv6
+            ).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id=host) for host in hostnames_without_ipv6]
+        )
+
+    if "ipv6_nameservers" in enabled_rules:
+        hostnames_with_ipv6 = {txt.hostname.natural_key for txt in records["dnsaaaarecord"]}
+        ns_hostnames_without_ipv6 = {
+            h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is not None
+        } - hostnames_with_ipv6
+
+        if hostnames_with_ipv6:
+            Finding.objects.filter(
+                finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id__in=hostnames_with_ipv6
+            ).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id=host) for host in ns_hostnames_without_ipv6]
+        )
+
+    if "domain_owner_verification" in enabled_rules:
+        hostnames_with_ownership_pending = {
+            txt.hostname.natural_key for txt in records["dnsnsrecord"] if txt.name_server.name in INDICATORS
+        }
+        hostnames_without_ownership_pending = input_hostname_pks - hostnames_with_ownership_pending
+
+        if hostnames_without_ownership_pending:
+            Finding.objects.filter(
+                finding_type="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id__in=hostnames_without_ownership_pending
+            ).delete()
+        findings.extend(
+            [
+                Finding(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id=host)
+                for host in hostnames_with_ownership_pending
+            ]
+        )
+
+    if "missing_dmarc" in enabled_rules:
+        with_dmarc = {
+            txt.hostname.natural_key
+            for txt in records["dnstxtrecord"]
+            if txt.prefix == "_dmarc" and txt.value.lower().startswith("v=dmarc1")
+        }
+        nonroot_hostnames_without_dmarc = {h["name"] for h in inputs if h["pk"] not in with_dmarc or not h["root"]}
+
+        if nonroot_hostnames_without_dmarc:
+            # TODO: we should filter the network as well later on
+            name_filter = " or ".join(
+                [f"POSITION(h.name IN '{hostname}') != 0" for hostname in nonroot_hostnames_without_dmarc]
+            )
+            root_hostnames_with_dmarc = {
+                h.name
+                for h in Hostname.objects.raw(f"""
+                    SELECT h._id, h.name, h.network_id, h.root, h.declared, h.scan_level
+                    FROM {Hostname._meta.db_table} h
+                    INNER JOIN {DNSTXTRecord._meta.db_table} txt ON h._id = txt.hostname_id
+                    WHERE txt.prefix = '_dmarc' AND UPPER(txt.value::text) LIKE UPPER('v=dmarc1%%') AND root = true
+                    AND ({name_filter})
+                """)  # noqa: S608
+            }
+            with_root_dmarc = {
+                host["pk"] for host in inputs if any(root in host["name"] for root in root_hostnames_with_dmarc)
+            }
+        else:
+            with_root_dmarc = set()
+
+        if with_dmarc | with_root_dmarc:
+            Finding.objects.filter(finding_type="KAT-NO-DMARC", hostname_id__in=with_dmarc | with_root_dmarc).delete()
+
+        hostnames_without_dmarc = input_hostname_pks - (with_dmarc | with_root_dmarc)
+        findings.extend([Finding(finding_type_id="KAT-NO-DMARC", hostname_id=host) for host in hostnames_without_dmarc])
+
+    if findings:
+        bulk_insert(findings)
+
     logger.info("Finished processing DNS task %s", task.pk)
 
 
@@ -711,55 +779,60 @@ def process_port_scan(task: Task) -> None:
     """
     logger.info("Processing port scan %s", task.pk)
 
+    # Check which business rules are enabled
+    enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
+
     inputs = IPAddress.objects.filter(address__in=task.data["input_data"]).values("pk")
     output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
     ports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
-
-    ips_with_sysadmin_port = {port.address.natural_key for port in ports if port.port in SA_TCP_PORTS}
-    ips_with_database_port = {port.address.natural_key for port in ports if port.port in DB_TCP_PORTS}
-    ips_with_rdp_port = {port.address.natural_key for port in ports if port.port in MICROSOFT_RDP_PORTS}
-    ips_with_common_port = {
-        port.address.natural_key
-        for port in ports
-        if (port.protocol == "TCP" and port.port in ALL_COMMON_TCP)
-        or (port.protocol == "UDP" and port.port in COMMON_UDP)
-    }
-    ips_with_uncommon_port = {
-        port.address.natural_key
-        for port in ports
-        if (port.protocol == "TCP" and port.port not in ALL_COMMON_TCP)
-        or (port.protocol == "UDP" and port.port not in COMMON_UDP)
-    }
-
     input_ip_pks = {ip["pk"] for ip in inputs}
-    ips_without_sysadmin_port = input_ip_pks - ips_with_sysadmin_port
-    ips_without_database_port = input_ip_pks - ips_with_database_port
-    ips_without_rdp_port = input_ip_pks - ips_with_rdp_port
-    ips_without_common_port = input_ip_pks - ips_with_common_port
-    ips_without_uncommon_port = input_ip_pks - ips_with_uncommon_port
-
-    # Delete findings where ports no longer exist
-    Finding.objects.filter(finding_type="KAT-OPEN-SYSADMIN-PORT", address_id__in=ips_without_sysadmin_port).delete()
-    Finding.objects.filter(finding_type="KAT-OPEN-DATABASE-PORT", address_id__in=ips_without_database_port).delete()
-    Finding.objects.filter(finding_type="KAT-REMOTE-DESKTOP-PORT", address_id__in=ips_without_rdp_port).delete()
-    Finding.objects.filter(finding_type="KAT-OPEN-COMMON-PORT", address_id__in=ips_without_common_port).delete()
-    Finding.objects.filter(finding_type="KAT-UNCOMMON-OPEN-PORT", address_id__in=ips_without_uncommon_port).delete()
-
     findings = []
 
-    # Create findings for IPs with open ports
-    for ip in ips_with_sysadmin_port:
-        findings.append(Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address_id=ip))
-    for ip in ips_with_database_port:
-        findings.append(Finding(finding_type_id="KAT-OPEN-DATABASE-PORT", address_id=ip))
-    for ip in ips_with_rdp_port:
-        findings.append(Finding(finding_type_id="KAT-REMOTE-DESKTOP-PORT", address_id=ip))
-    for ip in ips_with_common_port:
-        findings.append(Finding(finding_type_id="KAT-OPEN-COMMON-PORT", address_id=ip))
-    for ip in ips_with_uncommon_port:
-        findings.append(Finding(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address_id=ip))
+    if "open_sysadmin_port" in enabled_rules:
+        ips_with_sysadmin_port = {port.address.natural_key for port in ports if port.port in SA_TCP_PORTS}
+        ips_without_sysadmin_port = input_ip_pks - ips_with_sysadmin_port
+        Finding.objects.filter(finding_type="KAT-OPEN-SYSADMIN-PORT", address_id__in=ips_without_sysadmin_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address_id=ip) for ip in ips_with_sysadmin_port]
+        )
+    if "open_database_port" in enabled_rules:
+        ips_with_database_port = {port.address.natural_key for port in ports if port.port in DB_TCP_PORTS}
+        ips_without_database_port = input_ip_pks - ips_with_database_port
+        Finding.objects.filter(finding_type="KAT-OPEN-DATABASE-PORT", address_id__in=ips_without_database_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-OPEN-DATABASE-PORT", address_id=ip) for ip in ips_with_database_port]
+        )
+    if "open_remote_desktop_port" in enabled_rules:
+        ips_with_rdp_port = {port.address.natural_key for port in ports if port.port in MICROSOFT_RDP_PORTS}
+        ips_without_rdp_port = input_ip_pks - ips_with_rdp_port
+        Finding.objects.filter(finding_type="KAT-REMOTE-DESKTOP-PORT", address_id__in=ips_without_rdp_port).delete()
+        findings.extend([Finding(finding_type_id="KAT-REMOTE-DESKTOP-PORT", address_id=ip) for ip in ips_with_rdp_port])
+    if "open_common_port" in enabled_rules:
+        ips_with_common_port = {
+            port.address.natural_key
+            for port in ports
+            if (port.protocol == "TCP" and port.port in ALL_COMMON_TCP)
+            or (port.protocol == "UDP" and port.port in COMMON_UDP)
+        }
+        ips_without_common_port = input_ip_pks - ips_with_common_port
+        Finding.objects.filter(finding_type="KAT-OPEN-COMMON-PORT", address_id__in=ips_without_common_port).delete()
+        findings.extend([Finding(finding_type_id="KAT-OPEN-COMMON-PORT", address_id=ip) for ip in ips_with_common_port])
+    if "open_uncommon_port" in enabled_rules:
+        ips_with_uncommon_port = {
+            port.address.natural_key
+            for port in ports
+            if (port.protocol == "TCP" and port.port not in ALL_COMMON_TCP)
+            or (port.protocol == "UDP" and port.port not in COMMON_UDP)
+        }
+        ips_without_uncommon_port = input_ip_pks - ips_with_uncommon_port
+        Finding.objects.filter(finding_type="KAT-UNCOMMON-OPEN-PORT", address_id__in=ips_without_uncommon_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address_id=ip) for ip in ips_with_uncommon_port]
+        )
 
-    bulk_insert(findings)
+    if findings:
+        bulk_insert(findings)
+
     logger.info("Finished processing port scan task %s", task.pk)
 
 
