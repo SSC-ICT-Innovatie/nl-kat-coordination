@@ -7,7 +7,7 @@
             aria-haspopup="listbox"
             aria-controls="action-dropdown"
             aria-expanded="false"
-            class="dropdown-button icon-only ti-dots-vertical"></button>
+            class="dropdown-button icon-only icon-dots-vertical"></button>
     <div id="action-dropdown" class="dropdown-list">
         <ul role="listbox" aria-labelledby="action-dropdown">
             {% if dashboard_item.item.recipe %}
@@ -15,8 +15,8 @@
                     <button type="button"
                             class="toggle-item-button"
                             data-id="{{ dashboard_item.item.id }}">
-                        <span class="toggle-item"><i class="icon ti-eye"></i>{% translate "Show description" %}</span>
-                        <span class="toggle-item" data-show="off"><i class="icon ti-eye-off"></i>{% translate "Hide description" %}</span>
+                        <span class="toggle-item"><i class="icon icon-eye" aria-hidden="true"></i>{% translate "Show description" %}</span>
+                        <span class="toggle-item" data-show="off"><i class="icon icon-eye-off" aria-hidden="true"></i>{% translate "Hide description" %}</span>
                     </button>
                 </li>
             {% endif %}
@@ -33,14 +33,14 @@
                 {% if dashboard_items|length > 1 and not forloop.first %}
                     <li role="option">
                         <button type="submit" name="move" value="up">
-                            <i class="icon ti-arrow-up"></i>{% translate "Position up" %}
+                            <i class="icon icon-arrow-up" aria-hidden="true"></i>{% translate "Position up" %}
                         </button>
                     </li>
                 {% endif %}
                 {% if dashboard_items|length > 1 and not forloop.last %}
                     <li role="option">
                         <button type="submit" name="move" value="down">
-                            <i class="icon ti-arrow-down"></i>{% translate "Position down" %}
+                            <i class="icon icon-arrow-down" aria-hidden="true"></i>{% translate "Position down" %}
                         </button>
                     </li>
                 {% endif %}
@@ -62,7 +62,7 @@
                     {% endif %}
                     <li role="option">
                         <button type="submit" name="action" value="rerun">
-                            <i class="icon ti-refresh"></i>{% translate "Rerun report" %}
+                            <i class="icon icon-refresh" aria-hidden="true"></i>{% translate "Rerun report" %}
                         </button>
                     </li>
                 </form>
@@ -70,7 +70,7 @@
             <li>
                 <a href="#delete-item-modal-{{ dashboard_item.item.id }}"
                    data-modal-id="delete-item-modal-{{ dashboard_item.item.id }}"
-                   class="plain destructive"><i class="icon ti-trash"></i>{% translate "Delete item" %}
+                   class="plain destructive"><i class="icon icon-trash" aria-hidden="true"></i>{% translate "Delete item" %}
                 </a>
             </li>
         </ul>

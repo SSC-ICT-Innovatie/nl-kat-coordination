@@ -18,19 +18,19 @@
                         aria-expanded="false"
                         class="dropdown-button ghost">
                     {% translate "Actions" %}
-                    <span aria-hidden="true" class="icon ti-chevron-down"></span>
+                    <span class="icon icon-chevron-down" aria-hidden="true"></span>
                 </button>
                 <div id="action-dropdown" class="dropdown-list left">
                     <ul>
                         <li>
-                            <a href="#rerun-modal"><i class="icon ti-refresh"></i>{% translate "Rerun" %}</a>
+                            <a href="#rerun-modal"><i class="icon icon-refresh" aria-hidden="true"></i>{% translate "Rerun" %}</a>
                         </li>
                         <li>
-                            <a href="#rename-modal"><i class="icon ti-edit"></i>{% translate "Rename" %}</a>
+                            <a href="#rename-modal"><i class="icon icon-edit" aria-hidden="true"></i>{% translate "Rename" %}</a>
                         </li>
                         {% if perms.tools.can_delete_oois %}
                             <li>
-                                <a href="#delete-modal" class="destructive"><i class="icon ti-trash"></i>{% translate "Delete" %}</a>
+                                <a href="#delete-modal" class="destructive"><i class="icon icon-trash" aria-hidden="true"></i>{% translate "Delete" %}</a>
                             </li>
                         {% endif %}
                     </ul>
@@ -116,9 +116,9 @@
                             <td class="nowrap actions sticky-cell">
                                 {% if report.total_asset_reports >= 1 %}
                                     <button type="button"
-                                            class="expando-button icon ti-chevron-down"
-                                            data-icon-open-class="icon ti-chevron-down"
-                                            data-icon-close-class="icon ti-chevron-up"
+                                            class="expando-button icon icon-chevron-down"
+                                            data-icon-open-class="icon icon-chevron-down"
+                                            data-icon-close-class="icon icon-chevron-up"
                                             data-close-label="{% translate "Close asset report object details" %}"
                                             aria-expanded="false">
                                         {% translate "Open asset report object details" %}

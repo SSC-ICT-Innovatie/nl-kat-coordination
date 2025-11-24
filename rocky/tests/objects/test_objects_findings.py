@@ -195,7 +195,7 @@ def test_muted_finding_button_not_presence(rf, mock_organization_view_octopoes, 
     assertContains(
         response,
         '<a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" '
-        'class="icon ti-bell-off"></icon>Mute findings</a>',
+        'class="icon icon-bell-off"></icon>Mute findings</a>',
     )
 
 
@@ -246,7 +246,7 @@ def test_muted_finding_button_presence_more_findings_and_post(
     assertContains(
         response,
         '<a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" '
-        'class="icon ti-bell-off"></icon>Mute findings</a>',
+        'class="icon icon-bell-off"></icon>Mute findings</a>',
     )
 
     request = setup_request(
@@ -295,7 +295,7 @@ def test_can_mute_findings_perms(rf, request, member, mock_organization_view_oct
     assertNotContains(
         response,
         '<a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" '
-        'class="icon ti-bell-off"></icon>Mute findings</a>',
+        'class="icon icon-bell-off"></icon>Mute findings</a>',
     )
 
 

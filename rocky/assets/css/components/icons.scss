@@ -1,5 +1,10 @@
-@use "../variables" as theme;
+@use "../../icons/tabler";
 
-.icon-eye {
-  content: theme.$ti-icon-eye;
+@each $name, $url in tabler.$icons {
+  .icon-#{$name} {
+    mask-image: $url;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+  }
 }

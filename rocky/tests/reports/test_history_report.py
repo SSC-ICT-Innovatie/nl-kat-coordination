@@ -173,7 +173,7 @@ def test_report_history_asset_reports_table(
         response,
         (
             '<a class="button ghost" href="/en/test/reports/report-history/">'
-            '<span class="icon ti-chevron-left"></span>Back to Reports History</a>'
+            '<span class="icon icon-chevron-left"></span>Back to Reports History</a>'
         ),
         html=True,
     )

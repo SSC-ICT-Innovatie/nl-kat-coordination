@@ -60,7 +60,7 @@
             {% include "forms/report_form_fields.html" with selected_report_types=None %}
 
             <button type="submit" class="button ghost">
-                <span class="icon ti-chevron-left"></span>{% translate "Change selection" %}
+                <span class="icon icon-chevron-left" aria-hidden="true"></span>{% translate "Change selection" %}
             </button>
         </form>
         <h2>{% translate "Available report types" %} ({{ count_available_report_types }})</h2>
@@ -83,7 +83,7 @@
                 {% endif %}
             </div>
             <button type="submit">
-                {% translate "Continue with selection" %}<span class="icon ti-chevron-right"></span>
+                {% translate "Continue with selection" %}<span class="icon icon-chevron-right" aria-hidden="true"></span>
             </button>
         </form>
     </div>

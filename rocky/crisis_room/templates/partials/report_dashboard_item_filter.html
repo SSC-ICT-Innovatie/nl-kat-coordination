@@ -53,7 +53,7 @@
                             <a class="button ghost"
                                href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s:u" }}#selected-oois">
                                 {% translate "Show all objects" %}
-                                <span class="icon ti-chevron-right" aria-hidden="true"></span>
+                                <span class="icon icon-chevron-right" aria-hidden="true"></span>
                             </a>
                         </div>
                     {% endif %}

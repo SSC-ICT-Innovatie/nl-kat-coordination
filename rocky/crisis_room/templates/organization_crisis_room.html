@@ -21,20 +21,20 @@
                                     <button aria-label="{% translate "Options for dashboard" %}"
                                             aria-controls="action-dropdown"
                                             aria-expanded="false"
-                                            class="icon-only ti-dots-vertical dropdown-button"></button>
+                                            class="icon-only icon-dots-vertical dropdown-button"></button>
                                     <div id="action-dropdown" class="dropdown-list">
                                         <ul>
                                             {% if not dashboard_items.0.item.findings_dashboard %}
                                                 <li role="option">
                                                     <button type="button" id="toggle-dashboard-button">
-                                                        <span class="toggle-item"><i class="icon ti-eye"></i>{% translate "Show all descriptions" %}</span>
-                                                        <span class="toggle-item" data-show="off"><i class="icon ti-eye-off"></i>{% translate "Hide all descriptions" %}</span>
+                                                        <span class="toggle-item"><i class="icon icon-eye"></i>{% translate "Show all descriptions" %}</span>
+                                                        <span class="toggle-item" data-show="off"><i class="icon icon-eye-off"></i>{% translate "Hide all descriptions" %}</span>
                                                     </button>
                                                 </li>
                                             {% endif %}
                                             <li>
                                                 <a href="#delete-dashboard-modal" class="plain destructive">
-                                                    <i class="icon ti-trash"></i>{% translate "Delete dashboard" %}
+                                                    <i class="icon icon-trash"></i>{% translate "Delete dashboard" %}
                                                 </a>
                                             </li>
                                         </ul>

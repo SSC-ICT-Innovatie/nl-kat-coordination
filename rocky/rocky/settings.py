@@ -444,7 +444,7 @@ if CSP_HEADER:
     CONTENT_SECURITY_POLICY = {
         "DIRECTIVES": {
             "default-src": [NONE],
-            "img-src": [SELF],
+            "img-src": [SELF, "data:"],
             "font-src": [SELF],
             "style-src": [SELF],
             "frame-ancestors": [NONE],

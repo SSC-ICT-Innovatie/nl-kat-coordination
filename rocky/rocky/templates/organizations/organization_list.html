@@ -15,7 +15,7 @@
                 </div>
                 <div class="horizontal-view toolbar">
                     {% if perms.tools.add_organization %}
-                        <a href="{% url 'organization_add' %}" class="button ghost"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Add new organization" %}</a>
+                        <a href="{% url 'organization_add' %}" class="button ghost"><span class="icon icon-plus" aria-hidden="true"></span>{% translate "Add new organization" %}</a>
                     {% endif %}
                 </div>
             </div>
@@ -54,7 +54,7 @@
                                         </td>
                                         <td>
                                             <a href="{% url 'organization_settings' organization_code=organization.code %}">
-                                                <button class="icon ti-edit action-button">Settings</button>
+                                                <button class="icon icon-edit action-button">Settings</button>
                                             </a>
                                         </td>
                                     </tr>

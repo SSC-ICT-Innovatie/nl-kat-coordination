@@ -13,7 +13,7 @@
             <div>
                 <a class="button ghost"
                    href="{% url "organization_member_add_account_type" organization_code=organization.code %}">
-                    <span class="icon ti-chevron-left" aria-hidden="true"></span>
+                    <span class="icon icon-chevron-left" aria-hidden="true"></span>
                     {% translate "Change account type" %}
                 </a>
                 <h2>{{ view.kwargs.account_type|capfirst }} account setup</h2>
