@@ -1,4 +1,3 @@
-import time
 import uuid
 from datetime import UTC, datetime
 
@@ -37,7 +36,6 @@ from plugins.plugins.business_rules import (
     INDICATORS,
     MICROSOFT_RDP_PORTS,
     SA_TCP_PORTS,
-    run_rules,
 )
 from plugins.runner import PluginRunner
 from reports.generator import ReportPDFGenerator
@@ -70,48 +68,6 @@ def schedule_attribution():
             organization_attribution()
     except LockError:
         logger.warning("Organization attribution is running, consider increasing ATTRIBUTION_INTERVAL")
-
-
-@app.task(queue=settings.QUEUE_NAME_RECALCULATIONS)
-def schedule_business_rule_recalculations(from_trigger: bool = False) -> None:
-    try:
-        # Create a Lock that lives for three times the settings.SCAN_LEVEL_RECALCULATION_INTERVAL at most, to:
-        #   1. Avoid running several recalculation scripts at the same time and burn down the database
-        #   2. Still take into account that there might be anomalies when a large set of objects has been changed
-        with caches["default"].lock(
-            "recalculate_business_rules", blocking=False, timeout=10 * settings.BUSINESS_RULE_RECALCULATION_INTERVAL
-        ):
-            if from_trigger:
-                # If a plugin posts hostname updates, this task gets scheduled. But potentially that plugin also posts
-                # DNS updates 200ms later. If we run recalculations before that, we miss the DNS updates as the lock
-                # makes sure we skip later updates.
-                logger.info("Delaying recalculation to potentially fill a batch of updates in one run...")
-                time.sleep(5)
-
-            run_rules(BusinessRule.objects.filter(enabled=True), False)
-    except LockError:
-        if not from_trigger:
-            logger.warning(
-                "Business rule calculation is running, consider increasing BUSINESS_RULE_RECALCULATION_INTERVAL"
-            )
-        else:
-            logger.debug(
-                "Business rule calculation is running, consider increasing BUSINESS_RULE_RECALCULATION_INTERVAL"
-            )
-
-
-@app.task(queue=settings.QUEUE_NAME_RECALCULATIONS)
-def run_business_rules(business_rule_ids: list[int]) -> None:
-    for business_rule_id in business_rule_ids:
-        try:
-            business_rule = BusinessRule.objects.get(pk=business_rule_id)
-            logger.info("Running business rule: %s", business_rule.name)
-            run_rules([business_rule], False)
-            logger.info("Completed business rule: %s", business_rule.name)
-        except BusinessRule.DoesNotExist:
-            logger.error("Business rule %s not found", business_rule_id)
-        except Exception:
-            logger.exception("Error running business rule %s", business_rule_id)
 
 
 def recalculate_scan_levels():
@@ -620,10 +576,6 @@ def process_result(task_id: uuid.UUID) -> None:
     possible from within the plugin to tell for which input the task has failed, except when it is not being run
     in parallel. But we believe that every openkat installation should aim to have close to zero task failures. If tasks
     regularly fail, this should be handled in the plugin or the batch size should be decreased.
-
-    When that's not possible, we still have the periodic database-wide queries that should clean up the stale data due
-    to the failure. It might be worth triggering a run_business_rules task here if the task status is FAILED, but we
-    omit that for now.
     """
     task = Task.objects.get(pk=task_id)
     plugin_id = task.data.get("plugin_id")
@@ -952,10 +904,7 @@ def run_report_task(
     user_id: int | None = None,
     celery: Celery = app,
 ) -> Task:
-    """Create and queue a report generation task"""
     task_id = uuid.uuid4()
-
-    # Get the organization (for single org mode) - use first org if multiple
     organization = None
     if organization_codes and len(organization_codes) > 0:
         organization = Organization.objects.filter(code=organization_codes[0]).first()

@@ -4,7 +4,6 @@ import django_filters
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import PermissionDenied
 from django.db.models import QuerySet
@@ -14,16 +13,12 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import CreateView, DeleteView, DetailView, UpdateView
 from django_filters.views import FilterView
-from djangoql.exceptions import DjangoQLError
-from djangoql.queryset import apply_search
 
-from objects.models import FindingType, NoOrgQLSchema
 from openkat.mixins import OrganizationFilterMixin
 from openkat.models import Organization
 from openkat.permissions import KATModelPermissionRequiredMixin
 from plugins.models import BusinessRule, Plugin, ScanLevel
 from tasks.models import Schedule, Task
-from tasks.tasks import run_business_rules
 from tasks.views import TaskFilter
 
 
@@ -363,71 +358,15 @@ class BusinessRuleDetailView(DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context["breadcrumbs"] = [{"url": reverse("business_rule_list"), "text": _("Business Rules")}]
-        context["matching_objects"] = []
-        context["total_count"] = 0
-
-        model_class = self.object.object_type.model_class()
-        if model_class is None:
-            context["query_error"] = f"Unknown object type: {self.object.object_type}"
-            return context
-
-        queryset = model_class.objects.all()
-        context["matching_objects"] = []
-
-        try:
-            queryset = model_class.objects.all()
-            context["matching_objects"] = apply_search(queryset, self.object.query, NoOrgQLSchema)[:20]
-        except DjangoQLError as e:
-            messages.warning(self.request, f"The DjangoQL query in this rule is invalid: {e}")
-
-            try:
-                context["matching_objects"] = queryset.raw(self.object.query)[:20]
-            except Exception as e:
-                context["query_error"] = str(e)
-        except Exception as e:
-            context["query_error"] = str(e)
 
         return context
 
 
 class BusinessRuleForm(forms.ModelForm):
-    finding_type_code = forms.CharField(max_length=100, help_text="Finding type code (e.g., KAT-WEBSERVER-NO-IPV6)")
-
     class Meta:
         model = BusinessRule
-        fields = [
-            "name",
-            "description",
-            "enabled",
-            "requires",
-            "object_type",
-            "query",
-            "inverse_query",
-            "finding_type_code",
-        ]
-        widgets = {
-            "description": forms.Textarea(attrs={"rows": 3}),
-            "query": forms.Textarea(attrs={"rows": 5}),
-            "inverse_query": forms.Textarea(attrs={"rows": 5}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-        self.fields["object_type"].queryset = ContentType.objects.filter(app_label="objects")
-
-        if self.instance and self.instance.pk:
-            self.fields["finding_type_code"].initial = self.instance.finding_type_code
-
-    def save(self, commit=True):
-        instance = super().save(commit=False)
-        finding_type_code = self.cleaned_data["finding_type_code"]
-        FindingType.objects.get_or_create(code=finding_type_code)
-
-        if commit:
-            instance.save()
-            self.save_m2m()
-        return instance
+        fields = ["name", "description", "enabled"]
+        widgets = {"description": forms.Textarea(attrs={"rows": 3})}
 
 
 class BusinessRuleCreateView(KATModelPermissionRequiredMixin, CreateView):
@@ -493,30 +432,3 @@ class BusinessRuleToggleView(KATModelPermissionRequiredMixin, UpdateView):
             return redirect_url
 
         return reverse_lazy("business_rule_list")
-
-
-class BusinessRuleRunView(PermissionRequiredMixin, DetailView):
-    object: BusinessRule
-    model = BusinessRule
-
-    def post(self, request, *args, **kwargs):
-        if not request.user.has_perms(["plugins.run_businessrule"]):
-            raise PermissionDenied()
-
-        self.object = self.get_object()
-        run_business_rules.delay([self.object.pk])
-
-        messages.success(
-            self.request,
-            _("Business rule '{}' has been queued for execution in the background.").format(self.object.name),
-        )
-
-        return redirect(self.get_success_url())
-
-    def get_success_url(self):
-        redirect_url = self.request.POST.get("current_url")
-
-        if redirect_url and url_has_allowed_host_and_scheme(redirect_url, allowed_hosts=None):
-            return redirect_url
-
-        return reverse("business_rule_detail", kwargs={"pk": self.object.pk})

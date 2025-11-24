@@ -1,6 +1,5 @@
 from celery import Celery
 from django.conf import settings
-from django.contrib.contenttypes.models import ContentType
 
 from files.models import File, GenericContent
 from objects.models import (
@@ -251,7 +250,6 @@ def test_process_dns_result(organization, xtdb, task_db):
     hn = Hostname.objects.create(network=network, name="test.com")
     ip = IPAddress.objects.create(network=network, address="2001:db8::")
 
-    hostname_ct = ContentType.objects.get_for_model(Hostname)
     for code, name in [
         ("KAT-NO-SPF", "missing_spf"),
         ("KAT-WEBSERVER-NO-IPV6", "ipv6_webservers"),
@@ -260,7 +258,7 @@ def test_process_dns_result(organization, xtdb, task_db):
         ("KAT-DOMAIN-OWNERSHIP-PENDING", "domain_owner_verification"),
         ("KAT-NO-DMARC", "missing_dmarc"),
     ]:
-        BusinessRule.objects.create(name=name, finding_type_code=code, object_type=hostname_ct, enabled=True)
+        BusinessRule.objects.create(name=name, enabled=True)
         FindingType.objects.create(code=code)
 
     Finding.objects.create(finding_type_id="KAT-NO-SPF", hostname=hn)
@@ -303,10 +301,7 @@ def test_process_dns_missing_dmarc(organization, xtdb, task_db):
     hostname_with_dmarc = Hostname.objects.create(network=network, name="example.com", root=True)
     hostname_without_dmarc = Hostname.objects.create(network=network, name="other.org", root=True)
 
-    hostname_ct = ContentType.objects.get_for_model(Hostname)
-    BusinessRule.objects.create(
-        name="missing_dmarc", finding_type_code="KAT-NO-DMARC", object_type=hostname_ct, enabled=True
-    )
+    BusinessRule.objects.create(name="missing_dmarc", enabled=True)
     FindingType.objects.create(code="KAT-NO-DMARC")
     Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=hostname_with_dmarc)
 
@@ -340,10 +335,7 @@ def test_process_dns_missing_dmarc_case_insensitive(organization, xtdb, task_db)
     network = Network.objects.create(name="test")
     hostname = Hostname.objects.create(network=network, name="test.com")
 
-    hostname_ct = ContentType.objects.get_for_model(Hostname)
-    BusinessRule.objects.create(
-        name="missing_dmarc", finding_type_code="KAT-NO-DMARC", object_type=hostname_ct, enabled=True
-    )
+    BusinessRule.objects.create(name="missing_dmarc", enabled=True)
     FindingType.objects.create(code="KAT-NO-DMARC")
 
     task_db.data["input_data"] = [str(hostname)]
@@ -389,10 +381,7 @@ def test_process_dns_missing_dmarc_root_hostnames(organization, xtdb, task_db):
     root_with_dmarc_2 = Hostname.objects.create(network=network, name="also-has-dmarc.org", root=True)
     deep = Hostname.objects.create(network=network, name="deep.mail.also-has-dmarc.org", root=False)
 
-    hostname_ct = ContentType.objects.get_for_model(Hostname)
-    BusinessRule.objects.create(
-        name="missing_dmarc", finding_type_code="KAT-NO-DMARC", object_type=hostname_ct, enabled=True
-    )
+    BusinessRule.objects.create(name="missing_dmarc", enabled=True)
     FindingType.objects.create(code="KAT-NO-DMARC")
     Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=root_with_dmarc)
     Finding.objects.create(finding_type_id="KAT-NO-DMARC", hostname=subdomain_root_dmarc)
@@ -438,7 +427,6 @@ def test_process_dns_missing_dmarc_root_hostnames(organization, xtdb, task_db):
 def test_process_port_scan_result(organization, xtdb, task_db):
     network = Network.objects.create(name="test")
 
-    ipaddress_ct = ContentType.objects.get_for_model(IPAddress)
     for code, name in [
         ("KAT-OPEN-SYSADMIN-PORT", "open_sysadmin_port"),
         ("KAT-OPEN-DATABASE-PORT", "open_database_port"),
@@ -447,7 +435,7 @@ def test_process_port_scan_result(organization, xtdb, task_db):
         ("KAT-UNCOMMON-OPEN-PORT", "open_uncommon_port"),
     ]:
         FindingType.objects.create(code=code)
-        BusinessRule.objects.create(name=name, finding_type_code=code, object_type=ipaddress_ct, enabled=True)
+        BusinessRule.objects.create(name=name, enabled=True)
 
     ip1 = IPAddress.objects.create(network=network, address="192.168.1.1")
     ip2 = IPAddress.objects.create(network=network, address="192.168.1.2")
@@ -499,16 +487,10 @@ def test_process_port_scan_result(organization, xtdb, task_db):
 
 def test_process_software_scan_result(organization, xtdb, task_db):
     network = Network.objects.create(name="test")
-    ipaddress_ct = ContentType.objects.get_for_model(IPAddress)
     FindingType.objects.create(code="KAT-EXPOSED-SOFTWARE")
 
     for software_name in ["mysql", "mongodb", "openssh", "pgsql"]:
-        BusinessRule.objects.create(
-            name=f"{software_name}_detection",
-            finding_type_code="KAT-EXPOSED-SOFTWARE",
-            object_type=ipaddress_ct,
-            enabled=True,
-        )
+        BusinessRule.objects.create(name=f"{software_name}_detection", enabled=True)
 
     ip1 = IPAddress.objects.create(network=network, address="192.168.1.1")  # Has MySQL
     ip2 = IPAddress.objects.create(network=network, address="192.168.1.2")  # Has MongoDB and OpenSSH

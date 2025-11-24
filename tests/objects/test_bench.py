@@ -8,11 +8,10 @@ from django.db import connections
 from psycopg.errors import FeatureNotSupported
 
 from objects.management.commands.generate_benchmark_data import generate
-from objects.models import Finding, Hostname, IPAddress, Network, bulk_insert
+from objects.models import Hostname, IPAddress, bulk_insert
 from objects.views import HostnameDetailView, HostnameListView, IPAddressDetailView, IPAddressListView
 from openkat.models import Organization
-from plugins.models import BusinessRule, Plugin
-from plugins.plugins.business_rules import get_rules, run_rules
+from plugins.models import Plugin
 from tasks.models import ObjectSet, Schedule, Task
 from tasks.tasks import recalculate_scan_levels, run_schedule
 from tests.conftest import setup_request
@@ -114,45 +113,6 @@ def test_query_many_ipaddresses(bulk_data, benchmark):
     benchmark(select)
 
 
-@pytest.mark.skip("The query itself already takes more than a minute to run")
-def test_filtered_findings_view(bulk_data, benchmark):
-    def raw():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(
-                f"""
-                SELECT COUNT(*) AS "__count" FROM {Finding._meta.db_table} f
-                    WHERE UPPER(
-                    CASE
-                    WHEN (f."object_type" = 'hostname') THEN (
-                        SELECT U0."name" AS "name" FROM {Hostname._meta.db_table} U0
-                        WHERE U0."_id" = (f."object_id")
-                    )
-                    WHEN (f."object_type" = 'ipaddress')
-                         THEN (SELECT U0."address" AS "address" FROM {IPAddress._meta.db_table} U0
-                         WHERE U0."_id" = (f."object_id")
-                    )
-                    WHEN (f."object_type" = 'network')
-                        THEN (SELECT U0."name" AS "name" FROM {Network._meta.db_table} U0
-                        WHERE U0."_id" = (f."object_id")
-                    )
-                    ELSE NULL END
-                ) LIKE UPPER('%%223.%%');
-            """,  # noqa: S608
-                {},
-            )
-
-    ct = ContentType.objects.get_for_model(Hostname)
-    rules = [get_rules()["ipv6_webservers"], get_rules()["ipv6_nameservers"]]
-    run_rules(
-        [
-            BusinessRule(name=rule["name"], finding_type_code="test", object_type=ct, query=rule["query"])
-            for rule in rules
-        ]
-    )
-
-    benchmark(raw)
-
-
 def test_hostname_list_view(bulk_data, rf, superuser, benchmark, N):
     def render_list_view():
         request = setup_request(rf.get("/objects/hostname/"), superuser)
@@ -248,73 +208,6 @@ def test_scan_level_recalculation(benchmark, bulk_data, N):
     benchmark.pedantic(recalculate_scan_levels, rounds=1)  # Subsequent rounds have no updates
 
 
-def test_business_rule_ipv6_webservers(bulk_data, benchmark):
-    def run_rule():
-        rule = get_rules()["ipv6_webservers"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    assert result >= 0
-
-
-def test_business_rule_ipv6_nameservers(bulk_data, benchmark):
-    def run_rule():
-        rule = get_rules()["ipv6_nameservers"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    assert result >= 0
-
-
-def test_business_rule_missing_spf(bulk_data, benchmark, N):
-    def run_rule():
-        rule = get_rules()["missing_spf"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    nr_hostnames = N + N // 20 + N // 10  # Regular + name servers + mail servers
-    assert result == nr_hostnames - round(N // 14) - 3  # 1 in 14 hostnames have an SPF record, and minus 3 works
-
-
-def test_business_rule_open_sysadmin_port(bulk_data, benchmark):
-    def run_rule():
-        rule = get_rules()["open_sysadmin_port"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    assert result >= 0
-
-
-def test_business_rule_open_database_port(bulk_data, benchmark):
-    def run_rule():
-        rule = get_rules()["open_database_port"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    assert result >= 0
-
-
-def test_business_rule_missing_caa(bulk_data, benchmark):
-    def run_rule():
-        rule = get_rules()["missing_caa"]
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(rule["query"])
-            return len(cursor.fetchall())
-
-    result = benchmark(run_rule)
-    assert result >= 0
-
-
 def test_task_scheduling_scan_level_filter(bulk_data, docker, celery, benchmark, N):
     plugin = Plugin.objects.create(
         name="test_scan_filter",
@@ -406,91 +299,3 @@ def test_count_hostnames_over_time(bulk_data, benchmark, N):
             )
 
     benchmark(inner)
-
-
-def test_inverse_query_ipv6_webservers(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["ipv6_webservers"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_ipv6_nameservers(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["ipv6_nameservers"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_missing_spf(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["missing_spf"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_open_sysadmin_port(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["open_sysadmin_port"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_open_database_port(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["open_database_port"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_open_remote_desktop_port(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["open_remote_desktop_port"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_open_uncommon_port(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["open_uncommon_port"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_open_common_port(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["open_common_port"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_missing_caa(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["missing_caa"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_missing_dmarc(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["missing_dmarc"]["inverse_query"])
-
-    benchmark(run_inverse_query)
-
-
-def test_inverse_query_domain_owner_verification(xtdbulk, benchmark):
-    def run_inverse_query():
-        with connections["xtdb"].cursor() as cursor:
-            cursor.execute(get_rules()["domain_owner_verification"]["inverse_query"])
-
-    benchmark(run_inverse_query)

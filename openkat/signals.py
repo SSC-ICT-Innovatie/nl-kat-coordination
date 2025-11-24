@@ -7,9 +7,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from structlog import get_logger
 
-from objects.models import DNSRecordBase, Hostname, IPAddress, IPPort, Software
 from openkat.models import Organization
-from tasks.tasks import schedule_business_rule_recalculations
 
 logger = get_logger(__name__)
 
@@ -65,14 +63,6 @@ def log_save(sender: type[models.Model], instance: models.Model, created: bool, 
             object=str(instance),
             **context,
         )
-
-
-@receiver(post_save)
-def business_rule_trigger(sender: type[models.Model], instance: models.Model, created: bool, **kwargs: Any) -> None:
-    if sender not in [IPAddress, IPPort, Hostname, Software] and not issubclass(sender, DNSRecordBase):
-        return
-
-    schedule_business_rule_recalculations.delay(True)
 
 
 # Signal sent when a model is deleted

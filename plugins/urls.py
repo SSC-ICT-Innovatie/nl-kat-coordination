@@ -5,7 +5,6 @@ from plugins.views import (
     BusinessRuleDeleteView,
     BusinessRuleDetailView,
     BusinessRuleListView,
-    BusinessRuleRunView,
     BusinessRuleToggleView,
     BusinessRuleUpdateView,
     PluginCreateView,
@@ -36,5 +35,4 @@ urlpatterns = [
     path("business-rules/<int:pk>/edit/", BusinessRuleUpdateView.as_view(), name="edit_business_rule"),
     path("business-rules/<int:pk>/delete/", BusinessRuleDeleteView.as_view(), name="delete_business_rule"),
     path("business-rules/<int:pk>/toggle/", BusinessRuleToggleView.as_view(), name="toggle_business_rule"),
-    path("business-rules/<int:pk>/run/", BusinessRuleRunView.as_view(), name="run_business_rule"),
 ]

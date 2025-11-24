@@ -515,7 +515,6 @@ SILENCED_SYSTEM_CHECKS = ["staticfiles.W004"]
 
 WORKERS = env.int("WORKERS", default=2)
 SCAN_LEVEL_RECALCULATION_INTERVAL = env.int("SCAN_LEVEL_RECALCULATION_INTERVAL", default=60)
-BUSINESS_RULE_RECALCULATION_INTERVAL = env.int("BUSINESS_RULE_RECALCULATION_INTERVAL", default=600)
 ATTRIBUTION_INTERVAL = env.int("ATTRIBUTION_INTERVAL", default=600)
 SCHEDULE_INTERVAL = env.int("SCHEDULE_INTERVAL", default=60)
 # Time in minutes a plugin has to complete, after which it exits and it's token expires

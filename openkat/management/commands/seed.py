@@ -7,9 +7,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import BaseCommand
 
-from objects.models import SEVERITY_SCORE_LOOKUP, FindingType, Hostname, Network, object_type_by_name
+from objects.models import SEVERITY_SCORE_LOOKUP, FindingType, Hostname, Network
 from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization
-from plugins.models import BusinessRule, Plugin
+from plugins.models import BusinessRule
 from plugins.plugins.business_rules import get_rules
 from plugins.sync import sync
 from tasks.models import ObjectSet
@@ -200,18 +200,8 @@ class Command(BaseCommand):
 
     def seed_business_rules(self):
         for rule_data in get_rules().values():
-            rule, created = BusinessRule.objects.update_or_create(
-                name=rule_data["name"],
-                defaults={
-                    "description": rule_data["description"],
-                    "enabled": True,
-                    "finding_type_code": rule_data["finding_type_code"],
-                    "object_type": ContentType.objects.get_for_model(object_type_by_name()[rule_data["object_type"]]),
-                    "query": rule_data["query"],
-                    "inverse_query": rule_data.get("inverse_query"),
-                },
+            BusinessRule.objects.update_or_create(
+                name=rule_data["name"], defaults={"description": rule_data["description"], "enabled": True}
             )
-            rule.requires.set([Plugin.objects.get(plugin_id=require) for require in rule_data.get("requires", [])])
-            rule.save()
 
         logging.info("Business rules seeded successfully")

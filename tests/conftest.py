@@ -389,8 +389,7 @@ def xtdb(request: pytest.FixtureRequest, mocker):
     with contextlib.suppress(FeatureNotSupported):
         con.ops.execute_sql_flush(erase)
 
-    with mocker.patch("openkat.signals.schedule_business_rule_recalculations"):  # disable this signal
-        yield
+    yield
 
 
 def _set_suffix_to_test_databases_except_xtdb(suffix: str) -> None:

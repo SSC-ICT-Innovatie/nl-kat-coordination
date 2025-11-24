@@ -284,7 +284,6 @@ def test_create_report_task(organization, celery: Celery, mocker, xtdb):
         organization_codes=[organization.code],
         finding_types=[],
         object_set_id=None,
-        user_id=None,
         celery=celery,
     )
 
@@ -404,7 +403,6 @@ def test_report_task_creates_task_result(organization, celery: Celery, mocker, x
         organization_codes=[organization.code],
         finding_types=[],
         object_set_id=None,
-        user_id=None,
         celery=celery,
     )
 

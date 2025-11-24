@@ -38,8 +38,6 @@
                             <tr>
                                 <th>{% translate "Name" %}</th>
                                 <th>{% translate "Description" %}</th>
-                                <th>{% translate "Object type" %}</th>
-                                <th>{% translate "Finding type" %}</th>
                                 <th>{% translate "Enabled" %}</th>
                             </tr>
                         </thead>
@@ -50,10 +48,6 @@
                                         <a href="{% url "business_rule_detail" rule.pk %}">{{ rule.name }}</a>
                                     </td>
                                     <td>{{ rule.description }}</td>
-                                    <td>{{ rule.object_type.model }}</td>
-                                    <td>
-                                        <span class="label tags-color-1-light">{{ rule.finding_type_code }}</span>
-                                    </td>
                                     <td>
                                         {% if perms.plugins.change_businessrule %}
                                             <form action="{% url "toggle_business_rule" rule.pk %}"
