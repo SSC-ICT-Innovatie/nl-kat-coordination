@@ -1,9 +1,12 @@
 from django_downloadview import ObjectDownloadView
+from knox.auth import TokenAuthentication
 from rest_framework import mixins, viewsets
+from rest_framework.authentication import SessionAuthentication
 from structlog import get_logger
 
 from files.models import File
 from files.serializers import FileSerializer
+from openkat.auth.jwt_auth import JWTTokenAuthentication
 from tasks.models import TaskResult
 from tasks.tasks import process_file
 
@@ -39,3 +42,4 @@ class FileViewSet(viewsets.ModelViewSet):
 class FileDownloadView(viewsets.GenericViewSet, mixins.RetrieveModelMixin, ObjectDownloadView):
     queryset = File.objects.all()
     permission_required = ("files.view_file", "files.download_file")
+    authentication_classes = (JWTTokenAuthentication, TokenAuthentication, SessionAuthentication)
