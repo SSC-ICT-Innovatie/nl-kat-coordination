@@ -12,7 +12,7 @@ from plugins.models import Plugin
 from plugins.runner import PluginRunner
 from plugins.sync import sync
 from tasks.models import Schedule, Task
-from tasks.tasks import process_raw_file
+from tasks.tasks import process_file
 
 
 @pytest.mark.django_db(transaction=True)
@@ -190,7 +190,7 @@ def test_process_raw_file_single_task():
     organization = Organization.objects.create(name="Test", code="test")
     Schedule.objects.create(plugin=plugin, enabled=True, organization=organization)
 
-    tasks = process_raw_file(file)
+    tasks = process_file(file)
     assert len(tasks) == 1
     assert tasks[0].data["plugin_id"] == plugin.plugin_id
     assert tasks[0].organization == organization

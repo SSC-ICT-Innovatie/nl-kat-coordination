@@ -162,6 +162,10 @@
       "file:nuclei-mysql-detect",
       "file:nuclei-pgsql-detect"
     ],
+    "permissions": {
+      "objects.add_ipaddress": {},
+      "objects.add_ipport": {}
+    },
     "oci_image": "ghcr.io/minvws/openkat/plugins:0.1.0",
     "oci_arguments": [
       "uv",

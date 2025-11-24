@@ -14,14 +14,16 @@ from objects.models import (
     IPPort,
     Network,
     ObjectTask,
+    Software,
     bulk_insert,
 )
 from plugins.models import BusinessRule, Plugin
 from tasks.models import Schedule, Task, TaskResult, TaskStatus
 from tasks.tasks import (
     process_dns,
+    process_file,
     process_port_scan,
-    process_raw_file,
+    process_software_scan,
     run_plugin_task,
     run_schedule,
     run_schedule_for_organization,
@@ -135,7 +137,7 @@ def test_process_raw_file(xtdb, celery: Celery, organization, organization_b, do
     f.save()
     TaskResult.objects.create(file=f, task=Task.objects.create())
 
-    tasks = process_raw_file(f, celery=celery)
+    tasks = process_file(f, celery=celery)
     assert len(tasks) == 1
     assert tasks[0].organization is None
 
@@ -144,7 +146,7 @@ def test_process_raw_file(xtdb, celery: Celery, organization, organization_b, do
     f.save()
     TaskResult.objects.create(file=f, task=Task.objects.create(organization=organization_b))
 
-    tasks = process_raw_file(f, celery=celery)
+    tasks = process_file(f, celery=celery)
     assert len(tasks) == 1
     assert tasks[0].organization == organization_b
 
@@ -152,7 +154,7 @@ def test_process_raw_file(xtdb, celery: Celery, organization, organization_b, do
     f.type = "testfile"  # Avoid the process_raw_file signal
     f.save()
 
-    tasks = process_raw_file(f, celery=celery)
+    tasks = process_file(f, celery=celery)
     assert len(tasks) == 2
     assert {task.organization for task in tasks} == {organization, organization_b}
     assert Task.objects.count() == 6
@@ -493,3 +495,72 @@ def test_process_port_scan_result(organization, xtdb, task_db):
 
     assert Finding.objects.filter(finding_type_id="KAT-OPEN-COMMON-PORT", address=ip4).exists()
     assert not Finding.objects.filter(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address=ip4).exists()
+
+
+def test_process_software_scan_result(organization, xtdb, task_db):
+    network = Network.objects.create(name="test")
+    ipaddress_ct = ContentType.objects.get_for_model(IPAddress)
+    FindingType.objects.create(code="KAT-EXPOSED-SOFTWARE")
+
+    for software_name in ["mysql", "mongodb", "openssh", "pgsql"]:
+        BusinessRule.objects.create(
+            name=f"{software_name}_detection",
+            finding_type_code="KAT-EXPOSED-SOFTWARE",
+            object_type=ipaddress_ct,
+            enabled=True,
+        )
+
+    ip1 = IPAddress.objects.create(network=network, address="192.168.1.1")  # Has MySQL
+    ip2 = IPAddress.objects.create(network=network, address="192.168.1.2")  # Has MongoDB and OpenSSH
+    ip3 = IPAddress.objects.create(network=network, address="192.168.1.3")  # Has PostgreSQL
+    ip4 = IPAddress.objects.create(network=network, address="192.168.1.4")  # No software
+
+    Finding.objects.create(finding_type_id="KAT-EXPOSED-SOFTWARE", address=ip1)
+
+    task_db.data["plugin_id"] = "parse-nuclei-detection"
+    task_db.data["input_data"] = [str(ip1), str(ip2), str(ip3), str(ip4)]
+    task_db.save()
+
+    mysql = Software.objects.create(name="mysql", version="8.0")
+    mongodb = Software.objects.create(name="mongodb", version="5.0")
+    openssh = Software.objects.create(name="openssh", version="9.0")
+    pgsql = Software.objects.create(name="pgsql", version="14")
+
+    port_mysql = IPPort.objects.create(address=ip1, protocol="TCP", port=3306)
+    port_mysql.software.add(mysql)
+
+    port_mongo = IPPort.objects.create(address=ip2, protocol="TCP", port=27017)
+    port_mongo.software.add(mongodb)
+
+    port_ssh = IPPort.objects.create(address=ip2, protocol="TCP", port=22)
+    port_ssh.software.add(openssh)
+
+    port_pgsql = IPPort.objects.create(address=ip3, protocol="TCP", port=5432)
+    port_pgsql.software.add(pgsql)
+
+    port_no_software = IPPort.objects.create(address=ip4, protocol="TCP", port=8080)
+    plugin = Plugin.objects.create(
+        name="parse-nuclei-detection",
+        plugin_id="parse-nuclei-detection",
+        oci_image="T",
+        oci_arguments=["{ip}"],
+        scan_level=2,
+    )
+
+    for obj in [ip1, ip2, ip3, ip4, port_mysql, port_mongo, port_ssh, port_pgsql, port_no_software]:
+        ObjectTask.objects.create(
+            task_id=str(task_db.pk),
+            plugin_id=plugin.plugin_id,
+            output_object=obj.pk,
+            output_object_type=str(obj.__class__.__name__).lower(),
+        )
+
+    process_software_scan(task_db)
+
+    assert Finding.objects.filter(finding_type_id="KAT-EXPOSED-SOFTWARE", address=ip1).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-EXPOSED-SOFTWARE", address=ip2).exists()
+    assert Finding.objects.filter(finding_type_id="KAT-EXPOSED-SOFTWARE", address=ip3).exists()
+    assert not Finding.objects.filter(finding_type_id="KAT-EXPOSED-SOFTWARE", address=ip4).exists()
+
+    # Total findings should be 3 because mongodb and openssh on ip2 result in 1 finding on the ip
+    assert Finding.objects.filter(finding_type_id="KAT-EXPOSED-SOFTWARE").count() == 3

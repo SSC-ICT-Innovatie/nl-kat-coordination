@@ -5,7 +5,7 @@ from structlog import get_logger
 from files.models import File
 from files.serializers import FileSerializer
 from tasks.models import TaskResult
-from tasks.tasks import process_raw_file
+from tasks.tasks import process_file
 
 logger = get_logger(__name__)
 
@@ -33,7 +33,7 @@ class FileViewSet(viewsets.ModelViewSet):
         ):
             TaskResult.objects.create(file=file, task_id=self.request.auth.get("task_id"))
 
-        process_raw_file(file)
+        process_file(file)
 
 
 class FileDownloadView(viewsets.GenericViewSet, mixins.RetrieveModelMixin, ObjectDownloadView):

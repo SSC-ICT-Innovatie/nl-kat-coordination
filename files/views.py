@@ -12,7 +12,7 @@ from files.models import File
 from openkat.mixins import OrganizationFilterMixin
 from openkat.models import Organization
 from openkat.permissions import KATModelPermissionRequiredMixin
-from tasks.tasks import process_raw_file
+from tasks.tasks import process_file
 
 logger = structlog.get_logger(__name__)
 
@@ -80,7 +80,7 @@ class FileCreateView(KATModelPermissionRequiredMixin, CreateView):
 
     def form_valid(self, form):
         result = super().form_valid(form)
-        process_raw_file(self.object)
+        process_file(self.object)
 
         return result
 

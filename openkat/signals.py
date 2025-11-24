@@ -7,7 +7,7 @@ from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
 from structlog import get_logger
 
-from objects.models import DNSRecordBase, Hostname, IPAddress, IPPort
+from objects.models import DNSRecordBase, Hostname, IPAddress, IPPort, Software
 from openkat.models import Organization
 from tasks.tasks import schedule_business_rule_recalculations
 
@@ -69,7 +69,7 @@ def log_save(sender: type[models.Model], instance: models.Model, created: bool, 
 
 @receiver(post_save)
 def business_rule_trigger(sender: type[models.Model], instance: models.Model, created: bool, **kwargs: Any) -> None:
-    if sender not in [IPAddress, IPPort, Hostname] and not issubclass(sender, DNSRecordBase):
+    if sender not in [IPAddress, IPPort, Hostname, Software] and not issubclass(sender, DNSRecordBase):
         return
 
     schedule_business_rule_recalculations.delay(True)

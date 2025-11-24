@@ -16,8 +16,7 @@ def run(file_id: str) -> list[dict[str, str]]:
 
     headers = {"Authorization": "Token " + token}
     client = httpx.Client(base_url=base_url, headers=headers)
-    drill_file = client.get(f"/file/{file_id}/").json()
-    file_content = client.get(drill_file["file"]).content.decode()
+    file_content = client.get(f"/file/{file_id}/download/").raise_for_status().content.decode()
 
     # Find the last status line (not just the last non-comment line)
     for result_line in reversed(file_content.splitlines()):

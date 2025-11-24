@@ -6,7 +6,7 @@ from django.core.management import BaseCommand
 
 from files.models import File
 from objects.models import Hostname, IPAddress, Network
-from tasks.tasks import process_raw_file
+from tasks.tasks import process_file
 
 
 class Command(BaseCommand):
@@ -138,7 +138,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"File uploaded successfully: ID={file_obj.pk}, Path={file_obj.file.name}")
         )
-        tasks = process_raw_file(file_obj)
+        tasks = process_file(file_obj)
         self.stdout.write(self.style.SUCCESS(f"File processing started, created {len(tasks)} tasks"))
 
     def handle_hostname(self, hostname_arg, network_obj):

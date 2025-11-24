@@ -627,7 +627,11 @@ def process_result(task_id: uuid.UUID) -> None:
     """
     task = Task.objects.get(pk=task_id)
     plugin_id = task.data.get("plugin_id")
-    PLUGIN_MAPPING = {"dns": process_dns, "nmap": process_port_scan}
+    PLUGIN_MAPPING = {
+        "dns": process_dns,
+        "parse-nmap": process_port_scan,
+        "parse-nuclei-detection": process_software_scan,
+    }
 
     if plugin_id not in PLUGIN_MAPPING:
         return
@@ -836,7 +840,65 @@ def process_port_scan(task: Task) -> None:
     logger.info("Finished processing port scan task %s", task.pk)
 
 
-def process_raw_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:
+def process_software_scan(task: Task) -> None:
+    """
+    Trigger-based business rule for:
+        - parse-nuclei-detection
+
+    And through this parsing plugin:
+        - nuclei-tls-version
+        - nuclei-telnet-detect
+        - nuclei-rdp-detect
+        - nuclei-pgsql-detect
+        - nuclei-openssh-detect
+        - nuclei-mysql-detect
+        - nuclei-mongodb-detect
+        - nuclei-ibm-d2b-database-server
+    """
+    logger.info("Processing software scan %s", task.pk)
+
+    # Check which business rules are enabled
+    enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
+    output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
+
+    ips = {
+        IPAddress.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipaddress"
+    }
+    ipports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
+    ports_with_software = (
+        IPPort.objects.filter(pk__in=[port.natural_key for port in ipports])
+        .select_related("address")
+        .prefetch_related("software")
+        .values("pk", "address", "software__name")
+    )
+    findings = []
+
+    logger.info("ports: %s", ipports)
+    logger.info("pks: %s", [port.natural_key for port in ipports])
+    logger.info("software: %s", ports_with_software)
+
+    ips_without_software = ips
+
+    for sw in ["mysql", "mongodb", "openssh", "rdp", "pgsql", "telnet", "db2"]:
+        if f"{sw}_detection" in enabled_rules:
+            ips_with_sw = {
+                port["address"]
+                for port in ports_with_software
+                if port["software__name"] and port["software__name"].lower() == sw
+            }
+            ips_without_software -= ips_with_sw
+            findings.extend([Finding(finding_type_id="KAT-EXPOSED-SOFTWARE", address_id=ip) for ip in ips_with_sw])
+
+    if ips_without_software:
+        Finding.objects.filter(finding_type="KAT-EXPOSED-SOFTWARE", address_id__in=ips_without_software).delete()
+
+    if findings:
+        bulk_insert(findings)
+
+    logger.info("Finished processing software scan %s", task.pk)
+
+
+def process_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:
     if file.type == "error" and not handle_error:
         logger.info("Raw file %s contains an exception trace and handle_error is set to False. Skipping.", file.pk)
         return []

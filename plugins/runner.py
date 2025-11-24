@@ -111,7 +111,8 @@ class PluginRunner:
         environment = {"PLUGIN_ID": plugin.plugin_id, "OPENKAT_API": f"{settings.OPENKAT_HOST}/api/v1"}
 
         tmp_file = None
-        has_placeholder = plugin.types_in_arguments() or any("{file}" in arg for arg in plugin.oci_arguments)
+        runs_on_file = any("{file}" in arg for arg in plugin.oci_arguments)
+        has_placeholder = plugin.types_in_arguments() or runs_on_file
 
         # MODE 2
         command = plugin.oci_arguments
@@ -164,12 +165,12 @@ class PluginRunner:
         # JWT token for the container.
         perms: dict[str, dict] = {"files.add_file": {}}  # Plugins always create a file
 
-        if tmp_file:
+        if tmp_file:  # Give permission to download the input file with e.g. a list of hostnames
             environment["IN_FILE"] = str(tmp_file.pk)
             perms["files.view_file"] = {"pks": [tmp_file.pk]}  # This plugin has access to one file
             perms["files.download_file"] = {"pks": [tmp_file.pk]}
 
-        for cmd in command:
+        for cmd in command:  # Give permission to download explicit files with '{file/123}'
             for file_pk in re.findall(r"\{file/(\d+)\}", cmd):
                 if "files.view_file" not in perms:
                     perms["files.view_file"] = {"pks": []}
@@ -178,6 +179,19 @@ class PluginRunner:
 
                 perms["files.view_file"]["pks"].append(int(file_pk))
                 perms["files.download_file"]["pks"].append(int(file_pk))
+
+        if runs_on_file:  # The targets are file pks
+            if "files.view_file" not in perms:
+                perms["files.view_file"] = {"pks": []}
+            if "files.download_file" not in perms:
+                perms["files.download_file"] = {"pks": []}
+
+            if isinstance(target, str):
+                perms["files.view_file"]["pks"].append(int(target))
+                perms["files.download_file"]["pks"].append(int(target))
+            elif isinstance(target, list):
+                perms["files.view_file"]["pks"].extend([int(t) for t in target])
+                perms["files.download_file"]["pks"].extend([int(t) for t in target])
 
         perms |= plugin.permissions  # Plugins can define extra permissions
         additional_data = {} if task_id is None else {"task_id": str(task_id)}
