@@ -151,6 +151,20 @@ def test_jwt_file_search_permission(organization):
     response = client.get(f"/api/v1/file/{f1.pk}/")
     assert response.status_code == 200
 
+    response = client.get(f"/api/v1/file/{f1.pk}/download/")
+    assert response.status_code == 403
+
+    token = JWTTokenAuthentication.generate(
+        {
+            "files.view_file": {"pks": [f1.pk], "search": ["ab"], "limit": "1"},
+            "files.download_file": {"pks": [f1.pk], "search": ["ab"], "limit": "1"},
+        }
+    )
+    client.credentials(HTTP_AUTHORIZATION="Token " + token)
+
+    response = client.get(f"/api/v1/file/{f1.pk}/download/")
+    assert response.status_code == 200
+
     response = client.get("/api/v1/file/", data={"ordering": "-created_at", "limit": "2", "search": "ab"})
     assert response.status_code == 403
     assert response.json() == {

@@ -26,7 +26,7 @@ def has_token_permission(request: Request, perms: Sequence[str], action: str | N
         if not isinstance(token_perms[view_perm], dict) or token_perms[view_perm] == {}:
             continue
 
-        if action == "retrieve":
+        if action == "retrieve" or action == "get":
             continue  # The checks below apply to the "list" action only
 
         if "search" in token_perms[view_perm] and request.GET.get("search") not in token_perms[view_perm]["search"]:
@@ -75,36 +75,6 @@ class KATModelPermissions(DjangoModelPermissions):
             return True
 
         return super().has_permission(request, view)
-
-    def has_token_permission(self, request, view):
-        if not hasattr(request, "auth") or not isinstance(request.auth, dict):
-            return False
-
-        token_perms = request.auth.get("permissions", {})
-
-        if not isinstance(token_perms, dict):
-            return False
-
-        for view_perm in self._view_perms(request, view):
-            if view_perm not in token_perms:
-                return False
-
-            if not isinstance(token_perms[view_perm], dict) or token_perms[view_perm] == {}:
-                continue
-
-            if view.action == "retrieve":
-                continue  # The checks below apply to the "list" action only
-
-            if "search" in token_perms[view_perm] and request.GET.get("search") not in token_perms[view_perm]["search"]:
-                return False
-
-            if "limit" in token_perms[view_perm] and int(request.GET.get("limit")) != int(
-                token_perms[view_perm]["limit"]
-            ):
-                return False
-
-        # The auth token has all required permissions
-        return True
 
     def has_token_object_permission(self, request, view, obj):
         if not hasattr(request, "auth") or not isinstance(request.auth, dict):

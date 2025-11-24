@@ -191,6 +191,7 @@
         ],
         "limit": 1
       },
+      "files.download_file": {},
       "objects.add_finding": {},
       "objects.delete_finding": {}
     },
