@@ -223,7 +223,7 @@ def main():
     client = httpx.Client(base_url=base_url, headers={"Authorization": "Token " + token})
 
     if not results:
-        response = client.get(f"/objects/hostname/?name={hostname}").json()
+        response = client.get(f"/objects/hostname/?name={hostname}").raise_for_status().json()
         if response["results"]:
             client.delete(
                 f"/objects/hostname/{response['results'][0]['id']}/dnsrecord/",

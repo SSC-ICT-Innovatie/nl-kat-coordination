@@ -1,10 +1,12 @@
 from typing import Any
 
+import structlog
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.db import models
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django_structlog import signals
 from structlog import get_logger
 
 from openkat.models import Organization
@@ -80,6 +82,12 @@ def log_delete(sender: type[models.Model], instance: models.Model, **kwargs: Any
         object=str(instance),
         **context,
     )
+
+
+@receiver(signals.bind_extra_request_finished_metadata)
+def bind_domain(request, logger, response, log_kwargs, **kwargs):
+    if response.status_code == 400:
+        structlog.contextvars.bind_contextvars(response=response.content)
 
 
 @receiver(pre_save, sender=Organization)

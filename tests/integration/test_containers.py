@@ -245,6 +245,7 @@ def test_worker_dispatches_multiple_plugin_tasks():
 
 @pytest.mark.django_db(transaction=True, databases=["default", "xtdb"])
 def test_worker_dispatches_multiple_plugin_tasks_from_file_input():
+    Network.objects.get_or_create(name="internet")
     file = File.objects.create(file=ContentFile("nu.nl\ntweakers.net\n", "hostnames.txt"), type="txt")
     sync()  # Add our local plugins
     plugin = Plugin.objects.get(plugin_id="dns")

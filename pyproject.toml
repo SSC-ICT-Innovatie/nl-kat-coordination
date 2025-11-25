@@ -120,6 +120,7 @@ module = [
   "weasyprint.*",
   "django_weasyprint.*",
   "django_downloadview.*",
+  "django_structlog.*",
   "jwt.*",
 ]
 ignore_missing_imports = true
