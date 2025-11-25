@@ -43,8 +43,6 @@ class ReportFilter(django_filters.FilterSet):
 
 
 class ReportListView(OrganizationFilterMixin, FilterView):
-    """List all generated reports"""
-
     template_name = "reports/report_list.html"
     model = Report
     ordering = ["-created_at"]
@@ -71,8 +69,6 @@ class ReportListView(OrganizationFilterMixin, FilterView):
 
 
 class ReportDetailView(OrganizationFilterMixin, DetailView):
-    """View details of a specific report"""
-
     template_name = "reports/report_detail.html"
     model = Report
 
@@ -86,8 +82,6 @@ class ReportDetailView(OrganizationFilterMixin, DetailView):
 
 
 class ReportHTMLView(OrganizationFilterMixin, DetailView):
-    """View report as HTML page using stored report data"""
-
     template_name = "reports/report_html.html"
     model = Report
 
@@ -103,8 +97,6 @@ class ReportHTMLView(OrganizationFilterMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Use the stored data field
         report_data = self.object.data if self.object.data else {}
 
         context.update(report_data)
@@ -122,12 +114,9 @@ class ReportHTMLView(OrganizationFilterMixin, DetailView):
 
 
 class ReportCreateForm(forms.Form):
-    """Form for creating a new report"""
-
     name = forms.CharField(max_length=255, required=True, label=_("Report name"))
     description = forms.CharField(widget=forms.Textarea(attrs={"rows": 3}), required=False, label=_("Description"))
 
-    # Scheduling options
     GENERATION_CHOICES = [("now", _("Generate now")), ("schedule", _("Schedule report"))]
     generation_type = forms.ChoiceField(
         choices=GENERATION_CHOICES,
@@ -137,7 +126,6 @@ class ReportCreateForm(forms.Form):
         help_text=_("Generate the report immediately or schedule it to run periodically"),
     )
 
-    # Organizations field - used for both immediate and scheduled reports
     organizations = forms.ModelMultipleChoiceField(
         queryset=Organization.objects.none(),
         required=False,
@@ -181,14 +169,11 @@ class ReportCreateForm(forms.Form):
 
 
 class ReportCreateView(PermissionRequiredMixin, CreateView):
-    """Create and trigger a new report generation"""
-
     template_name = "reports/report_form.html"
     form_class = ReportCreateForm
     permission_required = "reports.add_report"
 
     def form_valid(self, form):
-        # Extract form data
         name = form.cleaned_data["name"]
         description = form.cleaned_data["description"]
         generation_type = form.cleaned_data["generation_type"]
@@ -196,19 +181,13 @@ class ReportCreateView(PermissionRequiredMixin, CreateView):
         object_set = form.cleaned_data["object_set"]
 
         if generation_type == "schedule":
-            # Create schedules for periodic report generation
             organizations = form.cleaned_data.get("organizations")
-
-            # If organizations are selected, create a schedule for each
-            # If no organizations are selected, create one schedule for all
             schedules_to_create = []
 
             if organizations:
-                # Create a schedule for each selected organization
                 for organization in organizations:
                     schedules_to_create.append({"organization": organization, "name_suffix": f" - {organization.name}"})
             else:
-                # Create one schedule for all organizations
                 schedules_to_create.append({"organization": None, "name_suffix": ""})
 
             created_schedules = []
@@ -246,13 +225,9 @@ class ReportCreateView(PermissionRequiredMixin, CreateView):
                 )
                 return redirect(reverse("schedule_list"))
         else:
-            # Generate report immediately
             organizations = form.cleaned_data["organizations"]
-
-            # Get organization codes
             organization_codes = [org.code for org in organizations] if organizations else []
 
-            # Trigger report generation task
             task = run_report_task(
                 name=name,
                 description=description,
@@ -288,13 +263,11 @@ class ReportDownloadView(PermissionRequiredMixin, View):
     def get(self, request, pk):
         report = Report.objects.get(pk=pk)
 
-        # Check if user has access to this report
         if not request.user.can_access_all_organizations:
             user_orgs = Organization.objects.filter(members__user=request.user)
             if not report.organizations.filter(id__in=user_orgs.values_list("id", flat=True)).exists():
                 raise Http404("Report not found or you don't have permission to access it")
 
-        # Serve the PDF file
         if report.file and report.file.file:
             response = FileResponse(report.file.file.open("rb"), content_type="application/pdf")
             response["Content-Disposition"] = f'inline; filename="{report.name}.pdf"'
@@ -307,13 +280,11 @@ class ReportDataDownloadView(PermissionRequiredMixin, View):
     def get(self, request, pk):
         report = Report.objects.get(pk=pk)
 
-        # Check if user has access to this report
         if not request.user.can_access_all_organizations:
             user_orgs = Organization.objects.filter(members__user=request.user)
             if not report.organizations.filter(id__in=user_orgs.values_list("id", flat=True)).exists():
                 raise Http404("Report not found or you don't have permission to access it")
 
-        # Return the data as JSON
         response = JsonResponse(report.data, safe=False, json_dumps_params={"indent": 2})
         response["Content-Disposition"] = f'attachment; filename="{report.name}_data.json"'
         return response

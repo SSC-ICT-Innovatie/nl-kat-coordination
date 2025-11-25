@@ -41,9 +41,7 @@ class OnboardingStart(OrganizationView):
 class OnboardingIntroductionView(
     OrganizationPermissionRequiredMixin, IntroductionStepsMixin, OrganizationView, TemplateView
 ):
-    """
-    1. Start the onboarding wizard. What is OpenKAT and what it does.
-    """
+    """1. Start the onboarding wizard. What is OpenKAT and what it does."""
 
     template_name = "step_1_introduction.html"
     current_step = 1
@@ -53,9 +51,7 @@ class OnboardingIntroductionView(
 class OnboardingChooseReportInfoView(
     OrganizationPermissionRequiredMixin, IntroductionStepsMixin, OrganizationView, TemplateView
 ):
-    """
-    2. Introduction into reporting. All the necessities to generate a report.
-    """
+    """2. Introduction into reporting. All the necessities to generate a report."""
 
     template_name = "step_2a_choose_report_info.html"
     current_step = 2
@@ -69,34 +65,23 @@ class OnboardingClearanceLevelIntroductionView(
     OrganizationView,
     TemplateView,
 ):
-    """
-    6. Explanation what clearance levels mean.
-    """
+    """6. Explanation what clearance levels mean."""
 
     template_name = "step_3d_clearance_level_introduction.html"
     permission_required = "openkat.can_set_clearance_level"
     current_step = 3
 
     def get_boefjes_tiles(self) -> list[dict[str, Any]]:
-        tiles = [
+        return [
             {
-                "id": "dns_zone",
-                "type": "boefje",
+                "id": "dns",
+                "type": "plugin",
                 "scan_level": "1",
-                "name": "DNS-Zone",
-                "description": _("Fetch the parent DNS zone of a hostname"),
+                "name": "DNS",
+                "description": _("Query the dns records of a hostname"),
                 "enabled": False,
-            },
-            {
-                "id": "fierce",
-                "type": "boefje",
-                "scan_level": "3",
-                "name": "Fierce",
-                "description": _("Finds subdomains by brute force"),
-                "enabled": False,
-            },
+            }
         ]
-        return tiles
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -114,7 +99,7 @@ class OnboardingAcknowledgeClearanceLevelView(
     TemplateView,
 ):
     """
-    7. Explains the user that before setting a clearance level, they must have a permissiom to do so.
+    7. Explains the user that before setting a clearance level, they must have a permission to do so.
     Here they acknowledge the clearance level assigned by their administrator.
     """
 
@@ -129,9 +114,6 @@ class OnboardingAcknowledgeClearanceLevelView(
         return context
 
 
-# account flow
-
-
 class OnboardingIntroductionRegistrationView(PermissionRequiredMixin, IntroductionRegistrationStepsMixin, TemplateView):
     """
     Step: 1 - Registration introduction
@@ -143,9 +125,7 @@ class OnboardingIntroductionRegistrationView(PermissionRequiredMixin, Introducti
 
 
 class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegistrationStepsMixin, CreateView):
-    """
-    Step 2: Create a new organization
-    """
+    """Step 2: Create a new organization"""
 
     model = Organization
     template_name = "account/step_2a_organization_setup.html"
@@ -197,9 +177,7 @@ class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegis
 class OnboardingOrganizationUpdateView(
     OrganizationPermissionRequiredMixin, IntroductionAdminStepsMixin, OrganizationView, UpdateView
 ):
-    """
-    Step 2: Update an existing organization (only name not code)
-    """
+    """Step 2: Update an existing organization (only name not code)"""
 
     model = Organization
     template_name = "account/step_2a_organization_update.html"
@@ -224,9 +202,7 @@ class OnboardingOrganizationUpdateView(
 
 
 class OnboardingIndemnificationSetupView(IntroductionAdminStepsMixin, IndemnificationAddView):
-    """
-    Step 3: Agree to idemnification to scan objects
-    """
+    """Step 3: Agree to idemnification to scan objects"""
 
     current_step = 3
     template_name = "account/step_2b_indemnification_setup.html"
@@ -258,9 +234,6 @@ class OnboardingAccountCreationMixin(
         kwargs["organization"] = self.organization
         kwargs["account_type"] = self.account_type
         return kwargs
-
-
-# Account setup for multiple user accounts: admins, clients
 
 
 class OnboardingChooseUserTypeView(

@@ -73,8 +73,6 @@ class TaskDetailView(OrganizationFilterMixin, DetailView):
     template_name = "task.html"
     model = Task
 
-    object: Task
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["plugin"] = Plugin.objects.get(plugin_id=self.object.data["plugin_id"])
@@ -113,7 +111,6 @@ class TaskForm(ModelForm):
             return None
 
         # Otherwise use individual objects
-        # TODO: fix, ips, etc.
         input_hostnames = {str(model) for model in self.cleaned_data["input_hostnames"]}
         input_ips = {str(model) for model in self.cleaned_data["input_ips"]}
 
@@ -140,12 +137,10 @@ class TaskCreateView(KATModelPermissionRequiredMixin, CreateView):
             if "plugin" in self.request.GET:
                 initial["plugin"] = self.request.GET.get("plugin")
 
-            # Handle pre-selected hostnames from bulk action
             if "input_hostnames" in self.request.GET:
                 hostname_ids = self.request.GET.getlist("input_hostnames")
                 initial["input_hostnames"] = Hostname.objects.filter(pk__in=hostname_ids)
 
-            # Handle pre-selected IP addresses from bulk action
             if "input_ips" in self.request.GET:
                 ip_ids = self.request.GET.getlist("input_ips")
                 initial["input_ips"] = IPAddress.objects.filter(pk__in=ip_ids)
@@ -251,7 +246,6 @@ class ScheduleListView(OrganizationFilterMixin, FilterView):
 
 
 class ScheduleForm(ModelForm):
-    # Add finding types field for reports
     report_finding_types_choices = forms.MultipleChoiceField(
         required=False,
         label=_("Finding Types"),
@@ -266,7 +260,6 @@ class ScheduleForm(ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Load finding types for the multi-select field
         try:
             finding_type_choices = [
                 (ft.code, f"{ft.name or ft.code} ({ft.code})")
@@ -275,7 +268,6 @@ class ScheduleForm(ModelForm):
             ]
             self.fields["report_finding_types_choices"].choices = finding_type_choices
 
-            # Set initial values if instance exists
             if self.instance and self.instance.pk and self.instance.report_finding_types:
                 self.initial["report_finding_types_choices"] = self.instance.report_finding_types
         except Exception:
@@ -284,7 +276,6 @@ class ScheduleForm(ModelForm):
     def save(self, commit=True):
         instance = super().save(commit=False)
 
-        # Save the finding types from the multi-select field
         if "report_finding_types_choices" in self.cleaned_data:
             instance.report_finding_types = list(self.cleaned_data["report_finding_types_choices"])
 
@@ -297,8 +288,6 @@ class ScheduleForm(ModelForm):
 class ScheduleDetailView(OrganizationFilterMixin, DetailView):
     template_name = "schedule.html"
     model = Schedule
-
-    object: Schedule
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -324,8 +313,6 @@ class ScheduleCreateView(KATModelPermissionRequiredMixin, CreateView):
         "report_description",
     ]
     template_name = "schedule_form.html"
-
-    object: Schedule
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -392,8 +379,6 @@ class ScheduleUpdateView(KATModelPermissionRequiredMixin, UpdateView):
     model = Schedule
     fields = ["enabled", "recurrences", "object_set", "report_name", "report_description"]
     template_name = "schedule_form.html"
-
-    object: Schedule
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
@@ -501,8 +486,6 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
     model = ObjectSet
     PREVIEW_SIZE = 20
 
-    object: ObjectSet
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["breadcrumbs"] = [
@@ -530,12 +513,10 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
 
 
 class ObjectSetTypeSelectionForm(forms.Form):
-    """Simple form for selecting object type as first step of object set creation"""
-
     object_type = forms.ModelChoiceField(
         queryset=ContentType.objects.filter(app_label="objects"),
         label=_("Object Type"),
-        help_text=_("Select the type of objects this set will contain"),
+        help_text=_("Type of the objects in this set"),
     )
 
 
@@ -566,10 +547,8 @@ class ObjectSetForm(ModelForm):
         if self.instance and self.instance.pk and self.instance.object_type:
             object_type = self.instance.object_type
         elif self.data.get("object_type"):
-            # POST data
             object_type = ContentType.objects.filter(pk=self.data.get("object_type")).first()
         elif kwargs.get("initial", {}).get("object_type"):
-            # Initial data from GET params
             object_type = kwargs["initial"]["object_type"]
 
         if object_type:
@@ -690,8 +669,6 @@ class ObjectSetUpdateView(KATModelPermissionRequiredMixin, UpdateView):
     model = ObjectSet
     form_class = ObjectSetForm
     template_name = "object_set_form.html"
-
-    object: ObjectSet
 
     def get_success_url(self, **kwargs):
         return reverse_lazy("object_set_detail", kwargs={"pk": self.object.pk})

@@ -13,9 +13,7 @@ logger = structlog.get_logger(__name__)
 
 
 class OrganizationAddView(PermissionRequiredMixin, CreateView):
-    """
-    View to create a new organization
-    """
+    """View to create a new organization"""
 
     model = Organization
     template_name = "organizations/organization_add.html"

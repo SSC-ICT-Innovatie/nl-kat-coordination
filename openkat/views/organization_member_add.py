@@ -46,9 +46,7 @@ CSV_CRITERIA = [
 class OrganizationMemberAddAccountTypeView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
-    """
-    View to create a new member. Step 1: choose an account type.
-    """
+    """View to create a new member. Step 1: choose an account type."""
 
     template_name = "organizations/organization_member_add_account_type.html"
     permission_required = "openkat.add_organizationmember"
@@ -81,9 +79,7 @@ class OrganizationMemberAddAccountTypeView(
 class OrganizationMemberAddView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
-    """
-    View to create a new member. Step 2: account setup.
-    """
+    """View to create a new member. Step 2: account setup."""
 
     template_name = "organizations/organization_member_add.html"
     form_class = MemberRegistrationForm

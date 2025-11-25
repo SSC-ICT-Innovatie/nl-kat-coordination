@@ -124,7 +124,6 @@ def _get_base_finding_query(
 
     if finding_types:
         query = query.filter(finding_type__code__in=finding_types)
-
     if organizations:
         query = query.filter(organizations__pk__in=[org.pk for org in organizations])
 
