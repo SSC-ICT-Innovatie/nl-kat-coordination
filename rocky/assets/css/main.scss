@@ -2,5 +2,6 @@
   $font-path: "/assets/dist/fonts"
 );
 @use "manon-components";
-@use "components/user-icon";
-@use "components/icons";
+@use "../icons/tabler" with (
+  $icon-format: "svg"
+);

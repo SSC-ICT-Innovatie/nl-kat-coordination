@@ -8,7 +8,7 @@
     {% if perms.tools.can_view_katalogus_settings %}
         <div class="horizontal-view toolbar">
             <a class="button ghost"
-               href="{% url 'katalogus_settings' organization.code %}"><span class="icon ti-settings"></span>{% translate "Settings" %}</a>
+               href="{% url 'katalogus_settings' organization.code %}"><span class="icon icon-settings" aria-hidden="true"></span>{% translate "Settings" %}</a>
         </div>
     {% endif %}
 </div>
