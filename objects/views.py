@@ -1,3 +1,4 @@
+import contextlib
 import csv
 import io
 import ipaddress
@@ -12,6 +13,7 @@ from django.core.exceptions import PermissionDenied
 from django.db import DatabaseError
 from django.db.models import Model, OuterRef, Q, QuerySet, Subquery
 from django.db.models.fields.json import KeyTextTransform
+from django.http import HttpRequest
 from django.shortcuts import redirect
 from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -27,15 +29,6 @@ from objects.forms import (
     IPAddressCSVUploadForm,
 )
 from objects.models import (
-    DNSAAAARecord,
-    DNSARecord,
-    DNSCAARecord,
-    DNSCNAMERecord,
-    DNSMXRecord,
-    DNSNSRecord,
-    DNSPTRRecord,
-    DNSSRVRecord,
-    DNSTXTRecord,
     Finding,
     Hostname,
     IPAddress,
@@ -59,7 +52,7 @@ if TYPE_CHECKING:
 class ObjectScanLevelForm(forms.Form):
     declared = forms.CharField(
         required=True,
-        label=_("Scan type"),
+        label=_("Origin"),
         widget=forms.RadioSelect(
             choices=[("inherited", "Inherited"), ("declared", "Declared")],
             attrs={"class": "radio-choice", "data-choicegroup": "scan_type_selector"},
@@ -70,10 +63,7 @@ class ObjectScanLevelForm(forms.Form):
     scan_level = forms.IntegerField(
         required=False,
         label=_("Clearance level"),
-        help_text=_(
-            "All the plugins with a scan level below or equal to the clearance level will "
-            "be allowed to scan this object."
-        ),
+        help_text=_("Plugins with a scan level not exceeding this clearance level will be able to scan this object."),
         error_messages={"level": {"required": _("Please select a scan level to proceed.")}},
         widget=forms.Select(
             choices=ScanLevelEnum.choices,
@@ -189,7 +179,6 @@ class NetworkManageOrganizationsView(KATModelPermissionRequiredMixin, FormView):
         network = Network.objects.get(pk=self.kwargs.get("pk"))
         organization_ids = request.POST.getlist("organizations")
 
-        # Update the many-to-many relationship
         if organization_ids:
             organizations = XTDBOrganization.objects.filter(pk__in=organization_ids)
             network.organizations.set(organizations)
@@ -202,8 +191,6 @@ class NetworkManageOrganizationsView(KATModelPermissionRequiredMixin, FormView):
 
 
 class IPAddressManageOrganizationsView(KATModelPermissionRequiredMixin, FormView):
-    """View to manage organizations for an IP address."""
-
     http_method_names = ["post"]
 
     def get_permission_required(self):
@@ -213,7 +200,6 @@ class IPAddressManageOrganizationsView(KATModelPermissionRequiredMixin, FormView
         ipaddress = IPAddress.objects.get(pk=self.kwargs.get("pk"))
         organization_ids = request.POST.getlist("organizations")
 
-        # Update the many-to-many relationship
         if organization_ids:
             organizations = XTDBOrganization.objects.filter(pk__in=organization_ids)
             ipaddress.organizations.set(organizations)
@@ -226,8 +212,6 @@ class IPAddressManageOrganizationsView(KATModelPermissionRequiredMixin, FormView
 
 
 class HostnameManageOrganizationsView(KATModelPermissionRequiredMixin, FormView):
-    """View to manage organizations for a hostname."""
-
     http_method_names = ["post"]
 
     def get_permission_required(self):
@@ -237,7 +221,6 @@ class HostnameManageOrganizationsView(KATModelPermissionRequiredMixin, FormView)
         hostname = Hostname.objects.get(pk=self.kwargs.get("pk"))
         organization_ids = request.POST.getlist("organizations")
 
-        # Update the many-to-many relationship
         if organization_ids:
             organizations = XTDBOrganization.objects.filter(pk__in=organization_ids)
             hostname.organizations.set(organizations)
@@ -252,13 +235,11 @@ class HostnameManageOrganizationsView(KATModelPermissionRequiredMixin, FormView)
 class FindingFilter(django_filters.FilterSet):
     finding_type__code = django_filters.CharFilter(label="Finding type", lookup_expr="icontains")
     object_search = django_filters.CharFilter(label="Object", method="filter_object_search")
-    finding_type__score__gte = django_filters.NumberFilter(
-        label="Minimum score", field_name="finding_type__score", lookup_expr="gte"
-    )
+    score = django_filters.NumberFilter(label="Minimum Risk Score", field_name="finding_type__score", lookup_expr="gte")
 
     class Meta:
         model = Finding
-        fields = ["finding_type__code", "object_search", "finding_type__score__gte"]
+        fields = ["finding_type__code", "object_search", "score"]
 
     def filter_object_search(self, queryset, name, value):
         if not value:
@@ -301,6 +282,20 @@ class FindingDeleteView(KATModelPermissionRequiredMixin, DeleteView):
 
 
 class ScanLevelFilterMixin:
+    object_set = django_filters.ModelChoiceFilter(
+        label="Object set", queryset=ObjectSet.objects.none(), empty_label="All objects", method="filter_by_object_set"
+    )
+    scan_level = django_filters.MultipleChoiceFilter(
+        label="Scan level",
+        choices=list(ScanLevelEnum.choices) + [("none", "None")],
+        method="filter_by_scan_level",
+        widget=forms.CheckboxSelectMultiple(attrs={"class": "scan-level-filter-checkboxes"}),
+    )
+    declared = django_filters.BooleanFilter(label="Declared")
+
+    def filter_by_object_set(self, queryset, name, value):
+        return queryset
+
     def filter_by_scan_level(self, queryset, name, value):
         if not value:
             return queryset
@@ -318,17 +313,10 @@ class ScanLevelFilterMixin:
 
 class IPAddressFilter(ScanLevelFilterMixin, django_filters.FilterSet):
     address = django_filters.CharFilter(label="Address", lookup_expr="icontains")
-    object_set = django_filters.ModelChoiceFilter(
-        label="Object Set", queryset=ObjectSet.objects.none(), empty_label="All objects", method="filter_by_object_set"
-    )
     query = django_filters.CharFilter(label="Query", method="filter_by_query")
-    scan_level = django_filters.MultipleChoiceFilter(
-        label="Scan level",
-        choices=list(ScanLevelEnum.choices) + [("none", "None")],
-        method="filter_by_scan_level",
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "scan-level-filter-checkboxes"}),
-    )
-    declared = django_filters.BooleanFilter(label="Declared")
+    object_set = ScanLevelFilterMixin.object_set  # Redefined because else django filter doesn't understand
+    scan_level = ScanLevelFilterMixin.scan_level  # Redefined because else django filter doesn't understand
+    declared = ScanLevelFilterMixin.declared  # Redefined because else django filter doesn't understand
 
     class Meta:
         model = IPAddress
@@ -342,9 +330,6 @@ class IPAddressFilter(ScanLevelFilterMixin, django_filters.FilterSet):
             self.filters["object_set"].queryset = queryset
         else:
             del self.filters["object_set"]
-
-    def filter_by_object_set(self, queryset, name, value):
-        return queryset
 
     def filter_by_query(self, queryset, name, value):
         if not value:
@@ -530,11 +515,8 @@ class IPAddressCreateView(KATModelPermissionRequiredMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        try:
-            internet_network = Network.objects.get(name="internet")
-            initial["network"] = internet_network
-        except Network.DoesNotExist:
-            pass
+        with contextlib.suppress(Network.DoesNotExist):
+            initial["network"] = Network.objects.get(name="internet")
         return initial
 
     def get_context_data(self, **kwargs):
@@ -581,7 +563,7 @@ class IPAddressCSVUploadView(KATModelPermissionRequiredMixin, FormView):
 
                     # Handle organization assignment
                     if org_code:
-                        org = self._get_organization(org_code)
+                        org = _get_organization(org_code, self.request)
                         if org:
                             xtdb_org = XTDBOrganization.objects.get(pk=org.pk)
                             ipaddress.organizations.set([xtdb_org])
@@ -621,16 +603,6 @@ class IPAddressCSVUploadView(KATModelPermissionRequiredMixin, FormView):
 
         return super().form_valid(form)
 
-    def _get_organization(self, org_code: str | None) -> Organization | None:
-        if not org_code:
-            return None
-
-        try:
-            return Organization.objects.get(code=org_code)
-        except Organization.DoesNotExist:
-            messages.warning(self.request, _("Organization with code '{code}' not found.").format(code=org_code))
-            return None
-
 
 class IPAddressDeleteView(KATModelPermissionRequiredMixin, DeleteView):
     model = IPAddress
@@ -650,17 +622,10 @@ class IPAddressScanLevelUpdateView(BaseScanLevelUpdateView):
 
 class HostnameFilter(ScanLevelFilterMixin, django_filters.FilterSet):
     name = django_filters.CharFilter(label="Hostname", lookup_expr="icontains")
-    object_set = django_filters.ModelChoiceFilter(
-        label="Object set", queryset=ObjectSet.objects.none(), empty_label="All objects", method="filter_by_object_set"
-    )
     query = django_filters.CharFilter(label="Query", method="filter_by_query")
-    scan_level = django_filters.MultipleChoiceFilter(
-        label="Scan level",
-        choices=list(ScanLevelEnum.choices) + [("none", "None")],
-        method="filter_by_scan_level",
-        widget=forms.CheckboxSelectMultiple(attrs={"class": "scan-level-filter-checkboxes"}),
-    )
-    declared = django_filters.BooleanFilter(label="Declared")
+    declared = ScanLevelFilterMixin.declared  # Redefined because else django filter doesn't understand
+    scan_level = ScanLevelFilterMixin.scan_level  # Redefined because else django filter doesn't understand
+    object_set = ScanLevelFilterMixin.object_set  # Redefined because else django filter doesn't understand
 
     class Meta:
         model = Hostname
@@ -668,15 +633,11 @@ class HostnameFilter(ScanLevelFilterMixin, django_filters.FilterSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        hostname_ct = ContentType.objects.get_for_model(Hostname)
-        queryset = ObjectSet.objects.filter(object_type=hostname_ct)
+        queryset = ObjectSet.objects.filter(object_type=ContentType.objects.get_for_model(Hostname))
         if queryset.exists():
             self.filters["object_set"].queryset = queryset
         else:
             del self.filters["object_set"]
-
-    def filter_by_object_set(self, queryset, name, value):
-        return queryset
 
     def filter_by_query(self, queryset, name, value):
         if not value:
@@ -754,13 +715,11 @@ class HostnameListView(OrganizationFilterMixin, FilterView):
             scan_type = self.request.POST.get("declared")
 
             if scan_type == "inherited":
-                updated_count = Hostname.objects.filter(pk__in=selected).update(scan_level=None, declared=False)
-                messages.success(request, _("Removed scan level for {} hostnames.").format(updated_count))
+                cnt = Hostname.objects.filter(pk__in=selected).update(scan_level=None, declared=False)
+                messages.success(request, _("Removed scan level for {} hostnames.").format(cnt))
             elif scan_type == "declared" and scan_level:
-                updated_count = Hostname.objects.filter(pk__in=selected).update(
-                    scan_level=int(scan_level), declared=True
-                )
-                messages.success(request, _("Updated scan level for {} hostnames.").format(updated_count))
+                cnt = Hostname.objects.filter(pk__in=selected).update(scan_level=int(scan_level), declared=True)
+                messages.success(request, _("Updated scan level for {} hostnames.").format(cnt))
             else:
                 messages.warning(request, _("No scan level selected."))
         elif action_type == "delete":
@@ -779,11 +738,9 @@ class HostnameDetailView(OrganizationFilterMixin, DetailView):
     model = Hostname
     template_name = "objects/hostname_detail.html"
     context_object_name = "hostname"
-    object: Hostname
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         organization_codes = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:hostname_list")
         if organization_codes:
@@ -815,8 +772,6 @@ class HostnameScanLevelDetailView(OrganizationFilterMixin, DetailView):
     model = Hostname
     template_name = "objects/hostname_detail_scan_level.html"
     context_object_name = "hostname"
-
-    object: Hostname
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -850,9 +805,7 @@ class HostnameTasksDetailView(OrganizationFilterMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        hostname = Hostname.objects.get(pk=self.kwargs.get("pk"))
-        context["hostname"] = hostname
-
+        context["hostname"] = Hostname.objects.get(pk=self.kwargs.get("pk"))
         organization_codes = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:hostname_list")
 
@@ -888,11 +841,8 @@ class HostnameCreateView(KATModelPermissionRequiredMixin, CreateView):
 
     def get_initial(self):
         initial = super().get_initial()
-        try:
-            internet_network = Network.objects.get(name="internet")
-            initial["network"] = internet_network
-        except Network.DoesNotExist:
-            pass
+        with contextlib.suppress(Network.DoesNotExist):
+            initial["network"] = Network.objects.get(name="internet")
         return initial
 
     def get_context_data(self, **kwargs):
@@ -900,6 +850,20 @@ class HostnameCreateView(KATModelPermissionRequiredMixin, CreateView):
         context["csv_form"] = HostnameCSVUploadForm()
         context["csv_upload_url"] = reverse_lazy("objects:hostname_csv_upload")
         return context
+
+
+def _get_organization(org_code: str | None, request: HttpRequest) -> Organization | None:
+    if not org_code:
+        return None
+
+    try:
+        return Organization.objects.get(code=org_code)
+    except Organization.DoesNotExist:
+        messages.warning(
+            request,
+            _("Organization with code '{code}' not found. Skipping scan level for this row.").format(code=org_code),
+        )
+        return None
 
 
 class HostnameCSVUploadView(KATModelPermissionRequiredMixin, FormView):
@@ -940,10 +904,9 @@ class HostnameCSVUploadView(KATModelPermissionRequiredMixin, FormView):
 
                     # Handle organization assignment
                     if org_code:
-                        org = self._get_organization(org_code)
+                        org = _get_organization(org_code, self.request)
                         if org:
-                            xtdb_org = XTDBOrganization.objects.get(pk=org.pk)
-                            hostname.organizations.set([xtdb_org])
+                            hostname.organizations.set([XTDBOrganization.objects.get(pk=org.pk)])
                             organizations_set += 1
 
                     if created:
@@ -954,80 +917,21 @@ class HostnameCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                     error_count += 1
                     messages.warning(
                         self.request,
-                        _("Error creating hostname '{name}' on row {row_num}: {error}").format(
-                            name=name, row_num=row_num, error=str(e)
+                        _("Error creating hostname '{name}' on row {row}: {er}").format(
+                            name=name, row=row_num, er=str(e)
                         ),
                     )
 
-            if created_count > 0:
-                messages.success(self.request, _("Successfully created {count} hostnames.").format(count=created_count))
-            if skipped_count > 0:
-                messages.info(self.request, _("{count} hostnames already existed.").format(count=skipped_count))
-            if organizations_set > 0:
-                messages.success(
-                    self.request,
-                    _("Successfully set organizations for {count} hostnames.").format(count=organizations_set),
-                )
-            if error_count > 0:
-                messages.warning(
-                    self.request, _("{count} hostnames had errors and were not created.").format(count=error_count)
-                )
-
+            messages.success(self.request, _("Successfully created {count} hostnames.").format(count=created_count))
+            messages.info(self.request, _("{count} hostnames already existed.").format(count=skipped_count))
+            messages.success(
+                self.request, _("Successfully set organizations for {count} hostnames.").format(count=organizations_set)
+            )
+            messages.warning(self.request, _("{count} hostnames were not created.").format(count=error_count))
         except csv.Error as e:
             messages.error(self.request, _("Error parsing CSV file: {error}").format(error=str(e)))
 
         return super().form_valid(form)
-
-    def _get_organization(self, org_code: str | None) -> Organization | None:
-        if not org_code:
-            return None
-
-        try:
-            return Organization.objects.get(code=org_code)
-        except Organization.DoesNotExist:
-            messages.warning(self.request, _("Organization with code '{code}' not found.").format(code=org_code))
-            return None
-
-
-class DNSRecordDeleteView(KATModelPermissionRequiredMixin, DeleteView):
-    def get_success_url(self) -> str:
-        return reverse("objects:hostname_detail", kwargs={"pk": self.object.hostname_id})
-
-
-class DNSARecordDeleteView(DNSRecordDeleteView):
-    model = DNSARecord
-
-
-class DNSAAAARecordDeleteView(DNSRecordDeleteView):
-    model = DNSAAAARecord
-
-
-class DNSPTRRecordDeleteView(DNSRecordDeleteView):
-    model = DNSPTRRecord
-
-
-class DNSCNAMERecordDeleteView(DNSRecordDeleteView):
-    model = DNSCNAMERecord
-
-
-class DNSMXRecordDeleteView(DNSRecordDeleteView):
-    model = DNSMXRecord
-
-
-class DNSNSRecordDeleteView(DNSRecordDeleteView):
-    model = DNSNSRecord
-
-
-class DNSCAARecordDeleteView(DNSRecordDeleteView):
-    model = DNSCAARecord
-
-
-class DNSTXTRecordDeleteView(DNSRecordDeleteView):
-    model = DNSTXTRecord
-
-
-class DNSSRVRecordDeleteView(DNSRecordDeleteView):
-    model = DNSSRVRecord
 
 
 class IPPortDeleteView(KATModelPermissionRequiredMixin, DeleteView):
@@ -1042,27 +946,21 @@ class IPPortSoftwareDeleteView(KATModelPermissionRequiredMixin, DeleteView):
     http_method_names = ["post"]
 
     def form_valid(self, form):
-        self.object = self.get_object()
-        port_id = self.kwargs.get("port_pk")
-
         try:
-            port = IPPort.objects.get(pk=port_id)
-            port.software.remove(self.object)
+            IPPort.objects.get(pk=self.kwargs.get("port_pk")).software.remove(self.get_object())
             return redirect(self.get_success_url())
         except IPPort.DoesNotExist:
             return redirect(reverse("objects:ipaddress_list"))
 
     def get_success_url(self) -> str:
-        port_id = self.kwargs.get("port_pk")
         try:
-            port = IPPort.objects.get(pk=port_id)
+            port = IPPort.objects.get(pk=self.kwargs.get("port_pk"))
             return reverse("objects:ipaddress_detail", kwargs={"pk": port.address_id})
         except IPPort.DoesNotExist:
             return reverse("objects:ipaddress_list")
 
 
 def is_valid_ip(value: str) -> bool:
-    """Check if a string is a valid IP address (IPv4 or IPv6)."""
     try:
         ipaddress.ip_address(value)
         return True
@@ -1129,15 +1027,10 @@ class GenericAssetCreateView(KATModelPermissionRequiredMixin, FormView):
                     ),
                 )
 
-        if ip_created > 0:
-            messages.success(self.request, _("Successfully created {count} IP addresses.").format(count=ip_created))
-        if hostname_created > 0:
-            messages.success(self.request, _("Successfully created {count} hostnames.").format(count=hostname_created))
-
-        if ip_skipped > 0:
-            messages.info(self.request, _("{count} IP addresses already existed.").format(count=ip_skipped))
-        if hostname_skipped > 0:
-            messages.info(self.request, _("{count} hostnames already existed.").format(count=hostname_skipped))
+        messages.success(self.request, _("Successfully created {count} IP addresses.").format(count=ip_created))
+        messages.success(self.request, _("Successfully created {count} hostnames.").format(count=hostname_created))
+        messages.info(self.request, _("{count} IP addresses already existed.").format(count=ip_skipped))
+        messages.info(self.request, _("{count} hostnames already existed.").format(count=hostname_skipped))
 
         if error_count > 0:
             messages.warning(
@@ -1224,7 +1117,7 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                         # Handle organization assignment
                         organizations_to_set = []
                         if org_code:
-                            org = self._get_organization(org_code)
+                            org = _get_organization(org_code, self.request)
                             if org:
                                 xtdb_org = XTDBOrganization.objects.get(pk=org.pk)
                                 organizations_to_set = [xtdb_org]
@@ -1234,7 +1127,6 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                         if organizations_to_set:
                             ipaddress_obj.organizations.set(organizations_to_set)
                             organizations_set += 1
-
                     else:
                         hostname_obj, created = Hostname.objects.get_or_create(
                             network=default_network, name=asset.lower()
@@ -1244,20 +1136,17 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                         else:
                             hostname_skipped += 1
 
-                        # Set scan level if provided
                         if scan_level_value is not None:
                             hostname_obj.scan_level = scan_level_value
                             hostname_obj.declared = True
                             hostname_obj.save()
                             scan_levels_set += 1
 
-                        # Handle organization assignment
                         organizations_to_set = []
                         if org_code:
-                            org = self._get_organization(org_code)
+                            org = _get_organization(org_code, self.request)
                             if org:
-                                xtdb_org = XTDBOrganization.objects.get(pk=org.pk)
-                                organizations_to_set = [xtdb_org]
+                                organizations_to_set = [XTDBOrganization.objects.get(pk=org.pk)]
                         elif default_organizations:
                             organizations_to_set = list(default_organizations)
 
@@ -1274,28 +1163,16 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                         ),
                     )
 
-            if ip_created > 0:
-                messages.success(self.request, _("Successfully created {count} IP addresses.").format(count=ip_created))
-            if hostname_created > 0:
-                messages.success(
-                    self.request, _("Successfully created {count} hostnames.").format(count=hostname_created)
-                )
-
-            if ip_skipped > 0:
-                messages.info(self.request, _("{count} IP addresses already existed.").format(count=ip_skipped))
-            if hostname_skipped > 0:
-                messages.info(self.request, _("{count} hostnames already existed.").format(count=hostname_skipped))
-
-            if scan_levels_set > 0:
-                messages.success(
-                    self.request, _("Successfully set scan levels for {count} assets.").format(count=scan_levels_set)
-                )
-
-            if organizations_set > 0:
-                messages.success(
-                    self.request,
-                    _("Successfully set organizations for {count} assets.").format(count=organizations_set),
-                )
+            messages.success(self.request, _("Successfully created {count} IP addresses.").format(count=ip_created))
+            messages.success(self.request, _("Successfully created {count} hostnames.").format(count=hostname_created))
+            messages.info(self.request, _("{count} IP addresses already existed.").format(count=ip_skipped))
+            messages.info(self.request, _("{count} hostnames already existed.").format(count=hostname_skipped))
+            messages.success(
+                self.request, _("Successfully set scan levels for {count} assets.").format(count=scan_levels_set)
+            )
+            messages.success(
+                self.request, _("Successfully set organizations for {count} assets.").format(count=organizations_set)
+            )
 
             if error_count > 0:
                 messages.warning(
@@ -1306,16 +1183,3 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
             messages.error(self.request, _("Error parsing CSV file: {error}").format(error=str(e)))
 
         return super().form_valid(form)
-
-    def _get_organization(self, org_code: str | None) -> Organization | None:
-        if not org_code:
-            return None
-
-        try:
-            return Organization.objects.get(code=org_code)
-        except Organization.DoesNotExist:
-            messages.warning(
-                self.request,
-                _("Organization with code '{code}' not found. Skipping scan level for this row.").format(code=org_code),
-            )
-            return None

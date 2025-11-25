@@ -48,7 +48,7 @@ logger = structlog.get_logger(__name__)
 @app.task(queue=settings.QUEUE_NAME_RECALCULATIONS)
 def schedule_scan_profile_recalculations():
     try:
-        # Create a Lock to:
+        # Lock to:
         #   1. Avoid running several recalculation scripts at the same time and burn down the database
         #   2. Still take into account that there might be anomalies when a large set of objects has been changed
         with caches["default"].lock(
@@ -76,11 +76,9 @@ def recalculate_scan_levels():
       - For DNSArecords, sync hostname scan level with IP address scan level (bidirectional)
       - For DNSNSrecords, set the name server's scan level to the hostname's scan level, with a max of 1
       - For DNSCNAMERecords, set the target's scan level to the hostname's scan level
-
-    These updates respect the 'declared' flag - only non-declared scan levels are updated.
     """
     logger.info("Recalculating Scan Profiles...")
-    # TODO: when a nameserver inherits L1 and its ips L1 as well, setting the original hostname to L0 will have no
+    # TODO: when a nameserver inherits L1, its ips do as well, so setting the original hostname to L0 will have no
     #   effect since the ip will increase the level to L1..
 
     # These could create an endless chain, but we just rely on multiple iterations to resolve this.
@@ -93,10 +91,7 @@ def recalculate_scan_levels():
 
 
 def sync_hostname_ip_scan_levels(db_table: str) -> None:
-    """
-    Synchronize scan levels between hostnames and IP addresses based on DNS A/AAAA records.
-    Returns the number of objects updated.
-    """
+    """Synchronize scan levels between hostnames and IP addresses based on DNS A/AAAA records."""
     try:
         with connections["xtdb"].cursor() as cursor:
             # Update IPs where hostname has higher scan level and IP is not declared
@@ -130,11 +125,7 @@ def sync_hostname_ip_scan_levels(db_table: str) -> None:
 
 
 def sync_ns_scan_levels() -> None:
-    """
-    Sync scan levels to name servers via NS records.
-    Name server scan level is set to the hostname's scan level, with a max of 1.
-    Returns the number of objects updated.
-    """
+    """Name server scan level is set to the hostname's scan level, with a max of 1."""
     try:
         with connections["xtdb"].cursor() as cursor:
             cursor.execute(
@@ -153,11 +144,7 @@ def sync_ns_scan_levels() -> None:
 
 
 def sync_cname_scan_levels() -> None:
-    """
-    Sync scan levels to CNAME targets.
-    Target hostname scan level is set to the max of all source hostname scan levels.
-    Returns the number of objects updated.
-    """
+    """The target hostname scan level is set to the source hostname scan level."""
     try:
         with connections["xtdb"].cursor() as cursor:
             cursor.execute(
@@ -176,13 +163,10 @@ def sync_cname_scan_levels() -> None:
 
 
 def organization_attribution():
-    """
-    Attribute through the same models as the scan levels.
-    """
+    """Attribute through the same models as the scan levels."""
     logger.info("Running organization attribution...")
 
-    # TODO: networks?
-    attribute_findings()
+    attribute_findings()  # TODO: networks?
     attribute_through_cnames()
     attribute_through_ns()
     attribute_through_ip_hostname(DNSARecord._meta.db_table)
@@ -306,22 +290,20 @@ def reschedule() -> None:
     logger.info("Finished scheduling %s plugins", len(tasks))
 
 
-def run_schedule(schedule: Schedule, force: bool = True, celery: Celery = app) -> list[Task]:
-    # Handle report tasks differently from plugin tasks
+def run_schedule(schedule: Schedule, force: bool = True, _celery: Celery = app) -> list[Task]:
     if schedule.task_type == "report":
-        return run_report_schedule(schedule, force, celery=celery)
+        return run_report_schedule(schedule, force, _celery=_celery)
 
     if not schedule.plugin:
         logger.debug("No plugin defined for schedule, skipping")
         return []
 
-    return run_schedule_for_organization(schedule, schedule.organization, force, celery=celery)
+    return run_schedule_for_organization(schedule, schedule.organization, force, _celery=_celery)
 
 
-def run_report_schedule(schedule: Schedule, force: bool = True, celery: Celery = app) -> list[Task]:
+def run_report_schedule(schedule: Schedule, force: bool = True, _celery: Celery = app) -> list[Task]:
     now = datetime.now(UTC)
 
-    # Check if we need to run based on recurrence rules
     if not force and schedule.recurrences:
         last_run = Task.objects.filter(schedule=schedule, type="report").order_by("-created_at").first()
         if last_run and not schedule.recurrences.between(last_run.created_at, now):
@@ -331,39 +313,37 @@ def run_report_schedule(schedule: Schedule, force: bool = True, celery: Celery =
     if schedule.organization:
         organization_codes = [schedule.organization.code]
     else:
-        # If no specific organization, generate report for all organizations
         organization_codes = list(Organization.objects.values_list("code", flat=True))
 
-    # Run the report task
     task = run_report_task(
-        name=schedule.report_name or f"Scheduled Report {schedule.id}",
+        name=schedule.report_name or f"Scheduled Report {schedule.pk}",
         description=schedule.report_description,
         organization_codes=organization_codes,
         finding_types=schedule.report_finding_types,
-        object_set_id=schedule.object_set.id if schedule.object_set else None,
-        schedule_id=schedule.id,
-        celery=celery,
+        object_set_id=schedule.object_set.pk if schedule.object_set else None,
+        schedule_id=schedule.pk,
+        _celery=_celery,
     )
 
     return [task]
 
 
 def run_schedule_for_organization(
-    schedule: Schedule, organization: Organization | None, force: bool = True, celery: Celery = app
+    schedule: Schedule, organization: Organization | None, force: bool = True, _celery: Celery = app
 ) -> list[Task]:
     now = datetime.now(UTC)
     code = None if organization is None else organization.code
 
     if not schedule.object_set:
         if force:
-            return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, celery=celery)
+            return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
 
         last_run = Task.objects.filter(schedule=schedule, data__input_data=None).order_by("-created_at").first()
         if last_run and not schedule.recurrences.between(last_run.created_at, now):
             logger.debug("Plugin '%s' has already run recently", schedule.plugin.plugin_id)
             return []
 
-        return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, celery=celery)
+        return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
 
     input_data: set[str] = set()
     object_pks = schedule.object_set.traverse_objects(scan_level__gte=schedule.plugin.scan_level)
@@ -376,7 +356,7 @@ def run_schedule_for_organization(
         return []
 
     if force:
-        return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, celery=celery)
+        return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, _celery=_celery)
 
     # Filter on the schedule and created after the previous occurrence
     last_runs = Task.objects.filter(
@@ -390,11 +370,11 @@ def run_schedule_for_organization(
     if not input_data:
         return []
 
-    return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, celery=celery)
+    return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, _celery=_celery)
 
 
 def run_plugin_on_object_set(
-    object_set: ObjectSet, plugin: Plugin, organization: Organization | None, force: bool = True, celery: Celery = app
+    object_set: ObjectSet, plugin: Plugin, organization: Organization | None, force: bool = True, _celery: Celery = app
 ) -> list[Task]:
     now = datetime.now(UTC)
     code = None if organization is None else organization.code
@@ -410,7 +390,7 @@ def run_plugin_on_object_set(
         return []
 
     if force or not plugin.recurrences:
-        return run_plugin_task(plugin.plugin_id, code, input_data, None, celery=celery)
+        return run_plugin_task(plugin.plugin_id, code, input_data, None, _celery=_celery)
 
     # Filter on the schedule and created after the previous occurrence
     last_runs = Task.objects.filter(created_at__gt=plugin.recurrences.before(now), data__plugin_id=plugin.plugin_id)
@@ -422,15 +402,11 @@ def run_plugin_on_object_set(
     if not input_data:
         return []
 
-    return run_plugin_task(plugin.plugin_id, code, input_data, None, celery=celery)
+    return run_plugin_task(plugin.plugin_id, code, input_data, None, _celery=_celery)
 
 
-def rerun_task(task: Task, celery: Celery = app) -> list[Task]:
-    # Handle different task types
+def rerun_task(task: Task, _celery: Celery = app) -> list[Task]:
     if task.type == "report":
-        # Import here to avoid circular imports
-
-        # Rerun report task with same parameters
         return [
             run_report_task(
                 name=task.data.get("name", "Rerun Report"),
@@ -441,15 +417,13 @@ def rerun_task(task: Task, celery: Celery = app) -> list[Task]:
             )
         ]
     else:
-        # Handle plugin tasks
-        plugin = Plugin.objects.get(plugin_id=task.data["plugin_id"])
-
+        plugin = Plugin.objects.get(plugin_id=task.data["plugin_id"])  # asserts the plugin still exists
         return run_plugin_task(
             plugin.plugin_id,
             task.organization.code if task.organization else None,
             task.data["input_data"],
             None,
-            celery=celery,
+            _celery=_celery,
         )
 
 
@@ -459,7 +433,7 @@ def run_plugin_task(
     input_data: str | list[str] | set[str] | None = None,
     schedule_id: int | None = None,
     batch: bool = True,
-    celery: Celery = app,
+    _celery: Celery = app,
 ) -> list[Task]:
     inputs: list[str] | None = None
 
@@ -470,13 +444,11 @@ def run_plugin_task(
     else:
         inputs = input_data
 
-    # Get plugin to check for plugin-specific batch_size
     try:
         plugin = Plugin.objects.get(plugin_id=plugin_id)
         # Use plugin-specific batch_size if set, otherwise fall back to global setting
         batch_size = plugin.batch_size if plugin.batch_size is not None else settings.BATCH_SIZE
     except Plugin.DoesNotExist:
-        # Fall back to global setting if plugin not found
         batch_size = settings.BATCH_SIZE
 
     if batch and isinstance(inputs, list) and batch_size > 0 and len(inputs) > batch_size:
@@ -486,7 +458,7 @@ def run_plugin_task(
         for idx_2 in range(batch_size, len(inputs) + batch_size, batch_size):
             tasks.append(
                 run_plugin_task(
-                    plugin_id, organization_code, inputs[idx:idx_2], schedule_id, batch=False, celery=celery
+                    plugin_id, organization_code, inputs[idx:idx_2], schedule_id, batch=False, _celery=_celery
                 )[0]
             )
             idx = idx_2
@@ -494,9 +466,8 @@ def run_plugin_task(
         logger.info("Created %s batched tasks of batch size %s", len(tasks), batch_size)
         return tasks
 
-    task_id = uuid.uuid4()
     task = Task.objects.create(
-        id=task_id,
+        id=uuid.uuid4(),
         type="plugin",
         schedule_id=schedule_id,
         organization=Organization.objects.get(code=organization_code) if organization_code else None,
@@ -504,8 +475,8 @@ def run_plugin_task(
         data={"plugin_id": plugin_id, "input_data": inputs},  # TODO
     )
 
-    run_plugin.bind(celery)  # Make sure to bind the right celery instance to be able to test these tasks.
-    async_result = run_plugin.apply_async((plugin_id, organization_code, inputs), task_id=str(task_id))
+    run_plugin.bind(_celery)  # Make sure to bind the right celery instance to be able to test these tasks.
+    async_result = run_plugin.apply_async((plugin_id, organization_code, inputs), task_id=str(task.pk))
     task._async_result = async_result
 
     return [task]
@@ -544,6 +515,8 @@ def run_plugin(
 
     try:
         out = PluginRunner().run(plugin_id, input_data, task_id=task.pk)
+        # Only process when the task succeeds
+        process_result_task(task.pk, self._app)  # type: ignore[attr-defined]
 
         task.status = TaskStatus.COMPLETED
         task.ended_at = datetime.now(UTC)
@@ -558,24 +531,22 @@ def run_plugin(
         task.ended_at = datetime.now(UTC)
         task.save()
         raise
-    finally:
-        process_result_task(task.pk, self._app)  # type: ignore[attr-defined]
+
     logger.info("Handled plugin", organization=organization, plugin_id=plugin_id, input_data=input_data)
     return out
 
 
-def process_result_task(task_id: uuid.UUID, celery: Celery = app) -> None:
-    process_result.bind(celery)
+def process_result_task(task_id: uuid.UUID, _celery: Celery = app) -> None:
+    process_result.bind(_celery)
     process_result.apply_async((task_id,))
 
 
 @app.task
 def process_result(task_id: uuid.UUID) -> None:
     """
-    What if tasks partially fail? This might create false-positives or skip findings. However, in general it is only
-    possible from within the plugin to tell for which input the task has failed, except when it is not being run
-    in parallel. But we believe that every openkat installation should aim to have close to zero task failures. If tasks
-    regularly fail, this should be handled in the plugin or the batch size should be decreased.
+    Tasks that fail on just part of the input data can create false-positives or skip findings. But in general it's only
+    possible from within the plugin to tell for which input the task failed. But users should aim to have a next-to-zero
+    failure rate. If tasks regularly fail, this should be handled in the plugin or the batch size should be decreased.
     """
     task = Task.objects.get(pk=task_id)
     plugin_id = task.data.get("plugin_id")
@@ -850,7 +821,7 @@ def process_software_scan(task: Task) -> None:
     logger.info("Finished processing software scan %s", task.pk)
 
 
-def process_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:
+def process_file(file: File, handle_error: bool = False, _celery: Celery = app) -> list[Task]:
     if file.type == "error" and not handle_error:
         logger.info("Raw file %s contains an exception trace and handle_error is set to False. Skipping.", file.pk)
         return []
@@ -865,7 +836,7 @@ def process_file(file: File, handle_error: bool = False, celery: Celery = app) -
         for plugin in Plugin.objects.filter(consumes__contains=[f"file:{file.type}"]):
             tasks.extend(
                 run_plugin_task(
-                    plugin.plugin_id, organization.code if organization else None, str(file.pk), celery=celery
+                    plugin.plugin_id, organization.code if organization else None, str(file.pk), _celery=_celery
                 )
             )
 
@@ -883,13 +854,13 @@ def process_file(file: File, handle_error: bool = False, celery: Celery = app) -
         if has_global_schedule:
             # If there's a global schedule, create tasks for all organizations
             for org in Organization.objects.all():
-                tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), celery=celery))
+                tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), _celery=_celery))
         else:
             # Otherwise, only create tasks for specific organizations
             for org_id in enabled_orgs:
                 if org_id:
                     org = Organization.objects.get(pk=org_id)
-                    tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), celery=celery))
+                    tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), _celery=_celery))
 
     return tasks
 
@@ -902,7 +873,7 @@ def run_report_task(
     object_set_id: int | None = None,
     schedule_id: int | None = None,
     user_id: int | None = None,
-    celery: Celery = app,
+    _celery: Celery = app,
 ) -> Task:
     task_id = uuid.uuid4()
     organization = None
@@ -925,7 +896,7 @@ def run_report_task(
         },
     )
 
-    create_report.bind(celery)
+    create_report.bind(_celery)
     async_result = create_report.apply_async(
         (name, description, organization_codes, finding_types, object_set_id, user_id), task_id=str(task_id)
     )

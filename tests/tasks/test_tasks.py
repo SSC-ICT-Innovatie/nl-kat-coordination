@@ -44,20 +44,20 @@ def test_run_schedule(organization, xtdb, celery: Celery, docker, plugin_contain
     assert schedule.plugin == plugin
     assert organization in schedule.plugin.enabled_organizations()
 
-    tasks = run_schedule(schedule, force=False, celery=celery)
+    tasks = run_schedule(schedule, force=False, _celery=celery)
     assert len(tasks) == 0
-    tasks = run_schedule(schedule, force=True, celery=celery)
+    tasks = run_schedule(schedule, force=True, _celery=celery)
     assert len(tasks) == 0
 
     network = Network.objects.create(name="internet")
     host = Hostname.objects.create(name="test.com", network=network)
 
-    tasks = run_schedule(schedule, force=False, celery=celery)
+    tasks = run_schedule(schedule, force=False, _celery=celery)
     assert len(tasks) == 0
 
     host.scan_level = 2
     host.save()
-    tasks = run_schedule(schedule, force=False, celery=celery)
+    tasks = run_schedule(schedule, force=False, _celery=celery)
     assert len(tasks) == 1
 
     assert tasks[0].data == {"input_data": ["test.com"], "plugin_id": "test"}
@@ -94,7 +94,7 @@ def test_run_schedule(organization, xtdb, celery: Celery, docker, plugin_contain
     assert schedule.organization is None
     assert organization in schedule.plugin.enabled_organizations()
 
-    tasks = run_schedule(schedule, celery=celery)
+    tasks = run_schedule(schedule, _celery=celery)
     kwargs = docker.containers.create.mock_calls[5].kwargs
     assert kwargs["environment"]["PLUGIN_ID"] == plugin2.plugin_id
 
@@ -118,7 +118,7 @@ def test_run_schedule_for_none(xtdb, celery: Celery, organization, docker, plugi
     network = Network.objects.create(name="internet")
     Hostname.objects.create(name="test.com", network=network, scan_level=2)
 
-    tasks = run_schedule(schedule, force=False, celery=celery)
+    tasks = run_schedule(schedule, force=False, _celery=celery)
     assert len(tasks) == 1
 
 
@@ -136,7 +136,7 @@ def test_process_raw_file(xtdb, celery: Celery, organization, organization_b, do
     f.save()
     TaskResult.objects.create(file=f, task=Task.objects.create())
 
-    tasks = process_file(f, celery=celery)
+    tasks = process_file(f, _celery=celery)
     assert len(tasks) == 1
     assert tasks[0].organization is None
 
@@ -145,7 +145,7 @@ def test_process_raw_file(xtdb, celery: Celery, organization, organization_b, do
     f.save()
     TaskResult.objects.create(file=f, task=Task.objects.create(organization=organization_b))
 
-    tasks = process_file(f, celery=celery)
+    tasks = process_file(f, _celery=celery)
     assert len(tasks) == 1
     assert tasks[0].organization == organization_b
 
@@ -153,7 +153,7 @@ def test_process_raw_file(xtdb, celery: Celery, organization, organization_b, do
     f.type = "testfile"  # Avoid the process_raw_file signal
     f.save()
 
-    tasks = process_file(f, celery=celery)
+    tasks = process_file(f, _celery=celery)
     assert len(tasks) == 2
     assert {task.organization for task in tasks} == {organization, organization_b}
     assert Task.objects.count() == 6
@@ -177,7 +177,7 @@ def test_batch_tasks(xtdb, celery: Celery, organization, organization_b, docker,
 
     bulk_insert(hns)
 
-    tasks = run_plugin_task(plugin.id, organization.code, input_data=[x.name for x in hns], celery=celery)
+    tasks = run_plugin_task(plugin.id, organization.code, input_data=[x.name for x in hns], _celery=celery)
 
     assert len(tasks) == 4
     assert len(tasks[0].data["input_data"]) == 50
@@ -186,7 +186,7 @@ def test_batch_tasks(xtdb, celery: Celery, organization, organization_b, docker,
     assert len(tasks[3].data["input_data"]) == 50
 
     # We check previous tasks only when running for a schedule
-    tasks = run_plugin_task(plugin.id, organization.code, input_data=[x.name for x in hns], celery=celery)
+    tasks = run_plugin_task(plugin.id, organization.code, input_data=[x.name for x in hns], _celery=celery)
     assert len(tasks) == 4
 
 
@@ -206,7 +206,7 @@ def test_batch_scheduled_tasks(xtdb, celery: Celery, organization, organization_
 
     bulk_insert(hns)
 
-    tasks = run_schedule_for_organization(schedule, organization, force=False, celery=celery)
+    tasks = run_schedule_for_organization(schedule, organization, force=False, _celery=celery)
 
     assert len(tasks) == 4
     assert len(tasks[0].data["input_data"]) == 50
@@ -214,7 +214,7 @@ def test_batch_scheduled_tasks(xtdb, celery: Celery, organization, organization_
     assert len(tasks[2].data["input_data"]) == 50
     assert len(tasks[3].data["input_data"]) == 50
 
-    tasks = run_schedule_for_organization(schedule, organization, force=False, celery=celery)
+    tasks = run_schedule_for_organization(schedule, organization, force=False, _celery=celery)
     assert len(tasks) == 0
 
 
