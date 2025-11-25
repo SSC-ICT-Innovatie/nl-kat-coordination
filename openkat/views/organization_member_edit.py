@@ -74,12 +74,12 @@ class OrganizationMemberEditView(
                 self.request,
                 messages.INFO,
                 _(
-                    "The updated trusted clearance level of L%s is lower then the member's "
-                    "acknowledged clearance level of L%s. This member only has clearance for level L%s. "
+                    "The updated trusted clearance level of L%(tcl)s is lower than the member's "
+                    "acknowledged clearance level of L%(acl)s. This member only has clearance for level L%(tcl)s. "
                     "For this reason the acknowledged clearance level has been set at the same level "
                     "as trusted clearance level."
                 )
-                % (tcl, acl, tcl),
+                % {"tcl": tcl, "acl": acl},
             )
         if int(tcl) > int(acl):
             messages.add_message(

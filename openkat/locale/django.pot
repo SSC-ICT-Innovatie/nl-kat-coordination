@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-19 10:04+0000\n"
+"POT-Creation-Date: 2025-11-25 08:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -314,12 +314,10 @@ msgstr ""
 #: objects/templates/objects/finding_list.html
 #: objects/templates/objects/hostname_detail.html
 #: objects/templates/objects/ipaddress_detail.html
-#: plugins/templates/plugins/business_rule_list.html
 msgid "Finding type"
 msgstr ""
 
 #: objects/templates/objects/finding_list.html
-#: plugins/templates/plugins/business_rule_detail.html
 msgid "Object"
 msgstr ""
 
@@ -990,7 +988,6 @@ msgid "IPAddresses"
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid ""
 "\"{}\" has fixed objects that are ignored (only query results are shown)."
 msgstr ""
@@ -1000,12 +997,10 @@ msgid "No IP addresses selected."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "Removed scan level for {} IP addresses."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "Updated scan level for {} IP addresses."
 msgstr ""
 
@@ -1014,7 +1009,6 @@ msgid "No scan level selected."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "Deleted {} IP addresses."
 msgstr ""
 
@@ -1058,7 +1052,6 @@ msgid "Organization with code '{code}' not found."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "\"{}\" has static objects that are ignored. Only the query is applied."
 msgstr ""
 
@@ -1067,17 +1060,14 @@ msgid "No hostnames selected."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "Removed scan level for {} hostnames."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "Updated scan level for {} hostnames."
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
 msgid "Deleted {} hostnames."
 msgstr ""
 
@@ -1901,7 +1891,6 @@ msgid "No version"
 msgstr ""
 
 #: plugins/templates/plugin_table.html
-#: plugins/templates/plugins/business_rule_detail.html
 msgid "Run"
 msgstr ""
 
@@ -1957,28 +1946,6 @@ msgstr ""
 msgid "Edit"
 msgstr ""
 
-#: plugins/templates/plugins/business_rule_detail.html tasks/views.py
-msgid "Object Type"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-#: tasks/templates/object_set.html
-msgid "Query"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-msgid "Inverse Query"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-#: reports/templates/reports/report_html.html
-msgid "Finding Type"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-msgid "Required Plugins"
-msgstr ""
-
 #: plugins/templates/plugins/business_rule_detail.html
 #: reports/templates/reports/report_detail.html
 #: reports/templates/reports/report_list.html
@@ -1987,18 +1954,6 @@ msgstr ""
 
 #: plugins/templates/plugins/business_rule_detail.html
 msgid "Updated"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-msgid "Preview of Matching Objects"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-msgid "Query Error:"
-msgstr ""
-
-#: plugins/templates/plugins/business_rule_detail.html
-msgid "No matching objects found."
 msgstr ""
 
 #: plugins/templates/plugins/business_rule_form.html
@@ -2015,43 +1970,32 @@ msgstr ""
 msgid "Business rules"
 msgstr ""
 
-#: plugins/templates/plugins/business_rule_list.html
-#: tasks/templates/object_set_list.html
-msgid "Object type"
-msgstr ""
-
 #: plugins/views.py
 msgid "Plugin details"
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Plugin '{}' has been unscheduled for organization '{}'."
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid ""
 "Plugin '{}' has been unscheduled for {} organizations ({} schedules deleted)."
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Plugin '{}' has been unscheduled globally ({} schedules deleted)."
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Plugin '{}' has been scheduled for organization '{}'."
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Plugin '{}' has been scheduled for {} organizations."
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Plugin '{}' has been scheduled globally."
 msgstr ""
 
@@ -2060,18 +2004,11 @@ msgid "Business Rules"
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Business rule '{}' has been enabled."
 msgstr ""
 
 #: plugins/views.py
-#, python-brace-format
 msgid "Business rule '{}' has been disabled."
-msgstr ""
-
-#: plugins/views.py
-#, python-brace-format
-msgid "Business rule '{}' has been queued for execution in the background."
 msgstr ""
 
 #: reports/templates/reports/report_detail.html
@@ -2180,6 +2117,10 @@ msgstr ""
 
 #: reports/templates/reports/report_html.html
 msgid "Findings by Type"
+msgstr ""
+
+#: reports/templates/reports/report_html.html
+msgid "Finding Type"
 msgstr ""
 
 #: reports/templates/reports/report_html.html
@@ -2329,6 +2270,10 @@ msgid "Each will be generated daily. You can view them in the schedules list."
 msgstr ""
 
 #: tasks/templates/object_set.html
+msgid "Query"
+msgstr ""
+
+#: tasks/templates/object_set.html
 msgid "The query is empty, so all objects of type"
 msgstr ""
 
@@ -2354,6 +2299,10 @@ msgstr ""
 
 #: tasks/templates/object_set_list.html
 msgid "There are no object sets."
+msgstr ""
+
+#: tasks/templates/object_set_list.html
+msgid "Object type"
 msgstr ""
 
 #: tasks/templates/object_set_list.html
@@ -2533,6 +2482,10 @@ msgstr ""
 
 #: tasks/views.py
 msgid "Object set detail"
+msgstr ""
+
+#: tasks/views.py
+msgid "Object Type"
 msgstr ""
 
 #: tasks/views.py
@@ -2808,7 +2761,6 @@ msgid "Only accepts CSV file."
 msgstr ""
 
 #: openkat/messaging.py
-#, python-brace-format
 msgid ""
 "You have trusted this member with a clearance level of L{}. This member "
 "needs at least a clearance level of L{} in order to do a proper onboarding. "
@@ -4119,10 +4071,10 @@ msgstr ""
 #: openkat/views/organization_member_edit.py
 #, python-format
 msgid ""
-"The updated trusted clearance level of L%s is lower then the member's "
-"acknowledged clearance level of L%s. This member only has clearance for "
-"level L%s. For this reason the acknowledged clearance level has been set at "
-"the same level as trusted clearance level."
+"The updated trusted clearance level of L%(tcl)s is lower than the member's "
+"acknowledged clearance level of L%(acl)s. This member only has clearance for "
+"level L%(tcl)s. For this reason the acknowledged clearance level has been "
+"set at the same level as trusted clearance level."
 msgstr ""
 
 #: openkat/views/organization_member_edit.py
