@@ -17,8 +17,8 @@
                         {% endblocktranslate %}
                     </p>
                 </div>
-                {% if perms.openkat.add_organizationmember %}
-                    <div class="horizontal-view toolbar">
+                <div class="horizontal-view toolbar">
+                    {% if perms.openkat.add_organizationmember %}
                         <div class="dropdown">
                             <button aria-controls="add-member" class="dropdown-button ghost">
                                 {% translate "Add member(s)" %}<span aria-hidden="true" class="icon ti-chevron-down"></span>
@@ -26,7 +26,8 @@
                             <div id="add-member" class="dropdown-list">
                                 <ul>
                                     <li>
-                                        <a href="{% url "organization_member_add_account_type" organization.code %}"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Manually" %}</a>
+                                        <a href="{% url "organization_member_add_account_type" organization.code %}"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Manually" %}
+                                        </a>
                                     </li>
                                     <li>
                                         <a href="{% url "organization_member_upload" organization.code %}"><span class="icon ti-file-upload" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
@@ -35,8 +36,8 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            {% endif %}
+                {% endif %}
+            </div>
             <div>
                 {% include "partials/organization_member_list_filters.html" with checkbox_filters=checkbox_filters %}
 
@@ -92,7 +93,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            {% if member.user.is_superuser %}
+                                            {% if member.user.is_superuser or not perms.openkat.change_organizationmember %}
                                                 <button class="icon ti-edit action-button disabled">{% translate "Edit" %}</button>
                                             {% else %}
                                                 <a href="{% url "organization_member_edit" organization.code member.id %}">
@@ -106,7 +107,7 @@
 
                                             {% else %}
                                                 {% comment %} Disable the "block" checkbox for members that are super users or for the member of the user that's logged in so they can't lock themself out of the organisation by accident{% endcomment %}
-                                                {% if member.user.is_superuser or member.user.email == request.user.email %}
+                                                {% if member.user.is_superuser or member.user.email == request.user.email or not perms.openkat.change_organizationmember %}
                                                     {% include "partials/single_action_checkbox_form.html" with input_checked=member.blocked input_disabled="disabled" action="block" key="member_id" value=member.id %}
 
                                                 {% else %}
