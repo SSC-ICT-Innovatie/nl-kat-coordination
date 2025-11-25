@@ -253,7 +253,7 @@ def test_run_report_task(organization, celery: Celery, mocker):
         organization_codes=[organization.code],
         finding_types=["TEST-001"],
         object_set_id=None,
-        celery=celery,
+        _celery=celery,
     )
 
     assert task is not None
@@ -284,7 +284,7 @@ def test_create_report_task(organization, celery: Celery, mocker, xtdb):
         organization_codes=[organization.code],
         finding_types=[],
         object_set_id=None,
-        celery=celery,
+        _celery=celery,
     )
 
     assert task is not None
@@ -324,7 +324,7 @@ def test_run_report_schedule(organization, celery: Celery, object_set, mocker, x
     schedule.report_finding_types = ["TEST-001"]
     schedule.save()
 
-    tasks = run_schedule(schedule, force=True, celery=celery)
+    tasks = run_schedule(schedule, force=True, _celery=celery)
 
     assert len(tasks) == 1
     assert tasks[0].type == "report"
@@ -403,7 +403,7 @@ def test_report_task_creates_task_result(organization, celery: Celery, mocker, x
         organization_codes=[organization.code],
         finding_types=[],
         object_set_id=None,
-        celery=celery,
+        _celery=celery,
     )
 
     assert task is not None

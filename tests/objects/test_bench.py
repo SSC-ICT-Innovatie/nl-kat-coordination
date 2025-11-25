@@ -223,7 +223,7 @@ def test_task_scheduling_scan_level_filter(bulk_data, docker, celery, benchmark,
     schedule = Schedule.objects.filter(plugin=plugin, organization=organization).first()
 
     def inner():
-        return run_schedule(schedule, force=True, celery=celery)
+        return run_schedule(schedule, force=True, _celery=celery)
 
     tasks = benchmark(inner)
     assert len(tasks) == N / 500
@@ -257,7 +257,7 @@ def test_task_status_check_many_tasks(docker, celery, bulk_data, benchmark, N):
     Task.objects.bulk_create(tasks)
 
     def inner():
-        return run_schedule(schedule, force=False, celery=celery)
+        return run_schedule(schedule, force=False, _celery=celery)
 
     result = benchmark.pedantic(inner, rounds=1)
     assert len(result) == N // 500 - 2 or len(result) == N // 500 - 1
@@ -281,7 +281,7 @@ def test_task_scheduling_with_object_set_query(bulk_data, docker, celery, benchm
     schedule.object_set.save()
 
     def schedule_with_query():
-        return run_schedule(schedule, force=True, celery=celery)
+        return run_schedule(schedule, force=True, _celery=celery)
 
     result = benchmark(schedule_with_query)
     how_many_times_is_123_in_1_to_N = len([x for x in range(N) if "123" in str(x)])

@@ -137,13 +137,13 @@ def test_network_view_filtered_on_name(rf, superuser_member, xtdb):
     assertNotContains(response, "internet")
 
 
-def test_findings(rf, superuser_member, xtdb):
+def test_findings(rf, superuser, xtdb):
     net = Network.objects.create(name="internet")
     host = Hostname.objects.create(name="test.com", network=net)
     finding_type = FindingType.objects.create(code="KAT-TEST-LIST-VIEW", score=3.1)
     Finding.objects.create(hostname=host, finding_type=finding_type)
 
-    request = setup_request(rf.get("objects:finding_list"), superuser_member.user)
+    request = setup_request(rf.get("objects:finding_list"), superuser)
     response = FindingListView.as_view()(request)
     assert response.status_code == 200
     assertContains(response, "Severity")
@@ -151,39 +151,29 @@ def test_findings(rf, superuser_member, xtdb):
     assertContains(response, "test.com")
     assertContains(response, "3.1")
 
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"object_search": "mail"}), superuser_member.user
-    )
+    request = setup_request(rf.get("objects:finding_list", query_params={"object_search": "mail"}), superuser)
+    response = FindingListView.as_view()(request)
+    assertNotContains(response, "test.com")
+
+    request = setup_request(rf.get("objects:finding_list", query_params={"score": 5}), superuser)
+    response = FindingListView.as_view()(request)
+    assertNotContains(response, "test.com")
+
+    request = setup_request(rf.get("objects:finding_list", query_params={"score": 3}), superuser)
+    response = FindingListView.as_view()(request)
+    assertContains(response, "test.com")
+
+    request = setup_request(rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-WRONG"}), superuser)
     response = FindingListView.as_view()(request)
     assertNotContains(response, "test.com")
 
     request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__score__gte": 5}), superuser_member.user
-    )
-    response = FindingListView.as_view()(request)
-    assertNotContains(response, "test.com")
-
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__score__gte": 3}), superuser_member.user
+        rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-TEST-LIST-VIEW"}), superuser
     )
     response = FindingListView.as_view()(request)
     assertContains(response, "test.com")
 
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-WRONG"}), superuser_member.user
-    )
-    response = FindingListView.as_view()(request)
-    assertNotContains(response, "test.com")
-
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-TEST-LIST-VIEW"}), superuser_member.user
-    )
-    response = FindingListView.as_view()(request)
-    assertContains(response, "test.com")
-
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"object_search": "test"}), superuser_member.user
-    )
+    request = setup_request(rf.get("objects:finding_list", query_params={"object_search": "test"}), superuser)
     response = FindingListView.as_view()(request)
     assertContains(response, "test.com")
 
