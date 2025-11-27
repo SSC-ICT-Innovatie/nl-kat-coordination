@@ -715,11 +715,11 @@ class HostnameListView(OrganizationFilterMixin, FilterView):
             scan_type = self.request.POST.get("declared")
 
             if scan_type == "inherited":
-                cnt = Hostname.objects.filter(pk__in=selected).update(scan_level=None, declared=False)
-                messages.success(request, _("Removed scan level for {} hostnames.").format(cnt))
+                Hostname.objects.filter(pk__in=selected).update(scan_level=None, declared=False)
+                messages.success(request, _("Removed scan level."))
             elif scan_type == "declared" and scan_level:
-                cnt = Hostname.objects.filter(pk__in=selected).update(scan_level=int(scan_level), declared=True)
-                messages.success(request, _("Updated scan level for {} hostnames.").format(cnt))
+                Hostname.objects.filter(pk__in=selected).update(scan_level=int(scan_level), declared=True)
+                messages.success(request, _("Updated scan level."))
             else:
                 messages.warning(request, _("No scan level selected."))
         elif action_type == "delete":
