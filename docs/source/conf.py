@@ -45,8 +45,6 @@ html_theme = "sphinx_icore_open"
 html_logo = "_static/keiko-hero.jpg"
 html_favicon = "_static/favicon.svg"
 
-html_theme_options = {"collapse_navigation": False, "style_nav_header_background": "#ca005d"}
-
 html_context = {
     "display_github": True,
     "github_user": "minvws",
