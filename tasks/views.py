@@ -87,8 +87,8 @@ class TaskDetailView(OrganizationFilterMixin, DetailView):
 class TaskForm(ModelForm):
     plugin = forms.ModelChoiceField(Plugin.objects.all())
     object_set = forms.ModelChoiceField(ObjectSet.objects.all(), required=False, label="Object set")
-    input_hostnames = forms.ModelMultipleChoiceField(Hostname.objects.all(), required=False)
-    input_ips = forms.ModelMultipleChoiceField(IPAddress.objects.all(), required=False)
+    input_hostnames = forms.ModelMultipleChoiceField(Hostname.objects.all()[0:100], required=False)
+    input_ips = forms.ModelMultipleChoiceField(IPAddress.objects.all()[0:100], required=False)
 
     class Meta:
         model = Task
