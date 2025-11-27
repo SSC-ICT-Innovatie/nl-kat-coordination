@@ -150,7 +150,8 @@ class Command(BaseCommand):
         )
         group_admin.permissions.set(perms + admin_perms)
 
-    def seed_objects(self):
+    @staticmethod
+    def seed_objects():
         Network.objects.get_or_create(name="internet", declared=True)
         ObjectSet.objects.get_or_create(
             name="mail_server",
@@ -171,34 +172,41 @@ class Command(BaseCommand):
             object_query=Hostname.Q.root_domain,
         )
 
-    def seed_finding_types(self):
+    @staticmethod
+    def seed_finding_types() -> list[FindingType]:
         base_dir = Path(__file__).resolve().parent.parent.parent.parent
         finding_types_path = base_dir / "plugins" / "plugins" / "finding_types.json"
 
         if not finding_types_path.exists():
-            self.stdout.write(self.style.WARNING(f"Finding types file not found at {finding_types_path}"))
-            return
+            return []
 
         with finding_types_path.open() as f:
             finding_types_data = json.load(f)
 
+        fts = []
         for code, data in finding_types_data.items():
-            FindingType.objects.create(
-                code=code,
-                name=data.get("name"),
-                description=data.get("description"),
-                source=data.get("source"),
-                risk=data.get("risk"),
-                impact=data.get("impact"),
-                recommendation=data.get("recommendation"),
-                score=SEVERITY_SCORE_LOOKUP.get(data.get("risk", "").lower()),
+            fts.append(
+                FindingType.objects.create(
+                    code=code,
+                    name=data.get("name"),
+                    description=data.get("description"),
+                    source=data.get("source"),
+                    risk=data.get("risk"),
+                    impact=data.get("impact"),
+                    recommendation=data.get("recommendation"),
+                    score=SEVERITY_SCORE_LOOKUP.get(data.get("risk", "").lower()),
+                )
             )
 
-    def sync_orgs(self):
+        return fts
+
+    @staticmethod
+    def sync_orgs():
         for org in Organization.objects.all():
             org.save()
 
-    def seed_business_rules(self):
+    @staticmethod
+    def seed_business_rules():
         for rule_data in get_rules().values():
             BusinessRule.objects.update_or_create(
                 name=rule_data["name"], defaults={"description": rule_data["description"], "enabled": True}

@@ -22,6 +22,7 @@ def test_traverse_objects_with_all_objects(xtdb):
     )
 
     assert set(object_set.traverse_objects()) == {hostname1.pk, hostname2.pk}
+    assert set(object_set.traverse_objects(pk__in=[hostname1.pk])) == {hostname1.pk}
 
 
 def test_object_set_detail_view(rf, superuser, organization, organization_b):

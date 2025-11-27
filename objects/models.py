@@ -633,35 +633,44 @@ class Software(XTDBNaturalKeyModel):
     _optional_key_attrs = ["version"]
 
 
-def bulk_insert(objects: Sequence[models.Model]) -> None:
-    """Use COPY to efficiently bulk-insert objects into XTDB. Assumes objects have the same type, skips other types."""
+def bulk_insert(objects: Sequence[models.Model], batch_size: int = 50_000) -> None:
+    """
+    Use COPY to efficiently bulk-insert objects into XTDB. Assumes objects have the same type, skips other types.
+
+    The batch size is needed as there is a bug in XTDB when we go over 100_000 objects that is to be investigated.
+    """
 
     if not objects:
         return
 
     table_name = objects[0]._meta.db_table
 
-    with tempfile.NamedTemporaryFile() as fp:
-        # The transit-json format is not working because the writer uses a comma as a delimiter between objects. It
-        # would work if we override Writer.marshaler.write_sep() to skip the comma (or use a newline) between objects.
-        # But apparently msgpack works out of the box, which makes life even easier.
+    idx = 0
 
-        writer = Writer(fp, "msgpack")
-        for obj in objects:
-            if obj._meta.db_table != table_name:
-                continue
-            writer.write(to_xtdb_dict(obj))
+    for idx_2 in range(batch_size, len(objects) + batch_size, batch_size):
+        with tempfile.NamedTemporaryFile() as fp:
+            # The transit-json format is not working because the writer uses a comma as a delimiter between objects. It
+            # would work if we override Writer.marshaler.write_sep() to skip the comma (or use a newline) between
+            # objects. But apparently msgpack works out of the box, which makes life even easier.
 
-        fp.seek(0)
+            writer = Writer(fp, "msgpack")
+            for obj in objects[idx:idx_2]:
+                if obj._meta.db_table != table_name:
+                    continue
+                writer.write(to_xtdb_dict(obj))
 
-        with (
-            connections["xtdb"].cursor() as cursor,
-            cursor.copy(
-                sql.SQL("COPY {} FROM STDIN WITH (FORMAT 'transit-msgpack')").format(sql.Identifier(table_name))
-            ) as copy,
-        ):
-            while data := fp.read():
-                copy.write(data)
+            fp.seek(0)
+
+            with (
+                connections["xtdb"].cursor() as cursor,
+                cursor.copy(
+                    sql.SQL("COPY {} FROM STDIN WITH (FORMAT 'transit-msgpack')").format(sql.Identifier(table_name))
+                ) as copy,
+            ):
+                while data := fp.read():
+                    copy.write(data)
+
+        idx = idx_2
 
 
 severity_order = ["recommendation", "low", "medium", "high", "critical"]

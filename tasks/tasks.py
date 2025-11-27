@@ -25,6 +25,7 @@ from objects.models import (
     IPAddressOrganization,
     IPPort,
     ObjectTask,
+    XTDBNaturalKeyModel,
     bulk_insert,
 )
 from openkat.models import Organization, User
@@ -345,12 +346,19 @@ def run_schedule_for_organization(
 
         return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
 
-    input_data: set[str] = set()
     object_pks = schedule.object_set.traverse_objects(scan_level__gte=schedule.plugin.scan_level)
-    if object_pks:
+
+    if not object_pks:
+        return []
+
+    # Use from_natural_key() to avoid doing a database call to get the full model, so much more performant for large
+    # object sets.
+    if issubclass(schedule.object_set.object_type.model_class(), XTDBNaturalKeyModel):
+        input_data = {str(schedule.object_set.object_type.model_class().from_natural_key(nk)) for nk in object_pks}
+    else:
         model_class = schedule.object_set.object_type.model_class()
-        model_qs = model_class.objects.filter(pk__in=object_pks)
-        input_data = input_data.union([str(model) for model in model_qs if str(model)])
+        model_qs = model_class.objects.filter(pk__in=object_pks) if object_pks else model_class.objects.none()
+        input_data = {str(model) for model in model_qs if str(model)}
 
     if not input_data:
         return []

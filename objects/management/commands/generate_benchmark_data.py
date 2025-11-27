@@ -21,7 +21,7 @@ from objects.models import (
     Software,
     bulk_insert,
 )
-from plugins.plugins.business_rules import get_rules
+from openkat.management.commands.seed import Command as SeedCommand
 
 
 def generate(
@@ -52,9 +52,7 @@ def generate(
     txt_records = []
     caa_records = []
     findings = []
-    finding_types = [
-        FindingType(code=val["finding_type_code"]) for key, val in get_rules().items() if val["finding_type_code"]
-    ]
+    finding_types = SeedCommand.seed_finding_types()
     by_code = {ft.code: ft for ft in finding_types}
     software = [Software(name="old-js-lib", version="v-2.1.3"), Software(name="old-wordpress-plugin", version="0.1")]
 

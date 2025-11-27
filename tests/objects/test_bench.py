@@ -242,6 +242,7 @@ def test_task_status_check_many_tasks(docker, celery, bulk_data, benchmark, N):
     organization = Organization.objects.first()
     plugin.enable_for(organization)
     schedule = Schedule.objects.filter(plugin=plugin, organization=organization).first()
+    assert schedule is not None
 
     tasks = []
     for i in range(500):
