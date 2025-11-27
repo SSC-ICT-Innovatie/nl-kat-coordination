@@ -47,9 +47,6 @@ disallow_untyped_calls = true
 disallow_incomplete_defs = true
 no_implicit_reexport = true
 
-[tool.setuptools]
-packages = []
-
 [tool.setuptools_scm]
 write_to = "_version.py"
 
