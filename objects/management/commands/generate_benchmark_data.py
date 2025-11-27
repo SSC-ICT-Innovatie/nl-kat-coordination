@@ -71,7 +71,9 @@ def generate(
 
         # IPv6 (every 5th host gets IPv6)
         if include_dns_records and i % 5 == 0:
-            ipv6 = IPAddress(network=network, address=f"2001:db8:{i:04x}::{i:04x}", scan_level=ipaddress_scan_level)
+            ipv6 = IPAddress(
+                network=network, address=f"2001:db8:{i % 8123:04x}::{i % 9000:04x}", scan_level=ipaddress_scan_level
+            )
             ips_v6.append(ipv6)
             if i % 50 == 0:
                 finding = Finding(finding_type=by_code["KAT-WEBSERVER-NO-IPV6"], hostname=hn)
