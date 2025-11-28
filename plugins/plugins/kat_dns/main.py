@@ -226,7 +226,7 @@ def main():
         response = client.get(f"/objects/hostname/?name={hostname}").raise_for_status().json()
         if response["results"]:
             client.delete(
-                f"/objects/hostname/{response['results'][0]['id']}/dnsrecord/",
+                f"/objects/hostname/internet|{hostname}/dnsrecord/",
                 params={"record_id": [rec["id"] for rec in response["results"][0]["dns_records"]]},
             ).raise_for_status()
         return

@@ -19,29 +19,12 @@ logger = structlog.get_logger(__name__)
 
 
 class TaskStatus(models.TextChoices):
-    # Task has been created but not yet queued
     PENDING = "pending"
-
-    # Task has been pushed onto the queue
     QUEUED = "queued"
-
-    # Task has been picked up by a worker
     RUNNING = "running"
-
-    # Task has been completed
     COMPLETED = "completed"
-
-    # Task has failed
     FAILED = "failed"
-
-    # Task has been cancelled
     CANCELLED = "cancelled"
-
-
-class Operation(models.TextChoices):
-    CREATE = "create"
-    UPDATE = "update"
-    DELETE = "delete"
 
 
 class ObjectSet(models.Model):
@@ -53,7 +36,7 @@ class ObjectSet(models.Model):
     object_query = models.TextField(null=True, blank=True)
 
     # concrete objects
-    all_objects = ArrayField(models.CharField(), default=list, blank=True)
+    static_objects = ArrayField(models.CharField(), default=list, blank=True)
 
     def get_query_objects(self, queryset: QuerySet | None = None, **filters: Any) -> QuerySet:
         if self.object_query is None:
@@ -77,7 +60,9 @@ class ObjectSet(models.Model):
             return queryset
 
     def traverse_objects(self, queryset: QuerySet | None = None, **filters: Any) -> list[int]:
-        return list(set(self.all_objects).union({x.pk for x in self.get_query_objects(queryset, **filters)}))
+        """IMPORTANT: the filters are only applied to the object_query"""
+
+        return list(set(self.static_objects).union({x.pk for x in self.get_query_objects(queryset, **filters)}))
 
     def __str__(self):
         return self.name or super().__str__()
@@ -95,8 +80,6 @@ class Schedule(models.Model):
         "plugins.plugin", on_delete=models.CASCADE, related_name="schedules", null=True, blank=True
     )
     object_set = models.ForeignKey(ObjectSet, on_delete=models.CASCADE, related_name="schedules", null=True, blank=True)
-    run_on = models.CharField(max_length=64, null=True, blank=True)
-    operation = models.CharField(max_length=16, choices=Operation, null=True, blank=True)
 
     # Report-specific fields
     report_name = models.CharField(max_length=255, null=True, blank=True)

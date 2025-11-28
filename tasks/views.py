@@ -503,8 +503,8 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
         else:
             context["objects"] = None
 
-        context["all_objects"] = filter_queryset_orgs_for_user(
-            self.object.object_type.model_class().objects.filter(pk__in=self.object.all_objects),
+        context["static_objects"] = filter_queryset_orgs_for_user(
+            self.object.object_type.model_class().objects.filter(pk__in=self.object.static_objects),
             self.request.user,
             org_codes,
         )
@@ -521,7 +521,7 @@ class ObjectSetTypeSelectionForm(forms.Form):
 
 
 class ObjectSetForm(ModelForm):
-    all_objects = forms.MultipleChoiceField(
+    static_objects = forms.MultipleChoiceField(
         widget=forms.SelectMultiple(attrs={"size": "10"}),
         required=False,
         help_text="Select objects manually. These will be combined with objects from the query.",
@@ -530,7 +530,7 @@ class ObjectSetForm(ModelForm):
 
     class Meta:
         model = ObjectSet
-        fields = ["name", "description", "object_type", "query_all", "object_query", "all_objects"]
+        fields = ["name", "description", "object_type", "query_all", "object_query", "static_objects"]
         widgets = {"description": forms.Textarea(attrs={"rows": 3}), "object_query": forms.Textarea(attrs={"rows": 3})}
 
     def __init__(self, *args, **kwargs):
@@ -560,27 +560,27 @@ class ObjectSetForm(ModelForm):
             model_class = object_type.model_class()
             if model_class:
                 # Check if objects were pre-selected from bulk action
-                preselected_object_ids = kwargs.get("initial", {}).get("all_objects")
+                preselected_object_ids = kwargs.get("initial", {}).get("static_objects")
 
                 if preselected_object_ids:
                     # Only show pre-selected objects (from bulk action)
                     objects = model_class.objects.filter(pk__in=preselected_object_ids)
                     choices = [(obj.pk, str(obj)) for obj in objects]
-                    self.fields["all_objects"].choices = choices
-                    self.initial["all_objects"] = preselected_object_ids
-                    self.fields["all_objects"].help_text = _("Objects selected from bulk action.")
+                    self.fields["static_objects"].choices = choices
+                    self.initial["static_objects"] = preselected_object_ids
+                    self.fields["static_objects"].help_text = _("Objects selected from bulk action.")
                 else:
                     # Show all objects (normal flow)
                     objects = model_class.objects.all()
                     choices = [(obj.pk, str(obj)) for obj in objects]
-                    self.fields["all_objects"].choices = choices
+                    self.fields["static_objects"].choices = choices
 
                     # Pre-select objects from existing instance
-                    if self.instance and self.instance.all_objects:
-                        self.initial["all_objects"] = [str(pk) for pk in self.instance.all_objects]
+                    if self.instance and self.instance.static_objects:
+                        self.initial["static_objects"] = [str(pk) for pk in self.instance.static_objects]
         else:
-            self.fields["all_objects"].choices = []
-            self.fields["all_objects"].help_text += " (Select an object type first to see available objects.)"
+            self.fields["static_objects"].choices = []
+            self.fields["static_objects"].help_text += " (Select an object type first to see available objects.)"
 
     def clean(self):
         cleaned_data = super().clean()
@@ -600,8 +600,8 @@ class ObjectSetForm(ModelForm):
 
         return cleaned_data
 
-    def clean_all_objects(self):
-        return self.cleaned_data.get("all_objects", [])
+    def clean_static_objects(self):
+        return self.cleaned_data.get("static_objects", [])
 
 
 class ObjectSetCreateView(KATModelPermissionRequiredMixin, CreateView):
@@ -633,7 +633,7 @@ class ObjectSetCreateView(KATModelPermissionRequiredMixin, CreateView):
 
                 if "objects" in self.request.GET:
                     object_ids = self.request.GET.getlist("objects")
-                    initial["all_objects"] = object_ids
+                    initial["static_objects"] = object_ids
             except (ContentType.DoesNotExist, ValueError):
                 pass
 

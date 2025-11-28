@@ -368,7 +368,7 @@ class IPAddressListView(OrganizationFilterMixin, FilterView):
         object_set_id = self.request.GET.get("object_set")
         if object_set_id:
             obj_set = ObjectSet.objects.get(id=object_set_id, object_type=ContentType.objects.get_for_model(IPAddress))
-            if obj_set.all_objects:
+            if obj_set.static_objects:
                 messages.warning(
                     self.request,
                     _('"{}" has fixed objects that are ignored (only query results are shown).').format(obj_set.name),
@@ -677,7 +677,7 @@ class HostnameListView(OrganizationFilterMixin, FilterView):
         object_set_id = self.request.GET.get("object_set")
         if object_set_id:
             obj_set = ObjectSet.objects.get(id=object_set_id, object_type=ContentType.objects.get_for_model(Hostname))
-            if obj_set.all_objects:
+            if obj_set.static_objects:
                 messages.warning(
                     self.request,
                     _('"{}" has static objects that are ignored. Only the query is applied.').format(obj_set.name),

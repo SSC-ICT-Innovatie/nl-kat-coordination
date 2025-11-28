@@ -9,6 +9,7 @@ from django.core.files.base import ContentFile
 from django.db.models import Q
 
 from files.models import File
+from objects.models import DNSARecord, DNSTXTRecord, Hostname, IPAddress, Network
 from openkat.auth.jwt_auth import JWTTokenAuthentication
 from tests.conftest import JSONAPIClient
 
@@ -182,3 +183,51 @@ def test_jwt_file_search_permission(organization):
         ],
         "type": "client_error",
     }
+
+
+def test_jwt_dns_record_delete_permission(organization, xtdb):
+    client = JSONAPIClient(raise_request_exception=True)
+    network = Network.objects.create(name="internet")
+    hostname = Hostname.objects.create(network=network, name="example.com")
+    ip = IPAddress.objects.create(network=network, address="192.0.2.1")
+
+    a_record = DNSARecord.objects.create(hostname=hostname, ip_address=ip, ttl=3600)
+    txt_record = DNSTXTRecord.objects.create(hostname=hostname, value="v=spf1 -all", ttl=3600)
+
+    token = JWTTokenAuthentication.generate({"objects.view_hostname": {}})
+    client.credentials(HTTP_AUTHORIZATION="Token " + token)
+
+    rec_ids = "&record_id=".join([str(a_record.pk), str(txt_record.pk)])
+    response = client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/?record_id={rec_ids}")
+    assert response.status_code == 403
+    assert response.json() == {
+        "errors": [
+            {"attr": None, "code": "permission_denied", "detail": "You do not have permission to perform this action."}
+        ],
+        "type": "client_error",
+    }
+
+    # Verify records still exist
+    assert DNSARecord.objects.filter(pk=a_record.pk).exists()
+    assert DNSTXTRecord.objects.filter(pk=txt_record.pk).exists()
+
+    # Now test with proper delete permissions
+    perms = {
+        f"{ct}.{name}": None
+        for ct, name in Permission.objects.filter(
+            ~Q(codename__contains="organization"), Q(content_type__app_label="objects")
+        ).values_list("content_type__app_label", "codename")
+    }
+
+    token = JWTTokenAuthentication.generate(perms)
+    client.credentials(HTTP_AUTHORIZATION="Token " + token)
+
+    response = client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/?record_id={rec_ids}")
+    assert response.status_code == 200
+    data = response.json()
+    assert "deleted" in data
+    assert data["deleted"] == 2
+
+    # Verify records are deleted
+    assert not DNSARecord.objects.filter(pk=a_record.pk).exists()
+    assert not DNSTXTRecord.objects.filter(pk=txt_record.pk).exists()

@@ -8,7 +8,7 @@ from tasks.views import ObjectSetDetailView
 from tests.conftest import setup_request
 
 
-def test_traverse_objects_with_all_objects(xtdb):
+def test_traverse_objects_with_static_objects(xtdb):
     network = Network.objects.create(name="internet")
 
     hostname1 = Hostname.objects.create(network=network, name="test1.example.com")
@@ -18,11 +18,10 @@ def test_traverse_objects_with_all_objects(xtdb):
     object_set = ObjectSet.objects.create(
         name="Test Set",
         object_type=ContentType.objects.get_for_model(Hostname),
-        all_objects=[hostname1.pk, hostname2.pk],
+        static_objects=[hostname1.pk, hostname2.pk],
     )
 
     assert set(object_set.traverse_objects()) == {hostname1.pk, hostname2.pk}
-    assert set(object_set.traverse_objects(pk__in=[hostname1.pk])) == {hostname1.pk}
 
 
 def test_object_set_detail_view(rf, superuser, organization, organization_b):
@@ -35,7 +34,7 @@ def test_object_set_detail_view(rf, superuser, organization, organization_b):
     object_set = ObjectSet.objects.create(
         name="Test Set",
         object_type=ContentType.objects.get_for_model(Hostname),
-        all_objects=[hostname1.pk, hostname2.pk],
+        static_objects=[hostname1.pk, hostname2.pk],
     )
 
     request = setup_request(rf.get("object_set_detail"), superuser)
@@ -51,22 +50,19 @@ def test_object_set_detail_view(rf, superuser, organization, organization_b):
 def test_traverse_objects_with_query(xtdb):
     network = Network.objects.create(name="internet")
 
-    Hostname.objects.create(network=network, name="test1.example.com")
-    Hostname.objects.create(network=network, name="test2.example.com")
+    hostname1 = Hostname.objects.create(network=network, name="test1.example.com")
+    hostname2 = Hostname.objects.create(network=network, name="test2.example.com")
     Hostname.objects.create(network=network, name="prod.example.com")
 
     object_set = ObjectSet.objects.create(
         name="Test Set", object_type=ContentType.objects.get_for_model(Hostname), object_query='name ~ "test"'
     )
 
-    result = object_set.traverse_objects()
-    assert isinstance(result, list)
-    assert all(isinstance(pk, str) for pk in result)
-    if len(result) > 0:
-        assert len(result) >= 2
+    assert set(object_set.traverse_objects()) == {hostname1.pk, hostname2.pk}
+    assert set(object_set.traverse_objects(pk__in=[hostname1.pk])) == {hostname1.pk}
 
 
-def test_traverse_objects_combines_all_objects_and_query(xtdb):
+def test_traverse_objects_combines_static_objects_and_query(xtdb):
     network = Network.objects.create(name="internet")
 
     Hostname.objects.create(network=network, name="test1.example.com")
@@ -77,7 +73,7 @@ def test_traverse_objects_combines_all_objects_and_query(xtdb):
     object_set = ObjectSet.objects.create(
         name="Combined Set",
         object_type=ContentType.objects.get_for_model(Hostname),
-        all_objects=[hostname3.pk],
+        static_objects=[hostname3.pk],
         object_query="",
     )
 
@@ -92,7 +88,7 @@ def test_traverse_objects_removes_duplicates(xtdb):
     object_set = ObjectSet.objects.create(
         name="Duplicate Set",
         object_type=ContentType.objects.get_for_model(Hostname),
-        all_objects=[hostname1.pk],
+        static_objects=[hostname1.pk],
         object_query='name = "test1.example.com"',
     )
 
@@ -104,7 +100,7 @@ def test_traverse_objects_removes_duplicates(xtdb):
 @pytest.mark.django_db
 def test_traverse_objects_empty_set():
     object_set = ObjectSet.objects.create(
-        name="Empty Set", object_type=ContentType.objects.get_for_model(Hostname), all_objects=[]
+        name="Empty Set", object_type=ContentType.objects.get_for_model(Hostname), static_objects=[]
     )
 
     result = object_set.traverse_objects()
@@ -118,7 +114,7 @@ def test_traverse_objects_invalid_query(xtdb):
     object_set = ObjectSet.objects.create(
         name="Invalid Query Set",
         object_type=ContentType.objects.get_for_model(Hostname),
-        all_objects=[hostname1.pk],
+        static_objects=[hostname1.pk],
         object_query="invalid query syntax!!!",
     )
 
