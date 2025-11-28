@@ -192,13 +192,18 @@ def test_jwt_dns_record_delete_permission(organization, xtdb):
     ip = IPAddress.objects.create(network=network, address="192.0.2.1")
 
     a_record = DNSARecord.objects.create(hostname=hostname, ip_address=ip, ttl=3600)
-    txt_record = DNSTXTRecord.objects.create(hostname=hostname, value="v=spf1 -all", ttl=3600)
+    txt_record = DNSTXTRecord.objects.create(
+        hostname=hostname,
+        value="v=spf1 a mx ptr ip4:50.116.1.184 ip6:2600:3c01:e000:3e6::6d4e:7061 include:_spf.google.com ~all",
+        ttl=3600,
+    )
 
     token = JWTTokenAuthentication.generate({"objects.view_hostname": {}})
     client.credentials(HTTP_AUTHORIZATION="Token " + token)
 
-    rec_ids = "&record_id=".join([str(a_record.pk), str(txt_record.pk)])
-    response = client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/?record_id={rec_ids}")
+    response = client.post(
+        "/api/v1/objects/delete/", json={"dnsarecord": [str(a_record.pk)], "dnstxtrecord": [str(txt_record.pk)]}
+    )
     assert response.status_code == 403
     assert response.json() == {
         "errors": [
@@ -207,26 +212,38 @@ def test_jwt_dns_record_delete_permission(organization, xtdb):
         "type": "client_error",
     }
 
-    # Verify records still exist
     assert DNSARecord.objects.filter(pk=a_record.pk).exists()
     assert DNSTXTRecord.objects.filter(pk=txt_record.pk).exists()
 
-    # Now test with proper delete permissions
-    perms = {
-        f"{ct}.{name}": None
-        for ct, name in Permission.objects.filter(
-            ~Q(codename__contains="organization"), Q(content_type__app_label="objects")
-        ).values_list("content_type__app_label", "codename")
-    }
-
-    token = JWTTokenAuthentication.generate(perms)
+    token = JWTTokenAuthentication.generate(
+        {
+            "files.add_file": {},
+            "objects.add_hostname": {},
+            "objects.add_ipaddress": {},
+            "objects.change_ipaddress": {},
+            "objects.view_hostname": {},
+            "objects.change_hostname": {},
+            "objects.view_ipaddress": {},
+            "objects.view_dnsarecord": {},
+            "objects.add_dnsarecord": {},
+            "objects.delete_dnsarecord": {},
+            "objects.view_dnstxtrecord": {},
+            "objects.add_dnstxtrecord": {},
+            "objects.delete_dnstxtrecord": {},
+        }
+    )
     client.credentials(HTTP_AUTHORIZATION="Token " + token)
 
-    response = client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/?record_id={rec_ids}")
+    response = client.post(
+        "/api/v1/objects/delete/", json={"dnsarecord": [str(a_record.pk)], "dnstxtrecord": [str(txt_record.pk)]}
+    )
     assert response.status_code == 200
     data = response.json()
     assert "deleted" in data
-    assert data["deleted"] == 2
+    assert "total" in data
+    assert data["total"] == 2
+    assert data["deleted"]["dnsarecord"] == 1
+    assert data["deleted"]["dnstxtrecord"] == 1
 
     # Verify records are deleted
     assert not DNSARecord.objects.filter(pk=a_record.pk).exists()

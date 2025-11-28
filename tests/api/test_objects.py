@@ -377,24 +377,19 @@ def test_dns_records_are_not_duplicated(drf_client, xtdb):
 
 def test_hostname_delete_dns_records_endpoint_validation(drf_client, xtdb):
     network = Network.objects.create(name="internet")
-    hostname = Hostname.objects.create(network=network, name="example.com")
+    Hostname.objects.create(network=network, name="example.com")
 
-    response = drf_client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/")
-    assert response.status_code == 400
-    assert "error" in response.json()
-
-    response = drf_client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/")
-    assert response.status_code == 400
-    assert "error" in response.json()
-
-    response = drf_client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/?record_id=")
+    # Test with empty lists
+    response = drf_client.post("/api/v1/objects/delete/", json={"dnsarecord": []})
     assert response.status_code == 200
 
-    response = drf_client.delete(f"/api/v1/objects/hostname/{hostname.pk}/dnsrecord/?record_id=99999")
+    # Test with non-existent ID
+    response = drf_client.post("/api/v1/objects/delete/", json={"dnsarecord": ["99999"]})
     assert response.status_code == 200
     data = response.json()
     assert "deleted" in data
-    assert data["deleted"] == 0
+    assert "total" in data
+    assert data["total"] == 0
 
 
 def test_ipport_delete_api(drf_client, xtdb):
@@ -504,13 +499,25 @@ def test_hostname_delete_dns_plugin_new(drf_client, xtdb):
     assert other_hostname_a_records >= 1
     assert other_hostname_txt_records >= 1
 
-    rec_ids = "&record_id=".join([str(rec) for rec in ids])
-    response = drf_client.delete(f"/api/v1/objects/hostname/internet|example.com/dnsrecord/?record_id={rec_ids}")
+    response = drf_client.post(
+        "/api/v1/objects/delete/",
+        json={
+            "dnsarecord": [created_dns["dnsarecord"][0]["id"]],
+            "dnsaaaarecord": [created_dns["dnsaaaarecord"][0]["id"]],
+            "dnstxtrecord": [created_dns["dnstxtrecord"][0]["id"]],
+            "dnsnsrecord": [created_dns["dnsnsrecord"][0]["id"]],
+        },
+    )
 
     assert response.status_code == 200
     data = response.json()
     assert "deleted" in data
-    assert data["deleted"] == 4
+    assert "total" in data
+    assert data["total"] == 4
+    assert data["deleted"]["dnsarecord"] == 1
+    assert data["deleted"]["dnsaaaarecord"] == 1
+    assert data["deleted"]["dnstxtrecord"] == 1
+    assert data["deleted"]["dnsnsrecord"] == 1
 
     assert DNSARecord.objects.filter(hostname_id="internet|other.com").count() == other_hostname_a_records
     assert DNSTXTRecord.objects.filter(hostname_id="internet|other.com").count() == other_hostname_txt_records

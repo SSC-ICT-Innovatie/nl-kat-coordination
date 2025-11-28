@@ -5,7 +5,6 @@ import structlog
 from django.http import JsonResponse
 from rest_framework.decorators import action
 from rest_framework.request import Request
-from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet
 
 from objects.models import (
@@ -113,6 +112,32 @@ class ObjectViewSet(ViewSet, ObjectTaskResultMixin):
 
         return JsonResponse(status=HTTPStatus.CREATED, data=response)
 
+    @action(detail=False, methods=["post"], url_path="delete")
+    def delete_with_post(self, request: Request, *args: Any, **kwargs: Any) -> JsonResponse:
+        serializers = {serializer.Meta.model.__name__.lower(): serializer for serializer in self.serializers}
+        deleted = {}
+        total = 0
+
+        for object_type, ids in request.data.items():
+            if not isinstance(object_type, str):
+                continue
+
+            if object_type not in serializers:
+                continue
+
+            if not isinstance(ids, list):
+                continue
+
+            model_cls = serializers[object_type].Meta.model
+            qs = model_cls.objects.filter(id__in=ids)
+            count = qs.count()
+            if count > 0:
+                qs.delete()
+            deleted[object_type] = count
+            total += count
+
+        return JsonResponse(status=HTTPStatus.OK, data={"deleted": deleted, "total": total})
+
 
 class FindingTypeViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = FindingTypeSerializer
@@ -145,32 +170,6 @@ class HostnameViewSet(ObjectTaskResultMixin, ManyModelViewSet):
         "dnssrvrecord_set",
     )
     filterset_fields = ("name",)
-
-    @action(detail=True, methods=["delete"], url_path="dnsrecord")
-    def delete_dns_records(self, request: Request, pk: str | None = None) -> Response:
-        hostname_id = pk
-        record_ids = request.GET.getlist("record_id")
-        total = 0
-
-        if not record_ids or not isinstance(record_ids, list):
-            return Response({"error": "record_ids should be a non-empty list"}, status=HTTPStatus.BAD_REQUEST)
-
-        for model_cls in [
-            DNSARecord,
-            DNSAAAARecord,
-            DNSCNAMERecord,
-            DNSMXRecord,
-            DNSNSRecord,
-            DNSPTRRecord,
-            DNSCAARecord,
-            DNSTXTRecord,
-            DNSSRVRecord,
-        ]:
-            qs = model_cls.objects.filter(hostname_id=hostname_id, id__in=record_ids)
-            total += qs.count()
-            qs.delete()
-
-        return Response({"deleted": total}, status=HTTPStatus.OK)
 
 
 class IPAddressViewSet(ObjectTaskResultMixin, ManyModelViewSet):

@@ -225,10 +225,14 @@ def main():
     if not results:
         response = client.get(f"/objects/hostname/?name={hostname}").raise_for_status().json()
         if response["results"]:
-            client.delete(
-                f"/objects/hostname/internet|{hostname}/dnsrecord/",
-                params={"record_id": [rec["id"] for rec in response["results"][0]["dns_records"]]},
-            ).raise_for_status()
+            # Group DNS records by type for deletion
+            dns_records_by_type = defaultdict(list)
+            for rec in response["results"][0]["dns_records"]:
+                record_type = rec["object_type"].lower()
+                dns_records_by_type[record_type].append(rec["id"])
+
+            if dns_records_by_type:
+                client.post("/objects/delete/", json=dict(dns_records_by_type)).raise_for_status()
         return
 
     grouped = defaultdict(list)
@@ -257,8 +261,13 @@ def main():
                 del to_be_deleted[rec["id"]]
 
     if to_be_deleted:
-        params = {"record_id": list(to_be_deleted.keys())}
-        client.delete(f"/objects/hostname/internet|{hostname}/dnsrecord/", params=params).raise_for_status()
+        # Group DNS records by type for deletion
+        dns_records_by_type = defaultdict(list)
+        for record_id, record_data in to_be_deleted.items():
+            record_type = record_data["object_type"].lower()
+            dns_records_by_type[record_type].append(record_id)
+
+        client.post("/objects/delete/", json=dns_records_by_type).raise_for_status()
 
     print(json.dumps(results))  # noqa: T201
 
