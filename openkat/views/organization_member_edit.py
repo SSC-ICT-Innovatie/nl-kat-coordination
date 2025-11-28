@@ -6,7 +6,7 @@ from django.views.generic import UpdateView
 
 from openkat.forms import OrganizationMemberEditForm
 from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
-from openkat.models import GROUP_CLIENT, OrganizationMember
+from openkat.models import GROUP_READ_ONLY, OrganizationMember
 
 
 class OrganizationMemberEditView(
@@ -32,7 +32,7 @@ class OrganizationMemberEditView(
             form.fields["blocked"].disabled = True
 
         # Since clients aren't allowed to scan and set clearance levels, disable the truste clearance level field.
-        if GROUP_CLIENT in group:
+        if GROUP_READ_ONLY in group:
             form.fields["trusted_clearance_level"].disabled = True
         return form
 
@@ -74,12 +74,12 @@ class OrganizationMemberEditView(
                 self.request,
                 messages.INFO,
                 _(
-                    "The updated trusted clearance level of L%s is lower then the member's "
-                    "acknowledged clearance level of L%s. This member only has clearance for level L%s. "
+                    "The updated trusted clearance level of L%(tcl)s is lower than the member's "
+                    "acknowledged clearance level of L%(acl)s. This member only has clearance for level L%(tcl)s. "
                     "For this reason the acknowledged clearance level has been set at the same level "
                     "as trusted clearance level."
                 )
-                % (tcl, acl, tcl),
+                % {"tcl": tcl, "acl": acl},
             )
         if int(tcl) > int(acl):
             messages.add_message(

@@ -1,8 +1,6 @@
 from io import BytesIO
 from pathlib import Path
 
-import pytest
-from django.core.exceptions import PermissionDenied
 from pytest_django.asserts import assertContains
 
 from openkat.models import OrganizationMember
@@ -32,13 +30,6 @@ def test_download_template(rf, superuser_member):
     )
 
 
-def test_upload_members_page_forbidden(rf, redteam_member):
-    request = setup_request(rf.get("organization_member_upload"), redteam_member.user)
-
-    with pytest.raises(PermissionDenied):
-        MembersUploadView.as_view()(request, organization_code=redteam_member.organization.code)
-
-
 def test_upload_members(rf, superuser_member):
     example_file = Path(__file__).parent.joinpath("stubs").joinpath("mock.csv").open()
     assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 1
@@ -57,7 +48,7 @@ def test_upload_members(rf, superuser_member):
 
     assert response.url == f"/en/{superuser_member.organization.code}/members"
 
-    assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 5
+    assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 3
     assert not OrganizationMember.objects.filter(organization=superuser_member.organization).last().user.password
 
 

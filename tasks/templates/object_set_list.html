@@ -57,7 +57,7 @@
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>{{ object_set.all_objects|length }}</td>
+                                    <td>{{ object_set.static_objects|length }}</td>
                                     <td class="nowrap actions sticky-cell">
                                         <button class="expando-button"
                                                 data-icon-open-class="icon ti-chevron-down"
@@ -69,24 +69,25 @@
                                 </tr>
                                 <tr class="expando-row">
                                     <td colspan="6">
-                                        {% if object_set.all_objects %}
+                                        {% if object_set.static_objects %}
                                             <div>
                                                 <h5>
-                                                    {% translate "Static Objects" %} ({{ object_set.all_objects|slice:"10"|length }}/{{ object_set.all_objects|length }})
+                                                    {% translate "Static Objects" %} ({{ object_set.static_objects|slice:"10"|length }}/{{ object_set.static_objects|length }})
                                                 </h5>
                                                 <ul>
-                                                    {% for object in object_set.all_objects|slice:"10" %}<li>{{ object }}</li>{% endfor %}
+                                                    {% for object in object_set.static_objects|slice:"10" %}<li>{{ object }}</li>{% endfor %}
                                                 </ul>
                                             </div>
                                         {% endif %}
                                         <div class="button-container">
-                                            {# TODO: Permissions #}
                                             <a class="button"
                                                href="{% url "schedule_list" %}?object_set={{ object_set.id }}">{% translate "View schedules" %}</a>
-                                            <form action="{% url 'delete_object_set' object_set.id %}" method="post">
-                                                {% csrf_token %}
-                                                <button class="ghost destructive" type="submit">{% translate "Delete" %}</button>
-                                            </form>
+                                            {% if perms.tasks.delete_objectset %}
+                                                <form action="{% url 'delete_object_set' object_set.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <button class="ghost destructive" type="submit">{% translate "Delete" %}</button>
+                                                </form>
+                                            {% endif %}
                                         </div>
                                     </td>
                                 </tr>

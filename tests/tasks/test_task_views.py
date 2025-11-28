@@ -47,7 +47,7 @@ def test_task_form_with_object_set(rf, superuser_member, xtdb, organization, moc
         name="Test Set",
         object_type=hostname_ct,
         object_query="",  # All hostnames
-        all_objects=[str(h1.pk), str(h2.pk)],
+        static_objects=[str(h1.pk), str(h2.pk)],
     )
 
     request = setup_request(
@@ -83,7 +83,7 @@ def test_object_set_form_query_all_checkbox(rf, superuser_member, xtdb):
                 "object_type": str(hostname_ct.pk),
                 "query_all": "on",  # Checkbox is checked
                 "object_query": "",  # Empty query
-                "all_objects": [],
+                "static_objects": [],
             },
         ),
         superuser_member.user,
@@ -110,7 +110,7 @@ def test_object_set_form_query_none_when_checkbox_unchecked(rf, superuser_member
                 "description": "Custom hostname objects",
                 "object_type": str(hostname_ct.pk),
                 "object_query": "",  # Empty query
-                "all_objects": [],
+                "static_objects": [],
             },
         ),
         superuser_member.user,
@@ -170,8 +170,8 @@ def test_object_set_creation_with_preselected_objects(rf, superuser_member, xtdb
     response = ObjectSetCreateView.as_view()(request)
 
     assert response.status_code == 200
-    assert "all_objects" in response.context_data["form"].initial
-    initial_objects = response.context_data["form"].initial["all_objects"]
+    assert "static_objects" in response.context_data["form"].initial
+    initial_objects = response.context_data["form"].initial["static_objects"]
     assert str(h1.pk) in initial_objects
     assert str(h2.pk) in initial_objects
 

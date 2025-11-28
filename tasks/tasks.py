@@ -1,4 +1,3 @@
-import time
 import uuid
 from datetime import UTC, datetime
 
@@ -14,18 +13,31 @@ from files.models import File
 from objects.models import (
     DNSAAAARecord,
     DNSARecord,
+    DNSCAARecord,
     DNSCNAMERecord,
     DNSNSRecord,
+    DNSTXTRecord,
     Finding,
     FindingOrganization,
     Hostname,
     HostnameOrganization,
     IPAddress,
     IPAddressOrganization,
+    IPPort,
+    ObjectTask,
+    XTDBNaturalKeyModel,
+    bulk_insert,
 )
 from openkat.models import Organization, User
 from plugins.models import BusinessRule, Plugin
-from plugins.plugins.business_rules import run_rules
+from plugins.plugins.business_rules import (
+    ALL_COMMON_TCP,
+    COMMON_UDP,
+    DB_TCP_PORTS,
+    INDICATORS,
+    MICROSOFT_RDP_PORTS,
+    SA_TCP_PORTS,
+)
 from plugins.runner import PluginRunner
 from reports.generator import ReportPDFGenerator
 from tasks.celery import app
@@ -37,7 +49,7 @@ logger = structlog.get_logger(__name__)
 @app.task(queue=settings.QUEUE_NAME_RECALCULATIONS)
 def schedule_scan_profile_recalculations():
     try:
-        # Create a Lock to:
+        # Lock to:
         #   1. Avoid running several recalculation scripts at the same time and burn down the database
         #   2. Still take into account that there might be anomalies when a large set of objects has been changed
         with caches["default"].lock(
@@ -59,59 +71,15 @@ def schedule_attribution():
         logger.warning("Organization attribution is running, consider increasing ATTRIBUTION_INTERVAL")
 
 
-@app.task(queue=settings.QUEUE_NAME_RECALCULATIONS)
-def schedule_business_rule_recalculations(from_trigger: bool = False) -> None:
-    try:
-        # Create a Lock that lives for three times the settings.SCAN_LEVEL_RECALCULATION_INTERVAL at most, to:
-        #   1. Avoid running several recalculation scripts at the same time and burn down the database
-        #   2. Still take into account that there might be anomalies when a large set of objects has been changed
-        with caches["default"].lock(
-            "recalculate_business_rules", blocking=False, timeout=10 * settings.BUSINESS_RULE_RECALCULATION_INTERVAL
-        ):
-            if from_trigger:
-                # If a plugin posts hostname updates, this task gets scheduled. But potentially that plugin also posts
-                # DNS updates 200ms later. If we run recalculations before that, we miss the DNS updates as the lock
-                # makes sure we skip later updates.
-                logger.info("Delaying recalculation to potentially fill a batch of updates in one run...")
-                time.sleep(5)
-
-            run_rules(BusinessRule.objects.filter(enabled=True), False)
-    except LockError:
-        if not from_trigger:
-            logger.warning(
-                "Business rule calculation is running, consider increasing BUSINESS_RULE_RECALCULATION_INTERVAL"
-            )
-        else:
-            logger.debug(
-                "Business rule calculation is running, consider increasing BUSINESS_RULE_RECALCULATION_INTERVAL"
-            )
-
-
-@app.task(queue=settings.QUEUE_NAME_RECALCULATIONS)
-def run_business_rules(business_rule_ids: list[int]) -> None:
-    for business_rule_id in business_rule_ids:
-        try:
-            business_rule = BusinessRule.objects.get(pk=business_rule_id)
-            logger.info("Running business rule: %s", business_rule.name)
-            run_rules([business_rule], False)
-            logger.info("Completed business rule: %s", business_rule.name)
-        except BusinessRule.DoesNotExist:
-            logger.error("Business rule %s not found", business_rule_id)
-        except Exception:
-            logger.exception("Error running business rule %s", business_rule_id)
-
-
 def recalculate_scan_levels():
     """
     Recalculate scan levels based on DNS relationships:
       - For DNSArecords, sync hostname scan level with IP address scan level (bidirectional)
       - For DNSNSrecords, set the name server's scan level to the hostname's scan level, with a max of 1
       - For DNSCNAMERecords, set the target's scan level to the hostname's scan level
-
-    These updates respect the 'declared' flag - only non-declared scan levels are updated.
     """
     logger.info("Recalculating Scan Profiles...")
-    # TODO: when a nameserver inherits L1 and its ips L1 as well, setting the original hostname to L0 will have no
+    # TODO: when a nameserver inherits L1, its ips do as well, so setting the original hostname to L0 will have no
     #   effect since the ip will increase the level to L1..
 
     # These could create an endless chain, but we just rely on multiple iterations to resolve this.
@@ -124,10 +92,7 @@ def recalculate_scan_levels():
 
 
 def sync_hostname_ip_scan_levels(db_table: str) -> None:
-    """
-    Synchronize scan levels between hostnames and IP addresses based on DNS A/AAAA records.
-    Returns the number of objects updated.
-    """
+    """Synchronize scan levels between hostnames and IP addresses based on DNS A/AAAA records."""
     try:
         with connections["xtdb"].cursor() as cursor:
             # Update IPs where hostname has higher scan level and IP is not declared
@@ -161,11 +126,7 @@ def sync_hostname_ip_scan_levels(db_table: str) -> None:
 
 
 def sync_ns_scan_levels() -> None:
-    """
-    Sync scan levels to name servers via NS records.
-    Name server scan level is set to the hostname's scan level, with a max of 1.
-    Returns the number of objects updated.
-    """
+    """Name server scan level is set to the hostname's scan level, with a max of 1."""
     try:
         with connections["xtdb"].cursor() as cursor:
             cursor.execute(
@@ -184,11 +145,7 @@ def sync_ns_scan_levels() -> None:
 
 
 def sync_cname_scan_levels() -> None:
-    """
-    Sync scan levels to CNAME targets.
-    Target hostname scan level is set to the max of all source hostname scan levels.
-    Returns the number of objects updated.
-    """
+    """The target hostname scan level is set to the source hostname scan level."""
     try:
         with connections["xtdb"].cursor() as cursor:
             cursor.execute(
@@ -207,13 +164,10 @@ def sync_cname_scan_levels() -> None:
 
 
 def organization_attribution():
-    """
-    Attribute through the same models as the scan levels.
-    """
+    """Attribute through the same models as the scan levels."""
     logger.info("Running organization attribution...")
 
-    # TODO: networks?
-    attribute_findings()
+    attribute_findings()  # TODO: networks?
     attribute_through_cnames()
     attribute_through_ns()
     attribute_through_ip_hostname(DNSARecord._meta.db_table)
@@ -337,22 +291,20 @@ def reschedule() -> None:
     logger.info("Finished scheduling %s plugins", len(tasks))
 
 
-def run_schedule(schedule: Schedule, force: bool = True, celery: Celery = app) -> list[Task]:
-    # Handle report tasks differently from plugin tasks
+def run_schedule(schedule: Schedule, force: bool = True, _celery: Celery = app) -> list[Task]:
     if schedule.task_type == "report":
-        return run_report_schedule(schedule, force, celery=celery)
+        return run_report_schedule(schedule, force, _celery=_celery)
 
     if not schedule.plugin:
         logger.debug("No plugin defined for schedule, skipping")
         return []
 
-    return run_schedule_for_organization(schedule, schedule.organization, force, celery=celery)
+    return run_schedule_for_organization(schedule, schedule.organization, force, _celery=_celery)
 
 
-def run_report_schedule(schedule: Schedule, force: bool = True, celery: Celery = app) -> list[Task]:
+def run_report_schedule(schedule: Schedule, force: bool = True, _celery: Celery = app) -> list[Task]:
     now = datetime.now(UTC)
 
-    # Check if we need to run based on recurrence rules
     if not force and schedule.recurrences:
         last_run = Task.objects.filter(schedule=schedule, type="report").order_by("-created_at").first()
         if last_run and not schedule.recurrences.between(last_run.created_at, now):
@@ -362,52 +314,57 @@ def run_report_schedule(schedule: Schedule, force: bool = True, celery: Celery =
     if schedule.organization:
         organization_codes = [schedule.organization.code]
     else:
-        # If no specific organization, generate report for all organizations
         organization_codes = list(Organization.objects.values_list("code", flat=True))
 
-    # Run the report task
     task = run_report_task(
-        name=schedule.report_name or f"Scheduled Report {schedule.id}",
+        name=schedule.report_name or f"Scheduled Report {schedule.pk}",
         description=schedule.report_description,
         organization_codes=organization_codes,
         finding_types=schedule.report_finding_types,
-        object_set_id=schedule.object_set.id if schedule.object_set else None,
-        schedule_id=schedule.id,
-        celery=celery,
+        object_set_id=schedule.object_set.pk if schedule.object_set else None,
+        schedule_id=schedule.pk,
+        _celery=_celery,
     )
 
     return [task]
 
 
 def run_schedule_for_organization(
-    schedule: Schedule, organization: Organization | None, force: bool = True, celery: Celery = app
+    schedule: Schedule, organization: Organization | None, force: bool = True, _celery: Celery = app
 ) -> list[Task]:
     now = datetime.now(UTC)
     code = None if organization is None else organization.code
 
     if not schedule.object_set:
         if force:
-            return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, celery=celery)
+            return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
 
         last_run = Task.objects.filter(schedule=schedule, data__input_data=None).order_by("-created_at").first()
         if last_run and not schedule.recurrences.between(last_run.created_at, now):
             logger.debug("Plugin '%s' has already run recently", schedule.plugin.plugin_id)
             return []
 
-        return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, celery=celery)
+        return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
 
-    input_data: set[str] = set()
     object_pks = schedule.object_set.traverse_objects(scan_level__gte=schedule.plugin.scan_level)
-    if object_pks:
+
+    if not object_pks:
+        return []
+
+    # Use from_natural_key() to avoid doing a database call to get the full model, so much more performant for large
+    # object sets.
+    if issubclass(schedule.object_set.object_type.model_class(), XTDBNaturalKeyModel):
+        input_data = {str(schedule.object_set.object_type.model_class().from_natural_key(nk)) for nk in object_pks}
+    else:
         model_class = schedule.object_set.object_type.model_class()
-        model_qs = model_class.objects.filter(pk__in=object_pks)
-        input_data = input_data.union([str(model) for model in model_qs if str(model)])
+        model_qs = model_class.objects.filter(pk__in=object_pks) if object_pks else model_class.objects.none()
+        input_data = {str(model) for model in model_qs if str(model)}
 
     if not input_data:
         return []
 
     if force:
-        return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, celery=celery)
+        return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, _celery=_celery)
 
     # Filter on the schedule and created after the previous occurrence
     last_runs = Task.objects.filter(
@@ -421,11 +378,11 @@ def run_schedule_for_organization(
     if not input_data:
         return []
 
-    return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, celery=celery)
+    return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, _celery=_celery)
 
 
 def run_plugin_on_object_set(
-    object_set: ObjectSet, plugin: Plugin, organization: Organization | None, force: bool = True, celery: Celery = app
+    object_set: ObjectSet, plugin: Plugin, organization: Organization | None, force: bool = True, _celery: Celery = app
 ) -> list[Task]:
     now = datetime.now(UTC)
     code = None if organization is None else organization.code
@@ -441,7 +398,7 @@ def run_plugin_on_object_set(
         return []
 
     if force or not plugin.recurrences:
-        return run_plugin_task(plugin.plugin_id, code, input_data, None, celery=celery)
+        return run_plugin_task(plugin.plugin_id, code, input_data, None, _celery=_celery)
 
     # Filter on the schedule and created after the previous occurrence
     last_runs = Task.objects.filter(created_at__gt=plugin.recurrences.before(now), data__plugin_id=plugin.plugin_id)
@@ -453,15 +410,11 @@ def run_plugin_on_object_set(
     if not input_data:
         return []
 
-    return run_plugin_task(plugin.plugin_id, code, input_data, None, celery=celery)
+    return run_plugin_task(plugin.plugin_id, code, input_data, None, _celery=_celery)
 
 
-def rerun_task(task: Task, celery: Celery = app) -> list[Task]:
-    # Handle different task types
+def rerun_task(task: Task, _celery: Celery = app) -> list[Task]:
     if task.type == "report":
-        # Import here to avoid circular imports
-
-        # Rerun report task with same parameters
         return [
             run_report_task(
                 name=task.data.get("name", "Rerun Report"),
@@ -472,15 +425,13 @@ def rerun_task(task: Task, celery: Celery = app) -> list[Task]:
             )
         ]
     else:
-        # Handle plugin tasks
-        plugin = Plugin.objects.get(plugin_id=task.data["plugin_id"])
-
+        plugin = Plugin.objects.get(plugin_id=task.data["plugin_id"])  # asserts the plugin still exists
         return run_plugin_task(
             plugin.plugin_id,
             task.organization.code if task.organization else None,
             task.data["input_data"],
             None,
-            celery=celery,
+            _celery=_celery,
         )
 
 
@@ -490,7 +441,7 @@ def run_plugin_task(
     input_data: str | list[str] | set[str] | None = None,
     schedule_id: int | None = None,
     batch: bool = True,
-    celery: Celery = app,
+    _celery: Celery = app,
 ) -> list[Task]:
     inputs: list[str] | None = None
 
@@ -501,13 +452,11 @@ def run_plugin_task(
     else:
         inputs = input_data
 
-    # Get plugin to check for plugin-specific batch_size
     try:
         plugin = Plugin.objects.get(plugin_id=plugin_id)
         # Use plugin-specific batch_size if set, otherwise fall back to global setting
         batch_size = plugin.batch_size if plugin.batch_size is not None else settings.BATCH_SIZE
     except Plugin.DoesNotExist:
-        # Fall back to global setting if plugin not found
         batch_size = settings.BATCH_SIZE
 
     if batch and isinstance(inputs, list) and batch_size > 0 and len(inputs) > batch_size:
@@ -517,7 +466,7 @@ def run_plugin_task(
         for idx_2 in range(batch_size, len(inputs) + batch_size, batch_size):
             tasks.append(
                 run_plugin_task(
-                    plugin_id, organization_code, inputs[idx:idx_2], schedule_id, batch=False, celery=celery
+                    plugin_id, organization_code, inputs[idx:idx_2], schedule_id, batch=False, _celery=_celery
                 )[0]
             )
             idx = idx_2
@@ -525,9 +474,8 @@ def run_plugin_task(
         logger.info("Created %s batched tasks of batch size %s", len(tasks), batch_size)
         return tasks
 
-    task_id = uuid.uuid4()
     task = Task.objects.create(
-        id=task_id,
+        id=uuid.uuid4(),
         type="plugin",
         schedule_id=schedule_id,
         organization=Organization.objects.get(code=organization_code) if organization_code else None,
@@ -535,8 +483,8 @@ def run_plugin_task(
         data={"plugin_id": plugin_id, "input_data": inputs},  # TODO
     )
 
-    run_plugin.bind(celery)  # Make sure to bind the right celery instance to be able to test these tasks.
-    async_result = run_plugin.apply_async((plugin_id, organization_code, inputs), task_id=str(task_id))
+    run_plugin.bind(_celery)  # Make sure to bind the right celery instance to be able to test these tasks.
+    async_result = run_plugin.apply_async((plugin_id, organization_code, inputs), task_id=str(task.pk))
     task._async_result = async_result
 
     return [task]
@@ -575,6 +523,8 @@ def run_plugin(
 
     try:
         out = PluginRunner().run(plugin_id, input_data, task_id=task.pk)
+        # Only process when the task succeeds
+        process_result_task(task.pk, self._app)  # type: ignore[attr-defined]
 
         task.status = TaskStatus.COMPLETED
         task.ended_at = datetime.now(UTC)
@@ -594,7 +544,292 @@ def run_plugin(
     return out
 
 
-def process_raw_file(file: File, handle_error: bool = False, celery: Celery = app) -> list[Task]:
+def process_result_task(task_id: uuid.UUID, _celery: Celery = app) -> None:
+    process_result.bind(_celery)
+    process_result.apply_async((task_id,))
+
+
+@app.task
+def process_result(task_id: uuid.UUID) -> None:
+    """
+    Tasks that fail on just part of the input data can create false-positives or skip findings. But in general it's only
+    possible from within the plugin to tell for which input the task failed. But users should aim to have a next-to-zero
+    failure rate. If tasks regularly fail, this should be handled in the plugin or the batch size should be decreased.
+    """
+    task = Task.objects.get(pk=task_id)
+    plugin_id = task.data.get("plugin_id")
+    PLUGIN_MAPPING = {
+        "dns": process_dns,
+        "parse-nmap": process_port_scan,
+        "parse-nuclei-detection": process_software_scan,
+    }
+
+    if plugin_id not in PLUGIN_MAPPING:
+        return
+
+    PLUGIN_MAPPING[plugin_id](task)
+
+
+def process_dns(task: Task) -> None:
+    """
+    Trigger-based business rule for:
+        - missing_spf
+        - ipv6_webserver
+        - ipv6_nameserver
+        - missing_caa
+        - missing_dmarc
+        - domain_owner_verification
+    """
+    logger.info("Processing DNS task %s", task.pk)
+
+    enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
+    inputs = Hostname.objects.filter(name__in=task.data["input_data"]).values(
+        "pk", "name", "network_id", "root", "dnsnsrecord_nameserver"
+    )
+    output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
+    records = {}
+
+    # Parse the DNSRecords into objects using the natural keys. This doesn't require no database access.
+    for rec_type in [DNSTXTRecord, DNSCAARecord, DNSAAAARecord, DNSNSRecord]:
+        name = str(rec_type.__name__).lower()
+        records[name] = [
+            rec_type.from_natural_key(obj["output_object"]) for obj in output_objs if obj["output_object_type"] == name
+        ]
+
+    input_hostname_pks = {h["pk"] for h in inputs}
+
+    findings = []
+
+    if "missing_spf" in enabled_rules:
+        hostnames_with_spf = {
+            t.hostname.natural_key for t in records["dnstxtrecord"] if t.value.lower().startswith("v=spf1")
+        }
+        hostnames_without_spf = input_hostname_pks - hostnames_with_spf
+
+        if hostnames_with_spf:
+            Finding.objects.filter(finding_type="KAT-NO-SPF", hostname_id__in=hostnames_with_spf).delete()
+
+        findings.extend([Finding(finding_type_id="KAT-NO-SPF", hostname_id=host) for host in hostnames_without_spf])
+
+    if "missing_caa" in enabled_rules:
+        hostnames_with_caa = {caa.hostname.natural_key for caa in records["dnscaarecord"]}
+        hostnames_without_caa = input_hostname_pks - hostnames_with_caa
+
+        if hostnames_with_caa:
+            Finding.objects.filter(finding_type="KAT-NO-CAA", hostname_id__in=hostnames_with_caa).delete()
+        findings.extend([Finding(finding_type_id="KAT-NO-CAA", hostname_id=host) for host in hostnames_without_caa])
+
+    if "ipv6_webservers" in enabled_rules:
+        hostnames_with_ipv6 = {txt.hostname.natural_key for txt in records["dnsaaaarecord"]}
+        hostnames_without_ipv6 = {h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is None} - hostnames_with_ipv6
+
+        if hostnames_with_ipv6:
+            Finding.objects.filter(
+                finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id__in=hostnames_with_ipv6
+            ).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-WEBSERVER-NO-IPV6", hostname_id=host) for host in hostnames_without_ipv6]
+        )
+
+    if "ipv6_nameservers" in enabled_rules:
+        hostnames_with_ipv6 = {txt.hostname.natural_key for txt in records["dnsaaaarecord"]}
+        ns_hostnames_without_ipv6 = {
+            h["pk"] for h in inputs if h["dnsnsrecord_nameserver"] is not None
+        } - hostnames_with_ipv6
+
+        if hostnames_with_ipv6:
+            Finding.objects.filter(
+                finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id__in=hostnames_with_ipv6
+            ).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-NAMESERVER-NO-IPV6", hostname_id=host) for host in ns_hostnames_without_ipv6]
+        )
+
+    if "domain_owner_verification" in enabled_rules:
+        hostnames_with_ownership_pending = {
+            txt.hostname.natural_key for txt in records["dnsnsrecord"] if txt.name_server.name in INDICATORS
+        }
+        hostnames_without_ownership_pending = input_hostname_pks - hostnames_with_ownership_pending
+
+        if hostnames_without_ownership_pending:
+            Finding.objects.filter(
+                finding_type="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id__in=hostnames_without_ownership_pending
+            ).delete()
+        findings.extend(
+            [
+                Finding(finding_type_id="KAT-DOMAIN-OWNERSHIP-PENDING", hostname_id=host)
+                for host in hostnames_with_ownership_pending
+            ]
+        )
+
+    if "missing_dmarc" in enabled_rules:
+        with_dmarc = {
+            txt.hostname.natural_key
+            for txt in records["dnstxtrecord"]
+            if txt.prefix == "_dmarc" and txt.value.lower().startswith("v=dmarc1")
+        }
+        nonroot_hostnames_without_dmarc = {h["name"] for h in inputs if h["pk"] not in with_dmarc or not h["root"]}
+
+        if nonroot_hostnames_without_dmarc:
+            # TODO: we should filter the network as well later on
+            name_filter = " or ".join(
+                [f"POSITION(h.name IN '{hostname}') != 0" for hostname in nonroot_hostnames_without_dmarc]
+            )
+            root_hostnames_with_dmarc = {
+                h.name
+                for h in Hostname.objects.raw(f"""
+                    SELECT h._id, h.name, h.network_id, h.root, h.declared, h.scan_level
+                    FROM {Hostname._meta.db_table} h
+                    INNER JOIN {DNSTXTRecord._meta.db_table} txt ON h._id = txt.hostname_id
+                    WHERE txt.prefix = '_dmarc' AND UPPER(txt.value::text) LIKE UPPER('v=dmarc1%%') AND root = true
+                    AND ({name_filter})
+                """)  # noqa: S608
+            }
+            with_root_dmarc = {
+                host["pk"] for host in inputs if any(root in host["name"] for root in root_hostnames_with_dmarc)
+            }
+        else:
+            with_root_dmarc = set()
+
+        if with_dmarc | with_root_dmarc:
+            Finding.objects.filter(finding_type="KAT-NO-DMARC", hostname_id__in=with_dmarc | with_root_dmarc).delete()
+
+        hostnames_without_dmarc = input_hostname_pks - (with_dmarc | with_root_dmarc)
+        findings.extend([Finding(finding_type_id="KAT-NO-DMARC", hostname_id=host) for host in hostnames_without_dmarc])
+
+    if findings:
+        bulk_insert(findings)
+
+    logger.info("Finished processing DNS task %s", task.pk)
+
+
+def process_port_scan(task: Task) -> None:
+    """
+    Trigger-based business rule for:
+        - open_sysadmin_port
+        - open_database_port
+        - open_remote_desktop_port
+        - open_uncommon_port
+        - open_common_port
+    """
+    logger.info("Processing port scan %s", task.pk)
+
+    # Check which business rules are enabled
+    enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
+
+    inputs = IPAddress.objects.filter(address__in=task.data["input_data"]).values("pk")
+    output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
+    ports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
+    input_ip_pks = {ip["pk"] for ip in inputs}
+    findings = []
+
+    if "open_sysadmin_port" in enabled_rules:
+        ips_with_sysadmin_port = {port.address.natural_key for port in ports if port.port in SA_TCP_PORTS}
+        ips_without_sysadmin_port = input_ip_pks - ips_with_sysadmin_port
+        Finding.objects.filter(finding_type="KAT-OPEN-SYSADMIN-PORT", address_id__in=ips_without_sysadmin_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address_id=ip) for ip in ips_with_sysadmin_port]
+        )
+    if "open_database_port" in enabled_rules:
+        ips_with_database_port = {port.address.natural_key for port in ports if port.port in DB_TCP_PORTS}
+        ips_without_database_port = input_ip_pks - ips_with_database_port
+        Finding.objects.filter(finding_type="KAT-OPEN-DATABASE-PORT", address_id__in=ips_without_database_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-OPEN-DATABASE-PORT", address_id=ip) for ip in ips_with_database_port]
+        )
+    if "open_remote_desktop_port" in enabled_rules:
+        ips_with_rdp_port = {port.address.natural_key for port in ports if port.port in MICROSOFT_RDP_PORTS}
+        ips_without_rdp_port = input_ip_pks - ips_with_rdp_port
+        Finding.objects.filter(finding_type="KAT-REMOTE-DESKTOP-PORT", address_id__in=ips_without_rdp_port).delete()
+        findings.extend([Finding(finding_type_id="KAT-REMOTE-DESKTOP-PORT", address_id=ip) for ip in ips_with_rdp_port])
+    if "open_common_port" in enabled_rules:
+        ips_with_common_port = {
+            port.address.natural_key
+            for port in ports
+            if (port.protocol == "TCP" and port.port in ALL_COMMON_TCP)
+            or (port.protocol == "UDP" and port.port in COMMON_UDP)
+        }
+        ips_without_common_port = input_ip_pks - ips_with_common_port
+        Finding.objects.filter(finding_type="KAT-OPEN-COMMON-PORT", address_id__in=ips_without_common_port).delete()
+        findings.extend([Finding(finding_type_id="KAT-OPEN-COMMON-PORT", address_id=ip) for ip in ips_with_common_port])
+    if "open_uncommon_port" in enabled_rules:
+        ips_with_uncommon_port = {
+            port.address.natural_key
+            for port in ports
+            if (port.protocol == "TCP" and port.port not in ALL_COMMON_TCP)
+            or (port.protocol == "UDP" and port.port not in COMMON_UDP)
+        }
+        ips_without_uncommon_port = input_ip_pks - ips_with_uncommon_port
+        Finding.objects.filter(finding_type="KAT-UNCOMMON-OPEN-PORT", address_id__in=ips_without_uncommon_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address_id=ip) for ip in ips_with_uncommon_port]
+        )
+
+    if findings:
+        bulk_insert(findings)
+
+    logger.info("Finished processing port scan task %s", task.pk)
+
+
+def process_software_scan(task: Task) -> None:
+    """
+    Trigger-based business rule for:
+        - parse-nuclei-detection
+
+    And through this parsing plugin:
+        - nuclei-tls-version
+        - nuclei-telnet-detect
+        - nuclei-rdp-detect
+        - nuclei-pgsql-detect
+        - nuclei-openssh-detect
+        - nuclei-mysql-detect
+        - nuclei-mongodb-detect
+        - nuclei-ibm-d2b-database-server
+    """
+    logger.info("Processing software scan %s", task.pk)
+
+    # Check which business rules are enabled
+    enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
+    output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
+
+    ips = {
+        IPAddress.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipaddress"
+    }
+    ipports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
+    ports_with_software = (
+        IPPort.objects.filter(pk__in=[port.natural_key for port in ipports])
+        .select_related("address")
+        .prefetch_related("software")
+        .values("pk", "address", "software__name")
+    )
+    findings = []
+
+    logger.info("ports: %s", ipports)
+    logger.info("pks: %s", [port.natural_key for port in ipports])
+    logger.info("software: %s", ports_with_software)
+
+    ips_without_software = ips
+
+    for sw in ["mysql", "mongodb", "openssh", "rdp", "pgsql", "telnet", "db2"]:
+        if f"{sw}_detection" in enabled_rules:
+            ips_with_sw = {
+                port["address"]
+                for port in ports_with_software
+                if port["software__name"] and port["software__name"].lower() == sw
+            }
+            ips_without_software -= ips_with_sw
+            findings.extend([Finding(finding_type_id="KAT-EXPOSED-SOFTWARE", address_id=ip) for ip in ips_with_sw])
+
+    if ips_without_software:
+        Finding.objects.filter(finding_type="KAT-EXPOSED-SOFTWARE", address_id__in=ips_without_software).delete()
+
+    if findings:
+        bulk_insert(findings)
+
+    logger.info("Finished processing software scan %s", task.pk)
+
+
+def process_file(file: File, handle_error: bool = False, _celery: Celery = app) -> list[Task]:
     if file.type == "error" and not handle_error:
         logger.info("Raw file %s contains an exception trace and handle_error is set to False. Skipping.", file.pk)
         return []
@@ -609,7 +844,7 @@ def process_raw_file(file: File, handle_error: bool = False, celery: Celery = ap
         for plugin in Plugin.objects.filter(consumes__contains=[f"file:{file.type}"]):
             tasks.extend(
                 run_plugin_task(
-                    plugin.plugin_id, organization.code if organization else None, str(file.pk), celery=celery
+                    plugin.plugin_id, organization.code if organization else None, str(file.pk), _celery=_celery
                 )
             )
 
@@ -627,13 +862,13 @@ def process_raw_file(file: File, handle_error: bool = False, celery: Celery = ap
         if has_global_schedule:
             # If there's a global schedule, create tasks for all organizations
             for org in Organization.objects.all():
-                tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), celery=celery))
+                tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), _celery=_celery))
         else:
             # Otherwise, only create tasks for specific organizations
             for org_id in enabled_orgs:
                 if org_id:
                     org = Organization.objects.get(pk=org_id)
-                    tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), celery=celery))
+                    tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), _celery=_celery))
 
     return tasks
 
@@ -646,12 +881,9 @@ def run_report_task(
     object_set_id: int | None = None,
     schedule_id: int | None = None,
     user_id: int | None = None,
-    celery: Celery = app,
+    _celery: Celery = app,
 ) -> Task:
-    """Create and queue a report generation task"""
     task_id = uuid.uuid4()
-
-    # Get the organization (for single org mode) - use first org if multiple
     organization = None
     if organization_codes and len(organization_codes) > 0:
         organization = Organization.objects.filter(code=organization_codes[0]).first()
@@ -672,7 +904,7 @@ def run_report_task(
         },
     )
 
-    create_report.bind(celery)
+    create_report.bind(_celery)
     async_result = create_report.apply_async(
         (name, description, organization_codes, finding_types, object_set_id, user_id), task_id=str(task_id)
     )

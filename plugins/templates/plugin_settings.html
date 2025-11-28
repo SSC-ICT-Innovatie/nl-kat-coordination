@@ -25,7 +25,7 @@
                     </p>
                 </div>
                 <div class="horizontal-view toolbar">
-                    {% if perms.openkat.can_delete_boefje %}
+                    {% if perms.openkat.delete_plugin %}
                         <form action="{% url 'delete_plugin' plugin.id %}" method="post">
                             {% csrf_token %}
                             <button type="submit" class="button ghost destructive">{% translate "Delete plugin" %}</button>

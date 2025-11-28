@@ -21,9 +21,8 @@ from onboarding.view_helpers import (
 )
 from openkat.exceptions import OpenKATError
 from openkat.forms import MemberRegistrationForm, OnboardingOrganizationUpdateForm, OrganizationForm
-from openkat.messaging import clearance_level_warning_dns_report
 from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
-from openkat.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Organization, OrganizationMember
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization, OrganizationMember
 from openkat.views.account import ObjectClearanceMixin
 from openkat.views.indemnification_add import IndemnificationAddView
 
@@ -39,15 +38,10 @@ class OnboardingStart(OrganizationView):
         return redirect("plugin_list")
 
 
-# REDTEAMER FLOW
-
-
 class OnboardingIntroductionView(
     OrganizationPermissionRequiredMixin, IntroductionStepsMixin, OrganizationView, TemplateView
 ):
-    """
-    1. Start the onboarding wizard. What is OpenKAT and what it does.
-    """
+    """1. Start the onboarding wizard. What is OpenKAT and what it does."""
 
     template_name = "step_1_introduction.html"
     current_step = 1
@@ -57,9 +51,7 @@ class OnboardingIntroductionView(
 class OnboardingChooseReportInfoView(
     OrganizationPermissionRequiredMixin, IntroductionStepsMixin, OrganizationView, TemplateView
 ):
-    """
-    2. Introduction into reporting. All the necessities to generate a report.
-    """
+    """2. Introduction into reporting. All the necessities to generate a report."""
 
     template_name = "step_2a_choose_report_info.html"
     current_step = 2
@@ -73,34 +65,23 @@ class OnboardingClearanceLevelIntroductionView(
     OrganizationView,
     TemplateView,
 ):
-    """
-    6. Explanation what clearance levels mean.
-    """
+    """6. Explanation what clearance levels mean."""
 
     template_name = "step_3d_clearance_level_introduction.html"
     permission_required = "openkat.can_set_clearance_level"
     current_step = 3
 
     def get_boefjes_tiles(self) -> list[dict[str, Any]]:
-        tiles = [
+        return [
             {
-                "id": "dns_zone",
-                "type": "boefje",
+                "id": "dns",
+                "type": "plugin",
                 "scan_level": "1",
-                "name": "DNS-Zone",
-                "description": _("Fetch the parent DNS zone of a hostname"),
+                "name": "DNS",
+                "description": _("Query the dns records of a hostname"),
                 "enabled": False,
-            },
-            {
-                "id": "fierce",
-                "type": "boefje",
-                "scan_level": "3",
-                "name": "Fierce",
-                "description": _("Finds subdomains by brute force"),
-                "enabled": False,
-            },
+            }
         ]
-        return tiles
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -118,7 +99,7 @@ class OnboardingAcknowledgeClearanceLevelView(
     TemplateView,
 ):
     """
-    7. Explains the user that before setting a clearance level, they must have a permissiom to do so.
+    7. Explains the user that before setting a clearance level, they must have a permission to do so.
     Here they acknowledge the clearance level assigned by their administrator.
     """
 
@@ -133,9 +114,6 @@ class OnboardingAcknowledgeClearanceLevelView(
         return context
 
 
-# account flow
-
-
 class OnboardingIntroductionRegistrationView(PermissionRequiredMixin, IntroductionRegistrationStepsMixin, TemplateView):
     """
     Step: 1 - Registration introduction
@@ -147,9 +125,7 @@ class OnboardingIntroductionRegistrationView(PermissionRequiredMixin, Introducti
 
 
 class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegistrationStepsMixin, CreateView):
-    """
-    Step 2: Create a new organization
-    """
+    """Step 2: Create a new organization"""
 
     model = Organization
     template_name = "account/step_2a_organization_setup.html"
@@ -201,9 +177,7 @@ class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegis
 class OnboardingOrganizationUpdateView(
     OrganizationPermissionRequiredMixin, IntroductionAdminStepsMixin, OrganizationView, UpdateView
 ):
-    """
-    Step 2: Update an existing organization (only name not code)
-    """
+    """Step 2: Update an existing organization (only name not code)"""
 
     model = Organization
     template_name = "account/step_2a_organization_update.html"
@@ -228,9 +202,7 @@ class OnboardingOrganizationUpdateView(
 
 
 class OnboardingIndemnificationSetupView(IntroductionAdminStepsMixin, IndemnificationAddView):
-    """
-    Step 3: Agree to idemnification to scan objects
-    """
+    """Step 3: Agree to idemnification to scan objects"""
 
     current_step = 3
     template_name = "account/step_2b_indemnification_setup.html"
@@ -264,9 +236,6 @@ class OnboardingAccountCreationMixin(
         return kwargs
 
 
-# Account setup for multiple user accounts: redteam, admins, clients
-
-
 class OnboardingChooseUserTypeView(
     OrganizationPermissionRequiredMixin, IntroductionAdminStepsMixin, OrganizationView, TemplateView
 ):
@@ -290,36 +259,10 @@ class OnboardingAccountSetupAdminView(RegistrationBreadcrumbsMixin, OnboardingAc
     account_type = GROUP_ADMIN
 
     def get_success_url(self) -> str:
-        return reverse_lazy("step_account_setup_red_teamer", kwargs={"organization_code": self.organization.code})
-
-    def form_valid(self, form):
-        name = form.cleaned_data["name"]
-        self.add_success_notification(name)
-        return super().form_valid(form)
-
-    def add_success_notification(self, name):
-        success_message = _("{name} successfully created.").format(name=name)
-        messages.add_message(self.request, messages.SUCCESS, success_message)
-
-
-class OnboardingAccountSetupRedTeamerView(RegistrationBreadcrumbsMixin, OnboardingAccountCreationMixin):
-    """
-    Step 2: Create an redteamer account with redteam rights
-    """
-
-    template_name = "account/step_5_account_setup_red_teamer.html"
-    form_class = MemberRegistrationForm
-    current_step = 4
-    account_type = GROUP_REDTEAM
-
-    def get_success_url(self, **kwargs):
         return reverse_lazy("step_account_setup_client", kwargs={"organization_code": self.organization.code})
 
     def form_valid(self, form):
         name = form.cleaned_data["name"]
-        trusted_clearance_level = form.cleaned_data.get("trusted_clearance_level")
-        if trusted_clearance_level and int(trusted_clearance_level) < DNS_REPORT_LEAST_CLEARANCE_LEVEL:
-            clearance_level_warning_dns_report(self.request, trusted_clearance_level)
         self.add_success_notification(name)
         return super().form_valid(form)
 
@@ -336,7 +279,7 @@ class OnboardingAccountSetupClientView(RegistrationBreadcrumbsMixin, OnboardingA
     template_name = "account/step_6_account_setup_client.html"
     form_class = MemberRegistrationForm
     current_step = 4
-    account_type = GROUP_CLIENT
+    account_type = GROUP_READ_ONLY
 
     def get_success_url(self, **kwargs):
         return reverse_lazy("complete_onboarding", kwargs={"organization_code": self.organization.code})
@@ -353,7 +296,7 @@ class OnboardingAccountSetupClientView(RegistrationBreadcrumbsMixin, OnboardingA
 
 class CompleteOnboarding(OrganizationView):
     """
-    Complete onboarding for redteamers and superusers.
+    Complete onboarding for superusers.
     """
 
     def get(self, request, *args, **kwargs):

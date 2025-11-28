@@ -26,6 +26,7 @@ dependencies = [
   "django-xtdb==0.0.2",
   "django>=5.2.0,<6.0",
   "djangoql>=0.18.1",
+  "djangorestframework-stubs>=3.16.5",
   "djangorestframework>=3.16.0",
   "docker>=7.1.0",
   "drf-standardized-errors>=0.14.1",
@@ -120,6 +121,7 @@ module = [
   "weasyprint.*",
   "django_weasyprint.*",
   "django_downloadview.*",
+  "django_structlog.*",
   "jwt.*",
 ]
 ignore_missing_imports = true

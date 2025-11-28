@@ -46,18 +46,6 @@ def test_client_can_edit_itself(rf, client_member):
         )
 
 
-def test_redteam_can_edit_itself(rf, redteam_member):
-    """
-    This will test if a redteam member can edit itself. Only admins and supersuers have edit rights.
-    """
-
-    request = setup_request(rf.get("organization_member_edit"), redteam_member.user)
-    with pytest.raises(PermissionDenied):
-        OrganizationMemberEditView.as_view()(
-            request, organization_code=redteam_member.organization.code, pk=redteam_member.id
-        )
-
-
 def test_admin_can_edit_superuser(rf, admin_member, superuser_member):
     """
     This will test if admin can edit superuser at the member edit view.
@@ -80,16 +68,6 @@ def test_client_can_edit_superuser(rf, client_member, superuser_member):
         OrganizationMemberEditView.as_view()(
             request, organization_code=superuser_member.organization.code, pk=superuser_member.id
         )
-
-
-def test_redteamer_can_edit_superuser(rf, redteam_member, superuser_member, organization):
-    """
-    This will test if redteamer can edit superuser at the member edit view.
-    """
-
-    request = setup_request(rf.get("organization_member_edit"), redteam_member.user)
-    with pytest.raises(PermissionDenied):
-        OrganizationMemberEditView.as_view()(request, organization_code=organization.code, pk=superuser_member.id)
 
 
 def test_edit_superusers_from_different_organizations(rf, superuser_member, superuser_member_b):
@@ -129,36 +107,6 @@ def test_admin_edits_client_different_orgs(rf, admin_member, client_member_b):
         )
 
 
-def test_admin_edits_redteamer(rf, admin_member, redteam_member, log_output):
-    request = setup_request(
-        rf.post("organization_member_edit", {"status": "active", "trusted_clearance_level": 4}), admin_member.user
-    )
-    OrganizationMemberEditView.as_view()(
-        request, organization_code=redteam_member.organization.code, pk=redteam_member.id
-    )
-
-    redteam_member.refresh_from_db()
-    assert redteam_member.trusted_clearance_level == 4
-
-    # TODO: fix
-    # organization_member_updated_log = log_output.entries[-1]
-    # assert organization_member_updated_log["event"] == "%s %s updated"
-    # assert organization_member_updated_log["object"] == "redteamer@openkat.nl"
-    # assert organization_member_updated_log["object_type"] == "OrganizationMember"
-
-
-def test_admin_edits_redteamer_to_block(rf, admin_member, redteam_member):
-    request = setup_request(
-        rf.post("organization_member_edit", {"blocked": True, "trusted_clearance_level": 4}), admin_member.user
-    )
-    OrganizationMemberEditView.as_view()(
-        request, organization_code=redteam_member.organization.code, pk=redteam_member.id
-    )
-
-    redteam_member.refresh_from_db()
-    assert redteam_member.blocked is True
-
-
 def test_account_type_view_existence(rf, admin_member):
     response = OrganizationMemberAddAccountTypeView.as_view()(
         setup_request(rf.get("organization_member_add_account_type"), admin_member.user),
@@ -166,31 +114,6 @@ def test_account_type_view_existence(rf, admin_member):
     )
 
     assert response.status_code == 200
-
-
-def test_check_add_redteamer_form(rf, admin_member):
-    response = OrganizationMemberAddView.as_view()(
-        setup_request(rf.get("organization_member_add"), admin_member.user),
-        organization_code=admin_member.organization.code,
-        account_type="redteam",
-    )
-
-    assert response.status_code == 200
-    assertContains(response, "Redteam account setup")
-
-    # Check first and last radio input of trusted clearance level form input
-    assertContains(
-        response,
-        '<input type="radio" name="trusted_clearance_level" value="-1" radio_paws="True" '
-        'id="id_trusted_clearance_level_0" required="True" checked="True" checked="True">',
-        html=True,
-    )
-    assertContains(
-        response,
-        '<input type="radio" name="trusted_clearance_level" value="4" radio_paws="True" '
-        'id="id_trusted_clearance_level_5" required="True">',
-        html=True,
-    )
 
 
 @pytest.mark.parametrize("account_type", ["admin", "client"])

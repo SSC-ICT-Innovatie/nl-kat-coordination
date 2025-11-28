@@ -3,7 +3,7 @@ import tempfile
 from collections.abc import Collection, Sequence
 from enum import Enum
 from functools import total_ordering
-from typing import Any, ClassVar, cast
+from typing import Any, ClassVar, Self, cast
 
 import structlog
 import tagulous.models
@@ -14,6 +14,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import connections, models
 from django.db.models import ForeignKey, Model
 from django.db.models.expressions import RawSQL
+from django.db.models.fields.related import RelatedField
 from django.forms.models import model_to_dict
 from django.utils.datastructures import CaseInsensitiveMapping
 from django.utils.translation import gettext_lazy as _
@@ -159,6 +160,64 @@ class XTDBNaturalKeyModel(XTDBModel):
 
         return "|".join(parts).strip("|")
 
+    @classmethod
+    def from_natural_key(cls, key: str) -> Self:
+        """
+        Build the model op using only its natural key.
+
+        IMPORTANT: this will not be consistent for fields not in the natural key. Make sure the code using this helper
+        does not rely on those fields.
+
+        :param eager: If true, allow the key to have additional parts at the end (useful building nested natural keys).
+        """
+
+        cnt, fields, parts = cls.natural_key_fields(key)
+
+        if len(fields) < len(cls._natural_key_attrs):
+            raise ValueError("Not enough attributes in natural key")
+
+        if cnt < len(parts):
+            raise ValueError("Too many attributes in natural key")
+
+        return cls(**fields)
+
+    @classmethod
+    def natural_key_fields(cls, key: str) -> tuple[int, dict[Any, Any], list[str]]:
+        parts = key.split("|")
+        fields = {}
+        cnt = 0
+
+        # Iterate through the parts, and join parts if the field is a related model with a nested natural key.
+        # For example, a DNSARecord with ["hostname", "ip_address"] and the natural key
+        # "internet|test.com|internet|127.0.0.1" will need to build a fields dict of the form
+        # {"hostname_id": "internet|test.com", "ip_address_id": "internet|127.0.0.1"}. The only way to know how to
+        # partition the `parts` is to inspect the fields through cls._meta.fields and let them try to create their
+        # natural key from the "left-over parts".
+        fields_by_name = {field.name: field for field in cls._meta.fields}
+
+        for attr in cls._natural_key_attrs:
+            if not hasattr(cls, attr):
+                raise ValueError(f"Invalid attribute in natural key: {attr}")
+            if cnt >= len(parts):
+                raise ValueError("Not enough attributes in natural key")
+
+            field = fields_by_name[attr]
+
+            if isinstance(field, RelatedField):
+                if issubclass(field.related_model, XTDBNaturalKeyModel):
+                    sub_cnt, nk_fields, _ = field.related_model.natural_key_fields("|".join(parts[cnt:]))
+                    related = field.related_model(**nk_fields)
+                    fields[field.name] = related
+                    cnt += sub_cnt
+                else:
+                    field_name = field.name + "_id"
+                    fields[field_name] = field.to_python(parts[cnt])
+                    cnt += 1
+            else:
+                fields[attr] = field.to_python(parts[cnt])
+                cnt += 1
+        return cnt, fields, parts
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         # TODO: Make sure this also is implemented in all the necessary model methods and manager methods
         if not self.id:
@@ -178,8 +237,8 @@ class ObjectTask(XTDBNaturalKeyModel):
     task_id = models.CharField(max_length=36)  # UUID as string (36 chars with hyphens)
     type = models.CharField(max_length=32, default="plugin")
     plugin_id = models.CharField(max_length=64)
-    input_object = models.CharField()
     output_object = models.CharField()
+    output_object_type = models.CharField()
 
     _natural_key_attrs = ["task_id", "output_object"]
 
@@ -196,9 +255,7 @@ class Network(Asset):
         validators=[MinValueValidator(0), MaxValueValidator(MAX_SCAN_LEVEL)], null=True, blank=True
     )
     declared: models.BooleanField = models.BooleanField(default=False)
-    organizations = models.ManyToManyField(
-        XTDBOrganization, blank=True, related_name="networks", through="NetworkOrganization"
-    )
+    organizations = models.ManyToManyField(XTDBOrganization, related_name="networks", through="NetworkOrganization")
 
     def __str__(self) -> str:
         return self.name
@@ -219,7 +276,7 @@ class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
     )
     declared: models.BooleanField = models.BooleanField(default=False)
     organizations = models.ManyToManyField(
-        XTDBOrganization, blank=True, related_name="ipaddresses", through="IPAddressOrganization"
+        XTDBOrganization, related_name="ipaddresses", through="IPAddressOrganization"
     )
 
     _natural_key_attrs = ["network", "address"]
@@ -339,9 +396,7 @@ class Hostname(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
         validators=[MinValueValidator(0), MaxValueValidator(MAX_SCAN_LEVEL)], null=True, blank=True
     )
     declared: models.BooleanField = models.BooleanField(default=False)
-    organizations = models.ManyToManyField(
-        XTDBOrganization, blank=True, related_name="hostnames", through="HostnameOrganization"
-    )
+    organizations = models.ManyToManyField(XTDBOrganization, related_name="hostnames", through="HostnameOrganization")
 
     _natural_key_attrs = ["network", "name"]
 
@@ -578,35 +633,44 @@ class Software(XTDBNaturalKeyModel):
     _optional_key_attrs = ["version"]
 
 
-def bulk_insert(objects: Sequence[models.Model]) -> None:
-    """Use COPY to efficiently bulk-insert objects into XTDB. Assumes objects have the same type, skips other types."""
+def bulk_insert(objects: Sequence[models.Model], batch_size: int = 50_000) -> None:
+    """
+    Use COPY to efficiently bulk-insert objects into XTDB. Assumes objects have the same type, skips other types.
+
+    The batch size is needed as there is a bug in XTDB when we go over 100_000 objects that is to be investigated.
+    """
 
     if not objects:
         return
 
     table_name = objects[0]._meta.db_table
 
-    with tempfile.NamedTemporaryFile() as fp:
-        # The transit-json format is not working because the writer uses a comma as a delimiter between objects. It
-        # would work if we override Writer.marshaler.write_sep() to skip the comma (or use a newline) between objects.
-        # But apparently msgpack works out of the box, which makes life even easier.
+    idx = 0
 
-        writer = Writer(fp, "msgpack")
-        for obj in objects:
-            if obj._meta.db_table != table_name:
-                continue
-            writer.write(to_xtdb_dict(obj))
+    for idx_2 in range(batch_size, len(objects) + batch_size, batch_size):
+        with tempfile.NamedTemporaryFile() as fp:
+            # The transit-json format is not working because the writer uses a comma as a delimiter between objects. It
+            # would work if we override Writer.marshaler.write_sep() to skip the comma (or use a newline) between
+            # objects. But apparently msgpack works out of the box, which makes life even easier.
 
-        fp.seek(0)
+            writer = Writer(fp, "msgpack")
+            for obj in objects[idx:idx_2]:
+                if obj._meta.db_table != table_name:
+                    continue
+                writer.write(to_xtdb_dict(obj))
 
-        with (
-            connections["xtdb"].cursor() as cursor,
-            cursor.copy(
-                sql.SQL("COPY {} FROM STDIN WITH (FORMAT 'transit-msgpack')").format(sql.Identifier(table_name))
-            ) as copy,
-        ):
-            while data := fp.read():
-                copy.write(data)
+            fp.seek(0)
+
+            with (
+                connections["xtdb"].cursor() as cursor,
+                cursor.copy(
+                    sql.SQL("COPY {} FROM STDIN WITH (FORMAT 'transit-msgpack')").format(sql.Identifier(table_name))
+                ) as copy,
+            ):
+                while data := fp.read():
+                    copy.write(data)
+
+        idx = idx_2
 
 
 severity_order = ["recommendation", "low", "medium", "high", "critical"]

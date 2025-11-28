@@ -15,13 +15,6 @@
                 </div>
             </div>
             <div class="horizontal-view toolbar">
-                <form action="{% url 'run_business_rule' business_rule.pk %}" method="post">
-                    {% csrf_token %}
-                    <input type="hidden" name="current_url" value="{{ request.get_full_path }}">
-                    <button type="submit" class="button">
-                        <span aria-hidden="true" class="icon ti-player-play"></span>{% translate "Run" %}
-                    </button>
-                </form>
                 <a href="{% url 'edit_business_rule' business_rule.pk %}"
                    class="button ghost"><span aria-hidden="true" class="icon ti-pencil"></span>{% translate "Edit" %}</a>
                 <form action="{% url 'delete_business_rule' business_rule.pk %}"
@@ -59,47 +52,6 @@
                             </dd>
                         </div>
                         <div>
-                            <dt>{% translate "Object Type" %}</dt>
-                            <dd>
-                                {{ business_rule.object_type.model }}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>{% translate "Query" %}</dt>
-                            <dd>
-                                <code>{{ business_rule.query|wordwrap:100|linebreaksbr }}</code>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>{% translate "Inverse Query" %}</dt>
-                            <dd>
-                                {% if business_rule.inverse_query %}
-                                    <code>{{ business_rule.inverse_query|wordwrap:100|linebreaksbr }}</code>
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>{% translate "Finding Type" %}</dt>
-                            <dd>
-                                <span class="label tags-color-1-light">{{ business_rule.finding_type_code }}</span>
-                            </dd>
-                        </div>
-                        <div>
-                            <dt>{% translate "Required Plugins" %}</dt>
-                            <dd>
-                                {% if business_rule.requires.exists %}
-                                    {% for plugin in business_rule.requires.all %}
-                                        <a href="{% url "plugin_detail" plugin.id %}">{{ plugin.name }}</a>
-                                        {% if not forloop.last %},{% endif %}
-                                    {% endfor %}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </dd>
-                        </div>
-                        <div>
                             <dt>{% translate "Created" %}</dt>
                             <dd>
                                 {{ business_rule.created_at|date }}
@@ -113,39 +65,6 @@
                         </div>
                     </dl>
                 </div>
-            </div>
-            <div>
-                <h2>{% translate "Preview of Matching Objects" %}</h2>
-                {% if query_error %}
-                    <div class="notification error">
-                        <strong>{% translate "Query Error:" %}</strong> {{ query_error }}
-                    </div>
-                {% else %}
-                    {% if matching_objects %}
-                        <div class="horizontal-scroll">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>{% translate "Object" %}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for obj in matching_objects %}
-                                        {% with obj|to_class_name|lower as model_name %}
-                                            <tr>
-                                                <td>
-                                                    <a href="{% url "objects:"|add:model_name|add:"_detail" pk=obj.id %}">{{ obj }}</a>
-                                                </td>
-                                            </tr>
-                                        {% endwith %}
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <p>{% translate "No matching objects found." %}</p>
-                    {% endif %}
-                {% endif %}
             </div>
         </section>
     </main>

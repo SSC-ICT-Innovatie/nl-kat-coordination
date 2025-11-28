@@ -18,7 +18,11 @@ class JWTTokenAuthentication(TokenAuthentication):
             return None
 
     @staticmethod
-    def generate(permissions: dict[str, dict[str, Any]] | None = None, timeout: int = settings.PLUGIN_TIMEOUT) -> str:
+    def generate(
+        permissions: dict[str, dict[str, Any]] | None = None,
+        additional: dict | None = None,
+        timeout: int = settings.PLUGIN_TIMEOUT,
+    ) -> str:
         if not settings.JWT_KEY:
             raise InvalidTokenError("No JWT key set in settings")
 
@@ -27,5 +31,5 @@ class JWTTokenAuthentication(TokenAuthentication):
             "permissions": permissions,
             "iat": now.timestamp(),
             "exp": (now + timedelta(minutes=timeout)).timestamp(),
-        }
+        } | (additional or {})
         return jwt.encode(token_data, settings.JWT_KEY, algorithm=settings.JWT_ALGORITHM)

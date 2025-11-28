@@ -93,7 +93,7 @@ def test_add_organization_submit_success(rf, superuser_member, log_output):
     assert "Organization added successfully" in messages[0].message
 
     logs = [e for e in log_output.entries if e["event"] != "Connected to RabbitMQ"]
-    group_client_log, group_redteam_log, group_admin_log = logs[0], logs[1], logs[2]
+    group_client_log, group_admin_log = logs[0], logs[2]
     superuser_log_created, superuser_log_updated = logs[3], logs[4]
     static_device_log, static_token_log = logs[5], logs[6]
 
@@ -116,7 +116,6 @@ def test_add_organization_submit_success(rf, superuser_member, log_output):
 
     # groups are created
     assert group_client_log["event"] == "%s %s created"
-    assert group_redteam_log["event"] == "%s %s created"
     assert group_admin_log["event"] == "%s %s created"
 
     # superuser created and updated
@@ -241,13 +240,8 @@ def test_organization_blocked_member(rf, admin_member):
         OrganizationSettingsView.as_view()(request, organization_code=admin_member.organization.code)
 
 
-def test_edit_organization_permissions(rf, redteam_member, client_member):
-    """Redteamers and clients cannot edit organization."""
-    request_redteam = setup_request(rf.get("organization_edit"), redteam_member.user)
+def test_edit_organization_permissions(rf, client_member):
     request_client = setup_request(rf.get("organization_edit"), client_member.user)
-
-    with pytest.raises(PermissionDenied):
-        OrganizationEditView.as_view()(request_redteam, organization_code=redteam_member.organization.code)
 
     with pytest.raises(PermissionDenied):
         OrganizationEditView.as_view()(
@@ -255,13 +249,8 @@ def test_edit_organization_permissions(rf, redteam_member, client_member):
         )
 
 
-def test_edit_organization_indemnification(rf, redteam_member, client_member):
-    """Redteamers and clients cannot add idemnification."""
-    request_redteam = setup_request(rf.get("indemnification_add"), redteam_member.user)
+def test_edit_organization_indemnification(rf, client_member):
     request_client = setup_request(rf.get("indemnification_add"), client_member.user)
-
-    with pytest.raises(PermissionDenied):
-        IndemnificationAddView.as_view()(request_redteam, organization_code=redteam_member.organization.code)
 
     with pytest.raises(PermissionDenied):
         IndemnificationAddView.as_view()(
@@ -270,7 +259,6 @@ def test_edit_organization_indemnification(rf, redteam_member, client_member):
 
 
 def test_admin_rights_edits_organization(rf, admin_member):
-    """Can admin edit organization?"""
     request = setup_request(rf.get("organization_edit"), admin_member.user)
     response = OrganizationEditView.as_view()(
         request, organization_code=admin_member.organization.code, pk=admin_member.organization.id
@@ -280,7 +268,6 @@ def test_admin_rights_edits_organization(rf, admin_member):
 
 
 def test_admin_edits_organization(rf, admin_member):
-    """Admin editing organization values"""
     request = setup_request(
         rf.post("organization_edit", {"name": "This organization name has been edited", "tags": "tag1,tag2"}),
         admin_member.user,
@@ -289,7 +276,6 @@ def test_admin_edits_organization(rf, admin_member):
         request, organization_code=admin_member.organization.code, pk=admin_member.organization.id
     )
 
-    # success post redirects to organization detail page
     assert response.status_code == 302
     assert response.url == f"/en/{admin_member.organization.code}/settings"
     resulted_request = setup_request(rf.get(response.url), admin_member.user)
@@ -312,7 +298,6 @@ def test_organization_code_validator_from_view(rf, superuser_member):
 
     response = OrganizationAddView.as_view()(request)
 
-    # Form validation returns 200 with invalid form
     assert response.status_code == 200
     assertContains(
         response, "This organization code is reserved by OpenKAT and cannot be used. Choose another organization code."
@@ -332,7 +317,7 @@ def test_organization_code_validator_from_model():
         new_org.save()
 
 
-def test_organization_settings_perms(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_organization_settings_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = OrganizationSettingsView.as_view()(
         setup_request(rf.get("organization_settings"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -352,18 +337,12 @@ def test_organization_settings_perms(rf, superuser_member, admin_member, redteam
 
     with pytest.raises(PermissionDenied):
         OrganizationSettingsView.as_view()(
-            setup_request(rf.get("organization_settings"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
-
-    with pytest.raises(PermissionDenied):
-        OrganizationSettingsView.as_view()(
             setup_request(rf.get("organization_settings"), client_member.user),
             organization_code=client_member.organization.code,
         )
 
 
-def test_organization_member_list_perms(rf, superuser_member, admin_member, redteam_member, client_member):
+def test_organization_member_list_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = OrganizationMemberListView.as_view()(
         setup_request(rf.get("organization_member_list"), superuser_member.user),
         organization_code=superuser_member.organization.code,
@@ -376,12 +355,6 @@ def test_organization_member_list_perms(rf, superuser_member, admin_member, redt
 
     assert response_superuser.status_code == 200
     assert response_admin.status_code == 200
-
-    with pytest.raises(PermissionDenied):
-        OrganizationMemberListView.as_view()(
-            setup_request(rf.get("organization_member_list"), redteam_member.user),
-            organization_code=redteam_member.organization.code,
-        )
 
     with pytest.raises(PermissionDenied):
         OrganizationMemberListView.as_view()(
@@ -441,13 +414,11 @@ def test_organization_edit_view(request, member, rf):
 
 
 @pytest.mark.django_db(databases=["xtdb", "default"])
-@pytest.mark.parametrize("member", ["redteam_member", "client_member"])
-def test_organization_edit_perms_on_settings_view(request, member, rf):
-    member = request.getfixturevalue(member)
-
+def test_organization_edit_perms_on_settings_view(request, client_member, rf):
     with pytest.raises(PermissionDenied):
         OrganizationSettingsView.as_view()(
-            setup_request(rf.get("organization_settings"), member.user), organization_code=member.organization.code
+            setup_request(rf.get("organization_settings"), client_member.user),
+            organization_code=client_member.organization.code,
         )
 
 

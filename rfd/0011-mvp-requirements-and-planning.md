@@ -1,4 +1,11 @@
-# MVP Requirements
+---
+authors: Jeroen Dekkers <@dekkers>, Donny Peeters <@donnype>
+state: implemented
+discussion:
+labels: Planning, Architecture, Requirements
+---
+
+# RFD 0012: MVP Requirements
 
 These are the minimum requirements we want to fulfill for a OpenKAT version 2.0 minimum viable product. This means the minimum needed to get back to a state where OpenKAT is working and useful again and can be used by our stakeholders.
 
@@ -51,11 +58,20 @@ We will probably implement more requirements when working on version 2.0 when it
 - Reports can be viewed in the web interface and be downloaded as PDF.
 - It should be possible to get an export of findings and assets.
 
+EDIT:
+Since the structure and capabilities have changed in V2, only one report type/flow has been implemented to show the
+capabilities and have the infrastructure in place. We decided that more specialized and enhanced reports should be
+created iteratively once V2 is live and has collected relevant data, so we can focus on our scanning and database
+infrastructure.
+
 ## Dashboarding
 
 - Users should be able to create flexible dashboards.
 - Dashboards should preferably be real-time if this is possible to do without dashboards getting too slow.
 - Dashboards should be able to show data both globally and for a subset of organizations.
+
+EDIT:
+Since Dashboarding will be built on top of reporting, this has gotten a lower priority as well.
 
 # Planning
 

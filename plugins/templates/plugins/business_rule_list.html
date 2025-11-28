@@ -17,9 +17,11 @@
                         {% endblocktranslate %}
                     </p>
                 </div>
-                <div class="horizontal-view toolbar">
-                    <a class="button ghost" href="{% url "add_business_rule" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add business rule" %}</a>
-                </div>
+                {% if perms.plugins.add_businessrule %}
+                    <div class="horizontal-view toolbar">
+                        <a class="button ghost" href="{% url "add_business_rule" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add business rule" %}</a>
+                    </div>
+                {% endif %}
             </div>
             <div class="filter-container">
                 <form class="inline layout-wide" method="get">
@@ -36,8 +38,6 @@
                             <tr>
                                 <th>{% translate "Name" %}</th>
                                 <th>{% translate "Description" %}</th>
-                                <th>{% translate "Object type" %}</th>
-                                <th>{% translate "Finding type" %}</th>
                                 <th>{% translate "Enabled" %}</th>
                             </tr>
                         </thead>
@@ -48,25 +48,29 @@
                                         <a href="{% url "business_rule_detail" rule.pk %}">{{ rule.name }}</a>
                                     </td>
                                     <td>{{ rule.description }}</td>
-                                    <td>{{ rule.object_type.model }}</td>
                                     <td>
-                                        <span class="label tags-color-1-light">{{ rule.finding_type_code }}</span>
-                                    </td>
-                                    <td>
-                                        <form action="{% url "toggle_business_rule" rule.pk %}"
-                                              method="post"
-                                              class="inline">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="current_url" value="{{ request.get_full_path }}">
-                                            <button type="submit"
-                                                    class="button ghost {% if rule.enabled %}destructive{% else %}plugin-enabled{% endif %}">
-                                                {% if rule.enabled %}
-                                                    {% translate "Disable" %}
-                                                {% else %}
-                                                    {% translate "Enable" %}
-                                                {% endif %}
-                                            </button>
-                                        </form>
+                                        {% if perms.plugins.change_businessrule %}
+                                            <form action="{% url "toggle_business_rule" rule.pk %}"
+                                                  method="post"
+                                                  class="inline">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="current_url" value="{{ request.get_full_path }}">
+                                                <button type="submit"
+                                                        class="button ghost {% if rule.enabled %}destructive{% else %}plugin-enabled{% endif %}">
+                                                    {% if rule.enabled %}
+                                                        {% translate "Disable" %}
+                                                    {% else %}
+                                                        {% translate "Enable" %}
+                                                    {% endif %}
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            {% if rule.enabled %}
+                                                <span class="label system-tag color-2">{% translate "Enabled" %}</span>
+                                            {% else %}
+                                                <span class="label system-tag color-3">{% translate "Disabled" %}</span>
+                                            {% endif %}
+                                        {% endif %}
                                     </td>
                                 </tr>
                             {% endfor %}

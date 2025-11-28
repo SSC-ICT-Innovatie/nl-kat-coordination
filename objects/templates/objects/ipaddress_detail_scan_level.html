@@ -22,11 +22,13 @@
                         {% endblocktranslate %}
                     </p>
                 </div>
-                <div>
-                    <button class="button ghost" data-modal-id="edit-scan-level-modal">
-                        <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit scan level" %}
-                    </button>
-                </div>
+                {% if perms.openkat.can_set_clearance_level %}
+                    <div>
+                        <button class="button ghost" data-modal-id="edit-scan-level-modal">
+                            <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit scan level" %}
+                        </button>
+                    </div>
+                {% endif %}
             </div>
             {% if ipaddress.scan_level == None %}
                 <p class="explanation"
@@ -35,7 +37,7 @@
                     <span>{% translate "Empty:" %}</span>
                     {% blocktranslate trimmed %}
                         This object has a scan level of "None". This means that this
-                        object has no scan level yet. If you have just changed the scan type to "Inherited",
+                        object has no scan level yet. If you have just changed the origin to "Inherited",
                         it may take a moment before OpenKAT sets the inherited scan level.
                     {% endblocktranslate %}
                 </p>
@@ -58,8 +60,10 @@
                     </div>
                 </div>
             </form>
-            {% include "objects/modals/edit_scan_level_modal.html" with type="object_detail" scan_level_url="objects:update_ipaddress_scan_level" pk=ipaddress.pk %}
+            {% if perms.openkat.can_set_clearance_level %}
+                {% include "objects/modals/edit_scan_level_modal.html" with type="object_detail" scan_level_url="objects:update_ipaddress_scan_level" pk=ipaddress.pk %}
 
+            {% endif %}
         </section>
     </main>
 {% endblock content %}

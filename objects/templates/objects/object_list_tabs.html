@@ -5,16 +5,20 @@
      aria-label="{% translate "List of views for objects page" %}">
     <ul>
         <li {% if view == "hostnames" %}aria-current="page"{% endif %}>
-            <a href="{% url "objects:hostname_list" %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">{% translate "Hostnames" %}</a>
+            {% url "objects:hostname_list" as index_url %}
+            <a href="{{ index_url }}{% if organization_query_string %}?{{ organization_query_string }}{% endif %}">{% translate "Hostnames" %}</a>
         </li>
         <li {% if view == "ipaddresses" %}aria-current="page"{% endif %}>
-            <a href="{% url "objects:ipaddress_list" %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">{% translate "IP addresses" %}</a>
+            {% url "objects:ipaddress_list" as index_url %}
+            <a href="{{ index_url }}{% if organization_query_string %}?{{ organization_query_string }}{% endif %}">{% translate "IP addresses" %}</a>
         </li>
         <li {% if view == "networks" %}aria-current="page"{% endif %}>
-            <a href="{% url "objects:network_list" %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">{% translate "Networks" %}</a>
+            {% url "objects:network_list" as index_url %}
+            <a href="{{ index_url }}{% if organization_query_string %}?{{ organization_query_string }}{% endif %}">{% translate "Networks" %}</a>
         </li>
         <li {% if view == "object_sets" %}aria-current="page"{% endif %}>
-            <a href="{% url "object_set_list" %}{% if request.GET.urlencode %}?{{ request.GET.urlencode }}{% endif %}">{% translate "Object sets" %}</a>
+            {% url "object_set_list" as index_url %}
+            <a href="{{ index_url }}{% if organization_query_string %}?{{ organization_query_string }}{% endif %}">{% translate "Object sets" %}</a>
         </li>
     </ul>
 </nav>

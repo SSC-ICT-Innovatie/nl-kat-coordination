@@ -9,7 +9,7 @@ from django.views.generic import ListView
 from httpx import RequestError
 
 from openkat.forms.members import MemberFilterForm
-from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
+from openkat.mixins import OrganizationFilterMixin, OrganizationPermissionRequiredMixin, OrganizationView
 from openkat.models import OrganizationMember
 from openkat.view_helpers import OrganizationMemberBreadcrumbsMixin
 
@@ -20,7 +20,11 @@ class PageActions(Enum):
 
 
 class OrganizationMemberListView(
-    OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, ListView
+    OrganizationFilterMixin,
+    OrganizationPermissionRequiredMixin,
+    OrganizationMemberBreadcrumbsMixin,
+    OrganizationView,
+    ListView,
 ):
     model = OrganizationMember
     context_object_name = "members"

@@ -31,12 +31,6 @@ app.conf.beat_schedule = {
         "args": tuple(),
         "options": {"queue": settings.QUEUE_NAME_RECALCULATIONS},
     },
-    "schedule-business-rule-recalculations": {
-        "task": "tasks.tasks.schedule_business_rule_recalculations",
-        "schedule": settings.BUSINESS_RULE_RECALCULATION_INTERVAL,
-        "args": tuple(),
-        "options": {"queue": settings.QUEUE_NAME_RECALCULATIONS},
-    },
     "schedule-organization-attribution": {
         "task": "tasks.tasks.schedule_attribution",
         "schedule": settings.ATTRIBUTION_INTERVAL,

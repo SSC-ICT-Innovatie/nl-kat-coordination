@@ -20,7 +20,7 @@ from openkat.forms import AccountTypeSelectForm, MemberRegistrationForm, Passwor
 from openkat.forms.upload_csv import UploadCSVForm
 from openkat.messaging import clearance_level_warning_dns_report
 from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
-from openkat.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, OrganizationMember, User
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, OrganizationMember, User
 from openkat.view_helpers import Breadcrumb, OrganizationMemberBreadcrumbsMixin
 
 logger = structlog.get_logger(__name__)
@@ -39,16 +39,14 @@ CSV_CRITERIA = [
     _("Add column titles. Followed by each object on a new line."),
     _("The columns are: ") + ", ".join(MEMBER_UPLOAD_COLUMNS),
     _("Clearance levels should be between -1 and 4."),
-    _("Account type can be one of: ") + f"'{GROUP_CLIENT}', '{GROUP_ADMIN}' and '{GROUP_REDTEAM}'",
+    _("Account type can be one of: ") + f"'{GROUP_READ_ONLY}' or '{GROUP_ADMIN}'",
 ]
 
 
 class OrganizationMemberAddAccountTypeView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
-    """
-    View to create a new member. Step 1: choose an account type.
-    """
+    """View to create a new member. Step 1: choose an account type."""
 
     template_name = "organizations/organization_member_add_account_type.html"
     permission_required = "openkat.add_organizationmember"
@@ -81,9 +79,7 @@ class OrganizationMemberAddAccountTypeView(
 class OrganizationMemberAddView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
-    """
-    View to create a new member. Step 2: account setup.
-    """
+    """View to create a new member. Step 2: account setup."""
 
     template_name = "organizations/organization_member_add.html"
     form_class = MemberRegistrationForm

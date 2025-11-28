@@ -1,5 +1,4 @@
-from typing import Any, TypedDict
-from urllib.parse import urlencode, urlparse, urlunparse
+from typing import TypedDict
 
 from django.http import HttpRequest
 from django.urls.base import reverse, reverse_lazy
@@ -7,23 +6,6 @@ from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
 
 from openkat.models import Organization
-
-
-def url_with_querystring(path: str, doseq: bool = False, /, **kwargs: Any) -> str:
-    parsed_route = urlparse(path)
-
-    return str(
-        urlunparse(
-            (
-                parsed_route.scheme,
-                parsed_route.netloc,
-                parsed_route.path,
-                parsed_route.params,
-                urlencode(kwargs, doseq),
-                parsed_route.fragment,
-            )
-        )
-    )
 
 
 class Breadcrumb(TypedDict):

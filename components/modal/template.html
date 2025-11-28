@@ -3,25 +3,26 @@
 
 <div class="modal-wrapper">
     <dialog class="modal {{ size }}"
-        aria-modal="true"
-        role="dialog"
-        id="{{ modal_id }}">
+            aria-modal="true"
+            role="dialog"
+            id="{{ modal_id }}">
         <div class="content-wrapper">
             <section class="header">
                 <h2>{% slot "header" %}{% endslot %}</h2>
-                <button class="icon-only ti-x close-modal-button" type="button"
+                <button class="icon-only ti-x close-modal-button"
+                        type="button"
                         aria-label="{% translate "Close modal" %}"></button>
             </section>
             <section class="content">
-              {% slot "content" %}{% endslot %}
+                {% slot "content" %}{% endslot %}
             </section>
             <section class="footer">
                 <div class="toolbar">
                     {% slot "footer_buttons" %}
-                        <button class="ghost close-modal-button">{% slot "secondary_button" %} {% translate "Cancel" %} {% endslot %}</button>
-                    {% endslot %}
-                </div>
-            </section>
-        </div>
-    </dialog>
+                    <button class="ghost close-modal-button">{% slot "secondary_button" %} {% translate "Cancel" %} {% endslot %}</button>
+                {% endslot %}
+            </div>
+        </section>
+    </div>
+</dialog>
 </div>

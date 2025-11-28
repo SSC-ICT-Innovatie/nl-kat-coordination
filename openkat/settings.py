@@ -85,6 +85,22 @@ LOGGING = {
     },
 }
 
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper("iso", utc=False),
+        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
 # Make sure this header can never be set by an attacker, see also the security
 # warning at https://docs.djangoproject.com/en/4.2/howto/auth-remote-user/
 REMOTE_USER_HEADER = env("REMOTE_USER_HEADER", default=None)
@@ -92,7 +108,7 @@ REMOTE_USER_FALLBACK = env.bool("REMOTE_USER_FALLBACK", False)
 
 if REMOTE_USER_HEADER:
     # Optional list of default organizations to add remote users to,
-    # format: space separated list of ORGANIZATION_CODE:GROUP_NAME, e.g. `test:admin test2:redteam`
+    # format: space separated list of ORGANIZATION_CODE:GROUP_NAME, e.g. `test:admin test2:read-only`
     REMOTE_USER_DEFAULT_ORGANIZATIONS = env.list("REMOTE_USER_DEFAULT_ORGANIZATIONS", default=[])
     AUTHENTICATION_BACKENDS = ["openkat.auth.remote_user.RemoteUserBackend"]
     if REMOTE_USER_FALLBACK:
@@ -231,11 +247,7 @@ TEMPLATES = [
                 "openkat.context_processors.organizations_including_blocked",
                 "openkat.context_processors.openkat_version",
             ],
-            "builtins": [
-                "django_components.templatetags.component_tags",
-                "openkat.templatetags.object_extra",
-                "openkat.templatetags.objects",
-            ],
+            "builtins": ["django_components.templatetags.component_tags", "openkat.templatetags.objects"],
             "loaders": [
                 (
                     "django.template.loaders.cached.Loader",
@@ -487,21 +499,6 @@ TAG_BORDER_TYPES = [("plain", _("Plain")), ("solid", _("Solid")), ("dashed", _("
 
 FORMS_URLFIELD_ASSUME_HTTPS = True
 
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper("iso", utc=False),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
 
 DOCKER_NETWORK = env.str("DOCKER_NETWORK", default="bridge")
 OPENKAT_HOST = env.str("OPENKAT_HOST", default="http://localhost:8000")
@@ -515,7 +512,6 @@ SILENCED_SYSTEM_CHECKS = ["staticfiles.W004"]
 
 WORKERS = env.int("WORKERS", default=2)
 SCAN_LEVEL_RECALCULATION_INTERVAL = env.int("SCAN_LEVEL_RECALCULATION_INTERVAL", default=60)
-BUSINESS_RULE_RECALCULATION_INTERVAL = env.int("BUSINESS_RULE_RECALCULATION_INTERVAL", default=600)
 ATTRIBUTION_INTERVAL = env.int("ATTRIBUTION_INTERVAL", default=600)
 SCHEDULE_INTERVAL = env.int("SCHEDULE_INTERVAL", default=60)
 # Time in minutes a plugin has to complete, after which it exits and it's token expires

@@ -49,8 +49,10 @@
                                 <th scope="col">{% translate "Source" %}</th>
                                 <th scope="col">{% translate "Created date" %}</th>
                                 <th scope="col">{% translate "Organization" %}</th>
-                                <th scope="col">{% translate "Download" %}</th>
-                                <th scope="col">{% translate "View" %}</th>
+                                {% if perms.files.download_file %}
+                                    <th scope="col">{% translate "Download" %}</th>
+                                    <th scope="col">{% translate "View" %}</th>
+                                {% endif %}
                                 <th scope="col">{% translate "Actions" %}</th>
                             </tr>
                         </thead>
@@ -81,18 +83,20 @@
                                             -
                                         {% endif %}
                                     </td>
-                                    <td>
-                                        <a href="{% url 'download' pk=file.pk %}"><span class="icon ti-download"></span></a>
-                                    </td>
-                                    <td>
-                                        <button type="button"
-                                                class="button-file-raw action-button expando-button"
-                                                data-icon-open-class="icon ti-chevron-down"
-                                                data-icon-close-class="icon ti-chevron-up"
-                                                data-close-label="{% translate "Close details" %}">
-                                            {% translate "Open details" %}
-                                        </button>
-                                    </td>
+                                    {% if perms.files.download_file %}
+                                        <td>
+                                            <a href="{% url 'download' pk=file.pk %}"><span class="icon ti-download"></span></a>
+                                        </td>
+                                        <td>
+                                            <button type="button"
+                                                    class="button-file-raw action-button expando-button"
+                                                    data-icon-open-class="icon ti-chevron-down"
+                                                    data-icon-close-class="icon ti-chevron-up"
+                                                    data-close-label="{% translate "Close details" %}">
+                                                {% translate "Open details" %}
+                                            </button>
+                                        </td>
+                                    {% endif %}
                                     <td>
                                         <!-- djlint:off T001 -->
                                         <a href="{% url 'add_plugin' %}?oci_arguments={file/{{ file.id }}}"

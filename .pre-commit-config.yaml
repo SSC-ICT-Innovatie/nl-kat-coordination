@@ -92,19 +92,11 @@ repos:
           \.xml$ |
           \.svg$ |
           pyproject.toml$ |
-          requirements-.*.txt$ |
           retirejs.json$ |
-          ^katalogus/boefjes/kat_fierce/lists |
-          ^katalogus/boefjes/kat_wappalyzer/data/.*.json |
           ^assets/js/vendor |
           ^assets/css/themes/soft/fonts/tabler-icons/tabler-icons.scss$ |
           ^tests/stubs |
-          ^tests/stub_data |
-          ^reports/report_types/aggregate_organisation_report |
-          ^reports/report_types/multi_organization_report |
-          ^docs/source/_static |
-          ^katalogus/boefjes/kat_cve_2023_34039/keys/ |
-          ^katalogus/boefjes/kat_rpki/.*.json
+          ^docs/source/_static
           )
 
   - repo: https://github.com/Riverside-Healthcare/djLint
@@ -114,7 +106,6 @@ repos:
         files: |
           (?x)(
           ^.*/templates/.*$ |
-          ^reports/report_types/.*/.*\.html
           )
         exclude: |
           (?x)(
@@ -125,7 +116,6 @@ repos:
         files: |
           (?x)(
           ^.*/templates/.*$ |
-          ^reports/report_types/.*/.*\.html
           )
         exclude: |
           (?x)(

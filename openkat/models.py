@@ -22,8 +22,7 @@ from knox.settings import CONSTANTS
 from openkat.enums import MAX_SCAN_LEVEL
 
 GROUP_ADMIN = "admin"
-GROUP_REDTEAM = "redteam"
-GROUP_CLIENT = "clients"
+GROUP_READ_ONLY = "read-only"
 
 logger = structlog.get_logger(__name__)
 
@@ -116,7 +115,6 @@ class Organization(models.Model):
 
     class Meta:
         permissions = (
-            ("can_switch_organization", "Can switch organization"),
             ("can_scan_organization", "Can scan organization"),
             ("can_set_clearance_level", "Can set clearance level"),
             ("can_access_all_organizations", "Can access all organizations"),

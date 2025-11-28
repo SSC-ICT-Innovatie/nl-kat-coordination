@@ -47,9 +47,9 @@
             {% endif %}
             <div>
                 <h2>{% translate "Static Objects" %}</h2>
-                {% if all_objects %}
+                {% if static_objects %}
                     <ul>
-                        {% for object in all_objects %}
+                        {% for object in static_objects %}
                             <li>
                                 {% with object|to_class_name|lower as model_name %}
                                     <a href="{% url "objects:"|add:model_name|add:"_detail" pk=object.id %}">{{ object }}</a>

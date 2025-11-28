@@ -1,15 +1,15 @@
 from typing import Any
 
+import structlog
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
 from django.db import models
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django_structlog import signals
 from structlog import get_logger
 
-from objects.models import DNSRecordBase, Hostname, IPAddress, IPPort
 from openkat.models import Organization
-from tasks.tasks import schedule_business_rule_recalculations
 
 logger = get_logger(__name__)
 
@@ -67,14 +67,6 @@ def log_save(sender: type[models.Model], instance: models.Model, created: bool, 
         )
 
 
-@receiver(post_save)
-def business_rule_trigger(sender: type[models.Model], instance: models.Model, created: bool, **kwargs: Any) -> None:
-    if sender not in [IPAddress, IPPort, Hostname] and not issubclass(sender, DNSRecordBase):
-        return
-
-    schedule_business_rule_recalculations.delay(True)
-
-
 # Signal sent when a model is deleted
 @receiver(post_delete, dispatch_uid="log_delete")
 def log_delete(sender: type[models.Model], instance: models.Model, **kwargs: Any) -> None:
@@ -90,6 +82,15 @@ def log_delete(sender: type[models.Model], instance: models.Model, **kwargs: Any
         object=str(instance),
         **context,
     )
+
+
+@receiver(signals.bind_extra_request_finished_metadata)
+def bind_domain(request, logger, response, log_kwargs, **kwargs):
+    if response.status_code == 400:
+        structlog.contextvars.bind_contextvars(response=response.content)
+
+    if response.status_code == 403:
+        structlog.contextvars.bind_contextvars(auth=getattr(request, "auth", {}))
 
 
 @receiver(pre_save, sender=Organization)

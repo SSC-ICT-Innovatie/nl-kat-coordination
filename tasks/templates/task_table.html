@@ -176,18 +176,20 @@
                                    href="{% url 'file_list' %}?task_id={{ task.id }}"
                                    target="_blank"
                                    rel="noopener noreferrer">{% translate "View results" %}</a>
-                                {% if task.done %}
-                                    <form action="{% url 'reschedule_task' task.id %}" method="post">
-                                        {% csrf_token %}
-                                        <button class="ghost" type="submit">
-                                            <span class="icon ti-refresh"></span>{% translate "Rerun now" %}
-                                        </button>
-                                    </form>
-                                {% else %}
-                                    <form action="{% url 'cancel_task' task.id %}" method="post">
-                                        {% csrf_token %}
-                                        <button class="ghost destructive" type="submit">{% translate "Cancel" %}</button>
-                                    </form>
+                                {% if perms.plugins.run_plugin %}
+                                    {% if task.done %}
+                                        <form action="{% url 'reschedule_task' task.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button class="ghost" type="submit">
+                                                <span class="icon ti-refresh"></span>{% translate "Rerun now" %}
+                                            </button>
+                                        </form>
+                                    {% else %}
+                                        <form action="{% url 'cancel_task' task.id %}" method="post">
+                                            {% csrf_token %}
+                                            <button class="ghost destructive" type="submit">{% translate "Cancel" %}</button>
+                                        </form>
+                                    {% endif %}
                                 {% endif %}
                             </div>
                         </td>

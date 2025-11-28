@@ -49,9 +49,7 @@ def run(file_id: str) -> list[dict[str, str | int]]:
     headers = {"Authorization": "Token " + token}
     client = httpx.Client(base_url=base_url, headers=headers)
 
-    nmap_file = client.get(f"/file/{file_id}/").json()
-    file = client.get(nmap_file["file"])
-
+    file = client.get(f"/file/{file_id}/download/").raise_for_status()
     # Multiple XMLs are concatenated through "\n\n". XMLs end with "\n"; we split on "\n\n\n".
     raw_splitted = file.content.decode().split("\n\n\n")
 
@@ -65,9 +63,11 @@ def run(file_id: str) -> list[dict[str, str | int]]:
 
         for host in parsed.hosts:
             new_ports = get_ip_ports_and_service(host)
-            address = client.post(
-                "/objects/ipaddress/", json={"address": str(host.address), "network": "internet"}
-            ).json()
+            address = (
+                client.post("/objects/ipaddress/", json={"address": str(host.address), "network": "internet"})
+                .raise_for_status()
+                .json()
+            )
 
             not_closed = [obj["port"] for obj in new_ports if obj.pop("state") != "closed"]
             idx = 0
@@ -75,20 +75,24 @@ def run(file_id: str) -> list[dict[str, str | int]]:
 
             for idx_2 in range(batch_size, len(ports_scanned) + batch_size, batch_size):
                 params = {"port": ports_scanned[idx:idx_2], "address": address["id"]}
-                ports = [x["id"] for x in client.get("/objects/ipport/", params=params).json()["results"]]
+                ports = [
+                    x["id"] for x in client.get("/objects/ipport/", params=params).raise_for_status().json()["results"]
+                ]
 
                 if not ports:
                     idx = idx_2
                     continue
                 try:
-                    client.delete("/objects/ipport/", params={"pk": list(set(ports) - set(not_closed))})
+                    client.delete(
+                        "/objects/ipport/", params={"pk": list(set(ports) - set(not_closed))}
+                    ).raise_for_status()
                 except HTTPError:
                     print(f"Failed to delete ports for {host}, continuing")  # noqa: T201
                 idx = idx_2
 
             results.extend(new_ports)
 
-    client.post("/objects/ipport/", json=results)
+    client.post("/objects/ipport/", json=results).raise_for_status()
 
     return results
 

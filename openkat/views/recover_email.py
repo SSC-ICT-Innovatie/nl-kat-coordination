@@ -5,9 +5,7 @@ from django.views.generic import TemplateView
 
 
 class RecoverEmailView(TemplateView):
-    """
-    Handler for email recovery.
-    """
+    """Handler for email recovery"""
 
     template_name = "recover_email.html"
 

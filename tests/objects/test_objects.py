@@ -137,13 +137,13 @@ def test_network_view_filtered_on_name(rf, superuser_member, xtdb):
     assertNotContains(response, "internet")
 
 
-def test_findings(rf, superuser_member, xtdb):
+def test_findings(rf, superuser, xtdb):
     net = Network.objects.create(name="internet")
     host = Hostname.objects.create(name="test.com", network=net)
     finding_type = FindingType.objects.create(code="KAT-TEST-LIST-VIEW", score=3.1)
     Finding.objects.create(hostname=host, finding_type=finding_type)
 
-    request = setup_request(rf.get("objects:finding_list"), superuser_member.user)
+    request = setup_request(rf.get("objects:finding_list"), superuser)
     response = FindingListView.as_view()(request)
     assert response.status_code == 200
     assertContains(response, "Severity")
@@ -151,39 +151,29 @@ def test_findings(rf, superuser_member, xtdb):
     assertContains(response, "test.com")
     assertContains(response, "3.1")
 
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"object_search": "mail"}), superuser_member.user
-    )
+    request = setup_request(rf.get("objects:finding_list", query_params={"object_search": "mail"}), superuser)
+    response = FindingListView.as_view()(request)
+    assertNotContains(response, "test.com")
+
+    request = setup_request(rf.get("objects:finding_list", query_params={"score": 5}), superuser)
+    response = FindingListView.as_view()(request)
+    assertNotContains(response, "test.com")
+
+    request = setup_request(rf.get("objects:finding_list", query_params={"score": 3}), superuser)
+    response = FindingListView.as_view()(request)
+    assertContains(response, "test.com")
+
+    request = setup_request(rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-WRONG"}), superuser)
     response = FindingListView.as_view()(request)
     assertNotContains(response, "test.com")
 
     request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__score__gte": 5}), superuser_member.user
-    )
-    response = FindingListView.as_view()(request)
-    assertNotContains(response, "test.com")
-
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__score__gte": 3}), superuser_member.user
+        rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-TEST-LIST-VIEW"}), superuser
     )
     response = FindingListView.as_view()(request)
     assertContains(response, "test.com")
 
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-WRONG"}), superuser_member.user
-    )
-    response = FindingListView.as_view()(request)
-    assertNotContains(response, "test.com")
-
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"finding_type__code": "KAT-TEST-LIST-VIEW"}), superuser_member.user
-    )
-    response = FindingListView.as_view()(request)
-    assertContains(response, "test.com")
-
-    request = setup_request(
-        rf.get("objects:finding_list", query_params={"object_search": "test"}), superuser_member.user
-    )
+    request = setup_request(rf.get("objects:finding_list", query_params={"object_search": "test"}), superuser)
     response = FindingListView.as_view()(request)
     assertContains(response, "test.com")
 
@@ -317,6 +307,31 @@ def test_generate_benchmark_data(xtdb):
     assert Software.objects.count() == 2
 
 
+def test_from_natural_key():
+    h = Hostname.from_natural_key("test|test.com")
+    assert h.name == "test.com"
+
+    with pytest.raises(ValueError):
+        Hostname.from_natural_key("test|test.com|2")
+
+    ip = IPAddress.from_natural_key("test|127.0.0.1")
+    assert ip.address == "127.0.0.1"
+
+    port = IPPort.from_natural_key("test|127.0.0.1|TCP|80")
+    assert port.port == 80
+    assert port.protocol == "TCP"
+
+    with pytest.raises(ValueError):
+        IPAddress.from_natural_key("127.0.0.1")
+
+    a = DNSARecord.from_natural_key("test|test.com|test|127.0.0.1")
+    assert a.hostname.name == "test.com"
+    assert a.ip_address.address == "127.0.0.1"
+
+    with pytest.raises(ValueError):
+        DNSARecord.from_natural_key("test|test.com|127.0.0.1")
+
+
 def test_network_create_view_get(rf, superuser_member, xtdb):
     request = setup_request(rf.get("objects:network_create"), superuser_member.user)
     response = NetworkCreateView.as_view()(request)
@@ -328,7 +343,12 @@ def test_network_create_view_get(rf, superuser_member, xtdb):
 def test_network_create_view_post_success(rf, superuser_member, xtdb):
     assert Network.objects.count() == 0
 
-    request = setup_request(rf.post("objects:network_create", data={"name": "test-network"}), superuser_member.user)
+    request = setup_request(
+        rf.post(
+            "objects:network_create", data={"name": "test-network", "organizations": [superuser_member.organization.pk]}
+        ),
+        superuser_member.user,
+    )
     response = NetworkCreateView.as_view()(request)
 
     assert response.status_code == 302
@@ -388,7 +408,11 @@ def test_hostname_create_view_post_success(rf, superuser_member, xtdb):
     assert Hostname.objects.count() == 0
 
     request = setup_request(
-        rf.post("objects:hostname_create", data={"network": network.pk, "name": "example.com"}), superuser_member.user
+        rf.post(
+            "objects:hostname_create",
+            data={"network": network.pk, "name": "example.com", "organizations": [superuser_member.organization.pk]},
+        ),
+        superuser_member.user,
     )
     response = HostnameCreateView.as_view()(request)
 
@@ -408,7 +432,11 @@ def test_hostname_create_view_post_duplicate_is_idempotent(rf, superuser_member,
     Hostname.objects.create(network=network, name="existing.com")
 
     request = setup_request(
-        rf.post("objects:hostname_create", data={"network": network.pk, "name": "existing.com"}), superuser_member.user
+        rf.post(
+            "objects:hostname_create",
+            data={"network": network.pk, "name": "existing.com", "organizations": [superuser_member.organization.pk]},
+        ),
+        superuser_member.user,
     )
     response = HostnameCreateView.as_view()(request)
 
@@ -429,7 +457,14 @@ def test_hostname_create_view_post_subdomain(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
     parent = Hostname.objects.create(network=network, name="example.com")
     request = setup_request(
-        rf.post("objects:hostname_create", data={"network": network.pk, "name": "sub.example.com"}),
+        rf.post(
+            "objects:hostname_create",
+            data={
+                "network": network.pk,
+                "name": "sub.example.com",
+                "organizations": [superuser_member.organization.pk],
+            },
+        ),
         superuser_member.user,
     )
     HostnameCreateView.as_view()(request)
@@ -468,7 +503,11 @@ def test_ipaddress_create_view_post_ipv4_success(rf, superuser_member, xtdb):
     assert IPAddress.objects.count() == 0
 
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "192.0.2.1"}), superuser_member.user
+        rf.post(
+            "objects:ipaddress_create",
+            data={"network": network.pk, "address": "192.0.2.1", "organizations": [superuser_member.organization.pk]},
+        ),
+        superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)
 
@@ -486,7 +525,10 @@ def test_ipaddress_create_view_post_ipv4_success(rf, superuser_member, xtdb):
 def test_ipaddress_create_view_post_ipv6_success(rf, superuser_member, xtdb):
     network = Network.objects.create(name="test-network")
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "2001:db8::1"}),
+        rf.post(
+            "objects:ipaddress_create",
+            data={"network": network.pk, "address": "2001:db8::1", "organizations": [superuser_member.organization.pk]},
+        ),
         superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)
@@ -503,7 +545,10 @@ def test_ipaddress_create_view_post_duplicate_is_idempotent(rf, superuser_member
     IPAddress.objects.create(network=network, address="192.0.2.50")
 
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "192.0.2.50"}),
+        rf.post(
+            "objects:ipaddress_create",
+            data={"network": network.pk, "address": "192.0.2.50", "organizations": [superuser_member.organization.pk]},
+        ),
         superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)

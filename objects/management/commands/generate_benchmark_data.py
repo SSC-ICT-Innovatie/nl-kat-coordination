@@ -21,7 +21,7 @@ from objects.models import (
     Software,
     bulk_insert,
 )
-from plugins.plugins.business_rules import get_rules
+from openkat.management.commands.seed import Command as SeedCommand
 
 
 def generate(
@@ -52,9 +52,7 @@ def generate(
     txt_records = []
     caa_records = []
     findings = []
-    finding_types = [
-        FindingType(code=val["finding_type_code"]) for key, val in get_rules().items() if val["finding_type_code"]
-    ]
+    finding_types = SeedCommand.seed_finding_types()
     by_code = {ft.code: ft for ft in finding_types}
     software = [Software(name="old-js-lib", version="v-2.1.3"), Software(name="old-wordpress-plugin", version="0.1")]
 
@@ -73,7 +71,9 @@ def generate(
 
         # IPv6 (every 5th host gets IPv6)
         if include_dns_records and i % 5 == 0:
-            ipv6 = IPAddress(network=network, address=f"2001:db8:{i:04x}::{i:04x}", scan_level=ipaddress_scan_level)
+            ipv6 = IPAddress(
+                network=network, address=f"2001:db8:{i % 8123:04x}::{i % 9000:04x}", scan_level=ipaddress_scan_level
+            )
             ips_v6.append(ipv6)
             if i % 50 == 0:
                 finding = Finding(finding_type=by_code["KAT-WEBSERVER-NO-IPV6"], hostname=hn)

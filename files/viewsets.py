@@ -1,10 +1,14 @@
-from rest_framework import viewsets
+from django_downloadview import ObjectDownloadView
+from knox.auth import TokenAuthentication
+from rest_framework import mixins, viewsets
+from rest_framework.authentication import SessionAuthentication
 from structlog import get_logger
 
 from files.models import File
 from files.serializers import FileSerializer
+from openkat.auth.jwt_auth import JWTTokenAuthentication
 from tasks.models import TaskResult
-from tasks.tasks import process_raw_file
+from tasks.tasks import process_file
 
 logger = get_logger(__name__)
 
@@ -25,7 +29,17 @@ class FileViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         file = serializer.save()
 
-        if "task_id" in self.request.GET:
-            TaskResult.objects.create(file=file, task_id=self.request.GET["task_id"])
+        if (
+            hasattr(self.request, "auth")
+            and isinstance(self.request.auth, dict)
+            and self.request.auth.get("task_id") is not None
+        ):
+            TaskResult.objects.create(file=file, task_id=self.request.auth.get("task_id"))
 
-        process_raw_file(file)
+        process_file(file)
+
+
+class FileDownloadView(viewsets.GenericViewSet, mixins.RetrieveModelMixin, ObjectDownloadView):
+    queryset = File.objects.all()
+    permission_required = ("files.view_file", "files.download_file")
+    authentication_classes = (JWTTokenAuthentication, TokenAuthentication, SessionAuthentication)

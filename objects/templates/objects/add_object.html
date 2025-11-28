@@ -1,39 +1,41 @@
 {% load static %}
 {% load i18n %}
 
-<div class="dropdown">
-    <button aria-controls="export-add"
-            aria-expanded="false"
-            class="dropdown-button ghost">
-        {% translate "Add" %}<span aria-hidden="true" class="icon ti-chevron-down"></span>
-    </button>
-    <div id="export-add" class="dropdown-list">
-        <ul>
-            {% if perms.objects.add_hostname %}
-                <li>
-                    <a href="{% url "objects:add_hostname" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Hostname" %}</a>
-                </li>
-            {% endif %}
-            {% if perms.objects.add_ipaddress %}
-                <li>
-                    <a href="{% url "objects:add_ipaddress" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "IP address" %}</a>
-                </li>
-            {% endif %}
-            {% if perms.objects.add_network %}
-                <li>
-                    <a href="{% url "objects:add_network" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Network" %}</a>
-                </li>
-            {% endif %}
-            {% if perms.tasks.add_object_set %}
-                <li>
-                    <a href="{% url "add_object_set" %}"><span aria-hidden="true" class="icon ti-library-plus"></span>{% translate "Add object set" %}</a>
-                </li>
-            {% endif %}
-            {% if perms.objects.add_ipaddress %}
-                <li>
-                    <a href="{% url "objects:generic_asset_create" %}"><span aria-hidden="true" class="icon ti-file-upload"></span>{% translate "Multiple assets" %}</a>
-                </li>
-            {% endif %}
-        </ul>
+{% if perms.objects.add_hostname or perms.objects.add_ipaddress or perms.objects.add_network or perms.tasks.add_object_set %}
+    <div class="dropdown">
+        <button aria-controls="export-add"
+                aria-expanded="false"
+                class="dropdown-button ghost">
+            {% translate "Add" %}<span aria-hidden="true" class="icon ti-chevron-down"></span>
+        </button>
+        <div id="export-add" class="dropdown-list">
+            <ul>
+                {% if perms.objects.add_hostname %}
+                    <li>
+                        <a href="{% url "objects:add_hostname" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Hostname" %}</a>
+                    </li>
+                {% endif %}
+                {% if perms.objects.add_ipaddress %}
+                    <li>
+                        <a href="{% url "objects:add_ipaddress" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "IP address" %}</a>
+                    </li>
+                {% endif %}
+                {% if perms.objects.add_network %}
+                    <li>
+                        <a href="{% url "objects:add_network" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Network" %}</a>
+                    </li>
+                {% endif %}
+                {% if perms.tasks.add_object_set %}
+                    <li>
+                        <a href="{% url "add_object_set" %}"><span aria-hidden="true" class="icon ti-library-plus"></span>{% translate "Add object set" %}</a>
+                    </li>
+                {% endif %}
+                {% if perms.objects.add_ipaddress %}
+                    <li>
+                        <a href="{% url "objects:generic_asset_create" %}"><span aria-hidden="true" class="icon ti-file-upload"></span>{% translate "Multiple assets" %}</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
     </div>
-</div>
+{% endif %}

@@ -1,6 +1,6 @@
 ---
 authors: Jeroen Dekkers <@dekkers>, Donny Peeters <@donnype>
-state: discussion
+state: implemented
 discussion:
 labels: Architecture, Data Models
 ---
