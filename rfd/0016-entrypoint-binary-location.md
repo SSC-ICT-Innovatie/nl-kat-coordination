@@ -5,7 +5,7 @@ discussion:
 labels: Plugins, Containers, Infrastructure
 ---
 
-# RFD 0015: Entrypoint Binary Location
+# RFD 0016: Entrypoint Binary Location
 
 ## Introduction
 
