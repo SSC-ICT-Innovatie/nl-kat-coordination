@@ -89,6 +89,9 @@ def bind_domain(request, logger, response, log_kwargs, **kwargs):
     if response.status_code == 400:
         structlog.contextvars.bind_contextvars(response=response.content)
 
+    if response.status_code == 403:
+        structlog.contextvars.bind_contextvars(auth=getattr(request, "auth", {}))
+
 
 @receiver(pre_save, sender=Organization)
 def organization_pre_save(sender, instance, *args, **kwargs):
