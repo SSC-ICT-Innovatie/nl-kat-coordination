@@ -17,7 +17,7 @@ In light of RFD 0006, 0007 and 0009, the schedule model in RFD 0005 does not suf
 
 - We want to make the arbitrary JSON data more explicit. Plugins can be run on a variety of input sets,
   so e.g. a BoefjeMeta is too limited as well as redundant: fields such as `started_at` and `ended_at` should be defined
-  on the Task, while fields as `input_ooi` should be replaced by a more generic input data field on the Schedule.
+  on the Task, while fields as `input_object` should be replaced by a more generic input data field on the Schedule.
 - Schedules on an interval should be configured with a recurrence field, as discussed multiple times, this is a more
   flexible and powerful approach.
 - We could want to trigger a plugin to parse a file when it is created, e.g. because it contains `nmap` output. This is
@@ -34,7 +34,7 @@ The core of this proposal is to:
 1. Replace the `schedule` field with a `recurrences` field
 2. Have a `plugin` field on a schedule.
 3. Add a nullable `input` field containing django_ql, that generates the input data the plugin should run on.
-   Perhaps we need a query per OOI type here, as djangoql assumes we know the model being queried.
+   Perhaps we need a query per object type here, as djangoql assumes we know the model being queried.
 4. Add a `run_on` field that will hold a type such as "file" or "hostname"
 5. Add some `operation` field that specifies the operation such as "create", "update" or "delete", that only has effect
    if `run_on` is set.

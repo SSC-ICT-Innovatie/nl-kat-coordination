@@ -10,7 +10,7 @@ labels: Data Models, Plugins
 ## Introduction
 
 Plugins are part of the core of OpenKAT.
-They form the engine that continuously monitors important OOIs for Findings.
+They form the engine that continuously monitors important objects for Findings.
 For both the community and experienced OpenKAT users,
 being able to create, configure and extend plugins are perhaps the most important features we provide,
 on the one hand because of the large open source community that provides vulnerability scanning scripts
@@ -43,8 +43,8 @@ Moreover, we still cannot handle certain scenarios with the old current boefje-n
 `rfd/0006-plugins-database-schema.md`):
 
 1. It is not possible to trigger normalizers on two or more raw files
-2. It is not possible to get other oois into a normalizer
-3. It is not possible to run a boefje on multiple OOIs at once
+2. It is not possible to get other objects into a normalizer
+3. It is not possible to run a boefje on multiple objects at once
 4. It is not possible to normalize multiple raw files at once
 
 But with the new schema from RFD 0006 and the level of control introduced in the design of RFD 0007,
@@ -75,7 +75,7 @@ The core of this proposal is to:
 2. Plugins should be language-agnostic - not limited to Python-based implementations
 3. Plugins should be able to access both file and object APIs dynamically
 4. Plugins should have fine-grained, scoped permissions (not full API access)
-5. Plugins should be easy to work with, support multiple input patterns such as single OOI, multiple OOIs, files,
+5. Plugins should be easy to work with, support multiple input patterns such as single object, multiple objects, files,
    or no input (standalone)
 6. Plugin API communication should be secure and authenticated
 
