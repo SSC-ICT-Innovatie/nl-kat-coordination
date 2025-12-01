@@ -10,17 +10,14 @@ from pathlib import Path
 import pytest
 import structlog
 from celery import Celery
-from django.apps import apps
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
-from django.core.management.color import no_style
-from django.db import connections
+from django.db import InternalError, connections
 from django.utils.translation import activate, deactivate
 from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.middleware import OTPMiddleware
-from psycopg.errors import FeatureNotSupported
 from pytest_django.lazy_django import skip_if_no_django
 from rest_framework.test import APIClient
 
@@ -354,42 +351,35 @@ def pytest_collection_modifyitems(items):
             item.add_marker(pytest.mark.django_db(databases=["xtdb", "default"]))
 
 
-@pytest.fixture
-def xtdb(request: pytest.FixtureRequest, mocker):
-    """
-    Make sure openkat-test-api and openkat_integration in .ci/docker-compose.yml use the same database:
-    Since openkat_integration calls pytest, it creates a test database by default within ci_postgres, where the
-    openkat-test-api will use the regular database. This will result in the API not knowing about plugins, users or
-    Authtokens created during the test, but we need this since plugins created during the test have openkat-test-api
-    as a callback service.
-    """
-    objects = apps.get_app_config("objects")
-    object_models = list(objects.get_models())
+@pytest.fixture(scope="session")
+def xtdb_setup(request: pytest.FixtureRequest, django_db_blocker):
     con = connections["xtdb"]
-    con.ensure_connection()
-    con.close = lambda: None  # Keep the connection alive to avoid the overhead
-
     xdist_suffix = getattr(request.config, "workerinput", {}).get("workerid")
+    db_name = f"test_xtdb_{xdist_suffix}"
 
-    for obj in object_models:
-        if obj._meta.db_table.startswith("test_"):
-            continue
-        obj._meta.db_table = f"test_{xdist_suffix}_{obj._meta.db_table}".lower()  # Table names are not case-insensitive
+    with django_db_blocker.unblock(), con.cursor() as cursor, contextlib.suppress(InternalError):
+        cursor.execute(f"DETACH DATABASE {db_name}")
 
-    style = no_style()
-    erase = [
-        "{} {} {};".format(
-            style.SQL_KEYWORD("ERASE"),
-            style.SQL_KEYWORD("FROM"),
-            style.SQL_FIELD(con.ops.quote_name(obj._meta.db_table)),
-        )
-        for obj in object_models
-    ]
+    with django_db_blocker.unblock(), con.cursor() as cursor:
+        cursor.execute(f"""ATTACH DATABASE {db_name} WITH $$
+        log: !Local
+          path: /home/xtdb/{db_name}/LOG
+        storage: !Local
+          path: /home/xtdb/{db_name}
+        $$""")
 
-    with contextlib.suppress(FeatureNotSupported):
-        con.ops.execute_sql_flush(erase)
+    settings.DATABASES["xtdb"]["NAME"] = db_name
 
     yield
+
+    settings.DATABASES["xtdb"]["NAME"] = "xtdb"
+
+    with django_db_blocker.unblock(), con.cursor() as cursor:
+        cursor.execute(f"DETACH DATABASE {db_name}")
+
+@pytest.fixture()
+def xtdb(xtdb_setup):
+    pass # TODO: clear tables
 
 
 def _set_suffix_to_test_databases_except_xtdb(suffix: str) -> None:
@@ -412,7 +402,7 @@ def _set_suffix_to_test_databases_except_xtdb(suffix: str) -> None:
 
 
 @pytest.fixture(scope="session")
-def django_db_modify_db_settings_xdist_suffix(request):
+def django_db_modify_db_settings_xdist_suffix(request, xtdb):
     skip_if_no_django()
 
     xdist_suffix = getattr(request.config, "workerinput", {}).get("workerid")
