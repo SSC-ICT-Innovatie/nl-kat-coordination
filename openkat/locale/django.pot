@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-25 08:10+0000\n"
+"POT-Creation-Date: 2025-12-03 09:30+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -556,7 +556,7 @@ msgstr ""
 #: objects/templates/objects/ipaddress_list.html
 #: objects/templates/objects/network_detail.html
 #: objects/templates/objects/network_list.html objects/views.py
-msgid "Scan type"
+msgid "Origin"
 msgstr ""
 
 #: objects/templates/objects/hostname_detail.html
@@ -722,11 +722,10 @@ msgid "Empty:"
 msgstr ""
 
 #: objects/templates/objects/hostname_detail_scan_level.html
-#: objects/templates/objects/ipaddress_detail_scan_level.html
 msgid ""
 "This object has a scan level of \"None\". This means that this object has no "
-"scan level yet. If you have just changed the scan type to \"Inherited\", it "
-"may take a moment before OpenKAT sets the inherited scan level."
+"scan level yet. If you have just changed the Origin to \"Inherited\", it may "
+"take a moment before OpenKAT sets the inherited scan level."
 msgstr ""
 
 #: objects/templates/objects/hostname_detail_scan_level.html
@@ -860,6 +859,13 @@ msgstr ""
 msgid "IP address:"
 msgstr ""
 
+#: objects/templates/objects/ipaddress_detail_scan_level.html
+msgid ""
+"This object has a scan level of \"None\". This means that this object has no "
+"scan level yet. If you have just changed the origin to \"Inherited\", it may "
+"take a moment before OpenKAT sets the inherited scan level."
+msgstr ""
+
 #: objects/templates/objects/ipaddress_detail_tasks.html
 msgid ""
 "This tab shows plugin tasks that have this IP address in their input data."
@@ -959,8 +965,8 @@ msgstr ""
 
 #: objects/views.py
 msgid ""
-"All the plugins with a scan level below or equal to the clearance level will "
-"be allowed to scan this object."
+"Plugins with a scan level not exceeding this clearance level will be able to "
+"scan this object."
 msgstr ""
 
 #: objects/views.py
@@ -1047,11 +1053,6 @@ msgid "Error parsing CSV file: {error}"
 msgstr ""
 
 #: objects/views.py
-#, python-brace-format
-msgid "Organization with code '{code}' not found."
-msgstr ""
-
-#: objects/views.py
 msgid "\"{}\" has static objects that are ignored. Only the query is applied."
 msgstr ""
 
@@ -1060,11 +1061,11 @@ msgid "No hostnames selected."
 msgstr ""
 
 #: objects/views.py
-msgid "Removed scan level for {} hostnames."
+msgid "Removed scan level."
 msgstr ""
 
 #: objects/views.py
-msgid "Updated scan level for {} hostnames."
+msgid "Updated scan level."
 msgstr ""
 
 #: objects/views.py
@@ -1077,7 +1078,13 @@ msgstr ""
 
 #: objects/views.py
 #, python-brace-format
-msgid "Error creating hostname '{name}' on row {row_num}: {error}"
+msgid ""
+"Organization with code '{code}' not found. Skipping scan level for this row."
+msgstr ""
+
+#: objects/views.py
+#, python-brace-format
+msgid "Error creating hostname '{name}' on row {row}: {er}"
 msgstr ""
 
 #: objects/views.py
@@ -1097,7 +1104,7 @@ msgstr ""
 
 #: objects/views.py
 #, python-brace-format
-msgid "{count} hostnames had errors and were not created."
+msgid "{count} hostnames were not created."
 msgstr ""
 
 #: objects/views.py
@@ -1136,12 +1143,6 @@ msgstr ""
 #: objects/views.py
 #, python-brace-format
 msgid "Successfully set organizations for {count} assets."
-msgstr ""
-
-#: objects/views.py
-#, python-brace-format
-msgid ""
-"Organization with code '{code}' not found. Skipping scan level for this row."
 msgstr ""
 
 #: onboarding/forms.py
@@ -1719,11 +1720,7 @@ msgid "OpenKAT Setup"
 msgstr ""
 
 #: onboarding/views.py
-msgid "Fetch the parent DNS zone of a hostname"
-msgstr ""
-
-#: onboarding/views.py
-msgid "Finds subdomains by brute force"
+msgid "Query the dns records of a hostname"
 msgstr ""
 
 #: onboarding/views.py
@@ -2489,7 +2486,7 @@ msgid "Object Type"
 msgstr ""
 
 #: tasks/views.py
-msgid "Select the type of objects this set will contain"
+msgid "Type of the objects in this set"
 msgstr ""
 
 #: tasks/views.py
