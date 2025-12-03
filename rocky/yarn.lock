@@ -44,15 +44,15 @@
   resolved "https://registry.yarnpkg.com/@lmdb/lmdb-win32-x64/-/lmdb-win32-x64-2.8.5.tgz#8233e8762440b0f4632c47a09b1b6f23de8b934c"
   integrity sha512-4wvrf5BgnR8RpogHhtpCPJMKBmvyZPhhUtEwMJbXh0ni2BucpfF07jlmyM11zRqQ2XIq6PbC2j7W7UCCcm1rRQ==
 
-"@minvws/manon-themes@18.0.0-alpha.2":
-  version "18.0.0-alpha.2"
-  resolved "https://registry.npmjs.org/@minvws/manon-themes/-/manon-themes-18.0.0-alpha.2.tgz"
-  integrity sha512-E6wKQyh1sPzJVE/4BYiwa+qcQ5ttDp4YK9jjgDYPTM0ta5MrLW4T3EVSP6yg2lRm9NBFRWbgWZqoB/ru3Esgxg==
+"@minvws/manon-themes@18.0.0-alpha.3":
+  version "18.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@minvws/manon-themes/-/manon-themes-18.0.0-alpha.3.tgz#b5eb5c3623adb2e56265b31d02240cb9a7f547db"
+  integrity sha512-aiKbOU3J/5vYmviw3PR37vdw4n9s06V3BqfmUtcQYiB68yiMMcfggn/Cs72btoIZVD925diaNC4+Xdz0lDR5Ng==
 
-"@minvws/manon@18.0.0-alpha.2":
-  version "18.0.0-alpha.2"
-  resolved "https://registry.npmjs.org/@minvws/manon/-/manon-18.0.0-alpha.2.tgz"
-  integrity sha512-/uoETiIxn+L8B3e8IBZbNJsZzPcuiU4V3UPVr1e9RKOTigWN6o8zlHciOizooRaoJt65z3DIe1UYVQdiS743tQ==
+"@minvws/manon@18.0.0-alpha.3":
+  version "18.0.0-alpha.3"
+  resolved "https://registry.yarnpkg.com/@minvws/manon/-/manon-18.0.0-alpha.3.tgz#936d307ba39136fd28e9579d8b1435141391d49c"
+  integrity sha512-ZdVxnCkHp0mSPFtEkGvzxH/jxoYicX0goN84gmFQW3VH6XSey8BPwg/jUX5hK4Vm88MLZ3MF7bumA8b81Xj6eQ==
 
 "@mischnic/json-sourcemap@^0.1.1":
   version "0.1.1"

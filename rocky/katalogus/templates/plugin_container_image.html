@@ -19,7 +19,7 @@
         </div>
         {% if perms.tools.can_add_boefje %}
             <div class="horizontal-view toolbar">
-                <a class="button ghost"
+                <a class="button secondary"
                    href="{% url "boefje_variant_setup" plugin_id=plugin.id organization_code=organization.code %}"><span aria-hidden="true" class="icon icon-plus"></span>{% translate "Add variant" %}</a>
             </div>
         {% endif %}
@@ -125,7 +125,7 @@
                                             {% endif %}
                                             {% if perms.tools.can_add_boefje %}
                                                 <div class="horizontal-view toolbar">
-                                                    <a class="button ghost"
+                                                    <a class="button secondary"
                                                        href="{% url "edit_boefje" plugin_id=variant.id organization_code=organization.code %}"><span aria-hidden="true" class="icon icon-edit action-button"></span>{% translate "Edit variant" %}</a>
                                                 </div>
                                             {% endif %}

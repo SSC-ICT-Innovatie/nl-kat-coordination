@@ -93,7 +93,7 @@
                                        href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}#findings-table">
                                         {% translate "View findings report" %}
                                     </a>
-                                    <a class="button ghost"
+                                    <a class="button secondary"
                                        href="{% ooi_url "ooi_edit" dashboard_item.data.report.report_recipe dashboard_item.data.report.organization_code %}">
                                         <span aria-hidden="true" class="icon icon-edit action-button"></span>{% translate "Edit report recipe" %}
                                     </a>

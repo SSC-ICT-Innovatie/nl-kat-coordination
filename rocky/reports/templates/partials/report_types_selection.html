@@ -59,7 +59,7 @@
             {% csrf_token %}
             {% include "forms/report_form_fields.html" with selected_report_types=None %}
 
-            <button type="submit" class="button ghost">
+            <button type="submit" class="button secondary">
                 <span class="icon icon-chevron-left" aria-hidden="true"></span>{% translate "Change selection" %}
             </button>
         </form>

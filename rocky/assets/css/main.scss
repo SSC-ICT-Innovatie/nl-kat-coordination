@@ -1,7 +1,8 @@
 @use "@minvws/manon-themes/kat" with (
   $font-path: "/assets/dist/fonts"
 );
-@use "manon-components";
-@use "../icons/tabler" with (
-  $icon-format: "svg"
-);
+@use "@minvws/manon/components/bundles/all";
+@use "../icons/tabler";
+
+// KAT components
+@forward "components/dropdown";

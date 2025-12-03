@@ -7,11 +7,11 @@ input[type="submit"],
 input[type="reset"],
 .dropdown button,
 .dropdown a.button,
-button.ghost,
-a.button.ghost,
-input[type="button"].ghost,
-input[type="submit"].ghost,
-input[type="reset"].ghost {
+button.secondary,
+a.button.secondary,
+input[type="button"].secondary,
+input[type="submit"].secondary,
+input[type="reset"].secondary {
   display: inline-block;
   min-width: 0;
   border: 0;

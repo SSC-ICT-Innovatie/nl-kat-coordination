@@ -12,7 +12,7 @@
 </div>
 <div class="toolbar">
     {% with params=dashboard_item.get_query_url %}
-        <a class="button ghost"
+        <a class="button secondary"
            href="{% url "finding_list" organization_code=organization.code %}?{{ params }}">
             {% translate "Go to findings" %}
             <span class="icon icon-chevron-right" aria-hidden="true"></span>

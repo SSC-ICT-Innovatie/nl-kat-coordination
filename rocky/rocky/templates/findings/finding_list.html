@@ -27,7 +27,7 @@
                 {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
                     <div class="toolbar">
                         <a href="#new-dashboard-item-modal"
-                           class="button ghost"
+                           class="button secondary"
                            data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
                     </div>
                     {% include "partials/new_dashboard_item_modal.html" with item_type="findings" template="partials/dashboard_finding_list.html" %}
@@ -57,9 +57,9 @@
                         {% if object_list|length >= 1 and perms.tools.can_mute_findings %}
                             <div class="horizontal-view toolbar">
                                 {% if not only_muted %}
-                                    <a class="button ghost" href="#mute-findings-modal"><icon class="icon icon-bell-off" aria-hidden="true"></icon>{% translate "Mute findings" %}</a>
+                                    <a class="button secondary" href="#mute-findings-modal"><icon class="icon icon-bell-off" aria-hidden="true"></icon>{% translate "Mute findings" %}</a>
                                 {% else %}
-                                    <button type="submit" class="ghost" form="finding-list-form">
+                                    <button type="submit" class="secondary" form="finding-list-form">
                                         <icon aria-hidden="true" class="icon icon-bell"></icon>{% translate "Unmute findings" %}
                                     </button>
                                     <input type="checkbox" class="hidden" value="true" name="unmute" checked>

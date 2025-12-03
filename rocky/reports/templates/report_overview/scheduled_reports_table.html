@@ -117,10 +117,10 @@
                                 <div class="horizontal-view toolbar">
                                     <div class="button-container">
                                         {% if schedule.enabled %}
-                                            <a class="button ghost"
+                                            <a class="button secondary"
                                                href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon icon-edit action-button"></span>{% translate "Edit report recipe" %}</a>
                                             {% if perms.tools.can_enable_disable_schedule %}
-                                                <a class="button ghost destructive"
+                                                <a class="button secondary destructive"
                                                    href="#disable-schedule-modal-{{ schedule.recipe.recipe_id }}">{% translate "Disable schedule" %}</a>
                                                 {% include "report_overview/modal_partials/enable_disable_schedule_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
 
@@ -140,11 +140,11 @@
                                                     <button type="submit">{% translate "Enable schedule" %}</button>
                                                 </form>
                                             {% endif %}
-                                            <a class="button ghost"
+                                            <a class="button secondary"
                                                href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span class="icon icon-edit action-button" aria-hidden="true"></span>{% translate "Edit report recipe" %}</a>
                                         {% endif %}
                                         {% if perms.tools.can_enable_disable_schedule %}
-                                            <a class="button ghost destructive"
+                                            <a class="button secondary destructive"
                                                href="#delete-recipe-modal-{{ schedule.recipe.recipe_id }}">{% translate "Delete" %}</a>
                                             {% include "report_schedules/delete_recipe_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
 

@@ -70,7 +70,7 @@
                 <div class="button-container">
                     {% if perms.tools.add_indemnification %}
                         <a href="{% url "indemnification_add" organization.code %}"
-                           class="button ghost">
+                           class="button secondary">
                             <span class="icon icon-plus" aria-hidden="true"></span>{% translate "Add indemnification" %}
                         </a>
                     {% endif %}
@@ -78,7 +78,7 @@
                         <form method="post" class="inline">
                             {% csrf_token %}
                             <button type="submit"
-                                    class="dropdown-button ghost"
+                                    class="dropdown-button secondary"
                                     name="action"
                                     value="recalculate">{% translate "Rerun all bits" %}</button>
                         </form>

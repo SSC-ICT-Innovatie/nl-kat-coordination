@@ -12,8 +12,8 @@
     "prettier": "^2.7.1"
   },
   "dependencies": {
-    "@minvws/manon": "18.0.0-alpha.2",
-    "@minvws/manon-themes": "18.0.0-alpha.2",
+    "@minvws/manon": "18.0.0-alpha.3",
+    "@minvws/manon-themes": "18.0.0-alpha.3",
     "d3": "^7.4.3"
   },
   "browserslist": [

@@ -1,8 +1,9 @@
 {% load i18n %}
 
 <div class="horizontal-view toolbar">
-    <a href="{% url 'finding_add' organization.code %}" class="button ghost">{% translate "Add finding" %}</a>
+    <a href="{% url 'finding_add' organization.code %}"
+       class="button secondary">{% translate "Add finding" %}</a>
     <a href="{% url "finding_type_add" organization.code %}"
-       class="button ghost">{% translate "Add finding type" %}</a>
+       class="button secondary">{% translate "Add finding type" %}</a>
     <!-- Note that we cannot pass e.g. severity=request.GET.severity explicitly since this is a list parameter -->
 </div>

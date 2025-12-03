@@ -93,24 +93,24 @@
             </div>
         </div>
     </nav>
-    {% if breadcrumbs %}
-        <nav class="breadcrumb-bar" aria-label="{% translate "Breadcrumbs" %}">
-            <div>
-                <ul>
-                    {% for breadcrumb in breadcrumbs %}
-                        {% if forloop.last %}
-                            <li>
-                                <a aria-current="true" href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a>
-                            </li>
-                        {% else %}
-                            <li>
-                                <a href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a>
-                            </li>
-                        {% endif %}
-                    {% endfor %}
-                </ul>
-            </div>
-        </nav>
-    {% endif %}
 </header>
+{% if breadcrumbs %}
+    <nav class="breadcrumb-bar" aria-label="{% translate "Breadcrumbs" %}">
+        <div>
+            <ul>
+                {% for breadcrumb in breadcrumbs %}
+                    {% if forloop.last %}
+                        <li>
+                            <a aria-current="true" href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ breadcrumb.url }}">{{ breadcrumb.text }}</a>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    </nav>
+{% endif %}
 {% include "partials/notifications_block.html" %}

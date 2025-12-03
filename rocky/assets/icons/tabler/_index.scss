@@ -1,9 +1,9 @@
 @use "icons-svg" as svg;
 @use "icons-base64" as base64;
 
-$icon-format: "svg" !default;
+$icon-format: "base64" !default;
 
-$icons: if($icon-format == "svg", svg.$icons, base64.$icons);
+$icons: if($icon-format == "base64", base64.$icons, svg.$icons);
 
 @each $name, $url in $icons {
   .icon-#{$name} {
