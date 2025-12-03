@@ -379,6 +379,7 @@ class ScheduleUpdateView(KATModelPermissionRequiredMixin, UpdateView):
     model = Schedule
     fields = ["enabled", "recurrences", "object_set", "report_name", "report_description"]
     template_name = "schedule_form.html"
+    permission_required = ("tasks.change_schedule",)
 
     def get_form(self, form_class=None):
         form = super().get_form(form_class)
