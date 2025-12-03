@@ -122,6 +122,7 @@ module = [
   "django_downloadview.*",
   "django_structlog.*",
   "jwt.*",
+  "sslyze.*",
 ]
 ignore_missing_imports = true
 
