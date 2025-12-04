@@ -621,5 +621,12 @@
     "risk": "recommendation",
     "impact": "Depending on what software is outdated this can be critical.",
     "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
+  },
+  "KAT-EMS-NOT-SUPPORTED": {
+    "name": "TLS Extended Master Secret (EMS) not supported",
+    "description": "The server does not support the TLS Extended Master Secret (EMS) extension.",
+    "risk": "recommendation",
+    "impact": "The server is not protected against the TLS triple handshake attack; meaning the server is potentially vulnerable and could be at risk of connection failures on certain clients.",
+    "recommendation": ""
   }
 }

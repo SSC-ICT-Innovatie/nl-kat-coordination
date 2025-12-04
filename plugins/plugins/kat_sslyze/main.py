@@ -36,7 +36,6 @@ def main():
 
     for server_scan_result in scanner.get_results():
         hostname = server_scan_result.server_location.hostname
-        port = server_scan_result.server_location.port
         if server_scan_result.scan_status != sslyze.ServerScanStatusEnum.COMPLETED:
             continue
 
@@ -44,6 +43,14 @@ def main():
         for cert in server_scan_result.scan_result.certificate_info.result.certificate_deployments:
             if any(not x.was_validation_successful for x in cert.path_validation_results):
                 findings.append({"finding_type_code": "KAT-CERTIFICATE-EXPIRED", "hostname": hostname})
+
+        # check for missing extensions
+        if not server_scan_result.scan_result.tls_extended_master_secret.result.supports_ems_extension:
+            findings.append({"finding_type_code": "KAT-EMS-NOT-SUPPORTED", "hostname": hostname})
+
+        # check for missing HSTS
+        if server_scan_result.scan_result.http_headers.result.strict_transport_security_header is None:
+            findings.append({"finding_type_code": "KAT-NO-HSTS", "hostname": hostname})
 
     pprint.pprint(findings)
     client.post("/objects/finding/", json=findings).raise_for_status()
