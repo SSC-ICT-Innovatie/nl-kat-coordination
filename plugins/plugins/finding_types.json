@@ -74,7 +74,7 @@
   "KAT-NO-X-CONTENT-TYPE-OPTIONS": {
     "name": "Missing X-Content-Type-Options header",
     "description": "The HTTP header 'X-Content-Type-Options' is not set. Internet Explorer and Chrome apply MIME type sniffing in order to guess the content type of a document served and ignore the file extension.",
-    "source": "http://www.owasp.org/index.php/Cross-site_Scripting_(XSS)",
+    "source": "https://www.owasp.org/index.php/Cross-site_Scripting_(XSS)",
     "risk": "recommendation",
     "impact": "A malicious user of the system could upload a legitimate file containing HTML code to the website (if such functionality exists) with a file extension such as '.jpg' or '.png'. If the victim uses Internet Explorer or Chrome and downloads the malicious file, the uploaded HTML code will be executed, even though the file contains an image extension and the server would return an image header such as 'Content-Type: image/jpeg'. This may include a cross-site scripting vulnerability.",
     "recommendation": "Set the HTTP header 'X-Content-Type- Options: nosniff' in at least all web pages that contain user input (and uploads)."

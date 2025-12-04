@@ -1,6 +1,5 @@
 import argparse
 import os
-import pprint
 
 import httpx
 import sslyze
@@ -24,7 +23,19 @@ def main():
 
     all_scan_requests = [
         sslyze.ServerScanRequest(
-            server_location=sslyze.ServerNetworkLocation(hostname, 443), scan_commands={ScanCommand.CERTIFICATE_INFO}
+            server_location=sslyze.ServerNetworkLocation(hostname, 443),
+            scan_commands={
+                ScanCommand.CERTIFICATE_INFO,
+                ScanCommand.TLS_EXTENDED_MASTER_SECRET,
+                ScanCommand.HTTP_HEADERS,
+                ScanCommand.TLS_FALLBACK_SCSV,
+                ScanCommand.TLS_1_0_CIPHER_SUITES,
+                ScanCommand.TLS_1_1_CIPHER_SUITES,
+                ScanCommand.TLS_1_2_CIPHER_SUITES,
+                ScanCommand.TLS_1_3_CIPHER_SUITES,
+                ScanCommand.SSL_2_0_CIPHER_SUITES,
+                ScanCommand.SSL_3_0_CIPHER_SUITES,
+            },
         )
         for hostname in args.hostnames
     ]
@@ -56,7 +67,20 @@ def main():
         if not server_scan_result.scan_result.tls_fallback_scsv.result.supports_fallback_scsv:
             findings.append({"finding_type_code": "KAT-NO-TLS-FALLBACK-SCSV", "hostname": hostname})
 
-    pprint.pprint(findings)
+        # check for supported/unsupported TLS versions
+        if server_scan_result.scan_result.tls_1_0_cipher_suites.result.is_tls_version_supported:
+            findings.append({"finding_type_code": "KAT-TLS-1.0-SUPPORT", "hostname": hostname})
+        if server_scan_result.scan_result.tls_1_1_cipher_suites.result.is_tls_version_supported:
+            findings.append({"finding_type_code": "KAT-TLS-1.1-SUPPORT", "hostname": hostname})
+        if not server_scan_result.scan_result.tls_1_2_cipher_suites.result.is_tls_version_supported:
+            findings.append({"finding_type_code": "KAT-NO-TLS-1.2", "hostname": hostname})
+        if not server_scan_result.scan_result.tls_1_3_cipher_suites.result.is_tls_version_supported:
+            findings.append({"finding_type_code": "KAT-NO-TLS-1.3", "hostname": hostname})
+        if server_scan_result.scan_result.ssl_2_0_cipher_suites.result.is_tls_version_supported:
+            findings.append({"finding_type_code": "KAT-SSL-2-SUPPORT", "hostname": hostname})
+        if server_scan_result.scan_result.ssl_3_0_cipher_suites.result.is_tls_version_supported:
+            findings.append({"finding_type_code": "KAT-SSL-3-SUPPORT", "hostname": hostname})
+
     client.post("/objects/finding/", json=findings).raise_for_status()
 
 
