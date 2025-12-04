@@ -52,6 +52,10 @@ def main():
         if server_scan_result.scan_result.http_headers.result.strict_transport_security_header is None:
             findings.append({"finding_type_code": "KAT-NO-HSTS", "hostname": hostname})
 
+        # check for downgrade prevention
+        if not server_scan_result.scan_result.tls_fallback_scsv.result.supports_fallback_scsv:
+            findings.append({"finding_type_code": "KAT-NO-TLS-FALLBACK-SCSV", "hostname": hostname})
+
     pprint.pprint(findings)
     client.post("/objects/finding/", json=findings).raise_for_status()
 
