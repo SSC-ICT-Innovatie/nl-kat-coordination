@@ -50,36 +50,42 @@ def main():
         if server_scan_result.scan_status != sslyze.ServerScanStatusEnum.COMPLETED:
             continue
 
+        scan_command = server_scan_result.scan_result
+
         # check for invalid certs
-        for cert in server_scan_result.scan_result.certificate_info.result.certificate_deployments:
+        # check for invalid certs
+        codes = []
+        for cert in scan_command.certificate_info.result.certificate_deployments:
             if any(not x.was_validation_successful for x in cert.path_validation_results):
-                findings.append({"finding_type_code": "KAT-CERTIFICATE-EXPIRED", "hostname": hostname})
+                codes.append("KAT-CERTIFICATE-EXPIRED")
 
         # check for missing extensions
-        if not server_scan_result.scan_result.tls_extended_master_secret.result.supports_ems_extension:
-            findings.append({"finding_type_code": "KAT-EMS-NOT-SUPPORTED", "hostname": hostname})
+        if not scan_command.tls_extended_master_secret.result.supports_ems_extension:
+            codes.append("KAT-EMS-NOT-SUPPORTED")
 
         # check for missing HSTS
-        if server_scan_result.scan_result.http_headers.result.strict_transport_security_header is None:
-            findings.append({"finding_type_code": "KAT-NO-HSTS", "hostname": hostname})
+        if scan_command.http_headers.result.strict_transport_security_header is None:
+            codes.append("KAT-NO-HSTS")
 
         # check for downgrade prevention
-        if not server_scan_result.scan_result.tls_fallback_scsv.result.supports_fallback_scsv:
-            findings.append({"finding_type_code": "KAT-NO-TLS-FALLBACK-SCSV", "hostname": hostname})
+        if not scan_command.tls_fallback_scsv.result.supports_fallback_scsv:
+            codes.append("KAT-NO-TLS-FALLBACK-SCSV")
 
         # check for supported/unsupported TLS versions
-        if server_scan_result.scan_result.tls_1_0_cipher_suites.result.is_tls_version_supported:
-            findings.append({"finding_type_code": "KAT-TLS-1.0-SUPPORT", "hostname": hostname})
-        if server_scan_result.scan_result.tls_1_1_cipher_suites.result.is_tls_version_supported:
-            findings.append({"finding_type_code": "KAT-TLS-1.1-SUPPORT", "hostname": hostname})
-        if not server_scan_result.scan_result.tls_1_2_cipher_suites.result.is_tls_version_supported:
-            findings.append({"finding_type_code": "KAT-NO-TLS-1.2", "hostname": hostname})
-        if not server_scan_result.scan_result.tls_1_3_cipher_suites.result.is_tls_version_supported:
-            findings.append({"finding_type_code": "KAT-NO-TLS-1.3", "hostname": hostname})
-        if server_scan_result.scan_result.ssl_2_0_cipher_suites.result.is_tls_version_supported:
-            findings.append({"finding_type_code": "KAT-SSL-2-SUPPORT", "hostname": hostname})
-        if server_scan_result.scan_result.ssl_3_0_cipher_suites.result.is_tls_version_supported:
-            findings.append({"finding_type_code": "KAT-SSL-3-SUPPORT", "hostname": hostname})
+        if scan_command.tls_1_0_cipher_suites.result.is_tls_version_supported:
+            codes.append("KAT-TLS-1.0-SUPPORT")
+        if scan_command.tls_1_1_cipher_suites.result.is_tls_version_supported:
+            codes.append("KAT-TLS-1.1-SUPPORT")
+        if not scan_command.tls_1_2_cipher_suites.result.is_tls_version_supported:
+            codes.append("KAT-NO-TLS-1.2")
+        if not scan_command.tls_1_3_cipher_suites.result.is_tls_version_supported:
+            codes.append("KAT-NO-TLS-1.3")
+        if scan_command.ssl_2_0_cipher_suites.result.is_tls_version_supported:
+            codes.append("KAT-SSL-2-SUPPORT")
+        if scan_command.ssl_3_0_cipher_suites.result.is_tls_version_supported:
+            codes.append("KAT-SSL-3-SUPPORT")
+
+        findings.extend({"finding_type_code": code, "hostname": hostname} for code in codes)
 
     client.post("/objects/finding/", json=findings).raise_for_status()
 
