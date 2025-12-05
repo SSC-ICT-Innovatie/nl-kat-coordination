@@ -2,14 +2,14 @@
 {% load i18n %}
 
 <header id="page-header">
-    {% include "partials/skip-to-content.html" %}
+    <div class="content-wrapper">
+        {% include "partials/skip-to-content.html" %}
 
-    <nav data-open-label="{% translate "Menu" %}"
-         data-close-label="{% translate "Close menu" %}"
-         data-media="(min-width: 70rem)"
-         aria-label="{% translate "Main navigation" %}"
-         class="collapsible">
-        <div>
+        <nav data-open-label="{% translate "Menu" %}"
+             data-close-label="{% translate "Close menu" %}"
+             data-media="(min-width: 70rem)"
+             aria-label="{% translate "Main navigation" %}"
+             class="collapsible">
             <a href="{% url "landing_page" %}"
                class="logo"
                title="OpenKAT"
@@ -17,13 +17,17 @@
                 <img src="{% static 'img/kat_logo.png' %}" alt="{% translate "OpenKAT" %}" />
                 Kwetsbaarheden Analyse Tool
             </a>
-            {% if request.user.is_authenticated %}
-                {% if not view_type == "onboarding" %}
-                    {% include "partials/organizations_menu_dropdown.html" %}
-
-                {% endif %}
-            {% endif %}
             <div class="collapsing-element">
+                <ul>
+                    <li>
+                        {% if request.user.is_authenticated %}
+                            {% if not view_type == "onboarding" %}
+                                {% include "partials/organizations_menu_dropdown.html" %}
+
+                            {% endif %}
+                        {% endif %}
+                    </li>
+                </ul>
                 <ul>
                     {% if request.user.is_authenticated %}
                         {% if not organization.code %}
@@ -85,14 +89,19 @@
                         {% endif %}
                     {% endif %}
                 </ul>
-                <div>
-                    {% include "partials/language-switcher.html" %}
-                    {% include "partials/secondary-menu.html" %}
+                <ul>
+                    <li>
+                        {% include "partials/language-switcher.html" %}
 
-                </div>
+                    </li>
+                    <li>
+                        {% include "partials/secondary-menu.html" %}
+
+                    </li>
+                </ul>
             </div>
-        </div>
-    </nav>
+        </nav>
+    </div>
 </header>
 {% if breadcrumbs %}
     <nav class="breadcrumb-bar" aria-label="{% translate "Breadcrumbs" %}">

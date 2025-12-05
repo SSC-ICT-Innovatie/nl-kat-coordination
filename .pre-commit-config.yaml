@@ -121,6 +121,7 @@ repos:
           \.xml$ |
           \.svg$ |
           poetry.lock$ |
+          yarn.lock |
           pyproject.toml$ |
           requirements-.*.txt$ |
           retirejs.json$ |

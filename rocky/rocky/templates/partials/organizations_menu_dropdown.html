@@ -1,18 +1,12 @@
 {% load i18n %}
 
 {% if organizations_including_blocked|length > 0 %}
-    <div class="dropdown">
-        <button aria-controls="change-organization"
-                aria-expanded="false"
-                class="dropdown-button secondary">
-            {% if not organization.code %}
-                {% translate "Select organization" %}
-            {% else %}
-                {{ organization.name }}
-            {% endif %}
-            <span class="icon icon-chevron-down"></span>
-        </button>
-        <div id="change-organization" class="dropdown-list">
+    <div data-open-label="{% if not organization.code %}{% translate "Select organization" %}{% else %}{{ organization.name }}{% endif %}"
+         data-close-label="{% if not organization.code %}{% translate "Select organization" %}{% else %}{{ organization.name }}{% endif %}"
+         data-media="(min-width: 100%)"
+         data-button-classes="secondary icon icon-chevron-down"
+         class="collapsible">
+        <div class="collapsing-element">
             <ul>
                 <li>
                     <a href="{% url "crisis_room" %}">{% translate "All organizations" %}</a>
