@@ -70,8 +70,10 @@
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Objects" %}</a>
                             </li>
                             <li>
-                                <div data-open-label="{% translate "More options" %}"
-                                     data-close-label="{% translate "More options" %}"
+                                <div data-button-open-label="..."
+                                     data-button-close-label="..."
+                                     data-open-label="{% translate "More menu options" %}"
+                                     data-close-label="{% translate "Close more menu options" %}"
                                      data-media="(min-width: 100%)"
                                      data-button-classes="secondary icon icon-chevron-down"
                                      class="collapsible">
