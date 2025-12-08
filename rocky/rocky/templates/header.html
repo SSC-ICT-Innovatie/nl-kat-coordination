@@ -70,24 +70,36 @@
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Objects" %}</a>
                             </li>
                             <li>
-                                {% url "task_list" organization.code as index_url %}
-                                <a href="{{ index_url }}"
-                                   {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Tasks" %}</a>
-                            </li>
-                            {% if request.user.is_superuser or perms.tools.view_organization %}
-                                <li>
-                                    {% url "organization_member_list" organization.code as index_url %}
-                                    <a href="{{ index_url }}"
-                                       {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Members" %}</a>
-                                </li>
-                                <li>
-                                    {% url "organization_settings" organization.code as index_url %}
-                                    <a href="{{ index_url }}"
-                                       {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Settings" %}</a>
-                                </li>
-                            {% endif %}
-                        {% endif %}
-                    {% endif %}
+                                <div data-open-label="{% translate "More options" %}"
+                                     data-close-label="{% translate "More options" %}"
+                                     data-media="(min-width: 100%)"
+                                     data-button-classes="secondary icon icon-chevron-down"
+                                     class="collapsible">
+                                    <div class="collapsing-element">
+                                        <ul>
+                                            <li>
+                                                {% url "task_list" organization.code as index_url %}
+                                                <a href="{{ index_url }}"
+                                                   {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Tasks" %}</a>
+                                            </li>
+                                            {% if request.user.is_superuser or perms.tools.view_organization %}
+                                                <li>
+                                                    {% url "organization_member_list" organization.code as index_url %}
+                                                    <a href="{{ index_url }}"
+                                                       {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Members" %}</a>
+                                                </li>
+                                                <li>
+                                                    {% url "organization_settings" organization.code as index_url %}
+                                                    <a href="{{ index_url }}"
+                                                       {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Settings" %}</a>
+                                                </li>
+                                            {% endif %}
+                                        {% endif %}
+                                    {% endif %}
+                                </ul>
+                            </div>
+                        </div>
+                    </li>
                 </ul>
                 <ul>
                     <li>
