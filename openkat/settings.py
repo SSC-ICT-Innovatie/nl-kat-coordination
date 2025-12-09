@@ -433,6 +433,13 @@ if CSP_HEADER:
         }
     }
 
+DEBUG_TOOLBAR = env.bool("DEBUG_TOOLBAR", False)
+if DEBUG_TOOLBAR:
+    INSTALLED_APPS += ["debug_toolbar"]
+    MIDDLEWARE = ["debug_toolbar.middleware.DebugToolbarMiddleware"] + MIDDLEWARE
+    INTERNAL_IPS = ["127.0.0.1"]
+
+
 # Turn on the browsable API by default if DEBUG is True, but disable by default in production
 BROWSABLE_API = env.bool("BROWSABLE_API", DEBUG)
 JWT_KEY = env.str("JWT_KEY", SECRET_KEY)

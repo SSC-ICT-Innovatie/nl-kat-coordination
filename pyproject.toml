@@ -43,6 +43,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "django-debug-toolbar>=6.1.0",
     # This is used by pytest-xdist to determine the number of physical and logical cores
     "psutil>=7.1.0",
     "pytest-cov>=6.0.0",
@@ -123,6 +124,7 @@ module = [
   "django_structlog.*",
   "jwt.*",
   "sslyze.*",
+  "debug_toolbar.*",
 ]
 ignore_missing_imports = true
 
