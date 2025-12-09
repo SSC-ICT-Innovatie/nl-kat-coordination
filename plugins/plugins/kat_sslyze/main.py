@@ -43,7 +43,7 @@ def main():
     scanner = sslyze.Scanner()
     scanner.queue_scans(all_scan_requests)
 
-    findings = []
+    findings: list[dict] = []
 
     for server_scan_result in scanner.get_results():
         hostname = server_scan_result.server_location.hostname
