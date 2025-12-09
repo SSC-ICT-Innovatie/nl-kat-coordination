@@ -59,7 +59,6 @@ urlpatterns += i18n_patterns(
     path("reset/<uidb64>/<token>/", PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
     path("admin/", admin.site.urls),
     path("", LandingPageView.as_view(), name="landing_page"),
-    path("onboarding/", include("onboarding.urls"), name="onboarding"),
     # New view:
     path("", include("plugins.urls"), name="plugins"),
     path("", include("tasks.urls"), name="tasks"),

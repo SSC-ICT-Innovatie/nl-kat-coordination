@@ -18,10 +18,8 @@
                 Kwetsbaarheden Analyse Tool
             </a>
             {% if request.user.is_authenticated %}
-                {% if not view_type == "onboarding" %}
-                    {% include "partials/organizations_menu_dropdown.html" %}
+                {% include "partials/organizations_menu_dropdown.html" %}
 
-                {% endif %}
             {% endif %}
             <div class="collapsing-element">
                 <ul>

@@ -15,10 +15,8 @@ from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.edit import FormView
 
-from onboarding.view_helpers import DNS_REPORT_LEAST_CLEARANCE_LEVEL
 from openkat.forms import AccountTypeSelectForm, MemberRegistrationForm, PasswordResetForm
 from openkat.forms.upload_csv import UploadCSVForm
-from openkat.messaging import clearance_level_warning_dns_report
 from openkat.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, OrganizationMember, User
 from openkat.view_helpers import Breadcrumb, OrganizationMemberBreadcrumbsMixin
@@ -92,9 +90,6 @@ class OrganizationMemberAddView(
         return kwargs
 
     def form_valid(self, form):
-        trusted_clearance_level = form.cleaned_data.get("trusted_clearance_level")
-        if trusted_clearance_level and int(trusted_clearance_level) < DNS_REPORT_LEAST_CLEARANCE_LEVEL:
-            clearance_level_warning_dns_report(self.request, trusted_clearance_level)
         self.add_success_notification()
         return super().form_valid(form)
 

@@ -186,7 +186,6 @@ def settings_test_setup(settings):
         "django.contrib.auth.middleware.AuthenticationMiddleware",
         "openkat.middleware.auth_required.AuthRequiredMiddleware",
         "django.contrib.messages.middleware.MessageMiddleware",
-        "openkat.middleware.onboarding.OnboardingMiddleware",
         "csp.middleware.CSPMiddleware",
     ]
     settings.PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)

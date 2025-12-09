@@ -44,10 +44,9 @@ To get a new `.env` file, just remove it and run `make kat`. To only clean out t
 $ make object-clean
 ```
 
-## Onboarding, organizations and permissions
+## Organizations and permissions
 
-The first login redirects to the onboarding where (optionally) an organization can be created.
-To add new users and organization members, currently only the [admin page](http://localhost:8000/en/admin/) can be used.
+To add new organizations, users and organization members, currently only the [admin page](http://localhost:8000/en/admin/) can be used.
 
 ## Scanning
 

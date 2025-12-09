@@ -174,7 +174,6 @@ INSTALLED_APPS = [
     "django_otp.plugins.otp_totp",
     "two_factor",
     "openkat",
-    "onboarding",
     "tasks",
     "files",
     "plugins",
@@ -209,7 +208,6 @@ MIDDLEWARE += [
     "openkat.middleware.auth_required.AuthRequiredMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "openkat.middleware.onboarding.OnboardingMiddleware",
 ]
 
 if env.str("DOWNLOADVIEW_BACKEND", default=None) and env.str("DESTINATION_URL", default=None):

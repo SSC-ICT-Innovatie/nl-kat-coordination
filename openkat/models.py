@@ -34,7 +34,6 @@ DENY_ORGANIZATION_CODES = [
     "privacy-statement",
     "account",
     "crisis-room",
-    "onboarding",
     "indemnifications",
     "findings",
     "objects",
@@ -287,7 +286,6 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text=_("The clearance level of the user for all organizations."),
         validators=[MinValueValidator(-1), MaxValueValidator(MAX_SCAN_LEVEL)],
     )
-    onboarded = models.BooleanField(default=False)
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["full_name"]

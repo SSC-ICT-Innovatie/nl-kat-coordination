@@ -9,16 +9,7 @@ pytestmark = pytest.mark.django_db
 def test_for_missing_migrations(xtdb):
     output = StringIO()
     call_command(
-        "makemigrations",
-        "openkat",
-        "onboarding",
-        "tasks",
-        "files",
-        "plugins",
-        "reports",
-        no_input=True,
-        dry_run=True,
-        stdout=output,
+        "makemigrations", "openkat", "tasks", "files", "plugins", "reports", no_input=True, dry_run=True, stdout=output
     )
     lines = output.getvalue().strip().splitlines()
 
