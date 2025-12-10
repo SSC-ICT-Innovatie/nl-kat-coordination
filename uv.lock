@@ -593,18 +593,6 @@ wheels = [
 ]
 
 [[package]]
-name = "django-password-validators"
-version = "1.7.3"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "django" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/63/91/82e0404483a5e2c0f3fdc144db39874b59107ed6a4a00afecf0c9d204a74/django-password-validators-1.7.3.tar.gz", hash = "sha256:7175aefa6e86dc002dd3539327bf2d752097651704927dc409a669259e0d2195", size = 19488, upload-time = "2023-12-11T13:53:47.945Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/d8/f9/c83f378a46535c4851df45bc9d172f262c5a7df75575b9087a8fe1ae2af7/django_password_validators-1.7.3-py3-none-any.whl", hash = "sha256:f243a82957e9b17a0c7cf5580f9d7588471cb6530c2dce7ee4e1222dddfe5768", size = 39013, upload-time = "2023-12-11T13:53:44.023Z" },
-]
-
-[[package]]
 name = "django-phonenumber-field"
 version = "8.3.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1043,7 +1031,6 @@ dependencies = [
     { name = "django-downloadview" },
     { name = "django-environ" },
     { name = "django-filter" },
-    { name = "django-password-validators" },
     { name = "django-recurrence" },
     { name = "django-redis" },
     { name = "django-rest-knox" },
@@ -1094,7 +1081,6 @@ requires-dist = [
     { name = "django-downloadview", specifier = ">=2.5.0" },
     { name = "django-environ", specifier = ">=0.12.0" },
     { name = "django-filter", specifier = ">=25.1" },
-    { name = "django-password-validators", specifier = ">=1.7.1" },
     { name = "django-recurrence", specifier = ">=1.11.1" },
     { name = "django-redis", specifier = ">=6.0.0" },
     { name = "django-rest-knox", specifier = ">=5.0.2" },

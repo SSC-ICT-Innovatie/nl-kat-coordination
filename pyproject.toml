@@ -12,7 +12,6 @@ dependencies = [
   "django-downloadview>=2.5.0",
   "django-environ>=0.12.0",
   "django-filter>=25.1",
-  "django-password-validators>=1.7.1",
   "django-recurrence>=1.11.1",
   "django-redis>=6.0.0",
   "django-rest-knox>=5.0.2",

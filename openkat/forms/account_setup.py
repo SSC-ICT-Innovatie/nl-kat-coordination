@@ -1,7 +1,6 @@
 from django import forms
-from django.contrib.auth import forms as auth_forms
 from django.contrib.auth.models import Group
-from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.password_validation import password_validators_help_text_html, validate_password
 from django.utils.translation import gettext_lazy as _
 
 from openkat.enums import SCAN_LEVEL
@@ -14,7 +13,6 @@ from openkat.models import (
     OrganizationMember,
     User,
 )
-from openkat.validators import get_password_validators_help_texts
 
 
 class UserRegistrationForm(forms.Form):
@@ -52,7 +50,7 @@ class UserRegistrationForm(forms.Form):
                 "aria-describedby": "explanation-password",
             }
         ),
-        help_text=get_password_validators_help_texts(),
+        help_text=password_validators_help_text_html(),
         validators=[validate_password],
     )
 
@@ -224,26 +222,3 @@ class OrganizationUpdateForm(OrganizationForm):
     class Meta:
         model = Organization
         fields = ["name", "code", "tags"]
-
-
-class SetPasswordForm(auth_forms.SetPasswordForm):
-    """
-    A form that lets a user change set their password without entering the old
-    password
-    """
-
-    error_messages = {"password_mismatch": _("The two password fields didn’t match.")}
-    new_password1 = forms.CharField(
-        label=_("New password"),
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": _("Enter a new password")}),
-        strip=False,
-        help_text=get_password_validators_help_texts,
-        validators=[validate_password],
-    )
-    new_password2 = forms.CharField(
-        label=_("New password confirmation"),
-        strip=False,
-        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": _("Repeat the new password")}),
-        help_text=_("Confirm the new password"),
-        validators=[validate_password],
-    )

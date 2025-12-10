@@ -5,7 +5,6 @@ from openkat.forms.account_setup import (
     OrganizationForm,
     OrganizationMemberEditForm,
     OrganizationUpdateForm,
-    SetPasswordForm,
 )
 from openkat.forms.login import LoginForm
 from openkat.forms.password_reset import PasswordResetForm
@@ -18,7 +17,6 @@ __all__ = [
     "OrganizationForm",
     "OrganizationMemberEditForm",
     "OrganizationUpdateForm",
-    "SetPasswordForm",
     "LoginForm",
     "PasswordResetForm",
     "TwoFactorBackupTokenForm",

@@ -6,7 +6,7 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from openkat.forms import PasswordResetForm, SetPasswordForm
+from openkat.forms import PasswordResetForm
 
 
 class PasswordResetView(auth_views.PasswordResetView):
@@ -30,15 +30,11 @@ class PasswordResetView(auth_views.PasswordResetView):
         return context
 
     def form_valid(self, form):
-        if self.is_smtp_valid():
+        if settings.EMAIL_HOST:
             self.add_success_notification()
         else:
             self.add_error_notification()
         return super().form_valid(form)
-
-    def is_smtp_valid(self):
-        smtp_credentials = [settings.EMAIL_HOST, settings.EMAIL_PORT]
-        return not ("" in smtp_credentials or None in smtp_credentials)
 
     def add_error_notification(self):
         if settings.HELP_DESK_EMAIL:
@@ -62,7 +58,6 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
     """
 
     template_name = "password_reset_confirm.html"
-    form_class = SetPasswordForm
     success_url = reverse_lazy("login")
 
     def get_context_data(self, **kwargs):
@@ -73,21 +68,12 @@ class PasswordResetConfirmView(auth_views.PasswordResetConfirmView):
         ]
         return context
 
-    def remove_twofactor_device(self):
-        """
-        After password reset, the user must create a new 2auth token.
-        """
-        device = TOTPDevice.objects.filter(user=self.user.pk).exists()
-        if device:
-            device = TOTPDevice.objects.get(user=self.user.pk)
-            device.delete()
-
     def form_valid(self, form):
         form_valid = super().form_valid(form)
-        self.remove_twofactor_device()
+        # After password reset, the user must create a new two factor token.
+        TOTPDevice.objects.filter(user=self.user.pk).delete()
         self.add_success_notification()
         return form_valid
 
     def add_success_notification(self):
-        success_message = "Password reset is successfully done."
-        messages.add_message(self.request, messages.SUCCESS, success_message)
+        messages.add_message(self.request, messages.SUCCESS, "Password reset is successfully done.")

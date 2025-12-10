@@ -126,17 +126,8 @@ ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*"])
 # -----------------------------
 EMAIL_BACKEND = env("EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend")
 EMAIL_FILE_PATH = env.path("EMAIL_FILE_PATH", BASE_DIR / "openkat/email_logs")  # directory to store output files
-EMAIL_HOST = env("EMAIL_HOST", default="localhost")  # localhost
-try:
-    EMAIL_PORT = env.int("EMAIL_PORT", default=25)
-except ValueError:
-    # We have an empty EMAIL_PORT= to openkat.conf in the Debian package. We
-    # handle the empty string as default value here so we don't generate an
-    # exception for this
-    if env("EMAIL_PORT"):
-        raise
-
-    EMAIL_PORT = 25
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env.int("EMAIL_PORT", default=25)
 
 EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="")
 EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="")
@@ -179,8 +170,6 @@ INSTALLED_APPS = [
     "plugins",
     "objects",
     "reports",
-    "django_password_validators",
-    "django_password_validators.password_history",
     "rest_framework",
     "django_filters",
     "knox",
@@ -306,10 +295,13 @@ if env.bool("POSTGRES_SSL_ENABLED", False):
     }
 
 AUTH_PASSWORD_VALIDATORS = [
+    {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
         "OPTIONS": {"min_length": env.int("PASSWORD_MIN_LENGTH", 12)},
-    }
+    },
+    {"NAME": "django.contrib.auth.password_validation.CommonPasswordValidator"},
+    {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
 # Internationalization
