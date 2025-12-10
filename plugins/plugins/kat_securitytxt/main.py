@@ -1,6 +1,5 @@
 import argparse
 import os
-from pprint import pprint
 
 import httpx
 from securitytxt import SecurityTXT
@@ -34,7 +33,6 @@ def main():
             if not sec.required_fields_present():
                 findings.append({"finding_type_code": "KAT-BAD-FORMAT-SECURITY-TXT", "hostname": hostname})
 
-    pprint(findings)
     client.post("/objects/finding/", json=findings).raise_for_status()
 
 
