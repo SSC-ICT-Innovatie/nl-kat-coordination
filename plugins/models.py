@@ -10,7 +10,7 @@ from django.db.models import Model, QuerySet
 from docker.utils import parse_repository_tag
 from recurrence.fields import RecurrenceField
 
-from objects.models import Hostname, IPAddress, object_type_by_name
+from objects.models import Hostname, IPAddress, IPPort, object_type_by_name
 from openkat.models import Organization
 from tasks.models import ObjectSet, Schedule
 
@@ -169,7 +169,7 @@ class Plugin(models.Model):
         if schedules.exists():
             return list(schedules)
 
-        queries = []
+        queries: list[tuple[ContentType, str, str]] = []
         consumed_types = self.consumed_types()
 
         if Hostname in consumed_types:
@@ -178,6 +178,9 @@ class Plugin(models.Model):
         if IPAddress in consumed_types:
             consumed_types.remove(IPAddress)
             queries.append((ContentType.objects.get_for_model(IPAddress), "", "All IPs"))
+        if IPPort in consumed_types:
+            consumed_types.remove(IPPort)
+            queries.append((ContentType.objects.get_for_model(IPPort), "", "All IP Ports"))
 
         # Schedule object sets
         object_sets = list(

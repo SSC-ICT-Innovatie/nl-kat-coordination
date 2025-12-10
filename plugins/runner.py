@@ -343,10 +343,13 @@ class PluginRunner:
             New list with placeholders replaced by target value
         """
 
-        format_map = {"{file}": target}
-        format_map["{ipaddress}"] = target
-        format_map["{hostname}"] = target
-        format_map["{mail_server}"] = target
+        format_map = {
+            "{file}": target,
+            "{ipaddress}": target,
+            "{hostname}": target,
+            "{mail_server}": target,
+            "{ipport}": target,
+        }
 
         new_args = []
 

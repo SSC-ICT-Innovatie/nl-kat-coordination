@@ -137,7 +137,18 @@
       "run",
       "kat_nmap/main.py",
       "{file}"
-    ]
+    ],
+    "permissions": {
+      "objects.add_ipaddress": {},
+      "objects.change_ipaddress": {},
+      "objects.view_ipaddress": {},
+      "objects.add_ipport": {},
+      "objects.change_ipport": {},
+      "objects.view_ipport": {},
+      "objects.add_service": {},
+      "objects.change_service": {},
+      "objects.view_service": {}
+    }
   },
   {
     "plugin_id": "citrix-bleed",
@@ -250,5 +261,43 @@
       "-",
       "{ipaddress}"
     ]
+  },
+  {
+    "plugin_id": "sslyze",
+    "name": "SSLyze",
+    "scan_level": 2,
+    "description": "SSLyze is a fast and powerful SSL/TLS scanning tool and Python library.",
+    "oci_image": "ghcr.io/minvws/openkat/plugins:0.1.0",
+    "oci_arguments": [
+      "uv",
+      "run",
+      "kat_sslyze/main.py",
+      "{hostname}"
+    ],
+    "consumes": [
+      "type:hostname"
+    ],
+    "permissions": {
+      "objects.add_finding": {}
+    }
+  },
+  {
+    "plugin_id": "kat_securitytxt",
+    "name": "Security.txt",
+    "description": "Fetch and parse the security.txt file from a domain.",
+    "scan_level": 1,
+    "consumes": [
+      "type:hostname"
+    ],
+    "oci_image": "ghcr.io/minvws/openkat/plugins:0.1.0",
+    "oci_arguments": [
+      "uv",
+      "run",
+      "kat_securitytxt/main.py",
+      "{hostname}"
+    ],
+    "permissions": {
+      "objects.add_finding": {}
+    }
   }
 ]
