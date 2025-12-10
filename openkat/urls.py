@@ -26,7 +26,6 @@ from openkat.views.organization_member_edit import OrganizationMemberEditView
 from openkat.views.organization_member_list import OrganizationMemberListView
 from openkat.views.organization_settings import OrganizationSettingsView
 from openkat.views.password_reset import PasswordResetConfirmView, PasswordResetView
-from openkat.views.privacy_statement import PrivacyStatementView
 from openkat.views.recover_email import RecoverEmailView
 from openkat.viewsets import OrganizationViewSet
 from tasks.viewsets import TaskViewSet
@@ -64,7 +63,6 @@ urlpatterns += i18n_patterns(
     path("", include("files.urls"), name="files"),
     path("", include("objects.urls"), name="objects"),
     path("reports/", include("reports.urls"), name="reports"),
-    path("privacy-statement/", PrivacyStatementView.as_view(), name="privacy_statement"),
     path("organizations/", OrganizationListView.as_view(), name="organization_list"),
     path("organizations/add/", OrganizationAddView.as_view(), name="organization_add"),
     path("<organization_code>/settings/edit/", OrganizationEditView.as_view(), name="organization_edit"),

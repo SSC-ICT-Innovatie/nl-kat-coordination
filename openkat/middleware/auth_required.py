@@ -14,7 +14,6 @@ def AuthRequiredMiddleware(get_response):
             reverse("password_reset"),
             reverse("landing_page"),
             reverse("set_language"),
-            reverse("privacy_statement"),
         ]
 
         # There won't be a request.user if auth tokens are used, but REST framework will make sure that there is an
