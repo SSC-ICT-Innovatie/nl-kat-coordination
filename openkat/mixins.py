@@ -2,7 +2,6 @@ from datetime import UTC, datetime
 from functools import cached_property
 
 import structlog.contextvars
-from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
 from django.core.exceptions import PermissionDenied
 from django.db.models import Q, QuerySet
@@ -12,12 +11,8 @@ from django.views.generic.base import ContextMixin
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 
-from openkat.exceptions import (
-    AcknowledgedClearanceLevelTooLowException,
-    IndemnificationNotPresentException,
-    TrustedClearanceLevelTooLowException,
-)
-from openkat.models import Indemnification, Organization, OrganizationMember, User
+from openkat.exceptions import AcknowledgedClearanceLevelTooLowException, TrustedClearanceLevelTooLowException
+from openkat.models import Organization, OrganizationMember, User
 
 
 class OrganizationPermLookupDict:
@@ -77,8 +72,6 @@ class OrganizationView(ContextMixin, View):
         except Organization.DoesNotExist:
             raise Http404()
 
-        self.indemnification_present = Indemnification.objects.filter(organization=self.organization).exists()
-
         try:
             self.organization_member = OrganizationMember.objects.get(
                 user=self.request.user, organization=self.organization
@@ -106,17 +99,10 @@ class OrganizationView(ContextMixin, View):
         context = super().get_context_data(**kwargs)
         context["organization"] = self.organization
         context["organization_member"] = self.organization_member
-        context["indemnification_present"] = self.indemnification_present
         context["perms"] = OrganizationPermWrapper(self.organization_member)
         return context
 
-    def indemnification_error(self):
-        return messages.error(self.request, f"Indemnification not present at organization {self.organization}.")
-
     def verify_raise_clearance_level(self, level: int) -> bool:
-        if not self.indemnification_present:
-            raise IndemnificationNotPresentException()
-
         if self.organization_member.has_clearance_level(level):
             return True
         else:

@@ -11,7 +11,6 @@ from two_factor.urls import urlpatterns as tf_urls
 from files.viewsets import FileDownloadView, FileViewSet
 from objects.urls import object_router
 from openkat.views.account import AccountView
-from openkat.views.indemnification_add import IndemnificationAddView
 from openkat.views.landing_page import LandingPageView
 from openkat.views.login import LoginOpenKATView, LogoutOpenKATView, SetupOpenKATView
 from openkat.views.organization_add import OrganizationAddView
@@ -69,9 +68,6 @@ urlpatterns += i18n_patterns(
     path("organizations/", OrganizationListView.as_view(), name="organization_list"),
     path("organizations/add/", OrganizationAddView.as_view(), name="organization_add"),
     path("<organization_code>/settings/edit/", OrganizationEditView.as_view(), name="organization_edit"),
-    path(
-        "<organization_code>/settings/indemnifications/", IndemnificationAddView.as_view(), name="indemnification_add"
-    ),
     path(
         "<organization_code>/members/add/",
         OrganizationMemberAddAccountTypeView.as_view(),

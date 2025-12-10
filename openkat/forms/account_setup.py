@@ -166,25 +166,6 @@ class OrganizationForm(BaseOpenKATModelForm):
         }
 
 
-class IndemnificationAddForm(BaseOpenKATForm):
-    may_scan = forms.CharField(
-        label=_(
-            "I declare that OpenKAT may scan the assets of my organization and "
-            "that I have permission to scan these assets. "
-            "I am aware of the implications a scan with a higher scan level brings on my systems."
-        ),
-        widget=forms.CheckboxInput(),
-    )
-    am_authorized = forms.CharField(
-        label=_(
-            "I declare that I am authorized to give this indemnification within my organization. "
-            "I have the experience and knowledge to know what the consequences might be and"
-            " can be held responsible for them."
-        ),
-        widget=forms.CheckboxInput(),
-    )
-
-
 class AssignClearanceLevelForm(BaseOpenKATForm):
     assigned_level = forms.BooleanField(label=_("Trusted to change Clearance Levels."))
 

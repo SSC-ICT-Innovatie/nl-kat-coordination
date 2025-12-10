@@ -1,9 +1,8 @@
 import pytest
-from django.contrib.auth.models import Permission
 
 from openkat.management.commands.create_authtoken import create_auth_token
-from openkat.models import Indemnification, Organization
-from tests.conftest import JSONAPIClient, create_user
+from openkat.models import Organization
+from tests.conftest import JSONAPIClient
 
 
 @pytest.fixture
@@ -15,18 +14,6 @@ def organizations(xtdb):
             {"name": "Test Organization 2", "code": "test2"},
         ]
     ]
-
-
-@pytest.fixture
-def organization_for_indemnification(xtdb):
-    return Organization.objects.create(name="Test Org Indem", code="test_indem")
-
-
-@pytest.fixture
-def user_with_indemnification(django_user_model, organization_for_indemnification):
-    user = create_user(django_user_model, "test@example.com", "Test123!!", "Test User", "device1")
-    Indemnification.objects.create(user=user, organization=organization_for_indemnification)
-    return user
 
 
 @pytest.fixture
@@ -132,48 +119,3 @@ def test_destroy_organization_no_permission(admin_client, admin_member, organiza
     org = organizations[0]
     response = admin_client.delete(f"/api/v1/organization/{org.pk}/")
     assert response.status_code == 403
-
-
-def test_get_indemnification(drf_client, organization_for_indemnification, user_with_indemnification):
-    response = drf_client.get(f"/api/v1/organization/{organization_for_indemnification.pk}/indemnification/")
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["indemnification"] is True
-    assert result["user"] == user_with_indemnification.id
-
-
-def test_get_indemnification_does_not_exist(drf_client, organization_for_indemnification):
-    org = Organization.objects.create(name="Test Org No Indem", code="test_no_indem")
-
-    response = drf_client.get(f"/api/v1/organization/{org.pk}/indemnification/")
-    assert response.status_code == 200
-
-    result = response.json()
-    assert result["indemnification"] is False
-    assert result["user"] is None
-
-
-def test_set_indemnification(admin_client, admin_user, xtdb):
-    org = Organization.objects.create(name="Test Org for Set Indem", code="test_set_indem")
-    admin_user.user_permissions.add(Permission.objects.get(codename="add_indemnification"))
-
-    response = admin_client.post(f"/api/v1/organization/{org.pk}/indemnification/")
-    assert response.status_code == 403
-    assert not Indemnification.objects.filter(user=admin_user, organization=org).exists()
-
-
-def test_set_indemnification_no_permission(admin_client, xtdb):
-    org = Organization.objects.create(name="Test Org for No Perm", code="test_no_perm")
-
-    response = admin_client.post(f"/api/v1/organization/{org.pk}/indemnification/")
-    assert response.status_code == 403
-
-
-def test_set_indemnification_already_exists(drf_client, organization_for_indemnification, user_with_indemnification):
-    response = drf_client.post(f"/api/v1/organization/{organization_for_indemnification.pk}/indemnification/")
-    assert response.status_code == 409
-
-    result = response.json()
-    assert result["indemnification"] is True
-    assert result["user"] == user_with_indemnification.id

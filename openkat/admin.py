@@ -5,7 +5,7 @@ from django.http import HttpResponseRedirect
 from django.utils.translation import gettext_lazy as _
 
 from openkat.exceptions import OpenKATError
-from openkat.models import AuthToken, Indemnification, Organization, OrganizationMember, OrganizationTag, User
+from openkat.models import AuthToken, Organization, OrganizationMember, OrganizationTag, User
 
 
 class OrganizationAdmin(admin.ModelAdmin):
@@ -32,17 +32,6 @@ class OrganizationAdmin(admin.ModelAdmin):
 @admin.register(OrganizationMember)
 class OrganizationMemberAdmin(admin.ModelAdmin):
     list_display = ("user", "organization")
-
-
-@admin.register(Indemnification)
-class IndemnificationAdmin(admin.ModelAdmin):
-    list_display = ("organization", "user")
-
-    def get_readonly_fields(self, request, obj=None):
-        if not request.user.is_superuser:
-            return [f.name for f in self.model._meta.fields]
-        else:
-            return []
 
 
 @admin.register(OrganizationTag)

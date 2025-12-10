@@ -5,8 +5,7 @@ from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains
 
 from objects.models import Network, XTDBOrganization
-from openkat.models import DENY_ORGANIZATION_CODES, Indemnification, Organization, OrganizationMember
-from openkat.views.indemnification_add import IndemnificationAddView
+from openkat.models import DENY_ORGANIZATION_CODES, Organization, OrganizationMember
 from openkat.views.organization_add import OrganizationAddView
 from openkat.views.organization_edit import OrganizationEditView
 from openkat.views.organization_list import OrganizationListView
@@ -21,7 +20,6 @@ AMOUNT_OF_TEST_ORGANIZATIONS = 50
 def bulk_organizations(active_member, blocked_member):
     organizations = []
     members = []
-    indemnifications = []
 
     for i in range(1, AMOUNT_OF_TEST_ORGANIZATIONS):
         org = Organization(name=f"Test Organization {i}", code=f"test{i}", tags=f"test-tag{i}")
@@ -40,10 +38,8 @@ def bulk_organizations(active_member, blocked_member):
                     acknowledged_clearance_level=4,
                 )
             )
-            indemnifications.append(Indemnification(user=member.user, organization=organization))
 
     OrganizationMember.objects.bulk_create(members)
-    Indemnification.objects.bulk_create(indemnifications)
 
     return orgs
 
@@ -103,16 +99,15 @@ def test_add_organization_submit_success(rf, superuser_member, log_output):
 
     dashboard_log_data_updated = logs[15]
 
-    superuser_indemnification = logs[16]
-    superuser_organization_member = logs[17]
+    superuser_organization_member = logs[16]
 
-    this_organization = logs[18]
-    this_organization_dashboard = logs[19]
-    this_organization_dashboard_data_created = logs[20]
+    this_organization = logs[17]
+    this_organization_dashboard = logs[18]
+    this_organization_dashboard_data_created = logs[19]
 
-    this_organization_dashboard_data_updated = logs[26]
-    this_organization_organization_member_created = logs[27]
-    this_organization_organization_member_updated = logs[28]
+    this_organization_dashboard_data_updated = logs[25]
+    this_organization_organization_member_created = logs[26]
+    this_organization_organization_member_updated = logs[27]
 
     # groups are created
     assert group_client_log["event"] == "%s %s created"
@@ -133,9 +128,6 @@ def test_add_organization_submit_success(rf, superuser_member, log_output):
     assert dashboard_log["event"] == "%s %s created"
     assert dashboard_log_data_created["event"] == "%s %s created"
     assert dashboard_log_data_updated["event"] == "%s %s updated"
-
-    # create indemnification for superuser
-    assert superuser_indemnification["event"] == "%s %s created"
 
     # create superuser member
     assert superuser_organization_member["event"] == "%s %s created"
@@ -249,15 +241,6 @@ def test_edit_organization_permissions(rf, client_member):
         )
 
 
-def test_edit_organization_indemnification(rf, client_member):
-    request_client = setup_request(rf.get("indemnification_add"), client_member.user)
-
-    with pytest.raises(PermissionDenied):
-        IndemnificationAddView.as_view()(
-            request_client, organization_code=client_member.organization.code, pk=client_member.organization.id
-        )
-
-
 def test_admin_rights_edits_organization(rf, admin_member):
     request = setup_request(rf.get("organization_edit"), admin_member.user)
     response = OrganizationEditView.as_view()(
@@ -332,8 +315,6 @@ def test_organization_settings_perms(rf, superuser_member, admin_member, client_
     assert response_admin.status_code == 200
     assertContains(response_superuser, "Edit")
     assertContains(response_admin, "Edit")
-    assertContains(response_superuser, "Add indemnification")
-    assertContains(response_admin, "Add indemnification")
 
     with pytest.raises(PermissionDenied):
         OrganizationSettingsView.as_view()(

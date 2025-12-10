@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-03 09:30+0000\n"
+"POT-Creation-Date: 2025-12-09 23:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -122,7 +122,6 @@ msgstr ""
 #: files/templates/file_list.html objects/templates/objects/hostname_list.html
 #: objects/templates/objects/ipaddress_list.html
 #: plugins/templates/plugin_table.html
-#: openkat/templates/organizations/organization_settings.html
 msgid "Actions"
 msgstr ""
 
@@ -195,7 +194,7 @@ msgstr ""
 #: objects/templates/objects/network_detail.html
 #: reports/templates/reports/report_detail.html
 #: reports/templates/reports/report_html.html reports/views.py
-#: openkat/forms/organization.py openkat/templates/header.html
+#: openkat/templates/header.html
 #: openkat/templates/organizations/organization_list.html
 #: openkat/view_helpers.py openkat/views/organization_add.py
 msgid "Organizations"
@@ -959,7 +958,7 @@ msgstr ""
 msgid "Object sets"
 msgstr ""
 
-#: objects/views.py onboarding/forms.py
+#: objects/views.py
 msgid "Clearance level"
 msgstr ""
 
@@ -1143,599 +1142,6 @@ msgstr ""
 #: objects/views.py
 #, python-brace-format
 msgid "Successfully set organizations for {count} assets."
-msgstr ""
-
-#: onboarding/forms.py
-msgid ""
-"Boefjes that has a scan level below or equal to the clearance level, is "
-"permitted to scan an object."
-msgstr ""
-
-#: onboarding/forms.py openkat/forms/account_setup.py
-msgid "Please select a clearance level to proceed."
-msgstr ""
-
-#: onboarding/forms.py
-msgid "explanation-clearance-level"
-msgstr ""
-
-#: onboarding/forms.py
-msgid "Please enter a valid URL starting with 'http://' or 'https://'."
-msgstr ""
-
-#: onboarding/templates/account/step_1_registration_intro.html
-msgid "Register"
-msgstr ""
-
-#: onboarding/templates/account/step_1_registration_intro.html
-msgid "Create a new account for your organization"
-msgstr ""
-
-#: onboarding/templates/account/step_1_registration_intro.html
-msgid ""
-"All user  accounts are part of an organization. So if you’re new and your "
-"company is also new to OpenKAT you can register here to create a OpenKAT "
-"account for your company including an admin account for you. If you like a "
-"user account that is connected to an already existing organization within "
-"OpenKAT you can ask the admin to create an account for you."
-msgstr ""
-
-#: onboarding/templates/account/step_1_registration_intro.html
-#: onboarding/templates/step_1_introduction.html
-msgid "Let's get started"
-msgstr ""
-
-#: onboarding/templates/account/step_1_registration_intro.html
-#: onboarding/templates/step_1_introduction.html
-msgid "How does OpenKAT work"
-msgstr ""
-
-#: onboarding/templates/account/step_1_registration_intro.html
-msgid ""
-"OpenKAT is able to give insight into security risks on your online objects. "
-"For example, your websites, mailservers or online data. OpenKAT uses scans "
-"to find and assess the area's that might be at risk and reports these back "
-"to you. As a user you decide which insight you would like and OpenKAT guides "
-"you to through the process. During this introduction you will be guided "
-"through the steps to create a report."
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_setup.html
-#: onboarding/templates/account/step_2a_organization_update.html
-#: onboarding/templates/account/step_2b_indemnification_setup.html
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-#: onboarding/templates/account/step_3_account_user_type.html
-#: onboarding/templates/account/step_4_account_setup_admin.html
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid "OpenKAT setup"
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_setup.html
-#: onboarding/templates/account/step_2a_organization_update.html
-#: openkat/templates/organizations/organization_add.html
-msgid "Organization setup"
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_setup.html
-msgid ""
-"Please enter the following organization details. These details can be edited "
-"within the organization page within OpenKAT when necessary. Adding a new "
-"organization requires a new database."
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_setup.html
-#: onboarding/templates/account/step_2a_organization_update.html
-#: openkat/templates/organizations/organization_add.html
-#: openkat/templates/organizations/organization_settings.html
-#: openkat/templates/partials/organization_properties_table.html
-msgid "Organization details"
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_setup.html
-#: onboarding/templates/account/step_4_account_setup_admin.html
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-#: onboarding/templates/account/step_6_account_setup_client.html
-#: openkat/templates/organizations/organization_add.html
-#: openkat/templates/organizations/organization_member_add.html
-#: openkat/templates/organizations/organization_member_add_account_type.html
-#: openkat/templates/partials/form/indemnification_add_form.html
-#: openkat/templates/two_factor/_wizard_actions.html
-msgid "Submit"
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_update.html
-#: openkat/templates/organizations/organization_add.html
-msgid ""
-"Please enter the following organization details. These details can be edited "
-"within the organization page within OpenKAT when necessary."
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_update.html
-msgid "Submit changes"
-msgstr ""
-
-#: onboarding/templates/account/step_2a_organization_update.html
-#: onboarding/templates/account/step_2b_indemnification_setup.html
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-msgid "Continue"
-msgstr ""
-
-#: onboarding/templates/account/step_2b_indemnification_setup.html
-msgid "Indemnification setup"
-msgstr ""
-
-#: onboarding/templates/account/step_2b_indemnification_setup.html
-msgid "Indemnification on the organization is already present."
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-#: onboarding/templates/account/step_3_account_user_type.html
-msgid "Account setup"
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-msgid "Organization setup with separate accounts:"
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-msgid ""
-"Within OpenKAT it is possible to create separate user accounts with the "
-"specific roles. Each with their own functionalities and permissions. This is "
-"useful when multiple people will be working with the same OpenKAT-setup. You "
-"can choose to create the separate accounts during this introduction or when "
-"you’re ready from the OpenKAT users page."
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-msgid "Single account setup:"
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-msgid ""
-"Alternatively it is also an option to run OpenKAT from a single user "
-"account. Which is useful when you are the only user in the account. You will "
-"be able to access the functionality of the different roles from your "
-"account. You can always add additional user accounts If you’re team expands "
-"in the future."
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-msgid "Create separate accounts"
-msgstr ""
-
-#: onboarding/templates/account/step_2c_account_setup_intro.html
-msgid "Continue with this account, onboard me!"
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-msgid "Users"
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-msgid ""
-"Within OpenKAT there are three types of user accounts. Each has its own "
-"functions."
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-#: onboarding/templates/account/step_4_account_setup_admin.html
-msgid "Admin"
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-#: onboarding/templates/account/step_4_account_setup_admin.html
-msgid ""
-"Each organization must have an admin. The admin can create and manage user "
-"accounts as well as organization details."
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-msgid "Red teamer"
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-msgid "A red teamer account can run scans and generate reports."
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid "Client account"
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-msgid "A client account can access reports."
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-msgid ""
-"Each organization requires at least one admin and one red teamer account to "
-"function. This introduction will guide you through the setup of both. After "
-"that you can choose to add a client account as well."
-msgstr ""
-
-#: onboarding/templates/account/step_3_account_user_type.html
-msgid "Let's add accounts"
-msgstr ""
-
-#: onboarding/templates/account/step_4_account_setup_admin.html
-msgid "Admin account setup"
-msgstr ""
-
-#: onboarding/templates/account/step_4_account_setup_admin.html
-msgid "Admin details"
-msgstr ""
-
-#: onboarding/templates/account/step_4_account_setup_admin.html
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-msgid "Skip this step"
-msgstr ""
-
-#: onboarding/templates/account/step_4_account_setup_admin.html
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid "Go back to previous step"
-msgstr ""
-
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-msgid "Red teamer account setup"
-msgstr ""
-
-#: onboarding/templates/account/step_5_account_setup_red_teamer.html
-msgid "Red teamer details"
-msgstr ""
-
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid "Client account setup (optional)"
-msgstr ""
-
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid ""
-"A client account can access reports. Adding a client account to the "
-"organization is optional."
-msgstr ""
-
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid "User details"
-msgstr ""
-
-#: onboarding/templates/account/step_6_account_setup_client.html
-msgid "Finish organization setup"
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-#: openkat/templates/landing_page.html
-msgid "Welcome to OpenKAT"
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-msgid ""
-"OpenKAT is the \"Kwetsbaarheden Analyse Tool\" (Vulnerabilities Analysis "
-"Tool). An Open-Source-project developed by the Ministry of Health, Welfare "
-"and Sport to make your and our world a safer place."
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-msgid ""
-"OpenKAT is able to give insight into security risks on your online objects. "
-"For example, your websites, mailservers or online data."
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-msgid ""
-"OpenKAT uses plugins to find and assess the area's that might be at risk and "
-"reports these back to you. Each plugin has its own skillset which could be "
-"scanning, normalizing or analyzing data. As a user you decide which areas "
-"you would like to monitor or scan and which insight you would like to "
-"receive."
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-msgid ""
-"Within OpenKAT you can view the insights as well as all the data OpenKAT has "
-"found. You can choose to browse through the data or view reports."
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-msgid ""
-"During this introduction you will be guided through the steps to create a "
-"report."
-msgstr ""
-
-#: onboarding/templates/step_1_introduction.html
-#: onboarding/templates/step_2a_choose_report_info.html
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#: onboarding/templates/step_3f_set_clearance_level.html
-msgid "Skip onboarding"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-#: onboarding/templates/step_4_report.html onboarding/view_helpers.py
-msgid "OpenKAT introduction"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid "Choose a report - Introduction"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-#: reports/templates/reports/report_list.html reports/views.py
-#: openkat/templates/header.html
-msgid "Reports"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid ""
-"Reports within OpenKAT contain an overview of the scanned objects, issues "
-"found within them and known security risks that the object might be "
-"vulnerable to. Each report gives a high overview of the state of the object "
-"as well as detailed information on what OpenKAT found and possible solutions."
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid "Data"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid ""
-"OpenKAT can scan and analyze by using plugins. Each plugin has it's unique "
-"skillset and will collect specific data or give specific insights. You "
-"manage the plugins within your account which let's OpenKAT know which "
-"plugins to run and on which objects or areas."
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid "Generating a report"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid ""
-"When you choose a report type OpenKAT will guide you through the setup. "
-"OpenKAT will ask the necessary questions based on the input the report "
-"needs, as well as asks for permission to run plugins that you haven’t "
-"enabled yet but are needed to collect or analyze the data."
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid ""
-"You can also choose to look at the collected data directly or generate your "
-"own report by selecting and running plugins on objects of your choice. "
-"OpenKAT will present the results."
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid "Permission"
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid ""
-"Plugins can be provided by OpenKAT but they can also come from the "
-"community. Before a plugin can run, you need to give it permission by "
-"enabling it."
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid ""
-"When you generate a report. OpenKAT will let you know which plugins it "
-"requires or suggests so you can choose to enable them."
-msgstr ""
-
-#: onboarding/templates/step_2a_choose_report_info.html
-msgid "Let's choose a report"
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#: onboarding/templates/step_3f_set_clearance_level.html
-msgid "OpenKAT Introduction"
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-msgid "Setup scan - Object Clearance for"
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-msgid "Introduction"
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-#: openkat/templates/partials/form/indemnification_add_form.html
-msgid ""
-"Some scans are lightweight while others might be a bit more aggressive with "
-"their scanning. OpenKAT requires you to set a clearance level for each "
-"object to prevent you from unintentionally running aggressive scans. For "
-"example you might have the right to run any type of scan on your own server "
-"but you probably don’t have the right to do so for objects owned by other "
-"people of companies."
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-msgid "How to know required clearance level"
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-msgid ""
-"Each plugin that scans will have a scan intensity score. The intensity of "
-"the scan must be equal to or below the clearance level you set for your "
-"object. If the scan has an intensity level that is too high, OpenKAT will "
-"notify you before running it. Visually clearance levels and intensity scores "
-"are indicated with little cat paws."
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-msgid ""
-"This scan has a scan intensity score of 1, requiring a level 1 clearance "
-"level to be run. This means that the scan does not touch the object itself, "
-"but only searches for information about the object."
-msgstr ""
-
-#: onboarding/templates/step_3d_clearance_level_introduction.html
-msgid ""
-"An example of a more aggressive scan. Which has a scan intensity score of 3. "
-"Meaning it requires at least a level 3 clearance level to be set on your "
-"object."
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#: openkat/forms/account_setup.py
-msgid "Trusted clearance level"
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-msgid ""
-"OpenKAT has a permission system that allows administrators to configure "
-"which users can set a certain clearance level. The will make sure that only "
-"users that are trusted can start the more aggressive scans."
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-msgid "Acknowledge clearance level"
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-msgid ""
-"Before a member is granted the ability to set clearance levels on an object, "
-"they must first acknowledge and accept the clearance level set by the "
-"administrators. The maximum scanning level permitted for a member is aligned "
-"with the trusted clearance level. By acknowledging the trusted clearance "
-"level, this member formally agrees to abide by this permission and gains the "
-"capability to perform scans only up to this trusted clearance level. This "
-"two-step process ensures that the member operates within authorized "
-"boundaries."
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-msgid "What is my clearance level?"
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#, python-format
-msgid ""
-"Unfortunately you cannot continue the onboarding. </br> Your administrator "
-"has trusted you with a clearance level of <strong>L%(tcl)s</strong>. </br> "
-"You need at least a clearance level of "
-"<strong>L%(dns_report_least_clearance_level)s</strong> to scan "
-"<strong>%(object)s</strong> </br> Contact your administrator to receive a "
-"higher clearance."
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#, python-format
-msgid ""
-"Your administrator has trusted you with a clearance level of "
-"<strong>L%(tcl)s</strong>. </br> You must first accept this clearance level "
-"to continue."
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#: openkat/templates/account_detail.html
-#, python-format
-msgid "Accept level L%(tcl)s clearance and responsibility"
-msgstr ""
-
-#: onboarding/templates/step_3e_trusted_acknowledge_clearance_level.html
-#, python-format
-msgid ""
-"Your administrator has <strong>trusted</strong> you with a clearance level "
-"of <strong>L%(tcl)s</strong>. </br> You have also <strong>acknowledged</"
-"strong> to use this clearance level of <strong>L%(acl)s</strong>."
-msgstr ""
-
-#: onboarding/templates/step_3f_set_clearance_level.html
-msgid "Setup scan - Set clearance level for"
-msgstr ""
-
-#: onboarding/templates/step_3f_set_clearance_level.html
-#, python-format
-msgid ""
-"After creating a new object OpenKAT will ask you to set a clearance level. "
-"On the object detail page you can always change the clearance level. For the "
-"onboarding we will suggest to set the clearance level to "
-"L%(dns_report_least_clearance_level)s."
-msgstr ""
-
-#: onboarding/templates/step_3f_set_clearance_level.html
-msgid "Set clearance level"
-msgstr ""
-
-#: onboarding/templates/step_4_report.html tasks/templates/task_table.html
-msgid "Report"
-msgstr ""
-
-#: onboarding/templates/step_4_report.html
-msgid "Boefjes are scanning"
-msgstr ""
-
-#: onboarding/templates/step_4_report.html
-msgid ""
-"The enabled boefjes are collecting the data needed to generate the DNS-"
-"report. This may take some time based on the type of scans and the number of "
-"objects found. For the current scan we expect boefjes to take about 3 "
-"minutes."
-msgstr ""
-
-#: onboarding/templates/step_4_report.html
-msgid ""
-"During this introduction we ask you to wait till the scan is ready. After "
-"which you can view the report."
-msgstr ""
-
-#: onboarding/templates/step_4_report.html
-msgid ""
-"After the onboarding, boefjes run in the background. This enables you to use "
-"OpenKAT in the meantime without waiting for scans to finish. When you would "
-"like to see the status of a scan you can open the \"tasks\" page."
-msgstr ""
-
-#: onboarding/templates/step_4_report.html
-msgid "Open my DNS-report"
-msgstr ""
-
-#: onboarding/view_helpers.py
-msgid "1: Introduction"
-msgstr ""
-
-#: onboarding/view_helpers.py
-msgid "2: Choose a report"
-msgstr ""
-
-#: onboarding/view_helpers.py
-msgid "2: Organization setup"
-msgstr ""
-
-#: onboarding/view_helpers.py
-msgid "3: Indemnification"
-msgstr ""
-
-#: onboarding/view_helpers.py
-msgid "4: Account setup"
-msgstr ""
-
-#: onboarding/view_helpers.py
-msgid "OpenKAT Setup"
-msgstr ""
-
-#: onboarding/views.py
-msgid "Query the dns records of a hostname"
-msgstr ""
-
-#: onboarding/views.py
-#, python-brace-format
-msgid "{org_name} successfully created."
-msgstr ""
-
-#: onboarding/views.py
-#, python-brace-format
-msgid "{org_name} successfully updated."
-msgstr ""
-
-#: onboarding/views.py
-#, python-brace-format
-msgid "{name} successfully created."
 msgstr ""
 
 #: plugins/templates/enable_disable_plugin.html
@@ -2196,6 +1602,11 @@ msgstr ""
 msgid "IPv6 Adoption"
 msgstr ""
 
+#: reports/templates/reports/report_list.html reports/views.py
+#: openkat/templates/header.html
+msgid "Reports"
+msgstr ""
+
 #: reports/templates/reports/report_list.html
 msgid ""
 "View and generate security reports for your organizations. Reports include "
@@ -2431,6 +1842,10 @@ msgid "Completion date"
 msgstr ""
 
 #: tasks/templates/task_table.html
+msgid "Report"
+msgstr ""
+
+#: tasks/templates/task_table.html
 msgid "Report data"
 msgstr ""
 
@@ -2550,7 +1965,15 @@ msgid "Please select an account type to proceed."
 msgstr ""
 
 #: openkat/forms/account_setup.py
+msgid "Trusted clearance level"
+msgstr ""
+
+#: openkat/forms/account_setup.py
 msgid "Select a clearance level you trust this member with."
+msgstr ""
+
+#: openkat/forms/account_setup.py
+msgid "Please select a clearance level to proceed."
 msgstr ""
 
 #: openkat/forms/account_setup.py
@@ -2584,20 +2007,6 @@ msgstr ""
 
 #: openkat/forms/account_setup.py
 msgid "Choose another code for your organization."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid ""
-"I declare that OpenKAT may scan the assets of my organization and that I "
-"have permission to scan these assets. I am aware of the implications a scan "
-"with a higher scan level brings on my systems."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid ""
-"I declare that I am authorized to give this indemnification within my "
-"organization. I have the experience and knowledge to know what the "
-"consequences might be and can be held responsible for them."
 msgstr ""
 
 #: openkat/forms/account_setup.py
@@ -2680,14 +2089,6 @@ msgstr ""
 msgid "Not blocked"
 msgstr ""
 
-#: openkat/forms/organization.py
-msgid "Organization is required."
-msgstr ""
-
-#: openkat/forms/organization.py
-msgid "The organization from which to clone settings."
-msgstr ""
-
 #: openkat/forms/password_reset.py
 msgid "Email address"
 msgstr ""
@@ -2755,13 +2156,6 @@ msgstr ""
 
 #: openkat/forms/upload_csv.py
 msgid "Only accepts CSV file."
-msgstr ""
-
-#: openkat/messaging.py
-msgid ""
-"You have trusted this member with a clearance level of L{}. This member "
-"needs at least a clearance level of L{} in order to do a proper onboarding. "
-"Edit this member and change the clearance level if necessary."
 msgstr ""
 
 #: openkat/models.py
@@ -3012,6 +2406,11 @@ msgid ""
 "strong>"
 msgstr ""
 
+#: openkat/templates/account_detail.html
+#, python-format
+msgid "Accept level L%(tcl)s clearance and responsibility"
+msgstr ""
+
 #: openkat/templates/admin/base.html
 msgid "Skip to main content"
 msgstr ""
@@ -3165,18 +2564,8 @@ msgstr ""
 msgid "OpenKAT"
 msgstr ""
 
-#: openkat/templates/indemnification_present.html
-msgid "Indemnification"
-msgstr ""
-
-#: openkat/templates/indemnification_present.html
-msgid ""
-"Indemnification on the organization present. You may now add objects and "
-"start scans."
-msgstr ""
-
-#: openkat/templates/indemnification_present.html
-msgid "Go to Objects"
+#: openkat/templates/landing_page.html
+msgid "Welcome to OpenKAT"
 msgstr ""
 
 #: openkat/templates/landing_page.html
@@ -3257,6 +2646,29 @@ msgid ""
 "is committed to the appropriate protection and use of personal information "
 "(sometimes referred to as \"personal data\", \"personally identifiable "
 "information\" or \"PII\") that has been collected online."
+msgstr ""
+
+#: openkat/templates/organizations/organization_add.html
+msgid "Organization setup"
+msgstr ""
+
+#: openkat/templates/organizations/organization_add.html
+msgid ""
+"Please enter the following organization details. These details can be edited "
+"within the organization page within OpenKAT when necessary."
+msgstr ""
+
+#: openkat/templates/organizations/organization_add.html
+#: openkat/templates/organizations/organization_settings.html
+#: openkat/templates/partials/organization_properties_table.html
+msgid "Organization details"
+msgstr ""
+
+#: openkat/templates/organizations/organization_add.html
+#: openkat/templates/organizations/organization_member_add.html
+#: openkat/templates/organizations/organization_member_add_account_type.html
+#: openkat/templates/two_factor/_wizard_actions.html
+msgid "Submit"
 msgstr ""
 
 #: openkat/templates/organizations/organization_edit.html
@@ -3401,20 +2813,6 @@ msgid ""
 "<strong>%(organization_name)s</strong>."
 msgstr ""
 
-#: openkat/templates/organizations/organization_settings.html
-msgid "indemnification warning"
-msgstr ""
-
-#: openkat/templates/organizations/organization_settings.html
-msgid ""
-"<strong>Warning:</strong> Indemnification is not set for this organization."
-msgstr ""
-
-#: openkat/templates/organizations/organization_settings.html
-#: openkat/views/indemnification_add.py
-msgid "Add indemnification"
-msgstr ""
-
 #: openkat/templates/partials/form/checkbox_group_table_form.html
 msgid "Please enable plugin to start scanning."
 msgstr ""
@@ -3455,21 +2853,6 @@ msgstr ""
 #: openkat/templates/partials/notifications_block.html
 #: openkat/templates/two_factor/core/login.html
 msgid "Explanation:"
-msgstr ""
-
-#: openkat/templates/partials/form/indemnification_add_form.html
-msgid "Here, an indemnification can be given on behalf of your organization:"
-msgstr ""
-
-#: openkat/templates/partials/form/indemnification_add_form.html
-msgid ""
-"Before you're able to add assets to OpenKAT and to assign clearance levels, "
-"you have to give indemnification on the organization and declare that you as "
-"a person can be held accountable."
-msgstr ""
-
-#: openkat/templates/partials/form/indemnification_add_form.html
-msgid "Register an indemnification"
 msgstr ""
 
 #: openkat/templates/partials/list_filters.html
@@ -3982,10 +3365,6 @@ msgstr ""
 
 #: openkat/validators.py
 msgid " upper case letters"
-msgstr ""
-
-#: openkat/views/indemnification_add.py
-msgid "Indemnification successfully set."
 msgstr ""
 
 #: openkat/views/login.py

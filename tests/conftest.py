@@ -27,7 +27,7 @@ from rest_framework.test import APIClient
 from objects.models import Hostname, Network
 from openkat.auth.jwt_auth import JWTTokenAuthentication
 from openkat.management.commands.create_authtoken import create_auth_token
-from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Indemnification, Organization, OrganizationMember
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization, OrganizationMember
 from tasks.models import Task as TaskDB
 from tasks.tasks import run_plugin
 
@@ -139,8 +139,6 @@ def create_organization(name, organization_code):
 
 
 def create_member(user, organization):
-    Indemnification.objects.create(user=user, organization=organization)
-
     return OrganizationMember.objects.create(
         user=user, organization=organization, blocked=False, trusted_clearance_level=4, acknowledged_clearance_level=4
     )
@@ -157,7 +155,6 @@ def add_admin_group_permissions(member):
                 "add_organizationmember",
                 "change_organization",
                 "change_organizationmember",
-                "add_indemnification",
                 "can_scan_organization",
             ]
         ).values_list("id", flat=True)

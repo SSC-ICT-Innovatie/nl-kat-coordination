@@ -4,10 +4,6 @@ from openkat.views.account import AccountView
 from tests.conftest import setup_request
 
 
-def test_indemnification_present(superuser_member):
-    assert superuser_member.user.indemnification_set.exists()
-
-
 def test_account_detail_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = AccountView.as_view()(
         setup_request(rf.get("account_detail"), superuser_member.user),

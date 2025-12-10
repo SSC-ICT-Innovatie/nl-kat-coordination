@@ -15,17 +15,6 @@
                         An overview of general information and settings for <strong>{{ organization_name }}</strong>.
                     {% endblocktranslate %}
                 </p>
-                {% if not indemnification_present %}
-                    <p class="warning"
-                       role="group"
-                       aria-label="{% translate "indemnification warning" %}">
-                        {% url "organization_settings" organization.code as organization_settings %}
-                        {% blocktranslate trimmed %}
-                            <strong>Warning:</strong>
-                            Indemnification is not set for this organization.
-                        {% endblocktranslate %}
-                    </p>
-                {% endif %}
             </div>
             <div>
                 <h2>{% translate "Organization details" %}</h2>
@@ -62,17 +51,6 @@
                             </tr>
                         </tbody>
                     </table>
-                </div>
-            </div>
-            <div>
-                <h2>{% translate "Actions" %}</h2>
-                <div class="button-container">
-                    {% if perms.openkat.add_indemnification %}
-                        <a href="{% url "indemnification_add" organization.code %}"
-                           class="button ghost">
-                            <span class="icon ti-plus" aria-hidden="true"></span>{% translate "Add indemnification" %}
-                        </a>
-                    {% endif %}
                 </div>
             </div>
         </section>

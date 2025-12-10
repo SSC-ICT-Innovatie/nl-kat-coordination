@@ -2,10 +2,6 @@ class OpenKATError(Exception):
     pass
 
 
-class IndemnificationNotPresentException(Exception):
-    pass
-
-
 class ClearanceLevelTooLowException(Exception):
     pass
 

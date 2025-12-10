@@ -34,7 +34,6 @@ DENY_ORGANIZATION_CODES = [
     "privacy-statement",
     "account",
     "crisis-room",
-    "indemnifications",
     "findings",
     "objects",
     "organizations",
@@ -226,13 +225,6 @@ class OrganizationMember(models.Model):
 
     def __str__(self) -> str:
         return str(self.user)
-
-
-class Indemnification(models.Model):
-    user = models.ForeignKey("User", on_delete=models.SET_NULL, null=True)
-    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True)
-
-    EVENT_CODES = {"created": 900221, "updated": 900222, "deleted": 900223}
 
 
 class UserManager(BaseUserManager):
