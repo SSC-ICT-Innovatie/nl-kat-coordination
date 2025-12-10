@@ -28,7 +28,7 @@ services:
       - .env
 
   xtdb:
-    image: "ghcr.io/xtdb/xtdb:nightly-20251010"
+    image: "ghcr.io/xtdb/xtdb:nightly-20251209"
     restart: unless-stopped
     volumes:
       - xtdb-data:/var/lib/xtdb
