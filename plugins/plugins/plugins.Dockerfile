@@ -15,4 +15,8 @@ COPY ./plugins/plugins/kat_dnssec/ ./kat_dnssec
 COPY ./plugins/plugins/kat_nuclei/ ./kat_nuclei
 COPY ./plugins/plugins/kat_sslyze/ ./kat_sslyze
 COPY ./plugins/plugins/kat_securitytxt ./kat_securitytxt
+COPY ./plugins/plugins/kat_zgrab2/ ./kat_zgrab2
 COPY ./plugins/plugins/kat_scripts/ ./
+
+COPY --from=ghcr.io/zmap/zgrab2:latest /usr/bin/zgrab2 /usr/local/bin/zgrab2
+COPY --from=ghcr.io/zmap/zgrab2:latest /root/.config/zgrab2/blocklist.conf /root/.config/zgrab2/
