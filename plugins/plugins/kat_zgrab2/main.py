@@ -1,8 +1,9 @@
 import argparse
+import json
 import os
 import subprocess
+
 import httpx
-import json
 
 # banner, jarm, tls -> no single port mapped
 PORT_SERVICE_MAP = {
@@ -47,9 +48,7 @@ def main():
     if not base_url:
         raise Exception("No OPENKAT_API env variable")
 
-    client = httpx.Client(
-        base_url=base_url, headers={"Authorization": "Token " + token}
-    )
+    client = httpx.Client(base_url=base_url, headers={"Authorization": "Token " + token})
 
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("ip_ports", nargs="*")
@@ -66,12 +65,7 @@ def main():
         if service is None:
             continue
 
-        result = subprocess.run(
-            ["zgrab2", service],
-            capture_output=True,
-            text=True,
-            input=f"{ip},,,{port}",
-        )
+        result = subprocess.run(["zgrab2", service], capture_output=True, text=True, input=f"{ip},,,{port}")
         print(result.stdout)
         data = json.loads(result.stdout)
 
@@ -79,12 +73,7 @@ def main():
             continue
 
         results.append(
-            {
-                "address": ip,
-                "port": port,
-                "service": service,
-                "protocol": "TCP" if service != "ntp" else "UDP",
-            }
+            {"address": ip, "port": port, "service": service, "protocol": "TCP" if service != "ntp" else "UDP"}
         )
 
     client.post("/objects/ipport/", json=results).raise_for_status()
