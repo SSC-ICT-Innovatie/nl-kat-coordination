@@ -135,10 +135,10 @@ class NetworkDetailView(OrganizationFilterMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:network_list")
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("Networks")}]
         context["all_organizations"] = Organization.objects.all()
@@ -441,10 +441,10 @@ class IPAddressDetailView(OrganizationFilterMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:ipaddress_list")
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("IPAddresses")}]
         context["findings"] = Finding.objects.filter(address=self.object)
@@ -466,10 +466,10 @@ class IPAddressScanLevelDetailView(OrganizationFilterMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:ipaddress_list")
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("IPAddresses")}]
         context["scan_level_form"] = ObjectScanLevelForm(instance=self.object)
@@ -490,17 +490,19 @@ class IPAddressTasksDetailView(OrganizationFilterMixin, ListView):
                 Plugin.objects.filter(plugin_id=KeyTextTransform("plugin_id", OuterRef("data"))).values("name")
             )
         )
-        return filter_queryset_orgs_for_user(qs, self.request.user, set(self.request.GET.getlist("organization")))
+        return filter_queryset_orgs_for_user(
+            qs, self.request.user, {int(org_id) for org_id in self.request.GET.getlist("organization")}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         ipaddress = IPAddress.objects.get(pk=self.kwargs.get("pk"))
         context["ipaddress"] = ipaddress
 
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:ipaddress_list")
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("IPAddresses")}]
 
@@ -552,18 +554,18 @@ class IPAddressCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                     continue
 
                 address = row[0].strip()
-                org_code = None
+                org_id = None
 
-                # Parse optional organization code from column 2
+                # Parse optional organization id from column 2
                 if len(row) >= 2 and row[1].strip():
-                    org_code = row[1].strip()
+                    org_id = row[1].strip()
 
                 try:
                     ipaddress, created = IPAddress.objects.get_or_create(network=network, address=address)
 
                     # Handle organization assignment
-                    if org_code:
-                        org = _get_organization(org_code, self.request)
+                    if org_id:
+                        org = _get_organization(org_id, self.request)
                         if org:
                             xtdb_org = XTDBOrganization.objects.get(pk=org.pk)
                             ipaddress.organizations.set([xtdb_org])
@@ -741,10 +743,10 @@ class HostnameDetailView(OrganizationFilterMixin, DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:hostname_list")
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("Hostnames")}]
 
@@ -776,10 +778,10 @@ class HostnameScanLevelDetailView(OrganizationFilterMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:hostname_list")
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("Hostnames")}]
         context["scan_level_form"] = ObjectScanLevelForm(instance=self.object)
@@ -801,16 +803,18 @@ class HostnameTasksDetailView(OrganizationFilterMixin, ListView):
             )
         )
 
-        return filter_queryset_orgs_for_user(qs, self.request.user, set(self.request.GET.getlist("organization")))
+        return filter_queryset_orgs_for_user(
+            qs, self.request.user, {int(org_id) for org_id in self.request.GET.getlist("organization")}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["hostname"] = Hostname.objects.get(pk=self.kwargs.get("pk"))
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
         breadcrumb_url = reverse("objects:hostname_list")
 
-        if organization_codes:
-            breadcrumb_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("Hostnames")}]
 
@@ -852,16 +856,16 @@ class HostnameCreateView(KATModelPermissionRequiredMixin, CreateView):
         return context
 
 
-def _get_organization(org_code: str | None, request: HttpRequest) -> Organization | None:
-    if not org_code:
+def _get_organization(org_id: str | None, request: HttpRequest) -> Organization | None:
+    if not org_id:
         return None
 
     try:
-        return Organization.objects.get(code=org_code)
+        return Organization.objects.get(id=org_id)
     except Organization.DoesNotExist:
         messages.warning(
             request,
-            _("Organization with code '{code}' not found. Skipping scan level for this row.").format(code=org_code),
+            _("Organization with id '{org_id}' not found. Skipping scan level for this row.").format(org_id=org_id),
         )
         return None
 
@@ -893,18 +897,18 @@ class HostnameCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                     continue  # Skip empty rows
 
                 name = row[0].strip()
-                org_code = None
+                org_id = None
 
-                # Parse optional organization code from column 2
+                # Parse optional organization id from column 2
                 if len(row) >= 2 and row[1].strip():
-                    org_code = row[1].strip()
+                    org_id = row[1].strip()
 
                 try:
                     hostname, created = Hostname.objects.get_or_create(network=network, name=name)
 
                     # Handle organization assignment
-                    if org_code:
-                        org = _get_organization(org_code, self.request)
+                    if org_id:
+                        org = _get_organization(org_id, self.request)
                         if org:
                             hostname.organizations.set([XTDBOrganization.objects.get(pk=org.pk)])
                             organizations_set += 1
@@ -1074,7 +1078,7 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
 
                 asset = row[0].strip()
                 scan_level_value = None
-                org_code = None
+                org_id = None
 
                 # Parse optional columns
                 if len(row) >= 2 and row[1].strip():
@@ -1096,9 +1100,9 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                             ).format(row_num=row_num, value=row[1].strip()),
                         )
 
-                # Parse organization code from column 3
+                # Parse organization id from column 3
                 if len(row) >= 3 and row[2].strip():
-                    org_code = row[2].strip()
+                    org_id = row[2].strip()
 
                 try:
                     if is_valid_ip(asset):
@@ -1116,8 +1120,8 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
 
                         # Handle organization assignment
                         organizations_to_set = []
-                        if org_code:
-                            org = _get_organization(org_code, self.request)
+                        if org_id:
+                            org = _get_organization(org_id, self.request)
                             if org:
                                 xtdb_org = XTDBOrganization.objects.get(pk=org.pk)
                                 organizations_to_set = [xtdb_org]
@@ -1143,8 +1147,8 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                             scan_levels_set += 1
 
                         organizations_to_set = []
-                        if org_code:
-                            org = _get_organization(org_code, self.request)
+                        if org_id:
+                            org = _get_organization(org_id, self.request)
                             if org:
                                 organizations_to_set = [XTDBOrganization.objects.get(pk=org.pk)]
                         elif default_organizations:

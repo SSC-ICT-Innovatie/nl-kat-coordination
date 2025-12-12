@@ -63,7 +63,7 @@ def N():
 
 @pytest.fixture(scope="session")
 def bulk_data_org(xtdbulk, N):
-    org, created = Organization.objects.get_or_create(code="testdns", name="testdns")
+    org, created = Organization.objects.get_or_create(name="testdns")
     (
         hostnames,
         ips,

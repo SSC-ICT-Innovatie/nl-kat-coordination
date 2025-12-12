@@ -7,7 +7,7 @@ from rest_framework.response import Response
 from structlog import get_logger
 
 from openkat.models import Organization
-from openkat.serializers import OrganizationSerializer, OrganizationSerializerReadOnlyCode
+from openkat.serializers import OrganizationSerializer
 
 logger = get_logger(__name__)
 
@@ -15,12 +15,6 @@ logger = get_logger(__name__)
 class OrganizationViewSet(viewsets.ModelViewSet):
     queryset = Organization.objects.all()
     serializer_class = OrganizationSerializer
-
-    def get_serializer_class(self):
-        serializer_class = self.serializer_class
-        if self.request.method != "POST":
-            serializer_class = OrganizationSerializerReadOnlyCode
-        return serializer_class
 
 
 class ManyModelViewSet(viewsets.ModelViewSet):

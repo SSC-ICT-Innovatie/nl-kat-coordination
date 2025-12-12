@@ -66,7 +66,7 @@ class OrganizationDetailBreadcrumbsMixin(BreadcrumbsMixin):
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
             {
-                "url": reverse("organization_settings", kwargs={"organization_code": self.organization.code}),
+                "url": reverse("organization_settings", kwargs={"organization_id": self.organization.id}),
                 "text": _("Settings"),
             }
         ]
@@ -78,7 +78,7 @@ class OrganizationMemberBreadcrumbsMixin(BreadcrumbsMixin):
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
             {
-                "url": reverse("organization_member_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse("organization_member_list", kwargs={"organization_id": self.organization.id}),
                 "text": _("Members"),
             }
         ]

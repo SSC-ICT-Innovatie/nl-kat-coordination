@@ -177,7 +177,7 @@ def test_batch_tasks(xtdb, celery: Celery, organization, organization_b, docker,
 
     bulk_insert(hns)
 
-    tasks = run_plugin_task(plugin.id, organization.code, input_data=[x.name for x in hns], _celery=celery)
+    tasks = run_plugin_task(plugin.id, organization.id, input_data=[x.name for x in hns], _celery=celery)
 
     assert len(tasks) == 4
     assert len(tasks[0].data["input_data"]) == 50
@@ -186,7 +186,7 @@ def test_batch_tasks(xtdb, celery: Celery, organization, organization_b, docker,
     assert len(tasks[3].data["input_data"]) == 50
 
     # We check previous tasks only when running for a schedule
-    tasks = run_plugin_task(plugin.id, organization.code, input_data=[x.name for x in hns], _celery=celery)
+    tasks = run_plugin_task(plugin.id, organization.id, input_data=[x.name for x in hns], _celery=celery)
     assert len(tasks) == 4
 
 

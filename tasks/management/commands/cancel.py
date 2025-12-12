@@ -15,7 +15,7 @@ class Command(BaseCommand):
             "--delete", "-d", action="store_true", help="Delete the task database entries after canceling"
         )
         parser.add_argument(
-            "--organization", "-o", type=str, help="Only cancel tasks for a specific organization (by code)"
+            "--organization", "-o", type=str, help="Only cancel tasks for a specific organization (by id)"
         )
 
     def handle(self, *args, **options):
@@ -27,7 +27,7 @@ class Command(BaseCommand):
         # Build the query
         query = Task.objects.filter(status__in=statuses)
         if options["organization"]:
-            query = query.filter(organization__code=options["organization"])
+            query = query.filter(organization__id=options["organization"])
 
         # Get count before processing
         task_count = query.count()

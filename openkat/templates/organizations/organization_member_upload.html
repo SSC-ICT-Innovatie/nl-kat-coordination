@@ -11,7 +11,7 @@
             <div>
                 <h1>{% translate "Add members" %}</h1>
                 <p>
-                    {% url 'download_organization_member_template' organization_code=organization.code as download_url %}
+                    {% url 'download_organization_member_template' organization_id=organization.id as download_url %}
                     {% blocktranslate trimmed with download_url=download_url %}
                         To upload multiple members at once, you can upload a CSV file
                         or you can <a href="{{ download_url }}">download the template</a>.

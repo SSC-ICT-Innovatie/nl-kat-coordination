@@ -119,7 +119,7 @@ class TaskForm(ModelForm):
 
         return run_plugin_task(
             plugin.plugin_id,
-            None if organization is None else organization.code,
+            None if organization is None else organization.id,
             list(input_hostnames) + list(input_ips),
             batch=False,
         )[0]
@@ -178,12 +178,12 @@ class TaskCancelAllView(PermissionRequiredMixin, View):
     permission_required = ("tasks.change_tasks",)
 
     def post(self, request, *args, **kwargs):
-        organization_codes = request.GET.getlist("organization")  # Only cancel tasks for the filtered organizations
+        organization_ids = request.GET.getlist("organization")  # Only cancel tasks for the filtered organizations
         query = Task.objects.filter(status__in=[TaskStatus.QUEUED, TaskStatus.PENDING])
 
         # Apply organization filter if present
-        if organization_codes:
-            query = query.filter(organization__code__in=organization_codes)
+        if organization_ids:
+            query = query.filter(organization__id__in=organization_ids)
         elif not request.user.can_access_all_organizations:
             query = query.filter(organization__members__user=request.user)
 
@@ -206,8 +206,8 @@ class TaskCancelAllView(PermissionRequiredMixin, View):
 
         redirect_url = reverse("task_list")
 
-        if organization_codes:
-            redirect_url += "?" + "&".join([f"organization={code}" for code in organization_codes])
+        if organization_ids:
+            redirect_url += "?" + "&".join([f"organization={organization_id}" for organization_id in organization_ids])
 
         return redirect(redirect_url)
 
@@ -494,10 +494,10 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
             {"url": reverse("object_set_detail", kwargs={"pk": self.object.pk}), "text": _("Object set detail")},
         ]
 
-        org_codes = set(self.request.GET.getlist("organization"))
+        org_ids = {int(org_id) for org_id in self.request.GET.getlist("organization")}
         if self.object.object_query is not None:
             queryset = filter_queryset_orgs_for_user(
-                self.object.object_type.model_class().objects.all(), self.request.user, org_codes
+                self.object.object_type.model_class().objects.all(), self.request.user, org_ids
             )
 
             context["objects"] = self.object.get_query_objects(queryset)[: self.PREVIEW_SIZE]
@@ -507,7 +507,7 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
         context["static_objects"] = filter_queryset_orgs_for_user(
             self.object.object_type.model_class().objects.filter(pk__in=self.object.static_objects),
             self.request.user,
-            org_codes,
+            org_ids,
         )
 
         return context

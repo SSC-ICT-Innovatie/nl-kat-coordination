@@ -14,7 +14,7 @@ def test_landing_page_redirect(rf, client_member):
 
 def test_language_lang_attribute(rf, client_member, language):
     response = AccountView.as_view()(
-        setup_request(rf.get("account_detail"), client_member.user), organization_code=client_member.organization.code
+        setup_request(rf.get("account_detail"), client_member.user), organization_id=client_member.organization.id
     )
     assert response.status_code == 200
     assertContains(response, '<html lang="' + language + '"')

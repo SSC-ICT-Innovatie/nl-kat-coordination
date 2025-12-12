@@ -67,10 +67,10 @@ class PluginListView(OrganizationFilterMixin, FilterView):
         context["sorting_order"] = self.request.GET.get("sorting_order", "asc")
         context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
 
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = self.request.GET.getlist("organization")
 
-        if organization_codes:
-            organizations = Organization.objects.filter(code__in=organization_codes)
+        if organization_ids:
+            organizations = Organization.objects.filter(id__in=organization_ids)
             schedule_plugin_ids = (
                 Schedule.objects.filter(organization__in=organizations).values_list("plugin_id", flat=True).distinct()
             )
@@ -98,9 +98,9 @@ class PluginDetailView(OrganizationFilterMixin, DetailView):
             {"url": reverse("plugin_detail", kwargs={"pk": self.object.pk}), "text": _("Plugin details")},
         ]
 
-        organization_codes = self.request.GET.getlist("organization")
-        if organization_codes:
-            organizations = Organization.objects.filter(code__in=organization_codes)
+        organization_ids = self.request.GET.getlist("organization")
+        if organization_ids:
+            organizations = Organization.objects.filter(id__in=organization_ids)
             context["has_schedules"] = Schedule.objects.filter(
                 plugin=self.object, organization__in=organizations
             ).exists()
@@ -250,21 +250,21 @@ class PluginScheduleView(KATModelPermissionRequiredMixin, UpdateView):
     def post(self, request, *args, **kwargs):
         self.object = self.get_object()
 
-        organization_codes = self.request.POST.getlist("organization")
+        organization_ids = self.request.POST.getlist("organization")
         action = self.request.POST.get("action", "schedule")
 
         if action == "cancel":
             if not self.request.user.has_perms(["tasks.delete_schedule"]):
                 raise PermissionDenied()
-            if organization_codes:
-                organizations = Organization.objects.filter(code__in=organization_codes)
+            if organization_ids:
+                organizations = Organization.objects.filter(id__in=organization_ids)
                 deleted_count = Schedule.objects.filter(plugin=self.object, organization__in=organizations).delete()[0]
 
                 if len(organizations) == 1:
                     messages.success(
                         self.request,
                         _("Plugin '{}' has been unscheduled for organization '{}'.").format(
-                            self.object.name, organizations[0].code
+                            self.object.name, organizations[0].name
                         ),
                     )
                 else:
@@ -286,9 +286,9 @@ class PluginScheduleView(KATModelPermissionRequiredMixin, UpdateView):
             if not self.request.user.has_perms(["tasks.add_schedule"]):
                 raise PermissionDenied()
 
-            if organization_codes:
+            if organization_ids:
                 # Schedule for specific organizations
-                organizations = Organization.objects.filter(code__in=organization_codes)
+                organizations = Organization.objects.filter(id__in=organization_ids)
                 for organization in organizations:
                     self.object.schedule_for(organization)
 
@@ -296,7 +296,7 @@ class PluginScheduleView(KATModelPermissionRequiredMixin, UpdateView):
                     messages.success(
                         self.request,
                         _("Plugin '{}' has been scheduled for organization '{}'.").format(
-                            self.object.name, organizations[0].code
+                            self.object.name, organizations[0].name
                         ),
                     )
                 else:

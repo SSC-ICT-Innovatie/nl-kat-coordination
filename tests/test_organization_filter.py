@@ -17,7 +17,7 @@ def test_task_list_filtered_by_organization(client, client_user_two_organization
     assert "filtered_organizations" not in response.context
 
     # Filter by single organization
-    response = client.get(reverse("task_list") + "?organization=org")
+    response = client.get(reverse("task_list") + f"?organization={organization.id}")
     assert response.status_code == 200
     assert len(response.context["object_list"]) == 1
     assert response.context["object_list"][0].organization == organization
@@ -25,13 +25,13 @@ def test_task_list_filtered_by_organization(client, client_user_two_organization
     assert response.context["organization"] == organization
 
     # Filter by organization_b
-    response = client.get(reverse("task_list") + "?organization=org_b")
+    response = client.get(reverse("task_list") + f"?organization={organization_b.id}")
     assert response.status_code == 200
     assert len(response.context["object_list"]) == 1
     assert response.context["object_list"][0].organization == organization_b
 
     # Filter by non-existent organization
-    response = client.get(reverse("task_list") + "?organization=nonexistent")
+    response = client.get(reverse("task_list") + "?organization=12345678")
     assert response.status_code == 403
 
 
@@ -44,7 +44,7 @@ def test_task_list_filtered_by_multiple_organizations(
     Task.objects.create(organization=organization_b, type="plugin", data={"plugin_id": "test_plugin"})
 
     # Filter by both organizations
-    response = client.get(reverse("task_list") + "?organization=org&organization=org_b")
+    response = client.get(reverse("task_list") + f"?organization={organization.id}&organization={organization_b.id}")
     assert response.status_code == 200
     assert len(response.context["object_list"]) == 2
     assert len(response.context["filtered_organizations"]) == 2
@@ -62,10 +62,10 @@ def test_task_detail_filtered_by_organization(
     response = client.get(reverse("task_detail", kwargs={"pk": task1.id}))
     assert response.status_code == 200
 
-    response = client.get(reverse("task_detail", kwargs={"pk": task1.id}) + "?organization=org")
+    response = client.get(reverse("task_detail", kwargs={"pk": task1.id}) + f"?organization={organization.id}")
     assert response.status_code == 200
 
-    response = client.get(reverse("task_detail", kwargs={"pk": task1.id}) + "?organization=org_b")
+    response = client.get(reverse("task_detail", kwargs={"pk": task1.id}) + f"?organization={organization_b.id}")
     assert response.status_code == 404
 
 
@@ -81,12 +81,12 @@ def test_schedule_list_filtered_by_organization(
     assert response.status_code == 200
     assert len(response.context["object_list"]) == 2
 
-    response = client.get(reverse("schedule_list") + "?organization=org")
+    response = client.get(reverse("schedule_list") + f"?organization={organization.id}")
     assert response.status_code == 200
     assert len(response.context["object_list"]) == 1
     assert response.context["object_list"][0].organization == organization
 
-    response = client.get(reverse("schedule_list") + "?organization=org_b")
+    response = client.get(reverse("schedule_list") + f"?organization={organization_b.id}")
     assert response.status_code == 200
     assert len(response.context["object_list"]) == 1
     assert response.context["object_list"][0].organization == organization_b
@@ -99,5 +99,5 @@ def test_schedule_detail_filtered_by_organization(client, client_user_two_organi
     response = client.get(reverse("schedule_detail", kwargs={"pk": schedule1.id}))
     assert response.status_code == 200
 
-    response = client.get(reverse("schedule_detail", kwargs={"pk": schedule1.id}) + "?organization=org")
+    response = client.get(reverse("schedule_detail", kwargs={"pk": schedule1.id}) + f"?organization={organization.id}")
     assert response.status_code == 200

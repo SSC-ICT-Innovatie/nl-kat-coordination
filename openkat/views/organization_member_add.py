@@ -57,7 +57,7 @@ class OrganizationMemberAddAccountTypeView(
         return redirect(
             reverse(
                 "organization_member_add",
-                kwargs={"organization_code": self.organization.code, "account_type": account_type},
+                kwargs={"organization_id": self.organization.id, "account_type": account_type},
             )
         )
 
@@ -66,7 +66,7 @@ class OrganizationMemberAddAccountTypeView(
         breadcrumbs.append(
             {
                 "url": reverse(
-                    "organization_member_add_account_type", kwargs={"organization_code": self.organization.code}
+                    "organization_member_add_account_type", kwargs={"organization_id": self.organization.id}
                 ),
                 "text": _("Add member"),
             }
@@ -98,7 +98,7 @@ class OrganizationMemberAddView(
         messages.add_message(self.request, messages.SUCCESS, success_message)
 
     def get_success_url(self, **kwargs):
-        return reverse_lazy("organization_member_list", kwargs={"organization_code": self.organization.code})
+        return reverse_lazy("organization_member_list", kwargs={"organization_id": self.organization.id})
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         breadcrumbs = super().build_breadcrumbs()
@@ -106,7 +106,7 @@ class OrganizationMemberAddView(
             [
                 {
                     "url": reverse(
-                        "organization_member_add_account_type", kwargs={"organization_code": self.organization.code}
+                        "organization_member_add_account_type", kwargs={"organization_id": self.organization.id}
                     ),
                     "text": _("Add member"),
                 }
@@ -134,7 +134,7 @@ class MembersUploadView(
     permission_required = "openkat.add_organizationmember"
 
     def get_success_url(self):
-        return reverse_lazy("organization_member_list", kwargs={"organization_code": self.organization.code})
+        return reverse_lazy("organization_member_list", kwargs={"organization_id": self.organization.id})
 
     def form_valid(self, form):
         self.process_csv(form)
@@ -227,7 +227,7 @@ class MembersUploadView(
         breadcrumbs.extend(
             [
                 {
-                    "url": reverse("organization_member_upload", kwargs={"organization_code": self.organization.code}),
+                    "url": reverse("organization_member_upload", kwargs={"organization_id": self.organization.id}),
                     "text": _("Add members"),
                 }
             ]

@@ -134,8 +134,8 @@ def create_user(django_user_model, email, password, name, device_name, superuser
     return user
 
 
-def create_organization(name, organization_code):
-    return Organization.objects.create(name=name, code=organization_code)
+def create_organization(name):
+    return Organization.objects.create(name=name)
 
 
 def create_member(user, organization):
@@ -204,12 +204,12 @@ def cleanup_test_files(request, settings):
 
 @pytest.fixture
 def organization(xtdb):
-    return create_organization("Test Organization", "org")
+    return create_organization("Test Organization")
 
 
 @pytest.fixture
 def organization_b(xtdb):
-    return create_organization("OrganizationB", "org_b")
+    return create_organization("OrganizationB")
 
 
 @pytest.fixture

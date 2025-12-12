@@ -69,7 +69,7 @@ class OrganizationFilterMixin:
 
 **Features:**
 
-- Query parameter support: `?organization=<code>` or `?organization=<code1>&organization=<code2>`
+- Query parameter support: `?organization=<id>` or `?organization=<id1>&organization=<id2>`
 - Automatic permission-based filtering
 - Works with any Django ListView/DetailView/FilterView
 - Provides filtered organization context to templates

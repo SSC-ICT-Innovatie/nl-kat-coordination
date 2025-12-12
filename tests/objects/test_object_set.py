@@ -164,7 +164,7 @@ def test_object_set_detail_view_filters_by_organization_for_ipaddresses(
     assertContains(response, "4.4.4.4")
 
     # Test 2: Superuser WITH organization filter should see only filtered organization's objects
-    request = setup_request(rf.get("object_set_detail", {"organization": organization.code}), superuser_member.user)
+    request = setup_request(rf.get("object_set_detail", {"organization": organization.id}), superuser_member.user)
     response = ObjectSetDetailView.as_view()(request, pk=object_set.pk)
 
     assert response.status_code == 200
@@ -176,7 +176,7 @@ def test_object_set_detail_view_filters_by_organization_for_ipaddresses(
     assertNotContains(response, "4.4.4.4")
 
     # Test 3: Client member WITH organization filter should see only their organization's objects
-    request = setup_request(rf.get("object_set_detail", {"organization": organization.code}), client_member.user)
+    request = setup_request(rf.get("object_set_detail", {"organization": organization.id}), client_member.user)
     response = ObjectSetDetailView.as_view()(request, pk=object_set.pk)
 
     assert response.status_code == 200
@@ -231,7 +231,7 @@ def test_object_set_detail_view_filters_by_organization_for_hostnames(
     assertContains(response, "test4.example.com")
 
     # Test 2: Superuser WITH organization filter should see only filtered organization's objects
-    request = setup_request(rf.get("object_set_detail", {"organization": organization.code}), superuser_member.user)
+    request = setup_request(rf.get("object_set_detail", {"organization": organization.id}), superuser_member.user)
     response = ObjectSetDetailView.as_view()(request, pk=object_set.pk)
 
     assert response.status_code == 200
@@ -243,7 +243,7 @@ def test_object_set_detail_view_filters_by_organization_for_hostnames(
     assertNotContains(response, "test4.example.com")
 
     # Test 3: Client member WITH organization filter should see only their organization's objects
-    request = setup_request(rf.get("object_set_detail", {"organization": organization.code}), client_member.user)
+    request = setup_request(rf.get("object_set_detail", {"organization": organization.id}), client_member.user)
     response = ObjectSetDetailView.as_view()(request, pk=object_set.pk)
 
     assert response.status_code == 200

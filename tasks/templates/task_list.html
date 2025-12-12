@@ -45,10 +45,10 @@
             </div>
             {% if perms.tasks.change_tasks %}
                 <form id="cancel_all_tasks_form"
-                      action="{% url 'cancel_all_tasks' %}{% if filtered_organization_codes %}?{% for code in filtered_organization_codes %}organization={{ code }}&{% endfor %}{% endif %}"
+                      action="{% url 'cancel_all_tasks' %}{% if filtered_organization_ids %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}{% endif %}"
                       method="post">
                     {% csrf_token %}
-                    {% for code in filtered_organization_codes %}<input type="hidden" name="organization" value="{{ code }}">{% endfor %}
+                    {% for id in filtered_organization_ids %}<input type="hidden" name="organization" value="{{ id }}">{% endfor %}
                 </form>
             {% endif %}
         </section>

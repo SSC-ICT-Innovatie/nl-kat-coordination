@@ -125,9 +125,9 @@
                                         <dd>
                                             {{ task.data.description|default:"-" }}
                                         </dd>
-                                        <dt>{% translate "Organization codes" %}</dt>
+                                        <dt>{% translate "Organization ids" %}</dt>
                                         <dd>
-                                            {{ task.data.organization_codes|join:", "|default:"-" }}
+                                            {{ task.data.organization_ids|join:", "|default:"-" }}
                                         </dd>
                                         <dt>{% translate "Finding types" %}</dt>
                                         <dd>

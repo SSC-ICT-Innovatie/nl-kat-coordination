@@ -25,10 +25,10 @@ def organizations_including_blocked(request):
         context["organizations_including_blocked"] = request.user.organizations_including_blocked
 
         # Provide organization filter query string for navigation links
-        organization_codes = request.GET.getlist("organization")
-        if organization_codes:
+        organization_ids = request.GET.getlist("organization")
+        if organization_ids:
             # Build query string with organization parameters
-            org_params = "&".join([f"organization={code}" for code in organization_codes])
+            org_params = "&".join([f"organization={org_id}" for org_id in organization_ids])
             context["organization_query_string"] = org_params
         else:
             context["organization_query_string"] = ""

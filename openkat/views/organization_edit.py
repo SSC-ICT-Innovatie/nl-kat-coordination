@@ -17,13 +17,13 @@ class OrganizationEditView(OrganizationPermissionRequiredMixin, OrganizationView
     object: Organization
 
     def get_object(self, queryset=None):
-        return self.model.objects.get(code=self.kwargs["organization_code"])
+        return self.model.objects.get(id=self.kwargs["organization_id"])
 
     def get_success_url(self):
         messages.add_message(
             self.request, messages.SUCCESS, _("Organization %s successfully updated.") % (self.object.name)
         )
-        return reverse("organization_settings", kwargs={"organization_code": self.object.code})
+        return reverse("organization_settings", kwargs={"organization_id": self.object.id})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -31,10 +31,10 @@ class OrganizationEditView(OrganizationPermissionRequiredMixin, OrganizationView
         context["breadcrumbs"] = [
             {"url": reverse("organization_list"), "text": "Organizations"},
             {
-                "url": reverse("organization_settings", kwargs={"organization_code": self.object.code}),
+                "url": reverse("organization_settings", kwargs={"organization_id": self.object.id}),
                 "text": self.object.name,
             },
-            {"url": reverse("organization_edit", kwargs={"organization_code": self.object.code}), "text": _("Edit")},
+            {"url": reverse("organization_edit", kwargs={"organization_id": self.object.id}), "text": _("Edit")},
         ]
 
         return context

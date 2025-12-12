@@ -7,14 +7,7 @@ from openkat.models import Organization
 class OrganizationSerializer(TagSerializer):
     class Meta:
         model = Organization
-        fields = ["id", "name", "code", "tags"]
-
-
-class OrganizationSerializerReadOnlyCode(TagSerializer):
-    class Meta:
-        model = Organization
-        fields = ["id", "name", "code", "tags"]
-        read_only_fields = ["code"]
+        fields = ["id", "name", "tags"]
 
 
 class ToOrganizationSerializer(Serializer):

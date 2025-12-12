@@ -9,7 +9,7 @@ from openkat.models import AuthToken, Organization, OrganizationMember, Organiza
 
 
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ["name", "code", "tags"]
+    list_display = ["name", "tags"]
 
     def add_view(self, request, *args, **kwargs):
         try:
@@ -17,16 +17,6 @@ class OrganizationAdmin(admin.ModelAdmin):
         except OpenKATError as e:
             self.message_user(request, str(e), level=messages.ERROR)
             return HttpResponseRedirect(request.get_full_path())
-
-    def get_readonly_fields(self, request, obj=None):
-        # Obj is None when adding an organization and in that case we don't make
-        # code read only so it is possible to specify the code when creating an
-        # organization, but code must be read only after the organization
-        # objecht has been created.
-        if obj:
-            return ["code"]
-        else:
-            return []
 
 
 @admin.register(OrganizationMember)

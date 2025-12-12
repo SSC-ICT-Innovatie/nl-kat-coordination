@@ -9,10 +9,7 @@ from tests.conftest import JSONAPIClient
 def organizations(xtdb):
     return [
         Organization.objects.create(**org)
-        for org in [
-            {"name": "Test Organization 1", "code": "test1", "tags": ["tag1", "tag2"]},
-            {"name": "Test Organization 2", "code": "test2"},
-        ]
+        for org in [{"name": "Test Organization 1", "tags": ["tag1", "tag2"]}, {"name": "Test Organization 2"}]
     ]
 
 
@@ -37,39 +34,35 @@ def test_list_organizations(drf_client, organizations):
     else:
         raise AssertionError(f"Unexpected response format: {data}")
 
-    org_map = {org["code"]: org for org in orgs_list}
+    org_map = {org["id"]: org for org in orgs_list}
 
-    assert "test1" in org_map
-    assert org_map["test1"]["name"] == "Test Organization 1"
-    assert org_map["test1"]["code"] == "test1"
-    assert sorted(org_map["test1"]["tags"]) == ["tag1", "tag2"]
+    assert organizations[0].id in org_map
+    assert org_map[organizations[0].id]["name"] == "Test Organization 1"
+    assert sorted(org_map[organizations[0].id]["tags"]) == ["tag1", "tag2"]
 
-    assert "test2" in org_map
-    assert org_map["test2"]["name"] == "Test Organization 2"
-    assert org_map["test2"]["code"] == "test2"
+    assert organizations[1].id in org_map
+    assert org_map[organizations[1].id]["name"] == "Test Organization 2"
 
 
 def test_create_organization(drf_client, xtdb):
     initial_count = Organization.objects.count()
-    data = {"name": "Test Org 3", "code": "test3", "tags": ["tag2", "tag3"]}
+    data = {"name": "Test Org 3", "tags": ["tag2", "tag3"]}
 
     response = drf_client.post("/api/v1/organization/", json=data)
     assert response.status_code == 201
 
     result = response.json()
     assert result["name"] == "Test Org 3"
-    assert result["code"] == "test3"
     assert sorted(result["tags"]) == ["tag2", "tag3"]
 
     assert Organization.objects.count() == initial_count + 1
     org = Organization.objects.get(pk=result["id"])
     assert org.name == "Test Org 3"
-    assert org.code == "test3"
     assert sorted(str(tag) for tag in org.tags.all()) == ["tag2", "tag3"]
 
 
 def test_create_organization_no_permission(admin_client, admin_member, xtdb):
-    data = {"name": "Test Org 3", "code": "test3", "tags": ["tag2", "tag3"]}
+    data = {"name": "Test Org 3", "tags": ["tag2", "tag3"]}
 
     response = admin_client.post("/api/v1/organization/", json=data)
     assert response.status_code == 403
@@ -83,25 +76,22 @@ def test_retrieve_organization(admin_client, admin_member, organizations):
     result = response.json()
     assert result["id"] == org.pk
     assert result["name"] == "Test Organization 1"
-    assert result["code"] == "test1"
     assert sorted(result["tags"]) == ["tag1", "tag2"]
 
 
 def test_update_organization(drf_client, organizations):
     org = organizations[0]
-    data = {"name": "Changed Organization", "code": "test4", "tags": ["tag3", "tag4"]}
+    data = {"name": "Changed Organization", "tags": ["tag3", "tag4"]}
 
     response = drf_client.patch(f"/api/v1/organization/{org.pk}/", json=data)
     assert response.status_code == 200
 
     result = response.json()
     assert result["name"] == "Changed Organization"
-    assert result["code"] == "test1"
     assert sorted(result["tags"]) == ["tag3", "tag4"]
 
     org.refresh_from_db()
     assert org.name == "Changed Organization"
-    assert org.code == "test1"
     assert sorted(str(tag) for tag in org.tags.all()) == ["tag3", "tag4"]
 
 

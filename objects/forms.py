@@ -27,7 +27,7 @@ def clean_asset_csv(cleaned_data: dict[str, Any], column_name: str) -> None:
                     raise ValidationError(
                         _(
                             "Row {row_num} has {col_count} columns. "
-                            "Expected 1-2 columns ({column_name}, organization_code)."
+                            "Expected 1-2 columns ({column_name}, organization_id)."
                         ).format(row_num=i, col_count=len(row), column_name=column_name)
                     )
         except csv.Error as e:
@@ -113,7 +113,7 @@ class GenericAssetCSVUploadForm(UploadCSVForm):
 
                 # Column 1: asset (IP or hostname) - required
                 # Column 2: scan_level (optional)
-                # Column 3: organization code (optional)
+                # Column 3: organization id (optional)
                 for i, row in enumerate(rows, 1):
                     if not row or not row[0].strip():
                         continue

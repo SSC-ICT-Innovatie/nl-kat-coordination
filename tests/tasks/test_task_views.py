@@ -221,7 +221,7 @@ def test_task_cancel_all_view(rf, superuser_member, xtdb, organization, organiza
     mock_cancel.reset_mock()
 
     request = setup_request(
-        rf.post("task_cancel_all", query_params={"organization": [organization.code]}), superuser_member.user
+        rf.post("task_cancel_all", query_params={"organization": [organization.id]}), superuser_member.user
     )
     response = TaskCancelAllView.as_view()(request)
 

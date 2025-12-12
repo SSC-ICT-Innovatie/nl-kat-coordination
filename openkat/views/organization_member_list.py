@@ -46,7 +46,7 @@ class OrganizationMemberListView(
         if "action" not in self.request.POST:
             return self.get(request, *args, **kwargs)
         self.handle_page_action(request.POST.get("action"))
-        return redirect(reverse("organization_member_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(reverse("organization_member_list", kwargs={"organization_id": self.organization.id}))
 
     def handle_page_action(self, action: str) -> None:
         member_id = self.request.POST.get("member_id")

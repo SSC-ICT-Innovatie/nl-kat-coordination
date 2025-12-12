@@ -63,12 +63,12 @@ class OrganizationView(ContextMixin, View):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
 
-        organization_code = kwargs["organization_code"]
-        # bind organization_code to log context
-        structlog.contextvars.bind_contextvars(organization_code=organization_code)
+        organization_id = kwargs["organization_id"]
+        # bind organization_ids to log context
+        structlog.contextvars.bind_contextvars(organization_id=organization_id)
 
         try:
-            self.organization = Organization.objects.get(code=organization_code)
+            self.organization = Organization.objects.get(id=organization_id)
         except Organization.DoesNotExist:
             raise Http404()
 
@@ -149,17 +149,10 @@ class OrganizationAPIMixin:
     def organization(self) -> Organization:
         try:
             organization_id = self.request.query_params["organization_id"]
-        except KeyError:
-            pass
+        except KeyError as e:
+            raise ValidationError("Missing organization_id query parameter") from e
         else:
             return self.get_organization("id", organization_id)
-
-        try:
-            organization_code = self.request.query_params["organization_code"]
-        except KeyError as e:
-            raise ValidationError("Missing organization_id or organization_code query parameter") from e
-        else:
-            return self.get_organization("code", organization_code)
 
     @cached_property
     def valid_time(self) -> datetime:
@@ -179,30 +172,30 @@ class OrganizationAPIMixin:
             return ret
 
 
-def filter_queryset_orgs_for_user(queryset: QuerySet, user: User, selected_codes: set[str]) -> QuerySet:
-    can_access_all_orgs_and_unassigned_objs = not selected_codes and user.can_access_all_organizations
+def filter_queryset_orgs_for_user(queryset: QuerySet, user: User, selected_organizations: set[int]) -> QuerySet:
+    can_access_all_orgs_and_unassigned_objs = not selected_organizations and user.can_access_all_organizations
 
-    if not selected_codes and can_access_all_orgs_and_unassigned_objs:
+    if not selected_organizations and can_access_all_orgs_and_unassigned_objs:
         # If we may see all organizations and did not filter on any, we do not have to change the original queryset
         return queryset
 
-    allowed_organizations = {org.code for org in user.organizations}
+    allowed_organizations = {org.id for org in user.organizations}
 
-    if selected_codes:
-        organization_codes = allowed_organizations & selected_codes
+    if selected_organizations:
+        organization_ids = allowed_organizations & selected_organizations
 
         # If the user selected organizations they don't have access to, raise PermissionDenied
-        if organization_codes != selected_codes:
+        if organization_ids != selected_organizations:
             raise PermissionDenied
     else:
-        organization_codes = allowed_organizations
+        organization_ids = allowed_organizations
 
-    organizations = Organization.objects.filter(code__in=organization_codes)
+    organizations = Organization.objects.filter(id__in=organization_ids)
 
     if organizations.exists():
         org_pks = [org.pk for org in organizations]
 
-        can_access_all_orgs_and_unassigned_objs = not selected_codes and user.can_access_all_organizations
+        can_access_all_orgs_and_unassigned_objs = not selected_organizations and user.can_access_all_organizations
         if hasattr(queryset.model, "organization"):
             q = Q(organization__in=organizations)
             if can_access_all_orgs_and_unassigned_objs:
@@ -228,7 +221,7 @@ class OrganizationFilterMixin:
     """
     Mixin to filter querysets by organization based on query parameter.
 
-    Usage: Add ?organization=<org_code> or ?organization=<code1>&organization=<code2>
+    Usage: Add ?organization=<org_id> or ?organization=<id1>&organization=<id2>
     to filter objects by one or multiple organizations. Works with both ListView and DetailView.
     """
 
@@ -238,17 +231,17 @@ class OrganizationFilterMixin:
         return filter_queryset_orgs_for_user(
             super().get_queryset(),  # type: ignore[misc]
             self.request.user,
-            set(self.request.GET.getlist("organization")),
+            {int(org_id) for org_id in self.request.GET.getlist("organization")},
         )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)  # type: ignore[misc]
-        organization_codes = self.request.GET.getlist("organization")
+        organization_ids = [int(org_id) for org_id in self.request.GET.getlist("organization")]
 
-        if organization_codes:
-            filtered_organizations = list(Organization.objects.filter(code__in=organization_codes))
+        if organization_ids:
+            filtered_organizations = list(Organization.objects.filter(id__in=organization_ids))
             context["filtered_organizations"] = filtered_organizations
-            context["filtered_organization_codes"] = organization_codes
+            context["filtered_organization_ids"] = organization_ids
 
             if len(filtered_organizations) == 1:
                 context["organization"] = filtered_organizations[0]
@@ -258,8 +251,8 @@ class OrganizationFilterMixin:
         query_params.pop("organization", None)
         context["query_string_without_organization"] = query_params.urlencode()
 
-        # Always provide filtered_organization_codes (empty list if none) for template
-        if "filtered_organization_codes" not in context:
-            context["filtered_organization_codes"] = []
+        # Always provide filtered_organization_ids (empty list if none) for template
+        if "filtered_organization_ids" not in context:
+            context["filtered_organization_ids"] = []
 
         return context

@@ -31,7 +31,7 @@
             <div>
                 <h2>{% translate "Upload Multiple Assets from CSV" %}</h2>
                 <p>
-                    {% translate "Upload a CSV file with IP addresses and hostnames. You can optionally include scan levels and organization codes per row." %}
+                    {% translate "Upload a CSV file with IP addresses and hostnames. You can optionally include scan levels and organization ids per row." %}
                 </p>
                 <div>
                     <h3>{% translate "CSV Format" %}</h3>
@@ -44,7 +44,7 @@
                             <strong>{% translate "Column 2 (optional):" %}</strong> {% translate "Scan level (0-4)" %}
                         </li>
                         <li>
-                            <strong>{% translate "Column 3 (optional):" %}</strong> {% translate "Organization code" %}
+                            <strong>{% translate "Column 3 (optional):" %}</strong> {% translate "Organization id" %}
                         </li>
                     </ul>
                     <h4>{% translate "Examples:" %}</h4>
@@ -56,7 +56,7 @@ test.org,,org2
                     <ul>
                         <li>{% translate "No header row required" %}</li>
                         <li>{% translate "Empty columns are skipped" %}</li>
-                        <li>{% translate "Organization code is required if you want to set scan levels" %}</li>
+                        <li>{% translate "Organization id is required if you want to set scan levels" %}</li>
                     </ul>
                 </div>
                 <form method="post"

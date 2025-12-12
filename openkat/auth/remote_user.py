@@ -14,12 +14,12 @@ class RemoteUserBackend(BaseRemoteUserBackend):
     def configure_user(self, request, user, created=True):
         if settings.REMOTE_USER_DEFAULT_ORGANIZATIONS:
             try:
-                user_orgs = [m.organization.code for m in user.organization_members if not m.blocked]
+                user_orgs = [m.organization.id for m in user.organization_members if not m.blocked]
                 for item in settings.REMOTE_USER_DEFAULT_ORGANIZATIONS:
-                    organization_code, group_name = item.split(":")
-                    if organization_code not in user_orgs:
-                        logger.info("Adding user '%s' to organization '%s'", user, organization_code)
-                        organization = Organization.objects.get(code=organization_code)
+                    organization_id, group_name = item.split(":")
+                    if organization_id not in user_orgs:
+                        logger.info("Adding user '%s' to organization '%s'", user, organization_id)
+                        organization = Organization.objects.get(id=organization_id)
                         member = OrganizationMember.objects.create(
                             user=user,
                             organization=organization,

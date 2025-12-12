@@ -23,7 +23,7 @@ from psycopg import sql
 from tldextract import tldextract
 from transit.writer import Writer
 
-from openkat.models import ORGANIZATION_CODE_LENGTH, LowerCaseCharField, LowerCaseSlugField
+from openkat.models import LowerCaseCharField
 
 logger = structlog.get_logger(__name__)
 
@@ -118,15 +118,6 @@ class XTDBOrganizationTag(tagulous.models.TagTreeModel):
 
 class XTDBOrganization(XTDBModel):
     name = models.CharField(max_length=126, unique=True, help_text=_("The name of the organisation"))
-    code = LowerCaseSlugField(
-        max_length=ORGANIZATION_CODE_LENGTH,
-        unique=True,
-        allow_unicode=True,
-        help_text=_(
-            "A slug containing only lower-case unicode letters, numbers, hyphens or underscores "
-            "that will be used in URLs and paths"
-        ),
-    )
     tags = tagulous.models.TagField(to=XTDBOrganizationTag, blank=True)
 
     def __str__(self) -> str:

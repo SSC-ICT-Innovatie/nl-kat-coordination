@@ -15,7 +15,7 @@ def test_admin_can_edit_itself(rf, admin_member):
 
     request = setup_request(rf.get("organization_member_edit"), admin_member.user)
     response = OrganizationMemberEditView.as_view()(
-        request, organization_code=admin_member.organization.code, pk=admin_member.id
+        request, organization_id=admin_member.organization.id, pk=admin_member.id
     )
     assert response.status_code == 200
     assertContains(response, "Edit member")
@@ -28,7 +28,7 @@ def test_superuser_can_edit_itself(rf, superuser_member):
 
     request = setup_request(rf.get("organization_member_edit"), superuser_member.user)
     response = OrganizationMemberEditView.as_view()(
-        request, organization_code=superuser_member.organization.code, pk=superuser_member.id
+        request, organization_id=superuser_member.organization.id, pk=superuser_member.id
     )
     assert response.status_code == 200
     assertContains(response, "Edit member")
@@ -42,7 +42,7 @@ def test_client_can_edit_itself(rf, client_member):
     request = setup_request(rf.get("organization_member_edit"), client_member.user)
     with pytest.raises(PermissionDenied):
         OrganizationMemberEditView.as_view()(
-            request, organization_code=client_member.organization.code, pk=client_member.id
+            request, organization_id=client_member.organization.id, pk=client_member.id
         )
 
 
@@ -54,7 +54,7 @@ def test_admin_can_edit_superuser(rf, admin_member, superuser_member):
     request = setup_request(rf.get("organization_member_edit"), admin_member.user)
     with pytest.raises(PermissionDenied):
         OrganizationMemberEditView.as_view()(
-            request, organization_code=superuser_member.organization.code, pk=superuser_member.id
+            request, organization_id=superuser_member.organization.id, pk=superuser_member.id
         )
 
 
@@ -66,7 +66,7 @@ def test_client_can_edit_superuser(rf, client_member, superuser_member):
     request = setup_request(rf.get("organization_member_edit"), client_member.user)
     with pytest.raises(PermissionDenied):
         OrganizationMemberEditView.as_view()(
-            request, organization_code=superuser_member.organization.code, pk=superuser_member.id
+            request, organization_id=superuser_member.organization.id, pk=superuser_member.id
         )
 
 
@@ -79,7 +79,7 @@ def test_edit_superusers_from_different_organizations(rf, superuser_member, supe
     request = setup_request(rf.get("organization_member_edit"), superuser_member.user)
     # from OrganizationView
     OrganizationMemberEditView.as_view()(
-        request, organization_code=superuser_member_b.organization.code, pk=superuser_member_b.id
+        request, organization_id=superuser_member_b.organization.id, pk=superuser_member_b.id
     )
 
 
@@ -93,7 +93,7 @@ def test_edit_admins_from_different_organizations(rf, admin_member, admin_member
     # from OrganizationView
     with pytest.raises(Http404):
         OrganizationMemberEditView.as_view()(
-            request, organization_code=admin_member_b.organization.code, pk=admin_member_b.id
+            request, organization_id=admin_member_b.organization.id, pk=admin_member_b.id
         )
 
 
@@ -103,14 +103,14 @@ def test_admin_edits_client_different_orgs(rf, admin_member, client_member_b):
     )
     with pytest.raises(Http404):
         OrganizationMemberEditView.as_view()(
-            request, organization_code=client_member_b.organization.code, pk=client_member_b.id
+            request, organization_id=client_member_b.organization.id, pk=client_member_b.id
         )
 
 
 def test_account_type_view_existence(rf, admin_member):
     response = OrganizationMemberAddAccountTypeView.as_view()(
         setup_request(rf.get("organization_member_add_account_type"), admin_member.user),
-        organization_code=admin_member.organization.code,
+        organization_id=admin_member.organization.id,
     )
 
     assert response.status_code == 200
@@ -120,7 +120,7 @@ def test_account_type_view_existence(rf, admin_member):
 def test_check_add_admin_client_form(rf, admin_member, account_type):
     response = OrganizationMemberAddView.as_view()(
         setup_request(rf.get("organization_member_add"), admin_member.user),
-        organization_code=admin_member.organization.code,
+        organization_id=admin_member.organization.id,
         account_type=account_type,
     )
 

@@ -1,11 +1,11 @@
 import pytest
 from django.contrib.auth.models import Permission
-from django.core.exceptions import PermissionDenied, ValidationError
+from django.core.exceptions import PermissionDenied
 from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains
 
 from objects.models import Network, XTDBOrganization
-from openkat.models import DENY_ORGANIZATION_CODES, Organization, OrganizationMember
+from openkat.models import Organization, OrganizationMember
 from openkat.views.organization_add import OrganizationAddView
 from openkat.views.organization_edit import OrganizationEditView
 from openkat.views.organization_list import OrganizationListView
@@ -22,7 +22,7 @@ def bulk_organizations(active_member, blocked_member):
     members = []
 
     for i in range(1, AMOUNT_OF_TEST_ORGANIZATIONS):
-        org = Organization(name=f"Test Organization {i}", code=f"test{i}", tags=f"test-tag{i}")
+        org = Organization(name=f"Test Organization {i}", tags=f"test-tag{i}")
         organizations.append(org)
 
     orgs = Organization.objects.bulk_create(organizations)
@@ -57,32 +57,30 @@ def test_organization_list_non_superuser(rf, client_member):
 
 def test_edit_organization(rf, superuser_member):
     request = setup_request(rf.get("organization_edit"), superuser_member.user)
-    response = OrganizationEditView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = OrganizationEditView.as_view()(request, organization_id=superuser_member.organization.id)
 
     assert response.status_code == 200
     assertContains(response, "Name")
-    assertContains(response, "Code")
-    assertContains(response, superuser_member.organization.code)
+    assertContains(response, superuser_member.organization.id)
     assertContains(response, superuser_member.organization.name)
     assertContains(response, "Save organization")
 
 
 def test_add_organization_page(rf, superuser_member):
     request = setup_request(rf.get("organization_add"), superuser_member.user)
-    response = OrganizationAddView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = OrganizationAddView.as_view()(request, organization_id=superuser_member.organization.id)
 
     assert response.status_code == 200
     assertContains(response, "Name")
-    assertContains(response, "Code")
-    assertContains(response, superuser_member.organization.code)
+    assertContains(response, superuser_member.organization.id)
     assertContains(response, superuser_member.organization.name)
     assertContains(response, "Organization setup")
 
 
 @pytest.mark.skip("This test is too flaky for now.")
 def test_add_organization_submit_success(rf, superuser_member, log_output):
-    request = setup_request(rf.post("organization_add", {"name": "neworg", "code": "norg"}), superuser_member.user)
-    response = OrganizationAddView.as_view()(request, organization_code=superuser_member.organization.code)
+    request = setup_request(rf.post("organization_add", {"name": "neworg"}), superuser_member.user)
+    response = OrganizationAddView.as_view()(request, organization_id=superuser_member.organization.id)
     assert response.status_code == 302
 
     messages = list(request._messages)
@@ -168,7 +166,7 @@ def test_organization_list(rf, superuser_member, bulk_organizations, django_asse
 
 def test_organization_member_list(rf, admin_member):
     request = setup_request(rf.get("organization_member_list"), admin_member.user)
-    response = OrganizationMemberListView.as_view()(request, organization_code=admin_member.organization.code)
+    response = OrganizationMemberListView.as_view()(request, organization_id=admin_member.organization.id)
 
     assertContains(response, "Organization")
     assertContains(response, admin_member.organization.name)
@@ -197,21 +195,21 @@ def test_organization_member_list(rf, admin_member):
 def test_organization_filtered_member_list(rf, superuser_member, blocked_member):
     # Test with only filter option blocked status "blocked"
     request = setup_request(rf.get("organization_member_list", {"blocked": "blocked"}), superuser_member.user)
-    response = OrganizationMemberListView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = OrganizationMemberListView.as_view()(request, organization_id=superuser_member.organization.id)
 
     assertNotContains(response, blocked_member.user.full_name)
 
 
 def test_organization_does_not_exist(client, client_member):
     client.force_login(client_member.user)
-    response = client.get(reverse("organization_settings", kwargs={"organization_code": "nonexistent"}))
+    response = client.get(reverse("organization_settings", kwargs={"organization_id": "123456789"}))
 
     assert response.status_code == 404
 
 
 def test_organization_no_member(client, clientuser, organization):
     client.force_login(clientuser)
-    response = client.get(reverse("organization_settings", kwargs={"organization_code": organization.code}))
+    response = client.get(reverse("organization_settings", kwargs={"organization_id": organization.id}))
 
     assert response.status_code == 404
 
@@ -219,7 +217,7 @@ def test_organization_no_member(client, clientuser, organization):
 def test_organization_active_member(rf, admin_member):
     # Default is already active
     request = setup_request(rf.get("organization_settings"), admin_member.user)
-    response = OrganizationSettingsView.as_view()(request, organization_code=admin_member.organization.code)
+    response = OrganizationSettingsView.as_view()(request, organization_id=admin_member.organization.id)
 
     assert response.status_code == 200
 
@@ -229,7 +227,7 @@ def test_organization_blocked_member(rf, admin_member):
     admin_member.save()
     request = setup_request(rf.get("organization_settings"), admin_member.user)
     with pytest.raises(PermissionDenied):
-        OrganizationSettingsView.as_view()(request, organization_code=admin_member.organization.code)
+        OrganizationSettingsView.as_view()(request, organization_id=admin_member.organization.id)
 
 
 def test_edit_organization_permissions(rf, client_member):
@@ -237,14 +235,14 @@ def test_edit_organization_permissions(rf, client_member):
 
     with pytest.raises(PermissionDenied):
         OrganizationEditView.as_view()(
-            request_client, organization_code=client_member.organization.code, pk=client_member.organization.id
+            request_client, organization_id=client_member.organization.id, pk=client_member.organization.id
         )
 
 
 def test_admin_rights_edits_organization(rf, admin_member):
     request = setup_request(rf.get("organization_edit"), admin_member.user)
     response = OrganizationEditView.as_view()(
-        request, organization_code=admin_member.organization.code, pk=admin_member.organization.id
+        request, organization_id=admin_member.organization.id, pk=admin_member.organization.id
     )
 
     assert response.status_code == 200
@@ -256,14 +254,14 @@ def test_admin_edits_organization(rf, admin_member):
         admin_member.user,
     )
     response = OrganizationEditView.as_view()(
-        request, organization_code=admin_member.organization.code, pk=admin_member.organization.id
+        request, organization_id=admin_member.organization.id, pk=admin_member.organization.id
     )
 
     assert response.status_code == 302
-    assert response.url == f"/en/{admin_member.organization.code}/settings"
+    assert response.url == f"/en/{admin_member.organization.id}/settings"
     resulted_request = setup_request(rf.get(response.url), admin_member.user)
     resulted_response = OrganizationSettingsView.as_view()(
-        resulted_request, organization_code=admin_member.organization.code
+        resulted_request, organization_id=admin_member.organization.id
     )
     assert resulted_response.status_code == 200
 
@@ -273,42 +271,14 @@ def test_admin_edits_organization(rf, admin_member):
     assertContains(resulted_response, "tag2")
 
 
-def test_organization_code_validator_from_view(rf, superuser_member):
-    request = setup_request(
-        rf.post("organization_add", {"name": "DENIED LIST CHECK", "code": DENY_ORGANIZATION_CODES[0]}),
-        superuser_member.user,
-    )
-
-    response = OrganizationAddView.as_view()(request)
-
-    assert response.status_code == 200
-    assertContains(
-        response, "This organization code is reserved by OpenKAT and cannot be used. Choose another organization code."
-    )
-
-
-@pytest.mark.django_db(databases=["xtdb", "default"])
-def test_organization_code_validator_from_model():
-    with pytest.raises(ValidationError):
-        Organization.objects.create(name="Test", code=DENY_ORGANIZATION_CODES[0])
-
-    new_org = Organization.objects.create(name="Test", code="test_123")
-    assert new_org.code == "test_123"
-
-    new_org.code = DENY_ORGANIZATION_CODES[0]
-    with pytest.raises(ValidationError):
-        new_org.save()
-
-
 def test_organization_settings_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = OrganizationSettingsView.as_view()(
         setup_request(rf.get("organization_settings"), superuser_member.user),
-        organization_code=superuser_member.organization.code,
+        organization_id=superuser_member.organization.id,
     )
 
     response_admin = OrganizationSettingsView.as_view()(
-        setup_request(rf.get("organization_settings"), admin_member.user),
-        organization_code=admin_member.organization.code,
+        setup_request(rf.get("organization_settings"), admin_member.user), organization_id=admin_member.organization.id
     )
 
     assert response_superuser.status_code == 200
@@ -319,19 +289,19 @@ def test_organization_settings_perms(rf, superuser_member, admin_member, client_
     with pytest.raises(PermissionDenied):
         OrganizationSettingsView.as_view()(
             setup_request(rf.get("organization_settings"), client_member.user),
-            organization_code=client_member.organization.code,
+            organization_id=client_member.organization.id,
         )
 
 
 def test_organization_member_list_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = OrganizationMemberListView.as_view()(
         setup_request(rf.get("organization_member_list"), superuser_member.user),
-        organization_code=superuser_member.organization.code,
+        organization_id=superuser_member.organization.id,
     )
 
     response_admin = OrganizationMemberListView.as_view()(
         setup_request(rf.get("organization_member_list"), admin_member.user),
-        organization_code=admin_member.organization.code,
+        organization_id=admin_member.organization.id,
     )
 
     assert response_superuser.status_code == 200
@@ -340,23 +310,22 @@ def test_organization_member_list_perms(rf, superuser_member, admin_member, clie
     with pytest.raises(PermissionDenied):
         OrganizationMemberListView.as_view()(
             setup_request(rf.get("organization_member_list"), client_member.user),
-            organization_code=client_member.organization.code,
+            organization_id=client_member.organization.id,
         )
 
 
 def test_organization_list_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = OrganizationListView.as_view()(
         setup_request(rf.get("organization_list"), superuser_member.user),
-        organization_code=superuser_member.organization.code,
+        organization_id=superuser_member.organization.id,
     )
 
     response_admin = OrganizationListView.as_view()(
-        setup_request(rf.get("organization_list"), admin_member.user), organization_code=admin_member.organization.code
+        setup_request(rf.get("organization_list"), admin_member.user), organization_id=admin_member.organization.id
     )
 
     response_client = OrganizationListView.as_view()(
-        setup_request(rf.get("organization_list"), client_member.user),
-        organization_code=client_member.organization.code,
+        setup_request(rf.get("organization_list"), client_member.user), organization_id=client_member.organization.id
     )
 
     assertContains(response_superuser, "Add new organization")
@@ -373,7 +342,7 @@ def test_organization_edit_perms(request, member, rf):
 
     response = OrganizationEditView.as_view()(
         setup_request(rf.get("organization_edit"), member.user),
-        organization_code=member.organization.code,
+        organization_id=member.organization.id,
         pk=member.organization.id,
     )
 
@@ -386,7 +355,7 @@ def test_organization_edit_view(request, member, rf):
     member = request.getfixturevalue(member)
 
     response = OrganizationSettingsView.as_view()(
-        setup_request(rf.get("organization_settings"), member.user), organization_code=member.organization.code
+        setup_request(rf.get("organization_settings"), member.user), organization_id=member.organization.id
     )
 
     assert response.status_code == 200
@@ -399,7 +368,7 @@ def test_organization_edit_perms_on_settings_view(request, client_member, rf):
     with pytest.raises(PermissionDenied):
         OrganizationSettingsView.as_view()(
             setup_request(rf.get("organization_settings"), client_member.user),
-            organization_code=client_member.organization.code,
+            organization_id=client_member.organization.id,
         )
 
 
@@ -410,7 +379,7 @@ def test_organization_tags(organization):
     organization.save()
     assert list(organization.tags.all()) == ["testtag1", "testtag2"]
 
-    organization = Organization.objects.create(name="testtags", code="testtags", tags=["testtag3", "testtag4"])
+    organization = Organization.objects.create(name="testtags", tags=["testtag3", "testtag4"])
     assert list(organization.tags.all()) == ["testtag3", "testtag4"]
 
     organization.tags = []
@@ -419,7 +388,7 @@ def test_organization_tags(organization):
 
 
 def test_organization_delete(xtdb):
-    organization = Organization.objects.create(name="deletetest", code="deletetest", tags=["testtag4"])
+    organization = Organization.objects.create(name="deletetest", tags=["testtag4"])
     net = Network.objects.create(name="test")
     net.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
     net.save()

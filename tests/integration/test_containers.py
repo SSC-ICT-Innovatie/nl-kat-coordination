@@ -187,7 +187,7 @@ def test_process_raw_file_single_task():
     )
     file = File.objects.create(file=ContentFile(b"", name="test-file.txt"))
 
-    organization = Organization.objects.create(name="Test", code="test")
+    organization = Organization.objects.create(name="Test")
     Schedule.objects.create(plugin=plugin, enabled=True, organization=organization)
 
     tasks = process_file(file)

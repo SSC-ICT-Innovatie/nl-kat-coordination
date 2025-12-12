@@ -19,9 +19,9 @@
                         {% translate "My organizations" %}
                     </a>
                 </li>
-                {% if organization.code %}
+                {% if organization %}
                     <li>
-                        {% url "account_detail" organization.code as index_url %}
+                        {% url "account_detail" organization.id as index_url %}
                         <a href="{{ index_url }}"
                            {% if index_url in request.path|urlencode %}aria-selected="true"{% endif %}>{% translate "Profile" %}</a>
                     </li>

@@ -250,7 +250,7 @@ def test_run_report_task(organization, celery: Celery, mocker):
     task = run_report_task(
         name="Test Report Task",
         description="Test description",
-        organization_codes=[organization.code],
+        organization_ids=[organization.id],
         finding_types=["TEST-001"],
         object_set_id=None,
         _celery=celery,
@@ -281,7 +281,7 @@ def test_create_report_task(organization, celery: Celery, mocker, xtdb):
     task = run_report_task(
         name="Test Report",
         description="Test",
-        organization_codes=[organization.code],
+        organization_ids=[organization.id],
         finding_types=[],
         object_set_id=None,
         _celery=celery,
@@ -400,7 +400,7 @@ def test_report_task_creates_task_result(organization, celery: Celery, mocker, x
     task = run_report_task(
         name="Test Report with TaskResult",
         description="Test",
-        organization_codes=[organization.code],
+        organization_ids=[organization.id],
         finding_types=[],
         object_set_id=None,
         _celery=celery,

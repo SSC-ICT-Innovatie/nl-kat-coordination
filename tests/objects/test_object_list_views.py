@@ -183,7 +183,7 @@ def test_ipaddress_list_view_filtered_by_object_set_and_organization(
 
     # Request list view with object set filter AND organization filter
     request = setup_request(
-        rf.get("objects:ipaddress_list", {"object_set": object_set.pk, "organization": organization.code}),
+        rf.get("objects:ipaddress_list", {"object_set": object_set.pk, "organization": organization.id}),
         client_member.user,
     )
     response = IPAddressListView.as_view()(request)
@@ -216,7 +216,7 @@ def test_ipaddress_list_view_filtered_by_object_set_and_organization(
 
     # except when filtered
     request = setup_request(
-        rf.get("objects:ipaddress_list", {"object_set": object_set.pk, "organization": organization.code}),
+        rf.get("objects:ipaddress_list", {"object_set": object_set.pk, "organization": organization.id}),
         superuser_member.user,
     )
     response = IPAddressListView.as_view()(request)
@@ -250,7 +250,7 @@ def test_hostname_list_view_filtered_by_object_set_and_organization(
 
     # Request list view with object set filter AND organization filter
     request = setup_request(
-        rf.get("objects:hostname_list", {"object_set": object_set.pk, "organization": organization.code}),
+        rf.get("objects:hostname_list", {"object_set": object_set.pk, "organization": organization.id}),
         client_member.user,
     )
     response = HostnameListView.as_view()(request)
@@ -267,7 +267,7 @@ def test_hostname_list_view_filtered_by_object_set_and_organization(
 
     # Request list view with object set filter AND organization filter
     request = setup_request(
-        rf.get("objects:hostname_list", {"object_set": object_set.pk, "organization": organization.code}),
+        rf.get("objects:hostname_list", {"object_set": object_set.pk, "organization": organization.id}),
         superuser_member.user,
     )
     response = HostnameListView.as_view()(request)

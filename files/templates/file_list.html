@@ -28,7 +28,7 @@
             </div>
             <div class="filter-container">
                 <form class="inline layout-wide" method="get">
-                    {% for code in filtered_organization_codes %}<input type="hidden" name="organization" value="{{ code }}">{% endfor %}
+                    {% for id in filtered_organization_ids %}<input type="hidden" name="organization" value="{{ id }}">{% endfor %}
                     {{ filter.form.as_p }}
                     <button type="submit">{% translate "Apply" %}</button>
                 </form>
@@ -78,7 +78,7 @@
                                     <td>{{ file.created_at }}</td>
                                     <td>
                                         {% if file.task_result.task.organization %}
-                                            {{ file.task_result.task.organization.code }}
+                                            {{ file.task_result.task.organization }}
                                         {% else %}
                                             -
                                         {% endif %}

@@ -312,14 +312,14 @@ def run_report_schedule(schedule: Schedule, force: bool = True, _celery: Celery 
             return []
 
     if schedule.organization:
-        organization_codes = [schedule.organization.code]
+        organization_ids = [schedule.organization.id]
     else:
-        organization_codes = list(Organization.objects.values_list("code", flat=True))
+        organization_ids = list(Organization.objects.values_list("id", flat=True))
 
     task = run_report_task(
         name=schedule.report_name or f"Scheduled Report {schedule.pk}",
         description=schedule.report_description,
-        organization_codes=organization_codes,
+        organization_ids=organization_ids,
         finding_types=schedule.report_finding_types,
         object_set_id=schedule.object_set.pk if schedule.object_set else None,
         schedule_id=schedule.pk,
@@ -333,18 +333,18 @@ def run_schedule_for_organization(
     schedule: Schedule, organization: Organization | None, force: bool = True, _celery: Celery = app
 ) -> list[Task]:
     now = datetime.now(UTC)
-    code = None if organization is None else organization.code
+    organization_id = None if organization is None else organization.id
 
     if not schedule.object_set:
         if force:
-            return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
+            return run_plugin_task(schedule.plugin.plugin_id, organization_id, None, schedule.pk, _celery=_celery)
 
         last_run = Task.objects.filter(schedule=schedule, data__input_data=None).order_by("-created_at").first()
         if last_run and not schedule.recurrences.between(last_run.created_at, now):
             logger.debug("Plugin '%s' has already run recently", schedule.plugin.plugin_id)
             return []
 
-        return run_plugin_task(schedule.plugin.plugin_id, code, None, schedule.pk, _celery=_celery)
+        return run_plugin_task(schedule.plugin.plugin_id, organization_id, None, schedule.pk, _celery=_celery)
 
     object_pks = schedule.object_set.traverse_objects(scan_level__gte=schedule.plugin.scan_level)
 
@@ -364,7 +364,7 @@ def run_schedule_for_organization(
         return []
 
     if force:
-        return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, _celery=_celery)
+        return run_plugin_task(schedule.plugin.plugin_id, organization_id, input_data, schedule.pk, _celery=_celery)
 
     # Filter on the schedule and created after the previous occurrence
     last_runs = Task.objects.filter(
@@ -378,14 +378,14 @@ def run_schedule_for_organization(
     if not input_data:
         return []
 
-    return run_plugin_task(schedule.plugin.plugin_id, code, input_data, schedule.pk, _celery=_celery)
+    return run_plugin_task(schedule.plugin.plugin_id, organization_id, input_data, schedule.pk, _celery=_celery)
 
 
 def run_plugin_on_object_set(
     object_set: ObjectSet, plugin: Plugin, organization: Organization | None, force: bool = True, _celery: Celery = app
 ) -> list[Task]:
     now = datetime.now(UTC)
-    code = None if organization is None else organization.code
+    organization_id = None if organization is None else organization.id
 
     input_data: set[str] = set()
     object_pks = object_set.traverse_objects(scan_level__gte=plugin.scan_level)
@@ -398,7 +398,7 @@ def run_plugin_on_object_set(
         return []
 
     if force or not plugin.recurrences:
-        return run_plugin_task(plugin.plugin_id, code, input_data, None, _celery=_celery)
+        return run_plugin_task(plugin.plugin_id, organization_id, input_data, None, _celery=_celery)
 
     # Filter on the schedule and created after the previous occurrence
     last_runs = Task.objects.filter(created_at__gt=plugin.recurrences.before(now), data__plugin_id=plugin.plugin_id)
@@ -410,7 +410,7 @@ def run_plugin_on_object_set(
     if not input_data:
         return []
 
-    return run_plugin_task(plugin.plugin_id, code, input_data, None, _celery=_celery)
+    return run_plugin_task(plugin.plugin_id, organization_id, input_data, None, _celery=_celery)
 
 
 def rerun_task(task: Task, _celery: Celery = app) -> list[Task]:
@@ -419,7 +419,7 @@ def rerun_task(task: Task, _celery: Celery = app) -> list[Task]:
             run_report_task(
                 name=task.data.get("name", "Rerun Report"),
                 description=task.data.get("description", ""),
-                organization_codes=task.data.get("organization_codes", []),
+                organization_ids=task.data.get("organization_ids", []),
                 finding_types=task.data.get("finding_types", []),
                 object_set_id=task.data.get("object_set_id"),
             )
@@ -428,7 +428,7 @@ def rerun_task(task: Task, _celery: Celery = app) -> list[Task]:
         plugin = Plugin.objects.get(plugin_id=task.data["plugin_id"])  # asserts the plugin still exists
         return run_plugin_task(
             plugin.plugin_id,
-            task.organization.code if task.organization else None,
+            task.organization.id if task.organization else None,
             task.data["input_data"],
             None,
             _celery=_celery,
@@ -437,7 +437,7 @@ def rerun_task(task: Task, _celery: Celery = app) -> list[Task]:
 
 def run_plugin_task(
     plugin_id: str,
-    organization_code: str | None = None,
+    organization_id: int | None = None,
     input_data: str | list[str] | set[str] | None = None,
     schedule_id: int | None = None,
     batch: bool = True,
@@ -466,7 +466,7 @@ def run_plugin_task(
         for idx_2 in range(batch_size, len(inputs) + batch_size, batch_size):
             tasks.append(
                 run_plugin_task(
-                    plugin_id, organization_code, inputs[idx:idx_2], schedule_id, batch=False, _celery=_celery
+                    plugin_id, organization_id, inputs[idx:idx_2], schedule_id, batch=False, _celery=_celery
                 )[0]
             )
             idx = idx_2
@@ -478,13 +478,13 @@ def run_plugin_task(
         id=uuid.uuid4(),
         type="plugin",
         schedule_id=schedule_id,
-        organization=Organization.objects.get(code=organization_code) if organization_code else None,
+        organization=Organization.objects.get(id=organization_id) if organization_id else None,
         status=TaskStatus.QUEUED,
         data={"plugin_id": plugin_id, "input_data": inputs},  # TODO
     )
 
     run_plugin.bind(_celery)  # Make sure to bind the right celery instance to be able to test these tasks.
-    async_result = run_plugin.apply_async((plugin_id, organization_code, inputs), task_id=str(task.pk))
+    async_result = run_plugin.apply_async((plugin_id, organization_id, inputs), task_id=str(task.pk))
     task._async_result = async_result
 
     return [task]
@@ -492,12 +492,12 @@ def run_plugin_task(
 
 @app.task(bind=True)
 def run_plugin(
-    self: celery.Task, plugin_id: str, organization_code: str | None = None, input_data: list[str] | None = None
+    self: celery.Task, plugin_id: str, organization_id: int | None = None, input_data: list[str] | None = None
 ) -> str:
     logger.debug(
         "Starting plugin task",
         task_id=self.request.id,
-        organization=organization_code,
+        organization=organization_id,
         plugin_id=plugin_id,
         input_data=input_data,
     )
@@ -508,8 +508,8 @@ def run_plugin(
     if task.status == TaskStatus.CANCELLED:
         raise RuntimeError("Trying to run cancelled task")
 
-    if organization_code:
-        organization = Organization.objects.get(code=organization_code)
+    if organization_id:
+        organization = Organization.objects.get(id=organization_id)
 
     plugin = Plugin.objects.filter(plugin_id=plugin_id).first()
 
@@ -844,7 +844,7 @@ def process_file(file: File, handle_error: bool = False, _celery: Celery = app) 
         for plugin in Plugin.objects.filter(consumes__contains=[f"file:{file.type}"]):
             tasks.extend(
                 run_plugin_task(
-                    plugin.plugin_id, organization.code if organization else None, str(file.pk), _celery=_celery
+                    plugin.plugin_id, organization.id if organization else None, str(file.pk), _celery=_celery
                 )
             )
 
@@ -862,13 +862,13 @@ def process_file(file: File, handle_error: bool = False, _celery: Celery = app) 
         if has_global_schedule:
             # If there's a global schedule, create tasks for all organizations
             for org in Organization.objects.all():
-                tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), _celery=_celery))
+                tasks.extend(run_plugin_task(plugin.plugin_id, org.id, str(file.pk), _celery=_celery))
         else:
             # Otherwise, only create tasks for specific organizations
             for org_id in enabled_orgs:
                 if org_id:
                     org = Organization.objects.get(pk=org_id)
-                    tasks.extend(run_plugin_task(plugin.plugin_id, org.code, str(file.pk), _celery=_celery))
+                    tasks.extend(run_plugin_task(plugin.plugin_id, org.id, str(file.pk), _celery=_celery))
 
     return tasks
 
@@ -876,7 +876,7 @@ def process_file(file: File, handle_error: bool = False, _celery: Celery = app) 
 def run_report_task(
     name: str,
     description: str = "",
-    organization_codes: list[str] | None = None,
+    organization_ids: list[int] | None = None,
     finding_types: list[str] | None = None,
     object_set_id: int | None = None,
     schedule_id: int | None = None,
@@ -885,8 +885,8 @@ def run_report_task(
 ) -> Task:
     task_id = uuid.uuid4()
     organization = None
-    if organization_codes and len(organization_codes) > 0:
-        organization = Organization.objects.filter(code=organization_codes[0]).first()
+    if organization_ids and len(organization_ids) > 0:
+        organization = Organization.objects.filter(id=organization_ids[0]).first()
 
     task = Task.objects.create(
         id=task_id,
@@ -897,7 +897,7 @@ def run_report_task(
         data={
             "name": name,
             "description": description,
-            "organization_codes": organization_codes or [],
+            "organization_ids": organization_ids or [],
             "finding_types": finding_types or [],
             "object_set_id": object_set_id,
             "user_id": user_id,
@@ -906,7 +906,7 @@ def run_report_task(
 
     create_report.bind(_celery)
     async_result = create_report.apply_async(
-        (name, description, organization_codes, finding_types, object_set_id, user_id), task_id=str(task_id)
+        (name, description, organization_ids, finding_types, object_set_id, user_id), task_id=str(task_id)
     )
     task._async_result = async_result
 
@@ -918,14 +918,14 @@ def create_report(
     self: celery.Task,
     name: str,
     description: str = "",
-    organization_codes: list[str] | None = None,
+    organization_ids: list[int] | None = None,
     finding_types: list[str] | None = None,
     object_set_id: int | None = None,
     user_id: int | None = None,
 ) -> str:
     """Celery task for generating a report"""
     logger.info(
-        "Starting report generation task", task_id=self.request.id, name=name, organization_codes=organization_codes
+        "Starting report generation task", task_id=self.request.id, name=name, organization_ids=organization_ids
     )
 
     task = Task.objects.get(id=self.request.id)
@@ -937,10 +937,10 @@ def create_report(
     task.save()
 
     try:
-        # Get organizations if codes provided
+        # Get organizations if ids provided
         organizations = None
-        if organization_codes:
-            organizations = Organization.objects.filter(code__in=organization_codes)
+        if organization_ids:
+            organizations = Organization.objects.filter(id__in=organization_ids)
 
         # Get object set if provided
         object_set = None

@@ -11,7 +11,7 @@ from tests.conftest import setup_request
 def test_upload_members_page(rf, superuser_member):
     request = setup_request(rf.get("organization_member_upload"), superuser_member.user)
 
-    response = MembersUploadView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = MembersUploadView.as_view()(request, organization_id=superuser_member.organization.id)
     assert response.status_code == 200
     assertContains(response, "To create a custom CSV file, make sure it meets the following criteria:")
     assertContains(response, "Upload CSV file")
@@ -22,7 +22,7 @@ def test_upload_members_page(rf, superuser_member):
 def test_download_template(rf, superuser_member):
     request = setup_request(rf.get("organization_member_upload"), superuser_member.user)
 
-    response = DownloadMembersTemplateView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = DownloadMembersTemplateView.as_view()(request, organization_id=superuser_member.organization.id)
     assert response.status_code == 200
     assert (
         b"".join(response.streaming_content)
@@ -35,7 +35,7 @@ def test_upload_members(rf, superuser_member):
     assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 1
 
     request = setup_request(rf.post("organization_member_upload", {"csv_file": example_file}), superuser_member.user)
-    response = MembersUploadView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = MembersUploadView.as_view()(request, organization_id=superuser_member.organization.id)
 
     assert response.status_code == 302
     messages = list(request._messages)
@@ -46,7 +46,7 @@ def test_upload_members(rf, superuser_member):
     assert messages[2].message == "Invalid data for: 'a@b.ml'"
     assert messages[3].message == "Successfully processed users from csv."
 
-    assert response.url == f"/en/{superuser_member.organization.code}/members"
+    assert response.url == f"/en/{superuser_member.organization.id}/members"
 
     assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 3
     assert not OrganizationMember.objects.filter(organization=superuser_member.organization).last().user.password
@@ -58,7 +58,7 @@ def test_upload_bad_columns(rf, superuser_member):
     assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 1
 
     request = setup_request(rf.post("organization_member_upload", {"csv_file": example_file}), superuser_member.user)
-    response = MembersUploadView.as_view()(request, organization_code=superuser_member.organization.code)
+    response = MembersUploadView.as_view()(request, organization_id=superuser_member.organization.id)
 
     assert OrganizationMember.objects.filter(organization=superuser_member.organization).count() == 1
     assert response.status_code == 200

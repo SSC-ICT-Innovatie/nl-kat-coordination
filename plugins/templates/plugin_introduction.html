@@ -17,7 +17,7 @@
                 <form action="{% url 'schedule_plugin' plugin.pk %}" method="post">
                     {% csrf_token %}
                     <input type="hidden" name="current_url" value="{{ request.get_full_path }}">
-                    {% for code in filtered_organization_codes %}<input type="hidden" name="organization" value="{{ code }}">{% endfor %}
+                    {% for id in filtered_organization_ids %}<input type="hidden" name="organization" value="{{ id }}">{% endfor %}
                     {% if has_schedules %}
                         <input type="hidden" name="action" value="cancel">
                         <button type="submit" class="button ghost destructive">

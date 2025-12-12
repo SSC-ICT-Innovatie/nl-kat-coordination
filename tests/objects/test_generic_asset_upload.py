@@ -100,8 +100,8 @@ def test_generic_asset_csv_upload_duplicates(rf, superuser_member, xtdb):
 
 
 def test_generic_asset_csv_upload_optional_columns(rf, superuser_member, xtdb):
-    org_code = superuser_member.organization.code
-    csv_content = f"192.168.1.1,,\nexample.com,2,\ntest.org,,{org_code}".encode()
+    org_id = superuser_member.organization.id
+    csv_content = f"192.168.1.1,,\nexample.com,2,\ntest.org,,{org_id}".encode()
     csv_file = BytesIO(csv_content)
     csv_file.name = "assets.csv"
 

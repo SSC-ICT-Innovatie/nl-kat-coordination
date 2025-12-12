@@ -30,26 +30,14 @@ def test_organization_admin_add_view(admin_client, xtdb):
     response = admin_client.get(url)
     assert response.status_code == 200
     assert "name" in response.content.decode()
-    assert "code" in response.content.decode()
 
     # Test POST with valid data creates organization
-    data = {"name": "New Organization", "code": "new-org", "tags": ""}
+    data = {"name": "New Organization", "tags": ""}
     response = admin_client.post(url, data)
     assert response.status_code == 302  # Redirect after successful creation
 
     # Verify organization was created in PostgreSQL
-    org = Organization.objects.get(code="new-org")
-    assert org.name == "New Organization"
-
-    # Test validation for reserved organization codes
-    data = {
-        "name": "Admin Organization",
-        "code": "admin",  # This is in DENY_ORGANIZATION_CODES
-        "tags": "",
-    }
-    response = admin_client.post(url, data)
-    assert response.status_code == 200  # Should stay on form with error
-    assert "organization code is reserved" in response.content.decode().lower()
+    Organization.objects.get(name="New Organization")
 
 
 def test_organization_admin_change_view(admin_client, organization, xtdb):
@@ -60,18 +48,9 @@ def test_organization_admin_change_view(admin_client, organization, xtdb):
     response = admin_client.get(url)
     assert response.status_code == 200
     assert organization.name in response.content.decode()
-    assert organization.code in response.content.decode()
-
-    # Verify 'code' field is read-only (should be disabled or readonly)
-    content = response.content.decode()
-    assert "readonly" in content or "disabled" in content
 
     # Test POST updates organization name
-    data = {
-        "name": "Updated Organization Name",
-        "code": organization.code,  # Code should remain unchanged
-        "tags": "",
-    }
+    data = {"name": "Updated Organization Name", "tags": ""}
     response = admin_client.post(url, data)
     assert response.status_code == 302  # Redirect after successful update
 
@@ -101,8 +80,8 @@ def test_organization_admin_delete_view(admin_client, organization, xtdb):
 def test_organization_admin_changelist_view(admin_client, organization, xtdb):
     """Test the Organization admin changelist view."""
     # Create additional organizations for testing
-    org2 = Organization.objects.create(name="Second Org", code="second-org")
-    org3 = Organization.objects.create(name="Third Org", code="third-org")
+    org2 = Organization.objects.create(name="Second Org")
+    org3 = Organization.objects.create(name="Third Org")
 
     url = reverse("admin:openkat_organization_changelist")
 
@@ -113,15 +92,11 @@ def test_organization_admin_changelist_view(admin_client, organization, xtdb):
     content = response.content.decode()
     # Verify list displays correct columns (name, code, tags)
     assert organization.name in content
-    assert organization.code in content
     assert org2.name in content
-    assert org2.code in content
     assert org3.name in content
-    assert org3.code in content
 
     # Verify table headers are present (list_display fields)
     assert "Name" in content
-    assert "Code" in content
 
 
 def test_authtoken_admin_add_view(admin_client, superuser):

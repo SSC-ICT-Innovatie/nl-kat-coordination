@@ -29,7 +29,7 @@
                                 <label {% if option.attrs.id %}for="{{ option.attrs.id }}"{% endif %}>
                                     {% with cell_template=widget.column_templates|index:forloop.counter0 %}
                                         {% if cell_template %}
-                                            {% include cell_template with value=cell organization_code=widget.attrs.organization_code mandatory_fields=widget.attrs.mandatory_fields %}
+                                            {% include cell_template with value=cell organization_id=widget.attrs.organization_id mandatory_fields=widget.attrs.mandatory_fields %}
 
                                         {% else %}
                                             {{ cell }}

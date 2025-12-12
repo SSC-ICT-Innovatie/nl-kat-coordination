@@ -6,16 +6,15 @@ from tests.conftest import setup_request
 
 def test_account_detail_perms(rf, superuser_member, admin_member, client_member):
     response_superuser = AccountView.as_view()(
-        setup_request(rf.get("account_detail"), superuser_member.user),
-        organization_code=superuser_member.organization.code,
+        setup_request(rf.get("account_detail"), superuser_member.user), organization_id=superuser_member.organization.id
     )
 
     response_admin = AccountView.as_view()(
-        setup_request(rf.get("account_detail"), admin_member.user), organization_code=admin_member.organization.code
+        setup_request(rf.get("account_detail"), admin_member.user), organization_id=admin_member.organization.id
     )
 
     response_client = AccountView.as_view()(
-        setup_request(rf.get("account_detail"), client_member.user), organization_code=client_member.organization.code
+        setup_request(rf.get("account_detail"), client_member.user), organization_id=client_member.organization.id
     )
     assert response_superuser.status_code == 200
     assert response_admin.status_code == 200

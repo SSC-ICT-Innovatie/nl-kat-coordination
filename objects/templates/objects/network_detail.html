@@ -59,7 +59,7 @@
                                 {% with orgs=network.organizations.all %}
                                     {% if orgs %}
                                         <ul>
-                                            {% for org in orgs %}<li>{{ org.name }} ({{ org.code }})</li>{% endfor %}
+                                            {% for org in orgs %}<li>{{ org.name }}</li>{% endfor %}
                                         </ul>
                                     {% else %}
                                         -
@@ -82,7 +82,7 @@
                                 {% for org in all_organizations %}
                                     <option value="{{ org.pk }}"
                                             {% if org in network.organizations.all %}selected{% endif %}>
-                                        {{ org.name }} ({{ org.code }})
+                                        {{ org.name }}
                                     </option>
                                 {% endfor %}
                             </select>

@@ -226,12 +226,12 @@ class ReportCreateView(PermissionRequiredMixin, CreateView):
                 return redirect(reverse("schedule_list"))
         else:
             organizations = form.cleaned_data["organizations"]
-            organization_codes = [org.code for org in organizations] if organizations else []
+            organization_ids = [org.id for org in organizations] if organizations else []
 
             task = run_report_task(
                 name=name,
                 description=description,
-                organization_codes=organization_codes,
+                organization_ids=organization_ids,
                 finding_types=list(finding_types) if finding_types else [],
                 object_set_id=object_set.id if object_set else None,
             )

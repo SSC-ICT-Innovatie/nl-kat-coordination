@@ -7,7 +7,7 @@
                 <p>
                     {% translate "Logged in as:" %}
                     {% if organization %}
-                        <a href="{% url "account_detail" organization_code=organization.code %}">{{ request.user }}</a>
+                        <a href="{% url "account_detail" organization_id=organization.id %}">{{ request.user }}</a>
                     {% else %}
                         {{ request.user }}
                     {% endif %}

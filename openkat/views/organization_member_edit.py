@@ -40,20 +40,19 @@ class OrganizationMemberEditView(
         messages.add_message(
             self.request, messages.SUCCESS, _("Member %s successfully updated.") % (self.object.user.full_name)
         )
-        return reverse("organization_member_list", kwargs={"organization_code": self.organization.code})
+        return reverse("organization_member_list", kwargs={"organization_id": self.organization.id})
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["breadcrumbs"] = [
             {
-                "url": reverse("organization_member_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse("organization_member_list", kwargs={"organization_id": self.organization.id}),
                 "text": _("Members"),
             },
             {
                 "url": reverse(
-                    "organization_member_edit",
-                    kwargs={"organization_code": self.organization.code, "pk": self.object.pk},
+                    "organization_member_edit", kwargs={"organization_id": self.organization.id, "pk": self.object.pk}
                 ),
                 "text": _("Edit member"),
             },

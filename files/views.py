@@ -47,9 +47,9 @@ class FileListView(OrganizationFilterMixin, FilterView):
             queryset = queryset.filter(task_result__task__id=self.request.GET["task_id"])
 
         # Handle organization filtering for task__organization relationship
-        organization_codes = self.request.GET.getlist("organization")
-        if organization_codes:
-            organizations = Organization.objects.filter(code__in=organization_codes)
+        organization_ids = self.request.GET.getlist("organization")
+        if organization_ids:
+            organizations = Organization.objects.filter(id__in=organization_ids)
             if organizations.exists():
                 queryset = queryset.filter(task_result__task__organization__in=organizations)
             else:

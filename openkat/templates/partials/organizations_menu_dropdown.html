@@ -18,7 +18,7 @@
     <div id="change-organization" class="dropdown-list">
         <ul>
             <li>
-                {% if filtered_organization_codes %}
+                {% if filtered_organization_ids %}
                     <a href="?{{ query_string_without_organization }}" class="dropdown-item">{% translate "All organizations" %}</a>
                 {% else %}
                     <a href="?{{ query_string_without_organization }}" class="dropdown-item"><strong>✓ {% translate "All organizations" %}</strong></a>
@@ -26,11 +26,11 @@
             </li>
             {% for org in organizations_including_blocked %}
                 <li>
-                    {% if org.code in filtered_organization_codes %}
-                        <a href="?{{ query_string_without_organization }}{% if query_string_without_organization %}&{% endif %}{% for code in filtered_organization_codes %}{% if code != org.code %}organization={{ code }}&{% endif %}{% endfor %}"
+                    {% if org.id in filtered_organization_ids %}
+                        <a href="?{{ query_string_without_organization }}{% if query_string_without_organization %}&{% endif %}{% for id in filtered_organization_ids %}{% if id != org.id %}organization={{ id }}&{% endif %}{% endfor %}"
                            class="dropdown-item"><strong>✓ {{ org.name }}</strong></a>
                     {% else %}
-                        <a href="?{{ query_string_without_organization }}{% if query_string_without_organization %}&{% endif %}{% for code in filtered_organization_codes %}organization={{ code }}&{% endfor %}organization={{ org.code }}"
+                        <a href="?{{ query_string_without_organization }}{% if query_string_without_organization %}&{% endif %}{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}organization={{ org.id }}"
                            class="dropdown-item">{{ org.name }}</a>
                     {% endif %}
                 </li>

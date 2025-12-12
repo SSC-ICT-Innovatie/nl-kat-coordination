@@ -7,7 +7,6 @@ import tagulous.models
 from django.conf import settings
 from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractBaseUser, Group, Permission, PermissionsMixin
-from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.db.models.functions import Lower
@@ -25,27 +24,6 @@ GROUP_ADMIN = "admin"
 GROUP_READ_ONLY = "read-only"
 
 logger = structlog.get_logger(__name__)
-
-ORGANIZATION_CODE_LENGTH = 32
-DENY_ORGANIZATION_CODES = [
-    "admin",
-    "api",
-    "i18n",
-    "account",
-    "crisis-room",
-    "findings",
-    "objects",
-    "organizations",
-    "edit",
-    "members",
-    "settings",
-    "scans",
-    "upload",
-    "tasks",
-    "tasks",
-    "objects",
-    "openkat",
-]
 
 
 class LowerCaseCharField(models.CharField):
@@ -71,6 +49,7 @@ class LowerCaseEmailField(LowerCaseCharField, models.EmailField):
     """Override EmailField to convert email addresses to lowercase before saving."""
 
 
+# TODO: Is referenced in migrations, remove after squashing migrations
 class LowerCaseSlugField(LowerCaseCharField, models.SlugField):
     """Override SlufField to convert slugs to lowercase before saving."""
 
@@ -94,15 +73,6 @@ class OrganizationTag(tagulous.models.TagTreeModel):
 class Organization(models.Model):
     id = models.BigAutoField(db_column="_id", primary_key=True, serialize=False, verbose_name="ID")
     name = models.CharField(max_length=126, unique=True, help_text=_("The name of the organisation"))
-    code = LowerCaseSlugField(
-        max_length=ORGANIZATION_CODE_LENGTH,
-        unique=True,
-        allow_unicode=True,
-        help_text=_(
-            "A slug containing only lower-case unicode letters, numbers, hyphens or underscores "
-            "that will be used in URLs and paths"
-        ),
-    )
     tags = tagulous.models.TagField(to=OrganizationTag, blank=True)
 
     EVENT_CODES = {"created": 900201, "updated": 900202, "deleted": 900203}
@@ -128,7 +98,7 @@ class Organization(models.Model):
         super().save(force_insert=force_insert, force_update=force_update, using=using, update_fields=update_fields)
         from objects.models import XTDBOrganization  # noqa: PLC0415
 
-        xtdb_org, created = XTDBOrganization.objects.get_or_create(id=self.id, name=self.name, code=self.code)
+        xtdb_org, created = XTDBOrganization.objects.get_or_create(id=self.id, name=self.name)
         xtdb_org.tags = list(self.tags.all().values_list("name", flat=True))
         for tag in xtdb_org.tags._tags:
             tag.save()
@@ -143,17 +113,6 @@ class Organization(models.Model):
 
     def get_absolute_url(self):
         return reverse("organization_settings", args=[self.pk])
-
-    def clean(self):
-        if self.code in DENY_ORGANIZATION_CODES:
-            raise ValidationError(
-                {
-                    "code": _(
-                        "This organization code is reserved by OpenKAT and cannot be used. "
-                        "Choose another organization code."
-                    )
-                }
-            )
 
 
 class OrganizationMember(models.Model):

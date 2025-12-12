@@ -5,14 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from openkat.enums import SCAN_LEVEL
 from openkat.forms.base import BaseOpenKATForm, BaseOpenKATModelForm
-from openkat.models import (
-    GROUP_ADMIN,
-    GROUP_READ_ONLY,
-    ORGANIZATION_CODE_LENGTH,
-    Organization,
-    OrganizationMember,
-    User,
-)
+from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization, OrganizationMember, User
 
 
 class UserRegistrationForm(forms.Form):
@@ -132,7 +125,7 @@ class OrganizationForm(BaseOpenKATModelForm):
 
     class Meta:
         model = Organization
-        fields = ["name", "code"]
+        fields = ["name"]
 
         widgets = {
             "name": forms.TextInput(
@@ -141,26 +134,13 @@ class OrganizationForm(BaseOpenKATModelForm):
                     "autocomplete": "off",
                     "aria-describedby": _("explanation-organization-name"),
                 }
-            ),
-            "code": forms.TextInput(
-                attrs={
-                    "placeholder": _("A unique code of {code_length} characters.").format(
-                        code_length=ORGANIZATION_CODE_LENGTH
-                    ),
-                    "autocomplete": "off",
-                    "aria-describedby": _("explanation-organization-code"),
-                }
-            ),
+            )
         }
         error_messages = {
             "name": {
                 "required": _("Organization name is required to proceed."),
                 "unique": _("Choose another organization."),
-            },
-            "code": {
-                "required": _("Organization code is required to proceed."),
-                "unique": _("Choose another code for your organization."),
-            },
+            }
         }
 
 
@@ -207,18 +187,11 @@ class OrganizationMemberEditForm(BaseOpenKATModelForm, TrustedClearanceLevelRadi
         fields = ["blocked", "trusted_clearance_level", "acknowledged_clearance_level"]
 
 
-class OnboardingOrganizationUpdateForm(OrganizationForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields["code"].disabled = True
-
-
 class OrganizationUpdateForm(OrganizationForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields["code"].disabled = True
         self.fields["tags"].widget.attrs["placeholder"] = _("Enter tags separated by comma.")
 
     class Meta:
         model = Organization
-        fields = ["name", "code", "tags"]
+        fields = ["name", "tags"]

@@ -20,10 +20,10 @@ class OrganizationListView(OrganizationFilterMixin, OrganizationBreadcrumbsMixin
             .filter(id__in=[organization.id for organization in self.request.user.organizations])
         )
 
-        # Filter by organization code(s) if provided
-        organization_codes = self.request.GET.getlist("organization")
-        if organization_codes:
-            queryset = queryset.filter(code__in=organization_codes)
+        # Filter by organization if provided
+        organization_ids = self.request.GET.getlist("organization")
+        if organization_ids:
+            queryset = queryset.filter(id__in=organization_ids)
 
         return queryset
 

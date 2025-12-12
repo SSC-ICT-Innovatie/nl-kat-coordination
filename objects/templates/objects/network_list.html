@@ -13,7 +13,7 @@
 
             <div class="filter-container">
                 <form class="inline layout-wide" method="get">
-                    {% for code in filtered_organization_codes %}<input type="hidden" name="organization" value="{{ code }}">{% endfor %}
+                    {% for id in filtered_organization_ids %}<input type="hidden" name="organization" value="{{ id }}">{% endfor %}
                     <div class="horizontal-view">
                         {{ filter.form.as_p }}
                         <button type="submit">{% translate "Apply" %}</button>
@@ -37,7 +37,7 @@
                             {% for network in networks %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'objects:network_detail' network.pk %}?{% for code in filtered_organization_codes %}organization={{ code }}&{% endfor %}">{{ network.name }}</a>
+                                        <a href="{% url 'objects:network_detail' network.pk %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}">{{ network.name }}</a>
                                     </td>
                                     <td>
                                         {% if network.scan_level != None %}

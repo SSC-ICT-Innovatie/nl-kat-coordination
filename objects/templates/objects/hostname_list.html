@@ -13,7 +13,7 @@
 
             <div class="filter-container">
                 <form class="inline layout-wide" method="get">
-                    {% for code in filtered_organization_codes %}<input type="hidden" name="organization" value="{{ code }}">{% endfor %}
+                    {% for id in filtered_organization_ids %}<input type="hidden" name="organization" value="{{ id }}">{% endfor %}
                     {% for field in filter.form %}
                         {% if field.name == "scan_level" %}
                             <p class="scan-level-filter">
@@ -121,10 +121,10 @@
                                             </form>
                                         </td>
                                         <td>
-                                            <a href="{% url 'objects:hostname_detail' hostname.pk %}?{% for code in filtered_organization_codes %}organization={{ code }}&{% endfor %}">{{ hostname.name }}</a>
+                                            <a href="{% url 'objects:hostname_detail' hostname.pk %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}">{{ hostname.name }}</a>
                                         </td>
                                         <td>
-                                            <a href="{% url 'objects:network_detail' hostname.network.pk %}?{% for code in filtered_organization_codes %}organization={{ code }}&{% endfor %}">{{ hostname.network.name }}</a>
+                                            <a href="{% url 'objects:network_detail' hostname.network.pk %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}">{{ hostname.network.name }}</a>
                                         </td>
                                         <td>
                                             {% if hostname.scan_level != None %}

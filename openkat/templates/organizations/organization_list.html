@@ -34,7 +34,6 @@
                             <thead>
                                 <tr>
                                     <th>{% translate "Name" %}</th>
-                                    <th>{% translate "Code" %}</th>
                                     <th>{% translate "Tags" %}</th>
                                     <th>{% translate "Settings" %}</th>
                                 </tr>
@@ -44,18 +43,17 @@
                                     <tr>
                                         <td>
                                             {% if perms.openkat.view_organization %}
-                                                <a href="{% url 'organization_member_list' organization_code=organization.code %}">{{ organization.name }}</a>
+                                                <a href="{% url 'organization_member_list' organization_id=organization.id %}">{{ organization.name }}</a>
                                             </td>
                                         {% else %}
                                             {{ organization.name }}
                                         {% endif %}
-                                        <td>{{ organization.code }}</td>
                                         <td>
                                             {% include "organizations/organization_tags.html" %}
 
                                         </td>
                                         <td>
-                                            <a href="{% url 'organization_settings' organization_code=organization.code %}">
+                                            <a href="{% url 'organization_settings' organization_id=organization.id %}">
                                                 <button class="icon ti-edit action-button">Settings</button>
                                             </a>
                                         </td>

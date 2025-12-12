@@ -1,7 +1,6 @@
 from openkat.forms.account_setup import (
     AccountTypeSelectForm,
     MemberRegistrationForm,
-    OnboardingOrganizationUpdateForm,
     OrganizationForm,
     OrganizationMemberEditForm,
     OrganizationUpdateForm,
@@ -13,7 +12,6 @@ from openkat.forms.token import TwoFactorBackupTokenForm, TwoFactorSetupTokenFor
 __all__ = [
     "AccountTypeSelectForm",
     "MemberRegistrationForm",
-    "OnboardingOrganizationUpdateForm",
     "OrganizationForm",
     "OrganizationMemberEditForm",
     "OrganizationUpdateForm",
