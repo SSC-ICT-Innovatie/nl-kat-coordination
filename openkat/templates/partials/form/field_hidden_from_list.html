@@ -1,9 +1,0 @@
-{% spaceless %}
-    {% if list %}
-        {% for tuple in list %}
-            {% if tuple.0 not in form.fields and tuple.0 not in ignore_params %}
-                <input type="text" name="{{ tuple.0 }}" value="{{ tuple.1 }}">
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-{% endspaceless %}

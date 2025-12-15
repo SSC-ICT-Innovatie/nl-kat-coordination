@@ -1,6 +1,0 @@
-{% for key, value in items %}
-    {% if exclude_keys and key not in exclude_keys %}
-        {% include "partials/elements/definition_list_item.html" with label=key description=value %}
-
-    {% endif %}
-{% endfor %}
