@@ -66,7 +66,6 @@ def main():
             continue
 
         result = subprocess.run(["zgrab2", service], capture_output=True, text=True, input=f"{ip},,,{port}")
-        print(result.stdout)
         data = json.loads(result.stdout)
 
         if "data" not in data:
