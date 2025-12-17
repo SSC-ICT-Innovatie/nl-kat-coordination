@@ -1,8 +1,9 @@
 import argparse
 import os
+from pprint import pprint
 
 import httpx
-from securitytxt import SecurityTXT
+from sectxt import SecurityTXT
 
 
 def main():
@@ -23,15 +24,15 @@ def main():
     findings = []
 
     for hostname in args.hostnames:
-        try:
-            sec = SecurityTXT.from_url(hostname)
-        except FileNotFoundError:
+        sec = SecurityTXT(hostname)
+        if "no_security_txt" in sec.errors:
             findings.append({"finding_type_code": "KAT-NO-SECURITY-TXT", "hostname": hostname})
-        else:
-            if not sec.is_valid():
-                findings.append({"finding_type_code": "KAT-INVALID-SECURITY-TXT", "hostname": hostname})
-            if not sec.required_fields_present():
-                findings.append({"finding_type_code": "KAT-BAD-FORMAT-SECURITY-TXT", "hostname": hostname})
+        if not sec.is_valid():
+            findings.append({"finding_type_code": "KAT-INVALID-SECURITY-TXT", "hostname": hostname})
+        if "unknown_field" in sec.errors:
+            findings.append({"finding_type_code": "KAT-BAD-FORMAT-SECURITY-TXT", "hostname": hostname})
+
+        pprint(sec.errors)  # noqa
 
     client.post("/objects/finding/", json=findings).raise_for_status()
 
