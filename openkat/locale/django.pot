@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-09 23:57+0000\n"
+"POT-Creation-Date: 2025-12-17 22:38+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -153,7 +153,7 @@ msgstr ""
 #, python-brace-format
 msgid ""
 "Row {row_num} has {col_count} columns. Expected 1-2 columns ({column_name}, "
-"organization_code)."
+"organization_id)."
 msgstr ""
 
 #: objects/forms.py
@@ -224,9 +224,7 @@ msgid "The name of the organisation"
 msgstr ""
 
 #: objects/models.py openkat/models.py
-msgid ""
-"A slug containing only lower-case unicode letters, numbers, hyphens or "
-"underscores that will be used in URLs and paths"
+msgid "ID to match organizations in external database"
 msgstr ""
 
 #: objects/models.py
@@ -405,7 +403,7 @@ msgstr ""
 #: objects/templates/objects/generic_asset_create.html
 msgid ""
 "Upload a CSV file with IP addresses and hostnames. You can optionally "
-"include scan levels and organization codes per row."
+"include scan levels and organization ids per row."
 msgstr ""
 
 #: objects/templates/objects/generic_asset_create.html
@@ -439,8 +437,7 @@ msgid "Column 3 (optional):"
 msgstr ""
 
 #: objects/templates/objects/generic_asset_create.html
-#: openkat/templates/partials/organization_properties_table.html
-msgid "Organization code"
+msgid "Organization id"
 msgstr ""
 
 #: objects/templates/objects/generic_asset_create.html
@@ -458,13 +455,12 @@ msgid "Empty columns are skipped"
 msgstr ""
 
 #: objects/templates/objects/generic_asset_create.html
-msgid "Organization code is required if you want to set scan levels"
+msgid "Organization id is required if you want to set scan levels"
 msgstr ""
 
 #: objects/templates/objects/generic_asset_create.html
 #: objects/templates/objects/hostname_create.html
 #: objects/templates/objects/ipaddress_create.html
-#: openkat/templates/upload_csv.html
 msgid "Upload CSV"
 msgstr ""
 
@@ -1078,7 +1074,7 @@ msgstr ""
 #: objects/views.py
 #, python-brace-format
 msgid ""
-"Organization with code '{code}' not found. Skipping scan level for this row."
+"Organization with id '{org_id}' not found. Skipping scan level for this row."
 msgstr ""
 
 #: objects/views.py
@@ -1142,39 +1138,6 @@ msgstr ""
 #: objects/views.py
 #, python-brace-format
 msgid "Successfully set organizations for {count} assets."
-msgstr ""
-
-#: plugins/templates/enable_disable_plugin.html
-#: plugins/templates/plugins/business_rule_list.html
-#: tasks/templates/schedule_list.html
-msgid "Enable"
-msgstr ""
-
-#: plugins/templates/enable_disable_plugin.html
-#: plugins/templates/plugins/business_rule_list.html
-#: tasks/templates/schedule_list.html
-#: openkat/templates/two_factor/profile/disable.html
-msgid "Disable"
-msgstr ""
-
-#: plugins/templates/enable_disable_plugin.html
-#: plugins/templates/plugin_variants.html
-#: plugins/templates/plugins/business_rule_detail.html
-#: plugins/templates/plugins/business_rule_list.html
-#: tasks/templates/schedule_list.html
-msgid "Enabled"
-msgstr ""
-
-#: plugins/templates/enable_disable_plugin.html
-#: plugins/templates/plugin_variants.html
-#: plugins/templates/plugins/business_rule_detail.html
-#: plugins/templates/plugins/business_rule_list.html
-#: tasks/templates/schedule_list.html
-msgid "Disabled"
-msgstr ""
-
-#: plugins/templates/partials/plugin_tile.html
-msgid "Required for:"
 msgstr ""
 
 #: plugins/templates/plugin.html plugins/templates/plugin_tabs.html
@@ -1326,6 +1289,20 @@ msgid "current"
 msgstr ""
 
 #: plugins/templates/plugin_variants.html
+#: plugins/templates/plugins/business_rule_detail.html
+#: plugins/templates/plugins/business_rule_list.html
+#: tasks/templates/schedule_list.html
+msgid "Enabled"
+msgstr ""
+
+#: plugins/templates/plugin_variants.html
+#: plugins/templates/plugins/business_rule_detail.html
+#: plugins/templates/plugins/business_rule_list.html
+#: tasks/templates/schedule_list.html
+msgid "Disabled"
+msgstr ""
+
+#: plugins/templates/plugin_variants.html
 msgid "There are no arguments used for this plugin variant."
 msgstr ""
 
@@ -1371,6 +1348,17 @@ msgstr ""
 #: plugins/templates/plugins/business_rule_list.html
 #: openkat/templates/header.html
 msgid "Business rules"
+msgstr ""
+
+#: plugins/templates/plugins/business_rule_list.html
+#: tasks/templates/schedule_list.html
+#: openkat/templates/two_factor/profile/disable.html
+msgid "Disable"
+msgstr ""
+
+#: plugins/templates/plugins/business_rule_list.html
+#: tasks/templates/schedule_list.html
+msgid "Enable"
 msgstr ""
 
 #: plugins/views.py
@@ -1850,7 +1838,7 @@ msgid "Report data"
 msgstr ""
 
 #: tasks/templates/task_table.html
-msgid "Organization codes"
+msgid "Organization ids"
 msgstr ""
 
 #: tasks/templates/task_table.html
@@ -1985,28 +1973,11 @@ msgid "explanation-organization-name"
 msgstr ""
 
 #: openkat/forms/account_setup.py
-#, python-brace-format
-msgid "A unique code of {code_length} characters."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "explanation-organization-code"
-msgstr ""
-
-#: openkat/forms/account_setup.py
 msgid "Organization name is required to proceed."
 msgstr ""
 
 #: openkat/forms/account_setup.py
 msgid "Choose another organization."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "Organization code is required to proceed."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "Choose another code for your organization."
 msgstr ""
 
 #: openkat/forms/account_setup.py
@@ -2035,30 +2006,6 @@ msgstr ""
 
 #: openkat/forms/account_setup.py
 msgid "Enter tags separated by comma."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "The two password fields didn’t match."
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "New password"
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "Enter a new password"
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "New password confirmation"
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "Repeat the new password"
-msgstr ""
-
-#: openkat/forms/account_setup.py
-msgid "Confirm the new password"
 msgstr ""
 
 #: openkat/forms/base.py
@@ -2156,12 +2103,6 @@ msgstr ""
 
 #: openkat/forms/upload_csv.py
 msgid "Only accepts CSV file."
-msgstr ""
-
-#: openkat/models.py
-msgid ""
-"This organization code is reserved by OpenKAT and cannot be used. Choose "
-"another organization code."
 msgstr ""
 
 #: openkat/models.py
@@ -2536,10 +2477,6 @@ msgstr ""
 msgid "Popup closing…"
 msgstr ""
 
-#: openkat/templates/footer.html openkat/views/privacy_statement.py
-msgid "Privacy Statement"
-msgstr ""
-
 #: openkat/templates/forms/widgets/checkbox_group_table.html
 msgid "Object list"
 msgstr ""
@@ -2635,19 +2572,6 @@ msgid ""
 "and where necessary reported or made known directly to the right people."
 msgstr ""
 
-#: openkat/templates/legal/privacy_statement.html
-msgid "OpenKAT Privacy Statement"
-msgstr ""
-
-#: openkat/templates/legal/privacy_statement.html
-msgid ""
-"OpenKAT is dedicated to protecting the confidentiality and privacy of "
-"information entrusted to it. As part of this fundamental obligation, OpenKAT "
-"is committed to the appropriate protection and use of personal information "
-"(sometimes referred to as \"personal data\", \"personally identifiable "
-"information\" or \"PII\") that has been collected online."
-msgstr ""
-
 #: openkat/templates/organizations/organization_add.html
 msgid "Organization setup"
 msgstr ""
@@ -2660,7 +2584,6 @@ msgstr ""
 
 #: openkat/templates/organizations/organization_add.html
 #: openkat/templates/organizations/organization_settings.html
-#: openkat/templates/partials/organization_properties_table.html
 msgid "Organization details"
 msgstr ""
 
@@ -2697,11 +2620,6 @@ msgstr ""
 
 #: openkat/templates/organizations/organization_list.html
 msgid "Organization overview:"
-msgstr ""
-
-#: openkat/templates/organizations/organization_list.html
-#: openkat/templates/organizations/organization_settings.html
-msgid "Code"
 msgstr ""
 
 #: openkat/templates/organizations/organization_list.html
@@ -2813,10 +2731,6 @@ msgid ""
 "<strong>%(organization_name)s</strong>."
 msgstr ""
 
-#: openkat/templates/partials/form/checkbox_group_table_form.html
-msgid "Please enable plugin to start scanning."
-msgstr ""
-
 #: openkat/templates/partials/form/field_input.html
 msgid "Not set"
 msgstr ""
@@ -2855,14 +2769,6 @@ msgstr ""
 msgid "Explanation:"
 msgstr ""
 
-#: openkat/templates/partials/list_filters.html
-msgid "Hide filter options"
-msgstr ""
-
-#: openkat/templates/partials/list_filters.html
-msgid "Show filter options"
-msgstr ""
-
 #: openkat/templates/partials/list_paginator.html
 msgid "List pagination"
 msgstr ""
@@ -2880,7 +2786,6 @@ msgid "Five Pages Back"
 msgstr ""
 
 #: openkat/templates/partials/list_paginator.html
-#: openkat/templates/partials/pagination.html
 msgid "Page"
 msgstr ""
 
@@ -2928,40 +2833,12 @@ msgstr ""
 msgid "Update List"
 msgstr ""
 
-#: openkat/templates/partials/organization_properties_table.html
-msgid "Organization name"
-msgstr ""
-
 #: openkat/templates/partials/organizations_menu_dropdown.html
 msgid "organizations selected"
 msgstr ""
 
 #: openkat/templates/partials/organizations_menu_dropdown.html
 msgid "All organizations"
-msgstr ""
-
-#: openkat/templates/partials/page-meta.html
-msgid "Logged in as:"
-msgstr ""
-
-#: openkat/templates/partials/pagination.html
-msgid "of"
-msgstr ""
-
-#: openkat/templates/partials/pagination.html
-msgid "first"
-msgstr ""
-
-#: openkat/templates/partials/pagination.html
-msgid "previous"
-msgstr ""
-
-#: openkat/templates/partials/pagination.html
-msgid "next"
-msgstr ""
-
-#: openkat/templates/partials/pagination.html
-msgid "last"
 msgstr ""
 
 #: openkat/templates/partials/secondary-menu.html
@@ -3202,22 +3079,6 @@ msgstr ""
 msgid "Enable Two-Factor Authentication"
 msgstr ""
 
-#: openkat/templates/two_factor/core/phone_register.html
-msgid "Add Backup Phone"
-msgstr ""
-
-#: openkat/templates/two_factor/core/phone_register.html
-msgid ""
-"You'll be adding a backup phone number to your account. This number will be "
-"used if your primary method of registration is not available."
-msgstr ""
-
-#: openkat/templates/two_factor/core/phone_register.html
-msgid ""
-"We've sent a token to your phone number. Please enter the token you've "
-"received."
-msgstr ""
-
 #: openkat/templates/two_factor/core/setup.html
 msgid ""
 "To start using a token generator, please use your smartphone to scan the QR "
@@ -3326,45 +3187,6 @@ msgstr ""
 msgid ""
 "However we strongly discourage you to do so, you can also disable two-factor "
 "authentication for your account."
-msgstr ""
-
-#: openkat/templates/two_factor/twilio/sms_message.html
-#, python-format
-msgid "Your OTP token is %(token)s"
-msgstr ""
-
-#: openkat/templates/upload_csv.html
-msgid "Automate the creation of multiple objects by uploading a CSV file."
-msgstr ""
-
-#: openkat/templates/upload_csv.html
-msgid "These are the criteria for CSV upload:"
-msgstr ""
-
-#: openkat/validators.py
-msgid ""
-"Your password must contain at least the following but longer passwords are "
-"recommended:"
-msgstr ""
-
-#: openkat/validators.py
-msgid " characters"
-msgstr ""
-
-#: openkat/validators.py
-msgid " digits"
-msgstr ""
-
-#: openkat/validators.py
-msgid " letters"
-msgstr ""
-
-#: openkat/validators.py
-msgid " lower case letters"
-msgstr ""
-
-#: openkat/validators.py
-msgid " upper case letters"
 msgstr ""
 
 #: openkat/views/login.py
