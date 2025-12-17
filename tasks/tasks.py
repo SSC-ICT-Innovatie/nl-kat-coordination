@@ -98,8 +98,8 @@ def sync_hostname_ip_scan_levels(db_table: str) -> None:
             # Update IPs where hostname has higher scan level and IP is not declared
             cursor.execute(
                 f"""
-                INSERT INTO {IPAddress._meta.db_table} (_id, address, network_id, scan_level, declared)
-                select target._id, target.address, target.network_id, source.scan_level, false
+                INSERT INTO {IPAddress._meta.db_table} (_id, ip_address, network_id, scan_level, declared)
+                select target._id, target.ip_address, target.network_id, source.scan_level, false
                 FROM {Hostname._meta.db_table} source
                 JOIN {db_table} dns on source._id = dns.hostname_id
                 JOIN {IPAddress._meta.db_table}
@@ -196,7 +196,7 @@ def attribute_findings() -> None:
                 INSERT INTO {FindingOrganization._meta.db_table} (_id, finding_id, organization_id)
                 SELECT target._id ||'|'|| cast(osource.organization_id as varchar), target._id, osource.organization_id
                 FROM {IPAddress._meta.db_table} source
-                RIGHT JOIN {Finding._meta.db_table} target on source._id = target.address_id
+                RIGHT JOIN {Finding._meta.db_table} target on source._id = target.ip_address_id
                 RIGHT JOIN {IPAddressOrganization._meta.db_table} osource ON source._id = osource.ipaddress_id
                 LEFT JOIN {FindingOrganization._meta.db_table} otarget ON target._id = otarget.finding_id
                 AND osource.organization_id = otarget.organization_id
@@ -717,52 +717,62 @@ def process_port_scan(task: Task) -> None:
     # Check which business rules are enabled
     enabled_rules = set(BusinessRule.objects.filter(enabled=True).values_list("name", flat=True))
 
-    inputs = IPAddress.objects.filter(address__in=task.data["input_data"]).values("pk")
+    inputs = IPAddress.objects.filter(ip_address__in=task.data["input_data"]).values("pk")
     output_objs = ObjectTask.objects.filter(task_id=str(task.pk)).values("output_object", "output_object_type")
     ports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
     input_ip_pks = {ip["pk"] for ip in inputs}
     findings = []
 
     if "open_sysadmin_port" in enabled_rules:
-        ips_with_sysadmin_port = {port.address.natural_key for port in ports if port.port in SA_TCP_PORTS}
+        ips_with_sysadmin_port = {port.ip_address.natural_key for port in ports if port.port in SA_TCP_PORTS}
         ips_without_sysadmin_port = input_ip_pks - ips_with_sysadmin_port
-        Finding.objects.filter(finding_type="KAT-OPEN-SYSADMIN-PORT", address_id__in=ips_without_sysadmin_port).delete()
+        Finding.objects.filter(
+            finding_type="KAT-OPEN-SYSADMIN-PORT", ip_address_id__in=ips_without_sysadmin_port
+        ).delete()
         findings.extend(
-            [Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", address_id=ip) for ip in ips_with_sysadmin_port]
+            [Finding(finding_type_id="KAT-OPEN-SYSADMIN-PORT", ip_address_id=ip) for ip in ips_with_sysadmin_port]
         )
     if "open_database_port" in enabled_rules:
-        ips_with_database_port = {port.address.natural_key for port in ports if port.port in DB_TCP_PORTS}
+        ips_with_database_port = {port.ip_address.natural_key for port in ports if port.port in DB_TCP_PORTS}
         ips_without_database_port = input_ip_pks - ips_with_database_port
-        Finding.objects.filter(finding_type="KAT-OPEN-DATABASE-PORT", address_id__in=ips_without_database_port).delete()
+        Finding.objects.filter(
+            finding_type="KAT-OPEN-DATABASE-PORT", ip_address_id__in=ips_without_database_port
+        ).delete()
         findings.extend(
-            [Finding(finding_type_id="KAT-OPEN-DATABASE-PORT", address_id=ip) for ip in ips_with_database_port]
+            [Finding(finding_type_id="KAT-OPEN-DATABASE-PORT", ip_address_id=ip) for ip in ips_with_database_port]
         )
     if "open_remote_desktop_port" in enabled_rules:
-        ips_with_rdp_port = {port.address.natural_key for port in ports if port.port in MICROSOFT_RDP_PORTS}
+        ips_with_rdp_port = {port.ip_address.natural_key for port in ports if port.port in MICROSOFT_RDP_PORTS}
         ips_without_rdp_port = input_ip_pks - ips_with_rdp_port
-        Finding.objects.filter(finding_type="KAT-REMOTE-DESKTOP-PORT", address_id__in=ips_without_rdp_port).delete()
-        findings.extend([Finding(finding_type_id="KAT-REMOTE-DESKTOP-PORT", address_id=ip) for ip in ips_with_rdp_port])
+        Finding.objects.filter(finding_type="KAT-REMOTE-DESKTOP-PORT", ip_address_id__in=ips_without_rdp_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-REMOTE-DESKTOP-PORT", ip_address_id=ip) for ip in ips_with_rdp_port]
+        )
     if "open_common_port" in enabled_rules:
         ips_with_common_port = {
-            port.address.natural_key
+            port.ip_address.natural_key
             for port in ports
             if (port.protocol == "TCP" and port.port in ALL_COMMON_TCP)
             or (port.protocol == "UDP" and port.port in COMMON_UDP)
         }
         ips_without_common_port = input_ip_pks - ips_with_common_port
-        Finding.objects.filter(finding_type="KAT-OPEN-COMMON-PORT", address_id__in=ips_without_common_port).delete()
-        findings.extend([Finding(finding_type_id="KAT-OPEN-COMMON-PORT", address_id=ip) for ip in ips_with_common_port])
+        Finding.objects.filter(finding_type="KAT-OPEN-COMMON-PORT", ip_address_id__in=ips_without_common_port).delete()
+        findings.extend(
+            [Finding(finding_type_id="KAT-OPEN-COMMON-PORT", ip_address_id=ip) for ip in ips_with_common_port]
+        )
     if "open_uncommon_port" in enabled_rules:
         ips_with_uncommon_port = {
-            port.address.natural_key
+            port.ip_address.natural_key
             for port in ports
             if (port.protocol == "TCP" and port.port not in ALL_COMMON_TCP)
             or (port.protocol == "UDP" and port.port not in COMMON_UDP)
         }
         ips_without_uncommon_port = input_ip_pks - ips_with_uncommon_port
-        Finding.objects.filter(finding_type="KAT-UNCOMMON-OPEN-PORT", address_id__in=ips_without_uncommon_port).delete()
+        Finding.objects.filter(
+            finding_type="KAT-UNCOMMON-OPEN-PORT", ip_address_id__in=ips_without_uncommon_port
+        ).delete()
         findings.extend(
-            [Finding(finding_type_id="KAT-UNCOMMON-OPEN-PORT", address_id=ip) for ip in ips_with_uncommon_port]
+            [Finding(finding_type_id="KAT-UNCOMMON-OPEN-PORT", ip_address_id=ip) for ip in ips_with_uncommon_port]
         )
 
     if findings:
@@ -798,9 +808,9 @@ def process_software_scan(task: Task) -> None:
     ipports = [IPPort.from_natural_key(o["output_object"]) for o in output_objs if o["output_object_type"] == "ipport"]
     ports_with_software = (
         IPPort.objects.filter(pk__in=[port.natural_key for port in ipports])
-        .select_related("address")
+        .select_related("ip_address")
         .prefetch_related("software")
-        .values("pk", "address", "software__name")
+        .values("pk", "ip_address", "software__name")
     )
     findings = []
 
@@ -813,15 +823,15 @@ def process_software_scan(task: Task) -> None:
     for sw in ["mysql", "mongodb", "openssh", "rdp", "pgsql", "telnet", "db2"]:
         if f"{sw}_detection" in enabled_rules:
             ips_with_sw = {
-                port["address"]
+                port["ip_address"]
                 for port in ports_with_software
                 if port["software__name"] and port["software__name"].lower() == sw
             }
             ips_without_software -= ips_with_sw
-            findings.extend([Finding(finding_type_id="KAT-EXPOSED-SOFTWARE", address_id=ip) for ip in ips_with_sw])
+            findings.extend([Finding(finding_type_id="KAT-EXPOSED-SOFTWARE", ip_address_id=ip) for ip in ips_with_sw])
 
     if ips_without_software:
-        Finding.objects.filter(finding_type="KAT-EXPOSED-SOFTWARE", address_id__in=ips_without_software).delete()
+        Finding.objects.filter(finding_type="KAT-EXPOSED-SOFTWARE", ip_address_id__in=ips_without_software).delete()
 
     if findings:
         bulk_insert(findings)

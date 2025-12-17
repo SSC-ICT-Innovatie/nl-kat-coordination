@@ -216,7 +216,7 @@ class Command(BaseCommand):
         updated_count = 0
 
         for ip in ips:
-            ip_obj, created = IPAddress.objects.get_or_create(address=ip, defaults={"network": network_obj})
+            ip_obj, created = IPAddress.objects.get_or_create(ip_address=ip, defaults={"network": network_obj})
             if created:
                 created_count += 1
                 self.stdout.write(f"Created IP: {ip}")

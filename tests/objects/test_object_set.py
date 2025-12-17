@@ -131,17 +131,17 @@ def test_object_set_detail_view_filters_by_organization_for_ipaddresses(
     network = Network.objects.create(name="internet")
 
     # Create IP addresses for organization A
-    ip1_org_a = IPAddress.objects.create(address="1.1.1.1", network=network)
+    ip1_org_a = IPAddress.objects.create(ip_address="1.1.1.1", network=network)
     ip1_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
 
-    ip2_org_a = IPAddress.objects.create(address="2.2.2.2", network=network)
+    ip2_org_a = IPAddress.objects.create(ip_address="2.2.2.2", network=network)
     ip2_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
 
     # Create IP addresses for organization B
-    ip1_org_b = IPAddress.objects.create(address="3.3.3.3", network=network)
+    ip1_org_b = IPAddress.objects.create(ip_address="3.3.3.3", network=network)
     ip1_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
 
-    ip2_org_b = IPAddress.objects.create(address="4.4.4.4", network=network)
+    ip2_org_b = IPAddress.objects.create(ip_address="4.4.4.4", network=network)
     ip2_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
 
     # Create object set with query that matches all IP addresses

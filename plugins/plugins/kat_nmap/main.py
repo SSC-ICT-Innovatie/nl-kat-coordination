@@ -26,7 +26,7 @@ def get_ip_ports_and_service(host: NmapHost) -> list[dict[str, str | int]]:
                 service_name = "https"
 
             ip_port = {
-                "address": host.address,
+                "ip_address": host.address,
                 "protocol": protocol.upper(),
                 "port": port,
                 "state": service.state,
@@ -64,7 +64,7 @@ def run(file_id: str) -> list[dict[str, str | int]]:
         for host in parsed.hosts:
             new_ports = get_ip_ports_and_service(host)
             address = (
-                client.post("/objects/ipaddress/", json={"address": str(host.address), "network": "internet"})
+                client.post("/objects/ipaddress/", json={"ip_address": str(host.address), "network": "internet"})
                 .raise_for_status()
                 .json()
             )
@@ -74,7 +74,7 @@ def run(file_id: str) -> list[dict[str, str | int]]:
             batch_size = 250
 
             for idx_2 in range(batch_size, len(ports_scanned) + batch_size, batch_size):
-                params = {"port": ports_scanned[idx:idx_2], "address": address["id"]}
+                params = {"port": ports_scanned[idx:idx_2], "ip_address": address["id"]}
                 ports = [
                     x["id"] for x in client.get("/objects/ipport/", params=params).raise_for_status().json()["results"]
                 ]

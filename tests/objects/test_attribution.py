@@ -17,7 +17,7 @@ def test_organization_attribution_through_a_records(xtdb, organization):
     network = Network.objects.create(name="internet")
     hostname = Hostname.objects.create(network=network, name="test.com")
     hostname.organizations.add(organization.pk)
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
     DNSARecord.objects.create(hostname=hostname, ip_address=ip)
 
     assert ip.organizations.count() == 0
@@ -34,7 +34,7 @@ def test_organization_attribution_through_aaaa_records(xtdb, organization):
     hostname = Hostname.objects.create(network=network, name="test.com")
     hostname.organizations.add(organization.pk)
 
-    ipv6 = IPAddress.objects.create(network=network, address="2001:db8::1")
+    ipv6 = IPAddress.objects.create(network=network, ip_address="2001:db8::1")
 
     DNSAAAARecord.objects.create(hostname=hostname, ip_address=ipv6)
 
@@ -50,7 +50,7 @@ def test_organization_attribution_through_aaaa_records(xtdb, organization):
 def test_organization_attribution_from_ip_to_hostname(xtdb, organization):
     network = Network.objects.create(name="internet")
 
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
     ip.organizations.add(organization.pk)
 
     hostname = Hostname.objects.create(network=network, name="test.com")
@@ -109,7 +109,7 @@ def test_organization_attribution_does_not_duplicate(xtdb, organization):
     hostname = Hostname.objects.create(network=network, name="test.com")
     hostname.organizations.add(organization.pk)
 
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
 
     DNSARecord.objects.create(hostname=hostname, ip_address=ip)
 
@@ -130,7 +130,7 @@ def test_organization_attribution_multiple_organizations(xtdb, organization, org
     hostname2 = Hostname.objects.create(network=network, name="test2.com")
     hostname2.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
 
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
 
     DNSARecord.objects.create(hostname=hostname1, ip_address=ip)
     DNSARecord.objects.create(hostname=hostname2, ip_address=ip)
@@ -152,7 +152,7 @@ def test_organization_attribution_multiple_organizations_later(xtdb, organizatio
 
     hostname2 = Hostname.objects.create(network=network, name="test2.com")
 
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
 
     DNSARecord.objects.create(hostname=hostname1, ip_address=ip)
     DNSARecord.objects.create(hostname=hostname2, ip_address=ip)
@@ -180,7 +180,7 @@ def test_organization_attribution_chain(xtdb, organization):
     hostname1 = Hostname.objects.create(network=network, name="test1.com")
     hostname1.organizations.add(organization.pk)
 
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
     hostname2 = Hostname.objects.create(network=network, name="test2.com")
 
     DNSARecord.objects.create(hostname=hostname1, ip_address=ip)
@@ -216,11 +216,11 @@ def test_attribute_findings_from_hostname(xtdb, organization):
 
 def test_attribute_findings_from_ipaddress(xtdb, organization):
     network = Network.objects.create(name="internet")
-    ip = IPAddress.objects.create(network=network, address="192.168.1.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.168.1.1")
     ip.organizations.add(organization.pk)
 
     finding_type = FindingType.objects.create(code="TEST-FINDING")
-    finding = Finding.objects.create(address=ip, finding_type=finding_type)
+    finding = Finding.objects.create(ip_address=ip, finding_type=finding_type)
 
     assert finding.organizations.count() == 0
 

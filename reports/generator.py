@@ -156,13 +156,13 @@ def collect_findings_metrics(
     )
 
     address_offenders = (
-        findings.filter(address__isnull=False)
-        .values("address_id", "address__address")
+        findings.filter(ip_address__isnull=False)
+        .values("ip_address_id", "ip_address__ip_address")
         .annotate(
             finding_count=Count("id"),
-            object_id=F("address_id"),
+            object_id=F("ip_address_id"),
             object_type=Value("ipaddress", output_field=CharField()),
-            object_name=F("address__address"),
+            object_name=F("ip_address__ip_address"),
         )
         .order_by("-finding_count")[:10]
     )
@@ -193,7 +193,10 @@ def collect_findings_metrics(
             findings.filter(finding_type__code=ft_code, hostname__isnull=False).values("hostname_id").distinct().count()
         )
         affected_addresses = (
-            findings.filter(finding_type__code=ft_code, address__isnull=False).values("address_id").distinct().count()
+            findings.filter(finding_type__code=ft_code, ip_address__isnull=False)
+            .values("ip_address_id")
+            .distinct()
+            .count()
         )
         affected_assets = affected_hostnames + affected_addresses
         findings_stats.append(
@@ -238,10 +241,10 @@ def collect_ports_metrics(
     port_query = IPPort.objects.all()
 
     if organizations:
-        port_query = port_query.filter(address__organizations__pk__in=[org.pk for org in organizations])
+        port_query = port_query.filter(ip_address__organizations__pk__in=[org.pk for org in organizations])
 
     total_open_ports = port_query.count()
-    ips_with_open_ports = port_query.values("address_id").distinct().count()
+    ips_with_open_ports = port_query.values("ip_address_id").distinct().count()
     port_distribution = port_query.values("port", "protocol").annotate(count=Count("id")).order_by("-count")[:20]
     by_protocol = port_query.values("protocol").annotate(count=Count("id")).order_by("-count")
 
@@ -261,12 +264,12 @@ def collect_ipv6_metrics(
     if organizations:
         ip_query = ip_query.filter(organizations__pk__in=[org.pk for org in organizations])
 
-    ipv6_count = ip_query.filter(address__contains=":").count()
+    ipv6_count = ip_query.filter(ip_address__contains=":").count()
     total_ips = ip_query.count()
 
     return {
         "ipv6_addresses": ipv6_count,
-        "ipv4_addresses": ip_query.filter(address__contains=".").count(),
+        "ipv4_addresses": ip_query.filter(ip_address__contains=".").count(),
         "total_ip_addresses": total_ips,
         "ipv6_percentage": (ipv6_count / total_ips * 100) if total_ips > 0 else 0,
     }

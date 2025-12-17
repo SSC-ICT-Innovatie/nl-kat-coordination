@@ -47,8 +47,8 @@ def test_hostname_create_object_set_bulk_action(rf, superuser_member, xtdb):
 
 def test_ipaddress_scan_bulk_action(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
-    ip1 = IPAddress.objects.create(address="1.1.1.1", network=network, scan_level=2)
-    ip2 = IPAddress.objects.create(address="2.2.2.2", network=network, scan_level=2)
+    ip1 = IPAddress.objects.create(ip_address="1.1.1.1", network=network, scan_level=2)
+    ip2 = IPAddress.objects.create(ip_address="2.2.2.2", network=network, scan_level=2)
 
     request = setup_request(
         rf.post("objects:ipaddress_list", data={"ipaddress": [str(ip1.pk), str(ip2.pk)], "action": "scan"}),
@@ -64,8 +64,8 @@ def test_ipaddress_scan_bulk_action(rf, superuser_member, xtdb):
 
 def test_ipaddress_create_object_set_bulk_action(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
-    ip1 = IPAddress.objects.create(address="1.1.1.1", network=network)
-    ip2 = IPAddress.objects.create(address="2.2.2.2", network=network)
+    ip1 = IPAddress.objects.create(ip_address="1.1.1.1", network=network)
+    ip2 = IPAddress.objects.create(ip_address="2.2.2.2", network=network)
 
     request = setup_request(
         rf.post(
@@ -107,8 +107,8 @@ def test_hostname_delete_bulk_action(rf, superuser_member, xtdb):
 
 def test_ipaddress_set_scan_level_bulk_action(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
-    ip1 = IPAddress.objects.create(address="1.1.1.1", network=network, scan_level=1)
-    ip2 = IPAddress.objects.create(address="2.2.2.2", network=network, scan_level=1)
+    ip1 = IPAddress.objects.create(ip_address="1.1.1.1", network=network, scan_level=1)
+    ip2 = IPAddress.objects.create(ip_address="2.2.2.2", network=network, scan_level=1)
 
     request = setup_request(
         rf.post(
@@ -133,8 +133,8 @@ def test_ipaddress_set_scan_level_bulk_action(rf, superuser_member, xtdb):
 
 def test_ipport_software_delete(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
-    ip = IPAddress.objects.create(address="1.1.1.1", network=network)
-    port = IPPort.objects.create(address=ip, protocol=Protocol.TCP, port=22, tls=False, service="ssh")
+    ip = IPAddress.objects.create(ip_address="1.1.1.1", network=network)
+    port = IPPort.objects.create(ip_address=ip, protocol=Protocol.TCP, port=22, tls=False, service="ssh")
     software = Software.objects.create(name="openssh", version="8.0")
     port.software.add(software)
 
@@ -160,17 +160,17 @@ def test_ipaddress_list_view_filtered_by_object_set_and_organization(
     network = Network.objects.create(name="internet")
 
     # Create IP addresses for organization A
-    ip1_org_a = IPAddress.objects.create(address="1.1.1.1", network=network)
+    ip1_org_a = IPAddress.objects.create(ip_address="1.1.1.1", network=network)
     ip1_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
 
-    ip2_org_a = IPAddress.objects.create(address="2.2.2.2", network=network)
+    ip2_org_a = IPAddress.objects.create(ip_address="2.2.2.2", network=network)
     ip2_org_a.organizations.add(XTDBOrganization.objects.get(pk=organization.pk))
 
     # Create IP addresses for organization B
-    ip1_org_b = IPAddress.objects.create(address="3.3.3.3", network=network)
+    ip1_org_b = IPAddress.objects.create(ip_address="3.3.3.3", network=network)
     ip1_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
 
-    ip2_org_b = IPAddress.objects.create(address="4.4.4.4", network=network)
+    ip2_org_b = IPAddress.objects.create(ip_address="4.4.4.4", network=network)
     ip2_org_b.organizations.add(XTDBOrganization.objects.get(pk=organization_b.pk))
 
     # Create an object set that matches all IP addresses (using empty query which matches all)

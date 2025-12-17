@@ -101,7 +101,7 @@ def test_add_single_ip(xtdb):
     call_command("add", "-I", "192.168.1.1", stdout=out)
 
     assert IPAddress.objects.count() == 1
-    assert IPAddress.objects.filter(address="192.168.1.1").exists()
+    assert IPAddress.objects.filter(ip_address="192.168.1.1").exists()
     assert "Created IP: 192.168.1.1" in out.getvalue()
 
 
@@ -114,9 +114,9 @@ def test_add_multiple_ips_from_stdin(xtdb, monkeypatch):
     call_command("add", "-I", stdout=out)
 
     assert IPAddress.objects.count() == 3
-    assert IPAddress.objects.filter(address="192.168.1.1").exists()
-    assert IPAddress.objects.filter(address="192.168.1.2").exists()
-    assert IPAddress.objects.filter(address="192.168.1.3").exists()
+    assert IPAddress.objects.filter(ip_address="192.168.1.1").exists()
+    assert IPAddress.objects.filter(ip_address="192.168.1.2").exists()
+    assert IPAddress.objects.filter(ip_address="192.168.1.3").exists()
     assert "3 created" in out.getvalue()
 
 
@@ -130,7 +130,7 @@ def test_add_with_custom_network_name(xtdb):
     out2 = StringIO()
     call_command("add", "-I", "10.0.0.1", "--network-name", "internal", stdout=out2)
 
-    ip = IPAddress.objects.get(address="10.0.0.1")
+    ip = IPAddress.objects.get(ip_address="10.0.0.1")
     assert ip.network.name == "internal"
 
 

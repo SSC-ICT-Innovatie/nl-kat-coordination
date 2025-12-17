@@ -151,7 +151,7 @@ def test_hostname_list_view_filtered(bulk_data, rf, superuser, benchmark, N):
 
 def test_ipaddress_list_view_filtered(bulk_data, rf, superuser, benchmark, N):
     def render_filtered_view():
-        request = setup_request(rf.get("/objects/ipaddress/?&address=10"), superuser)
+        request = setup_request(rf.get("/objects/ipaddress/?&ip_address=10"), superuser)
         view = IPAddressListView.as_view()
         response = view(request)
         response.render()

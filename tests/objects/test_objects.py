@@ -45,14 +45,14 @@ def test_recalculate_scan_levels_hostname_ip(xtdb, organization):
 
     h = Hostname.objects.create(network=network, name="test.com", scan_level=2)
     # The A record inherits level 2 from the hostname test.com
-    ip = IPAddress.objects.create(network=network, address="0.0.0.0", scan_level=1)
+    ip = IPAddress.objects.create(network=network, ip_address="0.0.0.0", scan_level=1)
     DNSARecord.objects.create(ip_address=ip, hostname=h)
 
     # The AAAA record inherits level 2 from the hostname test.com
-    ip6 = IPAddress.objects.create(network=network, address="0.0.0.0")
+    ip6 = IPAddress.objects.create(network=network, ip_address="0.0.0.0")
     DNSAAAARecord.objects.create(ip_address=ip6, hostname=h)
 
-    ip2 = IPAddress.objects.create(network=network, address="1.0.0.0")
+    ip2 = IPAddress.objects.create(network=network, ip_address="1.0.0.0")
     DNSARecord.objects.create(ip_address=ip2, hostname=h)
 
     recalculate_scan_levels()
@@ -85,7 +85,7 @@ def test_recalculate_scan_levels_does_not_change_declared(xtdb, organization):
     network = Network.objects.create(name="internet")
 
     h = Hostname.objects.create(network=network, name="test.com", scan_level=2)
-    ip = IPAddress.objects.create(network=network, address="0.0.0.0", scan_level=1, declared=True)
+    ip = IPAddress.objects.create(network=network, ip_address="0.0.0.0", scan_level=1, declared=True)
     DNSARecord.objects.create(ip_address=ip, hostname=h)
     nameserver = Hostname.objects.create(network=network, name="ns.test.com", scan_level=2, declared=True)
     DNSNSRecord.objects.create(name_server=nameserver, hostname=h)
@@ -103,7 +103,7 @@ def test_recalculate_scan_levels_creates_new_profiles(xtdb, organization):
     network = Network.objects.create(name="internet")
 
     h = Hostname.objects.create(network=network, name="test.com", scan_level=2)
-    ip = IPAddress.objects.create(network=network, address="0.0.0.0")
+    ip = IPAddress.objects.create(network=network, ip_address="0.0.0.0")
     DNSARecord.objects.create(ip_address=ip, hostname=h)
 
     recalculate_scan_levels()
@@ -235,9 +235,9 @@ def test_bulk_insert_networks(xtdb):
 def test_to_dict(xtdb):
     net = Network.objects.create(name="internet")
     host = Hostname.objects.create(name="test.com", network=net)
-    ip = IPAddress.objects.create(network=net, address="2001:ab8:d0cb::")
+    ip = IPAddress.objects.create(network=net, ip_address="2001:ab8:d0cb::")
     rec = DNSARecord.objects.create(hostname=host, ip_address=ip)
-    port = IPPort.objects.create(address=ip, protocol=Protocol.TCP, port=22, tls=False, service="ssh")
+    port = IPPort.objects.create(ip_address=ip, protocol=Protocol.TCP, port=22, tls=False, service="ssh")
     sw = Software.objects.create(name="openssh")
     port.software.add(sw)
     port.save()
@@ -267,7 +267,7 @@ def test_to_dict(xtdb):
         "declared": False,
         "scan_level": None,
     }
-    ip = IPAddress(network=net, address="2002:ab8:d0cb::")
+    ip = IPAddress(network=net, ip_address="2002:ab8:d0cb::")
     rec = DNSARecord(hostname=h, ip_address=ip)
     assert to_xtdb_dict(rec) == {
         "_id": "internet|test2.com|internet|2002:ab8:d0cb::",
@@ -315,7 +315,7 @@ def test_from_natural_key():
         Hostname.from_natural_key("test|test.com|2")
 
     ip = IPAddress.from_natural_key("test|127.0.0.1")
-    assert ip.address == "127.0.0.1"
+    assert ip.ip_address == "127.0.0.1"
 
     port = IPPort.from_natural_key("test|127.0.0.1|TCP|80")
     assert port.port == 80
@@ -326,7 +326,7 @@ def test_from_natural_key():
 
     a = DNSARecord.from_natural_key("test|test.com|test|127.0.0.1")
     assert a.hostname.name == "test.com"
-    assert a.ip_address.address == "127.0.0.1"
+    assert a.ip_address.ip_address == "127.0.0.1"
 
     with pytest.raises(ValueError):
         DNSARecord.from_natural_key("test|test.com|127.0.0.1")
@@ -484,7 +484,7 @@ def test_ipaddress_create_view_get(rf, superuser_member, xtdb):
     assert response.status_code == 200
     assertContains(response, "Add IP Address")
     assertContains(response, "Network:")
-    assertContains(response, "Address:")
+    assertContains(response, "Ip address:")
 
 
 def test_ipaddress_create_view_get_with_internet_network(rf, superuser_member, xtdb):
@@ -505,7 +505,11 @@ def test_ipaddress_create_view_post_ipv4_success(rf, superuser_member, xtdb):
     request = setup_request(
         rf.post(
             "objects:ipaddress_create",
-            data={"network": network.pk, "address": "192.0.2.1", "organizations": [superuser_member.organization.pk]},
+            data={
+                "network": network.pk,
+                "ip_address": "192.0.2.1",
+                "organizations": [superuser_member.organization.pk],
+            },
         ),
         superuser_member.user,
     )
@@ -516,7 +520,7 @@ def test_ipaddress_create_view_post_ipv4_success(rf, superuser_member, xtdb):
 
     assert IPAddress.objects.count() == 1
     ip = IPAddress.objects.first()
-    assert ip.address == "192.0.2.1"
+    assert ip.ip_address == "192.0.2.1"
     assert ip.network == network
     assert ip.declared is False
     assert ip.scan_level is None
@@ -527,7 +531,11 @@ def test_ipaddress_create_view_post_ipv6_success(rf, superuser_member, xtdb):
     request = setup_request(
         rf.post(
             "objects:ipaddress_create",
-            data={"network": network.pk, "address": "2001:db8::1", "organizations": [superuser_member.organization.pk]},
+            data={
+                "network": network.pk,
+                "ip_address": "2001:db8::1",
+                "organizations": [superuser_member.organization.pk],
+            },
         ),
         superuser_member.user,
     )
@@ -537,17 +545,21 @@ def test_ipaddress_create_view_post_ipv6_success(rf, superuser_member, xtdb):
 
     assert IPAddress.objects.count() == 1
     ip = IPAddress.objects.first()
-    assert ip.address == "2001:db8::1"
+    assert ip.ip_address == "2001:db8::1"
 
 
 def test_ipaddress_create_view_post_duplicate_is_idempotent(rf, superuser_member, xtdb):
     network = Network.objects.create(name="test-network")
-    IPAddress.objects.create(network=network, address="192.0.2.50")
+    IPAddress.objects.create(network=network, ip_address="192.0.2.50")
 
     request = setup_request(
         rf.post(
             "objects:ipaddress_create",
-            data={"network": network.pk, "address": "192.0.2.50", "organizations": [superuser_member.organization.pk]},
+            data={
+                "network": network.pk,
+                "ip_address": "192.0.2.50",
+                "organizations": [superuser_member.organization.pk],
+            },
         ),
         superuser_member.user,
     )
@@ -570,7 +582,8 @@ def test_ipaddress_create_view_post_invalid_ip_fails(rf, superuser_member, xtdb)
     network = Network.objects.create(name="test-network")
 
     request = setup_request(
-        rf.post("objects:ipaddress_create", data={"network": network.pk, "address": "not-an-ip"}), superuser_member.user
+        rf.post("objects:ipaddress_create", data={"network": network.pk, "ip_address": "not-an-ip"}),
+        superuser_member.user,
     )
     response = IPAddressCreateView.as_view()(request)
 

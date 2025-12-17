@@ -60,8 +60,8 @@
                                     <td>
                                         {% if finding.hostname %}
                                             <a href="{% url "objects:hostname_detail" pk=finding.hostname.pk %}">{{ finding.hostname.name }}</a>
-                                        {% elif finding.address %}
-                                            <a href="{% url "objects:ipaddress_detail" pk=finding.address.pk %}">{{ finding.address.address }}</a>
+                                        {% elif finding.ip_address %}
+                                            <a href="{% url "objects:ipaddress_detail" pk=finding.ip_address.pk %}">{{ finding.ip_address.ip_address }}</a>
                                         {% else %}
                                             -
                                         {% endif %}

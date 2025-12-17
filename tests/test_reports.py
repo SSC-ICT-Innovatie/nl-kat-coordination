@@ -355,12 +355,12 @@ def test_report_with_multiple_findings(xtdb, organization):
 def test_report_with_network_data(xtdb):
     network = Network.objects.create(name="test-network")
 
-    ip1 = IPAddress.objects.create(address="192.168.1.1", network=network)
-    ip2 = IPAddress.objects.create(address="2001:db8::1", network=network)
+    ip1 = IPAddress.objects.create(ip_address="192.168.1.1", network=network)
+    ip2 = IPAddress.objects.create(ip_address="2001:db8::1", network=network)
 
-    IPPort.objects.create(address=ip1, port=80, protocol="tcp")
-    IPPort.objects.create(address=ip1, port=443, protocol="tcp")
-    IPPort.objects.create(address=ip2, port=22, protocol="tcp")
+    IPPort.objects.create(ip_address=ip1, port=80, protocol="tcp")
+    IPPort.objects.create(ip_address=ip1, port=443, protocol="tcp")
+    IPPort.objects.create(ip_address=ip2, port=22, protocol="tcp")
 
     Hostname.objects.create(name="test1.com", network=network, root=True)
     Hostname.objects.create(name="subdomain.test1.com", network=network, root=False)

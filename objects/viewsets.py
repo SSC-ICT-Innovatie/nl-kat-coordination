@@ -175,13 +175,13 @@ class HostnameViewSet(ObjectTaskResultMixin, ManyModelViewSet):
 class IPAddressViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = IPAddressSerializer
     queryset = IPAddress.objects.all()
-    filterset_fields = ("address",)
+    filterset_fields = ("ip_address",)
 
 
 class IPPortViewSet(ObjectTaskResultMixin, ManyModelViewSet):
     serializer_class = IPPortSerializer
     queryset = IPPort.objects.all()
-    filterset_fields = ("address", "protocol", "port", "tls", "service")
+    filterset_fields = ("ip_address", "protocol", "port", "tls", "service")
 
 
 class SoftwareViewSet(ObjectTaskResultMixin, ManyModelViewSet):

@@ -26,18 +26,18 @@ class NetworkAdmin(admin.ModelAdmin):
 
 @admin.register(IPAddress)
 class IPAddressAdmin(admin.ModelAdmin):
-    list_display = ("address", "network", "scan_level", "declared")
+    list_display = ("ip_address", "network", "scan_level", "declared")
     list_filter = ("network", "scan_level", "declared")
-    search_fields = ("address",)
-    ordering = ("address",)
+    search_fields = ("ip_address",)
+    ordering = ("ip_address",)
 
 
 @admin.register(IPPort)
 class IPPortAdmin(admin.ModelAdmin):
-    list_display = ("address", "protocol", "port")
+    list_display = ("ip_address", "protocol", "port")
     list_filter = ("protocol",)
-    search_fields = ("address__address", "port")
-    ordering = ("address__address", "port")
+    search_fields = ("ip_address__ip_address", "port")
+    ordering = ("ip_address__ip_address", "port")
 
 
 @admin.register(Hostname)
@@ -52,7 +52,7 @@ class HostnameAdmin(admin.ModelAdmin):
 class DNSARecordAdmin(admin.ModelAdmin):
     list_display = ("hostname", "ip_address", "ttl")
     list_filter = ("ttl",)
-    search_fields = ("hostname__name", "ip_address__address")
+    search_fields = ("hostname__name", "ip_address__ip_address")
     ordering = ("hostname__name",)
 
 
@@ -60,7 +60,7 @@ class DNSARecordAdmin(admin.ModelAdmin):
 class DNSAAAARecordAdmin(admin.ModelAdmin):
     list_display = ("hostname", "ip_address", "ttl")
     list_filter = ("ttl",)
-    search_fields = ("hostname__name", "ip_address__address")
+    search_fields = ("hostname__name", "ip_address__ip_address")
     ordering = ("hostname__name",)
 
 
@@ -68,8 +68,8 @@ class DNSAAAARecordAdmin(admin.ModelAdmin):
 class DNSPTRRecordAdmin(admin.ModelAdmin):
     list_display = ("ip_address", "hostname", "ttl")
     list_filter = ("ttl",)
-    search_fields = ("hostname__name", "ip_address__address")
-    ordering = ("ip_address__address",)
+    search_fields = ("hostname__name", "ip_address__ip_address")
+    ordering = ("ip_address__ip_address",)
 
 
 @admin.register(DNSCNAMERecord)

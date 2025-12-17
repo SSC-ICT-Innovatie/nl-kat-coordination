@@ -261,7 +261,7 @@ class NetworkOrganization(XTDBNaturalKeyModel):
 
 class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
     network: models.ForeignKey = models.ForeignKey(Network, on_delete=models.CASCADE)
-    address: models.GenericIPAddressField = models.GenericIPAddressField(unpack_ipv4=True)
+    ip_address: models.GenericIPAddressField = models.GenericIPAddressField(unpack_ipv4=True)
     scan_level: models.IntegerField = models.IntegerField(
         validators=[MinValueValidator(0), MaxValueValidator(MAX_SCAN_LEVEL)], null=True, blank=True
     )
@@ -270,10 +270,10 @@ class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
         XTDBOrganization, related_name="ipaddresses", through="IPAddressOrganization"
     )
 
-    _natural_key_attrs = ["network", "address"]
+    _natural_key_attrs = ["network", "ip_address"]
 
     def __str__(self) -> str:
-        return self.address
+        return self.ip_address
 
 
 class IPAddressOrganization(XTDBNaturalKeyModel):
@@ -289,16 +289,16 @@ class Protocol(models.TextChoices):
 
 
 class IPPort(XTDBNaturalKeyModel):
-    address: models.ForeignKey = models.ForeignKey(IPAddress, on_delete=models.CASCADE)
+    ip_address: models.ForeignKey = models.ForeignKey(IPAddress, on_delete=models.CASCADE)
     protocol: models.CharField = models.CharField(choices=Protocol)
     port: models.IntegerField = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(65535)])
     tls: models.BooleanField = models.BooleanField(null=True)
     service: models.CharField = models.CharField()
 
-    _natural_key_attrs = ["address", "protocol", "port"]
+    _natural_key_attrs = ["ip_address", "protocol", "port"]
 
     def __str__(self) -> str:
-        return f"[{self.address}]:{self.port}"
+        return f"[{self.ip_address}]:{self.port}"
 
 
 def validate_hostname(hostname: str) -> None:
@@ -470,15 +470,15 @@ class FindingType(XTDBModel):
 class Finding(XTDBNaturalKeyModel):
     finding_type: models.ForeignKey = models.ForeignKey(FindingType, on_delete=models.PROTECT)
     hostname: models.ForeignKey = models.ForeignKey(Hostname, null=True, on_delete=models.CASCADE)
-    address: models.ForeignKey = models.ForeignKey(IPAddress, null=True, on_delete=models.CASCADE)
+    ip_address: models.ForeignKey = models.ForeignKey(IPAddress, null=True, on_delete=models.CASCADE)
 
     organizations = models.ManyToManyField(
         XTDBOrganization, blank=True, related_name="findings", through="FindingOrganization"
     )
 
-    _natural_key_attrs = ["finding_type", "hostname", "address"]
+    _natural_key_attrs = ["finding_type", "hostname", "ip_address"]
     # FIXME: Check if at least one is set
-    _optional_key_attrs = ["hostname", "address"]
+    _optional_key_attrs = ["hostname", "ip_address"]
 
 
 class FindingOrganization(XTDBNaturalKeyModel):

@@ -29,7 +29,7 @@ def test_hostname_detail_view(rf, superuser, xtdb):
 
 def test_ipaddress_detail_view(rf, superuser, xtdb):
     network = Network.objects.create(name="internettest")
-    ip = IPAddress.objects.create(address="127.0.0.1", network=network)
+    ip = IPAddress.objects.create(ip_address="127.0.0.1", network=network)
 
     request = setup_request(rf.get("objects:ipaddress_detail"), superuser)
     response = IPAddressDetailView.as_view()(request, pk=ip.pk)

@@ -41,7 +41,7 @@ def test_ipaddress_csv_upload_with_network(rf, superuser_member, xtdb):
 def test_ipaddress_csv_upload_duplicates(rf, superuser_member, xtdb):
     """Test CSV upload with duplicate IP addresses - should skip duplicates."""
     network = Network.objects.create(name="internet")
-    IPAddress.objects.create(network=network, address="192.168.1.1")
+    IPAddress.objects.create(network=network, ip_address="192.168.1.1")
 
     csv_content = b"192.168.1.1\n10.0.0.1\n192.168.1.1"
     csv_file = BytesIO(csv_content)

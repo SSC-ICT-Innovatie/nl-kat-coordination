@@ -60,7 +60,7 @@ def generate(
         # IPv4
         ip = IPAddress(
             network=network,
-            address=str(socket.inet_ntoa(struct.pack(">I", random.randint(1, 0xFFFFFFFF)))),  # noqa: S311
+            ip_address=str(socket.inet_ntoa(struct.pack(">I", random.randint(1, 0xFFFFFFFF)))),  # noqa: S311
             scan_level=ipaddress_scan_level,
         )
         ips.append(ip)
@@ -72,7 +72,7 @@ def generate(
         # IPv6 (every 5th host gets IPv6)
         if include_dns_records and i % 5 == 0:
             ipv6 = IPAddress(
-                network=network, address=f"2001:db8:{i % 8123:04x}::{i % 9000:04x}", scan_level=ipaddress_scan_level
+                network=network, ip_address=f"2001:db8:{i % 8123:04x}::{i % 9000:04x}", scan_level=ipaddress_scan_level
             )
             ips_v6.append(ipv6)
             if i % 50 == 0:
@@ -80,24 +80,24 @@ def generate(
                 findings.append(finding)  # False finding
 
         # Ports
-        http_port = IPPort(address=ip, protocol="TCP", port=80, service="http")
+        http_port = IPPort(ip_address=ip, protocol="TCP", port=80, service="http")
         ports.append(http_port)
-        https_port = IPPort(address=ip, protocol="TCP", port=443, service="https")
+        https_port = IPPort(ip_address=ip, protocol="TCP", port=443, service="https")
         ports.append(https_port)
 
         if i % 1000 == 0:
             software[0].ports.add(https_port)
 
         if i % 200 == 0:
-            finding = Finding(finding_type=by_code["KAT-OPEN-SYSADMIN-PORT"], address=ip)
+            finding = Finding(finding_type=by_code["KAT-OPEN-SYSADMIN-PORT"], ip_address=ip)
             findings.append(finding)  # False finding
-            finding = Finding(finding_type=by_code["KAT-OPEN-DATABASE-PORT"], address=ip)
+            finding = Finding(finding_type=by_code["KAT-OPEN-DATABASE-PORT"], ip_address=ip)
             findings.append(finding)  # False finding
-            finding = Finding(finding_type=by_code["KAT-REMOTE-DESKTOP-PORT"], address=ip)
+            finding = Finding(finding_type=by_code["KAT-REMOTE-DESKTOP-PORT"], ip_address=ip)
             findings.append(finding)  # False finding
-            finding = Finding(finding_type=by_code["KAT-UNCOMMON-OPEN-PORT"], address=ip)
+            finding = Finding(finding_type=by_code["KAT-UNCOMMON-OPEN-PORT"], ip_address=ip)
             findings.append(finding)  # False finding
-            finding = Finding(finding_type=by_code["KAT-OPEN-COMMON-PORT"], address=ip)
+            finding = Finding(finding_type=by_code["KAT-OPEN-COMMON-PORT"], ip_address=ip)
             findings.append(finding)  # True finding
             finding = Finding(finding_type=by_code["KAT-NO-DMARC"], hostname=hn)
             findings.append(finding)  # True finding
@@ -106,9 +106,9 @@ def generate(
 
         # Add some varied ports for business rule testing
         if i % 10 == 0:
-            ports.append(IPPort(address=ip, protocol="TCP", port=22, service="ssh"))  # Sysadmin port
+            ports.append(IPPort(ip_address=ip, protocol="TCP", port=22, service="ssh"))  # Sysadmin port
         if i % 15 == 0:
-            ports.append(IPPort(address=ip, protocol="TCP", port=3306, service="mysql"))  # Database port
+            ports.append(IPPort(ip_address=ip, protocol="TCP", port=3306, service="mysql"))  # Database port
 
         # DNS A Record for every 2nd host
         if i % 2 == 0:

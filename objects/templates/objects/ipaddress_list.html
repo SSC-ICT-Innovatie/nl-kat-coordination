@@ -121,7 +121,7 @@
                                             </form>
                                         </td>
                                         <td>
-                                            <a href="{% url 'objects:ipaddress_detail' ipaddress.pk %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}">{{ ipaddress.address }}</a>
+                                            <a href="{% url 'objects:ipaddress_detail' ipaddress.pk %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}">{{ ipaddress.ip_address }}</a>
                                         </td>
                                         <td>
                                             {% comment %} <a href="{% url 'objects:network_detail' ipaddress.network.pk %}?{% for id in filtered_organization_ids %}organization={{ id }}&{% endfor %}">{{ ipaddress.network.name }}</a> {% endcomment %}

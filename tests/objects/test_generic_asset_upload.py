@@ -82,7 +82,7 @@ def test_generic_asset_csv_upload_ipv6(rf, superuser_member, xtdb):
 
 def test_generic_asset_csv_upload_duplicates(rf, superuser_member, xtdb):
     network = Network.objects.create(name="internet")
-    IPAddress.objects.create(network=network, address="192.168.1.1")
+    IPAddress.objects.create(network=network, ip_address="192.168.1.1")
     Hostname.objects.create(network=network, name="example.com")
 
     csv_content = b"192.168.1.1\nexample.com\n10.0.0.1\ntest.com"

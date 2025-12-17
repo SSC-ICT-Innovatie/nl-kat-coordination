@@ -43,11 +43,11 @@ def test_finding_api(drf_client, xtdb, organization):
     assert drf_client.get("/api/v1/objects/finding/").json()["count"] == 2
 
     # Create IP address finding
-    ip = IPAddress.objects.create(network=net, address="127.0.0.1")
+    ip = IPAddress.objects.create(network=net, ip_address="127.0.0.1")
     res = drf_client.post(
         "/api/v1/objects/finding/",
         json=[
-            {"finding_type_code": "TEST", "ipaddress": ip.address},
+            {"finding_type_code": "TEST", "ipaddress": ip.ip_address},
             {"finding_type_code": "TEST2", "hostname": hn.name},
             {"finding_type_code": "TEST3", "hostname": hn.name},
         ],
@@ -185,7 +185,7 @@ def test_hostname_api(drf_client, xtdb):
 def test_ip_api(drf_client, xtdb):
     net = Network.objects.create(name="internet")
 
-    ip = {"network": "internet", "address": "127.0.0.1"}
+    ip = {"network": "internet", "ip_address": "127.0.0.1"}
     response = drf_client.post("/api/v1/objects/ipaddress/", json=ip)
     assert response.status_code == 201
 
@@ -194,19 +194,19 @@ def test_ip_api(drf_client, xtdb):
         {
             "id": ip_res["id"],
             "network": net.pk,
-            "address": "127.0.0.1",
+            "ip_address": "127.0.0.1",
             "declared": False,
             "scan_level": None,
             "organizations": [],
         }
     ]
 
-    ipport = {"address": ip_res["address"], "protocol": "TCP", "port": 80, "service": "http"}
+    ipport = {"ip_address": ip_res["ip_address"], "protocol": "TCP", "port": 80, "service": "http"}
     port_res = drf_client.post("/api/v1/objects/ipport/", json=ipport).json()
     assert drf_client.get("/api/v1/objects/ipport/").json()["results"] == [
         {
             "id": port_res["id"],
-            "address_id": ip_res["id"],
+            "ip_address_id": ip_res["id"],
             "tls": None,
             "port": 80,
             "service": "http",
@@ -219,7 +219,7 @@ def test_ip_api(drf_client, xtdb):
 def test_generic_api_saves_unrelated_objects(drf_client, xtdb):
     Network.objects.create(name="internet")
 
-    ips = [{"network": "internet", "address": "127.0.0.1"}, {"network": "internet", "address": "127.0.0.2"}]
+    ips = [{"network": "internet", "ip_address": "127.0.0.1"}, {"network": "internet", "ip_address": "127.0.0.2"}]
     hns = [{"network": "internet", "name": "test.com"}, {"network": "internet", "name": "test2.com"}]
 
     res = drf_client.post("/api/v1/objects/", json={"ipaddress": ips, "hostname": hns})
@@ -235,7 +235,7 @@ def test_generic_api_saves_unrelated_objects_even_if_some_exist(drf_client, xtdb
     network = Network.objects.create(name="internet")
     Hostname.objects.create(network=network, name="test.com")
 
-    ips = [{"network": "internet", "address": "127.0.0.1"}, {"network": "internet", "address": "127.0.0.2"}]
+    ips = [{"network": "internet", "ip_address": "127.0.0.1"}, {"network": "internet", "ip_address": "127.0.0.2"}]
     hns = [{"network": "internet", "name": "test.com"}, {"network": "internet", "name": "test2.com"}]
 
     res = drf_client.post("/api/v1/objects/", json={"ipaddress": ips, "hostname": hns})
@@ -250,8 +250,8 @@ def test_generic_api_saves_unrelated_objects_even_if_some_exist(drf_client, xtdb
 def test_generic_api_saves_related_objects(drf_client, xtdb):
     Network.objects.create(name="internet")
 
-    ips = [{"network": "internet", "address": "127.0.0.1"}, {"network": "internet", "address": "127.0.0.2"}]
-    ports = [{"address": "127.0.0.1", "protocol": "TCP", "port": 80, "service": "http"}]
+    ips = [{"network": "internet", "ip_address": "127.0.0.1"}, {"network": "internet", "ip_address": "127.0.0.2"}]
+    ports = [{"ip_address": "127.0.0.1", "protocol": "TCP", "port": 80, "service": "http"}]
 
     response = drf_client.post("/api/v1/objects/", json={"ipaddress": ips, "ipport": ports})
     assert response.status_code == 201
@@ -260,10 +260,10 @@ def test_generic_api_saves_related_objects(drf_client, xtdb):
     assert IPPort.objects.count() == 1
 
     data = {
-        "ipaddress": [{"address": "134.209.85.72", "network": "internet"}],
+        "ipaddress": [{"ip_address": "134.209.85.72", "network": "internet"}],
         "ipport": [
             {
-                "address": "127.0.0.1",
+                "ip_address": "127.0.0.1",
                 "protocol": "TCP",
                 "port": 80,
                 "service": "mysql",
@@ -279,10 +279,10 @@ def test_generic_api_saves_related_objects(drf_client, xtdb):
     assert Software.objects.count() == 1
 
     data = {
-        "ipaddress": [{"address": "134.209.85.72", "network": "internet"}],
+        "ipaddress": [{"ip_address": "134.209.85.72", "network": "internet"}],
         "ipport": [
             {
-                "address": "127.0.0.1",
+                "ip_address": "127.0.0.1",
                 "protocol": "TCP",
                 "port": 80,
                 "service": "mysql",
@@ -321,7 +321,7 @@ def test_dns_records_are_not_duplicated(drf_client, xtdb):
 
     results_grouped = defaultdict(list)
     results = [
-        {"object_type": "ipaddress", "network": "internet", "address": "127.0.0.1"},
+        {"object_type": "ipaddress", "network": "internet", "ip_address": "127.0.0.1"},
         {"object_type": "hostname", "network": "internet", "name": "b.nl"},
         {"object_type": "hostname", "network": "internet", "name": "ns3.a.ns"},
         {"object_type": "hostname", "network": "internet", "name": "ns1.a.ns"},
@@ -338,7 +338,7 @@ def test_dns_records_are_not_duplicated(drf_client, xtdb):
     hostnames_and_ips = {"hostname": results_grouped.pop("hostname"), "ipaddress": results_grouped.pop("ipaddress")}
     response = drf_client.post("/api/v1/objects/", json=hostnames_and_ips).json()
     by_name = {h["name"]: h["id"] for h in response["hostname"]}
-    by_address = {ip["address"]: ip["id"] for ip in response["ipaddress"]}
+    by_address = {ip["ip_address"]: ip["id"] for ip in response["ipaddress"]}
 
     for object_path, objects in results_grouped.items():
         for obj in objects:
@@ -394,8 +394,8 @@ def test_hostname_delete_dns_records_endpoint_validation(drf_client, xtdb):
 
 def test_ipport_delete_api(drf_client, xtdb):
     network = Network.objects.create(name="internet")
-    ip_address = IPAddress.objects.create(network=network, address="192.0.2.1")
-    ipport = IPPort.objects.create(address=ip_address, protocol="TCP", port=80, service="http")
+    ip_address = IPAddress.objects.create(network=network, ip_address="192.0.2.1")
+    ipport = IPPort.objects.create(ip_address=ip_address, protocol="TCP", port=80, service="http")
 
     assert IPPort.objects.filter(pk=ipport.pk).exists()
     response = drf_client.delete(f"/api/v1/objects/ipport/{quote(ipport.pk)}/")
@@ -406,14 +406,14 @@ def test_ipport_delete_api(drf_client, xtdb):
 
 def test_ipport_bulk_delete_multiple(drf_client, xtdb):
     network = Network.objects.create(name="internet")
-    ip1 = IPAddress.objects.create(network=network, address="192.0.2.1")
-    ip2 = IPAddress.objects.create(network=network, address="192.0.2.2")
-    ip3 = IPAddress.objects.create(network=network, address="192.0.2.3")
+    ip1 = IPAddress.objects.create(network=network, ip_address="192.0.2.1")
+    ip2 = IPAddress.objects.create(network=network, ip_address="192.0.2.2")
+    ip3 = IPAddress.objects.create(network=network, ip_address="192.0.2.3")
 
-    port1 = IPPort.objects.create(address=ip1, protocol="TCP", port=80, service="http")
-    port2 = IPPort.objects.create(address=ip2, protocol="TCP", port=443, service="https")
-    port3 = IPPort.objects.create(address=ip3, protocol="TCP", port=22, service="ssh")
-    port4 = IPPort.objects.create(address=ip1, protocol="UDP", port=53, service="dns")
+    port1 = IPPort.objects.create(ip_address=ip1, protocol="TCP", port=80, service="http")
+    port2 = IPPort.objects.create(ip_address=ip2, protocol="TCP", port=443, service="https")
+    port3 = IPPort.objects.create(ip_address=ip3, protocol="TCP", port=22, service="ssh")
+    port4 = IPPort.objects.create(ip_address=ip1, protocol="UDP", port=53, service="dns")
 
     port1_id = port1.pk
     port2_id = port2.pk
@@ -444,9 +444,9 @@ def test_hostname_delete_dns_plugin_new(drf_client, xtdb):
 
     objects_data = {
         "ipaddress": [
-            {"network": "internet", "address": "192.0.2.1"},
-            {"network": "internet", "address": "2001:db8::1"},
-            {"network": "internet", "address": "192.0.2.2"},
+            {"network": "internet", "ip_address": "192.0.2.1"},
+            {"network": "internet", "ip_address": "2001:db8::1"},
+            {"network": "internet", "ip_address": "192.0.2.2"},
         ],
         "hostname": [
             {"network": "internet", "name": "example.com"},
@@ -577,8 +577,8 @@ def test_object_task_created_via_generic_objectviewset_single_type(plugin_drf_cl
     Network.objects.create(name="internet")
     objects_data = {
         "ipaddress": [
-            {"network": "internet", "address": "192.168.1.1"},
-            {"network": "internet", "address": "192.168.1.2"},
+            {"network": "internet", "ip_address": "192.168.1.1"},
+            {"network": "internet", "ip_address": "192.168.1.2"},
         ]
     }
     response = plugin_drf_client.post("/api/v1/objects/", json=objects_data)
@@ -605,7 +605,10 @@ def test_object_task_created_via_generic_objectviewset_multiple_types(plugin_drf
             {"network": "internet", "name": "web.example.com"},
             {"network": "internet", "name": "api.example.com"},
         ],
-        "ipaddress": [{"network": "internet", "address": "10.0.0.1"}, {"network": "internet", "address": "10.0.0.2"}],
+        "ipaddress": [
+            {"network": "internet", "ip_address": "10.0.0.1"},
+            {"network": "internet", "ip_address": "10.0.0.2"},
+        ],
     }
 
     response = plugin_drf_client.post("/api/v1/objects/", json=objects_data)
@@ -654,7 +657,7 @@ def test_object_task_with_different_task_types(plugin_drf_client, task_db, xtdb,
 def test_object_task_created_for_dns_records(plugin_drf_client, task_db, xtdb, organization):
     Network.objects.create(name="internet")
     hostname = Hostname.objects.create(network=Network.objects.get(name="internet"), name="example.com")
-    ip_address = IPAddress.objects.create(network=Network.objects.get(name="internet"), address="192.0.2.1")
+    ip_address = IPAddress.objects.create(network=Network.objects.get(name="internet"), ip_address="192.0.2.1")
 
     dns_data = {"hostname": hostname.pk, "ip_address": ip_address.pk, "ttl": 3600}
     response = plugin_drf_client.post("/api/v1/objects/dnsarecord/", json=dns_data)

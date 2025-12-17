@@ -36,12 +36,12 @@ class Command(BaseCommand):
         created_ips = []
 
         for ip_addr in ip_addresses:
-            ip, created = IPAddress.objects.get_or_create(address=ip_addr, defaults={"network": network})
+            ip, created = IPAddress.objects.get_or_create(ip_address=ip_addr, defaults={"network": network})
             created_ips.append(ip)
             if created:
-                self.stdout.write(self.style.SUCCESS(f"Created IP address: {ip.address}"))
+                self.stdout.write(self.style.SUCCESS(f"Created IP address: {ip.ip_address}"))
             else:
-                self.stdout.write(f"IP address already exists: {ip.address}")
+                self.stdout.write(f"IP address already exists: {ip.ip_address}")
 
         # Create IP ports
         ports_data = [
@@ -63,7 +63,7 @@ class Command(BaseCommand):
 
         for port_data in ports_data:
             port, created = IPPort.objects.get_or_create(
-                address=port_data["ip"],
+                ip_address=port_data["ip"],
                 port=port_data["port"],
                 protocol=port_data["protocol"],
                 defaults={"service": port_data["service"], "tls": port_data["tls"]},

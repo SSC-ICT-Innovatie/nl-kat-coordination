@@ -46,23 +46,23 @@ class FindingSerializer(serializers.ModelSerializer):
     ipaddress = CharField(write_only=True, required=False, allow_null=True)
 
     hostname_id = PrimaryKeyRelatedField(source="hostname", read_only=True)
-    address_id = PrimaryKeyRelatedField(source="address", read_only=True)
+    ip_address_id = PrimaryKeyRelatedField(source="ip_address", read_only=True)
 
     def create(self, validated_data):
         hostname_name = validated_data.pop("hostname", None)
         ipaddress_str = validated_data.pop("ipaddress", None)
 
         hostname_obj = None
-        address_obj = None
+        ip_address_obj = None
 
         if hostname_name:
             hostname_obj = Hostname.objects.get(name=hostname_name)
         elif ipaddress_str:
-            address_obj = IPAddress.objects.get(address=ipaddress_str)
+            ip_address_obj = IPAddress.objects.get(ip_address=ipaddress_str)
 
         ft, created = FindingType.objects.get_or_create(code=validated_data.pop("finding_type_code"))
         f, created = Finding.objects.get_or_create(
-            finding_type=ft, hostname=hostname_obj, address=address_obj, **validated_data
+            finding_type=ft, hostname=hostname_obj, ip_address=ip_address_obj, **validated_data
         )
         return f
 
@@ -123,17 +123,17 @@ class IPAddressSerializer(GetOrCreateSerializer):
 
 
 class IPPortSerializer(GetOrCreateSerializer):
-    address = CharField(write_only=True)
-    address_id = PrimaryKeyRelatedField(source="address", read_only=True)
+    ip_address = CharField(write_only=True)
+    ip_address_id = PrimaryKeyRelatedField(source="ip_address", read_only=True)
     software = SoftwareSerializer(many=True, default=[])
 
     def create(self, validated_data):
-        address = validated_data.pop("address")
-        ip, created = IPAddress.objects.get_or_create(address=address)
+        ip_address = validated_data.pop("ip_address")
+        ip, created = IPAddress.objects.get_or_create(ip_address=ip_address)
 
         port = validated_data.pop("port")
         software = validated_data.pop("software")
-        ipport, created = IPPort.objects.get_or_create(address=ip, port=port, defaults=validated_data)
+        ipport, created = IPPort.objects.get_or_create(ip_address=ip, port=port, defaults=validated_data)
 
         for s in software:
             name = s.pop("name")

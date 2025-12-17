@@ -245,7 +245,7 @@ class FindingFilter(django_filters.FilterSet):
         if not value:
             return queryset
 
-        return queryset.filter(Q(hostname__name__icontains=value) | Q(address__address__icontains=value))
+        return queryset.filter(Q(hostname__name__icontains=value) | Q(ip_address__ip_address__icontains=value))
 
 
 class FindingListView(OrganizationFilterMixin, FilterView):
@@ -269,7 +269,7 @@ class FindingListView(OrganizationFilterMixin, FilterView):
 class FindingCreateView(KATModelPermissionRequiredMixin, CreateView):
     model = Finding
     template_name = "objects/generic_object_form.html"
-    fields = ["finding_type", "hostname", "address"]
+    fields = ["finding_type", "hostname", "ip_address"]
     success_url = reverse_lazy("objects:finding_list")
 
 
@@ -312,7 +312,7 @@ class ScanLevelFilterMixin:
 
 
 class IPAddressFilter(ScanLevelFilterMixin, django_filters.FilterSet):
-    address = django_filters.CharFilter(label="Address", lookup_expr="icontains")
+    ip_address = django_filters.CharFilter(label="Address", lookup_expr="icontains")
     query = django_filters.CharFilter(label="Query", method="filter_by_query")
     object_set = ScanLevelFilterMixin.object_set  # Redefined because else django filter doesn't understand
     scan_level = ScanLevelFilterMixin.scan_level  # Redefined because else django filter doesn't understand
@@ -320,7 +320,7 @@ class IPAddressFilter(ScanLevelFilterMixin, django_filters.FilterSet):
 
     class Meta:
         model = IPAddress
-        fields = ["address", "object_set", "query", "declared", "scan_level"]
+        fields = ["ip_address", "object_set", "query", "declared", "scan_level"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -447,7 +447,7 @@ class IPAddressDetailView(OrganizationFilterMixin, DetailView):
             breadcrumb_url += "?" + "&".join([f"organization={org_id}" for org_id in organization_ids])
 
         context["breadcrumbs"] = [{"url": breadcrumb_url, "text": _("IPAddresses")}]
-        context["findings"] = Finding.objects.filter(address=self.object)
+        context["findings"] = Finding.objects.filter(ip_address=self.object)
         context["scan_level_form"] = ObjectScanLevelForm(instance=self.object)
         context["all_organizations"] = Organization.objects.all()
 
@@ -485,7 +485,7 @@ class IPAddressTasksDetailView(OrganizationFilterMixin, ListView):
 
     def get_queryset(self) -> "QuerySet[Task]":
         ipaddress = IPAddress.objects.get(pk=self.kwargs.get("pk"))
-        qs = Task.objects.filter(data__input_data__has_any_keys=[str(ipaddress.address)]).annotate(
+        qs = Task.objects.filter(data__input_data__has_any_keys=[str(ipaddress.ip_address)]).annotate(
             plugin_name=Subquery(
                 Plugin.objects.filter(plugin_id=KeyTextTransform("plugin_id", OuterRef("data"))).values("name")
             )
@@ -512,7 +512,7 @@ class IPAddressTasksDetailView(OrganizationFilterMixin, ListView):
 class IPAddressCreateView(KATModelPermissionRequiredMixin, CreateView):
     model = IPAddress
     template_name = "objects/ipaddress_create.html"
-    fields = ["network", "address", "organizations"]
+    fields = ["network", "ip_address", "organizations"]
     success_url = reverse_lazy("objects:ipaddress_list")
 
     def get_initial(self):
@@ -561,7 +561,7 @@ class IPAddressCSVUploadView(KATModelPermissionRequiredMixin, FormView):
                     org_id = row[1].strip()
 
                 try:
-                    ipaddress, created = IPAddress.objects.get_or_create(network=network, address=address)
+                    ipaddress, created = IPAddress.objects.get_or_create(network=network, ip_address=address)
 
                     # Handle organization assignment
                     if org_id:
@@ -942,7 +942,7 @@ class IPPortDeleteView(KATModelPermissionRequiredMixin, DeleteView):
     model = IPPort
 
     def get_success_url(self) -> str:
-        return reverse("objects:ipaddress_detail", kwargs={"pk": self.object.address_id})
+        return reverse("objects:ipaddress_detail", kwargs={"pk": self.object.ip_address_id})
 
 
 class IPPortSoftwareDeleteView(KATModelPermissionRequiredMixin, DeleteView):
@@ -959,7 +959,7 @@ class IPPortSoftwareDeleteView(KATModelPermissionRequiredMixin, DeleteView):
     def get_success_url(self) -> str:
         try:
             port = IPPort.objects.get(pk=self.kwargs.get("port_pk"))
-            return reverse("objects:ipaddress_detail", kwargs={"pk": port.address_id})
+            return reverse("objects:ipaddress_detail", kwargs={"pk": port.ip_address_id})
         except IPPort.DoesNotExist:
             return reverse("objects:ipaddress_list")
 
@@ -1007,7 +1007,7 @@ class GenericAssetCreateView(KATModelPermissionRequiredMixin, FormView):
 
             try:
                 if is_valid_ip(asset):
-                    ipaddress, created = IPAddress.objects.get_or_create(network=network, address=asset)
+                    ipaddress, created = IPAddress.objects.get_or_create(network=network, ip_address=asset)
                     if organizations:
                         ipaddress.organizations.set(organizations)
                     if created:
@@ -1106,7 +1106,9 @@ class GenericAssetCSVUploadView(KATModelPermissionRequiredMixin, FormView):
 
                 try:
                     if is_valid_ip(asset):
-                        ipaddress_obj, created = IPAddress.objects.get_or_create(network=default_network, address=asset)
+                        ipaddress_obj, created = IPAddress.objects.get_or_create(
+                            network=default_network, ip_address=asset
+                        )
                         if created:
                             ip_created += 1
                         else:

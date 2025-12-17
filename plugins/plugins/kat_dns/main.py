@@ -111,17 +111,25 @@ def generic_records(hostname: str, record_types: set[str]) -> list[dict[str, str
                 }
 
                 if isinstance(rr, A):
-                    ipv4: dict[str, str | int] = {"object_type": "IPAddress", "network": "internet", "address": str(rr)}
+                    ipv4: dict[str, str | int] = {
+                        "object_type": "IPAddress",
+                        "network": "internet",
+                        "ip_address": str(rr),
+                    }
                     results.append(ipv4)
                     register_record(
-                        {"object_type": "DNSARecord", "ip_address": f"internet|{ipv4['address']}", **default_args}
+                        {"object_type": "DNSARecord", "ip_address": f"internet|{ipv4['ip_address']}", **default_args}
                     )
 
                 if isinstance(rr, AAAA):
-                    ipv6: dict[str, str | int] = {"object_type": "IPAddress", "network": "internet", "address": str(rr)}
+                    ipv6: dict[str, str | int] = {
+                        "object_type": "IPAddress",
+                        "network": "internet",
+                        "ip_address": str(rr),
+                    }
                     results.append(ipv6)
                     register_record(
-                        {"object_type": "DNSAAAARecord", "ip_address": f"internet|{ipv6['address']}", **default_args}
+                        {"object_type": "DNSAAAARecord", "ip_address": f"internet|{ipv6['ip_address']}", **default_args}
                     )
 
                 if isinstance(rr, TXT):

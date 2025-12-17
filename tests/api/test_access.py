@@ -189,7 +189,7 @@ def test_jwt_dns_record_delete_permission(organization, xtdb):
     client = JSONAPIClient(raise_request_exception=True)
     network = Network.objects.create(name="internet")
     hostname = Hostname.objects.create(network=network, name="example.com")
-    ip = IPAddress.objects.create(network=network, address="192.0.2.1")
+    ip = IPAddress.objects.create(network=network, ip_address="192.0.2.1")
 
     a_record = DNSARecord.objects.create(hostname=hostname, ip_address=ip, ttl=3600)
     txt_record = DNSTXTRecord.objects.create(
