@@ -124,7 +124,7 @@ module = [
   "jwt.*",
   "sslyze.*",
   "debug_toolbar.*",
-  "securitytxt.*",
+  "sectxt.*",
 ]
 ignore_missing_imports = true
 
