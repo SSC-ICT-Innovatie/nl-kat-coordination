@@ -304,6 +304,9 @@ class IPPort(XTDBNaturalKeyModel):
 
     _natural_key_attrs = ["ip_address", "protocol", "port"]
 
+    class Meta:
+        verbose_name = "IP Port"
+
     def __str__(self) -> str:
         return f"[{self.ip_address}]:{self.port}"
 
@@ -514,6 +517,9 @@ class DNSARecord(DNSRecordBase):
 
     _natural_key_attrs = ["hostname", "ip_address"]
 
+    class Meta:
+        verbose_name = "DNS A Record"
+
     def __str__(self) -> str:
         return f"{self.hostname} A {self.ip_address}"
 
@@ -524,6 +530,9 @@ class DNSAAAARecord(DNSRecordBase):
 
     _natural_key_attrs = ["hostname", "ip_address"]
 
+    class Meta:
+        verbose_name = "DNS AAAA Record"
+
     def __str__(self) -> str:
         return f"{self.hostname} AAAA {self.ip_address}"
 
@@ -533,6 +542,9 @@ class DNSPTRRecord(DNSRecordBase):
     ip_address: models.ForeignKey = models.ForeignKey(IPAddress, on_delete=models.PROTECT)
 
     _natural_key_attrs = ["hostname", "ip_address"]
+
+    class Meta:
+        verbose_name = "DNS PTR Record"
 
     def __str__(self) -> str:
         return f"{self.ip_address} PTR {self.hostname}"
@@ -545,6 +557,9 @@ class DNSCNAMERecord(DNSRecordBase):
     )
 
     _natural_key_attrs = ["hostname", "target"]
+
+    class Meta:
+        verbose_name = "DNS CNAME Record"
 
     def __str__(self) -> str:
         return f"{self.hostname} CNAME {self.target}"
@@ -559,6 +574,9 @@ class DNSMXRecord(DNSRecordBase):
 
     _natural_key_attrs = ["hostname", "preference", "mail_server"]
 
+    class Meta:
+        verbose_name = "DNS MX Record"
+
     def __str__(self) -> str:
         return f"{self.hostname} MX {self.preference} {self.mail_server}"
 
@@ -570,6 +588,9 @@ class DNSNSRecord(DNSRecordBase):
     )
 
     _natural_key_attrs = ["hostname", "name_server"]
+
+    class Meta:
+        verbose_name = "DNS NS Record"
 
     def __str__(self) -> str:
         return f"{self.hostname} NS {self.name_server}"
@@ -593,6 +614,9 @@ class DNSCAARecord(DNSRecordBase):
 
     _natural_key_attrs = ["hostname", "flags", "tag", "value"]
 
+    class Meta:
+        verbose_name = "DNS CAA Record"
+
     def __str__(self) -> str:
         return f"{self.hostname} CAA {self.flags} {self.tag} {self.value}"
 
@@ -604,6 +628,9 @@ class DNSTXTRecord(DNSRecordBase):
 
     _natural_key_attrs = ["hostname", "prefix", "value"]
     _optional_key_attrs = ["prefix"]
+
+    class Meta:
+        verbose_name = "DNS TXT Record"
 
     def __str__(self) -> str:
         prefix_part = f"{self.prefix}." if self.prefix else ""
@@ -619,6 +646,9 @@ class DNSSRVRecord(DNSRecordBase):
     port: models.IntegerField = models.IntegerField(validators=[MinValueValidator(0), MaxValueValidator(65535)])
 
     _natural_key_attrs = ["hostname", "proto", "service", "priority", "weight", "port"]
+
+    class Meta:
+        verbose_name = "DNS SRV Record"
 
     def __str__(self) -> str:
         return f"_{self.service}._{self.proto}.{self.hostname} SRV {self.priority} {self.weight} {self.port}"

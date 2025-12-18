@@ -515,7 +515,7 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
 
 class ContentTypeChoiceField(forms.ModelChoiceField):
     def label_from_instance(self, obj: ContentType):
-        verbose_name = obj.model_class()._meta.verbose_name
+        verbose_name = obj.name
         if verbose_name.islower():
             verbose_name = verbose_name.title()
 
