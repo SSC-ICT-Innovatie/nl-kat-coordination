@@ -2,7 +2,7 @@
 name = "openkat"
 version = "2.0.0-alpha"
 description = "OpenKAT package"
-requires-python = ">=3.12"
+requires-python = ">=3.13"
 readme = "README.md"
 license = "EUPL-1.2"
 dependencies = [
@@ -91,7 +91,7 @@ ignore = "H006,H016,H017,H030,H031"
 
 
 [tool.mypy]
-python_version = "3.12"
+python_version = "3.13"
 strict = true
 disallow_subclassing_any = false
 disallow_untyped_decorators = false
@@ -143,8 +143,8 @@ extend-exclude = [
 
 line-length = 120
 
-# Support Python 3.12 and higher
-target-version = "py312"
+# Support Python 3.13 and higher
+target-version = "py313"
 
 [tool.ruff.format]
 skip-magic-trailing-comma = true

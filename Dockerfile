@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1
-ARG PYTHON_VERSION=3.13
+ARG PYTHON_VERSION=3.14
 FROM node:24-trixie AS node_builder
 
 WORKDIR /app

@@ -154,7 +154,7 @@
     "plugin_id": "citrix-bleed",
     "name": "CitrixBleed",
     "scan_level": 4,
-    "oci_image": "ghcr.io/astral-sh/uv:python3.13-alpine",
+    "oci_image": "ghcr.io/astral-sh/uv:python3.14-trixie-slim",
     "oci_arguments": [
       "uv",
       "run",

@@ -16,6 +16,7 @@ from django.db.models import ForeignKey, Model
 from django.db.models.expressions import RawSQL
 from django.db.models.fields.related import RelatedField
 from django.forms.models import model_to_dict
+from django.urls import reverse
 from django.utils.datastructures import CaseInsensitiveMapping
 from django.utils.translation import gettext_lazy as _
 from djangoql.schema import DjangoQLSchema, IntField
@@ -259,7 +260,7 @@ class NetworkOrganization(XTDBNaturalKeyModel):
     _natural_key_attrs = ["network", "organization"]
 
 
-class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
+class IPAddress(XTDBNaturalKeyModel, Asset):
     network: models.ForeignKey = models.ForeignKey(Network, on_delete=models.CASCADE)
     ip_address: models.GenericIPAddressField = models.GenericIPAddressField(unpack_ipv4=True)
     scan_level: models.IntegerField = models.IntegerField(
@@ -273,8 +274,6 @@ class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
     _natural_key_attrs = ["network", "ip_address"]
 
     def get_absolute_url(self):
-        from django.urls import reverse
-
         return reverse("objects:ipaddress_detail", kwargs={"pk": self.pk})
 
     class Meta:
@@ -400,8 +399,6 @@ class Hostname(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
     _natural_key_attrs = ["network", "name"]
 
     def get_absolute_url(self) -> str:
-        from django.urls import reverse
-
         return reverse("objects:hostname_detail", kwargs={"pk": self.pk})
 
     def __str__(self) -> str:
