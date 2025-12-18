@@ -31,7 +31,7 @@ def django_db_setup(
     django_db_keepdb: bool,
     django_db_createdb: bool,
     django_db_modify_db_settings: None,  # noqa: ARG001
-) -> Generator[None, None, None]:
+) -> Generator[None]:
     """
     Make sure openkat-test-api and openkat_integration in .ci/docker-compose.yml use the same database:
     Since openkat_integration calls pytest, it creates a test database by default within ci_postgres, where the
