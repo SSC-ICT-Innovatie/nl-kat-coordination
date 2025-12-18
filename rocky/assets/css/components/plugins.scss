@@ -36,8 +36,6 @@ $normalizer-bg: #e17000;
 
     /* Checkbox */
     > input[type="checkbox"] {
-      accent-color: theme.$form-accent-color-color, initial;
-      cursor: theme.$form-checkbox-cursor;
       left: 1rem;
       margin: 0;
       position: absolute;
@@ -45,6 +43,8 @@ $normalizer-bg: #e17000;
       width: theme.$form-checkbox-width;
       min-height: theme.$form-checkbox-width;
       height: theme.$form-checkbox-width;
+      accent-color: theme.$form-accent-color-color, initial;
+      cursor: theme.$form-checkbox-cursor;
     }
 
     .tile-label {

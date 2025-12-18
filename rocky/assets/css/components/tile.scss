@@ -1,10 +1,5 @@
 @use "../variables" as theme;
 
-$normalizer-plugin-type-label-background: #abdbf8;
-$normalizer-plugin-type-label: #005c94;
-$boefje-plugin-type-label-background: #d6d1ef;
-$boefje-plugin-type-label: #5b4f90;
-
 %tile-style-overrides {
   > a {
     color: theme.$link-text-color;
@@ -65,13 +60,13 @@ ul.tiles {
   border-radius: theme.$border-radius-s;
 
   &.boefje {
-    background-color: $boefje-plugin-type-label-background;
-    color: $boefje-plugin-type-label;
+    background-color: theme.$boefje-plugin-type-label-background;
+    color: theme.$boefje-plugin-type-label;
   }
 
   &.normalizer {
-    background-color: $normalizer-plugin-type-label-background;
-    color: $normalizer-plugin-type-label;
+    background-color: theme.$normalizer-plugin-type-label-background;
+    color: theme.$normalizer-plugin-type-label;
   }
 }
 
