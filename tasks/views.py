@@ -513,8 +513,17 @@ class ObjectSetDetailView(OrganizationFilterMixin, DetailView):
         return context
 
 
+class ContentTypeChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj: ContentType):
+        verbose_name = obj.model_class()._meta.verbose_name
+        if verbose_name.islower():
+            verbose_name = verbose_name.title()
+
+        return verbose_name
+
+
 class ObjectSetTypeSelectionForm(forms.Form):
-    object_type = forms.ModelChoiceField(
+    object_type = ContentTypeChoiceField(
         queryset=ContentType.objects.filter(app_label="objects"),
         label=_("Object Type"),
         help_text=_("Type of the objects in this set"),
