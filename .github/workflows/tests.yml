@@ -43,5 +43,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Build plugins
+        run: make plugins
+
       - name: Run integration tests
         run: make itest

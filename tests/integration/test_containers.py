@@ -238,7 +238,7 @@ def test_worker_dispatches_multiple_plugin_tasks():
     group_result.join()
 
     files = {file.file.read().decode().strip()[::-1] for file in File.objects.filter(type="str-reverse")}
-    objects = {obj.address for obj in IPAddress.objects.all()}
+    objects = {obj.ip_address for obj in IPAddress.objects.all()}
 
     assert files == objects
 
