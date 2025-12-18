@@ -272,6 +272,14 @@ class IPAddress(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
 
     _natural_key_attrs = ["network", "ip_address"]
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+
+        return reverse("objects:ipaddress_detail", kwargs={"pk": self.pk})
+
+    class Meta:
+        verbose_name = "IP Address"
+
     def __str__(self) -> str:
         return self.ip_address
 
@@ -390,6 +398,11 @@ class Hostname(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
     organizations = models.ManyToManyField(XTDBOrganization, related_name="hostnames", through="HostnameOrganization")
 
     _natural_key_attrs = ["network", "name"]
+
+    def get_absolute_url(self) -> str:
+        from django.urls import reverse
+
+        return reverse("objects:hostname_detail", kwargs={"pk": self.pk})
 
     def __str__(self) -> str:
         return self.name

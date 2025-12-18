@@ -36,9 +36,13 @@
                     <h2>{% translate "Preview" %}</h2>
                     <ul>
                         {% for object in objects %}
-                            {% with object|to_class_name|lower as model_name %}
+                            {% with model_name=object|to_class_name|lower url=object.get_absolute_url %}
                                 <li>
-                                    <a href="{% url "objects:"|add:model_name|add:"_detail" pk=object.id %}">{{ object }}</a>
+                                    {% if url %}
+                                        <a href="{{ object.get_absolute_url }}">{{ object }}</a>
+                                    {% else %}
+                                        {{ object }}
+                                    {% endif %}
                                 </li>
                             {% endwith %}
                         {% endfor %}
@@ -51,8 +55,12 @@
                     <ul>
                         {% for object in static_objects %}
                             <li>
-                                {% with object|to_class_name|lower as model_name %}
-                                    <a href="{% url "objects:"|add:model_name|add:"_detail" pk=object.id %}">{{ object }}</a>
+                                {% with model_name=object|to_class_name|lower url=object.get_absolute_url %}
+                                    {% if url %}
+                                        <a href="{{ url }}">{{ object }}</a>
+                                    {% else %}
+                                        {{ object }}
+                                    {% endif %}
                                 {% endwith %}
                             </li>
                         {% endfor %}

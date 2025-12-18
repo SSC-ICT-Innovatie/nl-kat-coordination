@@ -38,25 +38,25 @@ repos:
         additional_dependencies: ["rstcheck[sphinx]", "autodoc-pydantic==2.1.0"]
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.13.1"
+    rev: "v0.14.9"
     hooks:
       - id: ruff-check
       - id: ruff-format
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.20.0
+    rev: v3.21.2
     hooks:
       - id: pyupgrade
         args: [--py312-plus]
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.28.0
+    rev: 1.29.1
     hooks:
       - id: django-upgrade
         args: [--target-version, "5.2"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
+    rev: v1.19.1
     hooks:
       - id: mypy
         args: []
@@ -124,7 +124,7 @@ repos:
           )
 
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v16.24.0
+    rev: v16.26.1
     hooks:
       - id: stylelint
         args: [--fix]
