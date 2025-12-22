@@ -3,10 +3,11 @@
 {% if object_list %}
     <div class="horizontal-view horizontal-scroll toolbar">
         <a href="{% url url_name organization_code=organization.code view_type="grid" %}?{{ request.GET.urlencode }}"
-           class=" icon toggle-button icon-layout-grid"
-           {% if view_type == "grid" %}aria-current="page"{% endif %}>{% translate "Gridview" %}</a>
+           {% if view_type == "grid" %}aria-current="page"{% endif %}
+           aria-label="{% translate "Switch to grid view" %}">
+            <span class="icon toggle-button icon-grid" aria-hidden="true"></span></a>
         <a href="{% url url_name organization_code=organization.code view_type="table" %}?{{ request.GET.urlencode }}"
-           class=" icon toggle-button icon-menu-2"
-           {% if view_type == "table" %}aria-current="page"{% endif %}>{% translate "Tableview" %}</a>
+           aria-label="{% translate "Switch to table view" %}"
+           {% if view_type == "table" %}aria-current="page"{% endif %}><span class="icon toggle-button icon-hamburger" aria-hidden="true"></span></a>
     </div>
 {% endif %}

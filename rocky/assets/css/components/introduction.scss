@@ -1,6 +1,5 @@
-@use "../variables" as theme;
-
 .introduction {
+  display: flex;
   flex-direction: row;
   justify-content: space-between;
   width: 100%;
@@ -10,6 +9,6 @@
   }
 
   .tabs {
-    margin-top: theme.$section-gap * -1;
+    margin-top: 0;
   }
 }
