@@ -1,0 +1,1602 @@
+{
+  "ZK": {
+    "cats": [
+      18
+    ],
+    "description": "ZK is a framework for building rich, interactive web applications using Java, providing a set of tools and components to create dynamic user interfaces.",
+    "html": [
+      "<!-- ZK [.\\d\\s]+-->"
+    ],
+    "icon": "ZK.svg",
+    "implies": [
+      "Java"
+    ],
+    "oss": true,
+    "scriptSrc": [
+      "zkau/"
+    ],
+    "website": "https://zkoss.org"
+  },
+  "ZURB Foundation": {
+    "cats": [
+      66
+    ],
+    "description": "Zurb Foundation is used to prototype in the browser. Allows rapid creation of websites or applications while leveraging mobile and responsive technology. The front end framework is the collection of HTML, CSS, and Javascript containing design patterns.",
+    "dom": [
+      "link[href*='foundation'][href*='css']"
+    ],
+    "html": [
+      "<link[^>]+foundation[^>\"]+css",
+      "<div [^>]*class=\"[^\"]*(?:small|medium|large)-\\d{1,2} columns"
+    ],
+    "icon": "ZURBFoundation.svg",
+    "js": {
+      "Foundation.version": "([\\d.]+)\\;version:\\1"
+    },
+    "website": "https://foundation.zurb.com"
+  },
+  "Zabbix": {
+    "cats": [
+      19
+    ],
+    "cpe": "cpe:2.3:a:zabbix:zabbix:*:*:*:*:*:*:*:*",
+    "description": "Zabbix is an open-source monitoring tool that provides real-time monitoring, alerting, and reporting for IT infrastructure, including networks, servers, and applications.",
+    "html": [
+      "<body[^>]+zbxCallPostScripts"
+    ],
+    "icon": "Zabbix.svg",
+    "implies": [
+      "PHP"
+    ],
+    "js": {
+      "zbxCallPostScripts": ""
+    },
+    "meta": {
+      "Author": "ZABBIX SIA\\;confidence:70"
+    },
+    "oss": true,
+    "url": [
+      "\\/zabbix\\/\\;confidence:30"
+    ],
+    "website": "https://zabbix.com"
+  },
+  "Zakeke": {
+    "cats": [
+      76
+    ],
+    "description": "Zakeke is a product customisation tool compatible with services and apps mostly used to manage ecommerce store.",
+    "icon": "Zakeke.png",
+    "js": {
+      "zakekeBoot": "",
+      "zakekeCustomizeLabel": "",
+      "zakekeLoading": "",
+      "zakekeProductPage": ""
+    },
+    "pricing": [
+      "recurring",
+      "low"
+    ],
+    "saas": true,
+    "website": "https://www.zakeke.com"
+  },
+  "Zakeke Interactive Product Designer": {
+    "cats": [
+      87,
+      76
+    ],
+    "description": "Zakeke Interactive Product Designer lets customers personalise any product and visualise how they’ll look before checking out.",
+    "icon": "Zakeke.png",
+    "implies": [
+      "Zakeke"
+    ],
+    "pricing": [
+      "recurring",
+      "low"
+    ],
+    "requires": [
+      "WooCommerce"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "/wp-content/plugins/zakeke-interactive-product-designer/.+\\.js(?:\\?ver=(\\d+(?:\\.\\d+)+))?\\;version:\\1"
+    ],
+    "website": "https://www.zakeke.com"
+  },
+  "Zakeke Visual Customizer": {
+    "cats": [
+      100,
+      76
+    ],
+    "description": "Zakeke Visual Customizer is a cloud-connected visual ecommerce tool that allows brands and retailers to offer live, personalised, 2D, 3D, and augmented reality (AR) functionality for their products.",
+    "icon": "Zakeke.png",
+    "implies": [
+      "Zakeke"
+    ],
+    "pricing": [
+      "recurring",
+      "low"
+    ],
+    "requires": [
+      "Shopify"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zakeke\\.com/Scripts/integration/shopify/"
+    ],
+    "website": "https://www.zakeke.com"
+  },
+  "Zakra": {
+    "cats": [
+      80
+    ],
+    "description": "Zakra is flexible, fast, lightweight and modern multipurpose WordPress theme that comes with many starter free sites.",
+    "dom": [
+      "link#zakra-style-css"
+    ],
+    "icon": "Zakra.svg",
+    "js": {
+      "zakraFrontend": "",
+      "zakraNavHelper.dimension": ""
+    },
+    "pricing": [
+      "freemium",
+      "low",
+      "recurring",
+      "onetime"
+    ],
+    "requires": [
+      "WordPress"
+    ],
+    "scriptSrc": [
+      "/wp-content/themes/zakra/"
+    ],
+    "website": "https://zakratheme.com"
+  },
+  "Zalify": {
+    "cats": [
+      100
+    ],
+    "description": "Zalify is a data-driven growth engine for Shopify merchants, designed to provide agility and precision in the ecommerce environment.",
+    "icon": "Zalify.svg",
+    "js": {
+      "zalify.render": "",
+      "zalifyCurrentScript": ""
+    },
+    "pricing": [
+      "low",
+      "recurring",
+      "poa"
+    ],
+    "requires": [
+      "Shopify"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zalify\\.com/"
+    ],
+    "website": "https://www.zalify.com"
+  },
+  "Zammit": {
+    "cats": [
+      6
+    ],
+    "description": "Zammit is an ecommerce platform based in Egypt.",
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "scripts": [
+      "merchants\\.zammit\\.shop/"
+    ],
+    "website": "https://www.zammit.shop"
+  },
+  "Zanox": {
+    "cats": [
+      36
+    ],
+    "html": [
+      "<img [^>]*src=\"[^\"]+ad\\.zanox\\.com"
+    ],
+    "icon": "Zanox.png",
+    "js": {
+      "zanox": ""
+    },
+    "scriptSrc": [
+      "zanox\\.com/scripts/zanox\\.js$"
+    ],
+    "website": "https://zanox.com"
+  },
+  "Zapiet": {
+    "cats": [
+      6
+    ],
+    "description": "Zapiet is a store pickup and local delivery solution for ecommerce.",
+    "icon": "Zapiet.svg",
+    "js": {
+      "Zapiet": ""
+    },
+    "pricing": [
+      "freemium",
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "app\\.zapiet\\.com"
+    ],
+    "website": "https://www.zapiet.com"
+  },
+  "Zarla": {
+    "cats": [
+      51
+    ],
+    "description": "Zarla is a website builder designed for small businesses, offering SEO optimization features to improve online visibility.",
+    "icon": "Zarla.svg",
+    "pricing": [
+      "freemium",
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "scripts": [
+      "cdn\\.zarlasites\\.com"
+    ],
+    "website": "https://www.zarla.com"
+  },
+  "Zaxaa": {
+    "cats": [
+      32
+    ],
+    "description": "Zaxaa is a sales funnel service designed to streamline the process of managing leads, nurturing prospects, and converting them into customers.",
+    "dom": [
+      "a[href*='.zaxaa.com'] > img[src*='www.zaxaa.com']"
+    ],
+    "icon": "Zaxaa.svg",
+    "pricing": [
+      "mid",
+      "recurring",
+      "poa"
+    ],
+    "saas": true,
+    "website": "https://zaxaa.com"
+  },
+  "Zeabur": {
+    "cats": [
+      62
+    ],
+    "description": "Zeabur is a platform for running full stack apps and databases.",
+    "headers": {
+      "X-Zeabur-Request-Id": ""
+    },
+    "icon": "zeabur.svg",
+    "pricing": [
+      "freemium",
+      "payg"
+    ],
+    "website": "https://zeabur.com"
+  },
+  "Zeald": {
+    "cats": [
+      6
+    ],
+    "cookies": {
+      "ZES_BACKEND": "zeald"
+    },
+    "description": "Zeald is a full-service website design and digital marketing company.",
+    "icon": "Zeald.svg",
+    "pricing": [
+      "poa"
+    ],
+    "requires": [
+      "Cart Functionality"
+    ],
+    "website": "https://www.zeald.com"
+  },
+  "ZeeMaps": {
+    "cats": [
+      35
+    ],
+    "description": "ZeeMaps is a custom map generation service that enables users to create personalized maps with location markers, regions, and annotations.",
+    "dom": [
+      "iframe[src*='www.zeemaps.com/']"
+    ],
+    "icon": "ZeeMaps.svg",
+    "js": {
+      "webpackChunkZeeMaps": ""
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://www.zeemaps.com"
+  },
+  "Zeleris": {
+    "cats": [
+      99
+    ],
+    "description": "Zeleris provides door to door shipment delivery to Ireland, UK and the EU.",
+    "requiresCategory": [
+      6
+    ],
+    "text": [
+      "\\bZeleris\\b"
+    ],
+    "website": "https://www.zeleris.com"
+  },
+  "Zen Cart": {
+    "cats": [
+      6
+    ],
+    "icon": "Zen Cart.png",
+    "meta": {
+      "generator": "Zen Cart"
+    },
+    "website": "https://www.zen-cart.com"
+  },
+  "Zen Planner": {
+    "cats": [
+      72
+    ],
+    "description": "Zen Planner is a software platform designed for fitness and wellness businesses, offering features such as membership management, class scheduling, and billing automation.",
+    "icon": "Zen Planner.svg",
+    "js": {
+      "zenplanner": ""
+    },
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zenplanner\\.com/"
+    ],
+    "website": "https://zenplanner.com"
+  },
+  "ZenBasket": {
+    "cats": [
+      6
+    ],
+    "cookies": {
+      "zenbasket_session": ""
+    },
+    "description": "ZenBasket is a modern e-commerce website builder that allows users to create, customize, and manage online stores with drag-and-drop features and integrated payment solutions.",
+    "dom": {
+      "img[src*='getzenbasket.com']": {
+        "attributes": {
+          "src": "(?:cdn\\.|assets\\.|[a-z]{2}\\.images\\.)getzenbasket\\.com\\;confidence:50"
+        }
+      },
+      "link[href*='getzenbasket.com']": {
+        "attributes": {
+          "href": "(?:cdn\\.|assets\\.|[a-z]{2}\\.images\\.)getzenbasket\\.com\\;confidence:50"
+        }
+      }
+    },
+    "icon": "zenbasket.svg",
+    "js": {
+      "ZenBasket": ";confidence:25",
+      "ZenBasketApp": "",
+      "ZenBasketStore": ""
+    },
+    "meta": {
+      "generator": "ZenBasket\\;confidence:50",
+      "zenbasket-platform": ""
+    },
+    "pricing": [
+      "low",
+      "mid",
+      "recurring",
+      "freemium"
+    ],
+    "saas": true,
+    "url": [
+      "^https?//.+\\.getzenbasket\\.com"
+    ],
+    "website": "https://www.getzenbasket.com",
+    "xhr": [
+      "\\.getzenbasket\\.com"
+    ]
+  },
+  "ZenMaid": {
+    "cats": [
+      72
+    ],
+    "description": "ZenMaid is a residential cleaning scheduling software that helps manage appointments.",
+    "icon": "ZenMaid.svg",
+    "pricing": [
+      "low",
+      "recurring",
+      "poa"
+    ],
+    "saas": true,
+    "scripts": [
+      "app\\.zenmaid\\.com"
+    ],
+    "website": "https://get.zenmaid.com"
+  },
+  "Zenbooker": {
+    "cats": [
+      72
+    ],
+    "description": "Zenbooker is a system that enables users to book appointments or reservations online.",
+    "icon": "Zenbooker.svg",
+    "js": {
+      "Zenbooker.BadgeWidget": ""
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://zenbooker.com"
+  },
+  "Zenchef": {
+    "cats": [
+      93
+    ],
+    "description": "Zenchef is a restaurant management software solution that simplifies the customer restaurant experience.",
+    "icon": "Zenchef.svg",
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "sdk\\.zenchef\\.com/"
+    ],
+    "website": "https://www.zenchef.com"
+  },
+  "Zend": {
+    "cats": [
+      22
+    ],
+    "cookies": {
+      "ZENDSERVERSESSID": ""
+    },
+    "cpe": "cpe:2.3:a:zend:zend_server:*:*:*:*:*:*:*:*",
+    "description": "Zend is a company that provides PHP development tools and solutions, including frameworks, servers, and development environments, to help developers build, deploy, and manage PHP applications.",
+    "headers": {
+      "X-Powered-By": "Zend(?:Server)?(?:[\\s/]?([0-9.]+))?\\;version:\\1"
+    },
+    "icon": "Zend.svg",
+    "website": "https://zend.com"
+  },
+  "ZendApps": {
+    "cats": [
+      100
+    ],
+    "description": "ZendApps is a tool designed to grow Shopify stores by streamlining operations and enhancing performance through automated features.",
+    "icon": "ZendApps.svg",
+    "requires": [
+      "Shopify"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zend-apps\\.com/"
+    ],
+    "website": "https://zendapps.com"
+  },
+  "Zendesk": {
+    "cats": [
+      4,
+      13,
+      52
+    ],
+    "cookies": {
+      "_help_center_session": "",
+      "_zendesk_cookie": "",
+      "_zendesk_shared_session": ""
+    },
+    "description": "Zendesk is a cloud-based help desk management solution offering customizable tools to build customer service portal, knowledge base and online communities.",
+    "dns": {
+      "TXT": [
+        "mail\\.zendesk\\.com"
+      ]
+    },
+    "headers": {
+      "x-zendesk-user-id": ""
+    },
+    "icon": "Zendesk.svg",
+    "js": {
+      "Zendesk": ""
+    },
+    "pricing": [
+      "low"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "static\\.zdassets\\.com"
+    ],
+    "website": "https://zendesk.com"
+  },
+  "Zendesk Chat": {
+    "cats": [
+      52
+    ],
+    "description": "Zendesk Chat is a live chat and communication widget.",
+    "icon": "Zendesk.svg",
+    "pricing": [
+      "freemium",
+      "payg"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "v2\\.zopim\\.com"
+    ],
+    "website": "https://www.zendesk.com/service/messaging/live-chat-software/"
+  },
+  "Zendesk Sunshine Conversations": {
+    "cats": [
+      52
+    ],
+    "description": "Zendesk Sunshine Conversations lets you share a single, continuous conversation with every team in your business. With a unified API and native connectors to popular business applications like Zendesk and Slack, everyone in your organization can get access to a single view of the customer conversation.",
+    "icon": "Zendesk.svg",
+    "implies": [
+      "Zendesk"
+    ],
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "cdn\\.smooch\\.io/"
+    ],
+    "website": "https://www.zendesk.com/platform/conversations"
+  },
+  "Zenfolio": {
+    "cats": [
+      7
+    ],
+    "description": "Zenfolio is a photography website builder.",
+    "icon": "Zenfolio.png",
+    "js": {
+      "Zenfolio": ""
+    },
+    "website": "https://zenfolio.com"
+  },
+  "Zenler": {
+    "cats": [
+      21
+    ],
+    "description": "Zenler is a course creation platform that combines live classes, webinars, community building, and marketing tools in one system.",
+    "icon": "Zenler.svg",
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "scripts": [
+      "webtracker\\.newzenler\\.com"
+    ],
+    "website": "https://www.newzenler.com"
+  },
+  "Zenoti": {
+    "cats": [
+      72
+    ],
+    "description": "Zenoti is a cloud-based business software for spas, salons, and medspas, providing tools for managing appointment books, employee scheduling, and enabling online booking.",
+    "icon": "Zenoti.svg",
+    "meta": {
+      "Author": "^zenoti$"
+    },
+    "pricing": [
+      "mid",
+      "poa"
+    ],
+    "saas": true,
+    "scripts": [
+      "\\.zenoti\\.com"
+    ],
+    "website": "https://www.zenoti.com/"
+  },
+  "Zenrez": {
+    "cats": [
+      32
+    ],
+    "description": "Zenrez is a provider of sales and marketing software designed for boutique fitness studios, with a focus on revenue management.",
+    "icon": "Zenrez.svg",
+    "saas": true,
+    "scriptSrc": [
+      "widget\\.zenrez\\.com/"
+    ],
+    "website": "https://zenrez.com"
+  },
+  "Zentap": {
+    "cats": [
+      10
+    ],
+    "description": "Zentap is a real estate marketing platform designed to create and manage marketing campaigns, track leads, and measure results.",
+    "icon": "Zentap.svg",
+    "meta": {
+      "generator": "Zentap"
+    },
+    "pricing": [
+      "mid",
+      "recurring",
+      "poa"
+    ],
+    "saas": true,
+    "website": "https://zentap.com"
+  },
+  "Zenu": {
+    "cats": [
+      53
+    ],
+    "description": "Zenu is an all-in-one CRM solution designed to manage real estate operations, including client interactions, property listings, and sales processes.",
+    "icon": "Zenu.svg",
+    "js": {
+      "zenuDebug": "",
+      "zenuHp": ""
+    },
+    "pricing": [],
+    "saas": true,
+    "scriptSrc": [
+      "assets\\.zenu\\.com\\.au"
+    ],
+    "website": "https://www.zenu.com.au"
+  },
+  "Zenvia": {
+    "cats": [
+      52
+    ],
+    "description": "Zenvia is a customer engagement platform that enables businesses to communicate with clients through multiple digital channels.",
+    "icon": "Zenvia.svg",
+    "js": {
+      "ZenviaChat": ""
+    },
+    "pricing": [
+      "freemium",
+      "high",
+      "recurring",
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "static\\.zenvia\\.com"
+    ],
+    "website": "https://www.zenvia.com"
+  },
+  "Zenzzen": {
+    "cats": [
+      6
+    ],
+    "description": "Zenzzen is an ecommerce platform enabling businesses to build fully customizable online stores under their own brand, providing flexibility in managing products, processing payments, and enhancing the customer experience.",
+    "dom": [
+      "span[class*='zenzzen-store']"
+    ],
+    "icon": "Zenzzen.svg",
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "website": "https://zenzzen.com"
+  },
+  "Zeotap": {
+    "cats": [
+      97
+    ],
+    "description": "Zeotap is a customer intelligence platform that helps brands better understand their customers and predict behaviors.",
+    "dom": [
+      "link[href*='.zeotap.com']"
+    ],
+    "icon": "Zeotap.svg",
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zeotap\\.com"
+    ],
+    "website": "https://zeotap.com"
+  },
+  "Zepio": {
+    "cats": [
+      6
+    ],
+    "description": "Zepio is a platform that enables creating an online store with an integrated website and delivery system, requiring no coding.",
+    "headers": {
+      "X-Powered-By": "^Zepio$"
+    },
+    "icon": "Zepio.svg",
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://zepio.io"
+  },
+  "Zeppelin": {
+    "cats": [
+      32
+    ],
+    "description": "Zeppelin is an internet marketing provider platform designed to support digital advertising and online promotional strategies.",
+    "icon": "Zeppelin.svg",
+    "saas": true,
+    "scriptSrc": [
+      "cloud\\.zeppelin-group\\.com"
+    ],
+    "website": "https://www.zeppelin-group.com"
+  },
+  "Zepto": {
+    "cats": [
+      59
+    ],
+    "icon": "Zepto.png",
+    "js": {
+      "Zepto": ""
+    },
+    "scriptSrc": [
+      "zepto.*\\.js"
+    ],
+    "website": "https://zeptojs.com"
+  },
+  "ZestMoney": {
+    "cats": [
+      91
+    ],
+    "description": "ZestMoney is a fintech company that uses digital EMI without the need for a credit card or a credit score.",
+    "icon": "ZestMoney.svg",
+    "js": {
+      "ZestMoneyWidget": "",
+      "zestBind": "",
+      "zestMerchant": ""
+    },
+    "pricing": [
+      "freemium"
+    ],
+    "saas": true,
+    "website": "https://www.zestmoney.in"
+  },
+  "Zestard": {
+    "cats": [
+      6
+    ],
+    "description": "Zestard is a provider of Shopify plugins, offering solutions that support ecommerce functionality and customization.",
+    "icon": "Zestard.svg",
+    "js": {
+      "$zestard_easy": ""
+    },
+    "requires": [
+      "Shopify"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "zestardshop\\.com/shopifyapp"
+    ],
+    "website": "https://www.zestardshop.com"
+  },
+  "Zeta Producer": {
+    "cats": [
+      51
+    ],
+    "cpe": "cpe:2.3:a:zeta-producer:zeta_producer:*:*:*:*:*:*:*:*",
+    "description": "Zeta Producer is a professional homepage builder for Windows that enables users to create websites.",
+    "icon": "ZetaProducer.svg",
+    "meta": {
+      "generator": "^Zeta Producer ([\\d\\.]+)\\;version:\\1"
+    },
+    "pricing": [
+      "freemium",
+      "onetime"
+    ],
+    "saas": true,
+    "website": "https://www.zeta-producer.com"
+  },
+  "Zeus Technology": {
+    "cats": [
+      36
+    ],
+    "description": "Zeus Technology is a media monetisation platform that levels the playing field for publishers and advertisers of all sizes.",
+    "icon": "Zeus Technology.svg",
+    "js": {
+      "zeus.version": "v([\\d\\.]+)\\;version:\\1",
+      "zeusAdUnitPath": ""
+    },
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "website": "https://www.zeustechnology.com"
+  },
+  "Zevi": {
+    "cats": [
+      29
+    ],
+    "cookies": {
+      "zevi-_zldt": ""
+    },
+    "description": "Zevi is an AI-powered site search and discovery platform designed to enhance product discovery.",
+    "icon": "Zevi.svg",
+    "pricing": [
+      "mid",
+      "recurring",
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zevi\\.ai/"
+    ],
+    "website": "https://www.zevi.ai"
+  },
+  "Ziadah": {
+    "cats": [
+      6,
+      32
+    ],
+    "description": "Ziadah is a specialist in enhancing ecommerce sales by increasing Average Order Value (AOV) through strategic inbound marketing, focusing on cross-selling and upselling techniques.",
+    "icon": "Ziadah.svg",
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.ziadah\\.app/"
+    ],
+    "website": "https://www.ziadah.app"
+  },
+  "Zid": {
+    "cats": [
+      6
+    ],
+    "cookies": {
+      "zid_catalog_session": ""
+    },
+    "description": "Zid is an ecommerce SaaS that allows merchants to build and manage their online stores.",
+    "icon": "Zid.svg",
+    "js": {
+      "zid.store": "",
+      "zidTracking.sendGaProductRemoveFromCartEvent": ""
+    },
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://zid.sa"
+  },
+  "Zieny": {
+    "cats": [
+      105
+    ],
+    "description": "Zieny is a platform that enables businesses to integrate 3D and augmented reality (AR) into websites, providing an interactive product experience without complex implementation.",
+    "icon": "Zieny.svg",
+    "saas": true,
+    "scriptSrc": [
+      "ar-view-zieny\\.com/"
+    ],
+    "website": "https://zieny.com"
+  },
+  "Ziggy": {
+    "cats": [
+      59
+    ],
+    "description": "Ziggy is a library that allows using Laravel named routes in JavaScript.",
+    "icon": "Ziggy.png",
+    "implies": [
+      "Laravel",
+      "Inertia.js"
+    ],
+    "js": {
+      "Ziggy": ""
+    },
+    "oss": true,
+    "website": "https://github.com/tighten/ziggy"
+  },
+  "Zimbra": {
+    "cats": [
+      30
+    ],
+    "cookies": {
+      "ZM_TEST": "true"
+    },
+    "cpe": "cpe:2.3:a:zimbra:zimbra:*:*:*:*:*:*:*:*",
+    "description": "Zimbra is a provider of open-source email and collaboration software, offering solutions for email, calendar, contacts, and collaboration for both individual and enterprise use.",
+    "icon": "Zimbra.svg",
+    "implies": [
+      "Java"
+    ],
+    "oss": true,
+    "website": "https://www.zimbra.com/"
+  },
+  "ZingChart": {
+    "cats": [
+      25
+    ],
+    "description": "ZingChart is a open-source and free JavaScript library for building interactive and intuitive charts.",
+    "icon": "ZingChart.svg",
+    "js": {
+      "zingchart": ""
+    },
+    "oss": true,
+    "pricing": [
+      "recurring",
+      "mid"
+    ],
+    "saas": true,
+    "website": "https://www.zingchart.com"
+  },
+  "Zinnia": {
+    "cats": [
+      11
+    ],
+    "description": "Zimbra is a is a collaborative software suite that includes an email server and a web client.",
+    "icon": "Zinnia.png",
+    "implies": [
+      "Django"
+    ],
+    "meta": {
+      "generator": "Zinnia"
+    },
+    "website": "https://django-blog-zinnia.com"
+  },
+  "Zinrelo": {
+    "cats": [
+      84
+    ],
+    "description": "Zinrelo is an enterprise-grade, loyalty rewards platform.",
+    "icon": "Zinrelo.svg",
+    "js": {
+      "zrl_mi": ""
+    },
+    "pricing": [
+      "poa"
+    ],
+    "website": "https://www.zinrelo.com"
+  },
+  "Zip": {
+    "cats": [
+      41,
+      91
+    ],
+    "description": "Zip is a payment service that lets you receive your purchase now and spread the total cost over a interest-free payment schedule.",
+    "dom": [
+      "link[href*='widgets.quadpay.com/'], div[data-quadpay-src*='.quadpay.com/']"
+    ],
+    "icon": "zip_pay.svg",
+    "js": {
+      "QuadPayShopify": "",
+      "checkout.enabledpayments.zip": "^true$",
+      "quadpayID": ""
+    },
+    "pricing": [
+      "payg"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "quadpay\\.com",
+      "static\\.zipmoney\\.com\\.au",
+      "zip\\.co"
+    ],
+    "website": "https://www.zip.co/"
+  },
+  "ZipWP": {
+    "cats": [
+      51
+    ],
+    "description": "ZipWP is a website builder that enables creation of professional sites with extensive customization options and no coding required.",
+    "icon": "ZipWP.svg",
+    "pricing": [
+      "onetime",
+      "low",
+      "recurring"
+    ],
+    "requires": [
+      "WordPress"
+    ],
+    "saas": true,
+    "scripts": [
+      "app\\.zipwp\\.com"
+    ],
+    "website": "https://zipwp.com"
+  },
+  "Zipchat": {
+    "cats": [
+      52
+    ],
+    "description": "Zipchat is an AI chatbot for ecommerce, designed to boost sales by automating customer interactions and assisting with purchasing decisions.",
+    "icon": "Zipchat.svg",
+    "js": {
+      "zipchatWidgetLoaded": ""
+    },
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "scripts": [
+      "app\\.zipchat\\.ai"
+    ],
+    "website": "https://zipchat.ai"
+  },
+  "Zipify OCU": {
+    "cats": [
+      100
+    ],
+    "description": "Zipify OCU allows you to add upsells and cross-sells to your checkout sequence.",
+    "icon": "Zipify OCU.svg",
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "/zipify-oneclickupsell-vendor\\.js"
+    ],
+    "website": "https://zipify.com/apps/ocu/"
+  },
+  "Zipify Pages": {
+    "cats": [
+      100,
+      51
+    ],
+    "description": "Zipify Pages the first landing page builder uniquely designed for ecommerce.",
+    "icon": "Zipify Pages.svg",
+    "implies": [
+      "Shopify"
+    ],
+    "js": {
+      "ZipifyPages": ""
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://zipify.com/apps/pages/"
+  },
+  "Zipkin": {
+    "cats": [
+      10
+    ],
+    "headers": {
+      "X-B3-Flags": "",
+      "X-B3-ParentSpanId": "",
+      "X-B3-Sampled": "",
+      "X-B3-SpanId": "",
+      "X-B3-TraceId": ""
+    },
+    "icon": "Zipkin.png",
+    "website": "https://zipkin.io/"
+  },
+  "Zipteams": {
+    "cats": [
+      52
+    ],
+    "description": "Zipteams is a live chat solution.",
+    "icon": "Zipteams.png",
+    "js": {
+      "ZipteamsWidget": ""
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://zipteams.com"
+  },
+  "Zmags Creator": {
+    "cats": [
+      95
+    ],
+    "description": "Zmags Creator enables marketers to design and publish endless types of interactive digital experiences without coding.",
+    "icon": "Zmags Creator.png",
+    "js": {
+      "__zmags": ""
+    },
+    "pricing": [
+      "mid",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "c(?:reator)?\\.zmags\\.com/"
+    ],
+    "website": "https://www.creatorbyzmags.com"
+  },
+  "Zocdoc": {
+    "cats": [
+      72
+    ],
+    "description": "Zocdoc is a New York City-based company offering an online service that allows people to find and book in-person or telemedicine appointments for medical or dental care.",
+    "dom": [
+      "a[href*='www.zocdoc.com'][target='_blank']"
+    ],
+    "icon": "Zocdoc.svg",
+    "pricing": [
+      "payg"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "offsiteschedule\\.zocdoc\\.com"
+    ],
+    "website": "https://www.zocdoc.com"
+  },
+  "Zoey": {
+    "cats": [
+      6
+    ],
+    "description": "Zoey is a cloud-based ecommerce platform for B2B and wholesale businesses.",
+    "excludes": [
+      "Magento"
+    ],
+    "icon": "Zoey.svg",
+    "implies": [
+      "PHP",
+      "MySQL"
+    ],
+    "js": {
+      "Zoey.module": "",
+      "zoey.developer": "",
+      "zoeyDev": ""
+    },
+    "scriptSrc": [
+      "cdna4\\.zoeysite\\.com"
+    ],
+    "website": "https://www.zoey.com/"
+  },
+  "Zoho": {
+    "cats": [
+      53
+    ],
+    "description": "Zoho is a web-based online office suite.",
+    "dns": {
+      "TXT": [
+        "\\.zoho\\.com"
+      ]
+    },
+    "icon": "Zoho.svg",
+    "pricing": [
+      "low",
+      "freemium"
+    ],
+    "saas": true,
+    "website": "https://www.zoho.com/"
+  },
+  "Zoho Commerce": {
+    "cats": [
+      6
+    ],
+    "description": "Zoho Commerce is a cloud-based ecommerce platform by Zoho Corporation, facilitating online store creation and management.",
+    "icon": "Zoho Commerce.svg",
+    "meta": {
+      "generator": "^Zoho Commerce"
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://www.zoho.com/commerce/"
+  },
+  "Zoho Mail": {
+    "cats": [
+      75
+    ],
+    "description": "Zoho Mail is an email hosting service for businesses.",
+    "dns": {
+      "TXT": [
+        "transmail\\.net"
+      ]
+    },
+    "icon": "Zoho.svg",
+    "implies": [
+      "Zoho"
+    ],
+    "website": "https://www.zoho.com/mail/"
+  },
+  "Zoho PageSense": {
+    "cats": [
+      74,
+      76
+    ],
+    "description": "Zoho PageSense is a conversion optimisation platform which combines the power of web analytics, A/B testing, and personalisation.",
+    "icon": "Zoho.svg",
+    "implies": [
+      "Zoho"
+    ],
+    "js": {
+      "$pagesense": "",
+      "pagesense": ""
+    },
+    "pricing": [
+      "recurring",
+      "payg"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.pagesense\\.(?:cn|io)?"
+    ],
+    "website": "https://www.zoho.com/pagesense/"
+  },
+  "Zoho Recruit": {
+    "cats": [
+      101
+    ],
+    "description": "Zoho Recruit is a recruitment platform that integrates an applicant tracking system (ATS) with customer relationship management (CRM) functionality.",
+    "icon": "Zoho.svg",
+    "pricing": [
+      "freemium",
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zohocdn\\.com/recruit/"
+    ],
+    "website": "https://www.zoho.com/recruit/"
+  },
+  "Zoho SalesIQ": {
+    "cats": [
+      52
+    ],
+    "description": "Zoho SalesIQ is a digital customer engagement platform that provides marketing, sales, and support teams with tools to interact with site visitors at every stage of the customer lifecycle.",
+    "icon": "Zoho.svg",
+    "js": {
+      "$zoho.salesiq": ""
+    },
+    "pricing": [
+      "freemium",
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "salesiq\\.zohopublic\\.com"
+    ],
+    "website": "https://www.zoho.com/salesiq"
+  },
+  "Zoho Sites": {
+    "cats": [
+      51
+    ],
+    "description": "Zoho Sites is an all-in-one platform designed to help businesses create websites.",
+    "icon": "Zoho.svg",
+    "meta": {
+      "generator": "^Zoho Sites ([\\d\\.]+)\\;version:\\1"
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "saas": true,
+    "website": "https://www.zoho.com/sites/"
+  },
+  "Zoko": {
+    "cats": [
+      52
+    ],
+    "description": "Zoko is an all-in-one system that leverages the WhatsApp API to help you do business, on WhatsApp",
+    "icon": "Zoko.svg",
+    "implies": [
+      "WhatsApp Business Chat"
+    ],
+    "js": {
+      "__zoko_app_version": ""
+    },
+    "pricing": [
+      "recurring",
+      "payg",
+      "mid"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "zoko-shopify-prod\\.web\\.app"
+    ],
+    "website": "https://www.zoko.io/"
+  },
+  "Zola": {
+    "cats": [
+      57
+    ],
+    "description": "Zola is a static site engine that consolidates essential features in a single binary.",
+    "icon": "Zola.svg",
+    "meta": {
+      "generator": "^Zola(?:\\s[\\d\\.]+)?$"
+    },
+    "oss": true,
+    "scriptSrc": [
+      "\\.getzola\\.org"
+    ],
+    "website": "https://www.getzola.org/"
+  },
+  "Zola Planner": {
+    "cats": [
+      6
+    ],
+    "description": "Zola Planner is a wedding registry system that allows couples to manage gift selections, track contributions, and coordinate registry details in one centralized platform.",
+    "icon": "ZolaPlanner.svg",
+    "js": {
+      "ZolaWidget": "",
+      "zola.env": ""
+    },
+    "saas": true,
+    "scriptSrc": [
+      "www\\.zola\\.com"
+    ],
+    "website": "https://www.zola.com/wedding-registry"
+  },
+  "Zonal Bookings": {
+    "cats": [
+      93
+    ],
+    "description": "Zonal Bookings is a reservations platform that enables hospitality businesses to centralize and manage all booking activities without charging commissions.",
+    "icon": "Zonal.svg",
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scripts": [
+      "\\.reservationDetails\\.zonalBookingReference"
+    ],
+    "website": "https://www.zonal.co.uk/products/bookings"
+  },
+  "Zone.js": {
+    "cats": [
+      12
+    ],
+    "icon": "Angular.svg",
+    "implies": [
+      "Angular"
+    ],
+    "js": {
+      "Zone.root": ""
+    },
+    "website": "https://github.com/angular/angular/tree/master/packages/zone.js"
+  },
+  "Zonos": {
+    "cats": [
+      106
+    ],
+    "description": "Zonos is a cross-border ecommerce software and app solution for companies with international business.",
+    "icon": "Zonos.svg",
+    "js": {
+      "Zonos": "",
+      "zonos": "",
+      "zonosCheckout": ""
+    },
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zonos\\.com/"
+    ],
+    "website": "https://zonos.com"
+  },
+  "ZoodPay": {
+    "cats": [
+      91
+    ],
+    "description": "ZoodPay is a financial technology company that provides payment and financing solutions, including buy-now-pay-later (BNPL) services and point-of-sale financing, to facilitate transactions for consumers and businesses.",
+    "dom": [
+      "img[src*='zoodpay']"
+    ],
+    "icon": "ZoodPay.svg",
+    "pricing": [
+      "payg"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "wp-content/plugins/zoodpay/(?:.+\\?ver=([\\d\\.]+))?\\;version:\\1"
+    ],
+    "website": "https://www.zoodpay.com"
+  },
+  "Zoominfo": {
+    "cats": [
+      10
+    ],
+    "description": "ZoomInfo provides actionable B2B contact and company information for sales and marketing teams.",
+    "icon": "Zoominfo.svg",
+    "saas": true,
+    "scriptSrc": [
+      "ws\\.zoominfo\\.com"
+    ],
+    "website": "https://www.zoominfo.com/"
+  },
+  "Zoominfo Chat": {
+    "cats": [
+      52
+    ],
+    "description": "ZoomInfo chat is a live chat solution.",
+    "icon": "Zoominfo.svg",
+    "saas": true,
+    "scriptSrc": [
+      "madstreetden\\.widget\\.insent\\.ai"
+    ],
+    "website": "https://www.zoominfo.com/chat"
+  },
+  "Zoorate": {
+    "cats": [
+      90
+    ],
+    "description": "Zoorate is a user-generated content sharing service tailored for retailers, facilitating the exchange of customer experiences and feedback.",
+    "icon": "Zoorate.svg",
+    "js": {
+      "zoorate_params": ""
+    },
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "widget\\.zoorate\\.com/"
+    ],
+    "website": "https://zoorate.com"
+  },
+  "Zoorix": {
+    "cats": [
+      6
+    ],
+    "description": "Zoorix is a tool that helps businesses increase revenue by facilitating upselling and cross-selling.",
+    "icon": "Zoorix.svg",
+    "js": {
+      "Zoorix": ""
+    },
+    "pricing": [
+      "freemium",
+      "mid",
+      "recurring"
+    ],
+    "requires": [
+      "Shopify"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zoorix\\.com/"
+    ],
+    "website": "https://www.zoorix.com"
+  },
+  "Zope": {
+    "cats": [
+      22
+    ],
+    "cpe": "cpe:2.3:a:zope:zope:*:*:*:*:*:*:*:*",
+    "description": "Zope is an open-source web application server and content management framework that helps developers build and manage complex web applications with features like object-oriented programming and scalable architecture.",
+    "headers": {
+      "Server": "^Zope/"
+    },
+    "icon": "Zope.svg",
+    "implies": [
+      "Python"
+    ],
+    "oss": true,
+    "website": "https://zope.org"
+  },
+  "Zotabox": {
+    "cats": [
+      32
+    ],
+    "description": "Zotabox is marketing tool which includes popups, header bars, page/form builder, testimonial, live chat, etc.",
+    "icon": "zotabox.svg",
+    "js": {
+      "Zotabox": "",
+      "Zotabox_Init": ""
+    },
+    "pricing": [
+      "low",
+      "recurring"
+    ],
+    "website": "https://info.zotabox.com"
+  },
+  "Zowie": {
+    "cats": [
+      52,
+      53
+    ],
+    "description": "Zowie is an AI-powered customer service suite tailored for ecommerce, aimed at cost-saving and revenue generation through value-driven interactions.",
+    "dom": [
+      "div#zowieChatbotWrapper"
+    ],
+    "icon": "Zowie.svg",
+    "js": {
+      "Zowie": "",
+      "zowieJsonp": ""
+    },
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "website": "https://getzowie.com"
+  },
+  "Zozo": {
+    "cats": [
+      6
+    ],
+    "description": "Zozo is a multi-channel ecommerce services provider from Vietnam.",
+    "dom": {
+      "a[href*='/zozo.vn/'][href*='footerurl'][target='_blank']": {
+        "text": "^Zozo"
+      }
+    },
+    "excludes": [
+      "OpenCart"
+    ],
+    "icon": "Zozo.svg",
+    "implies": [
+      "PHP",
+      "MySQL"
+    ],
+    "meta": {
+      "generator": "Zozo Ecommerce"
+    },
+    "scriptSrc": [
+      "zozo-main\\.min\\.js"
+    ],
+    "website": "https://zozo.vn"
+  },
+  "Zuberance": {
+    "cats": [
+      94
+    ],
+    "description": "Zuberance is a platform that transforms enthusiastic customers into a marketing force, driving recommendations and sales for leading B2B and B2C brands.",
+    "dom": [
+      "link[href*='static.zuberance.com/']"
+    ],
+    "icon": "Zuberance.svg",
+    "saas": true,
+    "scriptSrc": [
+      "\\.zuberance\\.com/"
+    ],
+    "website": "https://zuberance.com"
+  },
+  "Zuora": {
+    "cats": [
+      41
+    ],
+    "description": "Zuora is a platform that offers subscription billing management software.",
+    "icon": "Zuora.svg",
+    "pricing": [
+      "poa"
+    ],
+    "saas": true,
+    "scriptSrc": [
+      "\\.zuora\\.com/"
+    ],
+    "website": "https://www.zuora.com"
+  },
+  "Zuppler": {
+    "cats": [
+      93
+    ],
+    "description": "Zuppler is a complete and branded online ordering solution for restaurants and caterers with multi-locations.",
+    "dom": [
+      "link[href*='.zuppler.com/']"
+    ],
+    "icon": "Zuppler.svg",
+    "pricing": [
+      "payg"
+    ],
+    "saas": true,
+    "website": "https://www.zuppler.com"
+  },
+  "Zurple": {
+    "cats": [
+      32
+    ],
+    "description": "Zurple is a real estate marketing software that provides a solution for agents to manage leads, automate follow-ups, and optimize client engagement.",
+    "icon": "Zurple.svg",
+    "js": {
+      "Zurple.Client": ""
+    },
+    "saas": true,
+    "website": "https://zurple.com"
+  },
+  "Zwayam": {
+    "cats": [
+      101
+    ],
+    "description": "Zwayam is a recruitment software designed to manage the entire hiring process.",
+    "dom": [
+      "link[href*='/zwayam.min.css']"
+    ],
+    "icon": "Zwayam.svg",
+    "saas": true,
+    "scriptSrc": [
+      "/zwayam\\.min\\.js"
+    ],
+    "website": "https://www.zwayam.com"
+  }
+}
