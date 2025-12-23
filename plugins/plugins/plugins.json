@@ -319,5 +319,39 @@
       "objects.add_ipport": {},
       "objects.change_ipport": {}
     }
+  },
+  {
+    "plugin_id": "kat_requests",
+    "name": "HTTP Requests",
+    "description": "Perform HTTP requests and store responses.",
+    "scan_level": 2,
+    "consumes": [
+      "type:hostname"
+    ],
+    "oci_image": "ghcr.io/minvws/openkat/plugins:0.1.0",
+    "oci_arguments": [
+      "uv",
+      "run",
+      "--script",
+      "kat_requests/main.py",
+      "{hostname}"
+    ]
+  },
+  {
+    "plugin_id": "kat_wappalyzer",
+    "name": "Wappalyzer",
+    "description": "Technology profiler that shows you what websites are built with.",
+    "scan_level": 2,
+    "consumes": [
+      "file:kat_requests"
+    ],
+    "oci_image": "ghcr.io/minvws/openkat/plugins:0.1.0",
+    "oci_arguments": [
+      "uv",
+      "run",
+      "--script",
+      "kat_wappalyzer/main.py",
+      "{file}"
+    ]
   }
 ]

@@ -96,7 +96,8 @@ repos:
           ^assets/js/vendor |
           ^assets/css/themes/soft/fonts/tabler-icons/tabler-icons.scss$ |
           ^tests/stubs |
-          ^docs/source/_static
+          ^docs/source/_static |
+          ^plugins/plugins/kat_wappalyzer/(.*)\.json
           )
 
   - repo: https://github.com/Riverside-Healthcare/djLint

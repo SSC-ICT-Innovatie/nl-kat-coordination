@@ -1,6 +1,6 @@
 import re
 import tempfile
-from collections.abc import Collection, Sequence
+from collections.abc import Collection, Iterable, Sequence
 from enum import Enum
 from functools import total_ordering
 from typing import Any, ClassVar, Self, cast
@@ -70,7 +70,7 @@ MAX_SCAN_LEVEL = max(scan_level.value for scan_level in cast("type[Enum]", ScanL
 class XTDBQuerySet(models.QuerySet):
     def bulk_create(
         self,
-        objs: Sequence[models.Model],
+        objs: Iterable[models.Model],
         batch_size: int | None = None,
         ignore_conflicts: bool = False,
         update_conflicts: bool = False,
