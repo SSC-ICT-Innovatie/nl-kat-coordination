@@ -23,11 +23,11 @@ def main():
     # todo: perhaps try both http and https schemes?
     for hostname in args.hostnames:
         try:
-            requests.get(f"http://{hostname}", hooks={"response": har_dict.on_response})
-        except:
+            requests.get(f"http://{hostname}", timeout=10, hooks={"response": har_dict.on_response})
+        except requests.RequestException:
             pass
         else:
-            print(json.dumps(har_dict, indent=4))
+            print(json.dumps(har_dict, indent=4))  # noqa
 
 
 if __name__ == "__main__":

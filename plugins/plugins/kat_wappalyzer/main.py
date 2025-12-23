@@ -63,10 +63,8 @@ def main():
         wappalyzer = Wappalyzer(fingerprints, categories=categories, groups=groups)
         detections: list[Detection] = wappalyzer.analyze(har)
 
-        print(f"Found {len(detections)} detections for file {file}")
-
         for detection in detections:
-            print(detection.model_dump_json(indent=4))
+            print(detection.model_dump_json(indent=4))  # noqa
 
 
 if __name__ == "__main__":
