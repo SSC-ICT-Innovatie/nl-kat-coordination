@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-12-23 14:12+0000\n"
+"POT-Creation-Date: 2025-12-26 17:03+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -107,7 +107,7 @@ msgid "Created date"
 msgstr ""
 
 #: files/templates/file_list.html tasks/templates/schedule_list.html
-#: tasks/templates/task_table.html openkat/templates/account_detail.html
+#: openkat/templates/account_detail.html
 msgid "Organization"
 msgstr ""
 
@@ -121,7 +121,6 @@ msgstr ""
 
 #: files/templates/file_list.html objects/templates/objects/hostname_list.html
 #: objects/templates/objects/ipaddress_list.html
-#: plugins/templates/plugin_table.html
 msgid "Actions"
 msgstr ""
 
@@ -299,37 +298,6 @@ msgid "Add finding"
 msgstr ""
 
 #: objects/templates/objects/finding_list.html
-#: objects/templates/objects/hostname_detail.html
-#: objects/templates/objects/ipaddress_detail.html
-msgid "Severity"
-msgstr ""
-
-#: objects/templates/objects/finding_list.html
-#: objects/templates/objects/hostname_detail.html
-#: objects/templates/objects/ipaddress_detail.html
-msgid "Finding type"
-msgstr ""
-
-#: objects/templates/objects/finding_list.html
-msgid "Object"
-msgstr ""
-
-#: objects/templates/objects/finding_list.html
-#: objects/templates/objects/hostname_detail.html
-#: objects/templates/objects/ipaddress_detail.html
-msgid "Risk score"
-msgstr ""
-
-#: objects/templates/objects/finding_list.html
-#: objects/templates/objects/hostname_detail.html
-#: objects/templates/objects/hostname_list.html
-#: objects/templates/objects/ipaddress_detail.html
-#: objects/templates/objects/ipaddress_list.html
-#: objects/templates/objects/network_detail.html
-msgid "Last seen"
-msgstr ""
-
-#: objects/templates/objects/finding_list.html
 #: objects/templates/objects/hostname_detail_introduction.html
 #: objects/templates/objects/hostname_list.html
 #: objects/templates/objects/ipaddress_detail.html
@@ -347,7 +315,6 @@ msgstr ""
 #: objects/templates/objects/finding_list.html
 #: objects/templates/objects/hostname_detail.html
 #: objects/templates/objects/ipaddress_detail.html
-#: plugins/templates/plugin_table.html
 #: plugins/templates/plugins/business_rule_detail.html
 #: plugins/templates/plugins/business_rule_list.html
 #: reports/templates/reports/report_html.html
@@ -537,7 +504,7 @@ msgstr ""
 #: objects/templates/objects/ipaddress_list.html
 #: objects/templates/objects/network_detail.html
 #: plugins/templates/plugin_introduction.html
-#: plugins/templates/plugin_table.html plugins/templates/plugin_variants.html
+#: plugins/templates/plugin_variants.html
 msgid "Scan level"
 msgstr ""
 
@@ -570,6 +537,14 @@ msgstr ""
 #: objects/templates/objects/network_detail.html
 #: objects/templates/objects/network_list.html
 msgid "Inherited"
+msgstr ""
+
+#: objects/templates/objects/hostname_detail.html
+#: objects/templates/objects/hostname_list.html
+#: objects/templates/objects/ipaddress_detail.html
+#: objects/templates/objects/ipaddress_list.html
+#: objects/templates/objects/network_detail.html
+msgid "Last seen"
 msgstr ""
 
 #: objects/templates/objects/hostname_detail.html
@@ -665,6 +640,21 @@ msgstr ""
 
 #: objects/templates/objects/hostname_detail.html
 msgid "No reverse DNS records have been found for this hostname."
+msgstr ""
+
+#: objects/templates/objects/hostname_detail.html
+#: objects/templates/objects/ipaddress_detail.html
+msgid "Severity"
+msgstr ""
+
+#: objects/templates/objects/hostname_detail.html
+#: objects/templates/objects/ipaddress_detail.html
+msgid "Finding type"
+msgstr ""
+
+#: objects/templates/objects/hostname_detail.html
+#: objects/templates/objects/ipaddress_detail.html
+msgid "Risk score"
 msgstr ""
 
 #: objects/templates/objects/hostname_detail.html
@@ -818,19 +808,17 @@ msgstr ""
 
 #: objects/templates/objects/ipaddress_detail.html
 #: objects/templates/objects/network_list.html
-#: plugins/templates/plugin_table.html plugins/templates/plugin_variants.html
+#: plugins/templates/plugin_variants.html
 #: plugins/templates/plugins/business_rule_detail.html
 #: plugins/templates/plugins/business_rule_list.html
 #: reports/templates/reports/report_list.html
 #: tasks/templates/object_set_list.html tasks/templates/task_table.html
 #: openkat/forms/account_setup.py
-#: openkat/templates/organizations/organization_list.html
 #: openkat/templates/organizations/organization_settings.html
 msgid "Name"
 msgstr ""
 
 #: objects/templates/objects/ipaddress_detail.html
-#: plugins/templates/plugin_table.html
 msgid "Version"
 msgstr ""
 
@@ -1145,8 +1133,7 @@ msgstr ""
 msgid "View results"
 msgstr ""
 
-#: plugins/templates/plugin.html plugins/templates/plugin_table.html
-#: plugins/templates/plugin_variants.html
+#: plugins/templates/plugin.html plugins/templates/plugin_variants.html
 msgid "Container image"
 msgstr ""
 
@@ -1219,7 +1206,6 @@ msgid "Rerun plugin"
 msgstr ""
 
 #: plugins/templates/plugin_settings.html plugins/templates/plugin_tabs.html
-#: openkat/templates/organizations/organization_list.html
 #: openkat/templates/organizations/organization_settings.html
 #: openkat/view_helpers.py
 msgid "Settings"
@@ -1276,7 +1262,6 @@ msgstr ""
 
 #: plugins/templates/plugin_variants.html
 #: plugins/templates/plugins/business_rule_detail.html
-#: tasks/templates/task_table.html
 msgid "Status"
 msgstr ""
 
@@ -1815,14 +1800,6 @@ msgstr ""
 
 #: tasks/templates/task_table.html
 msgid "No tasks have been found."
-msgstr ""
-
-#: tasks/templates/task_table.html
-msgid "Plugin/Report"
-msgstr ""
-
-#: tasks/templates/task_table.html
-msgid "Completion date"
 msgstr ""
 
 #: tasks/templates/task_table.html
@@ -2610,17 +2587,12 @@ msgstr ""
 #, python-format
 msgid ""
 "\n"
-"                            Showing %(total)s organizations\n"
-"                        "
+"                                    Showing %(total)s organizations\n"
+"                                "
 msgstr ""
 
 #: openkat/templates/organizations/organization_list.html
 msgid "Organization overview:"
-msgstr ""
-
-#: openkat/templates/organizations/organization_list.html
-#: openkat/templates/organizations/organization_settings.html
-msgid "Tags"
 msgstr ""
 
 #: openkat/templates/organizations/organization_list.html
@@ -2725,6 +2697,10 @@ msgstr ""
 msgid ""
 "An overview of general information and settings for "
 "<strong>%(organization_name)s</strong>."
+msgstr ""
+
+#: openkat/templates/organizations/organization_settings.html
+msgid "Tags"
 msgstr ""
 
 #: openkat/templates/partials/form/field_input.html
