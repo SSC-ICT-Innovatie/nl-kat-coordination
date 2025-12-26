@@ -348,7 +348,7 @@ class BusinessRuleListView(FilterView):
     context_object_name = "business_rules"
     filterset_class = BusinessRuleFilter
     paginate_by = 20
-    ordering = ["-created_at"]
+    ordering = ["name"]
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)

@@ -40,9 +40,7 @@
                         <a href="{% url "plugin_detail" pk=plugin.id %}">{{ plugin.name }}</a>
                     </td>
                     <td>
-                        <p>
-                            {{ plugin.description|default:"-" }}
-                        </p>
+                        <p>{{ plugin.description|default:"-" }}</p>
                     </td>
                     <td>
                         <span class="plugin-oci-image">

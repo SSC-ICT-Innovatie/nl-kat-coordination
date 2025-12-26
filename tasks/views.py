@@ -60,11 +60,28 @@ class TaskListView(OrganizationFilterMixin, FilterView):
             )
         )
 
-        return qs
+        order_by = self.request.GET.get("order_by", "created_at")
+        sorting_order = self.request.GET.get("sorting_order", "desc")
+
+        if order_by and sorting_order == "desc":
+            return qs.order_by(f"-{order_by}")
+
+        return qs.order_by(order_by)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["breadcrumbs"] = [{"url": reverse("plugin_list"), "text": _("Tasks")}]
+        context["order_by"] = self.request.GET.get("order_by")
+        context["sorting_order"] = self.request.GET.get("sorting_order", "asc")
+        context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
+        context["columns"] = [
+            {"field": "data", "label": "Input objects", "sortable": False},
+            {"field": "plugin_name", "label": "Plugin/Report", "sortable": False},
+            {"field": "status", "label": "Status", "sortable": False},
+            {"field": "created_at", "label": "Completion date", "sortable": True},
+            {"field": "organization__name", "label": "Organization", "sortable": False},
+            {"field": "", "label": "", "sortable": False},
+        ]
 
         return context
 

@@ -7,18 +7,33 @@
         <p>{% translate "No tasks have been found." %}</p>
     </div>
 {% else %}
+    <form id="task_list"
+          action="{% url "task_list" %}"
+          method="get"
+          class="inline layout-wide checkboxes_required">
+        <input type="hidden"
+               name="sorting_order"
+               value="{% if sorting_order == "asc" %}desc{% else %}asc{% endif %}" />
+    </form>
     <div class="horizontal-scroll sticky-column">
         <table rf-selector="table-scan-history" class="nowrap">
             <thead>
                 <tr>
-                    <th scope="col">{% translate "Input objects" %}</th>
-                    {% if not plugin %}
-                        <th scope="col">{% translate "Plugin/Report" %}</th>
-                    {% endif %}
-                    <th scope="col">{% translate "Status" %}</th>
-                    <th scope="col">{% translate "Completion date" %}</th>
-                    <th scope="col">{% translate "Organization" %}</th>
-                    <th scope="col"></th>
+                    {% for col in columns %}
+                        {% if col.sortable %}
+                            <th scope="col"
+                                class="sortable{% if col.field == 'scan_level' %} nowrap{% endif %}"
+                                {% if order_by == col.field %}aria-sort="{{ sorting_order_class }}"{% endif %}>
+                                <button form="task_list" name="order_by" value="{{ col.field }}" class="sort">
+                                    {% translate col.label %}
+                                    <span aria-hidden="true"
+                                          class="{% if order_by == col.field and sorting_order == 'asc' %} icon ti-chevron-up {% elif order_by == col.field and sorting_order == 'desc' %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
+                                </button>
+                            </th>
+                        {% else %}
+                            <th scope="col">{% translate col.label %}</th>
+                        {% endif %}
+                    {% endfor %}
                 </tr>
             </thead>
             <tbody>
@@ -159,7 +174,10 @@
                                                 <h5>{% translate "Input data" %}</h5>
                                                 {{ task.data.input_data }}
                                             {% elif task.data.input_data|get_type == 'list' %}
-                                                <h5>{% translate "Input objects" %} ({{ task.data.input_data|slice:"10"|length }}/{{ input_count }})</h5>
+                                                <h5>
+                                                    {% translate "Input objects" %}
+                                                    ({{ task.data.input_data|slice:"10"|length }}/{{ input_count }})
+                                                </h5>
                                                 <ul>
                                                     {% for object in task.data.input_data|slice:"10" %}<li>{{ object }}</li>{% endfor %}
                                                 </ul>

@@ -20,21 +20,18 @@
                 </div>
                 {% if perms.objects.add_finding %}
                     <div class="horizontal-view toolbar">
-                        <a class="button ghost" href="{% url "objects:add_finding" %}"><span aria-hidden="true"
-                                                                                             class="icon ti-plus"></span>{% translate "Add finding" %}
+                        <a class="button ghost" href="{% url "objects:add_finding" %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add finding" %}
                         </a>
                     </div>
                 {% endif %}
             </div>
             <div class="filter-container">
                 <form class="inline layout-wide" method="get">
-                    {% for id in filtered_organization_ids %}
-                        <input type="hidden" name="organization" value="{{ id }}">{% endfor %}
+                    {% for id in filtered_organization_ids %}<input type="hidden" name="organization" value="{{ id }}">{% endfor %}
                     {{ filter.form.as_p }}
                     <button type="submit">{% translate "Apply" %}</button>
                 </form>
-                <a class="button plain" href="{% url "objects:finding_list" %}"><span aria-hidden="true"
-                                                                                      class="icon ti-x"></span>{% translate "Clear all" %}
+                <a class="button plain" href="{% url "objects:finding_list" %}"><span aria-hidden="true" class="icon ti-x"></span>{% translate "Clear all" %}
                 </a>
             </div>
             <div>
@@ -44,123 +41,121 @@
                       class="inline layout-wide checkboxes_required">
                     <input type="hidden"
                            name="sorting_order"
-                           value="{% if sorting_order == "asc" %}desc{% else %}asc{% endif %}"/>
+                           value="{% if sorting_order == "asc" %}desc{% else %}asc{% endif %}" />
                 </form>
                 <div class="horizontal-scroll sticky-column">
                     <table class="nowrap">
                         <thead>
-                        <tr>
-                            {% for col in columns %}
-                                {% if col.sortable %}
-                                    <th scope="col"
-                                        class="sortable{% if col.field == 'scan_level' %} nowrap{% endif %}"
-                                        {% if order_by == col.field %}aria-sort="{{ sorting_order_class }}"{% endif %}>
-                                        <button form="finding_list"
-                                                name="order_by"
-                                                value="{{ col.field }}"
-                                                class="sort">
-                                            {% translate col.label %}
-                                            <span aria-hidden="true"
-                                                  class="{% if order_by == col.field and sorting_order == 'asc' %} icon ti-chevron-up {% elif order_by == col.field and sorting_order == 'desc' %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
-                                        </button>
-                                    </th>
-                                {% else %}
-                                    <th scope="col">{% translate col.label %}</th>
-                                {% endif %}
-                            {% endfor %}
-                        </tr>
+                            <tr>
+                                {% for col in columns %}
+                                    {% if col.sortable %}
+                                        <th scope="col"
+                                            class="sortable{% if col.field == 'scan_level' %} nowrap{% endif %}"
+                                            {% if order_by == col.field %}aria-sort="{{ sorting_order_class }}"{% endif %}>
+                                            <button form="finding_list"
+                                                    name="order_by"
+                                                    value="{{ col.field }}"
+                                                    class="sort">
+                                                {% translate col.label %}
+                                                <span aria-hidden="true"
+                                                      class="{% if order_by == col.field and sorting_order == 'asc' %} icon ti-chevron-up {% elif order_by == col.field and sorting_order == 'desc' %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
+                                            </button>
+                                        </th>
+                                    {% else %}
+                                        <th scope="col">{% translate col.label %}</th>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
                         </thead>
                         <tbody>
-                        {% for finding in findings %}
-                            <tr>
-                                <td>
-                                    <span
-                                        class="{{ finding.finding_type.risk }}">{{ finding.finding_type.risk|default:"-"|capfirst }}</span>
-                                </td>
-                                <td>
-                                    <span class="label tags-color-1-light">{{ finding.finding_type.code }}</span>
-                                </td>
-                                <td>
-                                    {% if finding.hostname %}
-                                        <a href="{% url "objects:hostname_detail" pk=finding.hostname.pk %}">{{ finding.hostname.name }}</a>
-                                    {% elif finding.ip_address %}
-                                        <a href="{% url "objects:ipaddress_detail" pk=finding.ip_address.pk %}">{{ finding.ip_address.ip_address }}</a>
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if finding.finding_type.score != None %}
-                                        {{ finding.finding_type.score }}
+                            {% for finding in findings %}
+                                <tr>
+                                    <td>
+                                        <span class="{{ finding.finding_type.risk }}">{{ finding.finding_type.risk|default:"-"|capfirst }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="label tags-color-1-light">{{ finding.finding_type.code }}</span>
+                                    </td>
+                                    <td>
+                                        {% if finding.hostname %}
+                                            <a href="{% url "objects:hostname_detail" pk=finding.hostname.pk %}">{{ finding.hostname.name }}</a>
+                                        {% elif finding.ip_address %}
+                                            <a href="{% url "objects:ipaddress_detail" pk=finding.ip_address.pk %}">{{ finding.ip_address.ip_address }}</a>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if finding.finding_type.score != None %}
+                                            {{ finding.finding_type.score }}
                                         </td>
                                     {% else %}
                                         -
                                     {% endif %}
-                                <td>
-                                    {% if finding.last_seen %}
-                                        {{ finding.last_seen|date:"Y-m-d H:i" }}
-                                    {% else %}
-                                        -
-                                    {% endif %}
-                                </td>
-                                {% if perms.objects.delete_finding %}
                                     <td>
-                                        <form action="{% url 'objects:delete_finding' finding.pk %}" method="post">
-                                            {% csrf_token %}
-                                            <button type="submit"
-                                                    class="icon ti-trash action-button">{% translate "Delete" %}</button>
-                                        </form>
+                                        {% if finding.last_seen %}
+                                            {{ finding.last_seen|date:"Y-m-d H:i" }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
                                     </td>
-                                {% endif %}
-                                <td class="actions sticky-cell">
-                                    <button type="button"
-                                            class="expando-button"
-                                            data-icon-open-class="icon ti-chevron-down"
-                                            data-icon-close-class="icon ti-chevron-up"
-                                            data-close-label="{% translate "Close details" %}">
-                                        {% translate "Open details" %}
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr class="expando-row">
-                                <td colspan="4">
-                                    <div>
-                                        <dl>
-                                            <div>
-                                                <dt>{% translate "Description" %}</dt>
-                                                <dd>
-                                                    {{ finding.finding_type.description|default:"-" }}
-                                                </dd>
-                                            </div>
-                                            {% if finding.finding_type.recommendation %}
+                                    {% if perms.objects.delete_finding %}
+                                        <td>
+                                            <form action="{% url 'objects:delete_finding' finding.pk %}" method="post">
+                                                {% csrf_token %}
+                                                <button type="submit" class="icon ti-trash action-button">{% translate "Delete" %}</button>
+                                            </form>
+                                        </td>
+                                    {% endif %}
+                                    <td class="actions sticky-cell">
+                                        <button type="button"
+                                                class="expando-button"
+                                                data-icon-open-class="icon ti-chevron-down"
+                                                data-icon-close-class="icon ti-chevron-up"
+                                                data-close-label="{% translate "Close details" %}">
+                                            {% translate "Open details" %}
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="expando-row">
+                                    <td colspan="4">
+                                        <div>
+                                            <dl>
                                                 <div>
-                                                    <dt>{% translate "Recommendation" %}</dt>
+                                                    <dt>{% translate "Description" %}</dt>
                                                     <dd>
-                                                        {{ finding.finding_type.recommendation }}
+                                                        {{ finding.finding_type.description|default:"-" }}
                                                     </dd>
                                                 </div>
-                                            {% endif %}
-                                            {% if finding.finding_type.impact %}
-                                                <div>
-                                                    <dt>{% translate "Impact" %}</dt>
-                                                    <dd>
-                                                        {{ finding.finding_type.impact }}
-                                                    </dd>
-                                                </div>
-                                            {% endif %}
-                                            {% if finding.finding_type.source %}
-                                                <div>
-                                                    <dt>{% translate "Source" %}</dt>
-                                                    <dd>
-                                                        {{ finding.finding_type.source }}
-                                                    </dd>
-                                                </div>
-                                            {% endif %}
-                                        </dl>
-                                    </div>
-                                </td>
-                            </tr>
-                        {% endfor %}
+                                                {% if finding.finding_type.recommendation %}
+                                                    <div>
+                                                        <dt>{% translate "Recommendation" %}</dt>
+                                                        <dd>
+                                                            {{ finding.finding_type.recommendation }}
+                                                        </dd>
+                                                    </div>
+                                                {% endif %}
+                                                {% if finding.finding_type.impact %}
+                                                    <div>
+                                                        <dt>{% translate "Impact" %}</dt>
+                                                        <dd>
+                                                            {{ finding.finding_type.impact }}
+                                                        </dd>
+                                                    </div>
+                                                {% endif %}
+                                                {% if finding.finding_type.source %}
+                                                    <div>
+                                                        <dt>{% translate "Source" %}</dt>
+                                                        <dd>
+                                                            {{ finding.finding_type.source }}
+                                                        </dd>
+                                                    </div>
+                                                {% endif %}
+                                            </dl>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                         </tbody>
                     </table>
                 </div>
