@@ -13,37 +13,24 @@
     <table class="plugins">
         <thead>
             <tr>
-                <th scope="col"
-                    class="sortable"
-                    {% if order_by == "name" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
-                    <button form="plugin_list" name="order_by" value="name" class="sort">
-                        {% translate "Name" %}
-                        <span aria-hidden="true"
-                              class="{% if order_by == "name" and sorting_order == "asc" %} icon ti-chevron-up {% elif order_by == "name" and sorting_order == "desc" %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
-                    </button>
-                </th>
-                <th>{% translate "Description" %}</th>
-                <th scope="col"
-                    class="sortable"
-                    {% if order_by == "oci_image" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
-                    <button form="plugin_list" name="order_by" value="oci_image" class="sort">
-                        {% translate "Container image" %}
-                        <span aria-hidden="true"
-                              class="{% if order_by == "oci_image" and sorting_order == "asc" %} icon ti-chevron-up {% elif order_by == "oci_image" and sorting_order == "desc" %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
-                    </button>
-                </th>
-                <th>{% translate "Version" %}</th>
-                <th scope="col"
-                    class="sortable nowrap"
-                    {% if order_by == "scan_level" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
-                    <button form="plugin_list" name="order_by" value="scan_level" lass="sort">
-                        {% translate "Scan level" %}
-                        <span aria-hidden="true"
-                              class="icon ti-{% if order_by == "scan_level" and sorting_order == "asc" %}chevron-up{% elif order_by == "scan_level" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
-                    </button>
-                </th>
-                <th scope="col">{% translate "Schedule" %}</th>
-                <th scope="col">{% translate "Actions" %}</th>
+                {% for col in columns %}
+                    {% if col.sortable %}
+                        <th scope="col"
+                            class="sortable{% if col.field == 'scan_level' %} nowrap{% endif %}"
+                            {% if order_by == col.field %}aria-sort="{{ sorting_order_class }}"{% endif %}>
+                            <button form="plugin_list"
+                                    name="order_by"
+                                    value="{{ col.field }}"
+                                    class="sort">
+                                {% translate col.label %}
+                                <span aria-hidden="true"
+                                      class="{% if order_by == col.field and sorting_order == 'asc' %} icon ti-chevron-up {% elif order_by == col.field and sorting_order == 'desc' %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
+                            </button>
+                        </th>
+                    {% else %}
+                        <th scope="col">{% translate col.label %}</th>
+                    {% endif %}
+                {% endfor %}
             </tr>
         </thead>
         <tbody>
@@ -54,11 +41,7 @@
                     </td>
                     <td>
                         <p>
-                            {% if plugin.description %}
-                                {{ plugin.description }}
-                            {% else %}
-                                -
-                            {% endif %}
+                            {{ plugin.description|default:"-" }}
                         </p>
                     </td>
                     <td>

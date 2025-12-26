@@ -15,50 +15,75 @@
                 </div>
                 <div class="horizontal-view toolbar">
                     {% if perms.openkat.add_organization %}
-                        <a href="{% url 'organization_add' %}" class="button ghost"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Add new organization" %}</a>
+                        <a href="{% url 'organization_add' %}" class="button ghost"><span class="icon ti-plus"
+                                                                                          aria-hidden="true"></span>{% translate "Add new organization" %}
+                        </a>
                     {% endif %}
                 </div>
             </div>
             <div>
+                <form id="organization_list"
+                      action="{% url "organization_list" %}"
+                      method="get"
+                      class="inline layout-wide checkboxes_required">
+                    <input type="hidden"
+                           name="sorting_order"
+                           value="{% if sorting_order == "asc" %}desc{% else %}asc{% endif %}"/>
+                </form>
                 <div class="horizontal-scroll">
                     {% if object_list %}
                         <div class="toolbar">
                             <p class="de-emphasized">
                                 {% blocktranslate with total=object_list.count %}
-                            Showing {{ total }} organizations
-                        {% endblocktranslate %}
+                                    Showing {{ total }} organizations
+                                {% endblocktranslate %}
                             </p>
                         </div>
                         <table>
                             <caption class="visually-hidden">{% translate "Organization overview:" %}</caption>
                             <thead>
-                                <tr>
-                                    <th>{% translate "Name" %}</th>
-                                    <th>{% translate "Tags" %}</th>
-                                    <th>{% translate "Settings" %}</th>
-                                </tr>
+                            <tr>
+                                {% for col in columns %}
+                                    {% if col.sortable %}
+                                        <th scope="col"
+                                            class="sortable{% if col.field == 'scan_level' %} nowrap{% endif %}"
+                                            {% if order_by == col.field %}aria-sort="{{ sorting_order_class }}"{% endif %}>
+                                            <button form="organization_list"
+                                                    name="order_by"
+                                                    value="{{ col.field }}"
+                                                    class="sort">
+                                                {% translate col.label %}
+                                                <span aria-hidden="true"
+                                                      class="{% if order_by == col.field and sorting_order == 'asc' %} icon ti-chevron-up {% elif order_by == col.field and sorting_order == 'desc' %} icon ti-chevron-down {% else %} icon ti-direction {% endif %}"></span>
+                                            </button>
+                                        </th>
+                                    {% else %}
+                                        <th scope="col">{% translate col.label %}</th>
+                                    {% endif %}
+                                {% endfor %}
+                            </tr>
                             </thead>
                             <tbody>
-                                {% for organization in object_list %}
-                                    <tr>
-                                        <td>
-                                            {% if perms.openkat.view_organization %}
-                                                <a href="{% url 'organization_member_list' organization_id=organization.id %}">{{ organization.name }}</a>
+                            {% for organization in object_list %}
+                                <tr>
+                                    <td>
+                                        {% if perms.openkat.view_organization %}
+                                            <a href="{% url 'organization_member_list' organization_id=organization.id %}">{{ organization.name }}</a>
                                             </td>
                                         {% else %}
                                             {{ organization.name }}
                                         {% endif %}
-                                        <td>
-                                            {% include "organizations/organization_tags.html" %}
+                                    <td>
+                                        {% include "organizations/organization_tags.html" %}
 
-                                        </td>
-                                        <td>
-                                            <a href="{% url 'organization_settings' organization_id=organization.id %}">
-                                                <button class="icon ti-edit action-button">Settings</button>
-                                            </a>
-                                        </td>
-                                    </tr>
-                                {% endfor %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'organization_settings' organization_id=organization.id %}">
+                                            <button class="icon ti-edit action-button">Settings</button>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
                             </tbody>
                         </table>
                     {% else %}

@@ -257,11 +257,32 @@ class FindingListView(OrganizationFilterMixin, FilterView):
     ordering = ["-_valid_from"]
 
     def get_queryset(self) -> "QuerySet[Finding]":
-        return super().get_queryset().prefetch_related("finding_type")
+        queryset = super().get_queryset().prefetch_related("finding_type")
+
+        order_by = self.request.GET.get("order_by", "_valid_from")
+        sorting_order = self.request.GET.get("sorting_order", "desc")
+
+        if order_by and sorting_order == "desc":
+            return queryset.order_by(f"-{order_by}")
+
+        return queryset.order_by(order_by)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["breadcrumbs"] = [{"url": reverse("objects:finding_list"), "text": _("Findings")}]
+        context["order_by"] = self.request.GET.get("order_by")
+        context["sorting_order"] = self.request.GET.get("sorting_order", "asc")
+        context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
+        context["columns"] = [
+            {"field": "severity", "label": "Severity", "sortable": False},
+            {"field": "finding_type", "label": "Finding type", "sortable": False},
+            {"field": "object", "label": "Object", "sortable": False},
+            {"field": "risc_score", "label": "Risc score", "sortable": False},
+            {"field": "_valid_from", "label": "Last seen", "sortable": True},
+        ]
+        if self.request.user.has_perm("objects.delete_finding"):
+            context["columns"].append({"field": "", "label": "Delete", "sortable": False})
+        context["columns"].append({"field": "", "label": "", "sortable": False})
 
         return context
 

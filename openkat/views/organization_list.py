@@ -25,9 +25,24 @@ class OrganizationListView(OrganizationFilterMixin, OrganizationBreadcrumbsMixin
         if organization_ids:
             queryset = queryset.filter(id__in=organization_ids)
 
-        return queryset
+        order_by = self.request.GET.get("order_by", "name")
+        sorting_order = self.request.GET.get("sorting_order", "asc")
+
+        if order_by and sorting_order == "desc":
+            return queryset.order_by(f"-{order_by}")
+
+        return queryset.order_by(order_by)
 
     def get_context_data(self, **kwargs):
         # Ensure context from all mixins is properly merged
         context = super().get_context_data(**kwargs)
+        context["order_by"] = self.request.GET.get("order_by")
+        context["sorting_order"] = self.request.GET.get("sorting_order", "asc")
+        context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
+        context["columns"] = [
+            {"field": "name", "label": "Name", "sortable": True},
+            {"field": "tags", "label": "Tags", "sortable": False},
+            {"field": "settings", "label": "Settings", "sortable": False},
+        ]
+
         return context
