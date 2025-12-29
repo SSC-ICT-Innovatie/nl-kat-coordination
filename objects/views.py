@@ -274,10 +274,10 @@ class FindingListView(OrganizationFilterMixin, FilterView):
         context["sorting_order"] = self.request.GET.get("sorting_order", "asc")
         context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
         context["columns"] = [
-            {"field": "severity", "label": "Severity", "sortable": False},
-            {"field": "finding_type", "label": "Finding type", "sortable": False},
-            {"field": "object", "label": "Object", "sortable": False},
-            {"field": "risc_score", "label": "Risc score", "sortable": False},
+            {"field": "", "label": "Severity", "sortable": False},
+            {"field": "", "label": "Finding type", "sortable": False},
+            {"field": "", "label": "Object", "sortable": False},
+            {"field": "", "label": "Risc score", "sortable": False},
             {"field": "_valid_from", "label": "Last seen", "sortable": True},
         ]
         if self.request.user.has_perm("objects.delete_finding"):

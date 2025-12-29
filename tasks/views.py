@@ -75,11 +75,11 @@ class TaskListView(OrganizationFilterMixin, FilterView):
         context["sorting_order"] = self.request.GET.get("sorting_order", "asc")
         context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
         context["columns"] = [
-            {"field": "data", "label": "Input objects", "sortable": False},
-            {"field": "plugin_name", "label": "Plugin/Report", "sortable": False},
-            {"field": "status", "label": "Status", "sortable": False},
+            {"field": "", "label": "Input objects", "sortable": False},
+            {"field": "", "label": "Plugin/Report", "sortable": False},
+            {"field": "", "label": "Status", "sortable": False},
             {"field": "created_at", "label": "Completion date", "sortable": True},
-            {"field": "organization__name", "label": "Organization", "sortable": False},
+            {"field": "", "label": "Organization", "sortable": False},
             {"field": "", "label": "", "sortable": False},
         ]
 

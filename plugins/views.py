@@ -68,12 +68,12 @@ class PluginListView(OrganizationFilterMixin, FilterView):
         context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
         context["columns"] = [
             {"field": "name", "label": "Name", "sortable": True},
-            {"field": "description", "label": "Description", "sortable": False},
+            {"field": "", "label": "Description", "sortable": False},
             {"field": "oci_image", "label": "Container image", "sortable": True},
-            {"field": "version", "label": "Version", "sortable": False},
+            {"field": "", "label": "Version", "sortable": False},
             {"field": "scan_level", "label": "Scan level", "sortable": True},
-            {"field": "schedule", "label": "Schedule", "sortable": False},
-            {"field": "actions", "label": "Actions", "sortable": False},
+            {"field": "", "label": "Schedule", "sortable": False},
+            {"field": "", "label": "Actions", "sortable": False},
         ]
 
         organization_ids = self.request.GET.getlist("organization")

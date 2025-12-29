@@ -41,8 +41,8 @@ class OrganizationListView(OrganizationFilterMixin, OrganizationBreadcrumbsMixin
         context["sorting_order_class"] = "ascending" if context["sorting_order"] == "asc" else "descending"
         context["columns"] = [
             {"field": "name", "label": "Name", "sortable": True},
-            {"field": "tags", "label": "Tags", "sortable": False},
-            {"field": "settings", "label": "Settings", "sortable": False},
+            {"field": "", "label": "Tags", "sortable": False},
+            {"field": "", "label": "Settings", "sortable": False},
         ]
 
         return context
