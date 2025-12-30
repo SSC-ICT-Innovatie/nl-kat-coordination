@@ -2,7 +2,7 @@ import contextlib
 import csv
 import io
 import ipaddress
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 import django_filters
 from django import forms
@@ -40,7 +40,7 @@ from objects.models import (
     XTDBOrganization,
 )
 from openkat.mixins import OrganizationFilterMixin, filter_queryset_orgs_for_user
-from openkat.models import Organization
+from openkat.models import Organization, User
 from openkat.permissions import KATModelPermissionRequiredMixin
 from plugins.models import Plugin
 from tasks.models import ObjectSet, Task
@@ -64,7 +64,7 @@ class ObjectScanLevelForm(forms.Form):
         required=False,
         label=_("Clearance level"),
         help_text=_("Plugins with a scan level not exceeding this clearance level will be able to scan this object."),
-        error_messages={"level": {"required": _("Please select a scan level to proceed.")}},
+        error_messages={"required": _("Please select a scan level to proceed.")},
         widget=forms.Select(
             choices=ScanLevelEnum.choices,
             attrs={"aria-describedby": _("explanation-scan-level"), "class": "scan_type_selector declared"},
@@ -824,8 +824,9 @@ class HostnameTasksDetailView(OrganizationFilterMixin, ListView):
             )
         )
 
+        user = cast(User, self.request.user)
         return filter_queryset_orgs_for_user(
-            qs, self.request.user, {int(org_id) for org_id in self.request.GET.getlist("organization")}
+            qs, user, {int(org_id) for org_id in self.request.GET.getlist("organization")}
         )
 
     def get_context_data(self, **kwargs):

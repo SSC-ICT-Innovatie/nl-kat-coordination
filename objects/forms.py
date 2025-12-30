@@ -1,6 +1,6 @@
 import csv
 import io
-from typing import Any
+from typing import Any, cast
 
 from django import forms
 from django.core.exceptions import ValidationError
@@ -43,7 +43,8 @@ class HostnameCSVUploadForm(UploadCSVForm):
     )
 
     def clean(self):
-        return clean_asset_csv(super().clean(), "name")
+        cleaned_data = cast(dict[str, Any], super().clean())
+        return clean_asset_csv(cleaned_data, "name")
 
 
 class IPAddressCSVUploadForm(UploadCSVForm):
@@ -55,7 +56,8 @@ class IPAddressCSVUploadForm(UploadCSVForm):
     )
 
     def clean(self):
-        return clean_asset_csv(super().clean(), "address")
+        cleaned_data = cast(dict[str, Any], super().clean())
+        return clean_asset_csv(cleaned_data, "address")
 
 
 class GenericAssetBulkCreateForm(forms.Form):
@@ -98,7 +100,8 @@ class GenericAssetCSVUploadForm(UploadCSVForm):
     )
 
     def clean(self):
-        cleaned_data = super().clean()
+        if (cleaned_data := super().clean()) is None:
+            return cleaned_data
         csv_file = cleaned_data.get("csv_file")
 
         if csv_file:

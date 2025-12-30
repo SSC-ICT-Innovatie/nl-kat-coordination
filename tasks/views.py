@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Any, cast
 
 import django_filters
 import recurrence
@@ -609,8 +610,8 @@ class ObjectSetForm(ModelForm):
             self.fields["static_objects"].choices = []
             self.fields["static_objects"].help_text += " (Select an object type first to see available objects.)"
 
-    def clean(self):
-        cleaned_data = super().clean()
+    def clean(self) -> dict[str, Any] | None:
+        cleaned_data = cast(dict[str, Any], super().clean())
         object_query = cleaned_data.get("object_query")
         query_all = cleaned_data.get("query_all")
 

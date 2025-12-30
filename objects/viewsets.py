@@ -112,7 +112,7 @@ class ObjectViewSet(ViewSet, ObjectTaskResultMixin):
 
         return JsonResponse(status=HTTPStatus.CREATED, data=response)
 
-    @action(detail=False, methods=["post"], url_path="delete")
+    @action(detail=False, methods=("post",), url_path="delete")
     def delete_with_post(self, request: Request, *args: Any, **kwargs: Any) -> JsonResponse:
         serializers = {serializer.Meta.model.__name__.lower(): serializer for serializer in self.serializers}
         deleted = {}
