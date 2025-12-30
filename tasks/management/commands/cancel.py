@@ -49,10 +49,10 @@ class Command(BaseCommand):
             try:
                 task.cancel()
                 cancelled_count += 1
-                logger.info("Cancelled task %s", task.id)
+                logger.info("Cancelled task %s", task.pk)
             except Exception as e:
-                logger.error("Failed to cancel task %s: %s", task.id, e)
-                self.stdout.write(self.style.ERROR(f"Failed to cancel task {task.id}: {e}"))
+                logger.error("Failed to cancel task %s: %s", task.pk, e)
+                self.stdout.write(self.style.ERROR(f"Failed to cancel task {task.pk}: {e}"))
 
         self.stdout.write(self.style.SUCCESS(f"Successfully cancelled {cancelled_count} task(s)."))
 

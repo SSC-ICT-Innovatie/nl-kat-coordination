@@ -137,7 +137,7 @@ class TaskForm(ModelForm):
 
         return run_plugin_task(
             plugin.plugin_id,
-            None if organization is None else organization.id,
+            None if organization is None else organization.pk,
             list(input_hostnames) + list(input_ips),
             batch=False,
         )[0]
@@ -217,7 +217,7 @@ class TaskCancelAllView(PermissionRequiredMixin, View):
                 cancelled_count += 1
             except Exception as e:
                 messages.error(
-                    request, _("Failed to cancel task {task_id}: {error}").format(task_id=task.id, error=str(e))
+                    request, _("Failed to cancel task {task_id}: {error}").format(task_id=task.pk, error=str(e))
                 )
 
         messages.success(request, _("Successfully cancelled {count} task(s).").format(count=cancelled_count))
@@ -611,7 +611,7 @@ class ObjectSetForm(ModelForm):
             self.fields["static_objects"].help_text += " (Select an object type first to see available objects.)"
 
     def clean(self) -> dict[str, Any] | None:
-        cleaned_data = cast(dict[str, Any], super().clean())
+        cleaned_data = cast("dict[str, Any]", super().clean())
         object_query = cleaned_data.get("object_query")
         query_all = cleaned_data.get("query_all")
 

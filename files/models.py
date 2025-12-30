@@ -16,8 +16,8 @@ class File(models.Model):
     organizations = models.ManyToManyField("openkat.organization", blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
-    def path(self):
-        return Path(self.file.name)
+    class Meta:
+        permissions = (("download_file", "Can download files"),)
 
     def save(self, *args, **kwargs):
         if not self.type:
@@ -25,8 +25,8 @@ class File(models.Model):
 
         return super().save(*args, **kwargs)
 
-    class Meta:
-        permissions = (("download_file", "Can download files"),)
+    def path(self):
+        return Path(self.file.name)
 
 
 class GenericContent(ContentFile):

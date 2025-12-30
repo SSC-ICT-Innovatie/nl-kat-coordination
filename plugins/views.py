@@ -172,7 +172,7 @@ class PluginCreateView(KATModelPermissionRequiredMixin, CreateView):
 
     def get_form_kwargs(self):
         if self.request.method == "POST" and "plugin_id" in self.request.GET:
-            if "duplicate" in self.request.GET and self.request.GET["duplicate"]:
+            if self.request.GET.get("duplicate"):
                 return super().get_form_kwargs()
 
             self.object = Plugin.objects.get(pk=self.request.GET["plugin_id"])
@@ -183,7 +183,7 @@ class PluginCreateView(KATModelPermissionRequiredMixin, CreateView):
 
         kwargs = super().get_form_kwargs()
 
-        if "duplicate" in self.request.GET and self.request.GET["duplicate"]:
+        if self.request.GET.get("duplicate"):
             kwargs["initial"]["plugin_id"] = None
             kwargs["initial"]["name"] = None
 

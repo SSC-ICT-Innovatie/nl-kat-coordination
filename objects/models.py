@@ -91,11 +91,11 @@ class XTDBModel(models.Model):
         expression=RawSQL("_valid_from", ()), output_field=models.DateTimeField(), db_persist=False
     )
 
+    objects = XTDBQuerySet.as_manager()
+
     class Meta:
         managed = False
         abstract = True
-
-    objects = XTDBQuerySet.as_manager()
 
     def save(self, force_insert=False, force_update=False, using=None, update_fields=None):
         super().save(force_insert=True, force_update=False, using=using, update_fields=None)
@@ -130,6 +130,20 @@ class XTDBNaturalKeyModel(XTDBModel):
 
     _natural_key_attrs: ClassVar[list[str]]
     _optional_key_attrs: ClassVar[list[str]] = []
+
+    class Meta(XTDBModel.Meta):
+        managed = False
+        abstract = True
+
+    def save(self, *args: Any, **kwargs: Any) -> None:
+        # TODO: Make sure this also is implemented in all the necessary model methods and manager methods
+        if not self.id:
+            self.id = self.natural_key
+        elif self.id != self.natural_key:
+            # We can't change the id field, so the natural key attributes should also not be changed
+            raise Exception("Can't change natural key attributes, create new object and delete the old one")
+
+        super().save(*args, **kwargs)
 
     @property
     def natural_key(self) -> str:
@@ -210,20 +224,6 @@ class XTDBNaturalKeyModel(XTDBModel):
                 cnt += 1
         return cnt, fields, parts
 
-    def save(self, *args: Any, **kwargs: Any) -> None:
-        # TODO: Make sure this also is implemented in all the necessary model methods and manager methods
-        if not self.id:
-            self.id = self.natural_key
-        elif self.id != self.natural_key:
-            # We can't change the id field, so the natural key attributes should also not be changed
-            raise Exception("Can't change natural key attributes, create new object and delete the old one")
-
-        super().save(*args, **kwargs)
-
-    class Meta(XTDBModel.Meta):
-        managed = False
-        abstract = True
-
 
 class ObjectTask(XTDBNaturalKeyModel):
     task_id = models.CharField(max_length=36)  # UUID as string (36 chars with hyphens)
@@ -273,14 +273,14 @@ class IPAddress(XTDBNaturalKeyModel, Asset):
 
     _natural_key_attrs = ["network", "ip_address"]
 
-    def get_absolute_url(self):
-        return reverse("objects:ipaddress_detail", kwargs={"pk": self.pk})
-
     class Meta:
         verbose_name = "IP Address"
 
     def __str__(self) -> str:
         return self.ip_address
+
+    def get_absolute_url(self):
+        return reverse("objects:ipaddress_detail", kwargs={"pk": self.pk})
 
 
 class IPAddressOrganization(XTDBNaturalKeyModel):
@@ -401,24 +401,8 @@ class Hostname(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
 
     _natural_key_attrs = ["network", "name"]
 
-    def get_absolute_url(self) -> str:
-        return reverse("objects:hostname_detail", kwargs={"pk": self.pk})
-
     def __str__(self) -> str:
         return self.name
-
-    def clean(self) -> None:
-        """Validate and normalize the hostname."""
-        super().clean()
-
-        # Normalize: remove single trailing dot (FQDN notation)
-        # Multiple trailing dots are invalid and will be caught by validation
-        if self.name and self.name.endswith(".") and not self.name.endswith(".."):
-            self.name = self.name.rstrip(".")
-
-        # Validate hostname according to RFC 1123
-        if self.name:
-            validate_hostname(self.name)
 
     def save(self, *args, **kwargs):
         # Normalize single trailing dot before any processing (FQDN notation)
@@ -446,6 +430,22 @@ class Hostname(XTDBNaturalKeyModel, Asset):  # type: ignore[misc]
                     root_hostname.save(update_fields=["root"])
 
         super().save(*args, **kwargs)
+
+    def get_absolute_url(self) -> str:
+        return reverse("objects:hostname_detail", kwargs={"pk": self.pk})
+
+    def clean(self) -> None:
+        """Validate and normalize the hostname."""
+        super().clean()
+
+        # Normalize: remove single trailing dot (FQDN notation)
+        # Multiple trailing dots are invalid and will be caught by validation
+        if self.name and self.name.endswith(".") and not self.name.endswith(".."):
+            self.name = self.name.rstrip(".")
+
+        # Validate hostname according to RFC 1123
+        if self.name:
+            validate_hostname(self.name)
 
 
 class HostnameOrganization(XTDBNaturalKeyModel):

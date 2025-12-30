@@ -52,7 +52,7 @@ def main():
         # Traverse and fix timezone-naive expires in cookies
         for entry in data.get("log", {}).get("entries", []):
             for cookie in entry.get("response", {}).get("cookies", []):
-                if "expires" in cookie and cookie["expires"]:
+                if cookie.get("expires"):
                     # Parse naive datetime and make it UTC-aware
                     naive_dt = datetime.fromisoformat(cookie["expires"])
                     aware_dt = naive_dt.replace(tzinfo=UTC)

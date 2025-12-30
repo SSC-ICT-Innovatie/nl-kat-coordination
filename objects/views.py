@@ -824,7 +824,7 @@ class HostnameTasksDetailView(OrganizationFilterMixin, ListView):
             )
         )
 
-        user = cast(User, self.request.user)
+        user = cast("User", self.request.user)
         return filter_queryset_orgs_for_user(
             qs, user, {int(org_id) for org_id in self.request.GET.getlist("organization")}
         )

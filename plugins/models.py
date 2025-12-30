@@ -54,6 +54,9 @@ class Plugin(models.Model):
     class Meta:
         permissions = [("run_plugin", "Can run a plugin")]
 
+    def __str__(self):
+        return f"{self.plugin_id}"
+
     def repository(self) -> str | None:
         if not self.oci_arguments:
             return None
@@ -222,9 +225,6 @@ class Plugin(models.Model):
             created_schedules.append(schedule)
 
         return created_schedules
-
-    def __str__(self):
-        return f"{self.plugin_id}"
 
 
 class PluginSettings(models.Model):

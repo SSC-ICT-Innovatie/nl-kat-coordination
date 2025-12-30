@@ -65,7 +65,9 @@ def main():
         if service is None:
             continue
 
-        result = subprocess.run(["zgrab2", service], capture_output=True, text=True, input=f"{ip},,,{port}")
+        result = subprocess.run(
+            ["zgrab2", service], check=False, capture_output=True, text=True, input=f"{ip},,,{port}"
+        )
         data = json.loads(result.stdout)
 
         if "data" not in data:

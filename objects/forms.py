@@ -43,7 +43,7 @@ class HostnameCSVUploadForm(UploadCSVForm):
     )
 
     def clean(self):
-        cleaned_data = cast(dict[str, Any], super().clean())
+        cleaned_data = cast("dict[str, Any]", super().clean())
         return clean_asset_csv(cleaned_data, "name")
 
 
@@ -56,7 +56,7 @@ class IPAddressCSVUploadForm(UploadCSVForm):
     )
 
     def clean(self):
-        cleaned_data = cast(dict[str, Any], super().clean())
+        cleaned_data = cast("dict[str, Any]", super().clean())
         return clean_asset_csv(cleaned_data, "address")
 
 

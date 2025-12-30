@@ -77,9 +77,6 @@ class Organization(models.Model):
 
     EVENT_CODES = {"created": 900201, "updated": 900202, "deleted": 900203}
 
-    def __str__(self) -> str:
-        return str(self.name)
-
     class Meta:
         permissions = (
             ("can_scan_organization", "Can scan organization"),
@@ -87,6 +84,9 @@ class Organization(models.Model):
             ("can_access_all_organizations", "Can access all organizations"),
             ("can_enable_disable_schedule", "Can enable or disable schedules"),
         )
+
+    def __str__(self) -> str:
+        return str(self.name)
 
     def save(
         self,
@@ -105,14 +105,14 @@ class Organization(models.Model):
 
         xtdb_org.save(force_insert=force_insert, force_update=force_update, update_fields=update_fields)
 
+    def get_absolute_url(self):
+        return reverse("organization_settings", args=[self.pk])
+
     def delete(self, using=None, keep_parents=False):
         super().delete(using=using, keep_parents=keep_parents)
         from objects.models import XTDBOrganization  # noqa: PLC0415
 
         XTDBOrganization.objects.filter(pk=self.pk).delete()
-
-    def get_absolute_url(self):
-        return reverse("organization_settings", args=[self.pk])
 
 
 class OrganizationMember(models.Model):
@@ -128,6 +128,12 @@ class OrganizationMember(models.Model):
     )
 
     EVENT_CODES = {"created": 900211, "updated": 900212, "deleted": 900213}
+
+    class Meta:
+        unique_together = ["user", "organization"]
+
+    def __str__(self) -> str:
+        return str(self.user)
 
     @cached_property
     def all_permissions(self) -> set[str]:
@@ -177,12 +183,6 @@ class OrganizationMember(models.Model):
 
     def has_clearance_level(self, level: int) -> bool:
         return level <= self.max_clearance_level
-
-    class Meta:
-        unique_together = ["user", "organization"]
-
-    def __str__(self) -> str:
-        return str(self.user)
 
 
 class UserManager(BaseUserManager):

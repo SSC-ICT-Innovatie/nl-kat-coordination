@@ -137,7 +137,7 @@ class PluginRunner:
                     try:
                         logs.append(self.run(plugin_id, t, output, task_id, keep, cli))
                     except ContainerError as e:
-                        logs.append(f"Failed to process target {t}: {str(e)}")
+                        logs.append(f"Failed to process target {t}: {e!s}")
                         failed = True
                         exc += "\n" + str(e)
 

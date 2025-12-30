@@ -9,8 +9,7 @@ from openkat.models import GROUP_ADMIN, GROUP_READ_ONLY, Organization, Organizat
 
 
 class UserRegistrationForm(forms.Form):
-    """
-    Basic User form fields, name, email and password.
+    """Basic User form fields, name, email and password.
     With fields validation.
     """
 
@@ -63,9 +62,7 @@ class UserRegistrationForm(forms.Form):
 
 
 class AccountTypeSelectForm(forms.Form):
-    """
-    Shows a dropdown list of account types
-    """
+    """Shows a dropdown list of account types"""
 
     ACCOUNT_TYPE_CHOICES = [
         ("", _("--- Please select one of the available options ----")),
@@ -119,9 +116,7 @@ class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPaw
 
 
 class OrganizationForm(BaseOpenKATModelForm):
-    """
-    Form to create a new organization.
-    """
+    """Form to create a new organization."""
 
     class Meta:
         model = Organization
@@ -176,8 +171,9 @@ class OrganizationMemberEditForm(BaseOpenKATModelForm, TrustedClearanceLevelRadi
 
     def save(self, commit=True):
         instance = super().save(commit=False)
-        if instance.trusted_clearance_level < instance.acknowledged_clearance_level:
-            instance.acknowledged_clearance_level = instance.trusted_clearance_level
+        instance.acknowledged_clearance_level = min(
+            instance.acknowledged_clearance_level, instance.trusted_clearance_level
+        )
         if commit:
             instance.save()
         return instance

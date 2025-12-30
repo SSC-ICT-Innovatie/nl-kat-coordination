@@ -38,6 +38,9 @@ class ObjectSet(models.Model):
     # concrete objects
     static_objects = ArrayField(models.CharField(), default=list, blank=True)
 
+    def __str__(self):
+        return self.name or super().__str__()
+
     def get_query_objects(self, queryset: QuerySet | None = None, **filters: Any) -> QuerySet:
         if self.object_query is None:
             return self.object_type.model_class().objects.none()
@@ -61,11 +64,7 @@ class ObjectSet(models.Model):
 
     def traverse_objects(self, queryset: QuerySet | None = None, **filters: Any) -> list[int]:
         """IMPORTANT: the filters are only applied to the object_query"""
-
         return list(set(self.static_objects).union({x.pk for x in self.get_query_objects(queryset, **filters)}))
-
-    def __str__(self):
-        return self.name or super().__str__()
 
 
 class Schedule(models.Model):
