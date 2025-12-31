@@ -1,7 +1,9 @@
 {% load static %}
 
 <head>
-    <title>OpenKAT - {{ request.resolver_match.url_name }}</title>
+    {% with breadcrumbs|last as last_breadcrumb %}
+        <title>OpenKAT - {% firstof title last_breadcrumb.text request.resolver_match.url_name %}</title>
+    {% endwith %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{% static "img/favicon.svg" %}" />
