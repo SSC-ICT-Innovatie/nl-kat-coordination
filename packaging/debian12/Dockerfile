@@ -3,9 +3,10 @@ FROM debian:bookworm
 ENV DEBIAN_FRONTEND=noninteractive
 
 SHELL ["/bin/bash", "-c"]
-RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates gnupg && mkdir -p /etc/apt/keyrings && \
-    curl --proto "=https" -sL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
+ARG NODE_VERSION=20.11.1
+
+RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
+ | tar -xJ -C /usr/local --strip-components=1
 
 RUN apt-get update && apt-get -y upgrade && \
     apt-get install -y --no-install-recommends \
