@@ -5,6 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 ARG NODE_VERSION=20.11.1
 
+RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates
 RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
  | tar -xJ -C /usr/local --strip-components=1
 
