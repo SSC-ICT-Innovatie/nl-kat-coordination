@@ -5,7 +5,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates && mkdir -p /etc/apt/keyrings && \
     curl --proto "=https" -sL https://deb.nodesource.com/gpgkey/nodesource.gpg.key -o /etc/apt/keyrings/nodesource.asc && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_20.x bookworm main" > /etc/apt/sources.list.d/nodesource.list
+    echo "deb [signed-by=/etc/apt/keyrings/nodesource.asc] https://deb.nodesource.com/node_20.x nodistro main" > /etc/apt/sources.list.d/nodesource.list
 
 RUN apt-get update && apt-get -y upgrade && \
     apt-get install -y --no-install-recommends \
