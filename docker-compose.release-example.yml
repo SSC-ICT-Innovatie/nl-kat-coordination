@@ -31,7 +31,7 @@ services:
       APPS: "ROCKY BYTES KATALOGUS SCHEDULER"
 
   crux:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:v1.1.0"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:v1.1.1"
     restart: on-failure
     ports:
       - "127.0.0.1:3000:3000"
@@ -44,7 +44,7 @@ services:
       - crux
     ports:
       - "127.0.0.1:8001:80"
-    image: "ghcr.io/minvws/nl-kat-octopoes:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-octopoes:${KAT_VERSION}"
     command: web
     env_file:
       - .env-prod
@@ -55,7 +55,7 @@ services:
     depends_on:
       - crux
       - rabbitmq
-    image: "ghcr.io/minvws/nl-kat-octopoes:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-octopoes:${KAT_VERSION}"
     command: worker-beat
     env_file:
       - .env-prod
@@ -70,7 +70,7 @@ services:
     depends_on:
       - rabbitmq
       - bytes
-    image: "ghcr.io/minvws/nl-kat-boefjes:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-boefjes:${KAT_VERSION}"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     deploy:
@@ -90,7 +90,7 @@ services:
     depends_on:
       - rabbitmq
       - bytes
-    image: "ghcr.io/minvws/nl-kat-boefjes:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-boefjes:${KAT_VERSION}"
     deploy:
       replicas: 1
     command: normalizer
@@ -111,7 +111,7 @@ services:
       - scheduler
     ports:
       - "127.0.0.1:8000:8000"
-    image: "ghcr.io/minvws/nl-kat-rocky:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-rocky:${KAT_VERSION}"
     command: web
     env_file:
       - .env-prod
@@ -129,7 +129,7 @@ services:
       - normalizer
       - katalogus
       - scheduler
-    image: "ghcr.io/minvws/nl-kat-rocky:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-rocky:${KAT_VERSION}"
     command: worker
     env_file:
       - .env-prod
@@ -141,7 +141,7 @@ services:
       - postgres
     ports:
       - "127.0.0.1:8002:8000"
-    image: "ghcr.io/minvws/nl-kat-bytes:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-bytes:${KAT_VERSION}"
     env_file:
       - .env-prod
       - .env
@@ -154,7 +154,7 @@ services:
     restart: on-failure
     depends_on:
       - postgres
-    image: "ghcr.io/minvws/nl-kat-boefjes:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-boefjes:${KAT_VERSION}"
     command: katalogus
     ports:
       - "127.0.0.1:8003:8000"
@@ -166,7 +166,7 @@ services:
 
   scheduler:
     restart: on-failure
-    image: "ghcr.io/minvws/nl-kat-mula:${KAT_VERSION}"
+    image: "docker.underdark.nl/librekat/openkat-mula:${KAT_VERSION}"
     ports:
       - "127.0.0.1:8004:8000"
     env_file:
