@@ -90,18 +90,18 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+            docker.underdark.nl/librekat/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
             type=ref,event=pr
 
-      - name: Login to GitHub Container Registry
+      - name: Login to librekat Container Registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.underdark.nl
+          username: ${{ secrets.librekat_user }}
+          password: ${{ secrets.librekat_password }}
 
       - name: Build container image for ${{ matrix.image }}
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
