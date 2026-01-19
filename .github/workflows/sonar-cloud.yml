@@ -12,23 +12,23 @@ jobs:
   octopoes-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/octopoes-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/octopoes-tests.yml@main
   bytes-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/bytes-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/bytes-tests.yml@main
   mula-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/mula-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/mula-tests.yml@main
   rocky-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/rocky-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/rocky-tests.yml@main
   boefjes-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/boefjes-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/boefjes-tests.yml@main
 
   fix-coverage-reports:
     permissions:
