@@ -613,5 +613,13 @@
     "risk": "recommendation",
     "impact": "Depending on what software is outdated this can be critical.",
     "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
+  },
+  "KAT-VULNERABLE-GH-WORKFLOW": {
+    "name":"Vulnerable Github workflow(s) identified",
+    "description": "A (potentially) vulnerable Github workflow has been identified. This workflow has signs to be vulnerable to attacks.",
+    "source": "https://github.com/synacktiv/octoscan",
+    "risk": "medium",
+    "impact": "Depending on how well maintained the repository is, environment variables could be leaked.",
+    "recommendation": "Inspect the workflow and determine if it is still needed or if it can be modified to be less vulnerable."
   }
 }

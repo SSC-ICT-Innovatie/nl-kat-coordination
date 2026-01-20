@@ -1,0 +1,12 @@
+{
+    "id": "kat_octoscan_normalize",
+    "name": "octoscan",
+    "description": "Parses data from octoscan.",
+    "consumes": [
+        "boefje/octoscan"
+    ],
+    "produces": [
+        "Finding",
+        "KATFindingType"
+    ]
+}

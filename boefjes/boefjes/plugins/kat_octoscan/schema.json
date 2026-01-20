@@ -1,0 +1,13 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "REPO_TOKEN": {
+      "title": "Github personal access token",
+      "description": "GitHub repository token to access repositories. See https://docs.github.com/en/rest/authentication/authenticating-to-the-rest-api?apiVersion=2022-11-28#basic-authentication",
+      "maxLength": 256,
+      "type": "string"
+    }
+  },
+  "required": ["REPO_TOKEN"]
+}

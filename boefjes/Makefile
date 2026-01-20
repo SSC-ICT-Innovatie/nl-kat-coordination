@@ -42,7 +42,7 @@ export REGISTRY=ghcr.io/minvws/openkat
 
 # TODO: nikto cannot run as a worker as it uses a custom javascript image. We should differentiate between these images.
 # Build the images for the containerized boefjes
-images: dns-sec nmap export-http nikto adr-validator masscan nuclei ssl-certificates ssl-scan testssl-sh-ciphers webpage-capture wp-scan pdio-subfinder generic
+images: dns-sec nmap export-http nikto adr-validator masscan nuclei ssl-certificates ssl-scan testssl-sh-ciphers webpage-capture wp-scan pdio-subfinder octoscan generic
 
 dns-sec: base-image
 	docker build -f */*/kat_dnssec/boefje.Dockerfile -t $(REGISTRY)/dns-sec:latest -t openkat/dns-sec .
@@ -82,6 +82,9 @@ wp-scan: base-image
 
 pdio-subfinder: base-image
 	docker build -f */*/kat_pdio_subfinder/boefje.Dockerfile -t $(REGISTRY)/pdio-subfinder:latest .
+
+octoscan: base-image
+	docker build -f */*/kat_octoscan/boefje.Dockerfile -t $(REGISTRY)/octoscan:latest .
 
 generic: base-image
 	docker build -f */generic.Dockerfile -t $(REGISTRY)/generic:latest -t openkat/generic .
