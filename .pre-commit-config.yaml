@@ -135,7 +135,8 @@ repos:
           ^rocky/reports/report_types/multi_organization_report |
           ^docs/source/_static |
           ^boefjes/boefjes/plugins/kat_cve_2023_34039/keys/ |
-          ^boefjes/boefjes/plugins/kat_rpki/rpki.json
+          ^boefjes/boefjes/plugins/kat_rpki/rpki.json |
+          ^docs/source/themes
           )
 
   - repo: https://github.com/Riverside-Healthcare/djLint
@@ -166,6 +167,7 @@ repos:
           - stylelint@15.10.1
           - stylelint-config-standard-scss@10.0.0
         files: "^(rocky\/assets\/css\/|docs\/source\/).*.(css|scss|sass)$"
+        exclude: "^docs/source/themes/"
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
     rev: v0.10.0.1
@@ -192,5 +194,6 @@ repos:
           \.min\.js$ |
           ^rocky/assets/css/themes/soft/fonts |
           ^rocky/assets/vendors |
-          ^docs/source/_static
+          ^docs/source/_static |
+          ^docs/source/themes
           )
