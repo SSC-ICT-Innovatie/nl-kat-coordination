@@ -27,7 +27,6 @@ extensions = [
     "sphinx.ext.autosectionlabel",
     "sphinx.ext.todo",
     "sphinx.ext.autodoc",
-    "sphinx_rtd_theme",
     "myst_parser",
     "sphinxcontrib.mermaid",
     "sphinxcontrib.autodoc_pydantic",
@@ -41,12 +40,10 @@ exclude_patterns = []
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = "sphinx_rtd_theme"
+html_theme = "sphinx_icore_open"
 
 html_logo = "_static/keiko-hero.jpg"
 html_favicon = "_static/favicon.svg"
-
-html_theme_options = {"collapse_navigation": False, "style_nav_header_background": "#ca005d"}
 
 html_context = {
     "display_github": True,

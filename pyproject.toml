@@ -3,12 +3,12 @@ name = "openkat"
 version = "0.0.1.dev1"
 description = "OpenKAT Coordination package"
 authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.rst"
 license = "EUPL-1.2"
 dependencies = [
     "sphinx>=8.1.3,<9",
-    "sphinx_rtd_theme>=3.0.2,<4",
+    "sphinx-icore-open-theme>=1.0.0, <2",
     "sphinxcontrib-mermaid>=1.0.0,<2",
     "myst-parser>=4.0.1,<5",
     "settings-doc>=4.3.2,<5",
