@@ -13,16 +13,9 @@
                 <p>{% translate "Here you can add the asset of the client. Findings can be added to these in the findings page." %}</p>
                 <form method="post">
                     {% csrf_token %}
+                    <input id="ooi_type" type="hidden" name="ooi_type" value="{{ type }}">
                     {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
                     <fieldset>
-                        <div>
-                            <label for="ooi_type">Type</label>
-                            <input id="ooi_type" type="text" name="ooi_type" value="{{ type }}" readonly>
-                        </div>
-                        <div>
-                            <label for="user">Owner</label>
-                            <input id="user" type="text" name="user" value="{{ user }}" readonly>
-                        </div>
                         {% for field in form %}
                             {% include "partials/form/field_input_wrapper.html" %}
 
