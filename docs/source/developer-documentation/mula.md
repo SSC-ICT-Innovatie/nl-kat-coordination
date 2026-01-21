@@ -12,9 +12,9 @@ normalizer, and report tasks.
 ## Architecture
 
 See
-[architecture](https://github.com/minvws/nl-kat-coordination/tree/main/mula/docs/architecture.md)
+[architecture](https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/mula/docs/architecture.md)
 document for the architecture and the
-[extending](https://github.com/minvws/nl-kat-coordination/tree/main/mula/docs/extending.md)
+[extending](https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/mula/docs/extending.md)
 document for the extending the scheduler with your own custom schedulers, and
 rankers.
 
@@ -79,7 +79,7 @@ The scheduler interfaces with the following services:
 ## Running / Developing
 
 Typically the scheduler will be run from the overarching
-[nl-kat-coordination](https://github.com/minvws/nl-kat-coordination) project.
+[nl-kat-coordination](https://github.com/SSC-ICT-Innovatie/nl-kat-coordination) project.
 When you want to run and the scheduler individually you can use the following
 setup. We are using docker to setup our development environment, but you are
 free to use whatever you want.
