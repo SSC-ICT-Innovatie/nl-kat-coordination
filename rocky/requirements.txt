@@ -1186,9 +1186,9 @@ tzdata==2025.2 ; sys_platform == 'win32' \
     --hash=sha256:1a403fada01ff9221ca8044d701868fa132215d84beb92242d9acd2147f667a8 \
     --hash=sha256:b60a638fcc0daffadf82fe0f57e53d06bdec2f36c4df66280ae79bce6bd6f2b9
     # via django
-weasyprint==66.0 \
-    --hash=sha256:82b0783b726fcd318e2c977dcdddca76515b30044bc7a830cc4fbe717582a6d0 \
-    --hash=sha256:da71dc87dc129ac9cffdc65e5477e90365ab9dbae45c744014ec1d06303dde40
+weasyprint==68.0 \
+    --hash=sha256:447f40898b747cb44ac31a5d493d512e7441fd56e13f63744c099383bbf9cda9 \
+    --hash=sha256:c2cb40c71b50837c5971f00171c9e4078e8c9912dd7c217f3e90e068f11e8aa1
     # via
     #   django-weasyprint
     #   rocky
