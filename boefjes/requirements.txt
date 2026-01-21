@@ -4,9 +4,9 @@ alembic==1.16.4 \
     --hash=sha256:b05e51e8e82efc1abd14ba2af6392897e145930c3e0a2faf2b0da2f7f7fd660d \
     --hash=sha256:efab6ada0dd0fae2c92060800e0bf5c1dc26af15a10e02fb4babff164b4725e2
     # via boefjes
-annotated-doc==0.0.3 \
-    --hash=sha256:348ec6664a76f1fd3be81f43dffbee4c7e8ce931ba71ec67cc7f4ade7fbbb580 \
-    --hash=sha256:e18370014c70187422c33e945053ff4c286f453a984eba84d0dbfa0c935adeda
+annotated-doc==0.0.4 \
+    --hash=sha256:571ac1dc6991c450b25a9c2d84a3705e2ae7a53467b5d111c24fa8baabbed320 \
+    --hash=sha256:fbcda96e87e9c92ad167c2e53839e57503ecfda18804ea28102353485033faa4
     # via fastapi-slim
 annotated-types==0.7.0 \
     --hash=sha256:1f02e8b43a8fbbc3f3e0d4f0f4bfc8131bcb4eebe8849b8e5c773f3a1c582a53 \

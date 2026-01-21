@@ -12,23 +12,23 @@ jobs:
   octopoes-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/octopoes-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/octopoes-tests.yml@main
   bytes-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/bytes-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/bytes-tests.yml@main
   mula-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/mula-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/mula-tests.yml@main
   rocky-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/rocky-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/rocky-tests.yml@main
   boefjes-tests:
     permissions:
       contents: read
-    uses: minvws/nl-kat-coordination/.github/workflows/boefjes-tests.yml@main
+    uses: SSC-ICT-Innovatie/nl-kat-coordination/.github/workflows/boefjes-tests.yml@main
 
   fix-coverage-reports:
     permissions:
@@ -105,6 +105,6 @@ jobs:
           pattern: "*-coverage-fixed"
 
       - name: SonarCloud
-        uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        uses: SonarSource/sonarqube-scan-action@a31c9398be7ace6bbfaf30c0bd5d415f843d45e9 # v7.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
