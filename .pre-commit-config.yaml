@@ -10,6 +10,10 @@ repos:
       - id: check-case-conflict
       - id: check-yaml
       - id: check-json
+        exclude: |
+          (?x)(
+               ^boefjes\/boefjes\/plugins\/.*\/tests.*\/.*\.json$
+          )
       - id: check-toml
       - id: debug-statements
         exclude: |
@@ -22,7 +26,8 @@ repos:
           (?x)(
           \.svcg$ |
           ^boefjes/tests/examples/rdns-nxdomain.txt$ |
-          ^boefjes/tests/examples/raw/
+          ^boefjes/tests/examples/raw/ |
+          ^boefjes\/boefjes\/plugins\/.*\/tests.*\/.*\.json$
           )
       - id: fix-byte-order-marker
       - id: pretty-format-json
@@ -30,6 +35,7 @@ repos:
         exclude: |
           (?x)(
           ^boefjes/boefjes/plugins/kat_wappalyzer/technologies.json |
+          ^boefjes\/boefjes\/plugins\/.*\/tests.*\/.*\.json$
           )
 
   - repo: https://github.com/abravalheri/validate-pyproject
@@ -127,6 +133,7 @@ repos:
           ^boefjes/boefjes/plugins/kat_fierce/lists |
           ^boefjes/boefjes/plugins/kat_wappalyzer/data/.*.json |
           ^boefjes/tests/examples/inputs/cve-result-without-cvss.json |
+          ^boefjes\/boefjes\/plugins\/.*\/tests.*\/.*\.json$ |
           ^boefjes/tests/examples |
           ^rocky/assets/js/vendor |
           ^rocky/assets/css/themes/soft/fonts/tabler-icons/tabler-icons.scss$ |

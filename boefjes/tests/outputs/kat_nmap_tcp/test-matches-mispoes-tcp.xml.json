@@ -1,0 +1,17 @@
+[
+  "IPPort|internet|134.209.85.72|tcp|22",
+  "Service|ssh",
+  "IPService|internet|134.209.85.72|tcp|22|ssh",
+  "IPPort|internet|134.209.85.72|tcp|53",
+  "Service|domain",
+  "IPService|internet|134.209.85.72|tcp|53|domain",
+  "IPPort|internet|134.209.85.72|tcp|80",
+  "Service|http",
+  "IPService|internet|134.209.85.72|tcp|80|http",
+  "IPPort|internet|134.209.85.72|tcp|443",
+  "Service|https",
+  "IPService|internet|134.209.85.72|tcp|443|https",
+  "IPPort|internet|134.209.85.72|tcp|3306",
+  "Service|mysql",
+  "IPService|internet|134.209.85.72|tcp|3306|mysql"
+]
