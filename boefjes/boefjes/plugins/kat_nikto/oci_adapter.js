@@ -1,4 +1,3 @@
-import { execSync } from "node:child_process";
 import run from "./main.js";
 
 /**
@@ -9,14 +8,12 @@ function b64encode(inp) {
   return Buffer.from(inp).toString("base64");
 }
 
-function main() {
+async function main() {
   const input_url = process.argv[process.argv.length - 1];
 
   // Getting the boefje input
   try {
-    var boefje_input = JSON.parse(
-      execSync(`curl --request GET --url ${input_url}`).toString(),
-    );
+    var boefje_input = await fetch(input_url).then((res) => res.json());
   } catch (error) {
     console.error(`Getting boefje input went wrong with URL: ${input_url}`);
     throw new Error(error);
@@ -32,6 +29,7 @@ function main() {
     out = {
       status: "COMPLETED",
       files: raws.map((x) => ({
+        name: raws.length.toString(),
         content: b64encode(x[1]),
         tags: x[0],
       })),
@@ -56,9 +54,16 @@ function main() {
       --data '{"status":"COMPLETED","files":[{"content":"BASE_64_ENCODED_CONTENT","tags":[]}]}'
   */
   const out_json = JSON.stringify(out);
-  const cmd = `curl --request POST --url ${output_url} --header "Content-Type: application/json" --data '${out_json}'`;
-
-  execSync(cmd);
+  await fetch(output_url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: out_json,
+  }).catch((error) => {
+    console.error(`Posting boefje output went wrong with URL: ${output_url}`);
+    throw new Error(error);
+  });
 }
 
 main();
