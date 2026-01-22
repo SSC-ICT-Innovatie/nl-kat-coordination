@@ -11,6 +11,11 @@ from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
+from octopoes.connector.octopoes import OctopoesAPIConnector
+from rocky.bytes_client import BytesClient, get_bytes_client
+from rocky.scheduler import SchedulerClient, scheduler_client
+from katalogus.client import KATalogus, get_katalogus
+
 from tools.add_ooi_information import SEPARATOR, InformationUpdateError, get_info
 from tools.enums import MAX_SCAN_LEVEL
 from tools.fields import LowerCaseSlugField
@@ -115,6 +120,33 @@ class Organization(models.Model):
                     )
                 }
             )
+
+    @cached_property
+    def Indemnified(self) -> bool:
+        return Indemnification.objects.filter(organization=self).exists()
+
+    @property
+    def Members(self):
+        return OrganizationMember.objects.get(organization=self)
+
+    #@cached_property
+    #def Katalogus(self) -> KATalogus:
+    #    return get_katalogus(self.organization_member) # needs the member, due to checks between organisations
+    # maybe split the client into organisation centered clients, and more loose clients that can access multiple orgas
+
+    @cached_property
+    def Octopoes(self) -> OctopoesAPIConnector:
+        return OctopoesAPIConnector(
+            settings.OCTOPOES_API, self.code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
+        )
+
+    @cached_property
+    def Bytes(self) -> BytesClient:
+        return get_bytes_client(self.code)
+
+    @cached_property
+    def Octopoes(self) -> SchedulerClient:
+        return scheduler_client(self.code)
 
 
 class OrganizationMember(models.Model):
