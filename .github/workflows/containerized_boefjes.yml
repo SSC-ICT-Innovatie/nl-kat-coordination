@@ -27,6 +27,7 @@ jobs:
       contents: read
       packages: write
     strategy:
+      fail-fast: false
       matrix:
         include:
           - dockerfile: boefjes/boefjes/plugins/kat_nmap_tcp/boefje.Dockerfile
