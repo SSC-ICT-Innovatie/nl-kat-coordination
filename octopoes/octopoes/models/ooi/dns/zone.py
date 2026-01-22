@@ -3,6 +3,7 @@ from __future__ import annotations
 import string
 from typing import Annotated, Literal
 
+import yaml
 from pydantic import StringConstraints, field_validator
 
 from octopoes.models import OOI, Reference
@@ -32,6 +33,12 @@ class DNSZone(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return reference.tokenized.hostname.name
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSZone) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSZone", {**cls.get_ooi_yml_repr_dict(data), "hostname": data.hostname, "parent": data.parent}
+        )
 
 
 class Hostname(OOI):
@@ -75,6 +82,19 @@ class Hostname(OOI):
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return reference.tokenized.name
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: Hostname) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!Hostname",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "network": data.network,
+                "name": data.name,
+                "dns_zone": data.dns_zone,
+                "registered_domain": data.registered_domain,
+            },
+        )
+
 
 class ResolvedHostname(OOI):
     """Represents resolved hostnames.
@@ -94,3 +114,9 @@ class ResolvedHostname(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return f"{reference.tokenized.hostname.name} -> {reference.tokenized.address.address}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: ResolvedHostname) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!ResolvedHostname", {**cls.get_ooi_yml_repr_dict(data), "hostname": data.hostname, "address": data.address}
+        )

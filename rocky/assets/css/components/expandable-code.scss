@@ -1,0 +1,46 @@
+details.expandable-code {
+  > div.code-block-container {
+    cursor: initial;
+    background-color: var(--code-base-background-color, inherit);
+    gap: 0;
+    border: 1px solid var(--colors-blue-300);
+    border-radius: 3px;
+    color: var(--colors-blue-600);
+
+    > span[code-block-header] {
+      align-self: flex-start;
+      padding: 5px;
+    }
+
+    > span[data-code-copy-btn] {
+      align-self: flex-end;
+      cursor: pointer;
+      padding: 0 3px;
+      margin: 5px 5px 0;
+      border: 1px dotted var(--colors-blue-300);
+      border-radius: 5px;
+      font-size: small;
+    }
+
+    > pre {
+      padding: 0;
+      border-radius: inherit;
+      max-width: 80vw;
+    }
+
+    > pre > code {
+      font-family: monospace;
+      font-size: 0.9rem;
+      font-weight: lighter;
+      color: #4a4a4a;
+    }
+  }
+}
+
+div.padded {
+  padding: 1rem;
+}
+
+details > summary {
+  cursor: pointer;
+}

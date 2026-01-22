@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 from datetime import datetime
 from typing import Annotated, Any, Literal
 from uuid import UUID
 
+import yaml
 from pydantic import AliasGenerator, BeforeValidator, ConfigDict, Field
 
 from octopoes.models import OOI, Reference
@@ -105,3 +108,18 @@ class ReportRecipe(OOI):
     cron_expression: str | None = None
 
     _natural_key_attrs = ["recipe_id"]
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: ReportRecipe) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!ReportRecipe",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "recipe_id": data.recipe_id,
+                "report_name_format": data.report_name_format,
+                "input_recipe": data.input_recipe,
+                "report_type": data.report_type,
+                "asset_report_types": data.asset_report_types,
+                "cron_expression": data.cron_expression,
+            },
+        )

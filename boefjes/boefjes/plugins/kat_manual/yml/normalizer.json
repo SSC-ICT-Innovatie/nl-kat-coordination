@@ -1,0 +1,11 @@
+{
+    "id": "kat_manual_yml",
+    "name": "Manual YML",
+    "description": "Parses uploaded YML files into objects.",
+    "consumes": [
+        "manual/YML"
+    ],
+    "produces": [
+        "OOI"
+    ]
+}

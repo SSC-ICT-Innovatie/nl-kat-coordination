@@ -51,6 +51,7 @@ dependencies = [
     "structlog>=25.3.0,<26",
     "django-structlog>=9.1.1,<10",
     "weasyprint>=66",
+    "pyyaml>=6.0.2",
 ]
 
 [dependency-groups]

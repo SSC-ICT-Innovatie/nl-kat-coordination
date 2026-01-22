@@ -1,5 +1,8 @@
+from __future__ import annotations
+
 from typing import Literal
 
+import yaml
 from pydantic import JsonValue
 
 from octopoes.models import OOI, Reference
@@ -22,3 +25,10 @@ class Config(OOI):
         parts = reference.natural_key.split("|")
         ooi_reference = Reference.from_str("|".join(parts[:-1]))
         return f"Config of {parts[-1]} under {ooi_reference}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: Config) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!Config",
+            {**cls.get_ooi_yml_repr_dict(data), "ooi": data.ooi, "bit_id": data.bit_id, "config": data.config},
+        )
