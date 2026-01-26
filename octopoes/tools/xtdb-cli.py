@@ -322,7 +322,7 @@ def evict_by_objecttype(ctx: click.Context, objecttype: str):
         transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
 
     client.submit_tx(transactions)
-    click.echo(f"Evicted all objects of tupe: {objecttype}")
+    click.echo(f"Evicted all objects of type: {objecttype}")
 
 
 @cli.command(help="Deletes an OOI by its primary_key with an evict.")
@@ -332,7 +332,7 @@ def evict_ooi(ctx: click.Context, key: str):
     client: XTDBClient = ctx.obj["client"]
 
     ooi = client.entity(key)
-    click.echo('OOI Content was: %r' % ooi)
+    click.echo("OOI Content was: %r" % ooi)
     transactions = []
     transactions.append(("evict", key, datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
 
@@ -341,17 +341,22 @@ def evict_ooi(ctx: click.Context, key: str):
 
 
 @cli.command(help="Deletes objects where their id matches a searchstring with an evict.")
-@click.option('--wetrun', is_flag=True, help="Perform actual evicts.")
-@click.option('--searchtype',
-              type=click.Choice(['includes', 'starts-with', 'ends-with']),
-              help="Type of matchting, defaults to 'includes'.",
-              default="includes")
+@click.option("--wetrun", is_flag=True, help="Perform actual evicts.")
+@click.option(
+    "--searchtype",
+    type=click.Choice(["includes", "starts-with", "ends-with"]),
+    help="Type of matchting, defaults to 'includes'.",
+    default="includes",
+)
 @click.argument("searchstring")
 @click.pass_context
 def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring: str):
     client: XTDBClient = ctx.obj["client"]
 
-    query = '{:query {:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/%s? ?id "%s")]]}}' % (searchtype, searchstring)
+    query = '{{:query {{:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/{}? ?id "{}")]]}}}}'.format(
+        searchtype,
+        searchstring,
+    )
     oois = client.query(query=query)
     transactions = []
     for ooi in oois:
@@ -370,15 +375,14 @@ def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring
 @click.pass_context
 def put_function(ctx: click.Context, name: str, body: str):
     client: XTDBClient = ctx.obj["client"]
-    transactions = [("put", {"xt/id": name,
-                             "xt/fn": body})]
+    transactions = [("put", {"xt/id": name, "xt/fn": body})]
     click.echo(json.dumps(client.submit_tx(transactions)))
 
 
 @cli.command(help="Call a Function")
-@click.argument("name") # name of the function to call
-@click.argument("entity") # which entity to work on
-@click.argument("arguments") # any arguments, space seperated
+@click.argument("name")  # name of the function to call
+@click.argument("entity")  # which entity to work on
+@click.argument("arguments")  # any arguments, space separated
 @click.pass_context
 def call_function(ctx: click.Context, name: str, entity: str, arguments: str):
     client: XTDBClient = ctx.obj["client"]
