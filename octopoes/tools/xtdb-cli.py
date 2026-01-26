@@ -361,7 +361,7 @@ def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring
     oois = client.query(query=query)
     transactions = []
     for ooi in oois:
-        click.echo("Object Content was: %r" % ooi[0])
+        click.echo(f"Object Content was: {ooi[0]}")
         transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
     if wetrun:
         client.submit_tx(transactions)
