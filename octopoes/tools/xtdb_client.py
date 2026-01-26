@@ -10,7 +10,7 @@ PutTransaction = (
     | tuple[str, dict, str | datetime.datetime, str | datetime.datetime]
 )
 
-FnTransaction = (tuple[str, str, str, ...])
+FnTransaction = tuple[str, str, str, ...]
 
 DeleteTransaction = (
     tuple[str] | tuple[str, str | datetime.datetime] | tuple[str, str | datetime.datetime, str | datetime.datetime]
@@ -29,7 +29,7 @@ TransactionType = PutTransaction | DeleteTransaction | EvictTransaction | MatchT
 
 class XTDBClient:
     def __init__(
-        self, base_url: str, node: str | None = None, timeout: int | None = None, headers: dict[str,str] | None = None
+        self, base_url: str, node: str | None = None, timeout: int | None = None, headers: dict[str, str] | None = None
     ):
         self.base_url = base_url
         self.node = node
@@ -180,9 +180,8 @@ class XTDBClient:
 
         return res.json()
 
-
     def origins(
-        self, 
+        self,
         entity: str,
         include_params: bool = False,
         valid_time: datetime.datetime | None = None,
@@ -222,7 +221,6 @@ class XTDBClient:
                 :in-args [ "Origin" "{entity}" ]
             }}"""
         return self.query(query, valid_time, tx_time, tx_id)
-
 
     def submit_tx(self, transactions: list[TransactionType], valid_time: datetime.datetime | None = None) -> JsonValue:
         data = {"tx-ops": transactions}
