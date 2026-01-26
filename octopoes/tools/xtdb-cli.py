@@ -367,7 +367,7 @@ def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring
         client.submit_tx(transactions)
         click.echo(f"Evicted {len(transactions)} objects")
     else:
-        click.echo(f"Would have evicted len(transactions) objects")
+        click.echo(f"Would have evicted {len(transactions)} objects")
 
 
 @cli.command(help="Create a new Function")
