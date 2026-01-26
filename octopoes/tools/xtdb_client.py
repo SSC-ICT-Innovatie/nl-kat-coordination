@@ -1,9 +1,8 @@
 import datetime
+from functools import cached_property
 
 import httpx
 from pydantic import JsonValue
-
-from functools import cached_property
 
 PutTransaction = (
     tuple[str, dict]
@@ -11,9 +10,7 @@ PutTransaction = (
     | tuple[str, dict, str | datetime.datetime, str | datetime.datetime]
 )
 
-FnTransaction = (
-    tuple[str, str, str, ...]
-)
+FnTransaction = (tuple[str, str, str, ...])
 
 DeleteTransaction = (
     tuple[str] | tuple[str, str | datetime.datetime] | tuple[str, str | datetime.datetime, str | datetime.datetime]
@@ -32,11 +29,7 @@ TransactionType = PutTransaction | DeleteTransaction | EvictTransaction | MatchT
 
 class XTDBClient:
     def __init__(
-        self, 
-        base_url: str, 
-        node: str | None = None, 
-        timeout: int | None = None,
-        headers: dict[str,str] | None = None
+        self, base_url: str, node: str | None = None, timeout: int | None = None, headers: dict[str,str] | None = None
     ):
         self.base_url = base_url
         self.node = node
@@ -45,17 +38,13 @@ class XTDBClient:
 
     @cached_property
     def server(self):
-        return httpx.Client(
-            base_url=f"{self.base_url}/_xtdb/", headers=self.headers, timeout=self.timeout
-        )
+        return httpx.Client(base_url=f"{self.base_url}/_xtdb/", headers=self.headers, timeout=self.timeout)
 
     @cached_property
     def client(self):
         if not self.node:
             raise ValueError("No Node given, cannot perform node based query.")
-        return httpx.Client(
-            base_url=f"{self.base_url}/_xtdb/{self.node}", headers=self.headers, timeout=self.timeout
-        )
+        return httpx.Client(base_url=f"{self.base_url}/_xtdb/{self.node}", headers=self.headers, timeout=self.timeout)
 
     def nodes(self) -> JsonValue:
         res = self.server.get("/list-nodes")
@@ -63,12 +52,16 @@ class XTDBClient:
         return res.json()["nodes"]
 
     def create_node(self) -> JsonValue:
-        res = self.server.post("/create-node", content=f'{{:node "{self.node}"}}', headers={"Content-Type": "application/edn"})
+        res = self.server.post(
+            "/create-node", content=f'{{:node "{self.node}"}}', headers={"Content-Type": "application/edn"}
+        )
 
         return res.json()
 
     def delete_node(self) -> JsonValue:
-        res = self.server.post("/delete-node", content=f'{{:node "{self.node}"}}', headers={"Content-Type": "application/edn"})
+        res = self.server.post(
+            "/delete-node", content=f'{{:node "{self.node}"}}', headers={"Content-Type": "application/edn"}
+        )
 
         return res.json()
 
@@ -188,14 +181,16 @@ class XTDBClient:
         return res.json()
 
 
-    def origins(self, 
+    def origins(
+        self, 
         entity: str,
         include_params: bool = False,
         valid_time: datetime.datetime | None = None,
         tx_time: datetime.datetime | None = None,
-        tx_id: int | None = None,) -> JsonValue:
+        tx_id: int | None = None,
+    ) -> JsonValue:
         if include_params:
-            query = f'''
+            query = f"""
             {{
               :query {{
                 :find [(pull ?x [*])]
@@ -216,22 +211,20 @@ class XTDBClient:
                 ]
               }}
               :in-args ["Origin" "{entity}"]
-            }}'''
+            }}"""
         else:
-            query = f'''{{
+            query = f"""{{
                 :query {{
-                    :find [(pull ?e [*])] 
-                    :in [_type _result] 
-                    :where [[?e :type _type] [?e :result _result]] 
+                    :find [(pull ?e [*])]
+                    :in [_type _result]
+                    :where [[?e :type _type] [?e :result _result]]
                 }}
                 :in-args [ "Origin" "{entity}" ]
-            }}'''
+            }}"""
         return self.query(query, valid_time, tx_time, tx_id)
 
 
-    def submit_tx(self, 
-        transactions: list[TransactionType], 
-        valid_time: datetime.datetime | None = None) -> JsonValue:
+    def def submit_tx(self, transactions: list[TransactionType], valid_time: datetime.datetime | None = None) -> JsonValue:
         data = {"tx-ops": transactions}
         if valid_time:
             data["valid-time"] = valid_time.isoformat()
