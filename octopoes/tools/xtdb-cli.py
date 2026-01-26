@@ -90,6 +90,7 @@ def query(
     else:
         click.echo(json.dumps(client.query(valid_time=valid_time, tx_time=tx_time, tx_id=tx_id)))
 
+
 @cli.command(help="Fetch origins for entity")
 @click.option(
     "--with-params",
@@ -102,6 +103,7 @@ def query(
 def origins(ctx: click.Context, entity: str, with_params: bool):
     client: XTDBClient = ctx.obj["client"]
     click.echo(json.dumps(client.origins(entity, with_params)))
+
 
 @cli.command(help="List all keys in node")
 @click.pass_context
@@ -332,7 +334,7 @@ def evict_ooi(ctx: click.Context, key: str):
     client: XTDBClient = ctx.obj["client"]
 
     ooi = client.entity(key)
-    click.echo("OOI Content was: %r" % ooi)
+    click.echo(f"OOI Content was: {ooi}")
     transactions = []
     transactions.append(("evict", key, datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
 
@@ -353,9 +355,8 @@ def evict_ooi(ctx: click.Context, key: str):
 def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring: str):
     client: XTDBClient = ctx.obj["client"]
 
-    query = '{{:query {{:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/{}? ?id "{}")]]}}}}'.format(
-        searchtype,
-        searchstring,
+    query = (
+        f'{{:query {{:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/{searchtype}? ?id "{searchstring}")]]}}}}'
     )
     oois = client.query(query=query)
     transactions = []
@@ -364,9 +365,9 @@ def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring
         transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
     if wetrun:
         client.submit_tx(transactions)
-        click.echo("Evicted %i objects" % len(transactions))
+        click.echo(f"Evicted {len(transactions)} objects")
     else:
-        click.echo("Would have evicted %i objects" % len(transactions))
+        click.echo(f"Would have evicted len(transactions) objects")
 
 
 @cli.command(help="Create a new Function")
