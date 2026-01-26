@@ -3,7 +3,6 @@
 import datetime
 import json
 import logging
-import re
 
 import click
 from xtdb_client import XTDBClient
@@ -12,12 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 120, "show_default": True})
-@click.option("-n", "--node", default="0", help="XTDB node, or Organization code")
+@click.option("-n", "--node", help="XTDB node")
 @click.option("-u", "--url", default="http://localhost:3000", help="XTDB server base url")
 @click.option("-t", "--timeout", type=int, default=5000, help="XTDB request timeout (in ms)")
 @click.option("-v", "--verbosity", count=True, help="Increase the verbosity level")
 @click.pass_context
-def cli(ctx: click.Context, url: str, node: str, timeout: int, verbosity: int):
+def cli(ctx: click.Context, url: str, node: str | None, timeout: int, verbosity: int):
     """This help functionality explains how to query XTDB using the xtdb-cli tool.
     The help functionality for all default XTDB commands was copied from the official
     XTDB docs for the HTTP implementation. Not all optional parameters as available
@@ -30,10 +29,37 @@ def cli(ctx: click.Context, url: str, node: str, timeout: int, verbosity: int):
         raise click.UsageError("Invalid verbosity level (use -v, -vv, or -vvv)")
 
     client = XTDBClient(url, node, timeout)
-    logger.info("Instantiated XTDB client with endpoint %s for node %s", url, node)
+    if node:
+        logger.info("Instantiated XTDB client with endpoint %s for node %s", url, node)
+    else:
+        logger.info("Instantiated XTDB client with endpoint %s", url)
 
     ctx.ensure_object(dict)
     ctx.obj["client"] = client
+
+
+@cli.command(help="Returns the current list of available nodes")
+@click.pass_context
+def nodes(ctx: click.Context):
+    client: XTDBClient = ctx.obj["client"]
+
+    click.echo(json.dumps(client.nodes()))
+
+
+@cli.command(help="Creates a new node")
+@click.pass_context
+def create_node(ctx: click.Context):
+    client: XTDBClient = ctx.obj["client"]
+
+    click.echo(json.dumps(client.create_node()))
+
+
+@cli.command(help="Deletes a node. Warning destructive operation!")
+@click.pass_context
+def delete_node(ctx: click.Context):
+    client: XTDBClient = ctx.obj["client"]
+
+    click.echo(json.dumps(client.delete_node()))
 
 
 @cli.command(help="Returns the current status information of the node")
@@ -45,7 +71,7 @@ def status(ctx: click.Context):
 
 
 @cli.command(help='EDN Query (default: "{:query {:find [ ?var ] :where [[?var :xt/id ]]}}")')
-@click.option("--tx-id", type=int, help="Defaulting to latest transaction id (integer)")
+@click.option("--tx-id", type=int, help="In UTC, defaulting to latest transaction id (integer)")
 @click.option("--tx-time", type=click.DateTime(), help="In UTC, defaulting to latest transaction time (date)")
 @click.option("--valid-time", type=click.DateTime(), help="In UTC, defaulting to now (date)")
 @click.argument("edn", required=False)
@@ -64,6 +90,18 @@ def query(
     else:
         click.echo(json.dumps(client.query(valid_time=valid_time, tx_time=tx_time, tx_id=tx_id)))
 
+@cli.command(help="Fetch origins for entity")
+@click.option(
+    "--with-params",
+    is_flag=True,
+    help="""Includes related OriginParameters in the response
+    (boolean, default: false)""",
+)
+@click.argument("entity")
+@click.pass_context
+def origins(ctx: click.Context, entity: str, with_params: bool):
+    client: XTDBClient = ctx.obj["client"]
+    click.echo(json.dumps(client.origins(entity, with_params)))
 
 @cli.command(help="List all keys in node")
 @click.pass_context
@@ -82,7 +120,7 @@ def list_values(ctx: click.Context):
 
 
 @cli.command(help="Returns the document map for a particular entity.")
-@click.option("--tx-id", type=int, help="Defaulting to latest transaction id (integer)")
+@click.option("--tx-id", type=int, help="In UTC, defaulting to latest transaction id (integer)")
 @click.option("--tx-time", type=click.DateTime(), help="In UTC, defaulting to latest transaction time (date)")
 @click.option("--valid-time", type=click.DateTime(), help="In UTC, defaulting to now (date)")
 @click.argument("key")
@@ -120,7 +158,7 @@ def history(ctx: click.Context, key: str, with_corrections: bool, with_docs: boo
 
 
 @cli.command(help="Returns the transaction details for an entity - returns a map containing the tx-id and tx-time.")
-@click.option("--tx-id", type=int, help="Defaulting to the latest transaction id (integer)")
+@click.option("--tx-id", type=int, help="In UTC, defaulting to the latest transaction id (integer)")
 @click.option("--tx-time", type=click.DateTime(), help="In UTC, defaulting to the latest transaction time (date)")
 @click.option("--valid-time", type=click.DateTime(), help="In UTC, defaulting to now (date)")
 @click.argument("key")
@@ -270,33 +308,82 @@ def slowest_queries(ctx: click.Context):
     click.echo(json.dumps(client.slowest_queries()))
 
 
-@cli.command(
-    help="""Deletes all OOI's of the given type with an evict. (OOITypes are Case sensitive).
-    This does not remove the associated Origins or References and might leave your database in an unknown state for
-    some related objects."""
-)
-@click.option("--ooitype", help="The type of OOI to evict")
+@cli.command(help="Deletes all objects of the given type with an evict.")
+@click.argument("objecttype")
 @click.pass_context
-def evict_all_of_type(ctx: click.Context, ooitype: str):
+def evict_by_objecttype(ctx: click.Context, objecttype: str):
     client: XTDBClient = ctx.obj["client"]
-    ooitype = re.sub(r"[^a-zA-Z0-9]", "", ooitype)  # sanitize the object type.
-    if not ooitype:
-        return
-    oois = client.query(f'{{:query {{:find [ ?var ] :where [[?var :object_type "{ooitype}" ]]}}}}')
-    # the query has double brackets due to fstring parsing
+
+    objects = client.query(f'{{:query {{:find [ ?var ] :where [[?var :object_type "{objecttype}" ]]}}}}')
+
     transactions = []
 
-    for ooi in oois:
+    for ooi in objects:
         transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
 
     client.submit_tx(transactions)
-    click.echo(f"Evicted all OOIs of type {ooitype}")
+    click.echo(f"Evicted all objects of tupe: {objecttype}")
 
 
-@cli.command(help="Deletes all reports with an evict.")
+@cli.command(help="Deletes an OOI by its primary_key with an evict.")
+@click.argument("key")
 @click.pass_context
-def evict_all_reports(ctx: click.Context):
-    ctx.invoke(evict_all_of_type, ooitype="Report")
+def evict_ooi(ctx: click.Context, key: str):
+    client: XTDBClient = ctx.obj["client"]
+
+    ooi = client.entity(key)
+    click.echo('OOI Content was: %r' % ooi)
+    transactions = []
+    transactions.append(("evict", key, datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
+
+    client.submit_tx(transactions)
+    click.echo("Evicted OOI")
+
+
+@cli.command(help="Deletes objects where their id matches a searchstring with an evict.")
+@click.option('--wetrun', is_flag=True, help="Perform actual evicts.")
+@click.option('--searchtype',
+              type=click.Choice(['includes', 'starts-with', 'ends-with']),
+              help="Type of matchting, defaults to 'includes'.",
+              default="includes")
+@click.argument("searchstring")
+@click.pass_context
+def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring: str):
+    client: XTDBClient = ctx.obj["client"]
+
+    query = '{:query {:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/%s? ?id "%s")]]}}' % (searchtype, searchstring)
+    oois = client.query(query=query)
+    transactions = []
+    for ooi in oois:
+        click.echo("Object Content was: %r" % ooi[0])
+        transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
+    if wetrun:
+        client.submit_tx(transactions)
+        click.echo("Evicted %i objects" % len(transactions))
+    else:
+        click.echo("Would have evicted %i objects" % len(transactions))
+
+
+@cli.command(help="Create a new Function")
+@click.argument("name")
+@click.argument("body")
+@click.pass_context
+def put_function(ctx: click.Context, name: str, body: str):
+    client: XTDBClient = ctx.obj["client"]
+    transactions = [("put", {"xt/id": name,
+                             "xt/fn": body})]
+    click.echo(json.dumps(client.submit_tx(transactions)))
+
+
+@cli.command(help="Call a Function")
+@click.argument("name") # name of the function to call
+@click.argument("entity") # which entity to work on
+@click.argument("arguments") # any arguments, space seperated
+@click.pass_context
+def call_function(ctx: click.Context, name: str, entity: str, arguments: str):
+    client: XTDBClient = ctx.obj["client"]
+    transactions = [("fn", name, entity, *arguments.split())]
+    click.echo(json.dumps(client.submit_tx(transactions, datetime.datetime.now(tz=datetime.timezone.utc))))
 
 
 if __name__ == "__main__":
