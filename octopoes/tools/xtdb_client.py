@@ -224,7 +224,7 @@ class XTDBClient:
         return self.query(query, valid_time, tx_time, tx_id)
 
 
-    def def submit_tx(self, transactions: list[TransactionType], valid_time: datetime.datetime | None = None) -> JsonValue:
+    def submit_tx(self, transactions: list[TransactionType], valid_time: datetime.datetime | None = None) -> JsonValue:
         data = {"tx-ops": transactions}
         if valid_time:
             data["valid-time"] = valid_time.isoformat()
