@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 .dashboard {
   display: flex;
   flex-wrap: wrap;
@@ -90,7 +92,7 @@
           padding: 8px 16px;
 
           span.date {
-            color: var(--application-base-text-color);
+            color: theme.$application-base-text-color;
             text-decoration: none;
           }
 

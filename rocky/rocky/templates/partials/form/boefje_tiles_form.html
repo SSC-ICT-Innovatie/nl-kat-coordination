@@ -13,7 +13,7 @@
                 {% if btn_disabled %}disabled{% endif %}>{{ btn_text }}</button>
         {% if skip_onboarding == "yes" and organization.code %}
             <a href="{% url "complete_onboarding" organization.code %}"
-               class="button ghost">{% translate "Skip onboarding" %}</a>
+               class="button secondary">{% translate "Skip onboarding" %}</a>
         {% endif %}
     </div>
 </form>

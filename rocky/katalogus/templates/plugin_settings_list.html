@@ -14,8 +14,8 @@
                 </p>
             </div>
             <div class="horizontal-view toolbar">
-                <a class="button ghost"
-                   href="{% url 'plugin_settings_add' organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id %}"><span class="icon ti-settings"></span>{% translate "Configure Settings" %}</a>
+                <a class="button secondary"
+                   href="{% url 'plugin_settings_add' organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id %}"><span class="icon icon-settings" aria-hidden="true"></span>{% translate "Configure Settings" %}</a>
             </div>
         </div>
         <div class="horizontal-scroll">

@@ -172,8 +172,8 @@ def test_katalogus_plugin_listing_no_enable_disable_perm(rf, client_member, mock
     )
     assert response.status_code == 200
     assertContains(response, '<span class="label system-tag color-2">Enabled</span>')
-    assertNotContains(response, '<button type="submit" class="button ghost">Enable</button>')
-    assertNotContains(response, '<button type="submit" class="button ghost destructive">Disable</button>')
+    assertNotContains(response, '<button type="submit" class="button secondary">Enable</button>')
+    assertNotContains(response, '<button type="submit" class="button secondary destructive">Disable</button>')
 
 
 def test_katalogus_settings_one_organization(redteam_member, rf, mocker):

@@ -31,15 +31,15 @@
                         {% if edit_boefje_name %}
                             <button type="submit">{% translate "Save changes" %}</button>
                             <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=return_to_plugin_id %}"
-                               class="button ghost">{% translate "Discard changes" %}</a>
+                               class="button secondary">{% translate "Discard changes" %}</a>
                         {% elif boefje_variant %}
                             <button type="submit">{% translate "Create variant" %}</button>
                             <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=return_to_plugin_id %}"
-                               class="button ghost">{% translate "Discard variant" %}</a>
+                               class="button secondary">{% translate "Discard variant" %}</a>
                         {% else %}
                             <button type="submit">{% translate "Create new Boefje" %}</button>
                             <a href="{% url "katalogus" organization_code=organization.code %}"
-                               class="button ghost">{% translate "Discard new Boefje" %}</a>
+                               class="button secondary">{% translate "Discard new Boefje" %}</a>
                         {% endif %}
                     </div>
                 </form>

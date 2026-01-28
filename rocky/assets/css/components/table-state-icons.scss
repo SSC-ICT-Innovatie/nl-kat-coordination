@@ -1,7 +1,9 @@
+@use "../variables" as theme;
+
 table td .icon {
   &::before {
     position: static;
-    font-family: var(--icon-font-family);
+    font-family: theme.$icon-font-family;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -26,91 +28,91 @@ table td .icon {
   &.warning {
     &::before {
       content: "\ea06"; // $ti-icon-alert-triangle
-      color: var(--color-alert-warning);
+      color: theme.$color-alert-warning;
     }
   }
 
   &.alert {
     &::before {
       content: "\ea05"; // $ti-alert-circle
-      color: var(--color-alert-negative);
+      color: theme.$color-alert-negative;
     }
   }
 
   &.neutral {
     &::before {
       content: "\ea91"; // $ti-icon-dots-circle-horizontal
-      color: var(--color-alert-informative);
+      color: theme.$color-alert-informative;
     }
   }
 
   &.positive {
     &::before {
       content: "\ea67"; // $ti-icon-circle-check
-      color: var(--color-alert-positive);
+      color: theme.$color-alert-positive;
     }
   }
 
   &.completed {
     &::before {
       content: "\ea67"; // $ti-icon-circle-check
-      color: var(--color-alert-positive);
+      color: theme.$color-alert-positive;
     }
   }
 
   &.negative {
     &::before {
       content: "\ea6a"; // $ti-icon-circle-x
-      color: var(--color-alert-negative);
+      color: theme.$color-alert-negative;
     }
   }
 
   &.failed {
     &::before {
       content: "\ea05"; // $ti-icon-alert-circle
-      color: var(--color-alert-negative);
+      color: theme.$color-alert-negative;
     }
   }
 
   &.incomplete {
     &::before {
       content: "\ea6a"; // $ti-icon-circle-x
-      color: var(--colors-grey-900);
+      color: theme.$colors-grey-900;
     }
   }
 
   &.running {
     &::before {
       content: "\fa0d"; // $ti-icon-progress
-      color: var(--color-alert-informative);
+      color: theme.$color-alert-informative;
     }
   }
 
   &.dispatched {
     &::before {
       content: "\fd5d"; // $ti-icon-send-2
-      color: var(--color-alert-informative);
+      color: theme.$color-alert-informative;
     }
   }
 
   &.queued {
     &::before {
       content: "\ea70"; // $ti-icon-clock
-      color: var(--color-alert-informative);
+      color: theme.$color-alert-informative;
     }
   }
 
   &.pending {
     &::before {
       content: "\eca3"; // $ti-icon-loader
-      color: var(--color-alert-informative);
+      color: theme.$color-alert-informative;
     }
   }
 
   &.cancelled {
     &::before {
       content: "\ea6a"; // $ti-icon-alert-circle-x
-      color: var(--colors-grey-900);
+      color: theme.$colors-grey-900;
     }
   }
 }

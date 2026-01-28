@@ -5,8 +5,10 @@
     <div>
         <p>{% translate "Indemnification on the organization present. You may now add objects and start scans." %}</p>
         <div class="horizontal-view">
-            <a href="{% url 'ooi_list' organization.code %}" class="button ghost">{% translate "Go to Objects" %}</a>
-            <a href="{% url "katalogus" organization.code %}" class="button ghost">{% translate "Go to" %} KAT-alogus</a>
+            <a href="{% url 'ooi_list' organization.code %}"
+               class="button secondary">{% translate "Go to Objects" %}</a>
+            <a href="{% url "katalogus" organization.code %}"
+               class="button secondary">{% translate "Go to" %} KAT-alogus</a>
         </div>
     </div>
 </div>

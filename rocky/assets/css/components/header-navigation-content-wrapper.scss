@@ -1,0 +1,21 @@
+body > header {
+  > nav {
+    /* Header navigation content wrapper */
+    > div {
+      /* Collapsing element above breakpoint */
+      .collapsible-toggle[aria-expanded="false"] + div {
+        width: 100%;
+
+        > div {
+          width: auto;
+          flex-direction: row;
+          gap: 1rem;
+
+          a {
+            white-space: nowrap;
+          }
+        }
+      }
+    }
+  }
+}

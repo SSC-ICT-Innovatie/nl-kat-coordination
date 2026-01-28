@@ -1,14 +1,9 @@
-/* Abstracts */
-@import "abstracts/alert-colors";
+/* This file is to only import report components and overrides */
 
-/* Vendors */
-@import "vendor_overrides/manon/table";
-@import "vendor_overrides/manon/tile";
-@import "themes/soft/report";
+@use "@minvws/manon/components/accordion";
 
-/* Components */
-@import "components/table-state-icons";
-@import "components/scan-level-indicator";
+/* Weasyprint flexbox rendering is very limited and not really usable.
+   https://github.com/Kozea/WeasyPrint/issues/1171#issuecomment-1549483312 */
 
-/* PDF report specific overrides */
-@import "vendor_overrides/weasyprint/pdf-overrides";
+/* Weasypint overrides */
+@use "weasyprint";

@@ -1,30 +1,13 @@
-/*
-Adds infoblock on hover over table td
+@use "../variables" as theme;
 
-Markup:
-<table>
-  <tbody>
-    <tr>
-      <td class="has-hover-block">
-        Going about your normal business.
-
-        <div class="hover-block">
-          Some extra info
-        </div>
-      </td>
-    <tr>
-  </tbody>
-</table>
-
-*/
 tbody td.has-hover-block {
   position: relative;
 }
 
 tbody td.has-hover-block .hover-block {
-  background: var(--colors-white);
-  border: 1px solid var(--colors-grey-200);
-  box-shadow: 0 8px 8px var(--colors-black-10);
+  background: theme.$colors-white;
+  border: 1px solid theme.$colors-grey-200;
+  box-shadow: 0 8px 8px theme.$colors-black-10;
   display: none;
   top: calc(100% - 0.25em);
   left: 15%;
