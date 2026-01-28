@@ -96,14 +96,14 @@ class KATUser(AbstractBaseUser, PermissionsMixin):
 
     @cached_property
     def all_organizations(self) -> list[Organization]:
-        return list(Organization.objects.all())
+        return list(Organization.objects.all().order_by("name"))
 
     @cached_property
     def organization_members(self) -> list[OrganizationMember]:
         """
         Lists the user's OrganizationMembers including the related Organizations.
         """
-        return self.members.select_related("organization")
+        return self.members.select_related("organization").order_by("organization__name")
 
     @cached_property
     def organizations(self) -> list[Organization]:
