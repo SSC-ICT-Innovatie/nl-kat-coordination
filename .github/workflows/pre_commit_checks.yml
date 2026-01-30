@@ -1,37 +1,314 @@
-name: Pre-commit checks
+name: Pre-commit + (suggested fixes)
 
 on:
-  workflow_call:
-  push:
-    branches:
-      - "main"
-      - "release-*"
-    tags:
-      - "*"
   pull_request:
 
-jobs:
-  pre-commit:
-    permissions:
-      contents: read
-    runs-on: ubuntu-24.04
-    steps:
-      - uses: actions/checkout@v5
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        id: setup-python
+jobs:
+  precommit-fixes:
+    # Only same-repo PRs (no forks)
+    if: >
+      github.event.pull_request.head.repo.full_name == github.repository
+
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
         with:
           python-version: 3.13
           cache: pip
 
-      - name: Install pre-commit
-        run: pip install pre-commit==4.0.1
-
-      - uses: actions/cache@v5
-        with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - run: pip install pre-commit==4.0.1
 
       - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure --color always
+        # or true so we dont stop this workflow on errors
+        run: pre-commit run --all-files --show-diff-on-failure || true
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if git diff --quiet; then
+            echo "any_changed=false" >> "$GITHUB_OUTPUT"
+            echo "non_github_changed=false" >> "$GITHUB_OUTPUT"
+            echo "github_changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "any_changed=true" >> "$GITHUB_OUTPUT"
+
+          if git diff --name-only | grep -qv "^.github/"; then
+            echo "non_github_changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "non_github_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+          if git diff --name-only | grep -q "^.github/"; then
+            echo "github_changed=true" >> "$GITHUB_OUTPUT"
+
+            {
+              echo "GITHUB_DIFF<<EOF"
+              git diff .github | head -c 60000
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            echo "github_changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ============================================================
+      # CREATE / UPDATE FIXES
+      # ============================================================
+
+      - name: Create and push fixes branch
+        if: steps.diff.outputs.non_github_changed == 'true'
+        id: push
+        run: |
+          BASE="${{ github.event.pull_request.base.ref }}"
+          PR="${{ github.event.pull_request.number }}"
+          BRANCH="precommit-fixes/pr-${PR}"
+
+          git checkout -B "${BRANCH}"
+
+          git config user.name "pre-commit bot"
+          git config user.email "pre-commit@users.noreply.github.com"
+
+          git add --all :^\.github
+          git commit -m "Apply pre-commit fixes (excluding .github)"
+
+          git push origin "${BRANCH}" --force
+
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Label PR
+        if: steps.diff.outputs.any_changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ["has-precommit-fixes"],
+              });
+            } catch (_) {}
+
+      - name: Comment or update existing comment
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prBranch = context.payload.pull_request.head.ref;
+            const fixesBranch = "${{ steps.push.outputs.branch }}";
+
+            const compareUrl =
+              `https://github.com/${owner}/${repo}/compare/${prBranch}...${fixesBranch}`;
+
+            const prUrl = `${compareUrl}?expand=1`;
+
+            const body = `
+            🛠 **Pre-commit applied suggested fixes**
+
+            Suggested fixes are available in:
+            \`${fixesBranch}\`
+
+            ### Review & apply in GitHub
+            - 🔍 **View diff:** ${compareUrl}
+            - 🔁 **Open a PR with fixes:** ${prUrl}
+
+            ### Apply locally
+            \`\`\`bash
+            git fetch origin
+            git merge origin/${fixesBranch}
+            # or
+            git cherry-pick origin/${fixesBranch}
+            \`\`\`
+            `;
+
+            const { data: comments } =
+              await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+              });
+
+            const existing = comments.find(c =>
+              c.user?.type === "Bot" &&
+              c.body?.includes("**Pre-commit applied suggested fixes**")
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Comment about .github-only changes
+        if: |
+          steps.diff.outputs.any_changed == 'true' &&
+          steps.diff.outputs.non_github_changed == 'false' &&
+          steps.diff.outputs.github_changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            const body = `
+            ⚠️ **Pre-commit suggested changes in \`.github/\`**
+
+            Pre-commit modified files under \`.github/\`, which **cannot be applied automatically** by this workflow due to GitHub permission restrictions.
+
+            Please review and commit these changes manually in your PR branch.
+
+            <details>
+            <summary>Show diff</summary>
+
+            \`\`\`diff
+            ${process.env.GITHUB_DIFF || "(diff truncated)"}
+            \`\`\`
+            </details>
+            `;
+
+            const { data: comments } =
+              await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+              });
+
+            const existing = comments.find(c =>
+              c.user?.type === "Bot" &&
+              c.body?.includes("Pre-commit modified files under `.github/`")
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Fail if .github changes exist
+        if: steps.diff.outputs.github_changed == 'true'
+        run: |
+          echo "Pre-commit modified .github files — manual intervention required."
+          exit 1
+
+      - name: Fail if fixes were required
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          echo "Pre-commit fixes are required. See suggested fixes branch."
+          exit 1
+
+      # ============================================================
+      # CLEANUP (NO FIXES NEEDED)
+      # ============================================================
+
+      - name: Cleanup branch/labels/comments
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.issue.number;
+
+            const anyChanged = "${{ steps.diff.outputs.any_changed }}" === "true";
+            const nonGithubChanged = "${{ steps.diff.outputs.non_github_changed }}" === "true";
+            const githubChanged = "${{ steps.diff.outputs.github_changed }}" === "true";
+
+            const { data: comments } =
+              await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: pr,
+              });
+
+            const fixesComment = comments.find(c =>
+              c.user?.type === "Bot" &&
+              c.body?.includes("**Pre-commit applied suggested fixes**")
+            );
+
+            const githubComment = comments.find(c =>
+              c.user?.type === "Bot" &&
+              c.body?.includes("Pre-commit modified files under `.github/`")
+            );
+
+            // ============================
+            // PR CLEAN (no changes required anymore)
+            // ============================
+            if (!anyChanged) {
+              // delete branch
+              const branch = `precommit-fixes/pr-${pr}`;
+              try {
+                await github.rest.git.deleteRef({
+                  owner,
+                  repo,
+                  ref: `heads/${branch}`,
+                });
+              } catch (_) {}
+
+              // remove label
+              try {
+                await github.rest.issues.removeLabel({
+                  owner,
+                  repo,
+                  issue_number: pr,
+                  name: "has-precommit-fixes",
+                });
+              } catch (_) {}
+            }
+
+            if (!nonGithubChanged){
+              // update existing comments
+              if (fixesComment) {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: fixesComment.id,
+                  body: "✅ Pre-commit checks are now clean. No suggested fixes are required.",
+                });
+              }
+            }
+
+            if (!githubChanged){
+              if (githubComment) {
+                await github.rest.issues.updateComment({
+                  owner,
+                  repo,
+                  comment_id: githubComment.id,
+                  body: "✅ Pre-commit on .github files checks are now clean. No suggested fixes are required.",
+                });
+              }
+            }
