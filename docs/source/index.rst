@@ -12,7 +12,7 @@ The documentation is divided into four parts:
 
 Below you find the table of contents for the full OpenKAT documentation. You can also use the search bar or the side bar to navigate the documentation.
 
-If you are stuck, or believe the documentation is incorrect, you can make a ticket on `our GitHub repository here <https://github.com/minvws/nl-kat-coordination>`_.
+If you are stuck, or believe the documentation is incorrect, you can make a ticket on `our GitHub repository here <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination>`_.
 
 .. toctree::
    :maxdepth: 2

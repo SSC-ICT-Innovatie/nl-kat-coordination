@@ -326,8 +326,8 @@ The approach to building OCI images from the boefjes we currently have in our
 system has been discussed in [this ticket][ticket], with the first versions
 having been implemented in these PRs:
 
-- https://github.com/minvws/nl-kat-coordination/pull/2709
-- https://github.com/minvws/nl-kat-coordination/pull/2832
+- https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/2709
+- https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/2832
 
 ### Summary of decisions
 
@@ -365,7 +365,7 @@ In terms of when to build images, we decided to:
 - Make the builds part of the installation script through `make -C boefjes images`.
 - Put the responsibility to (re)build new images while developing boefjes on developers.
 
-[ticket]: https://github.com/minvws/nl-kat-coordination/issues/2443
+[ticket]: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/2443
 [dockerfile-naming]: https://docs.docker.com/build/building/packaging/#filename
 [wheels]: https://pythonspeed.com/articles/alpine-docker-python/
 

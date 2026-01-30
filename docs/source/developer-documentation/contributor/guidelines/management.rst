@@ -27,7 +27,7 @@ Bugs and Feature Requests
 =========================
 
 For effective bug reporting and feature requests there are :doc:`../templates/index`.
-These should be used and submitted in the coordination repository's `issues board <https://github.com/minvws/nl-kat-coordination/issues>`_.
+These should be used and submitted in the coordination repository's `issues board <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues>`_.
 Please make sure to link them to the central project board as an incoming feature/refinement.
 
 
@@ -39,5 +39,5 @@ The checklist should be completed by a functional and a code reviewer.
 
 In-depth content discussions
 ============================
-All formal discussions about the direction of the project or about significant technical choices should be done through `GitHub Discussions <https://github.com/minvws/nl-kat-coordination/discussions>`_.
+All formal discussions about the direction of the project or about significant technical choices should be done through `GitHub Discussions <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/discussions>`_.
 It is important that there is a paper trail about why certain decisions were made, and this is not guaranteed through e.g. Signal or Jitsi.
