@@ -31,6 +31,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -48,10 +50,3 @@ jobs:
       - name: Check if there are any changed files
         if: ${{ github.actor != 'dependabot[bot]' }}
         run: git diff --exit-code
-
-      - name: Commit, sign, and push changes
-        if: ${{ github.actor == 'dependabot[bot]' }}
-        run: bash .github/scripts/commit_sign_push.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DESTINATION_BRANCH: ${{ github.ref }}
