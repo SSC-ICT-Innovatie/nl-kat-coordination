@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     images: list[str] = Field(
         default_factory=list,
         description="A list of oci images to filter on.",
-        examples=['["ghcr.io/minvws/openkat/generic:latest"]'],
+        examples=['["docker.underdark.nl/librekat/generic:latest"]'],
     )
 
     remote_ns: IPvAnyAddress = Field(
