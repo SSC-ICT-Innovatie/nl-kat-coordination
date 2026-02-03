@@ -40,37 +40,34 @@ class OOIForm(BaseRockyForm):
 
     def generate_form_fields(self, hidden_ooi_fields: dict[str, str] | None = None) -> dict[str, forms.fields.Field]:
         fields: dict[str, forms.fields.Field] = {}
+
         for name, field in self.ooi_class.model_fields.items():
+            if name in ("user_id", "primary_key", "scan_profile"):
+                continue
+
             annotation = field.annotation
             default_attrs = default_field_options(name, field)
             # if annotation is an Union, get the first non-optional type
             optional_type = get_args(annotation)[0] if get_origin(annotation) == Union else None
 
-            if name == "primary_key":
-                continue
-
-            if name == "user_id":
-                continue
-
             # skip literals
             if hasattr(annotation, "__origin__") and annotation.__origin__ == Literal:
-                continue
-
-            # skip scan_profile
-            if name == "scan_profile":
                 continue
 
             if hidden_ooi_fields and name in hidden_ooi_fields:
                 # Hidden ooi fields will have the value of an OOI ID
                 fields[name] = forms.CharField(widget=forms.HiddenInput())
             elif name in get_relations(self.ooi_class):
-                fields[name] = generate_select_ooi_field(
+                select_field = generate_select_ooi_field(
                     self.api_connector, name, field, get_relations(self.ooi_class)[name], self.initial.get(name, None)
                 )
+                if select_field is None:
+                    continue
+                fields[name] = select_field
             elif annotation in [IPv4Address, IPv6Address]:
-                fields[name] = generate_ip_field(field)
+                fields[name] = generate_ip_field(name, field)
             elif annotation == AnyUrl:
-                fields[name] = generate_url_field(field)
+                fields[name] = generate_url_field(name, field)
             elif annotation is dict or annotation == list[str] or annotation == dict[str, Any]:
                 fields[name] = forms.JSONField(**default_attrs)
             elif annotation is int or (hasattr(annotation, "__args__") and int in annotation.__args__):
@@ -110,24 +107,36 @@ def generate_select_ooi_field(
     field: FieldInfo,
     related_ooi_type: type[OOI],
     initial: str | None = None,
-) -> forms.fields.Field:
+    advanced: bool | None = False
+) -> forms.fields.Field | None:
     # field is a relation, query all objects, and build select
     default_attrs = default_field_options(name, field)
     is_multiselect = getattr(field.annotation, "__origin__", None) is list
     option_label = default_attrs.get("label", _("option"))
-
-    option_text = "-- " + _("Optionally choose a {option_label}").format(option_label=option_label) + " --"
+    advanced = False
+    
+    manytext = "one or more:" if is_multiselect else "a"
     if field.is_required():
-        option_text = "-- " + _("Please choose a {option_label}").format(option_label=option_label) + " --"
+        option_text = _("Please choose {manytext} {option_label}").format(option_label=option_label, manytext=manytext)
+    else:
+        option_text = _("Optionally choose {manytext} {option_label}").format(
+            option_label=option_label, manytext=manytext
+        )
 
     # Generate select options
-    select_options = [] if is_multiselect else [("", option_text)]
-
+    select_options = [("", "-- " + option_text + " --")]
     if initial:
         select_options.append((initial, initial))
 
     oois = api_connector.list_objects({related_ooi_type}, datetime.now(timezone.utc)).items
     select_options.extend([(ooi.primary_key, ooi.primary_key) for ooi in oois])
+
+    # Remove the selection option when only 1 OOI is available, and required
+    if field.is_required() and not initial and len(oois) == 1:
+        del select_options[0]
+    # Mark select fields as 'advanced' when no options are present and if they are not required
+    elif not field.is_required() and not oois:
+        default_attrs["class"] = (default_attrs.get("class", ""), "advanced").join(" ") # possibly append to already existing 'list' of classes
 
     if is_multiselect:
         return forms.MultipleChoiceField(
@@ -145,18 +154,20 @@ def generate_select_ooi_type(name: str, enumeration: type[Enum], field: FieldInf
     return forms.CharField(widget=forms.Select(choices=choices), **default_attrs)
 
 
-def generate_ip_field(field: FieldInfo) -> forms.fields.Field:
+def generate_ip_field(name: str, field: FieldInfo) -> forms.fields.Field:
     """IPv4 and IPv6 fields will have a text input"""
     default_attrs = default_field_options("", field)
+    if default_attrs.get("label") == "":
+        default_attrs.update({"label": name})
     protocol = "IPv4" if field.annotation == IPv4Address else "IPv6"
     return forms.GenericIPAddressField(protocol=protocol, **default_attrs)
 
 
-def generate_url_field(field: FieldInfo) -> forms.fields.Field:
+def generate_url_field(name: str, field: FieldInfo) -> forms.fields.Field:
     """URL fields will have a text input"""
     default_attrs = default_field_options("", field)
-    if default_attrs.get("label") == "raw":
-        default_attrs.update({"label": "URL"})
+    if default_attrs.get("label") == "":
+        default_attrs.update({"label": name})
     field = forms.URLField(**default_attrs)
     field.widget.attrs.update({"placeholder": "https://example.org"})
     return field
