@@ -7,11 +7,12 @@ import { execSync } from "node:child_process";
  */
 function get_config_content(scheme) {
   const IS_USING_PROXY = !!process.env.HTTP_PROXY;
+  const TUNING = process.env.TUNING || "3b";
+  const MAX_TIME = process.env.MAX_TIME || "600";
 
   // Setup config file
   try {
-    let config_contents =
-      "PROMPTS=no\nUPDATES=no\nCLIOPTS=-404code=301,302,307,308 -o ./output.json";
+    let config_contents = `PROMPTS=no\nUPDATES=no\nCLIOPTS=-404code=301,302,307,308 -Tuning ${TUNING} -maxtime ${MAX_TIME} -o ./output.json`;
 
     if (scheme == "https") config_contents += " -ssl";
     if (IS_USING_PROXY) config_contents += " -useproxy";
@@ -88,9 +89,13 @@ export default function (boefje_meta) {
   // Looking if outdated software has been found
   try {
     const data = JSON.parse(file_contents);
-    for (const vulnerability of data["vulnerabilities"])
-      if (vulnerability["id"].startsWith("6"))
-        raws.push([["openkat/finding"], "KAT-OUTDATED-SOFTWARE"]);
+    for (const scan of data) {
+      for (const vulnerability of scan["vulnerabilities"] || []) {
+        if (vulnerability["id"].startsWith("6")) {
+          raws.push([["openkat/finding"], "KAT-OUTDATED-SOFTWARE"]);
+        }
+      }
+    }
   } catch (e) {
     console.error(e);
   }
