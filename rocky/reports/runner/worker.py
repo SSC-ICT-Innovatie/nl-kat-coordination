@@ -119,9 +119,16 @@ class SchedulerWorkerManager(WorkerManager):
             except ValueError:
                 closed = True  # worker is closed, so we create a new one
 
-            logger.warning(
-                "Worker[pid=%s, %s] not alive, creating new worker...", worker.pid, _format_exit_code(worker.exitcode)
-            )
+            try:
+                logger.warning(
+                    "Worker[pid=%s, %s] not alive, creating new worker...",
+                    worker.pid,
+                    _format_exit_code(worker.exitcode)
+                )
+            except ValueError:
+                logger.warning(
+                    "Worker[pid=Unknown, %s] not alive, creating new worker...", _format_exit_code(worker.exitcode)
+                )
 
             if not closed:  # Closed workers do not have a pid, so cleaning up would fail
                 self._cleanup_pending_worker_task(worker)
