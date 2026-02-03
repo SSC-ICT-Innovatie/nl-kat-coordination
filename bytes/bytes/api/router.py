@@ -117,7 +117,7 @@ def get_normalizer_meta_by_id(
 
 @router.get("/normalizer_metas", response_model=dict[str, NormalizerMeta], tags=[NORMALIZER_META_TAG])
 def get_normalizer_metas(
-    normalizer_metas: list[UUID] | None = Query(None),
+    normalizer_metas: list[UUID] = Query(...),
     meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
 ) -> dict[str, NormalizerMeta]:
     try:
