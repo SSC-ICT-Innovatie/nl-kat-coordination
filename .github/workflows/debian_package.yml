@@ -112,14 +112,14 @@ jobs:
           echo "RELEASE_VERSION=$(python -m setuptools_scm | sed s/rc/~rc/)" >> $GITHUB_ENV
 
       - name: Download all assets for debian12
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: kat-debian12-${{ env.RELEASE_VERSION }}
           merge-multiple: true
           pattern: kat-*_debian12.deb
 
       - name: Download all assets for ubuntu22.04
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: kat-ubuntu22.04-${{ env.RELEASE_VERSION }}
           merge-multiple: true
