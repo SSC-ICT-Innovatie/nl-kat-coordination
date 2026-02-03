@@ -91,13 +91,13 @@ Start by reading the :doc:`/user-manual/index`, which explains how OpenKAT works
 
 The documentation gives an impression, but trying OpenKAT yourself is the best way to find out how it works. In :doc:`/installation-and-deployment/index`, you can find all the information about installing OpenKAT on your system.
 
-The easiest way to get to know the system is a local installation. If you don't have a debian or ubuntu machine (yet), try the Gitpod test environment. :doc:`/installation-and-deployment/install` has a comprehensive roadmap for creating a local installation. In addition to the documentation, read `the README from the general repository <https://github.com/minvws/nl-kat-coordination>`_.
+The easiest way to get to know the system is a local installation. If you don't have a debian or ubuntu machine (yet), try the Gitpod test environment. :doc:`/installation-and-deployment/install` has a comprehensive roadmap for creating a local installation. In addition to the documentation, read `the README from the general repository <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination>`_.
 
 
 Where is the software located?
 ==============================
 
-OpenKAT consists of separate modules that each perform a specific task. All modules are located in the `NL-KAT-Coordination <https://github.com/minvws/nl-kat-coordination>`_ repository. The :doc:`../developer-documentation/basic-principles/modules` section of the documentation goes into detail on each of these modules.
+OpenKAT consists of separate modules that each perform a specific task. All modules are located in the `NL-KAT-Coordination <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination>`_ repository. The :doc:`../developer-documentation/basic-principles/modules` section of the documentation goes into detail on each of these modules.
 
 
 What are the plans for the future?
