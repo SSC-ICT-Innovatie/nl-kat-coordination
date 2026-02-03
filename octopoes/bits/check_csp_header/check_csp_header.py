@@ -32,7 +32,7 @@ def run(resource: HTTPResource, additional_oois: list[HTTPHeader], config: dict[
     if content_type and not is_xss_capable(content_type):
         return
 
-    csp_header = headers.get("content-security-policy", "")
+    csp_header = headers.get("content-security-policy", "").lower()
 
     if not csp_header:
         return
@@ -43,12 +43,11 @@ def run(resource: HTTPResource, additional_oois: list[HTTPHeader], config: dict[
         findings.append("Http should not be used in the CSP settings of an HTTP Header.")
 
     # checks for a wildcard in domains in the header
-    # 1: one or more non-whitespace
-    # 2: wildcard
-    # 3: second-level domain
-    # 4: end with either a space, a ';', a :port or the end of the string
-    #              {1}{ 2}{  3  }{         4       }
-    if re.search(r"\S+\*\.\S{2,3}([\s]+|$|;|:\d+)", csp_header):
+    # 1 \*\. - literal wildcard and dot (*.)
+    # 2 [a-z0-9._-]+ - domain parts (e.g., example, cdn.example), including the invalid _, no need to skip those
+    # 3 \.[a-z]{2,} - final TLD, like .com, .org, .co.uk (optional to tweak further)
+    # 4 (?:\s+|$|;|:\d+) - Delimiter
+    if re.search(r"\*\.[a-z0-9._-]+\.[a-z]{2,}(?:\s+|$|;|:\d+)", csp_header):
         findings.append("The wildcard * for the scheme and host part of any URL should never be used in CSP settings.")
 
     if "unsafe-inline" in csp_header or "unsafe-eval" in csp_header or "unsafe-hashes" in csp_header:
@@ -151,8 +150,12 @@ def _create_kat_finding(header: Reference, kat_id: str, description: str) -> Ite
 
 def _source_valid(policy: list[str]) -> bool:
     for value in policy:
+        # 1 (?:\*\.|\.)? - optional wildcard *. or dot prefix.
+        # 2 [a-z0-9_-]+ - (sub)domain
+        # 3 (?:\.[a-z0-9_-]+)+ - Optionally one or more hostnames (e.g., .nl, .co.uk) including the invalid _
+        # 4 (?:\s+|$|;) - Optional port number
         if not (
-            re.search(r"\S+\.\S{2,3}([\s]+|$|;|:\d+)", value)
+            re.search(r"(?:\*\.|\.)?[a-z0-9_-]+(?:\.[a-z0-9_-]+)+(?::\d+)?(?:\s+|$|;)", value)
             or value in ["'none'", "'self'", "data:", "unsafe-inline", "unsafe-eval", "unsafe-hashes", "report-sample"]
         ):
             return False
