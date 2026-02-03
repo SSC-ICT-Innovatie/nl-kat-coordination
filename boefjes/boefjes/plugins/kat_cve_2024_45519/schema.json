@@ -1,0 +1,11 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "OAST_URL": {
+      "title": "OAST_URL",
+      "type": "string",
+      "description": "Optional url for the compromised server to make a callback at."
+    }
+  }
+}
