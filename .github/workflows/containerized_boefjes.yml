@@ -18,6 +18,7 @@ on:
       - boefjes/boefjes/plugins/kat_dnssec/**
       - boefjes/boefjes/plugins/kat_nikto/**
       - boefjes/boefjes/plugins/kat_export_http/**
+      - boefjes/boefjes/plugins/kat_octoscan/**
       - boefjes/images/**
       - .github/workflows/containerized_boefjes.yml
 
@@ -57,6 +58,8 @@ jobs:
             image: openkat/wp-scan
           - dockerfile: boefjes/boefjes/plugins/kat_pdio_subfinder/boefje.Dockerfile
             image: openkat/pdio-subfinder
+          - dockerfile: boefjes/boefjes/plugins/kat_octoscan/boefje.Dockerfile
+            image: openkat/octoscan
     runs-on: ubuntu-24.04
     services:
       registry:

@@ -1,0 +1,10 @@
+{
+  "id": "octoscan",
+  "name": "Octoscan",
+  "description": "Octoscan is a static vulnerability scanner for GitHub action workflows.",
+  "consumes": [
+    "HostnameHTTPURL"
+  ],
+  "scan_level": 1,
+  "oci_image": "ghcr.io/minvws/openkat/octoscan:latest"
+}
