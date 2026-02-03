@@ -1,7 +1,7 @@
-import "@minvws/manon/accordion";
-import "@minvws/manon/expando-rows";
-import "@minvws/manon/filters";
-import "@minvws/manon/form-help";
-import "@minvws/manon/collapsible";
-import "@minvws/manon/language-selector";
-import "@minvws/manon/sidemenu";
+import "@minvws/manon/js/accordion.js";
+import "@minvws/manon/js/expando-rows.js";
+import "@minvws/manon/js/filters.js";
+import "@minvws/manon/js/form-help.js";
+import "@minvws/manon/js/collapsible.js";
+import "@minvws/manon/js/language-selector.js";
+import "@minvws/manon/js/sidemenu.js";

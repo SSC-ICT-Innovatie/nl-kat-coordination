@@ -1,0 +1,23 @@
+@use "../variables" as theme;
+
+/* Theme border radius */
+
+.border-radius-s {
+  border-radius: theme.$border-radius-s;
+}
+
+.border-radius-m {
+  border-radius: theme.$border-radius-m;
+}
+
+.border-radius-l {
+  border-radius: theme.$border-radius-l;
+}
+
+.border-radius-xl {
+  border-radius: theme.$border-radius-xl;
+}
+
+.border-radius-round {
+  border-radius: theme.$border-radius-round;
+}

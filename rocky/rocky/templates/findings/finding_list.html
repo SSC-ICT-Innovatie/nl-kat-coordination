@@ -27,7 +27,7 @@
                 {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
                     <div class="toolbar">
                         <a href="#new-dashboard-item-modal"
-                           class="button ghost"
+                           class="button secondary"
                            data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
                     </div>
                     {% include "partials/new_dashboard_item_modal.html" with item_type="findings" template="partials/dashboard_finding_list.html" %}
@@ -57,10 +57,10 @@
                         {% if object_list|length >= 1 and perms.tools.can_mute_findings %}
                             <div class="horizontal-view toolbar">
                                 {% if not only_muted %}
-                                    <a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" class="icon ti-bell-off"></icon>{% translate "Mute findings" %}</a>
+                                    <a class="button secondary" href="#mute-findings-modal"><icon class="icon icon-bell-off" aria-hidden="true"></icon>{% translate "Mute findings" %}</a>
                                 {% else %}
-                                    <button type="submit" class="ghost" form="finding-list-form">
-                                        <icon aria-hidden="true" class="icon ti-bell"></icon>{% translate "Unmute findings" %}
+                                    <button type="submit" class="secondary" form="finding-list-form">
+                                        <icon aria-hidden="true" class="icon icon-bell"></icon>{% translate "Unmute findings" %}
                                     </button>
                                     <input type="checkbox" class="hidden" value="true" name="unmute" checked>
                                 {% endif %}
@@ -86,7 +86,7 @@
                                         <button form="finding-list" name="order_by" value="score" class="sort">
                                             {{ table_columns.severity }}
                                             <span aria-hidden="true"
-                                                  class="icon ti-{% if order_by == "score" and sorting_order == "asc" %}chevron-up{% elif order_by == "score" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
+                                                  class="icon icon-{% if order_by == "score" and sorting_order == "asc" %}chevron-up{% elif order_by == "score" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                         </button>
                                     </th>
                                     <th scope="col"
@@ -95,7 +95,7 @@
                                         <button form="finding-list" name="order_by" value="finding_type" class="sort">
                                             {{ table_columns.finding }}
                                             <span aria-hidden="true"
-                                                  class="icon ti-{% if order_by == "finding_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "finding_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
+                                                  class="icon icon-{% if order_by == "finding_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "finding_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                         </button>
                                     </th>
                                     <th>{{ table_columns.location }}</th>
@@ -132,19 +132,19 @@
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to tree view of {{ hydrated_finding.finding.human_readable }}"
-                                               class="icon ti-subtask button"
+                                               class="icon icon-subtask button"
                                                href="{% ooi_url 'ooi_tree' hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to graph view of {{ hydrated_finding.finding.human_readable }}"
-                                               class="icon ti-affiliate button"
+                                               class="icon icon-affiliate button"
                                                href="{% ooi_url 'ooi_graph' hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
                                         </td>
                                         <td class="actions sticky-cell">
                                             <button type="button"
                                                     class="expando-button"
-                                                    data-icon-open-class="icon ti-chevron-down"
-                                                    data-icon-close-class="icon ti-chevron-up"
+                                                    data-icon-open-class="icon icon-chevron-down"
+                                                    data-icon-close-class="icon icon-chevron-up"
                                                     data-close-label="{% translate "Close details" %}">
                                                 {% translate "Open details" %}
                                             </button>

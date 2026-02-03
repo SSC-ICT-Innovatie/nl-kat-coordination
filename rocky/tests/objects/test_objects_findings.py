@@ -194,8 +194,8 @@ def test_muted_finding_button_not_presence(rf, mock_organization_view_octopoes, 
     assert response.status_code == 200
     assertContains(
         response,
-        '<a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" '
-        'class="icon ti-bell-off"></icon>Mute findings</a>',
+        '<a class="button secondary" href="#mute-findings-modal"><icon aria-hidden="true" '
+        'class="icon icon-bell-off"></icon>Mute findings</a>',
     )
 
 
@@ -245,8 +245,8 @@ def test_muted_finding_button_presence_more_findings_and_post(
     assertContains(response, '<input type="checkbox" name="finding" value="' + finding_1.primary_key + '">', html=True)
     assertContains(
         response,
-        '<a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" '
-        'class="icon ti-bell-off"></icon>Mute findings</a>',
+        '<a class="button secondary" href="#mute-findings-modal"><icon aria-hidden="true" '
+        'class="icon icon-bell-off"></icon>Mute findings</a>',
     )
 
     request = setup_request(
@@ -294,8 +294,8 @@ def test_can_mute_findings_perms(rf, request, member, mock_organization_view_oct
     assert response.status_code == 200
     assertNotContains(
         response,
-        '<a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" '
-        'class="icon ti-bell-off"></icon>Mute findings</a>',
+        '<a class="button secondary" href="#mute-findings-modal"><icon aria-hidden="true" '
+        'class="icon icon-bell-off"></icon>Mute findings</a>',
     )
 
 

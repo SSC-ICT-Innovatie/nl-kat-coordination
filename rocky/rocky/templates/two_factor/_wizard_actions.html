@@ -2,7 +2,7 @@
 
 <div class="button-container">
     {% if cancel_url %}
-        <a href="{{ cancel_url }}" class="button ghost">{% trans "Cancel" %}</a>
+        <a href="{{ cancel_url }}" class="button secondary">{% trans "Cancel" %}</a>
     {% endif %}
     {% if step == "auth" %}
         <button type="submit">{% trans "Log in" %}</button>

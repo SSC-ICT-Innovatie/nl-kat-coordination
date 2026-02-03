@@ -1,7 +1,9 @@
+@use "../variables" as theme;
+
 .qr-code-image,
 form.horizontal-view > fieldset > div > .qr-code-image {
   max-width: 15rem;
   float: left;
-  background-color: var(--colors-white);
-  margin-left: var(--form-horizontal-view-gap);
+  background-color: theme.$colors-white;
+  margin-left: theme.$form-horizontal-view-gap;
 }

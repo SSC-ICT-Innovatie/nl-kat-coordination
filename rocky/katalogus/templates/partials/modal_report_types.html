@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <a href="#{{ plugin_id }}-report-types-modal"
-   class="tile-report-types-link">{% translate "Required for" %} {{ report_types|length }} {% translate "report types" %}<span aria-hidden="true" class="icon ti-chevron-right"></span></a>
+   class="tile-report-types-link">{% translate "Required for" %} {{ report_types|length }} {% translate "report types" %}<span aria-hidden="true" class="icon icon-chevron-right"></span></a>
 {% with modal_id=plugin.id|add:"-report-types-modal" %}
     {% component "modal" modal_id=modal_id size="dialog-medium" %}
     {% fill "header" %}

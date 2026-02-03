@@ -14,7 +14,7 @@
                         <h1>{% translate "Account details" %}</h1>
                     </div>
                     <div class="horizontal-view toolbar">
-                        <a class="button ghost" href="{% url 'password_reset' %}">{% translate "Reset password" %}</a>
+                        <a class="button secondary" href="{% url 'password_reset' %}">{% translate "Reset password" %}</a>
                     </div>
                 </div>
                 <dl>
@@ -79,7 +79,7 @@
                                 {% blocktranslate asvar btn_text_withdraw_tcl trimmed %}
                                     Withdraw L{{ acl }} clearance and responsibility
                                 {% endblocktranslate %}
-                                {% include "partials/single_action_form.html" with btn_text=btn_text_withdraw_tcl action="withdraw_acceptance" key="member_id" value=organization_member.id btn_class="ghost" %}
+                                {% include "partials/single_action_form.html" with btn_text=btn_text_withdraw_tcl action="withdraw_acceptance" key="member_id" value=organization_member.id btn_class="secondary" %}
 
                             {% else %}
                                 <p class="explanation"
@@ -95,7 +95,7 @@
                                 {% blocktranslate asvar btn_text_accept_tcl trimmed %}
                                     Accept level L{{ tcl }} clearance and responsibility
                                 {% endblocktranslate %}
-                                {% include "partials/single_action_form.html" with btn_text=btn_text_accept_tcl action="accept_clearance" key="member_id" value=organization_member.id btn_class="ghost" %}
+                                {% include "partials/single_action_form.html" with btn_text=btn_text_accept_tcl action="accept_clearance" key="member_id" value=organization_member.id btn_class="secondary" %}
 
                             {% endif %}
                         </div>

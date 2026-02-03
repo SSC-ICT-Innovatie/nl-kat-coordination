@@ -1,0 +1,7 @@
+@use "../variables" as theme;
+
+.tabs ul li > a:focus,
+ul.tabs li > a:focus {
+  border: 0 0 4px 0;
+  border-color: theme.$colors-purrple-400;
+}
