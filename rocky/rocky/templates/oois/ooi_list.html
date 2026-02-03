@@ -106,15 +106,23 @@
                             </thead>
                             <tbody>
                                 {% for object in ooi_list %}
-                                    <tr>
+                                    <tr {% if object.ooi_type == "OOIValidationError" %}class="error"{% endif %}>
                                         <td>
                                             <input type="checkbox" name="ooi" value="{{ object.primary_key }}">
                                         </td>
                                         <td>
-                                            <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
+                                            {% if object.ooi_type == "OOIValidationError" %}
+                                                {% translate "ValidationError for:" %} <a href="{% ooi_url "ooi_detail" object.source organization.code observed_at=observed_at %}">{{ object.source }}</a>
+                                            {% else }
+                                                <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
+                                            {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
+                                            {% if object.ooi_type == "OOIValidationError" %}
+                                                <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.source.ooi_type.class_type }}">{{ object.source.ooi_type.class_type }}</a>
+                                            {% else %}
+                                                <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
+                                            {% endif %}
                                         </td>
                                         <td>
                                             {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
