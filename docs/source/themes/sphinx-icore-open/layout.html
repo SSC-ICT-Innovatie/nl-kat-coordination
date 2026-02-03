@@ -1,0 +1,122 @@
+{# Sphinx layout template for the manon theme. #}
+{%- extends "basic/layout.html" %}
+
+{%- block extrahead %}
+{{ super() }}
+<link rel="stylesheet" href="{{ pathto('_static/custom.css', resource=True) }}" type="text/css" />
+{% endblock %}
+
+{%- macro manon_sidebar() %}
+{%- block sidebartoc %}
+<nav aria-label="{{ _('Sidebar') }}">
+  {{ toctree(includehidden=True) }}
+</nav>
+{%- endblock %}
+{% endmacro %}
+
+{%- macro rellink_markup() %}
+  {%- if prev and next %}
+    {%- set divlayout = "column-2" %}
+  {%- elif next %}
+    {%- set divlayout = "next" %}
+  {%- else %}
+    {%- set divlayout = "" %}
+  {%- endif %}
+  <section id="relbar" class="related {{ divlayout }}">
+    <nav id="rellinks" class="pagination" aria-label="{{ _('Pagination') }}">
+      {%- if prev %}
+        <div class="previous">
+          <a href="{{ prev.link|e }}">
+            <span class="visually-hidden">{{ _('Previous') }}</span>
+            <span class="icon icon-chevron-left" aria-hidden="true"></span>
+            {{ prev.title }}
+          </a>
+        </div>
+      {%- endif %}
+
+      {%- if next %}
+        <div class="next">
+          <a href="{{ next.link|e }}">
+            <span class="visually-hidden">{{ _('Next') }}</span>
+            {{ next.title }}
+            <span class="icon icon-chevron-right" aria-hidden="true"></span>
+          </a>
+        </div>
+      {%- endif %}
+    </nav>
+  </section>
+{%- endmacro %}
+
+{% block header %}
+  {%- if pagename != "search" and builder != "singlehtml" %}
+    {%- set searchformaction = pathto('search') %}
+  {%- else %}
+    {%- set searchformaction = "" %}
+  {%- endif %}
+  <header class="page-header">
+    <div>
+      <nav
+        aria-label="{{ _('Main Navigation') }}"
+        class="collapsible"
+      >
+        <a href="/" class="logo">
+          <img src="{{ theme_logo|e }}" alt="{{ shorttitle|e }}">
+        </a>
+        <div class="collapsing-element">
+          <ul>
+            <li><a href="/">{{ _('Home') }}</a></li>
+          </ul>
+          <div>
+            <form name="header_search" class="inline" action="{{ searchformaction }}" method="get">
+              <input type="text"
+                     name="q"
+                     placeholder="{{ _('Search') }}"
+                     aria-labelledby="searchlabel"
+                     autocomplete="off"
+                     autocapitalize="off"
+                     spellcheck="false"
+              />
+              <button type="submit">
+                <span class="icon icon-search" aria-hidden="true"></span>
+                <span class="visually-hidden">{{ _('Search') }}</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+{% endblock %}
+
+{% block content %}
+<main class="sidemenu">
+  {{ manon_sidebar() }}
+  <div class="visually-grouped">
+
+      {% block body %} {% endblock %}
+
+      {%- block relbar_bottom %}
+        {%- if theme_show_relbar_bottom|tobool %}
+            {{- rellink_markup () }}
+        {%- endif %}
+      {% endblock %}
+  </div>
+</main>
+{% endblock %}
+
+{% block footer %}
+<footer>
+  <div>
+    <div class="two-thirds-one-third">
+      {% if show_copyright %}
+      <span>
+          {{ copyright }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+</footer>
+{% endblock %}
+
+{% block relbar1 %}{% endblock %}
+{% block relbar2 %}{% endblock %}

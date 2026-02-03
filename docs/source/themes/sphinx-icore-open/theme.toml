@@ -1,0 +1,12 @@
+[theme]
+inherit = "alabaster"
+pygments_style = { default = "default" }
+
+stylesheets = [
+  "css/theme.css"
+]
+
+[options]
+show_relbar_bottom = true
+show_related = false
+logo = "/_static/img/logo.svg"
