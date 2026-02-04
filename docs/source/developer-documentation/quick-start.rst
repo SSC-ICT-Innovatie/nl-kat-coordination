@@ -24,7 +24,7 @@ Do *not* install Docker directly from the default Ubuntu repositories. This vers
 
 .. code-block:: sh
 
-    $ git clone https://github.com/minvws/nl-kat-coordination.git
+    $ git clone https://github.com/SSC-ICT-Innovatie/nl-kat-coordination.git
 ..
 
 #. Change into the cloned repository.

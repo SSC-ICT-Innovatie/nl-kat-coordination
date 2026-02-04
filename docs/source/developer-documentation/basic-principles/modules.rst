@@ -15,35 +15,35 @@ Rocky - frontend
 
 Rocky is the front end for OpenKAT and based on a Django framework. Through Rocky, OpenKAT can be accessed. It provides a user interface for all information present in the system. It is also possible to access OpenKAT only through the APIs.
 
-`Rocky <https://github.com/minvws/nl-kat-coordination/tree/main/rocky>`_ is the folder containing Rocky's source code and documentation.
+`Rocky <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/rocky>`_ is the folder containing Rocky's source code and documentation.
 
 Mula - scheduler
 ================
 
 Mula is the scheduler, which controls OpenKAT. Mula has extensive technical documentation and design schematics.
 
-`Mula <https://github.com/minvws/nl-kat-coordination/tree/main/mula>`_ is the folder containing Mula's source code and documentation.
+`Mula <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/mula>`_ is the folder containing Mula's source code and documentation.
 
 Octopoes - datamodel
 ====================
 
 Octopoes contains the data model with object-types and the XTDB with all objects. The documentation accompanying Octopoes covers the technical side of the logic behind OpenKAT and includes extensive information for people who want to work with the data model themselves.
 
-`Octopoes <https://github.com/minvws/nl-kat-coordination/tree/main/octopoes>`_ is the folder containing the source code and documentation of Octopoes.
+`Octopoes <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/octopoes>`_ is the folder containing the source code and documentation of Octopoes.
 
 Bytes - raw data storage
 ========================
 
 Bytes is a relatively simple datastore for the raw data provided by OpenKAT. In addition to storage, Bytes also handles assurance by having a timestamp created from the stored data.
 
-`Bytes <https://github.com/minvws/nl-kat-coordination/tree/main/bytes>`_ is the repository containing Bytes' source code and documentation.
+`Bytes <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/bytes>`_ is the repository containing Bytes' source code and documentation.
 
 Boefjes and whiskers - scanners and normalizers
 ===============================================
 
-The KATalog contains all boefjes and whiskers. The KATalog is easy to add new boefjes and normalizers. The general documentation contains some pointers for writing boefjes. The team is happy to help you if you want to get started with these. The readme of `NL-KAT-Coordination repo <https://github.com/minvws/nl-kat-coordination>`_. contains all the ways to contact the team.
+The KATalog contains all boefjes and whiskers. The KATalog is easy to add new boefjes and normalizers. The general documentation contains some pointers for writing boefjes. The team is happy to help you if you want to get started with these. The readme of `NL-KAT-Coordination repo <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination>`_. contains all the ways to contact the team.
 
-`Boefjes <https://github.com/minvws/nl-kat-coordination/tree/main/boefjes>`_ is the folder containing the source code and documentation of Boefjes, Whiskers and Bits.
+`Boefjes <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/boefjes>`_ is the folder containing the source code and documentation of Boefjes, Whiskers and Bits.
 
 Manon - styling
 ===============
