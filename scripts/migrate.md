@@ -6,13 +6,13 @@ This tool migrates Docker volumes from the **old OpenKAT naming scheme** to the 
 
 ## Table of Contents
 
-1. [Purpose](#purpose)  
-2. [Prerequisites](#prerequisites)  
-3. [Usage](#usage)  
-4. [Options](#options)  
-5. [Migration Flow](#migration-flow)  
-6. [Cleanup Only Mode](#cleanup-only-mode)  
-7. [Recommended Workflow](#recommended-workflow)  
+1. [Purpose](#purpose)
+2. [Prerequisites](#prerequisites)
+3. [Usage](#usage)
+4. [Options](#options)
+5. [Migration Flow](#migration-flow)
+6. [Cleanup Only Mode](#cleanup-only-mode)
+7. [Recommended Workflow](#recommended-workflow)
 8. [Safety Notes](#safety-notes)
 
 ---
