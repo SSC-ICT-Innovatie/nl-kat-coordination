@@ -65,68 +65,68 @@ docker ps -a \
 printf 'Migrating volumes...\n'
 
 docker volume ls --format '{{.Name}}' |
-{
-    grep '^nl-kat-coordination_' || true
-} |
+    {
+        grep '^nl-kat-coordination_' || true
+    } |
     while IFS= read -r old_vol; do
         rest="${old_vol#nl-kat-coordination_}"
         new_vol="openkat_${rest}"
-    
+
         printf '-----------------------------------------\n'
         printf 'Volume Migration:\n'
         printf '  OLD: %s\n' "$old_vol"
         printf '  NEW: %s\n' "$new_vol"
-    
+
         # Ensure backup directory exists
         run_or_echo mkdir -p "$BACKUP_PATH/$old_vol"
-    
+
         # Find latest existing backup (lexicographically)
         latest_backup=$(
             find "$BACKUP_PATH/$old_vol" \
                 -maxdepth 1 \
                 -type f \
                 -name '*.tar.gz' \
-                -print0 2>/dev/null |
-            sort -z |
-            tail -z -n 1 |
-            tr -d '\0'
+                -print0 2> /dev/null |
+                sort -z |
+                tail -z -n 1 |
+                tr -d '\0'
         )
-    
-        if [[ -z "$latest_backup" && "$DRY_RUN" == false ]]; then
+
+        if [[ -z $latest_backup && $DRY_RUN == false ]]; then
             printf 'ERROR: No existing backup found for %s\n' "$old_vol"
             continue
         fi
-    
-        if [[ -n "$latest_backup" ]]; then
+
+        if [[ -n $latest_backup ]]; then
             printf '  Latest backup: %s\n' "$latest_backup"
         fi
-    
+
         # In dry-run, do not actually back up or restore
         if "$DRY_RUN"; then
             continue
         fi
-    
+
         timestamp="$(date +%Y-%m-%d_%H%M%S)"
         backup_file="${BACKUP_PATH}/${old_vol}/${timestamp}_${old_vol}.tar.gz"
-    
+
         printf '  Backing up to: %s\n' "$backup_file"
-    
+
         docker run --rm \
             --mount "type=volume,src=${old_vol},dst=/data" \
             --mount "type=bind,src=$(dirname "$backup_file"),dst=/backup" \
             "$IMAGE" \
             sh -c "cd /data && tar -czf /backup/$(basename "$backup_file") ."
-    
+
         run_or_echo docker volume create "$new_vol"
-    
+
         printf '  Restoring into new volume: %s\n' "$new_vol"
-    
+
         docker run --rm \
             --mount "type=volume,src=$new_vol,dst=/data" \
             --mount "type=bind,src=$(dirname "$backup_file"),dst=/backup,ro" \
             "$IMAGE" \
             sh -c "cd /data && tar -xzf /backup/$(basename "$backup_file")"
-    
+
         printf '  RESTORE COMPLETE: %s\n' "$new_vol"
     done
 
