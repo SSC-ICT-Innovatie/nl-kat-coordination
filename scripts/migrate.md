@@ -52,13 +52,13 @@ This performs a full migration, creates backups but does not remove the old volu
 
 ## Options
 
-| Option                   | Description                                                           |
-| ------------------------ | --------------------------------------------------------------------- |
-| `--dry-run`              | Show what will happen without making changes                          |
-| `--backup-path <path>`   | Directory to store backups (default: `/tmp/openkatbackups`)           |
-| `--compose-file <path>`  | Docker Compose file for the new stack (default: `docker-compose.yml`) |
-| `--cleanup-only`         | Skip migration; only remove old volumes                               |
-| `--remove-old-volumes`   | Remove legacy volumes after migration                                 |
+| Option                  | Description                                                           |
+| ----------------------- | --------------------------------------------------------------------- |
+| `--dry-run`             | Show what will happen without making changes                          |
+| `--backup-path <path>`  | Directory to store backups (default: `/tmp/openkatbackups`)           |
+| `--compose-file <path>` | Docker Compose file for the new stack (default: `docker-compose.yml`) |
+| `--cleanup-only`        | Skip migration; only remove old volumes                               |
+| `--remove-old-volumes`  | Remove legacy volumes after migration                                 |
 
 ---
 
