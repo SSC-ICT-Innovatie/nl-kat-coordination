@@ -78,7 +78,7 @@ jobs:
         run: python "${{ github.workspace }}/.github/scripts/coverage_file_fixer.py" "${{ matrix.module['name'] }}-coverage/coverage.xml" "${{ matrix.module['prefix_path'] }}"
 
       - name: Upload fixed coverage file
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: "${{ matrix.module['name'] }}-coverage-fixed"
           path: "${{ matrix.module['name'] }}-coverage/coverage.xml"
