@@ -4,7 +4,7 @@ on:
   pull_request:
     paths:
       - rocky/**
-      - .github/workflows/rocky_translations.yml
+      - .github/workflows/rocky_makelang.yml
 
 permissions:
   contents: write
