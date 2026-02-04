@@ -1,6 +1,15 @@
 name: Rocky – Update translations (suggested fixes)
 
 on:
+  push:
+    branches:
+      - "main"
+      - "release-*"
+    tags:
+      - "*"
+    paths:
+      - rocky/**
+      - .github/workflows/rocky_makelang.yml
   pull_request:
     paths:
       - rocky/**
@@ -104,7 +113,6 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         id: push
         run: |
-          BASE="${{ github.event.pull_request.base.ref }}"
           PR="${{ github.event.pull_request.number }}"
           BRANCH="translation-fixes/pr-${PR}"
 
