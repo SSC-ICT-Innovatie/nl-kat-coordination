@@ -52,13 +52,13 @@ This performs a full migration, creates backups but does not remove the old volu
 
 ## Options
 
-| Option | Description |
-|--------|-------------|
-| `--dry-run` | Show what will happen without making changes |
-| `--backup-path <path>` | Directory to store backups (default: `/tmp/openkatbackups`) |
-| `--compose-file <path>` | Docker Compose file for the new stack (default: `docker-compose.yml`) |
-| `--cleanup-only` | Skip migration; only remove old volumes |
-| `--remove-old-volumes` | Remove legacy volumes after migration |
+| Option                   | Description                                                           |
+| ------------------------ | --------------------------------------------------------------------- |
+| `--dry-run`              | Show what will happen without making changes                          |
+| `--backup-path <path>`   | Directory to store backups (default: `/tmp/openkatbackups`)           |
+| `--compose-file <path>`  | Docker Compose file for the new stack (default: `docker-compose.yml`) |
+| `--cleanup-only`         | Skip migration; only remove old volumes                               |
+| `--remove-old-volumes`   | Remove legacy volumes after migration                                 |
 
 ---
 
@@ -99,7 +99,7 @@ The script:
 
 ### Step 3 — Remove Old Volumes
 
-If `--remove-old-volumes` was specified, old volumes where deleted, 
+If `--remove-old-volumes` was specified, old volumes have already been deleted,
 if not, use the `--clean-up-only` mode to finish migration later.
 
 ---
@@ -149,4 +149,3 @@ This skips migration and only removes legacy volumes.
 - Old volumes are removed only if explicitly requested
 - Dry run mode is fully non-destructive
 - The script exits on errors to avoid partial migrations
-EOF
