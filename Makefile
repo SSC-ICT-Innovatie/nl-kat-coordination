@@ -134,10 +134,10 @@ requirements:
 		echo "Processing $$path..."; \
 		uv lock --project $$project_dir --check; \
 		echo "Exporting main dependencies..."; \
-		uv export --project $$project_dir --no-default-groups --format requirements.txt -o $$project_dir/requirements.txt; \
+		uv export --project $$project_dir --no-default-groups --format requirements-txt -o $$project_dir/requirements.txt; \
 		if grep -q "\[dependency-groups\]" $$path && grep -q "dev =" $$path; then \
 			echo "Exporting dev dependencies..."; \
-			uv export --project $$project_dir --group dev --format requirements.txt -o $$project_dir/requirements-dev.txt; \
+			uv export --project $$project_dir --group dev --format requirements-txt -o $$project_dir/requirements-dev.txt; \
 		else \
 			echo "No dev group, skipping requirements-dev.txt..."; \
 		fi; \
