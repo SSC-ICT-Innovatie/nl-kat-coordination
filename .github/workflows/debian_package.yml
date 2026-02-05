@@ -91,7 +91,7 @@ jobs:
             --workdir /app
 
       - name: Upload .deb to artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
           path: ${{matrix.package}}/build/${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_${{ matrix.package == 'cveapi' && 'all' || 'amd64' }}.deb
@@ -112,14 +112,14 @@ jobs:
           echo "RELEASE_VERSION=$(python -m setuptools_scm | sed s/rc/~rc/)" >> $GITHUB_ENV
 
       - name: Download all assets for debian12
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: kat-debian12-${{ env.RELEASE_VERSION }}
           merge-multiple: true
           pattern: kat-*_debian12.deb
 
       - name: Download all assets for ubuntu22.04
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: kat-ubuntu22.04-${{ env.RELEASE_VERSION }}
           merge-multiple: true

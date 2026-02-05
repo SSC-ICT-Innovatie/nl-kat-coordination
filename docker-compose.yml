@@ -36,7 +36,7 @@ services:
       APPS: "ROCKY BYTES KATALOGUS SCHEDULER"
 
   crux:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:main"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
