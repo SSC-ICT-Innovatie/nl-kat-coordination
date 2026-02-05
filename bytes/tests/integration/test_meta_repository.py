@@ -270,8 +270,7 @@ def test_filter_normalizer_meta(meta_repository: SQLMetaDataRepository) -> None:
     normalizer_metas = meta_repository.get_normalizer_meta(NormalizerMetaFilter(organization="test", limit=10))
     assert len(normalizer_metas) == 2
 
-    meta_ids = [meta.id for meta in normalizer_metas.all()]
-    normalizer_metas = meta_repository.get_normalizer_metas(meta_ids)
+    normalizer_metas = meta_repository.get_normalizer_metas(normalizer_metas)
     assert len(normalizer_metas) == 2
 
     normalizer_metas = meta_repository.get_normalizer_meta(NormalizerMetaFilter(organization="test2", limit=10))
