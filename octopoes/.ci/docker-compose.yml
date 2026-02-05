@@ -29,7 +29,7 @@ services:
       - .:/app/octopoes
 
   xtdb:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:v1.1.0"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
     ports:
       - "127.0.0.1:29002:3000"
 
