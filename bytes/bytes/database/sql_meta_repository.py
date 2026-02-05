@@ -85,7 +85,9 @@ class SQLMetaDataRepository(MetaDataRepository):
 
         return to_normalizer_meta(normalizer_meta_in_db)
 
-    def get_normalizer_metas(self, normalizer_metas: list[uuid.UUID], query_filter: NormalizerMetaFilter) -> dict[str, NormalizerMeta]:
+    def get_normalizer_metas(
+        self, normalizer_metas: list[uuid.UUID], query_filter: NormalizerMetaFilter
+    ) -> dict[str, NormalizerMeta]:
         query = self.session.query(NormalizerMetaInDB)
         meta_ids = [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas]
         query = query.filter(NormalizerMetaInDB.id.in_(meta_ids))
