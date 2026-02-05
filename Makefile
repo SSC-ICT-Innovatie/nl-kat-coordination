@@ -70,7 +70,7 @@ pull:
 	docker compose pull
 
 # Upgrade to the latest release without losing persistent data. Usage: `make upgrade version=v1.5.0` (version is optional)
-VERSION?=$(shell curl -sSf "https://api.github.com/repos/minvws/nl-kat-coordination/tags" | jq -r '[.[].name | select(. | contains("rc") | not)][0]')
+VERSION?=$(shell curl -sSf "https://api.github.com/repos/SSC-ICT-Innovatie/nl-kat-coordination/tags" | jq -r '[.[].name | select(. | contains("rc") | not)][0]')
 upgrade: down fetch
 	git checkout $(VERSION)
 	make kat

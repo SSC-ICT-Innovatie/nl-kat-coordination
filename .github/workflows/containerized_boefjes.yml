@@ -27,36 +27,37 @@ jobs:
       contents: read
       packages: write
     strategy:
+      fail-fast: false
       matrix:
         include:
           - dockerfile: boefjes/boefjes/plugins/kat_nmap_tcp/boefje.Dockerfile
-            image: openkat/nmap
+            image: openkat-nmap
           - dockerfile: boefjes/boefjes/plugins/kat_dnssec/boefje.Dockerfile
-            image: openkat/dns-sec
+            image: openkat-dns-sec
           - dockerfile: boefjes/boefjes/plugins/kat_export_http/boefje.Dockerfile
-            image: openkat/export-http
+            image: openkat-export-http
           - dockerfile: boefjes/boefjes/plugins/kat_nikto/boefje.Dockerfile
-            image: openkat/nikto
+            image: openkat-nikto
           - dockerfile: boefjes/images/generic.Dockerfile
-            image: openkat/generic
+            image: openkat-generic
           - dockerfile: boefjes/boefjes/plugins/kat_adr_validator/boefje.Dockerfile
-            image: openkat/adr-validator
+            image: openkat-adr-validator
           - dockerfile: boefjes/boefjes/plugins/kat_masscan/boefje.Dockerfile
-            image: openkat/masscan
+            image: openkat-masscan
           - dockerfile: boefjes/boefjes/plugins/kat_nuclei_cve/boefje.Dockerfile
-            image: openkat/nuclei
+            image: openkat-nuclei
           - dockerfile: boefjes/boefjes/plugins/kat_ssl_certificates/boefje.Dockerfile
-            image: openkat/ssl-certificates
+            image: openkat-ssl-certificates
           - dockerfile: boefjes/boefjes/plugins/kat_ssl_scan/boefje.Dockerfile
-            image: openkat/ssl-scan
+            image: openkat-ssl-scan
           - dockerfile: boefjes/boefjes/plugins/kat_testssl_sh_ciphers/boefje.Dockerfile
-            image: openkat/testssl-sh-ciphers
+            image: openkat-testssl-sh-ciphers
           - dockerfile: boefjes/boefjes/plugins/kat_webpage_capture/boefje.Dockerfile
-            image: openkat/webpage-capture
+            image: openkat-webpage-capture
           - dockerfile: boefjes/boefjes/plugins/kat_wpscan/boefje.Dockerfile
-            image: openkat/wp-scan
+            image: openkat-wp-scan
           - dockerfile: boefjes/boefjes/plugins/kat_pdio_subfinder/boefje.Dockerfile
-            image: openkat/pdio-subfinder
+            image: openkat-pdio-subfinder
     runs-on: ubuntu-24.04
     services:
       registry:
@@ -90,18 +91,18 @@ jobs:
         uses: docker/metadata-action@c1e51972afc2121e065aed6d45c65596fe445f3f # v5.8.0
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
+            docker.underdark.nl/librekat/${{ matrix.image }}
           tags: |
             type=ref,event=branch
             type=ref,event=tag
             type=ref,event=pr
 
-      - name: Login to GitHub Container Registry
+      - name: Login to librekat Container Registry
         uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.underdark.nl
+          username: ${{ secrets.librekat_user }}
+          password: ${{ secrets.librekat_password }}
 
       - name: Build container image for ${{ matrix.image }}
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0

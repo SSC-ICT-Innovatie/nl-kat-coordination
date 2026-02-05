@@ -14,7 +14,7 @@ jobs:
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mula-coverage-unit
           path: mula/.coverage
@@ -30,7 +30,7 @@ jobs:
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mula-coverage-integration
           path: mula/.coverage
@@ -55,7 +55,7 @@ jobs:
         run: pip install coverage[toml]
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: mula-coverage-*
 
@@ -67,7 +67,7 @@ jobs:
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: mula-coverage
           path: mula/coverage.xml
