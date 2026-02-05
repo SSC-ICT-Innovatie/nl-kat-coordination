@@ -122,10 +122,7 @@ def get_normalizer_metas(
     offset: int = 0,
     meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
 ) -> dict[str, NormalizerMeta]:
-    query_filter = NormalizerMetaFilter(
-        limit=limit,
-        offset=offset,
-    )
+    query_filter = NormalizerMetaFilter(limit=limit, offset=offset)
     return meta_repository.get_normalizer_metas(normalizer_metas, query_filter)
 
 
