@@ -96,7 +96,7 @@ class SQLMetaDataRepository(MetaDataRepository):
                 query = query.offset(query_filter.offset)
             if query_filter.limit:
                 query = query.limit(query_filter.limit)
-        query.order_by(NormalizerMetaInDB.started_at.asc)
+        query.order_by(NormalizerMetaInDB.started_at.asc())
         results: dict[str, NormalizerMeta] = {}
         for normalizer_meta in query:
             results[str(normalizer_meta.id)] = to_normalizer_meta(normalizer_meta)
