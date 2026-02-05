@@ -24,7 +24,7 @@ jobs:
         working-directory: octopoes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: octopoes-coverage-unit
           path: octopoes/.coverage
@@ -41,7 +41,7 @@ jobs:
         working-directory: octopoes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: octopoes-coverage-integration
           path: octopoes/.coverage
@@ -66,7 +66,7 @@ jobs:
         run: pip install coverage[toml]
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: octopoes-coverage-*
 
@@ -78,7 +78,7 @@ jobs:
         working-directory: octopoes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: octopoes-coverage
           path: octopoes/coverage.xml
