@@ -98,7 +98,7 @@ if ! "$CLEANUP_ONLY"; then
             docker run --rm \
                 --mount "type=volume,src=${old_vol},dst=/data" \
                 --mount "type=bind,src=$(dirname "$backup_file"),dst=/backup" \
-                 "$IMAGE" \
+                "$IMAGE" \
                 sh -c "cd /data && tar -czf /backup/$(basename "$backup_file") ."
 
             if ! "$DRY_RUN"; then
