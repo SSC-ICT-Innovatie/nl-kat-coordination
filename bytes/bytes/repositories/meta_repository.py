@@ -85,7 +85,9 @@ class MetaDataRepository:
     def get_normalizer_meta(self, query_filter: NormalizerMetaFilter) -> list[NormalizerMeta]:
         raise NotImplementedError()
 
-    def get_normalizer_metas(self, normalizer_metas: list[UUID], query_filter: NormalizerMetaFilter) -> dict[str, NormalizerMeta]:
+    def get_normalizer_metas(
+        self, normalizer_metas: list[UUID], query_filter: NormalizerMetaFilter
+    ) -> dict[str, NormalizerMeta]:
         raise NotImplementedError()
 
     def save_raw(self, raw: RawData) -> UUID:
