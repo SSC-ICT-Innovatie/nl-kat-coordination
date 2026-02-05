@@ -38,7 +38,7 @@ build: images
 base-image:
 	docker build -f **/base.Dockerfile -t openkat/boefje-base:latest .
 
-export REGISTRY=ghcr.io/minvws/openkat
+export REGISTRY=docker.underdark.nl/librekat
 
 # TODO: nikto cannot run as a worker as it uses a custom javascript image. We should differentiate between these images.
 # Build the images for the containerized boefjes
