@@ -46,7 +46,7 @@ def test_filter_plugins(test_client, organisation):
     assert len(response.json()) == 9
 
     response = test_client.get(
-        f"/v1/organisations/{organisation.id}/plugins", params={"oci_image": "ghcr.io/minvws/openkat/nmap:latest"}
+        f"/v1/organisations/{organisation.id}/plugins", params={"oci_image": "docker.underdark.nl/librekat/nmap:latest"}
     )
     assert {x["id"] for x in response.json()} == {"nmap", "nmap-ip-range", "nmap-udp", "nmap-ports"}
 
@@ -57,7 +57,7 @@ def test_filter_plugins(test_client, organisation):
     assert response.status_code == 201
 
     response = test_client.get(
-        f"/v1/organisations/{organisation.id}/plugins", params={"oci_image": "ghcr.io/minvws/openkat/nmap:latest"}
+        f"/v1/organisations/{organisation.id}/plugins", params={"oci_image": "docker.underdark.nl/librekat/nmap:latest"}
     )
     assert {x["id"] for x in response.json()} == {"nmap", "nmap-ip-range", "nmap-udp", "nmap-ports", "test_plugin"}
 
