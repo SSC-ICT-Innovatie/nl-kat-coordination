@@ -190,7 +190,7 @@ class BytesClient:
     def get_normalizer_metas(self, normalizer_metas: list[uuid.UUID | str]) -> dict:
         # Note: we assume organization permissions are handled before requesting raw data.
 
-        params = {
+        params: dict[str, int | list[str]] = {
             "limit": len(normalizer_metas),
             "normalizer_metas": [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas],
         }
