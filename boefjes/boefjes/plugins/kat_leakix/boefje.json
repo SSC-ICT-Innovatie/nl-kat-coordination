@@ -7,6 +7,10 @@
     "IPAddressV6",
     "Hostname"
   ],
+  "environment_keys": [
+    "LEAKIX_API",
+    "LEAKIX_SEARCH_MODE"
+  ],
   "scan_level": 1,
   "oci_image": "ghcr.io/minvws/openkat/generic:latest",
   "oci_arguments": [

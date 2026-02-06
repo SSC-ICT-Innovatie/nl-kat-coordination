@@ -36,12 +36,33 @@ SEVERITY_LEAKSTAGE_MAPPING = {
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    results = json.loads(raw)
+    data = json.loads(raw)
+
+    # Support both old format (list) and new format (dict with metadata)
+    if isinstance(data, list):
+        # Old format: raw list of events
+        results = data
+        search_mode = "permissive"
+        input_pk = input_ooi["primary_key"]
+    else:
+        # New format: dict with search_mode, input_ooi, and results
+        results = data.get("results", [])
+        search_mode = data.get("search_mode", "strict")
+        input_pk = data.get("input_ooi", input_ooi["primary_key"])
 
     pk_ooi_reference = Reference.from_str(input_ooi["primary_key"])
     network_reference = Network(name="internet").reference
 
+    # Extract input value for filtering
+    input_value = input_pk.split("|")[-1] if input_pk else None
+    is_hostname_input = input_pk and input_pk.startswith("Hostname|")
+
     for event in results:
+        # In strict mode, filter hostname results to exact matches only
+        if search_mode == "strict" and is_hostname_input and input_value:
+            event_host = event.get("host", "")
+            if event_host.lower() != input_value.lower():
+                continue
         # TODO: add event["time"] to results. This is the time the event was first seen. Date of last scan is not
         #  included in the result.
         # TODO: LeakIX want to include a confidence per plugin, since some plugins have more false positives than others
