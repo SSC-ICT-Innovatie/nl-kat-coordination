@@ -18,4 +18,22 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
-      - uses: j178/prek-action@v1
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        id: setup-python
+        with:
+          python-version: 3.13
+          cache: pip
+
+      - name: Install prek
+        run: pip install prek
+
+      - name: Cache prek
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/prek
+          key: prek|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run prek
+        run: prek run --all-files --show-diff-on-failure --color always
