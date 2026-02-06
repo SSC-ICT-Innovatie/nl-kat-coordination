@@ -54,7 +54,7 @@ services:
       - .env.test
 
   xtdb:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:v1.1.0"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
 
   rabbitmq:
     restart: on-failure
