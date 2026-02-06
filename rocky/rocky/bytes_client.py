@@ -187,6 +187,18 @@ class BytesClient:
 
         return response.json()
 
+    def get_normalizer_metas(self, normalizer_metas: list[uuid.UUID | str]) -> dict:
+        # Note: we assume organization permissions are handled before requesting raw data.
+
+        params = {
+            "limit": len(normalizer_metas),
+            "normalizer_metas": [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas],
+        }
+        response = self.session.get("/bytes/normalizer_metas", params=params)
+        response.raise_for_status()
+
+        return response.json()
+
     def login(self):
         self.session.headers.update(self._authorization_header())
 
