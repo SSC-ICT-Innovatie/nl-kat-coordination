@@ -85,6 +85,23 @@ class SQLMetaDataRepository(MetaDataRepository):
 
         return to_normalizer_meta(normalizer_meta_in_db)
 
+    def get_normalizer_metas(
+        self, normalizer_metas: list[uuid.UUID], query_filter: NormalizerMetaFilter | None = None
+    ) -> dict[str, NormalizerMeta]:
+        query = self.session.query(NormalizerMetaInDB)
+        meta_ids = [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas]
+        query = query.filter(NormalizerMetaInDB.id.in_(meta_ids))
+        if query_filter:
+            if query_filter.offset:
+                query = query.offset(query_filter.offset)
+            if query_filter.limit:
+                query = query.limit(query_filter.limit)
+        query.order_by(NormalizerMetaInDB.started_at.asc())
+        results: dict[str, NormalizerMeta] = {}
+        for normalizer_meta in query:
+            results[str(normalizer_meta.id)] = to_normalizer_meta(normalizer_meta)
+        return results
+
     def get_normalizer_meta(self, query_filter: NormalizerMetaFilter) -> list[NormalizerMeta]:
         logger.debug("Querying normalizer meta: %s", query_filter.model_dump_json())
 

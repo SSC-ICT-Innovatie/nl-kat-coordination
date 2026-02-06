@@ -115,6 +115,17 @@ def get_normalizer_meta_by_id(
         raise HTTPException(status_code=codes.NOT_FOUND, detail="Normalizer meta not found") from error
 
 
+@router.get("/normalizer_metas", response_model=dict[str, NormalizerMeta], tags=[NORMALIZER_META_TAG])
+def get_normalizer_metas(
+    normalizer_metas: list[UUID] = Query(...),
+    limit: int = 100,
+    offset: int = 0,
+    meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
+) -> dict[str, NormalizerMeta]:
+    query_filter = NormalizerMetaFilter(limit=limit, offset=offset)
+    return meta_repository.get_normalizer_metas(normalizer_metas, query_filter)
+
+
 @router.get("/normalizer_meta", response_model=list[NormalizerMeta], tags=[NORMALIZER_META_TAG])
 def get_normalizer_meta(
     organization: str,
