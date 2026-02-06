@@ -133,7 +133,7 @@ upgraderequirements:
 		project_dir=$$(dirname $$path); \
 		echo "Processing $$path..."; \
 		uv lock --project $$project_dir --upgrade; \
-		echo "New Lock file generated. Use \`make requiements\` to update requiements files..."
+		echo "New Lock file generated. Use \`make requirements\` to update requirements files..."
 	done
 
 requirements:
