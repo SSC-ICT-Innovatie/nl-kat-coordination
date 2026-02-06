@@ -6,7 +6,7 @@ SHELL := bash
 HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs
+.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs upgraderequirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -125,6 +125,16 @@ docs:
 
 	PYTHONPATH=$(PYTHONPATH):boefjes/:bytes/:mula/:octopoes/ sphinx-build -b html --fail-on-warning docs/source docs/_build
 
+
+upgraderequirements:
+	@echo "Upgrading all required dependencies using uv..."
+	files=$$(find . -name pyproject.toml -maxdepth 2); \
+	for path in $$files; do \
+		project_dir=$$(dirname $$path); \
+		echo "Processing $$path..."; \
+		uv lock --project $$project_dir --upgrade; \
+		echo "New Lock file generated. Use \`make requiements\` to update requiements files..."
+	done
 
 requirements:
 	@echo "Generating requirements.txt files for all projects using uv..."
