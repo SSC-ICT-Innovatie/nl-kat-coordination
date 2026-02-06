@@ -6,7 +6,7 @@
     "SoftwareInstance"
   ],
   "scan_level": 1,
-  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_image": "docker.underdark.nl/librekat/generic:latest",
   "oci_arguments": [
     "kat_snyk.main"
   ]

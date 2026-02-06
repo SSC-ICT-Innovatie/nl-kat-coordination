@@ -14,6 +14,6 @@
     "application/localstorage+json"
   ],
   "scan_level": 2,
-  "oci_image": "ghcr.io/minvws/openkat/webpage-capture:latest",
+  "oci_image": "docker.underdark.nl/librekat/webpage-capture:latest",
   "oci_arguments": []
 }
