@@ -79,8 +79,11 @@ def boefje_output(
     scheduler_client: SchedulerAPIClient = Depends(get_scheduler_client),
     bytes_client: BytesAPIClient = Depends(get_bytes_client),
 ) -> dict[str, uuid.UUID]:
+    logger.info("Received boefje output", task_id=task_id, boefje_output=boefje_output.model_dump_json())
     task = get_task_from_scheduler(task_id, scheduler_client)
     boefje_meta = task.data
+
+    logger.info("Boefje meta", boefje_meta=boefje_meta.model_dump_json())
 
     if task.status is not TaskStatus.RUNNING:
         raise HTTPException(status_code=403, detail="Task does not have status running")
