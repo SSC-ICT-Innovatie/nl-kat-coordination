@@ -3,7 +3,7 @@ import uuid
 from base64 import b64decode, b64encode
 from collections.abc import Set
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Sequence
 
 import httpx
 import structlog
@@ -187,7 +187,7 @@ class BytesClient:
 
         return response.json()
 
-    def get_normalizer_metas(self, normalizer_metas: list[uuid.UUID | str]) -> dict:
+    def get_normalizer_metas(self, normalizer_metas: Sequence[uuid.UUID | str]) -> dict:
         # Note: we assume organization permissions are handled before requesting raw data.
 
         params: dict[str, int | list[str]] = {
