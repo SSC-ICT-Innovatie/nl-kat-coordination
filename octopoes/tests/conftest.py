@@ -223,7 +223,7 @@ def xtdb_session(xtdb_http_client: XTDBHTTPClient) -> Iterator[XTDBSession]:
     xtdb_http_client.create_node()
 
     yield XTDBSession(xtdb_http_client)
-
+    xtdb_http_client.sync()
     xtdb_http_client.delete_node()
 
 
