@@ -1,12 +1,12 @@
 name: SonarCloud
 
 on:
-  workflow_dispatch:
+  #workflow_dispatch:
 
-  push:
-    branches:
-      - "main"
-  pull_request:
+  #push:
+  #  branches:
+  #    - "main"
+  #pull_request:
 
 jobs:
   octopoes-tests:
