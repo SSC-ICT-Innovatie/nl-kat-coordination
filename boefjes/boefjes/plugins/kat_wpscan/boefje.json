@@ -6,6 +6,6 @@
     "SoftwareInstance"
   ],
   "scan_level": 2,
-  "oci_image": "ghcr.io/minvws/openkat/wp-scan:latest",
+  "oci_image": "docker.underdark.nl/librekat/wp-scan:latest",
   "oci_arguments": []
 }

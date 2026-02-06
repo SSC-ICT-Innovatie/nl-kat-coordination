@@ -7,7 +7,7 @@
     "HostnameHTTPURL"
   ],
   "scan_level": 3,
-  "oci_image": "ghcr.io/minvws/openkat/nuclei:latest",
+  "oci_image": "docker.underdark.nl/librekat/nuclei:latest",
   "oci_arguments": [
     "/root/nuclei-templates/http/takeovers/",
     "-jsonl"
