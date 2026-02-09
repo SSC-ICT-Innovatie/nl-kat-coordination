@@ -43,6 +43,14 @@ class TaskStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+ACTIVE_TASK_STATUSES = (
+    TaskStatus.PENDING,
+    TaskStatus.QUEUED,
+    TaskStatus.DISPATCHED,
+    TaskStatus.RUNNING,
+)
+
+
 class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)
 
@@ -80,6 +88,18 @@ class TaskDB(Base):
 
 
 Index("ix_tasks_status_queued", TaskDB.scheduler_id, TaskDB.status, postgresql_where=TaskDB.status == TaskStatus.QUEUED)
+Index("ix_tasks_organisation", TaskDB.organisation)
+Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
+Index("ix_tasks_status", TaskDB.status)
+Index("ix_tasks_type", TaskDB.type)
+Index("ix_tasks_hash", TaskDB.hash)
+# only have one 'active or to be active task on the queue per schedule_id'
+Index(
+    "ix_tasks_active_per_schedule",
+    TaskDB.schedule_id,
+    unique=True,
+    postgresql_where=TaskDB.status.in_(ACTIVE_TASK_STATUSES),
+)
 
 
 class NormalizerTask(BaseModel):

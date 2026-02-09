@@ -6,6 +6,7 @@ from sqlalchemy import Boolean, Column, DateTime, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.sql.schema import Index
 
 from scheduler.utils import GUID, cron
 
@@ -61,3 +62,8 @@ class ScheduleDB(Base):
     deadline_at = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     modified_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
+
+Index("ix_schedules_enabled", ScheduleDB.enabled)
+Index("ix_schedules_hash", ScheduleDB.hash)
+Index("ix_schedules_organisation", ScheduleDB.organisation)
+Index("ix_schedules_scheduler_id", ScheduleDB.scheduler_id)

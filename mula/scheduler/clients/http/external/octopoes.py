@@ -1,4 +1,4 @@
-from collections.abc import Generator
+from collections.abc import Iterator
 from datetime import datetime, timezone
 
 import httpx
@@ -27,25 +27,27 @@ class Octopoes(HTTPService):
     @exception_handler
     def get_objects_by_object_types(
         self, organisation_id: str, object_types: list[str], scan_level: list[int]
-    ) -> Generator[OOI, None, None]:
+    ) -> Iterator[OOI]:
         """Get all oois from octopoes"""
         if scan_level is None:
             scan_level = []
 
         url = f"{self.host}/{organisation_id}/objects"
 
+        pagesize = 1000
         params = {
             "types": object_types,
             "scan_level": [s for s in scan_level],
             "offset": 0,
-            "limit": 1000,
+            "limit": pagesize,
             "valid_time": datetime.now(timezone.utc),
         }
 
-        count = 1  # just to get the loop going
-
-        # Loop over the paginated results
-        while params["offset"] < count:  # type: ignore
+        count = pagesize
+        processed = 0
+        offset = 0
+        while count > processed:
+            params["offset"] = offset
             try:
                 response = self.get(url, params=params)
             except httpx.HTTPStatusError as e:
@@ -54,8 +56,10 @@ class Octopoes(HTTPService):
                 raise
 
             list_objects = ListObjectsResponse(**response.json())
-            count = list_objects.count
-            params["offset"] = params["offset"] + params["limit"]  # type: ignore
+            # set count to actual count on first query result.
+            if offset == 0:
+                count = list_objects.count
+            processed = processed + pagesize
             yield from list_objects.items
 
     @exception_handler
@@ -75,6 +79,15 @@ class Octopoes(HTTPService):
             if e.response.status_code == httpx.codes.NOT_FOUND:
                 return []
             raise
+
+    @exception_handler
+    def get_objects(self, organisation_id: str, references: list[str]) -> list[OOI] | None:
+        """Get an ooi from octopoes"""
+        url = f"{self.host}/{organisation_id}/objects/by_reference"
+        response = self.get(url, params={"references": references, "valid_time": datetime.now(timezone.utc)})
+        list_objects = response.json()
+        for ooi in list_objects:
+            yield OOI(**list_objects[ooi])
 
     @exception_handler
     def get_object(self, organisation_id: str, reference: str) -> OOI | None:

@@ -422,10 +422,7 @@ class Scheduler(abc.ABC):
         Returns:
             True if there is space on the queue, False otherwise.
         """
-        if self.queue.maxsize == 0:
-            return True
-
-        if self.queue.maxsize <= self.queue.qsize():
+        if self.queue.maxsize != 0 and (self.queue.maxsize - self.queue.qsize()) <= 0:
             return False
 
         return True

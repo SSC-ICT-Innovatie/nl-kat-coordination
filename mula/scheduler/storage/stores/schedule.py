@@ -1,6 +1,7 @@
-from datetime import datetime
+from collections.abc import Iterable
+from datetime import datetime, timezone
 
-from sqlalchemy import exc
+from sqlalchemy import exc, select, not_
 
 from scheduler import models
 from scheduler.storage import DBConn
@@ -81,6 +82,46 @@ class ScheduleStore:
                 return None
 
             return models.Schedule.model_validate(schedule_orm)
+
+    @retry()
+    @exception_handler
+    def get_due_schedules(
+        self,
+        *,
+        scheduler_id: str,
+        now: datetime | None = None,
+        active_statuses: Iterable[models.TaskStatus] | None = None,
+        limit: int | None = None,
+    ):
+        now = now or datetime.now(timezone.utc)
+        active_statuses = tuple(active_statuses or (models.TaskStatus.QUEUED,))
+
+        active_task_exists = (
+            select(models.TaskDB.id)
+            .where(
+                models.TaskDB.schedule_id == models.ScheduleDB.id,
+                models.TaskDB.status.in_(active_statuses),
+            )
+            .exists()
+        )
+
+        stmt = (
+            select(models.ScheduleDB)
+            .where(
+                models.ScheduleDB.scheduler_id == scheduler_id,
+                models.ScheduleDB.enabled.is_(True),
+                models.ScheduleDB.deadline_at.is_not(None),
+                models.ScheduleDB.deadline_at < now,
+                not_(active_task_exists),
+            )
+            .order_by(models.ScheduleDB.deadline_at.asc())
+        )
+
+        if limit:
+            stmt = stmt.limit(limit)
+        with self.dbconn.session.begin() as session:
+            schedules = session.scalars(stmt).all()
+            return [models.Schedule.model_validate(s) for s in schedules]
 
     @retry()
     @exception_handler
