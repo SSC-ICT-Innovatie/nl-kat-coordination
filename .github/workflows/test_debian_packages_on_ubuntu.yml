@@ -171,11 +171,11 @@ jobs:
 
       - name: Get the OpenKAT artifacts
         run: |
-          curl -Ls https://github.com/dekkers/xtdb-http-multinode/releases/download/v1.0.6/xtdb-http-multinode_1.0.6_all.deb --output xtdb-http-multinode_1.0.6_all.deb;
+          curl -Ls https://github.com/underdarknl/xtdb-http-multinode/releases/download/v1.1.2/xtdb-http-multinode_1.1.2_all.deb --output xtdb-http-multinode.deb;
 
       - name: Install the artifacts
         run: |
-          sudo apt install ./kat-*.deb ./xtdb-http-multinode_*_all.deb
+          sudo apt install ./kat-*.deb ./xtdb-http-multinode.deb
 
       - name: Update configs for rabbitmq
         run: |
