@@ -1,9 +1,9 @@
 import json
 import uuid
 from base64 import b64decode, b64encode
-from collections.abc import Set
+from collections.abc import Sequence, Set
 from datetime import datetime, timezone
-from typing import Any, Sequence
+from typing import Any
 
 import httpx
 import structlog
