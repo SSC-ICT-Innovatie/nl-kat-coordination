@@ -7,6 +7,13 @@
       "maxLength": 128,
       "type": "string",
       "description": "A LeakIX API key (see https://leakix.net/api-documentation)."
+    },
+    "LEAKIX_SEARCH_MODE": {
+      "title": "LEAKIX_SEARCH_MODE",
+      "type": "string",
+      "enum": ["strict", "permissive"],
+      "default": "strict",
+      "description": "Search mode: 'strict' (default) returns only exact matches for the scanned asset. 'permissive' returns all results from the netblock/AS (may include thousands of unrelated assets)."
     }
   },
   "required": [
