@@ -121,6 +121,7 @@ repos:
           \.xml$ |
           \.svg$ |
           poetry.lock$ |
+          yarn.lock |
           pyproject.toml$ |
           requirements-.*.txt$ |
           retirejs.json$ |
@@ -129,7 +130,6 @@ repos:
           ^boefjes/tests/examples/inputs/cve-result-without-cvss.json |
           ^boefjes/tests/examples |
           ^rocky/assets/js/vendor |
-          ^rocky/assets/css/themes/soft/fonts/tabler-icons/tabler-icons.scss$ |
           ^rocky/tests/stubs |
           ^rocky/reports/report_types/aggregate_organisation_report |
           ^rocky/reports/report_types/multi_organization_report |
@@ -190,7 +190,6 @@ repos:
           \.html$ |
           \.json$ |
           \.min\.js$ |
-          ^rocky/assets/css/themes/soft/fonts |
           ^rocky/assets/vendors |
           ^docs/source/_static
           )

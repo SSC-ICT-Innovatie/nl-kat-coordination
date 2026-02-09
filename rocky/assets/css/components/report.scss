@@ -1,5 +1,7 @@
+@use "../variables" as theme;
+
 %chapter {
-  gap: var(--spacing-grid-500);
+  gap: theme.$spacing-grid-500;
   padding: 0;
 
   > div {
@@ -23,10 +25,10 @@
       }
 
       > div {
-        gap: var(--spacing-grid-300);
+        gap: theme.$spacing-grid-300;
 
         > div {
-          gap: var(--spacing-grid-200);
+          gap: theme.$spacing-grid-200;
         }
       }
     }
@@ -37,7 +39,7 @@
   --max-line-length-breakpoint-hyphens: initial;
 
   article {
-    gap: var(--spacing-grid-500);
+    gap: theme.$spacing-grid-500;
 
     @media screen and (width >= 90rem) {
       padding-left: 0;
@@ -69,19 +71,19 @@
       &.report-content {
         display: flex;
         flex-direction: column;
-        gap: var(--spacing-grid-500);
+        gap: theme.$spacing-grid-500;
 
         > section {
           > div {
             display: flex;
             width: 100%;
-            gap: var(--spacing-grid-200);
+            gap: theme.$spacing-grid-200;
             padding: 0;
 
             > div {
               width: 100%;
               margin: 1rem 0;
-              gap: var(--spacing-grid-200);
+              gap: theme.$spacing-grid-200;
 
               &:last-child {
                 margin-bottom: 0;
@@ -94,10 +96,9 @@
 
     table {
       caption {
-        --table-caption-font-size: var(--heading-normal-font-size);
-        --table-caption-text-color: var(--text-color-dark);
-
-        font-family: var(--headings-base-set-font-family);
+        font-size: theme.$heading-normal-font-size;
+        color: theme.$text-color-dark;
+        font-family: theme.$headings-base-set-font-family;
         font-weight: 600;
       }
     }
@@ -107,21 +108,21 @@
 span {
   &.label {
     max-width: 18.75rem;
-    border: 1px solid var(--colors-white);
-    border-radius: var(--spacing-grid-050);
-    padding: var(--spacing-grid-050) var(--spacing-grid-100);
-    font-size: var(--tile-font-size);
-    font-weight: var(--list-item-completed-font-weight);
+    border: 1px solid theme.$colors-white;
+    border-radius: theme.$spacing-grid-050;
+    padding: theme.$spacing-grid-050 theme.$spacing-grid-100;
+    font-size: theme.$tile-font-size;
+    font-weight: theme.$list-item-completed-font-weight;
 
     &.tags-color-grey-2 {
-      color: var(--colors-grey-800);
-      background-color: var(--colors-grey-100);
+      color: theme.$colors-grey-800;
+      background-color: theme.$colors-grey-100;
     }
   }
 }
 
 .tile-report-types-link {
-  font-size: var(--tag-font-size);
+  font-size: theme.$tag-font-size;
   text-decoration: none;
   font-weight: 700;
 

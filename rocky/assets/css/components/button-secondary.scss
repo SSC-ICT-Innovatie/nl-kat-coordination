@@ -1,0 +1,15 @@
+@use "../variables" as theme;
+
+button,
+a.button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  &.secondary {
+    --link-icon-text-color: theme.$button-secondary-text-color;
+
+    &:hover {
+      --link-icon-text-color: theme.$button-secondary-hover-text-color;
+    }
+  }
+}

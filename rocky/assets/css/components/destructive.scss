@@ -1,31 +1,33 @@
+@use "../variables" as theme;
+
 @mixin destructive-text-element {
   &.destructive {
-    color: var(--color-alert-negative);
+    color: theme.$color-alert-negative;
 
     &:hover {
-      color: var(--color-alert-negative-darker);
+      color: theme.$color-alert-negative-darker;
     }
   }
 }
 
 @mixin destructive-button {
   &.destructive {
-    color: var(--colors-white);
-    background-color: var(--color-alert-negative);
+    color: theme.$colors-white;
+    background-color: theme.$color-alert-negative;
 
     &:hover {
-      background-color: var(--color-alert-negative-darker);
+      background-color: theme.$color-alert-negative-darker;
     }
 
-    &.ghost {
-      color: var(--color-alert-negative);
-      background-color: var(--color-white);
-      border-color: var(--colors-grey-200);
+    &.secondary {
+      color: theme.$color-alert-negative;
+      background-color: theme.$color-white;
+      border-color: theme.$colors-grey-200;
       border-width: 1px;
 
       &:hover {
-        color: var(--color-alert-negative);
-        border-color: var(--color-alert-negative-darker);
+        color: theme.$color-alert-negative;
+        border-color: theme.$color-alert-negative-darker;
       }
     }
   }

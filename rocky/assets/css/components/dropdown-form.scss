@@ -1,3 +1,4 @@
+@use "../variables" as theme;
 @use "destructive";
 
 .dropdown {
@@ -23,7 +24,7 @@
       input[type="submit"],
       input[type="reset"] {
         background-color: transparent;
-        color: var(--link-text-color);
+        color: theme.$link-text-color;
         border: 0;
         padding: 0;
         min-width: 0;
@@ -32,17 +33,17 @@
         border-radius: 0;
 
         &:hover {
-          color: var(--colors-blue-700);
+          color: theme.$colors-blue-700;
         }
 
         @include destructive.destructive-button;
 
         &.destructive {
-          color: var(--color-alert-negative);
+          color: theme.$color-alert-negative;
           background-color: transparent;
 
           &:hover {
-            color: var(--color-alert-negative-darker);
+            color: theme.$color-alert-negative-darker;
             background-color: transparent;
           }
         }
@@ -53,18 +54,18 @@
       padding-left: 0;
 
       /* Negative margin added to allow li background color to full width of the form */
-      margin-left: calc($form-padding-sides * -1);
-      margin-right: calc($form-padding-sides * -1);
+      margin-left: $form-padding-sides * -1;
+      margin-right: $form-padding-sides * -1;
 
       li {
-        min-height: var(--collapsing-element-list-item-min-height);
+        min-height: theme.$collapsing-element-list-item-min-height;
         display: flex;
         align-items: center;
         padding-left: $form-padding-sides;
         padding-right: $form-padding-sides;
 
         &:hover {
-          background-color: var(--colors-black-05);
+          background-color: theme.$colors-black-05;
         }
       }
     }

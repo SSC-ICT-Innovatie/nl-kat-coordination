@@ -1,9 +1,11 @@
+@use "../variables" as theme;
+
 /* Dropdown listing */
 
 .dropdown-list {
-  box-shadow: var(--language-selector-list-box-shadow);
-  border-radius: var(--language-selector-list-border-radius);
-  border-width: var(--language-selector-list-border-width);
-  border-style: var(--language-selector-list-border-style);
-  border-color: var(--language-selector-list-border-color);
+  box-shadow: theme.$language-selector-list-box-shadow;
+  border-radius: theme.$language-selector-list-border-radius;
+  border-width: theme.$language-selector-list-border-width;
+  border-style: theme.$language-selector-list-border-style;
+  border-color: theme.$language-selector-list-border-color;
 }

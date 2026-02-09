@@ -3,25 +3,31 @@
 <div>
     <nav class="tabs" aria-label="{% translate "List of tasks" %}">
         <ul>
-            <li {% if view == "boefjes_tasks" %}aria-current="page"{% endif %}>
+            <li>
                 {% if organization %}
-                    <a href="{% url 'boefjes_task_list' organization.code %}">{% translate "Boefjes" %}</a>
+                    <a href="{% url 'boefjes_task_list' organization.code %}"
+                       {% if view == "boefjes_tasks" %}aria-current="page"{% endif %}>{% translate "Boefjes" %}</a>
                 {% else %}
-                    <a href="{% url 'all_boefjes_task_list' %}">{% translate "Boefjes" %}</a>
+                    <a href="{% url 'all_boefjes_task_list' %}"
+                       {% if view == "boefjes_tasks" %}aria-current="page"{% endif %}>{% translate "Boefjes" %}</a>
                 {% endif %}
             </li>
-            <li {% if view == "normalizers_tasks" %}aria-current="page"{% endif %}>
+            <li>
                 {% if organization %}
-                    <a href="{% url 'normalizers_task_list' organization.code %}">{% translate "Normalizers" %}</a>
+                    <a href="{% url 'normalizers_task_list' organization.code %}"
+                       {% if view == "normalizers_tasks" %}aria-current="page"{% endif %}>{% translate "Normalizers" %}</a>
                 {% else %}
-                    <a href="{% url 'all_normalizers_task_list' %}">{% translate "Normalizers" %}</a>
+                    <a href="{% url 'all_normalizers_task_list' %}"
+                       {% if view == "normalizers_tasks" %}aria-current="page"{% endif %}>{% translate "Normalizers" %}</a>
                 {% endif %}
             </li>
-            <li {% if view == "report_tasks" %}aria-current="page"{% endif %}>
+            <li>
                 {% if organization %}
-                    <a href="{% url 'reports_task_list' organization.code %}">{% translate "Reports" %}</a>
+                    <a href="{% url 'reports_task_list' organization.code %}"
+                       {% if view == "report_tasks" %}aria-current="page"{% endif %}>{% translate "Reports" %}</a>
                 {% else %}
-                    <a href="{% url 'all_reports_task_list' %}">{% translate "Reports" %}</a>
+                    <a href="{% url 'all_reports_task_list' %}"
+                       {% if view == "report_tasks" %}aria-current="page"{% endif %}>{% translate "Reports" %}</a>
                 {% endif %}
             </li>
         </ul>

@@ -1,0 +1,25 @@
+@use "../variables" as theme;
+
+h1 {
+  max-width: theme.$h1-max-line-length-max-width;
+}
+
+h2 {
+  max-width: theme.$h2-max-line-length-max-width;
+}
+
+h3 {
+  max-width: theme.$h3-max-line-length-max-width;
+}
+
+h4 {
+  max-width: theme.$h4-max-line-length-max-width;
+}
+
+h5 {
+  max-width: theme.$h5-max-line-length-max-width;
+}
+
+h6 {
+  max-width: theme.$h6-max-line-length-max-width;
+}

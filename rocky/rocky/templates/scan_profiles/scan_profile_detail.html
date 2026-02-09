@@ -25,8 +25,8 @@
                     </div>
                     <div>
                         {% if perms.tools.can_set_clearance_level and organization_member.max_clearance_level >= ooi.scan_profile.level %}
-                            <button class="button ghost" data-modal-id="edit-clearance-level-modal">
-                                <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit clearance level" %}
+                            <button class="button secondary" data-modal-id="edit-clearance-level-modal">
+                                <icon aria-hidden="true" class="icon icon-paw"></icon>{% translate "Edit clearance level" %}
                             </button>
                         {% endif %}
                     </div>

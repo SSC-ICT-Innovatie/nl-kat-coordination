@@ -1,0 +1,18 @@
+@use "../variables" as theme;
+
+body {
+  > header {
+    @media screen and (min-width: $grid-m) {
+      nav,
+      nav.breadcrumb-bar {
+        padding-bottom: 0;
+        padding-top: 0;
+
+        > div {
+          padding-right: theme.$page-whitespace-right-grid-m;
+          padding-left: theme.$page-whitespace-left-grid-m;
+        }
+      }
+    }
+  }
+}

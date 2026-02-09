@@ -1,0 +1,31 @@
+/* Temporary layout styling until the new layout grid has been implemented */
+.expando-row > td {
+  > * {
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    width: auto;
+    float: left;
+    clear: both;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  > table {
+    width: 100%;
+    display: table;
+  }
+}
+
+/* Overrides the default first/last table cell exception */
+.expando-row th,
+.expando-row td {
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.expanded-row td,
+tr:first-of-type.expanded-row td {
+  border-bottom: 0;
+}

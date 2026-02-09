@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 .sticky-column {
   max-width: 100%;
   position: relative;
@@ -9,6 +11,6 @@
   }
 
   tr.expanded-row .sticky-cell {
-    background-color: var(--expando-rows-row-background-color);
+    background-color: theme.$expando-rows-row-background-color;
   }
 }

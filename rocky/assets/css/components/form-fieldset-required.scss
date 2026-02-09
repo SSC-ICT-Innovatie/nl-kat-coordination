@@ -1,0 +1,16 @@
+@use "../variables" as theme;
+
+/* Form fieldset required */
+
+form.horizontal-view div.required {
+  height: theme.$form-horizontal-view-fieldset-nota-bene-required-margin-bottom +
+    1.75rem;
+
+  label {
+    margin-top: theme.$nota-bene-height + (theme.$form-input-min-height * 0.25);
+  }
+
+  select + div + .help-button {
+    margin-top: 2rem;
+  }
+}

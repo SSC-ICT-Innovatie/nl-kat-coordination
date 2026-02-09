@@ -9,7 +9,7 @@
                name="current_url"
                value="{{ request.get_full_path }}#plugin_{{ plugin.id|slugify }}">
         <button type="submit"
-                class="button ghost {% if plugin.enabled %}destructive{% else %}plugin-enabled{% endif %}">
+                class="button secondary {% if plugin.enabled %}destructive{% else %}plugin-enabled{% endif %}">
             {% if not plugin.enabled %}
                 {% translate "Enable" %}
             {% else %}

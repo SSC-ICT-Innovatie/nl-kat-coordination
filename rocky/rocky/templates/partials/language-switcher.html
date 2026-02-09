@@ -2,13 +2,15 @@
 
 {% get_language_info for LANGUAGE_CODE as lang %}
 <div class="language-selector">
-    <div class="dropdown">
+    <div class="language-selector-options"
+         aria-describedby="language-selector-description"
+         aria-expanded="false">
         <button type="button"
                 aria-controls="language-switcher"
                 aria-expanded="false"
-                class="dropdown-button ghost">
+                class="dropdown-button secondary">
             {{ lang.name_local|title }}
-            <span aria-hidden="true" class="icon ti-chevron-down"></span>
+            <span class="icon icon-chevron-down" aria-hidden="true"></span>
         </button>
         <ul id="language-switcher" role="listbox" class="dropdown-list">
             {% for language in languages %}

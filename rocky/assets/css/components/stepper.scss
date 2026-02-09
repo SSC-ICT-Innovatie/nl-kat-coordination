@@ -1,42 +1,39 @@
-/*
-Steps within a flow can be displayed using this partial.
-*/
-
-@import "stepper-variables";
+@use "../variables" as theme;
+@use "stepper-variables";
 
 .stepper {
-  border-top: var(--stepper-border-top);
-  width: var(--stepper-width);
+  border-top: theme.$stepper-border-top;
+  width: theme.$stepper-width;
 
   > ul {
-    padding: var(--stepper-padding);
-    width: var(--stepper-width);
+    padding: theme.$stepper-padding;
+    width: theme.$stepper-width;
 
     > li {
-      font-weight: var(--stepper-item-font-weight);
-      list-style-type: var(--stepper-item-list-style-type);
-      opacity: var(--stepper-item-opacity);
+      font-weight: theme.$stepper-item-font-weight;
+      list-style-type: theme.$stepper-item-list-style-type;
+      opacity: theme.$stepper-item-opacity;
 
       > a {
-        color: var(--stepper-item-link-color);
-        margin: var(--stepper-item-link-margin);
-        text-decoration: var(--stepper-item-link-text-decoration);
+        color: theme.$stepper-item-link-color;
+        margin: theme.$stepper-item-link-margin;
+        text-decoration: theme.$stepper-item-link-text-decoration;
 
         &:hover {
-          text-decoration: var(--stepper-item-link-hover-text-decoration);
+          text-decoration: theme.$stepper-item-link-hover-text-decoration;
         }
       }
 
       a:visited {
-        color: var(--stepper-item-link-visited-color);
-        text-decoration: var(--stepper-item-link-visited-text-decoration);
+        color: theme.$stepper-item-link-visited-color;
+        text-decoration: theme.$stepper-item-link-visited-text-decoration;
       }
     }
 
     /* Selects all steps until the active step */
     > li:not(li[aria-label="current-step"] ~ li) {
-      font-weight: var(--list-item-completed-font-weight);
-      opacity: var(--list-item-completed-opacity);
+      font-weight: theme.$list-item-completed-font-weight;
+      opacity: theme.$list-item-completed-opacity;
     }
   }
 
@@ -44,18 +41,18 @@ Steps within a flow can be displayed using this partial.
     > ul {
       display: flex;
       flex-direction: row;
-      padding: var(--stepper-above-breakpoint-padding);
+      padding: theme.$stepper-above-breakpoint-padding;
 
       > li {
-        padding-top: var(--stepper-item-above-breakpoint-padding-top);
+        padding-top: theme.$stepper-item-above-breakpoint-padding-top;
 
         &::before {
-          content: var(--stepper-divider-icon);
+          content: theme.$stepper-divider-icon;
           display: inline-flex;
-          font-family: var(--stepper-divider-icon-font-family);
-          font-size: var(--stepper-divider-icon-font-size);
-          font-weight: var(--stepper-divider-icon-font-weight);
-          margin: var(--stepper-divider-icon-margin);
+          font-family: theme.$stepper-divider-icon-font-family;
+          font-size: theme.$stepper-divider-icon-font-size;
+          font-weight: theme.$stepper-divider-icon-font-weight;
+          margin: theme.$stepper-divider-icon-margin;
         }
 
         &:first-child {
@@ -65,46 +62,46 @@ Steps within a flow can be displayed using this partial.
         }
 
         &:last-child {
-          flex-grow: var(--stepper-item-above-breakpoint-flex-grow);
-          max-width: var(--stepper-item-above-breakpoint-max-width);
+          flex-grow: theme.$stepper-item-above-breakpoint-flex-grow;
+          max-width: theme.$stepper-item-above-breakpoint-max-width;
         }
       }
 
       /* Selects all steps until the active step */
       > li:not(li[aria-label="current-step"] ~ li) {
-        font-weight: var(--list-item-completed-above-breakpoint-font-weight);
-        opacity: var(--list-item-completed-above-breakpoint-opacity);
-        border-top: var(--list-item-completed-above-breakpoint-border-top);
-        margin-top: var(--list-item-completed-above-breakpoint-margin-top);
+        font-weight: theme.$list-item-completed-above-breakpoint-font-weight;
+        opacity: theme.$list-item-completed-above-breakpoint-opacity;
+        border-top: theme.$list-item-completed-above-breakpoint-border-top;
+        margin-top: theme.$list-item-completed-above-breakpoint-margin-top;
       }
 
       > li[aria-label="current-step"] {
         position: relative;
 
         a {
-          padding-top: var(--stepper-item-current-link-padding-top);
+          padding-top: theme.$stepper-item-current-link-padding-top;
         }
 
         &::after {
-          content: var(--stepper-item-current-icon);
-          font-family: var(--stepper-item-current-icon-font-family);
-          display: var(--stepper-item-current-icon-display);
-          font-weight: var(--stepepr-item-current-icon-font-weight);
-          color: var(--stepper-item-current-icon-color);
+          content: theme.$stepper-item-current-icon;
+          font-family: theme.$stepper-item-current-icon-font-family;
+          display: theme.$stepper-item-current-icon-display;
+          font-weight: theme.$stepepr-item-current-icon-font-weight;
+          color: theme.$stepper-item-current-icon-color;
 
           /* Positioning */
-          position: var(--stepper-item-current-icon-position);
-          top: var(--stepper-item-current-icon-top);
-          bottom: var(--stepper-item-current-icon-bottom);
-          right: var(--stepper-item-current-icon-right);
-          left: var(--stepper-item-current-icon-left);
-          padding: var(--stepper-item-current-icon-padding);
+          position: theme.$stepper-item-current-icon-position;
+          top: theme.$stepper-item-current-icon-top;
+          bottom: theme.$stepper-item-current-icon-bottom;
+          right: theme.$stepper-item-current-icon-right;
+          left: theme.$stepper-item-current-icon-left;
+          padding: theme.$stepper-item-current-icon-padding;
           z-index: 0;
 
           /* Size */
-          font-size: var(--stepper-item-current-icon-font-size);
-          height: var(--stepper-item-current-icon-height);
-          line-height: var(--stepper-item-current-icon-line-height);
+          font-size: theme.$stepper-item-current-icon-font-size;
+          height: theme.$stepper-item-current-icon-height;
+          line-height: theme.$stepper-item-current-icon-line-height;
         }
       }
     }

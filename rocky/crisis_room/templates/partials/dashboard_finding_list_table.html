@@ -38,12 +38,12 @@
                         {% endif %}
                         {% if column_value == "tree" %}
                             <a aria-label="Navigate to tree view of {{ finding.finding.human_readable }}"
-                               class="actions icon-only ti-subtask button"
+                               class="actions icon-only icon-subtask button"
                                href="{% ooi_url 'ooi_tree' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
                         {% endif %}
                         {% if column_value == "graph" %}
                             <a aria-label="Navigate to graph view of {{ finding.finding.human_readable }}"
-                               class="actions icon-only ti-affiliate button"
+                               class="actions icon-only icon-affiliate button"
                                href="{% ooi_url 'ooi_graph' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
                         {% endif %}
                     </td>
@@ -51,8 +51,8 @@
                 <td class="actions sticky-cell">
                     <button type="button"
                             class="expando-button"
-                            data-icon-open-class="icon ti-chevron-down"
-                            data-icon-close-class="icon ti-chevron-up"
+                            data-icon-open-class="icon icon-chevron-down"
+                            data-icon-close-class="icon icon-chevron-up"
                             data-close-label="{% translate "Close details" %}">{% translate "Open details" %}</button>
                 </td>
             </tr>
@@ -146,7 +146,7 @@
                                     <dt>{% translate "Tree" %}</dt>
                                     <dd>
                                         <a aria-label="Navigate to tree view of {{ finding.finding.human_readable }}"
-                                           class="actions icon-only ti-subtask button"
+                                           class="actions icon-only icon-subtask button"
                                            href="{% ooi_url 'ooi_tree' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
                                     </dd>
                                 </div>
@@ -156,7 +156,7 @@
                                     <dt>{% translate "Graph" %}</dt>
                                     <dd>
                                         <a aria-label="Navigate to graph view of {{ finding.finding.human_readable }}"
-                                           class="actions icon-only ti-affiliate button"
+                                           class="actions icon-only icon-affiliate button"
                                            href="{% ooi_url 'ooi_graph' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
                                     </dd>
                                 </div>

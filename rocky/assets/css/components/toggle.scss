@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 button,
 a,
 input[type="button"],
@@ -16,20 +18,20 @@ input[type="reset"] {
     box-sizing: border-box;
 
     /* Styling */
-    border-radius: var(--border-radius-l);
-    padding: var(--spacing-grid-150);
+    border-radius: theme.$border-radius-l;
+    padding: theme.$spacing-grid-150;
     width: 2.75rem;
     height: 2.75rem;
-    border: 1px solid var(--colors-purrple-300);
+    border: 1px solid theme.$colors-purrple-300;
 
     /* Text and icon styling */
-    background-color: var(--colors-white);
-    color: var(--colors-purrple-500);
+    background-color: theme.$colors-white;
+    color: theme.$colors-purrple-500;
     text-decoration: none;
     font-size: 0;
 
     &::before {
-      color: var(--colors-purrple-500);
+      color: theme.$colors-purrple-500;
       padding: 0;
     }
 
@@ -39,21 +41,21 @@ input[type="reset"] {
 
     /* States */
     &[aria-current="page"] {
-      background-color: var(--colors-purrple-200);
-      border-color: var(--colors-purrple-200);
+      background-color: theme.$colors-purrple-200;
+      border-color: theme.$colors-purrple-200;
 
       &::before {
-        color: var(--colors-purrple-700);
+        color: theme.$colors-purrple-700;
       }
     }
 
     &:hover,
     &:active {
-      border-color: var(--colors-purrple-500);
+      border-color: theme.$colors-purrple-500;
     }
 
     &:focus {
-      outline: 2px solid var(--colors-purrple-500);
+      outline: 2px solid theme.$colors-purrple-500;
       outline-offset: 0.125rem;
       z-index: 2;
       position: relative;
@@ -64,7 +66,7 @@ input[type="reset"] {
 a {
   &.toggle-button {
     &:visited {
-      color: var(--colors-purrple-500);
+      color: theme.$colors-purrple-500;
     }
   }
 }

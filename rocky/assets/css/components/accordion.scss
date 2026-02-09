@@ -1,0 +1,39 @@
+@use "../variables" as theme;
+
+.accordion {
+  padding: 0;
+
+  > li {
+    padding: 0;
+
+    button {
+      border-width: 0 0 1px;
+      border-radius: 0;
+      border-color: theme.$colors-grey-200;
+      max-width: 100%;
+      word-wrap: break-word;
+
+      &[aria-expanded="true"] {
+        border-width: 0;
+
+        + div {
+          border-bottom-width: 2px;
+        }
+      }
+    }
+
+    &:first-child {
+      button {
+        border-top-width: 1px;
+      }
+    }
+  }
+
+  &.break-title {
+    > li {
+      button {
+        word-break: break-all;
+      }
+    }
+  }
+}

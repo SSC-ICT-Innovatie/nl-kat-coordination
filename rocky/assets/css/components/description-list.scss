@@ -1,0 +1,44 @@
+@use "../variables" as theme;
+
+%dl-styling {
+  width: 100%;
+
+  > div {
+    dd {
+      max-width: theme.$max-line-length-max-width;
+    }
+  }
+
+  @media (width >= 35rem) {
+    > div {
+      flex-wrap: nowrap;
+      box-sizing: border-box;
+
+      dt {
+        min-width: theme.$description-list-item-title-width;
+      }
+    }
+  }
+}
+
+dl {
+  @extend %dl-styling;
+}
+
+main div,
+main section,
+main article,
+main section > div,
+main article > div {
+  box-sizing: border-box;
+
+  dl,
+  form dl,
+  form fieldset dl {
+    @extend %dl-styling;
+  }
+}
+
+main section form dl div {
+  flex-direction: row;
+}

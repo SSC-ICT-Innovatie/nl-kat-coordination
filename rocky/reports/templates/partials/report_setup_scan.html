@@ -90,7 +90,7 @@
                         {% endfor %}
                     </div>
                     <div class="toolbar">
-                        <button class="button ghost"
+                        <button class="button secondary"
                                 id="more-suggested-plugins"
                                 data-hide-text="{% translate "Hide suggested plugins" %}"
                                 data-show-text="{% translate "Show more suggested plugins" %}"></button>
@@ -107,7 +107,7 @@
                 {% include "forms/report_form_fields.html" %}
 
                 <button type="submit">
-                    {% translate "Enable selected plugins and continue" %}<span class="icon ti-chevron-right"></span>
+                    {% translate "Enable selected plugins and continue" %}<span class="icon icon-chevron-right" aria-hidden="true"></span>
                 </button>
             </form>
         {% else %}

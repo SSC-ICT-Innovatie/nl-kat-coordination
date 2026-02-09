@@ -32,7 +32,7 @@
                 <div class="toolbar">
                     {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
                         <a href="#new-dashboard-item-modal"
-                           class="button ghost"
+                           class="button secondary"
                            data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
                         {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" %}
 
@@ -51,13 +51,13 @@
                     {% if ooi_list %}
                         <div class="horizontal-view toolbar">
                             {% if may_update_clearance_level and perms.tools.can_set_clearance_level %}
-                                <button class="button ghost" data-modal-id="edit-clearance-level-modal">
-                                    <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit clearance level" %}
+                                <button class="button secondary" data-modal-id="edit-clearance-level-modal">
+                                    <icon aria-hidden="true" class="icon icon-paw"></icon>{% translate "Edit clearance level" %}
                                 </button>
                             {% endif %}
                             {% if perms.tools.can_delete_oois %}
-                                <button class="ghost destructive" data-modal-id="delete-ooi-modal">
-                                    <icon aria-hidden="true" class="icon ti-trash"></icon>{% translate "Delete" %}
+                                <button class="secondary destructive" data-modal-id="delete-ooi-modal">
+                                    <icon aria-hidden="true" class="icon icon-trash"></icon>{% translate "Delete" %}
                                 </button>
                             {% endif %}
                         </div>
@@ -87,7 +87,7 @@
                                             class="sort">
                                         {{ table_columns.object_type }}
                                         <span aria-hidden="true"
-                                              class="icon ti-{% if order_by == "object_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "object_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
+                                              class="icon icon-{% if order_by == "object_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "object_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                     </button>
                                 </th>
                                 <th scope="col"
@@ -99,7 +99,7 @@
                                             lass="sort">
                                         {{ table_columns.clearance_level }}
                                         <span aria-hidden="true"
-                                              class="icon ti-{% if order_by == "scan_level" and sorting_order == "asc" %}chevron-up{% elif order_by == "scan_level" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
+                                              class="icon icon-{% if order_by == "scan_level" and sorting_order == "asc" %}chevron-up{% elif order_by == "scan_level" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                     </button>
                                 </th>
                                 <th>{{ table_columns.clearance_type }}</th>

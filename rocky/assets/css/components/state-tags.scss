@@ -1,11 +1,11 @@
-/* State tags */
+@use "../variables" as theme;
 
 .new {
   @extend %tag;
 
-  background-color: var(--colors-blue-50);
-  border: 1px solid var(--colors-blue-300);
-  color: var(--colors-blue-600);
+  background-color: theme.$colors-blue-50;
+  border: 1px solid theme.$colors-blue-300;
+  color: theme.$colors-blue-600;
 }
 
 .tag {
@@ -22,20 +22,20 @@
   }
 
   &.critical {
-    background-color: var(--colors-red-150);
-    border: 1px solid var(--risk-level-critical);
-    color: var(--colors-orange-700);
+    background-color: theme.$colors-red-150;
+    border: 1px solid theme.$risk-level-critical;
+    color: theme.$colors-orange-700;
   }
 
   &.medium {
-    background-color: var(--colors-yellow-50);
-    border: 1px solid var(--colors-yellow-300);
-    color: var(--color-alert-warning);
+    background-color: theme.$colors-yellow-50;
+    border: 1px solid theme.$colors-yellow-300;
+    color: theme.$color-alert-warning;
   }
 
   &.secure {
-    background-color: var(--colors-green-200);
-    border: 1px solid var(--colors-green-500);
-    color: var(--colors-green-700);
+    background-color: theme.$colors-green-200;
+    border: 1px solid theme.$colors-green-500;
+    color: theme.$colors-green-700;
   }
 }

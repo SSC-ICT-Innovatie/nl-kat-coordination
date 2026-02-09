@@ -1,0 +1,27 @@
+@use "../variables" as theme;
+
+/* Layout form overrides */
+section,
+article,
+header nav,
+footer,
+div,
+form {
+  &.layout-form {
+    margin: theme.$layout-form-margin;
+  }
+}
+
+section,
+article,
+header nav,
+footer,
+div {
+  &.layout-form {
+    padding: 0;
+  }
+}
+
+:root {
+  --layout-form-margin: 0;
+}

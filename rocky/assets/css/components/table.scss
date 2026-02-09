@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 td,
 tr {
   .icon {
@@ -6,62 +8,62 @@ tr {
   }
 
   &.confirmation {
-    background-color: var(--notification-confirmation-background-color);
-    border-width: var(--notification-confirmation-border-width);
-    border-style: var(--notification-confirmation-border-style);
-    border-color: var(--notification-confirmation-border-color);
+    background-color: theme.$notification-confirmation-background-color;
+    border-width: theme.$notification-confirmation-border-width;
+    border-style: theme.$notification-confirmation-border-style;
+    border-color: theme.$notification-confirmation-border-color;
 
     &::before {
-      content: var(--notification-confirmation-icon-before-content);
+      content: theme.$notification-confirmation-icon-before-content;
     }
 
     &::after {
-      content: var(--notification-confirmation-icon-after-content);
+      content: theme.$notification-confirmation-icon-after-content;
     }
   }
 
   &.error {
-    background-color: var(--notification-error-background-color);
-    border-width: var(--notification-error-border-width);
-    border-style: var(--notification-error-border-style);
-    border-color: var(--notification-error-border-color);
+    background-color: theme.$notification-error-background-color;
+    border-width: theme.$notification-error-border-width;
+    border-style: theme.$notification-error-border-style;
+    border-color: theme.$notification-error-border-color;
 
     &::before {
-      content: var(--notification-error-icon-before-content);
+      content: theme.$notification-error-icon-before-content;
     }
 
     &::after {
-      content: var(--notification-error-icon-after-content);
+      content: theme.$notification-error-icon-after-content;
     }
   }
 
   &.warning {
-    background-color: var(--notification-warning-background-color);
-    border-width: var(--notification-warning-border-width);
-    border-style: var(--notification-warning-border-style);
-    border-color: var(--notification-warning-border-color);
+    background-color: theme.$notification-warning-background-color;
+    border-width: theme.$notification-warning-border-width;
+    border-style: theme.$notification-warning-border-style;
+    border-color: theme.$notification-warning-border-color;
 
     &::before {
-      content: var(--notification-warning-icon-before-content);
+      content: theme.$notification-warning-icon-before-content;
     }
 
     &::after {
-      content: var(--notification-warning-icon-after-content);
+      content: theme.$notification-warning-icon-after-content;
     }
   }
 
   &.explanation {
-    background-color: var(--notification-explanation-background-color);
-    border-width: var(--notification-explanation-border-width);
-    border-style: var(--notification-explanation-border-style);
-    border-color: var(--notification-explanation-border-color);
+    background-color: theme.$notification-explanation-background-color;
+    border-width: theme.$notification-explanation-border-width;
+    border-style: theme.$notification-explanation-border-style;
+    border-color: theme.$notification-explanation-border-color;
 
     &::before {
-      content: var(--notification-explanation-icon-before-content);
+      content: theme.$notification-explanation-icon-before-content;
     }
 
     &::after {
-      content: var(--notification-explanation-icon-after-content);
+      content: theme.$notification-explanation-icon-after-content;
     }
   }
 }
@@ -69,8 +71,8 @@ tr {
 /* table alignment within table expando row */
 table tr.expando-row td {
   table td {
-    background-color: var(--application-base-background-color);
-    padding: var(--table-cell-padding);
+    background-color: theme.$application-base-background-color;
+    padding: theme.$table-cell-padding;
   }
 }
 
@@ -93,4 +95,68 @@ div.horizontal-scroll.nowrap tbody td,
 table.nowrap tbody td,
 table tbody td.nowrap {
   vertical-align: middle;
+}
+
+/* Table - Variables */
+
+%tfoot-td-styling {
+  background-color: theme.$table-foot-background-color;
+  border-bottom: 0;
+
+  a,
+  a:visited,
+  a:focus,
+  a:hover {
+    color: theme.$application-base-text-color;
+    text-decoration: none;
+  }
+}
+
+table {
+  td {
+    &.confirmation,
+    &.explanation,
+    &.error,
+    &.system,
+    &.warning {
+      border-width: 0 0 1px;
+    }
+  }
+
+  tfoot {
+    tr {
+      td {
+        @extend %tfoot-td-styling;
+      }
+
+      &:last-of-type td {
+        @extend %tfoot-td-styling;
+      }
+    }
+  }
+}
+
+table.action-buttons .actions {
+  a,
+  a.button,
+  button {
+    &.icon::before {
+      font-weight: normal;
+    }
+
+    margin: 0 auto;
+  }
+}
+
+table .actions {
+  padding: 0;
+  text-align: center;
+}
+
+table i.icon,
+table span.icon {
+  &::before {
+    display: inline-block;
+    line-height: 1.25;
+  }
 }

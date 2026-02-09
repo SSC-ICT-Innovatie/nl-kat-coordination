@@ -1,0 +1,20 @@
+@use "../variables" as theme;
+
+/* layout-fifty-fifty */
+$breakpoint: 42rem !default;
+
+section,
+article,
+footer,
+div,
+header nav {
+  &.fifty-fifty {
+    @media (min-width: $breakpoint) {
+      gap: theme.$layout-fifty-fifty-breakpoint-gap;
+
+      > * {
+        max-width: calc(50% - (theme.$layout-fifty-fifty-gap / 2));
+      }
+    }
+  }
+}

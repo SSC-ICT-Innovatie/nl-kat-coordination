@@ -45,7 +45,7 @@ function addToggleButton(sidemenu) {
 
   var openLabel = sidemenu.dataset.openLabel || "Zijbalknavigatie";
   var closeLabel = sidemenu.dataset.closeLabel || "Sluit zijbalknavigatie";
-  var toggleButtonType = sidemenu.dataset.toggleButtonType || "ghost";
+  var toggleButtonType = sidemenu.dataset.toggleButtonType || "secondary";
 
   var button = document.createElement("button");
   button.type = "button";

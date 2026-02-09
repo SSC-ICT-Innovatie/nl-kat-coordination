@@ -13,24 +13,24 @@
         {% if task.status.value in "completed,failed" %}
             {% if task.type == "normalizer" %}
                 <a class="button"
-                   href="{% url 'bytes_raw' organization_code=task.data.raw_data.boefje_meta.organization boefje_meta_id=task.data.raw_data.boefje_meta.id %}"><span class="icon ti-download"></span>{% translate "Download meta and raw data" %}</a>
+                   href="{% url 'bytes_raw' organization_code=task.data.raw_data.boefje_meta.organization boefje_meta_id=task.data.raw_data.boefje_meta.id %}"><span class="icon icon-download"></span>{% translate "Download meta and raw data" %}</a>
                 {% url 'task_list' organization_code=task.data.raw_data.boefje_meta.organization as taskurl %}
-                {% include "partials/single_action_form.html" with btn_text=_("Reschedule") btn_class="ghost" btn_icon="icon ti-refresh" action="reschedule_task" key="task_id" url=taskurl value=task.id %}
+                {% include "partials/single_action_form.html" with btn_text=_("Reschedule") btn_class="secondary" btn_icon="icon icon-refresh" action="reschedule_task" key="task_id" url=taskurl value=task.id %}
 
             {% elif task.type == "boefje" %}
                 <a class="button"
-                   href="{% url 'bytes_raw' organization_code=task.data.organization boefje_meta_id=task.id %}"><span class="icon ti-download"></span>{% translate "Download meta and raw data" %}</a>
+                   href="{% url 'bytes_raw' organization_code=task.data.organization boefje_meta_id=task.id %}"><span class="icon icon-download"></span>{% translate "Download meta and raw data" %}</a>
                 {% url 'task_list' organization_code=task.data.organization as taskurl %}
-                {% include "partials/single_action_form.html" with btn_text=_("Reschedule") btn_class="ghost" btn_icon="icon ti-refresh" action="reschedule_task" key="task_id" url=taskurl value=task.id %}
+                {% include "partials/single_action_form.html" with btn_text=_("Reschedule") btn_class="secondary" btn_icon="icon icon-refresh" action="reschedule_task" key="task_id" url=taskurl value=task.id %}
 
             {% endif %}
         {% else %}
             {% if task.type == "normalizer" %}
                 <a class="button"
-                   href="{% url 'download_task_meta' organization_code=task.data.raw_data.boefje_meta.organization task_id=task.id %}"><span class="icon ti-download"></span>{% translate "Download task data" %}</a>
+                   href="{% url 'download_task_meta' organization_code=task.data.raw_data.boefje_meta.organization task_id=task.id %}"><span class="icon icon-download"></span>{% translate "Download task data" %}</a>
             {% elif task.type == "boefje" %}
                 <a class="button"
-                   href="{% url 'download_task_meta' organization_code=task.data.organization task_id=task.id %}"><span class="icon ti-download"></span>{% translate "Download task data" %}</a>
+                   href="{% url 'download_task_meta' organization_code=task.data.organization task_id=task.id %}"><span class="icon icon-download"></span>{% translate "Download task data" %}</a>
             {% endif %}
         {% endif %}
     </div>

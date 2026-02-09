@@ -1,0 +1,15 @@
+@use "icons-svg" as svg;
+@use "icons-base64" as base64;
+
+$icon-format: "base64" !default;
+
+$icons: if($icon-format == "base64", base64.$icons, svg.$icons);
+
+@each $name, $url in $icons {
+  .icon-#{$name} {
+    mask-image: $url;
+    width: 1em;
+    height: 1em;
+    vertical-align: middle;
+  }
+}

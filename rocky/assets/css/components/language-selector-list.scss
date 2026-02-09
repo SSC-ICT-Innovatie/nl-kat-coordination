@@ -1,0 +1,78 @@
+@use "../variables" as theme;
+
+body > header nav {
+  .language-selector {
+    > div > button {
+      color: theme.$language-selector-list-button-text-color;
+      font-weight: bold;
+
+      &::after {
+        color: theme.$language-selector-list-button-text-color;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        max-height: 1.25rem; /* Set to same height as button line-height to prevent icons from increasing line-height */
+      }
+    }
+
+    ul li a,
+    ul li button {
+      padding: 0.125rem 1rem;
+      color: black;
+      font-weight: normal;
+    }
+
+    div[aria-expanded="true"] ul li[aria-current="true"] a::before,
+    .language-selector
+      div[aria-expanded="true"]
+      ul
+      li[aria-current="true"]
+      a::before {
+      content: "\ea5e";
+      font-family: theme.$language-selector-list-button-icon-font-family;
+      margin-left: theme.$language-selector-list-button-icon-margin-left;
+      font-size: theme.$language-selector-list-button-icon-font-size;
+      color: theme.$language-selector-list-button-icon-text-color;
+      margin-right: 0.5rem;
+    }
+  }
+
+  &.collapsible
+    .collapsible-toggle[aria-expanded="true"]
+    + .collapsing-element
+    .language-selector {
+    order: 1;
+
+    .language-selector-options {
+      > button {
+        display: none;
+      }
+
+      ul {
+        display: flex;
+        flex-direction: row;
+        box-shadow: none;
+        border: 0;
+        padding-left: theme.$collapsing-element-list-item-link-padding-left;
+        gap: 1rem;
+
+        li {
+          width: auto;
+          border: 0;
+
+          a {
+            padding: 0;
+            border: 0;
+
+            button {
+              min-width: 0;
+              color: theme.$colors-blue-600;
+              text-decoration: underline;
+              text-transform: uppercase;
+            }
+          }
+        }
+      }
+    }
+  }
+}

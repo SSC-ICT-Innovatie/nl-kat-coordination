@@ -1,0 +1,15 @@
+@use "../variables" as theme;
+
+/* Form radio */
+
+form input[type="radio"] {
+  margin: theme.$form-radio-margin;
+
+  & + label {
+    font-weight: normal;
+  }
+}
+
+form label:has(input[type="radio"]) {
+  font-weight: normal;
+}

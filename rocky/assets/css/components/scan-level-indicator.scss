@@ -1,20 +1,10 @@
-/*
-
-Scan level indicator
-
-Markup:
-<ul class="level-indicator l2">
-    <li></li>
-</ul>
-(L2)
-
-*/
+@use "../variables" as theme;
 
 .level-indicator {
   display: flex;
   flex-direction: row;
   line-height: 1rem;
-  gap: var(--spacing-grid-100);
+  gap: theme.$spacing-grid-100;
   background-color: transparent;
   padding: 0;
 
@@ -29,7 +19,7 @@ Markup:
     &::before {
       content: "\eff9";
       font-family: tabler-icons;
-      color: var(--colors-grey-500);
+      color: theme.$colors-grey-500;
       font-size: 1.5rem;
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
@@ -38,22 +28,22 @@ Markup:
 
   &.l1 li:first-child::before {
     content: "\f689";
-    color: var(--colors-purrple-500);
+    color: theme.$colors-purrple-500;
   }
 
   &.l2 li:nth-child(-n + 2)::before {
     content: "\f689";
-    color: var(--colors-purrple-600);
+    color: theme.$colors-purrple-600;
   }
 
   &.l3 li:nth-child(-n + 3)::before {
     content: "\f689";
-    color: var(--colors-purrple-700);
+    color: theme.$colors-purrple-700;
   }
 
   &.l4 li:nth-child(-n + 4)::before {
     content: "\f689";
-    color: var(--colors-purrple-800);
+    color: theme.$colors-purrple-800;
   }
 
   &-form {

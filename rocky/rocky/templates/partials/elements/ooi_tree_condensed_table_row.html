@@ -23,11 +23,11 @@
         </td>
         <td class="actions">
             <a href="{% ooi_url "ooi_tree" object.id organization.code query=mandatory_fields %}"
-               class="icon ti-subtask button">{% translate "Tree" %}</a>
+               class="icon icon-subtask button">{% translate "Tree" %}</a>
         </td>
         <td class="actions">
             <a href="{% ooi_url "ooi_graph" object.id organization.code query=mandatory_fields %}"
-               class="icon ti-affiliate button">{% translate "Graph" %}</a>
+               class="icon icon-affiliate button">{% translate "Graph" %}</a>
         </td>
     </tr>
     {% if object.children %}
@@ -40,7 +40,7 @@
     {% if object.ooi_type != "Job" %}
         <tr class="folded">
             <td style="padding-left: calc({{ object.tree_meta.depth }}rem * 2);">
-                <span class="icon ti-chevron-right"></span>
+                <span class="icon icon-chevron-right"></span>
                 ({{ object.tree_meta.child_count }}) {{ object.human_readable }}
                 {% if object.tree_meta.child_ids %}> {{ object.tree_meta.child_ids|join:' > ' }}{% endif %}
             </td>

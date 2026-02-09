@@ -1,0 +1,61 @@
+@use "../variables" as theme;
+
+body > header nav.collapsible-menu .collapsing-menu {
+  ul,
+  ol {
+    border: 1px solid theme.$colors-grey-100;
+    background-color: theme.$colors-white;
+
+    a[aria-current] {
+      background-color: theme.$colors-white;
+      font-weight: bold;
+
+      &::before {
+        content: "\ea5e";
+        font-family: theme.$language-selector-list-button-icon-font-family;
+        margin-left: theme.$language-selector-list-button-icon-margin-left;
+        font-size: theme.$language-selector-list-button-icon-font-size;
+        color: theme.$language-selector-list-button-icon-text-color;
+        margin-right: 0.5rem;
+      }
+    }
+  }
+
+  > div {
+    background-color: theme.$colors-white;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 1rem 0;
+    gap: 0.25rem;
+    box-sizing: border-box;
+
+    .language-selector {
+      padding: 0 2rem;
+      display: flex;
+      justify-content: stretch;
+      align-items: center;
+      min-height: 3rem;
+      background-color: theme.$colors-white;
+      width: 100%;
+      box-sizing: border-box;
+      order: 1;
+
+      .language-selector-options {
+        width: 100%;
+      }
+
+      button {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+      }
+    }
+
+    ul,
+    ol {
+      border: 0;
+    }
+  }
+}
