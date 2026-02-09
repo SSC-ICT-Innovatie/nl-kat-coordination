@@ -51,7 +51,7 @@ def test_filter_plugins(test_client, organisation):
     assert {x["id"] for x in response.json()} == {"nmap", "nmap-ip-range", "nmap-udp", "nmap-ports"}
 
     boefje = Boefje(
-        id="test_plugin", name="My test boefje", static=False, oci_image="ghcr.io/minvws/openkat/nmap:latest"
+        id="test_plugin", name="My test boefje", static=False, oci_image="docker.underdark.nl/librekat/nmap:latest"
     )
     response = test_client.post(f"/v1/organisations/{organisation.id}/plugins", content=boefje.model_dump_json())
     assert response.status_code == 201
