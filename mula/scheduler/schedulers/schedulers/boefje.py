@@ -268,7 +268,7 @@ class BoefjeScheduler(Scheduler):
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-new_boefjes") as executor:
             for boefje_task, org_id in boefje_tasks:
                 future = executor.submit(
-                    self.push_boefje_task, boefje_task, org_id, self.create_schedule, self.process_new_boefjes.__name__
+                    self.push_boefje_task, boefje_task, self.create_schedule, self.process_new_boefjes.__name__
                 )
                 future.add_done_callback(self.log_future_exceptions)
 
@@ -303,7 +303,10 @@ class BoefjeScheduler(Scheduler):
             for orga in oois.keys():
                 # do one call to octopoes to collect all ooi's ready for rescheduling for that orga
                 try:
-                    for ooi in self.ctx.services.octopoes.get_objects(orga, references=list(oois[orga].keys())):
+                    octopoes_oois = self.ctx.services.octopoes.get_objects(orga, references=list(oois[orga].keys()))
+                    if not octopoes_oois:
+                        continue
+                    for ooi in octopoes_oois:
                         oois[orga][ooi.primary_key] = ooi
                 except ReadTimeout:
                     self.logger.error(
@@ -353,7 +356,7 @@ class BoefjeScheduler(Scheduler):
                         # schedules for boefjes only.
                         self.logger.warning(
                             "Plugin is not a boefje, skipping",
-                            plugin_id=plugin.id,
+                            plugin=plugin,
                             schedule_id=schedule.id,
                             organisation_id=schedule.organisation,
                             scheduler_id=self.scheduler_id,
@@ -456,7 +459,7 @@ class BoefjeScheduler(Scheduler):
             boefje_id=boefje_task.boefje.id, input_ooi=boefje_task.input_ooi, organization_id=boefje_task.organization
         )
 
-        grace_period_passed = self.has_boefje_task_grace_period_passed(boefje_task, task_db, task_bytes)
+        grace_period_passed = self.has_boefje_task_grace_period_passed(task_db, task_bytes, boefje_task)
         if not grace_period_passed:
             self.logger.debug(
                 "Task has not passed grace period: %s",
@@ -523,7 +526,7 @@ class BoefjeScheduler(Scheduler):
                         task_hash=task.hash,
                         boefje_id=boefje_task.boefje.id,
                         ooi_primary_key=boefje_task.input_ooi,
-                        organisation_id=boefje_task.organization,,
+                        organisation_id=boefje_task.organization,
                         scheduler_id=self.scheduler_id,
                         caller=caller,
                     )
@@ -536,7 +539,7 @@ class BoefjeScheduler(Scheduler):
                     boefje_id=boefje_task.boefje.id,
                     ooi_primary_key=boefje_task.input_ooi,
                     scheduler_id=self.scheduler_id,
-                    organisation_id=boefje_task.organization,,
+                    organisation_id=boefje_task.organization,
                     caller=caller,
                 )
 
