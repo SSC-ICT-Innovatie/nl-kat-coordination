@@ -52,8 +52,9 @@ def test_organizationmember_permissions_superuser(superuser_member, django_asser
 
 
 def test_user_two_organization(client_user_two_organizations, organization, organization_b):
-    assert client_user_two_organizations.organizations == [organization, organization_b]
-    assert client_user_two_organizations.organizations_including_blocked == [organization, organization_b]
+    # Organisations are sorted by name in the model results
+    assert client_user_two_organizations.organizations == [organization_b, organization]
+    assert client_user_two_organizations.organizations_including_blocked == [organization_b, organization]
 
 
 def test_user_one_organization(client_member, organization_b):
