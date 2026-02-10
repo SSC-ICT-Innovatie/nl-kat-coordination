@@ -1,4 +1,4 @@
-name: Rocky Check if translations are up to date
+name: Rocky – Update translations (suggested fixes)
 
 on:
   push:
@@ -15,13 +15,29 @@ on:
       - rocky/**
       - .github/workflows/rocky_makelang.yml
 
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
 jobs:
-  makelang:
-    permissions:
-      contents: read
+  translations:
+    # Only same-repo PRs
+    if: >
+      github.event.pull_request.head.repo.full_name == github.repository
+
     runs-on: ubuntu-24.04
+
     steps:
-      - uses: actions/checkout@v5
+      # ============================================================
+      # CHECKOUT + SETUP
+      # ============================================================
+
+      - name: Checkout PR branch
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -32,17 +48,24 @@ jobs:
       - name: Install GNU gettext utilities
         run: sudo apt-get install -y --no-install-recommends gettext
 
-      - name: Install requirements.txt
+      - name: Install requirements
+        working-directory: ./rocky
         run: |
           grep -v git+https:// requirements.txt | pip install -r /dev/stdin
           grep git+https:// requirements.txt | pip install -r /dev/stdin
-        working-directory: ./rocky
 
       - name: Install Octopoes
-        run: pip install wheel setuptools && cd octopoes && python setup.py bdist_wheel && pip install dist/octopoes*.whl
+        run: |
+          pip install wheel setuptools
+          cd octopoes
+          python setup.py bdist_wheel
+          pip install dist/octopoes*.whl
 
-      - name: Generate the .pot file if source strings changed
-        run: make lang
+      # ============================================================
+      # GENERATE / UPDATE TRANSLATIONS
+      # ============================================================
+
+      - name: Update translation template (.pot)
         working-directory: ./rocky
         env:
           BYTES_API: http://bytes:8000
@@ -52,11 +75,201 @@ jobs:
           OCTOPOES_API: http://octopoes_api:80
           SCHEDULER_API: http://scheduler:8000
           SECRET_KEY: whatever
+        run: make lang
 
-      - name: Check if at least one source string changed
+      # ============================================================
+      # DETECT CHANGES
+      # ============================================================
+      - name: Detect translation template changes
+        id: diff
         run: |
-          changed_lines=$(git diff --unified=0 rocky/rocky/locale/django.pot | grep -E -o '^[+-](msgid|msgstr)' | wc -l)
-          if [ "$changed_lines" -ge 1 ]; then
-            echo "More than just POT-Creation-Date changed in django.pot"
+          set -e
+
+          POT="rocky/rocky/locale/django.pot"
+
+          unexpected=$(git diff --name-only | while read -r file; do
+            if [ "$file" != "$POT" ]; then
+              echo "$file"
+            fi
+          done)
+
+          if [ -n "$unexpected" ]; then
+            echo "Unexpected files changed by make lang:"
+            echo "$unexpected"
             exit 1
           fi
+
+          if git diff "$POT" | grep -E '^[+-](msgid|msgstr)' >/dev/null; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ============================================================
+      # CREATE / UPDATE FIXES BRANCH
+      # ============================================================
+
+      - name: Create and push translation fixes branch
+        if: steps.diff.outputs.changed == 'true'
+        id: push
+        run: |
+          PR="${{ github.event.pull_request.number }}"
+          BRANCH="translation-fixes/pr-${PR}"
+
+          git checkout -B "${BRANCH}"
+
+          git config user.name "translation bot"
+          git config user.email "translations@users.noreply.github.com"
+
+          git add rocky
+          git commit -m "Update translation files"
+
+          git push origin "${BRANCH}" --force
+
+          echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+
+      - name: Label PR
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                labels: ["has-language-update"],
+              });
+            } catch (_) {}
+
+      # ============================================================
+      # COMMENT ON PR
+      # ============================================================
+
+      - name: Comment or update existing comment
+        if: steps.diff.outputs.changed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const prBranch = context.payload.pull_request.head.ref;
+            const fixesBranch = "${{ steps.push.outputs.branch }}";
+
+            const compareUrl =
+              `https://github.com/${owner}/${repo}/compare/${prBranch}...${fixesBranch}`;
+
+            const prUrl =
+              `${compareUrl}?expand=1`;
+
+            const body = `
+            🌍 **Translations were out of date and have been updated automatically.**
+
+            Suggested fixes are available in:
+            \`${fixesBranch}\`
+
+            ### Review & apply in GitHub
+            - 🔍 **View diff:** ${compareUrl}
+            - 🔁 **Open a PR with fixes:** ${prUrl}
+
+            ### Apply locally
+            \`\`\`bash
+            git fetch origin
+            git merge origin/${fixesBranch}
+            # or
+            git cherry-pick origin/${fixesBranch}
+            \`\`\`
+            `;
+
+            const { data: comments } =
+              await github.rest.issues.listComments({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+              });
+
+            const existing = comments.find(c =>
+              c.user?.type === "Bot" &&
+              c.body?.includes("Translations were out of date")
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      # ============================================================
+      # FAIL SO AUTHORS NOTICE
+      # ============================================================
+
+      - name: Fail if translation fixes were required
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          echo "Translation files were updated. See suggested fixes branch."
+          exit 1
+
+      # ============================================================
+      # CLEANUP IF NO FIXES NEEDED
+      # ============================================================
+
+      - name: Cleanup old translation fixes
+        if: steps.diff.outputs.changed == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const pr = context.issue.number;
+            const base = context.payload.pull_request.base.ref;
+            const branch = `translation-fixes/pr-${pr}`;
+
+            // Delete branch if it exists
+            try {
+              await github.rest.git.deleteRef({
+                owner,
+                repo,
+                ref: `heads/${branch}`,
+              });
+            } catch (_) {}
+
+            // Remove label if present
+            try {
+              await github.rest.issues.removeLabel({
+                owner,
+                repo,
+                issue_number: pr,
+                name: "has-language-update",
+              });
+            } catch (_) {}
+
+            const { data: comments } =
+              await github.rest.issues.listComments({
+                owner,
+                repo,
+                issue_number: pr,
+              });
+
+            const existing = comments.find(c =>
+              c.user?.type === "Bot" &&
+              c.body?.includes("Translations were out of date")
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body: "✅ Translations are up to date.",
+              });
+            }
