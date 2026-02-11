@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 from datetime import datetime, timezone
 
-from sqlalchemy import exc, select, not_
+from sqlalchemy import exc, not_, select
 
 from scheduler import models
 from scheduler.storage import DBConn
@@ -98,10 +98,7 @@ class ScheduleStore:
 
         active_task_exists = (
             select(models.TaskDB.id)
-            .where(
-                models.TaskDB.schedule_id == models.ScheduleDB.id,
-                models.TaskDB.status.in_(active_statuses),
-            )
+            .where(models.TaskDB.schedule_id == models.ScheduleDB.id, models.TaskDB.status.in_(active_statuses))
             .exists()
         )
 

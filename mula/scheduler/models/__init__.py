@@ -9,4 +9,4 @@ from .plugin import Plugin
 from .queue import Queue
 from .schedule import Schedule, ScheduleDB
 from .scheduler import Scheduler, SchedulerType
-from .task import BoefjeTask, NormalizerTask, ReportTask, Task, TaskDB, TaskStatus, ACTIVE_TASK_STATUSES
+from .task import ACTIVE_TASK_STATUSES, BoefjeTask, NormalizerTask, ReportTask, Task, TaskDB, TaskStatus

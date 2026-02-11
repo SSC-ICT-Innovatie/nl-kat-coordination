@@ -100,9 +100,7 @@ class NormalizerScheduler(Scheduler):
             self.logger.exception("deschedule received for task", task=task)
             # lets disable the schedule that was responsible for this job.
             schedule = self.ctx.datastores.schedule_store.get_schedule_by_hash(task.hash)
-            schedule.enabled = False
             self.ctx.datastores.schedule_store.delete_schedule(schedule.id)
-            #self.ctx.datastores.schedule_store.update_schedule(schedule)
             return
 
         # Check if the raw data doesn't contain an error mime-type,

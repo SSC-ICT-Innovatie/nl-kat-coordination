@@ -43,12 +43,7 @@ class TaskStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
-ACTIVE_TASK_STATUSES = (
-    TaskStatus.PENDING,
-    TaskStatus.QUEUED,
-    TaskStatus.DISPATCHED,
-    TaskStatus.RUNNING,
-)
+ACTIVE_TASK_STATUSES = (TaskStatus.PENDING, TaskStatus.QUEUED, TaskStatus.DISPATCHED, TaskStatus.RUNNING)
 
 
 class Task(BaseModel):

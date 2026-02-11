@@ -9,7 +9,6 @@ from opentelemetry import trace
 from typing_extensions import override
 
 from scheduler import clients, context, models
-from scheduler.clients.errors import ExternalServiceResponseError
 from scheduler.models import MutationOperationType
 from scheduler.models.ooi import RunOn
 from scheduler.schedulers import Scheduler, queue, rankers
@@ -200,10 +199,7 @@ class BoefjeScheduler(Scheduler):
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-mutations") as executor:
             for boefje_task, create_schedule in boefje_tasks:
                 future = executor.submit(
-                    self.push_boefje_task,
-                    boefje_task,
-                    create_schedule,
-                    self.process_mutations.__name__,
+                    self.push_boefje_task, boefje_task, create_schedule, self.process_mutations.__name__,
                 )
                 future.add_done_callback(self.log_future_exceptions)
 
@@ -300,19 +296,19 @@ class BoefjeScheduler(Scheduler):
                     oois[boefje_task.organization][boefje_task.input_ooi] = None
 
             # collect ooi's from octopoes.
-            for orga in oois.keys():
+            for org in oois:
                 # do one call to octopoes to collect all ooi's ready for rescheduling for that orga
                 try:
-                    octopoes_oois = self.ctx.services.octopoes.get_objects(orga, references=list(oois[orga].keys()))
+                    octopoes_oois = self.ctx.services.octopoes.get_objects(orga, references=list(oois[org].keys()))
                     if not octopoes_oois:
                         continue
                     for ooi in octopoes_oois:
-                        oois[orga][ooi.primary_key] = ooi
+                        oois[org][ooi.primary_key] = ooi
                 except ReadTimeout:
                     self.logger.error(
-                            "Could not fetch objects from octopoes for rescheduling due to ReadTimeout, pausing processing for ",
-                            scheduler_id=self.scheduler_id,
-                        )
+                        "Could not fetch objects from octopoes for rescheduling due to ReadTimeout, pausing processing for ",
+                        scheduler_id=self.scheduler_id,
+                    )
                     return
 
             for schedule in schedules:
@@ -438,7 +434,7 @@ class BoefjeScheduler(Scheduler):
     @exception_handler
     @tracer.start_as_current_span("BoefjeScheduler.push_boefje_task")
     def push_boefje_task(self, boefje_task: models.BoefjeTask, create_schedule: bool = True, caller: str = "") -> None:
-        #TODO, let the database handle integrity, however upstream we have
+        # TODO, let the database handle integrity, however upstream we have
         # decided that in that case we want to update the existing record on the
         # queue to reflect the pushed changes, which is not what we'd want in
         # this rescheduling situation.

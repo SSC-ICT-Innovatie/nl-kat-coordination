@@ -537,9 +537,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             modified_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
-        task_bytes = BoefjeMetaFactory(
-            boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc)
-        )
+        task_bytes = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc))
 
         # Mock
         self.mock_get_latest_task_by_hash.return_value = task_db
@@ -2183,14 +2181,14 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
         time.sleep(2)
         # Mocks
         self.mock_get_schedules.return_value = ([schedule_db], 1)
-        self.mock_get_objects.return_value = [ooi,]
+        self.mock_get_objects.return_value = [ooi]
         self.mock_get_plugin.return_value = plugin
 
         # Act
@@ -2228,7 +2226,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2236,7 +2234,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
 
         # Mocks
         self.mock_get_schedules.return_value = ([schedule_db], 1)
-        self.mock_get_objects.return_value = [ooi,]
+        self.mock_get_objects.return_value = [ooi]
         self.mock_get_plugin.return_value = plugin
 
         # Act
@@ -2272,7 +2270,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2311,7 +2309,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2319,7 +2317,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
 
         # Mocks
         self.mock_get_schedules.return_value = ([schedule_db], 1)
-        self.mock_get_objects.return_value = [ooi,]
+        self.mock_get_objects.return_value = [ooi]
         self.mock_get_plugin.return_value = None
 
         # Act
@@ -2350,7 +2348,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2358,7 +2356,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
 
         # Mocks
         self.mock_get_schedules.return_value = ([schedule_db], 1)
-        self.mock_get_objects.return_value = [ooi,]
+        self.mock_get_objects.return_value = [ooi]
         self.mock_get_plugin.return_value = plugin
 
         # Act
@@ -2389,7 +2387,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2397,7 +2395,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
 
         # Mocks
         self.mock_get_schedules.return_value = ([schedule_db], 1)
-        self.mock_get_objects.return_value = [ooi,]
+        self.mock_get_objects.return_value = [ooi]
         self.mock_get_plugin.return_value = plugin
 
         # Act
@@ -2428,7 +2426,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1)
+            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2436,7 +2434,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
 
         # Mocks
         self.mock_get_schedules.return_value = ([schedule_db], 1)
-        self.mock_get_objects.return_value = [ooi,]
+        self.mock_get_objects.return_value = [ooi]
         self.mock_get_plugin.return_value = plugin
 
         # Act

@@ -63,6 +63,7 @@ class ScheduleDB(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     modified_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
+
 Index("ix_schedules_enabled", ScheduleDB.enabled)
 Index("ix_schedules_hash", ScheduleDB.hash)
 Index("ix_schedules_organisation", ScheduleDB.organisation)

@@ -69,6 +69,10 @@ def extract_references(references: list[str]) -> list[Reference]:
     return [Reference.from_str(reference) for reference in references]
 
 
+def extract_references_from_query(references: list[str] = Query("")) -> list[Reference]:
+    return [Reference.from_str(reference) for reference in references]
+
+
 def settings() -> Settings:
     return Settings()
 
@@ -191,6 +195,15 @@ def load_objects_bulk(
     references: set[Reference] = Depends(extract_references),
 ):
     return octopoes.ooi_repository.load_bulk(references, valid_time)
+
+
+@router.get("/objects/by_reference", tags=["Objects"])
+def get_objects_by_reference(
+    octopoes: OctopoesService = Depends(octopoes_service),
+    valid_time: datetime = Depends(extract_valid_time),
+    references: set[Reference] = Depends(extract_references_from_query),
+):
+    return octopoes.ooi_repository.load_bulk(references, valid_time, True)
 
 
 @router.get("/object", tags=["Objects"])
