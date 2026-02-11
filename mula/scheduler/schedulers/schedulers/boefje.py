@@ -9,12 +9,14 @@ from opentelemetry import trace
 from typing_extensions import override
 
 from scheduler import clients, context, models
+from scheduler.clients.errors import ExternalServiceError
 from scheduler.models import MutationOperationType
 from scheduler.models.ooi import RunOn
 from scheduler.schedulers import Scheduler, queue, rankers
 from scheduler.schedulers.errors import exception_handler
 from scheduler.schedulers.queue.errors import NotAllowedError
 from scheduler.storage import filters
+from scheduler.storage.errors import StorageError
 
 tracer = trace.get_tracer(__name__)
 
@@ -199,7 +201,7 @@ class BoefjeScheduler(Scheduler):
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-mutations") as executor:
             for boefje_task, create_schedule in boefje_tasks:
                 future = executor.submit(
-                    self.push_boefje_task, boefje_task, create_schedule, self.process_mutations.__name__,
+                    self.push_boefje_task, boefje_task, create_schedule, self.process_mutations.__name__
                 )
                 future.add_done_callback(self.log_future_exceptions)
 
@@ -286,7 +288,7 @@ class BoefjeScheduler(Scheduler):
 
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-rescheduling") as executor:
             plugins = {}  # cache plugins while walking this loop
-            oois = {}
+            oois:dict[str, dict] = {}
             # collect all ooi references per orga
             for schedule in schedules:
                 boefje_task = models.BoefjeTask.model_validate(schedule.data)
@@ -299,7 +301,7 @@ class BoefjeScheduler(Scheduler):
             for org in oois:
                 # do one call to octopoes to collect all ooi's ready for rescheduling for that orga
                 try:
-                    octopoes_oois = self.ctx.services.octopoes.get_objects(orga, references=list(oois[org].keys()))
+                    octopoes_oois = self.ctx.services.octopoes.get_objects(org, references=list(oois[org].keys()))
                     if not octopoes_oois:
                         continue
                     for ooi in octopoes_oois:
@@ -743,7 +745,7 @@ class BoefjeScheduler(Scheduler):
 
     def get_oois_for_boefje(self, boefje: models.Plugin, organisation: str) -> Iterator[models.OOI]:
         if boefje.enabled is False:
-            return []
+            return
         yield from self.ctx.services.octopoes.get_objects_by_object_types(
             organisation,
             boefje.consumes,

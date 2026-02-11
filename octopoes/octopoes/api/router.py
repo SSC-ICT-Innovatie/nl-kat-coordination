@@ -203,7 +203,7 @@ def get_objects_by_reference(
     valid_time: datetime = Depends(extract_valid_time),
     references: set[Reference] = Depends(extract_references_from_query),
 ):
-    return octopoes.ooi_repository.load_bulk(references, valid_time, True)
+    return octopoes.ooi_repository.load_bulk(references, valid_time)
 
 
 @router.get("/object", tags=["Objects"])
