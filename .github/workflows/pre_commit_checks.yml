@@ -27,7 +27,7 @@ jobs:
           cache: pip
 
       - name: Install prek
-        run: pip install prek
+        run: pip install prek==0.3.2
 
       - name: Cache prek
         uses: actions/cache@v5
