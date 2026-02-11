@@ -6,6 +6,7 @@ from typing import Any, Literal
 
 from httpx import HTTPStatusError, ReadTimeout
 from opentelemetry import trace
+from pydantic import ValidationError
 from typing_extensions import override
 
 from scheduler import clients, context, models
@@ -245,7 +246,7 @@ class BoefjeScheduler(Scheduler):
                         if error.response.status_code == 400:
                             # invalid object type present in Boefje consumes list.
                             self.logger.warning(
-                                "Error occurred while processing new boefje, invalid object_Type present in consumes list.",
+                                "Error occurred while processing new boefje, invalid object_type in consumes list.",
                                 organisation_id=org.id,
                                 scheduler_id=self.scheduler_id,
                                 boefje=boefje,
@@ -288,7 +289,7 @@ class BoefjeScheduler(Scheduler):
 
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-rescheduling") as executor:
             plugins = {}  # cache plugins while walking this loop
-            oois:dict[str, dict] = {}
+            oois: dict[str, dict] = {}
             # collect all ooi references per orga
             for schedule in schedules:
                 boefje_task = models.BoefjeTask.model_validate(schedule.data)
@@ -298,18 +299,19 @@ class BoefjeScheduler(Scheduler):
                     oois[boefje_task.organization][boefje_task.input_ooi] = None
 
             # collect ooi's from octopoes.
-            for org in oois:
+            for org, org_oois in oois:
                 # do one call to octopoes to collect all ooi's ready for rescheduling for that orga
                 try:
-                    octopoes_oois = self.ctx.services.octopoes.get_objects(org, references=list(oois[org].keys()))
+                    octopoes_oois = self.ctx.services.octopoes.get_objects(org, references=list(org_oois.keys()))
                     if not octopoes_oois:
                         continue
                     for ooi in octopoes_oois:
-                        oois[org][ooi.primary_key] = ooi
+                        org_oois[ooi.primary_key] = ooi
                 except ReadTimeout:
                     self.logger.error(
-                        "Could not fetch objects from octopoes for rescheduling due to ReadTimeout, pausing processing for ",
+                        "Could not fetch objects from octopoes for rescheduling due to ReadTimeout",
                         scheduler_id=self.scheduler_id,
+                        organisation_id=org,
                     )
                     return
 
@@ -408,11 +410,6 @@ class BoefjeScheduler(Scheduler):
                             schedule.enabled = False
                             self.ctx.datastores.schedule_store.update_schedule(schedule)
                             continue
-                    # Handy to reinit possibly erroneously disabled schedules.
-                    # Make sure to remove the enabled check from the db query above, and enable this
-                    # if not schedule.enabled:
-                    #    schedule.enabled = True
-                    #    self.ctx.datastores.schedule_store.update_schedule(schedule)
 
                     new_boefje_task = models.BoefjeTask(
                         boefje=models.Boefje.model_validate(plugin.dict()),
