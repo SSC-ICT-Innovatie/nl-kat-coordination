@@ -116,7 +116,7 @@ if ! "$CLEANUP_ONLY"; then
             fi
         done
 
-    # in dry run, dont actually rm containers.
+    # in dry run, dont actually rm containers or volumes.
     if ! "$DRY_RUN"; then
         docker ps -a \
             --filter "name=nl-kat-coordination-" \
@@ -126,13 +126,6 @@ if ! "$CLEANUP_ONLY"; then
             done
     else
         printf '  Restart your containers using the old names manually.'
-        docker image ls --format '{{.Repository}}' |
-            {
-                grep '^nl-kat-coordination_' || true
-            } |
-            while IFS= read -r old_vol; do
-                run_or_echo docker volume rm "$old_vol"
-            done
     fi
 fi
 
