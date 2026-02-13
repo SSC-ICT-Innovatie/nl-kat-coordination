@@ -1,13 +1,11 @@
 import logging
 import socket
+from contextlib import asynccontextmanager
 from logging import config
 from pathlib import Path
 
 import structlog
 import yaml
-
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI, HTTPException, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.requests import Request
@@ -64,6 +62,7 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
