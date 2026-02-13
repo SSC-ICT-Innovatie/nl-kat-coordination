@@ -86,9 +86,9 @@ def _check_domain_end(tokens):
     domain_name = tokens[0]
     domain_end = domain_name.split(".")[-2] if domain_name[-1] == "." else domain_name.split(".")[-1]
     try:
-        toplabel.parseString(domain_end)
+        toplabel.parse_string(domain_end)
     except ParseException:
-        macro_expand.parseString(domain_end)
+        macro_expand.parse_string(domain_end)
     return None
 
 
@@ -137,6 +137,6 @@ record = version + Group(terms).set_results_name("terms") + ZeroOrMore(SP) + Str
 
 def parse(spf_record):
     try:
-        return record.parseString(spf_record)
+        return record.parse_string(spf_record)
     except Exception:
         return None
