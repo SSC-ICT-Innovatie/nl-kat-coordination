@@ -21,7 +21,7 @@ from pyparsing import (
     printables,
 )
 
-ParserElement.setDefaultWhitespaceChars("")  # Whitespace is in the grammar
+ParserElement.set_default_whitespace_chars("")  # Whitespace is in the grammar
 
 # Parser for SPF records.
 #
