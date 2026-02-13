@@ -107,7 +107,7 @@ if ! "$CLEANUP_ONLY"; then
                 printf '  Restoring into new volume: %s\n' "$new_vol"
 
                 docker run --rm \
-                    --mount "type=volume,src=${old_vol},dst=/data" \
+                    --mount "type=volume,src=${new_vol},dst=/data" \
                     --mount "type=bind,src=$(dirname "$backup_file"),dst=/backup,ro" \
                     "$IMAGE" \
                     sh -c "cd /data && tar -xzf /backup/$(basename "$backup_file")"
