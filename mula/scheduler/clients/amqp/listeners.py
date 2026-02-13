@@ -32,6 +32,11 @@ class Listener(Connector):
     def stop(self) -> None:
         raise NotImplementedError
 
+    def log_future_exceptions(self, fut: futures.Future):
+        exc = fut.exception()
+        if exc:
+            self.logger.exception("RabbitMQ Listener task crashed in ThreadPoolExecutor", exc_info=exc)
+
 
 class RabbitMQ(Listener):
     """A RabbitMQ Listener implementation that allows subclassing of specific
@@ -179,7 +184,8 @@ class RabbitMQ(Listener):
         )
 
         # Submit the message to the thread pool executor
-        self.executor.submit(self.dispatch, channel, method.delivery_tag, body)
+        future = self.executor.submit(self.dispatch, channel, method.delivery_tag, body)
+        future.add_done_callback(self.log_future_exceptions)
 
     def dispatch(self, channel: pika.channel.Channel, delivery_tag: int, body: bytes) -> None:
         # Check if we still have a connection
