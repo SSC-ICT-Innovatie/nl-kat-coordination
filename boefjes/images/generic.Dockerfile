@@ -1,6 +1,6 @@
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/generic:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/generic:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 ENV PATH=/home/nonroot/.local/bin:${PATH}

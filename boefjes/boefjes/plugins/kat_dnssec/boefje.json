@@ -6,5 +6,5 @@
     "Hostname"
   ],
   "scan_level": 1,
-  "oci_image": "ghcr.io/minvws/openkat/dns-sec:latest"
+  "oci_image": "docker.underdark.nl/librekat/dns-sec:latest"
 }

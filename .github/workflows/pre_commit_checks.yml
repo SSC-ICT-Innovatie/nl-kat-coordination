@@ -15,6 +15,7 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-24.04
+
     steps:
       - uses: actions/checkout@v5
 
@@ -25,13 +26,14 @@ jobs:
           python-version: 3.13
           cache: pip
 
-      - name: Install pre-commit
-        run: pip install pre-commit==4.0.1
+      - name: Install prek
+        run: pip install prek==0.3.2
 
-      - uses: actions/cache@v5
+      - name: Cache prek
+        uses: actions/cache@v5
         with:
-          path: ~/.cache/pre-commit
-          key: pre-commit|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
+          path: ~/.cache/prek
+          key: prek|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
 
-      - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure --color always
+      - name: Run prek
+        run: prek run --all-files --show-diff-on-failure --color always
