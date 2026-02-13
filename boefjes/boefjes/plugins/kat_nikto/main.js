@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { execSync } from "node:child_process";
 
 /**
- * @param {string} scheme
+ * @param {"http" | "https"} scheme
  * @returns {string}
  */
 function get_config_content(scheme) {
@@ -40,22 +40,27 @@ function get_config_content(scheme) {
 }
 
 /**
- * @param {Object} boefje_meta Information about the task
+ * @param {Object} boefje_meta
  * @param {Object} boefje_meta.arguments
  * @param {Object} boefje_meta.arguments.input
  * @param {string} boefje_meta.arguments.input.object_type
- * @param {"http" | "https"} boefje_meta.arguments.input.scheme
- * @param {number} boefje_meta.arguments.input.port
- * @param {Object} boefje_meta.arguments.input.netloc
- * @param {string} boefje_meta.arguments.input.netloc.name
+ * @param {Object} boefje_meta.arguments.input.ip_service
+ * @param {Object} boefje_meta.arguments.input.ip_service.ip_port
+ * @param {Object} boefje_meta.arguments.input.ip_service.ip_port.address
+ * @param {string} boefje_meta.arguments.input.ip_service.ip_port.address.address
+ * @param {string} boefje_meta.arguments.input.ip_service.ip_port.port
+ * @param {Object} boefje_meta.arguments.input.ip_service.service
+ * @param {"http" | "https"} boefje_meta.arguments.input.ip_service.service.name
+ * @param {Object} boefje_meta.arguments.input.hostname
+ * @param {string} boefje_meta.arguments.input.hostname.name
  * @returns {(string | string[])[][]}
  */
 export default function (boefje_meta) {
   // Depending on what OOI triggered this task, the hostname / address will be in a different location
-  const hostname = boefje_meta.arguments.input.netloc.name;
+  const hostname = boefje_meta.arguments.input.hostname.name;
 
   const config_contents = get_config_content(
-    boefje_meta.arguments.input.scheme,
+    boefje_meta.arguments.input.ip_service.service.name,
   );
   fs.writeFileSync("./nikto.conf", config_contents);
 
@@ -78,6 +83,7 @@ export default function (boefje_meta) {
   // Reading the file created by nikto
   try {
     var file_contents = fs.readFileSync("./output.json").toString();
+
     raws.push([["boefje/nikto-output", "openkat/nikto-output"], file_contents]);
   } catch (e) {
     throw new Error(
@@ -88,9 +94,10 @@ export default function (boefje_meta) {
   // Looking if outdated software has been found
   try {
     const data = JSON.parse(file_contents);
-    for (const vulnerability of data["vulnerabilities"])
-      if (vulnerability["id"].startsWith("6"))
-        raws.push([["openkat/finding"], "KAT-OUTDATED-SOFTWARE"]);
+    if (data["vulnerabilities"])
+      for (const vulnerability of data["vulnerabilities"])
+        if (vulnerability["id"].startsWith("6"))
+          raws.push([["openkat/finding"], "KAT-OUTDATED-SOFTWARE"]);
   } catch (e) {
     console.error(e);
   }

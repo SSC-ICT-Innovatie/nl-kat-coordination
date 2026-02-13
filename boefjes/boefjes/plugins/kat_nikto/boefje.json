@@ -3,7 +3,7 @@
   "name": "Nikto",
   "description": "Uses Nikto",
   "consumes": [
-    "HostnameHTTPURL"
+    "Website"
   ],
   "environment_keys": [
     "HTTP_PROXY",
