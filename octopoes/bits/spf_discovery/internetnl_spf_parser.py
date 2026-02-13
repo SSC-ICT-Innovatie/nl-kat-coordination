@@ -55,7 +55,7 @@ name = Word(alphas, exact=1) + Optional(Word(alphanums + "-_."))
 delimiter = Word(".-+,/_=", exact=1)
 transformers = Optional(Word(nums)) + Optional(CaselessLiteral("r"))
 macro_letter = Word("sSlLoOdDiIpPhHcCrRtTvV", exact=1)
-macro_literal = Word(printables, exact=1, excludeChars="%")
+macro_literal = Word(printables, exact=1, exclude_chars="%")
 macro_expand = (
     (CaselessLiteral("%{") + macro_letter + Optional(transformers) + ZeroOrMore(delimiter) + CaselessLiteral("}"))
     | CaselessLiteral("%%")
@@ -73,7 +73,7 @@ def _check_toplabel(tokens):
 toplabel = (
     (Optional(Word(nums)) + Word(alphas, exact=1) + Optional(Word(alphanums)))
     | (Word(alphanums) + CaselessLiteral("-") + Optional(Word(alphanums + "-")))
-).setParseAction(_check_toplabel)
+).set_parse_action(_check_toplabel)
 
 
 def _check_domain_end(tokens):
@@ -94,7 +94,7 @@ def _check_domain_end(tokens):
 
 macro_string = Combine(ZeroOrMore(macro_expand | macro_literal))
 
-domain_spec = macro_string.setParseAction(_check_domain_end)
+domain_spec = macro_string.set_parse_action(_check_domain_end)
 
 ip4_network = Regex(r"((25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)\.){3}(25[0-5]|2[0-4]\d|1\d\d|[1-9]\d|\d)")
 
@@ -109,7 +109,7 @@ modifier = redirect | explanation | unknown_modifier
 
 qualifier = Word("+-?~", exact=1)
 exists = Combine(Optional(qualifier) + CaselessLiteral("exists:") + domain_spec)
-ip6 = Combine(Optional(qualifier) + CaselessLiteral("ip6:") + Regex("[^ ]*").setParseAction(_parse_ipv6))
+ip6 = Combine(Optional(qualifier) + CaselessLiteral("ip6:") + Regex("[^ ]*").set_parse_action(_parse_ipv6))
 ip4 = Combine(Optional(qualifier) + CaselessLiteral("ip4:") + ip4_network + Optional(ip4_cidr_length))
 ptr = Combine(Optional(qualifier) + CaselessLiteral("ptr") + Optional(CaselessLiteral(":") + domain_spec))
 mx = Combine(
@@ -131,8 +131,8 @@ mechanism = all_ | include | a | mx | ptr | ip4 | ip6 | exists
 directive = mechanism
 terms = ZeroOrMore(OneOrMore(SP) + (directive | modifier))
 
-version = CaselessLiteral("v=spf1").setResultsName("spf_version")
-record = version + Group(terms).setResultsName("terms") + ZeroOrMore(SP) + StringEnd()
+version = CaselessLiteral("v=spf1").set_results_name("spf_version")
+record = version + Group(terms).set_results_name("terms") + ZeroOrMore(SP) + StringEnd()
 
 
 def parse(spf_record):
