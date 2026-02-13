@@ -75,7 +75,7 @@ jobs:
           cp _version.py rocky/rocky/version.py
 
       - name: Run debian package build
-        uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
+        uses: maus007/docker-run-action-fork@5e6e0f8cfa7ae1318dd43259c59e86cdc00605df
         with:
           run: packaging/scripts/build-debian-package.sh
           registry: docker.underdark.nl
