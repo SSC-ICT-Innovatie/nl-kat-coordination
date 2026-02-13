@@ -102,7 +102,7 @@ if ! "$CLEANUP_ONLY"; then
                 sh -c "cd /data && tar -czf /backup/$(basename "$backup_file") ."
 
             if ! "$DRY_RUN"; then
-                run_or_echo docker volume create "$new_vol"
+                docker volume create "$new_vol"
 
                 printf '  Restoring into new volume: %s\n' "$new_vol"
 
