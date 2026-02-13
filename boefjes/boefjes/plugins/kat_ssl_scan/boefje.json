@@ -3,9 +3,10 @@
   "name": "SSLScan",
   "description": "Scan SSL/TLS versions (protocols) of websites. Will result in findings if outdated SSL/TLS versions are identified such as SSLv3. ",
   "consumes": [
-    "Website", "IPService"
+    "Website",
+    "IPService"
   ],
   "scan_level": 2,
-  "oci_image": "ghcr.io/minvws/openkat/ssl-scan:latest",
+  "oci_image": "docker.underdark.nl/librekat/ssl-scan:latest",
   "oci_arguments": []
 }

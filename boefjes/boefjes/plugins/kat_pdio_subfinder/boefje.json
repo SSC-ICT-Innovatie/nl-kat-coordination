@@ -10,6 +10,6 @@
     "SUBFINDER_VERSION"
   ],
   "scan_level": 1,
-  "oci_image": "ghcr.io/minvws/openkat/pdio-subfinder:latest",
+  "oci_image": "docker.underdark.nl/librekat/pdio-subfinder:latest",
   "oci_arguments": []
 }
