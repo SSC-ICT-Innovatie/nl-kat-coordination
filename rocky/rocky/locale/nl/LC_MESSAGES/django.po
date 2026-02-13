@@ -16,16 +16,16 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-20 07:38+0000\n"
-"PO-Revision-Date: 2025-08-22 09:39+0000\n"
-"Last-Translator: Joost Krapels <joost.krapels@ictinstitute.nl>\n"
-"Language-Team: Dutch <https://hosted.weblate.org/projects/openkat/nl-kat-"
-"coordination/nl/>\n"
+"PO-Revision-Date: 2025-09-11 11:02+0000\n"
+"Last-Translator: LibreTranslate <noreply-mt-libretranslate@weblate.org>\n"
+"Language-Team: Dutch <https://hosted.weblate.org/projects/openkat/"
+"nl-kat-coordination/nl/>\n"
 "Language: nl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.13\n"
+"X-Generator: Weblate 5.14-dev\n"
 
 #: account/admin.py
 msgid "Permissions"
@@ -149,7 +149,7 @@ msgid ""
 msgstr ""
 "Ik verklaar dat OpenKAT de assets van mijn organisatie mag scannen en dat ik "
 "toestemming heb om deze assets te scannen. Ik ben me bewust van de gevolgen "
-"die een scan (met een hoger scanniveau) heeft op mijn systemen."
+"die een scan (met een hoger scanlevel) heeft op mijn systemen."
 
 #: account/forms/account_setup.py
 msgid ""
@@ -275,7 +275,7 @@ msgstr "Back-uptoken"
 
 #: account/mixins.py
 msgid "Clearance level has been set."
-msgstr ""
+msgstr "Vrijwaringsniveau is ingesteld."
 
 #: account/mixins.py
 #, python-format
@@ -309,7 +309,7 @@ msgstr ""
 
 #: account/models.py
 msgid "The email must be set"
-msgstr ""
+msgstr "Het e-mailadres moet worden ingevuld"
 
 #: account/models.py
 msgid "Superuser must have is_staff=True."
@@ -392,12 +392,14 @@ msgstr "OOI-vrijwaringsniveau"
 
 #: account/templates/account_detail.html
 msgid "You don't have any clearance to scan objects."
-msgstr ""
+msgstr "Je hebt geen toestemming om objecten te scannen."
 
 #: account/templates/account_detail.html
 msgid ""
 "Get in contact with the admin to give you the necessary clearance level."
 msgstr ""
+"Neem contact op met uw beheerder om u het noodzakelijke vrijwaringsniveau te "
+"geven."
 
 #: account/templates/account_detail.html
 msgid "You have currently accepted clearance up to level"
@@ -860,6 +862,10 @@ msgid ""
 "organization, sorted by the finding types and grouped by organizations. This "
 "data is based on the latest Crisis Room Findings Report of each organization."
 msgstr ""
+"Deze tabel toont de bevindingen die voor elke organisatie zijn "
+"geïdentificeerd, gesorteerd op type bevinding en gegroepeerd per "
+"organisatie. Deze gegevens zijn gebaseerd op het meest recente Crisis Room "
+"Findings Report van elke organisatie."
 
 #: crisis_room/templates/crisis_room_findings.html
 #: reports/report_types/findings_report/report.html
@@ -867,12 +873,16 @@ msgid ""
 "No findings have been identified yet. As soon as they have been identified, "
 "they will be shown on this page."
 msgstr ""
+"Er zijn nog geen bevindingen geïdentificeerd. Zodra ze zijn geïdentificeerd, "
+"worden ze op deze pagina weergegeven."
 
 #: crisis_room/templates/crisis_room_findings.html
 msgid ""
 "There are no organizations yet. After creating an organization, the "
 "identified findings will be shown here."
 msgstr ""
+"Er zijn nog geen organisaties. Nadat u een organisatie hebt aangemaakt, "
+"worden de geïdentificeerde bevindingen hier weergegeven."
 
 #: crisis_room/templates/crisis_room_header.html
 #: crisis_room/templates/organization_crisis_room_header.html
@@ -1085,6 +1095,10 @@ msgid ""
 "identified for this organization, grouped by finding types. A table with all "
 "the identified findings can be found in the Findings Report."
 msgstr ""
+"Deze tabel toont de 25 belangrijkste kritieke en ernstige bevindingen die "
+"voor deze organisatie zijn geïdentificeerd, gegroepeerd per type bevinding. "
+"Een tabel met alle geïdentificeerde bevindingen is te vinden in het "
+"Bevindingenrapport."
 
 #: crisis_room/templates/partials/crisis_room_findings_table.html
 #, fuzzy
@@ -1670,7 +1684,7 @@ msgstr ""
 #: katalogus/templates/partials/plugin_tile_modal.html
 #: katalogus/templates/plugin_container_image.html
 msgid "Scan level"
-msgstr "Scanniveau"
+msgstr "Scanlevel"
 
 #: katalogus/templates/boefje_detail.html
 #: katalogus/templates/normalizer_detail.html
@@ -2007,13 +2021,13 @@ msgid ""
 msgstr ""
 "Dit Boefje scant alleen objecten met een overeenkomstig vrijwaringsniveau "
 "van <strong>(%(scan_level)s)</strong> of hoger. Er is geen vrijwaring voor "
-"dit Boefje om een OOI met een lager scanniveau te scannen dan "
+"dit Boefje om een OOI met een lager scanlevel te scannen dan "
 "<strong>L%(scan_level)s</strong>. Gebruik het filter om OOI’s met een lagere "
 "vrijwaringsniveau te tonen."
 
 #: katalogus/templates/partials/objects_to_scan.html
 msgid "Warning scan level:"
-msgstr "Waarschuwing scanniveau:"
+msgstr "Waarschuwing scanlevel:"
 
 #: katalogus/templates/partials/objects_to_scan.html
 msgid ""
@@ -2035,7 +2049,7 @@ msgid ""
 "Add objects with a complying clearance level, or alter the clearance level "
 "of existing objects."
 msgstr ""
-"U hebt momenteel geen objecten die voldoen aan het scanniveau van %(name)s. "
+"U hebt momenteel geen objecten die voldoen aan het scanlevel van %(name)s. "
 "Voeg objecten toe met een voldoende vrijwaringsniveau, of wijzig het "
 "vrijwaringsniveau van bestaande objecten."
 
@@ -2452,16 +2466,21 @@ msgid ""
 "Welcome to the onboarding of OpenKAT. We will walk you through some steps to "
 "set everything up."
 msgstr ""
+"Welkom bij de onboarding van OpenKAT. We zullen u door een aantal stappen "
+"leiden om alles in te stellen."
 
 #: onboarding/templates/partials/step_1_introduction_text.html
 msgid ""
 "At the end of this onboarding you have added your first object, created your "
 "first DNS report and learned about some basic concepts used within OpenKAT."
 msgstr ""
+"Aan het einde van deze onboarding heeft u uw eerste object toegevoegd, uw "
+"eerste DNS-rapport gemaakt en kennisgemaakt met enkele basisbegrippen die "
+"binnen OpenKAT worden gebruikt."
 
 #: onboarding/templates/partials/step_1_introduction_text.html
 msgid "The full documentation for OpenKAT can be found at:"
-msgstr ""
+msgstr "De volledige documentatie voor OpenKAT is te vinden op:"
 
 #: onboarding/templates/partials/step_2_organization_text.html
 #: rocky/templates/organizations/organization_add.html
@@ -2560,9 +2579,9 @@ msgid ""
 "The user clearance level specifies the maximum scan level for security scans "
 "and the maximum clearance level you can assign to objects (e.g. a URL)."
 msgstr ""
-"Het vrijwaringsniveau bepaalt het maximale scanniveau voor beveiligingsscans "
-"en het maximale vrijwaringsniveau dat je kunt toewijzen aan objecten "
-"(bijvoorbeeld een URL)."
+"Het vrijwaringsniveau bepaalt het maximale scanlevel voor beveiligingsscans "
+"en het maximale vrijwaringsniveau dat je kunt toewijzen aan objecten ("
+"bijvoorbeeld een URL)."
 
 #: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
 msgid ""
@@ -2716,6 +2735,11 @@ msgid ""
 "a clearance level that is equal to, or higher than the scan level of the "
 "plugin. Plugin scan level are indicated by the number of cat paws."
 msgstr ""
+"OpenKAT gebruikt plug-ins om uw objecten te scannen. Elke plug-in heeft een "
+"scanlevel om aan te geven hoe grondig de scan is. Plug-ins kunnen alleen "
+"objecten scannen met een vrijwaringsniveau dat gelijk is aan of hoger is dan "
+"het scanlevel van de plug-in. Het scanlevel van een plug-in wordt aangegeven "
+"door het aantal kattenpootjes."
 
 #: onboarding/templates/step_7_clearance_level_introduction.html
 msgid ""
@@ -2723,6 +2747,10 @@ msgid ""
 "performs non-intrusive scans which look for publicly available information. "
 "It scans objects with a clearance level of 1 or higher."
 msgstr ""
+"De plug-in <strong>DNS Zone</strong> heeft een scanlevel van 1, wat betekent "
+"dat deze niet-intrusieve scans uitvoert die zoeken naar openbaar beschikbare "
+"informatie. De plug-in scant objecten met een vrijwaringsniveau van 1 of "
+"hoger."
 
 #: onboarding/templates/step_7_clearance_level_introduction.html
 msgid ""
@@ -2730,6 +2758,9 @@ msgid ""
 "more aggressive and could potentially break things. It scans objects with a "
 "clearance level of 3 or higher."
 msgstr ""
+"De plug-in <strong>Fierce</strong> heeft een scanlevel van 3, wat betekent "
+"dat deze agressiever is en mogelijk dingen kan beschadigen. Deze scant "
+"objecten met een vrijwaringsniveau van 3 of hoger."
 
 #: onboarding/templates/step_8_setup_scan_select_plugins.html
 msgid "Enabling plugins and start scanning"
@@ -2748,6 +2779,8 @@ msgid ""
 "The first plugin are <b>Boefjes</b>, which scan objects for data. These are "
 "security tools like nmap, LeakIX and WPscan. </p>"
 msgstr ""
+"De eerste type plug-ins zijn <b>Boefjes</b>, die objecten scannen op "
+"gegevens. Dit zijn beveiligingstools zoals nmap, LeakIX en WPscan. </p>"
 
 #: onboarding/templates/step_8_setup_scan_select_plugins.html
 msgid ""
@@ -2756,6 +2789,11 @@ msgid ""
 "objects. Bits are also used to create organization specific findings, based "
 "on policy requirements. </p>"
 msgstr ""
+"De andere twee type plug-ins zijn <b>Normalizers</b> en <b>Bits</b>, die "
+"worden gebruikt om de output van Boefjes te verwerken. Ze kunnen bevindingen "
+"en gerelateerde objecten creëren. Bits worden ook gebruikt om "
+"organisatiespecifieke bevindingen te creëren, op basis van beleidsvereisten. "
+"</p>"
 
 #: onboarding/templates/step_8_setup_scan_select_plugins.html
 msgid ""
@@ -3121,6 +3159,8 @@ msgid ""
 "This chapter contains information about the findings that have been "
 "identified for this organization."
 msgstr ""
+"Dit hoofdstuk bevat informatie over de bevindingen die voor deze organisatie "
+"zijn geïdentificeerd."
 
 #: reports/report_types/aggregate_organisation_report/recommendations.html
 #: reports/report_types/multi_organization_report/recommendations.html
@@ -3597,6 +3637,13 @@ msgid ""
 "issue description and risk level. The risk level may be different for your "
 "specific environment."
 msgstr ""
+"Het Mailrapport geeft een overzicht van de compliancecontroles die worden "
+"uitgevoerd op e-mailservers. De huidige compliancecontroles controleren de "
+"aanwezigheid van SPF-, DKIM- en DMARC-records. De onderstaande tabel toont "
+"voor elk van deze controles hoeveel van de geïdentificeerde e-mailservers "
+"compliant zijn en, indien van toepassing, een beschrijving van het "
+"complianceprobleem en het risiconiveau. Het risiconiveau kan voor uw "
+"specifieke omgeving anders zijn."
 
 #: reports/report_types/mail_report/report.html
 msgid "Mailserver compliance"
@@ -4317,6 +4364,14 @@ msgid ""
 "finding can be found here. It also shows in which findings the finding type "
 "occurred."
 msgstr ""
+"Deze tabel geeft een overzicht van de geïdentificeerde bevindingen op de "
+"gescande systemen. Voor elk type bevinding wordt het risiconiveau, het "
+"aantal keren dat de bevinding is aangetroffen en de eerste bekende keer dat "
+"de bevinding is aangetroffen weergegeven. Het risiconiveau kan voor uw "
+"specifieke omgeving anders zijn. De details zijn te zien wanneer u een rij "
+"uitvouwt. Hier vindt u een beschrijving, de bron, de impact en een "
+"aanbeveling voor de bevinding. Ook wordt weergegeven in welke bevindingen "
+"het type bevinding is aangetroffen."
 
 #: reports/templates/partials/report_findings_table.html
 #, fuzzy
@@ -4924,7 +4979,7 @@ msgstr "Toon asset-rapport objectdetails"
 
 #: reports/templates/report_overview/report_history_table.html
 msgid "Asset reports details"
-msgstr ""
+msgstr "Details assetrapporten"
 
 #: reports/templates/report_overview/report_history_table.html
 #, fuzzy, python-format
@@ -5134,7 +5189,7 @@ msgstr "Plug-in-opties"
 
 #: reports/templates/summary/selected_plugins.html
 msgid "Plugin scan level"
-msgstr "Plug-in-scanniveau"
+msgstr "Plug-in-scanlevel"
 
 #: reports/templates/summary/selected_plugins.html
 msgid "Enabled."
@@ -5532,7 +5587,7 @@ msgstr "Volgende scan"
 
 #: tools/forms/ooi.py
 msgid "Show objects that don't meet the Boefjes scan level."
-msgstr "Toon objecten die niet overeenkomen met het scanniveau van het Boefje."
+msgstr "Toon objecten die niet overeenkomen met het scanlevel van het Boefje."
 
 #: tools/forms/ooi.py
 msgid "Show Boefjes that exceed the objects clearance level."
@@ -5543,6 +5598,8 @@ msgid ""
 "All the boefjes with a scan level below or equal to the clearance level will "
 "be allowed to scan this object."
 msgstr ""
+"Alle boefjes met een scanlevel dat lager is dan of gelijk is aan het "
+"vrijwaringsniveau mogen dit object scannen."
 
 #: tools/forms/ooi.py
 #, fuzzy
@@ -5690,6 +5747,9 @@ msgid ""
 "A description of the Boefje explaining in short what it can do. This will "
 "both be displayed inside the KAT-alogus and on the Boefje details page."
 msgstr ""
+"Een korte beschrijving van het Boefje waarin wordt uitgelegd wat het kan. "
+"Deze wordt zowel in de KAT-alogus als op de detailpagina van het Boefje "
+"weergegeven."
 
 #: tools/forms/settings.py
 msgid ""
@@ -6432,10 +6492,12 @@ msgid ""
 "Dozens of tools are integrated in OpenKAT to view the world (digital and "
 "analog)."
 msgstr ""
+"Er zijn tientallen tools geïntegreerd in OpenKAT om de wereld te bekijken ("
+"digitaal en analoog)."
 
 #: rocky/templates/landing_page.html
 msgid "Our motto is therefore: I see, I see, what you do not see."
-msgstr ""
+msgstr "Ons motto is daarom: Ik zie, ik zie, wat jij niet ziet."
 
 #: rocky/templates/landing_page.html
 msgid "OpenKAT knows"
@@ -6543,7 +6605,7 @@ msgstr "Selecteer het type object dat u wilt maken."
 #: rocky/templates/oois/ooi_delete.html
 #, python-format
 msgid "Delete %(primary_key)s"
-msgstr "%(primary_key)s verwijderen"
+msgstr "Verwijder %(primary_key)s"
 
 #: rocky/templates/oois/ooi_delete.html
 msgid "Are you sure?"
@@ -6567,7 +6629,7 @@ msgstr "Sleutel"
 #: rocky/templates/partials/ooi_detail_toolbar.html
 #, python-format
 msgid "Delete %(display_type)s"
-msgstr "%(display_type)s verwijderen"
+msgstr "Verwijder %(display_type)s"
 
 #: rocky/templates/oois/ooi_delete.html
 msgid "Deletion not possible for types: KATFindingType and CVEFindingType"
@@ -6786,7 +6848,7 @@ msgstr "Waarschuwing"
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
-msgstr "%(type)s: %(ooi_human_readable)s bewerken"
+msgstr "Bewerk %(type)s: %(ooi_human_readable)s"
 
 #: rocky/templates/oois/ooi_edit.html
 msgid "Primary key fields cannot be edited."
@@ -6816,7 +6878,7 @@ msgstr ""
 #: rocky/templates/oois/ooi_list.html
 #: rocky/templates/scan_profiles/scan_profile_detail.html
 msgid "Edit clearance level"
-msgstr ""
+msgstr "Bewerk vrijwaringsniveau"
 
 #: rocky/templates/oois/ooi_mute_finding.html
 msgid "Mute finding:"
@@ -7091,25 +7153,27 @@ msgstr "Huidige configuratie"
 
 #: rocky/templates/partials/delete_ooi_modal.html
 msgid "Delete objects"
-msgstr ""
+msgstr "Verwijder objecten"
 
 #: rocky/templates/partials/delete_ooi_modal.html
 msgid ""
 "Are you sure you want to delete all the selected objects? The history of the "
 "deleted objects will still be available."
 msgstr ""
+"Weet u zeker dat u alle geselecteerde objecten wilt verwijderen? De "
+"geschiedenis van de verwijderde objecten blijft beschikbaar."
 
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 msgid "Edit clearance level settings"
-msgstr ""
+msgstr "Bewerk vrijwaringsniveau instellingen"
 
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 msgid "You are editing clearance level of all the selected objects."
-msgstr ""
+msgstr "U bewerkt het vrijwaringsniveau van alle geselecteerde objecten."
 
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 msgid "Switching between declare and inherit"
-msgstr ""
+msgstr "Schakelen tussen verklaren en erven"
 
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 msgid ""
@@ -7118,6 +7182,10 @@ msgid ""
 "also recalculate the clearance levels of objects that inherit from these "
 "clearance levels."
 msgstr ""
+"Vrijwaringsniveaus kunnen automatisch worden overgenomen of u kunt het "
+"vrijwaringsniveau voor een object handmatig verklaren. Als u overschakelt "
+"naar het overerven van vrijwaringsniveaus, worden ook de vrijwaringsniveaus "
+"van gerelateerde objecten opnieuw berekend."
 
 #: rocky/templates/partials/elements/ooi_detail_settings.html
 msgid "Observed at"
@@ -7350,7 +7418,7 @@ msgstr "Rapport genereren"
 #: rocky/templates/partials/ooi_detail_toolbar.html
 #, python-format
 msgid "Edit %(display_type)s"
-msgstr "%(display_type)s bewerken"
+msgstr "Bewerk %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
 #, fuzzy, python-format
@@ -7490,6 +7558,10 @@ msgid ""
 "This means that the clearance level might stay the same, increase or "
 "decrease, depending on other declared clearance levels."
 msgstr ""
+"Het vrijwaringsniveau bepaalt het niveau van boefje-scans dat voor dit "
+"object is toegestaan. Een object erft zijn vrijwaringsniveau van naburige "
+"objecten. Dit betekent dat het vrijwaringsniveau hetzelfde kan blijven, kan "
+"stijgen of dalen, afhankelijk van andere aangegeven vrijwaringsniveaus."
 
 #: rocky/templates/scan_profiles/scan_profile_detail.html
 #, fuzzy
@@ -7505,6 +7577,8 @@ msgid ""
 "This object has a clearance level of \"empty\". This means that this object "
 "has no clearance level."
 msgstr ""
+"Dit object heeft een vrijwaringsniveau van “leeg”. Dit betekent dat dit "
+"object geen vrijwaringsniveau heeft."
 
 #: rocky/templates/scan_profiles/scan_profile_detail.html
 #, fuzzy
@@ -7541,6 +7615,8 @@ msgid ""
 "You don't have permissions to set the clearance level. Contact your "
 "administrator."
 msgstr ""
+"U hebt geen toestemming om het vrijwaringsniveau in te stellen. Neem contact "
+"op met uw beheerder."
 
 #: rocky/templates/scan_profiles/scan_profile_detail.html
 #, fuzzy, python-format
@@ -8122,7 +8198,7 @@ msgstr "Een van de OOI’s bestaat niet"
 #: rocky/views/ooi_list.py
 #, python-format
 msgid "Successfully set scan profile to %s for %d OOIs."
-msgstr ""
+msgstr "Scanprofiel succesvol ingesteld op %s voor %d OOI's."
 
 #: rocky/views/ooi_list.py
 msgid "An error occurred while setting clearance levels to inherit."
@@ -8141,7 +8217,7 @@ msgstr ""
 #: rocky/views/ooi_list.py
 #, python-format
 msgid "Successfully set %d OOI(s) clearance level to inherit."
-msgstr ""
+msgstr "%d OOI(s) vrijwaringsniveau succesvol ingesteld om te overerven."
 
 #: rocky/views/ooi_list.py
 msgid "An error occurred while deleting oois."
@@ -8150,6 +8226,8 @@ msgstr "Er is een fout opgetreden bij het verwijderen van OOI’s."
 #: rocky/views/ooi_list.py
 msgid "An error occurred while deleting OOIs: one of the OOIs doesn't exist."
 msgstr ""
+"Er is een fout opgetreden tijdens het verwijderen van OOI's: een van de "
+"OOI's bestaat niet."
 
 #: rocky/views/ooi_list.py
 #, python-format
@@ -8314,6 +8392,8 @@ msgstr "Kon je verzoek niet verwerken, actie nodig."
 msgid ""
 "Cannot set clearance level. The clearance type must be inherited or declared."
 msgstr ""
+"Het vrijwaringsniveau kan niet worden ingesteld. Het vrijwaringstype moet "
+"worden geërfd of verklaard."
 
 #: rocky/views/scans.py
 msgid "Scans"

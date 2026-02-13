@@ -45,10 +45,10 @@ rm -f kat-*.deb kat-debian1[12]-*.tar.gz xtdb-*.deb
 echo "Step 1 - Get latest release of OpenKAT"
 
 # The URL of the latest xtdb-http-multinode release
-xtdb_url='https://github.com/dekkers/xtdb-http-multinode/releases/latest'
+xtdb_url='https://github.com/underdarknl/xtdb-http-multinode/releases/latest'
 
 # The URL of the latest nl-kat-coordination release
-openkat_url='https://github.com/minvws/nl-kat-coordination/releases/latest'
+openkat_url='https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/releases/latest'
 
 echo "Step 2 - Download OpenKAT and xtdb-http-multinode"
 
@@ -64,11 +64,11 @@ fi
 
 echo "Step 3 - Download the latest version of xtdb-http-multinode"
 echo "Downloading xtdb-http-multinode version $xtdb_version..."
-sudo curl -LO "https://github.com/dekkers/xtdb-http-multinode/releases/download/v${xtdb_version}/xtdb-http-multinode_${xtdb_version}_all.deb"
+sudo curl -LO "https://github.com/underdarknl/xtdb-http-multinode/releases/download/v${xtdb_version}/xtdb-http-multinode_${xtdb_version}_all.deb"
 
 echo "Step 4 -  Download the latest version of OpenKAT"
 echo "Downloading nl-kat-coordination version $openkat_version..."
-sudo curl -LO "https://github.com/minvws/nl-kat-coordination/releases/download/v${openkat_version}/kat-debian${debian_version}-${openkat_version}.tar.gz"
+sudo curl -LO "https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/releases/download/v${openkat_version}/kat-debian${debian_version}-${openkat_version}.tar.gz"
 
 echo "Step 5 - Install OpenKAT and xtdb-http-multinode"
 sudo tar zvxf kat-*.tar.gz

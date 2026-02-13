@@ -22,7 +22,7 @@ while [ $# -gt 0 ]; do
     shift
 done
 
-for volume in $(docker volume ls --filter name=nl-kat* --quiet); do
+for volume in $(docker volume ls --filter name=openkat* --quiet); do
     uuid="$(cat /proc/sys/kernel/random/uuid)"
     if [ ! -d "$backup_path/$volume" ]; then
         mkdir -p "$backup_path/$volume"

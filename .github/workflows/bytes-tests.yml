@@ -14,7 +14,7 @@ jobs:
         working-directory: bytes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bytes-coverage-unit
           path: bytes/.coverage
@@ -30,7 +30,7 @@ jobs:
         working-directory: bytes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bytes-coverage-integration
           path: bytes/.coverage
@@ -55,7 +55,7 @@ jobs:
         run: pip install coverage[toml]
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: bytes-coverage-*
 
@@ -67,7 +67,7 @@ jobs:
         working-directory: bytes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bytes-coverage
           path: bytes/coverage.xml
