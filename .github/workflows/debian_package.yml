@@ -78,13 +78,13 @@ jobs:
         uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         with:
           run: packaging/scripts/build-debian-package.sh
-          registry: ghcr.io
-          image: ghcr.io/minvws/nl-kat-${{ matrix.dist }}-build-image:latest
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.underdark.nl
+          image: docker.underdark.nl/librekat/openkat-${{ matrix.dist }}-build-image:latest
+          username: ${{ secrets.librekat_user }}
+          password: ${{ secrets.librekat_password }}
           options: -v ${{ github.workspace }}/${{ matrix.package }}:/app
             -v ${{ github.workspace }}/octopoes:/octopoes
-            -e REPOSITORY=${{ github.repository }}
+            -e REPOSITORY=docker.underdark.nl
             -e RELEASE_VERSION=${{ env.RELEASE_VERSION }}
             -e RELEASE_TAG=${{ env.RELEASE_TAG }}
             -e PKG_NAME=${{ env.PKG_NAME }}
