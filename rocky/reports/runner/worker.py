@@ -123,7 +123,7 @@ class SchedulerWorkerManager(WorkerManager):
                 logger.warning(
                     "Worker[pid=%s, %s] not alive, creating new worker...",
                     worker.pid,
-                    _format_exit_code(worker.exitcode)
+                    _format_exit_code(worker.exitcode),
                 )
             except ValueError:
                 logger.warning(
