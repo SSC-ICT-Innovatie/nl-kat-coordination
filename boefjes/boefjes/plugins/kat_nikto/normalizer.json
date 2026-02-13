@@ -1,14 +1,6 @@
 {
   "id": "kat_nikto_normalize",
   "name": "Nikto",
-  "consumes": [
-    "boefje/nikto-output",
-    "openkat/nikto-output"
-  ],
-  "produces": [
-    "Software",
-    "SoftwareInstance",
-    "Finding",
-    "KATFindingType"
-  ]
+  "consumes": ["boefje/nikto-output", "openkat/nikto-output"],
+  "produces": ["Software", "SoftwareInstance", "Finding", "KATFindingType"]
 }

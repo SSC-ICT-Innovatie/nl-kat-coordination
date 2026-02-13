@@ -31,7 +31,8 @@ function main() {
     const raws = run(boefje_input.task.data);
     out = {
       status: "COMPLETED",
-      files: raws.map((x) => ({
+      files: raws.map((x, i) => ({
+        name: String(i),
         content: b64encode(x[1]),
         tags: x[0],
       })),
@@ -41,6 +42,7 @@ function main() {
       status: "FAILED",
       files: [
         {
+          name: "error",
           content: b64encode("Boefje caught an error: " + error.message),
           tags: ["error/boefje"],
         },

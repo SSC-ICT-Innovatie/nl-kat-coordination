@@ -11,7 +11,21 @@
     "USERAGENT": {
       "title": "USERAGENT",
       "maxLength": 256,
-      "type": "string"
+      "type": "string",
+      "description": "Custom User-Agent header for requests."
+    },
+    "TUNING": {
+      "title": "TUNING",
+      "maxLength": 20,
+      "type": "string",
+      "description": "Nikto tuning options to select specific test types.\n1=Interesting files, 2=Misconfiguration, 3=Information Disclosure,\n4=XSS/Injection, 5=File Retrieval (webroot), 6=DoS, 7=File Retrieval (server),\n8=Command Execution, 9=SQL Injection, a=Auth Bypass, b=Software ID, c=Remote Include.\nDefault: 3b (Information Disclosure + Software Identification)"
+    },
+    "MAX_TIME": {
+      "title": "MAX_TIME",
+      "type": "integer",
+      "minimum": 60,
+      "maximum": 3600,
+      "description": "Maximum scan duration in seconds. Default: 600 (10 minutes)"
     }
   },
   "required": []

@@ -2,13 +2,8 @@
   "id": "nikto",
   "name": "Nikto",
   "description": "Uses Nikto",
-  "consumes": [
-    "HostnameHTTPURL"
-  ],
-  "environment_keys": [
-    "HTTP_PROXY",
-    "USERAGENT"
-  ],
+  "consumes": ["HostnameHTTPURL"],
+  "environment_keys": ["HTTP_PROXY", "USERAGENT", "TUNING", "MAX_TIME"],
   "scan_level": 3,
   "oci_image": "ghcr.io/minvws/openkat/nikto:latest",
   "oci_arguments": []
