@@ -1,5 +1,6 @@
 import logging
 import socket
+from contextlib import asynccontextmanager
 from logging import config
 from pathlib import Path
 
@@ -61,7 +62,20 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
-app = FastAPI(title="Octopoes API")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        get_rabbit_channel(str(settings.queue_uri))
+    except (AMQPConnectionWorkflowFailed, socket.gaierror):
+        logger.exception("Unable to connect RabbitMQ on startup")
+    yield
+    # clean up items
+    close_rabbit_channel(str(settings.queue_uri))
+
+
+app = FastAPI(title="Octopoes API", lifespan=lifespan)
 
 # Set up OpenTelemetry instrumentation
 if settings.span_export_grpc_endpoint is not None:
@@ -135,19 +149,6 @@ def uncaught_exception_handler(_: Request, exc: Exception) -> None:
 @app.get("/health")
 def root_health() -> ServiceHealth:
     return ServiceHealth(service="octopoes", healthy=True, version=__version__)
-
-
-@app.on_event("shutdown")
-def close_rabbit_mq_connection():
-    close_rabbit_channel(str(settings.queue_uri))
-
-
-@app.on_event("startup")
-def create_rabbit_mq_connection():
-    try:
-        get_rabbit_channel(str(settings.queue_uri))
-    except (AMQPConnectionWorkflowFailed, socket.gaierror):
-        logger.exception("Unable to connect RabbitMQ on startup")
 
 
 app.include_router(router)
