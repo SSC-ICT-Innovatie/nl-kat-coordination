@@ -1,8 +1,8 @@
 [project]
 name = "openkat"
 version = "0.0.1.dev1"
-description = "OpenKAT Coordination package"
-authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
+description = "OpenKAT"
+authors = [{ name = "LibreKAT", email = "maintainer@librekat.nl" }]
 requires-python = ">=3.10"
 readme = "README.rst"
 license = "EUPL-1.2"

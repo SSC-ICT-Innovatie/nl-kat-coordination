@@ -6,7 +6,7 @@ SHELL := bash
 HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs
+.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs upgraderequirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -70,7 +70,7 @@ pull:
 	docker compose pull
 
 # Upgrade to the latest release without losing persistent data. Usage: `make upgrade version=v1.5.0` (version is optional)
-VERSION?=$(shell curl -sSf "https://api.github.com/repos/minvws/nl-kat-coordination/tags" | jq -r '[.[].name | select(. | contains("rc") | not)][0]')
+VERSION?=$(shell curl -sSf "https://api.github.com/repos/SSC-ICT-Innovatie/nl-kat-coordination/tags" | jq -r '[.[].name | select(. | contains("rc") | not)][0]')
 upgrade: down fetch
 	git checkout $(VERSION)
 	make kat
@@ -126,6 +126,16 @@ docs:
 	PYTHONPATH=$(PYTHONPATH):boefjes/:bytes/:mula/:octopoes/ sphinx-build -b html --fail-on-warning docs/source docs/_build
 
 
+upgraderequirements:
+	@echo "Upgrading all required dependencies using uv..."
+	files=$$(find . -name pyproject.toml -maxdepth 2); \
+	for path in $$files; do \
+		project_dir=$$(dirname $$path); \
+		echo "Processing $$path..."; \
+		uv lock --project $$project_dir --upgrade; \
+		echo "New Lock file generated. Use \`make requirements\` to update requirements files..."
+	done
+
 requirements:
 	@echo "Generating requirements.txt files for all projects using uv..."
 	files=$$(find . -name pyproject.toml -maxdepth 2); \
@@ -134,10 +144,10 @@ requirements:
 		echo "Processing $$path..."; \
 		uv lock --project $$project_dir --check; \
 		echo "Exporting main dependencies..."; \
-		uv export --project $$project_dir --no-default-groups --format requirements.txt -o $$project_dir/requirements.txt; \
+		uv export --project $$project_dir --no-default-groups --format requirements-txt -o $$project_dir/requirements.txt; \
 		if grep -q "\[dependency-groups\]" $$path && grep -q "dev =" $$path; then \
 			echo "Exporting dev dependencies..."; \
-			uv export --project $$project_dir --group dev --format requirements.txt -o $$project_dir/requirements-dev.txt; \
+			uv export --project $$project_dir --group dev --format requirements-txt -o $$project_dir/requirements-dev.txt; \
 		else \
 			echo "No dev group, skipping requirements-dev.txt..."; \
 		fi; \
