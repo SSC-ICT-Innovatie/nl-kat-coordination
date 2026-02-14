@@ -45,7 +45,7 @@ override_dh_installsystemd:
 	dh_installsystemd --name=kat-boefjes
 	dh_installsystemd --name=kat-normalizers
 	dh_installsystemd --name=kat-katalogus
-	sed -i s/python3.9/`py3versions -d`/ debian/kat-boefjes/lib/systemd/system/*.service
+	sed -i "s/python3\.[0-9]\+/$(py3versions -d)/g" debian/kat-boefjes/lib/systemd/system/*.service
 
 # Disables dh_strip_nondeterminism because it very slow and not useful for us
 override_dh_strip_nondeterminism:
