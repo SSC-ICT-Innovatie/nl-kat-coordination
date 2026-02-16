@@ -4,6 +4,9 @@
   "description": "Exports the Input OOI to the configured HTTP api, configure by copying this Boefje, and provinding Input OOIs of your choice. Limit Exported Objects by selecting an appropriate Scan Level.",
   "consumes": [],
   "scan_level": 4,
-  "oci_image": "ghcr.io/minvws/openkat/export-http:latest",
-  "run_on": ["create", "update"]
+  "oci_image": "docker.underdark.nl/librekat/export-http:latest",
+  "run_on": [
+    "create",
+    "update"
+  ]
 }
