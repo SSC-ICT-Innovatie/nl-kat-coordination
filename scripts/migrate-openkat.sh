@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 printf '--dry-run, DRY RUN: %s\n' "$DRY_RUN"
-printf "--project, docker compose project name\n" "$PROJECT_NAME"
+printf "--project, docker compose project name: %s\n" "$PROJECT_NAME"
 printf "           (default: \$COMPOSE_PROJECT_NAME or current directory name)\n"
 printf '--backup-path, BACKUP PATH: %s\n' "$BACKUP_PATH"
 printf '--compose-file, COMPOSE FILE: %s\n' "$COMPOSE_FILE"
@@ -82,7 +82,7 @@ if ! "$CLEANUP_ONLY"; then
 
     docker volume ls -q --filter "name=${PROJECT_NAME}_" |
         while IFS= read -r old_vol; do
-            rest="${old_vol#${PROJECT_NAME}_}"
+            rest="${old_vol#"${PROJECT_NAME}"_}"
             new_vol="openkat_${rest}"
 
             printf '-----------------------------------------\n'
@@ -107,7 +107,7 @@ if ! "$CLEANUP_ONLY"; then
                     sh -c "cd /data && tar -czf /backup/$(basename "$backup_file") ."
 
                 # create volume, if not exists
-                if ! docker volume inspect "$new_vol" >/dev/null 2>&1; then
+                if ! docker volume inspect "$new_vol" > /dev/null 2>&1; then
                     docker volume create "$new_vol"
                 fi
 
