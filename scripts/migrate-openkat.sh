@@ -16,6 +16,10 @@ while [[ $# -gt 0 ]]; do
         DRY_RUN=true
         shift
         ;;
+    --project)
+        PROJECT_NAME="$2"
+        shift 2
+        ;;
     --remove-old-volumes)
         REMOVE_OLD_VOLUMES=true
         shift
@@ -40,11 +44,13 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-printf 'DRY RUN: %s\n' "$DRY_RUN"
-printf 'BACKUP PATH: %s\n' "$BACKUP_PATH"
-printf 'COMPOSE FILE: %s\n' "$COMPOSE_FILE"
-printf 'REMOVE OLD VOLUMES: %s\n' "$REMOVE_OLD_VOLUMES"
-printf 'CLEANUP ONLY: %s\n' "$CLEANUP_ONLY"
+printf '--dry-run, DRY RUN: %s\n' "$DRY_RUN"
+printf "--project, docker compose project name\n" "$PROJECT_NAME"
+printf "           (default: \$COMPOSE_PROJECT_NAME or current directory name)\n"
+printf '--backup-path, BACKUP PATH: %s\n' "$BACKUP_PATH"
+printf '--compose-file, COMPOSE FILE: %s\n' "$COMPOSE_FILE"
+printf '--remove-old-volumes, REMOVE OLD VOLUMES: %s\n' "$REMOVE_OLD_VOLUMES"
+printf '--cleanup-only, CLEANUP ONLY: %s\n' "$CLEANUP_ONLY"
 printf '--------------------------------------\n'
 
 # ---- Helper ----
@@ -57,28 +63,26 @@ run_or_echo() {
     fi
 }
 
+# Determine project name for docker volume filtering.
+# Mirrors docker compose behavior: env var, then current directory name.
+if [ -z "${PROJECT_NAME:-}" ]; then
+    PROJECT_NAME="${COMPOSE_PROJECT_NAME:-$(basename "$(pwd)")}"
+fi
+
 if ! "$CLEANUP_ONLY"; then
     # ---- Step 1: Stop & remove old containers ----
     printf 'Stopping and removing old containers...\n'
 
     if ! "$DRY_RUN"; then
-        docker ps -a \
-            --filter "name=nl-kat-coordination-" \
-            --format '{{.ID}}' |
-            while IFS= read -r cid; do
-                run_or_echo docker stop "$cid"
-            done
+        docker compose -p "$PROJECT_NAME" down
     fi
 
     # ---- Step 2: Migrate volumes ----
     printf 'Migrating volumes...\n'
 
-    docker volume ls -q |
-        {
-            grep '^nl-kat-coordination_' || true
-        } |
+    docker volume ls -q --filter "name=${PROJECT_NAME}_" |
         while IFS= read -r old_vol; do
-            rest="${old_vol#nl-kat-coordination_}"
+            rest="${old_vol#${PROJECT_NAME}_}"
             new_vol="openkat_${rest}"
 
             printf '-----------------------------------------\n'
@@ -95,14 +99,17 @@ if ! "$CLEANUP_ONLY"; then
 
             printf '  Backing up to: %s\n' "$backup_file"
 
-            docker run --rm \
-                --mount "type=volume,src=${old_vol},dst=/data" \
-                --mount "type=bind,src=$(dirname "$backup_file"),dst=/backup" \
-                "$IMAGE" \
-                sh -c "cd /data && tar -czf /backup/$(basename "$backup_file") ."
-
             if ! "$DRY_RUN"; then
-                docker volume create "$new_vol"
+                docker run --rm \
+                    --mount "type=volume,src=${old_vol},dst=/data" \
+                    --mount "type=bind,src=$(dirname "$backup_file"),dst=/backup" \
+                    "$IMAGE" \
+                    sh -c "cd /data && tar -czf /backup/$(basename "$backup_file") ."
+
+                # create volume, if not exists
+                if ! docker volume inspect "$new_vol" >/dev/null 2>&1; then
+                    docker volume create "$new_vol"
+                fi
 
                 printf '  Restoring into new volume: %s\n' "$new_vol"
 
@@ -116,15 +123,7 @@ if ! "$CLEANUP_ONLY"; then
             fi
         done
 
-    # in dry run, dont actually rm containers or volumes.
-    if ! "$DRY_RUN"; then
-        docker ps -a \
-            --filter "name=nl-kat-coordination-" \
-            --format '{{.ID}}' |
-            while IFS= read -r cid; do
-                run_or_echo docker rm "$cid"
-            done
-    else
+    if "$DRY_RUN"; then
         printf '  Restart your containers using the old names manually.'
     fi
 fi
@@ -133,10 +132,7 @@ fi
 if "$REMOVE_OLD_VOLUMES"; then
     printf 'Removing old volumes...\n'
 
-    docker volume ls -q |
-        {
-            grep '^nl-kat-coordination_' || true
-        } |
+    docker volume ls -q --filter "name=${PROJECT_NAME}_" |
         while IFS= read -r old_vol; do
             run_or_echo docker volume rm "$old_vol"
         done
