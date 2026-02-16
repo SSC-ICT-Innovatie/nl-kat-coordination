@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+PROJECT_NAME="nl-kat-coordination"
 BACKUP_PATH="/tmp/openkatbackups"
 IMAGE="alpine:latest"
 COMPOSE_FILE="docker-compose.yml"
@@ -44,13 +45,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-printf '--dry-run, DRY RUN: %s\n' "$DRY_RUN"
-printf "--project, docker compose project name: %s\n" "$PROJECT_NAME"
+printf "Usage: %s \n" "$(basename "$0")"
+printf " --dry-run, DRY RUN: %s\n" "$DRY_RUN"
+printf " --project, docker compose project name: %s\n" "$PROJECT_NAME"
 printf "           (default: \$COMPOSE_PROJECT_NAME or current directory name)\n"
-printf '--backup-path, BACKUP PATH: %s\n' "$BACKUP_PATH"
-printf '--compose-file, COMPOSE FILE: %s\n' "$COMPOSE_FILE"
-printf '--remove-old-volumes, REMOVE OLD VOLUMES: %s\n' "$REMOVE_OLD_VOLUMES"
-printf '--cleanup-only, CLEANUP ONLY: %s\n' "$CLEANUP_ONLY"
+printf ' --backup-path, BACKUP PATH: %s\n' "$BACKUP_PATH"
+printf ' --compose-file, COMPOSE FILE: %s\n' "$COMPOSE_FILE"
+printf ' --remove-old-volumes, REMOVE OLD VOLUMES: %s\n' "$REMOVE_OLD_VOLUMES"
+printf ' --cleanup-only, CLEANUP ONLY: %s\n' "$CLEANUP_ONLY"
 printf '--------------------------------------\n'
 
 # ---- Helper ----
