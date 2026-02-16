@@ -2,7 +2,7 @@
 name = "octopoes"
 version = "0.0.1.dev1"
 description = "KAT's knowledge graph engine"
-authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
+authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
 requires-python = ">=3.10"
 license = { text = "EUPL-1.2" }
 dependencies = [
@@ -36,7 +36,7 @@ dependencies = [
     "fastapi-slim>=0.115.2",
     "structlog>=25.2.0,<26",
     "asgiref>=3.8.1,<4",
-    "setuptools>80",
+    "setuptools>80,<82",
 ]
 
 [dependency-groups]
