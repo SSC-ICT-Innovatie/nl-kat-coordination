@@ -45,10 +45,10 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-printf "Usage: %s \n" "$(basename "$0")"
-printf " --dry-run, DRY RUN: %s\n" "$DRY_RUN"
-printf " --project, docker compose project name: %s\n" "$PROJECT_NAME"
-printf "           (default: \$COMPOSE_PROJECT_NAME or current directory name)\n"
+printf 'Usage: %s \n' "$(basename "$0")"
+printf ' --dry-run, DRY RUN: %s\n' "$DRY_RUN"
+printf ' --project, docker compose project name: %s\n' "$PROJECT_NAME"
+printf '           (default: \$COMPOSE_PROJECT_NAME or current directory name)\n'
 printf ' --backup-path, BACKUP PATH: %s\n' "$BACKUP_PATH"
 printf ' --compose-file, COMPOSE FILE: %s\n' "$COMPOSE_FILE"
 printf ' --remove-old-volumes, REMOVE OLD VOLUMES: %s\n' "$REMOVE_OLD_VOLUMES"
@@ -126,7 +126,7 @@ if ! "$CLEANUP_ONLY"; then
         done
 
     if "$DRY_RUN"; then
-        printf '  Restart your containers using the old names manually.'
+        printf '  Restart your containers using the old names manually.\n'
     fi
 fi
 
