@@ -3,7 +3,6 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -46,6 +45,7 @@
                             {% for task in task_list %}
                                 <tr data-task-id="{{ task.id }}"
                                     data-task-type="{{ task.type }}"
+                                    data-task-status="{{ task.status.value }}"
                                     {% if not organization %}data-organization-code="{{ task.data.organization }}"{% endif %}>
                                     {% if not organization.code %}
                                         <td>
@@ -95,8 +95,6 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}
