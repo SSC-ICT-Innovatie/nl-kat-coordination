@@ -1,6 +1,8 @@
 import json
 import unittest
 import uuid
+from uuid import UUID
+
 from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest import mock
@@ -206,12 +208,12 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update the item
         updated_item = schemas.TaskPush(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.data["name"] = "updated-name"
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", data=updated_item.model_dump_json()
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump()
         )
 
         # The queue should still have one item
@@ -231,12 +233,12 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update the item
         updated_item = schemas.TaskPush(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.data["name"] = "updated-name"
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", data=updated_item.model_dump_json()
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump()
         )
         self.assertEqual(response.status_code, 201)
 
