@@ -236,7 +236,7 @@ class BoefjeScheduler(Scheduler):
                     try:
                         for ooi in self.get_oois_for_boefje(boefje, org.id):
                             boefje_task = models.BoefjeTask(
-                                boefje=models.Boefje.model_validate(boefje.dict()),
+                                boefje=models.Boefje.model_validate(boefje.model_dump()),
                                 input_ooi=ooi.primary_key,
                                 organization=org.id,
                             )
@@ -412,7 +412,7 @@ class BoefjeScheduler(Scheduler):
                             continue
 
                     new_boefje_task = models.BoefjeTask(
-                        boefje=models.Boefje.model_validate(plugin.dict()),
+                        boefje=models.Boefje.model_validate(plugin.model_dump()),
                         input_ooi=ooi.primary_key if ooi else None,
                         organization=schedule.organisation,
                     )
