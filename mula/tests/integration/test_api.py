@@ -212,8 +212,7 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push",
-            json=updated_item.model_dump(mode="json"),
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(mode="json")
         )
 
         # The queue should still have one item
@@ -238,8 +237,7 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", 
-            json=updated_item.model_dump(mode="json"),
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(mode="json")
         )
         self.assertEqual(response.status_code, 201)
 
