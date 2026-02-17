@@ -558,7 +558,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         plugin = PluginFactory(scan_level=0, consumes=[ooi.object_type])
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -580,7 +580,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         plugin = PluginFactory(scan_level=0)
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()), input_ooi=None, organization=self.organisation.id
+            boefje=models.Boefje.model_validate(boefje.model_dump()), input_ooi=None, organization=self.organisation.id
         )
 
         # Mocks
@@ -614,7 +614,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         plugin = PluginFactory(scan_level=0, consumes=[ooi.object_type])
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(plugin.dict()),
+            boefje=models.Boefje.model_validate(plugin.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -733,7 +733,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         boefje = BoefjeFactory()
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -817,7 +817,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         boefje = BoefjeFactory()
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -865,7 +865,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         boefje = BoefjeFactory()
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -912,7 +912,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         boefje = BoefjeFactory()
 
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -1125,7 +1125,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         plugin = PluginFactory(scan_level=0, consumes=[ooi.object_type])
         boefje = BoefjeFactory()
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=self.organisation.id,
         )
@@ -1167,7 +1167,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         dkey = uuid.uuid4()
         for org in orgs:
             boefje_task = models.BoefjeTask(
-                boefje=models.Boefje.model_validate(boefje.dict()),
+                boefje=models.Boefje.model_validate(boefje.model_dump()),
                 input_ooi=ooi.primary_key,
                 organization=org,
                 deduplication_key=dkey.hex,
@@ -1208,7 +1208,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         dkey = uuid.uuid4()
         for org in orgs:
             boefje_task = models.BoefjeTask(
-                boefje=models.Boefje.model_validate(boefje.dict()),
+                boefje=models.Boefje.model_validate(boefje.model_dump()),
                 input_ooi=ooi.primary_key,
                 organization=org,
                 deduplication_key=dkey.hex,
@@ -1230,7 +1230,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
 
         # Add one test with a different deduplication key
         boefje_task = models.BoefjeTask(
-            boefje=models.Boefje.model_validate(boefje.dict()),
+            boefje=models.Boefje.model_validate(boefje.model_dump()),
             input_ooi=ooi.primary_key,
             organization=OrganisationFactory().id,
             deduplication_key=uuid.uuid4().hex,
