@@ -196,7 +196,7 @@ class PriorityQueue(abc.ABC):
             return item_db
 
         # Update the item with the new data
-        patch_data = task.dict(exclude_unset=True)
+        patch_data = task.model_dump(exclude_unset=True)
         updated_task = item_on_queue.model_copy(update=patch_data)
 
         # Update the item in the queue
