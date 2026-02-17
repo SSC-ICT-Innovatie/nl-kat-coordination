@@ -107,17 +107,11 @@ class Settings(BaseSettings):
     )
 
     host_bytes: AnyHttpUrl = Field(
-        ...,
-        json_schema_extra={"example": "http://localhost:8004"},
-        alias="BYTES_API",
-        description="Bytes API URL",
+        ..., json_schema_extra={"example": "http://localhost:8004"}, alias="BYTES_API", description="Bytes API URL"
     )
 
     host_bytes_user: str = Field(
-        ...,
-        json_schema_extra={"example": "test"},
-        alias="BYTES_USERNAME",
-        description="Bytes JWT login username",
+        ..., json_schema_extra={"example": "test"}, alias="BYTES_USERNAME", description="Bytes JWT login username"
     )
 
     host_bytes_password: str = Field(
