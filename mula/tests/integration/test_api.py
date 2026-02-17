@@ -321,7 +321,7 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update priority of the item
         updated_item = schemas.Task(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.priority = 2
 
         # Try to update the item through the api
