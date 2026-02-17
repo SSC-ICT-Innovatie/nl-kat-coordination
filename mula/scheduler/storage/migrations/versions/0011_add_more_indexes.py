@@ -5,6 +5,7 @@ Revises: 0010
 Create Date: 2026-02-17 09:21:58.416181
 
 """
+
 import sqlalchemy as sa
 from alembic import op
 
@@ -26,7 +27,7 @@ def upgrade():
         "tasks",
         ["schedule_id"],
         unique=True,
-        postgresql_where=sa.text("status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')")
+        postgresql_where=sa.text("status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')"),
     )
     op.create_index("ix_tasks_organisation", "tasks", ["organisation"], unique=False)
     op.create_index("ix_tasks_scheduler_id", "tasks", ["scheduler_id"], unique=False)
@@ -44,7 +45,7 @@ def downgrade():
     op.drop_index(
         "ix_tasks_active_per_schedule",
         table_name="tasks",
-        postgresql_where=sa.text("status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')")
+        postgresql_where=sa.text("status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')"),
     )
     op.drop_index("ix_schedules_scheduler_id", table_name="schedules")
     op.drop_index("ix_schedules_organisation", table_name="schedules")
