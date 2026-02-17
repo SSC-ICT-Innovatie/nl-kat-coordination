@@ -8,7 +8,7 @@ from typing import Any
 
 import pydantic
 import structlog
-from scheduler.storage.errors import StorageError
+from scheduler.storage.errors import IntegrityError
 
 from scheduler import models, storage
 
@@ -196,10 +196,9 @@ class PriorityQueue(abc.ABC):
                 task.status = models.TaskStatus.QUEUED
                 item_db = self.pq_store.push(task)
                 return item_db
-            except StorageError as e:
-                self.session.rollback()
+            except IntegrityError as exc:
                 # check for collision warning on schedule_id / active state
-                if "ix_tasks_active_per_schedule" not in str(e.orig):
+                if "ix_tasks_active_per_schedule" not in str(exc):
                     raise
                 item_on_queue = self.pq_store.get_active_task_by_schedule(task.schedule_id)
                 if not item_on_queue:

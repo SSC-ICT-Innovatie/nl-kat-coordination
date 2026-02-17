@@ -239,7 +239,7 @@ class PriorityQueueStore:
             item_orm = (
                 session.query(models.TaskDB)
                 .filter(models.TaskDB.schedule_id == schedule_id)
-                .filter(models.TaskDB.status.in_(model.ACTIVE_TASK_STATUSES))
+                .filter(models.TaskDB.status.in_(models.ACTIVE_TASK_STATUSES))
                 .one_or_none()
             )
 
