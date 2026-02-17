@@ -299,7 +299,7 @@ class BoefjeScheduler(Scheduler):
                     oois[boefje_task.organization][boefje_task.input_ooi] = None
 
             # collect ooi's from octopoes.
-            for org, org_oois in oois:
+            for org, org_oois in oois.items():
                 # do one call to octopoes to collect all ooi's ready for rescheduling for that orga
                 try:
                     octopoes_oois = self.ctx.services.octopoes.get_objects(org, references=list(org_oois.keys()))
