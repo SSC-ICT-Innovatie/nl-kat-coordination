@@ -228,7 +228,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             modified_at=datetime.now(timezone.utc),
         )
 
-        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.utcnow())
+        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc))
 
         # Mock
         self.mock_get_latest_task_by_hash.side_effect = [task_db_first, task_db_second]
@@ -285,7 +285,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         ooi = OOIFactory(scan_profile=scan_profile)
         boefje = BoefjeFactory()
         task = models.BoefjeTask(boefje=boefje, input_ooi=ooi.primary_key, organization=self.organisation.id)
-        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.utcnow())
+        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc))
 
         # Mock
         self.mock_get_latest_task_by_hash.return_value = None

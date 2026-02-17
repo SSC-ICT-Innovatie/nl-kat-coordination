@@ -8,6 +8,7 @@ from typing import Any
 
 import pydantic
 import structlog
+from sqlalchemy.exc import IntegrityError
 
 from scheduler import models, storage
 
@@ -189,11 +190,26 @@ class PriorityQueue(abc.ABC):
             raise NotAllowedError(message)
 
         # If already on queue update the item, else create a new one
-        if not item_on_queue:
-            task.hash = self.create_hash(task)
-            task.status = models.TaskStatus.QUEUED
-            item_db = self.pq_store.push(task)
-            return item_db
+        try:
+            if not item_on_queue:
+                task.hash = self.create_hash(task)
+                task.status = models.TaskStatus.QUEUED
+                item_db = self.pq_store.push(task)
+                return item_db
+        except IntegrityError as e:
+            self.session.rollback()
+            # check for collision warning on schedule_id / active state
+            if "ix_tasks_active_per_schedule" not in str(e.orig):
+                raise
+            item_on_queue = self.pq_store.get_active_task_by_schedule(task.schedule_id)
+            if not item_on_queue:
+                # This should never happen, we had a collision,
+                # but cannot find the colliding scheduled task.
+                # maybe it was a race condition, lets insert again
+                task.hash = self.create_hash(task)
+                task.status = models.TaskStatus.QUEUED
+                item_db = self.pq_store.push(task)
+                return item_db
 
         # Update the item with the new data
         patch_data = task.model_dump(exclude_unset=True)
