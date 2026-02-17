@@ -8,9 +8,9 @@ from typing import Any
 
 import pydantic
 import structlog
-from scheduler.storage.errors import IntegrityError
 
 from scheduler import models, storage
+from scheduler.storage.errors import IntegrityError
 
 from .errors import InvalidItemError, NotAllowedError, QueueFullError
 

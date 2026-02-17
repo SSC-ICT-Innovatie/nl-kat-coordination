@@ -6,6 +6,7 @@ import sqlalchemy
 class StorageError(Exception):
     pass
 
+
 class IntegrityError(Exception):
     pass
 
