@@ -100,19 +100,35 @@ class Settings(BaseSettings):
 
     # External services settings
     host_katalogus: AnyHttpUrl = Field(
-        ..., json_schema_extra={"example": "http://localhost:8003"}, alias="KATALOGUS_API", description="Katalogus API URL"
+        ...,
+        json_schema_extra={"example": "http://localhost:8003"},
+        alias="KATALOGUS_API",
+        description="Katalogus API URL",
     )
 
-    host_bytes: AnyHttpUrl = Field(..., json_schema_extra={"example": "http://localhost:8004"}, alias="BYTES_API", description="Bytes API URL")
+    host_bytes: AnyHttpUrl = Field(
+        ...,
+        json_schema_extra={"example": "http://localhost:8004"},
+        alias="BYTES_API",
+        description="Bytes API URL",
+    )
 
-    host_bytes_user: str = Field(..., json_schema_extra={"example": "test"}, alias="BYTES_USERNAME", description="Bytes JWT login username")
+    host_bytes_user: str = Field(
+        ...,
+        json_schema_extra={"example": "test"},
+        alias="BYTES_USERNAME",
+        description="Bytes JWT login username",
+    )
 
     host_bytes_password: str = Field(
         ..., json_schema_extra={"example": "secret"}, alias="BYTES_PASSWORD", description="Bytes JWT login password"
     )
 
     host_octopoes: AnyHttpUrl = Field(
-        ..., json_schema_extra={"example": "http://localhost:8001"}, alias="OCTOPOES_API", description="Octopoes API URL"
+        ...,
+        json_schema_extra={"example": "http://localhost:8001"},
+        alias="OCTOPOES_API",
+        description="Octopoes API URL",
     )
 
     host_mutation: AmqpDsn = Field(
@@ -149,7 +165,9 @@ class Settings(BaseSettings):
 
     # Database settings
     db_uri: PostgresDsn = Field(
-        ..., json_schema_extra={"example": "postgresql://xx:xx@host:5432/scheduler"}, description="Scheduler Postgres DB URI"
+        ...,
+        json_schema_extra={"example": "postgresql://xx:xx@host:5432/scheduler"},
+        description="Scheduler Postgres DB URI",
     )
     db_connection_pool_size: int = Field(25, description="Database connection pool size")
 
