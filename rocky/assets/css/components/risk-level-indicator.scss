@@ -1,4 +1,4 @@
-/* Risk level indicator */
+@use "../variables" as theme;
 
 .critical,
 .high,
@@ -8,14 +8,6 @@
 .recommendation,
 .pending,
 .unknown {
-  --risk-level-critical: var(--colors-red-500);
-  --risk-level-high: var(--colors-orange-300);
-  --risk-level-medium: var(--colors-ochre-150);
-  --risk-level-low: var(--colors-green-150);
-  --risk-level-informational: var(--colors-blue-150);
-  --risk-level-pending: var(--colors-grey-400);
-  --risk-level-unknown: var(--colors-grey-400);
-
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -32,30 +24,30 @@
 }
 
 .critical::before {
-  background-color: var(--risk-level-critical);
+  background-color: theme.$colors-red-500;
 }
 
 .high::before {
-  background-color: var(--risk-level-high);
+  background-color: theme.$colors-orange-300;
 }
 
 .medium::before {
-  background-color: var(--risk-level-medium);
+  background-color: theme.$colors-ochre-150;
 }
 
 .low::before {
-  background-color: var(--risk-level-low);
+  background-color: theme.$colors-green-150;
 }
 
 .informational::before,
 .recommendation::before {
-  background-color: var(--risk-level-informational);
+  background-color: theme.$colors-blue-150;
 }
 
 .pending::before {
-  background-color: var(--risk-level-pending);
+  background-color: theme.$colors-grey-400;
 }
 
 .unknown::before {
-  background-color: var(--risk-level-unknown);
+  background-color: theme.$colors-grey-400;
 }

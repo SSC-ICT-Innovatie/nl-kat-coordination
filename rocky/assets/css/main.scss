@@ -1,84 +1,10 @@
-/* Abstracts */
-@import "abstracts/mixins";
-@import "abstracts/alert-colors";
+@use "@minvws/manon-themes/kat" with (
+  $font-path: "/assets/dist/fonts"
+);
+@use "@minvws/manon/components/bundles/all";
+@use "../icons/tabler";
 
-/* Helpers */
-@import "helpers/align-right";
-@import "helpers/is-hidden";
-@import "helpers/uc-first";
-
-/* Vendors */
-@import "manon-components";
-@import "vendor_overrides/graph-override";
-@import "vendor_overrides/manon/button-icon-only";
-@import "vendor_overrides/manon/display-toggle";
-@import "vendor_overrides/manon/dl";
-@import "vendor_overrides/manon/form-fieldset-required";
-@import "vendor_overrides/manon/form-radio";
-@import "vendor_overrides/manon/image-square";
-@import "vendor_overrides/manon/layout-fifty-fifty";
-@import "vendor_overrides/manon/layout-form";
-@import "vendor_overrides/manon/nested-section";
-@import "vendor_overrides/manon/notification";
-@import "vendor_overrides/manon/table";
-@import "vendor_overrides/manon/tile";
-@import "vendor_overrides/two-factor";
-
-/* Theme */
-@import "themes/soft/soft";
-
-/* Components */
-@import "components/action-buttons";
-@import "components/block-indented";
-@import "components/button-plain";
-@import "components/cat-loader";
-@import "components/cat-paw-loader";
-@import "components/cytoscape";
-@import "components/destructive";
-@import "components/dropdown-form";
-@import "components/dropdown";
-@import "components/dropdown-list";
-@import "components/filter";
-@import "components/footer-logo";
-@import "components/footer";
-@import "components/form-inline";
-@import "components/form";
-@import "components/form-checkbox";
-@import "components/header-navigation";
-@import "components/hover-block";
-@import "components/input-link";
-@import "components/introduction";
-@import "components/language";
-@import "components/layout";
-@import "components/table-sortable";
-@import "components/table-state-icons";
-@import "components/messages";
-@import "components/layout-tiles-width-1";
-@import "components/chapter-numbering";
-@import "components/notifications";
-@import "components/ooi-summary";
-@import "components/page-meta";
-@import "components/plugins";
-@import "components/qr-code";
-@import "components/report";
-@import "components/report-name-table";
-@import "components/risk-level-indicator";
-@import "components/scan-level-indicator";
-@import "components/select";
-@import "components/state-tag";
-@import "components/stepper";
-@import "components/sticky";
-@import "components/sticky-column";
-@import "components/state-tags";
-@import "components/system-tag";
-@import "components/table";
-@import "components/toggle";
-@import "components/toolbar";
-@import "components/tree-tables";
-@import "components/user-icon";
-@import "components/wait-text";
-@import "components/dashboard";
-
-/* Print */
-@import "components/print";
-@import "components/print_report";
+// KAT components
+@forward "components/introduction";
+@forward "components/tile";
+@forward "components/plugins";

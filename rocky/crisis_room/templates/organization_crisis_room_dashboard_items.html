@@ -79,11 +79,11 @@
                 {% endblocktranslate %}
             </p>
             <div class="button-container">
-                <a class="button ghost"
+                <a class="button secondary"
                    href="{% url "ooi_list" organization_code=organization.code %}">{% translate "Add objects" %}</a>
-                <a class="button ghost"
+                <a class="button secondary"
                    href="{% url "finding_list" organization_code=organization.code %}">{% translate "Add findings" %}</a>
-                <a class="button ghost" href="#dashboard-item-explanation-modal">{% translate "Add report section" %}</a>
+                <a class="button secondary" href="#dashboard-item-explanation-modal">{% translate "Add report section" %}</a>
             </div>
         {% endif %}
     </div>

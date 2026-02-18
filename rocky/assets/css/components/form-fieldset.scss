@@ -1,0 +1,9 @@
+@use "../variables" as theme;
+
+/* Form fieldset - Variables */
+
+form legend {
+  font-weight: theme.$form-fieldset-legend-font-weight;
+  margin-bottom: theme.$form-fieldset-legend-margin-bottom;
+  padding: 0;
+}

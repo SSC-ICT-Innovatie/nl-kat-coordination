@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 /* Footer - Styling */
 
 body > footer {
@@ -16,12 +18,12 @@ body > footer {
 
   a {
     &:visited {
-      color: var(--footer-link-visited-text-color);
-      text-decoration: var(--footer-link-visited-text-decoration);
+      color: theme.$footer-link-visited-text-color;
+      text-decoration: theme.$footer-link-visited-text-decoration;
 
       &:hover {
-        color: var(--footer-link-visited-hover-text-color);
-        text-decoration: var(--footer-link-visited-hovertext-decoration);
+        color: theme.$footer-link-visited-hover-text-color;
+        text-decoration: theme.$footer-link-visited-hovertext-decoration;
       }
     }
   }

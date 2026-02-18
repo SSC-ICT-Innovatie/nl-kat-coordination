@@ -1,0 +1,37 @@
+@use "../variables" as theme;
+
+/* Hero - Variables */
+
+.hero > div {
+  margin: auto 0;
+  padding-left: theme.$section-padding-left;
+  padding-right: theme.$section-padding-right;
+
+  @media screen and (min-width: $grid-m) {
+    padding-right: theme.$page-whitespace-right-grid-m;
+    padding-left: theme.$page-whitespace-left-grid-m;
+  }
+
+  @media screen and (min-width: $grid-l) {
+    padding-right: theme.$page-whitespace-right-grid-l;
+    padding-left: theme.$page-whitespace-left-grid-l;
+  }
+
+  @media screen and (min-width: $grid-xl) {
+    padding-right: theme.$page-whitespace-right-grid-xl;
+    padding-left: theme.$page-whitespace-left-grid-xl;
+  }
+
+  @media screen and (min-width: $grid-xxl) {
+    padding-right: theme.$page-whitespace-right-grid-xxl;
+    padding-left: theme.$page-whitespace-left-grid-xxl;
+  }
+
+  .tile {
+    padding: 1rem 1.5rem;
+
+    h1 {
+      font-size: theme.$heading-large-font-size;
+    }
+  }
+}

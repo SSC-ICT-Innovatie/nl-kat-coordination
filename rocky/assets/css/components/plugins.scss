@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 $boefje-bg: #275937;
 $bit-bg: #42145f;
 $normalizer-bg: #e17000;
@@ -34,20 +36,20 @@ $normalizer-bg: #e17000;
 
     /* Checkbox */
     > input[type="checkbox"] {
-      accent-color: var(--form-accent-color-color, initial);
-      cursor: var(--form-checkbox-cursor);
       left: 1rem;
       margin: 0;
       position: absolute;
       top: 1rem;
-      width: var(--form-checkbox-width);
-      min-height: var(--form-checkbox-width);
-      height: var(--form-checkbox-width);
+      width: theme.$form-checkbox-width;
+      min-height: theme.$form-checkbox-width;
+      height: theme.$form-checkbox-width;
+      accent-color: theme.$form-accent-color-color, initial;
+      cursor: theme.$form-checkbox-cursor;
     }
 
     .tile-label {
       background-color: #262431;
-      color: var(--colors-white);
+      color: theme.$colors-white;
       font-size: 1.125rem;
       margin: 0;
       padding: 0.25rem 1rem;
@@ -84,15 +86,15 @@ $normalizer-bg: #e17000;
     justify-content: space-between;
     align-items: flex-start;
     gap: 0.5rem;
-    font-size: var(--tile-font-size);
+    font-size: theme.$tile-font-size;
   }
 
   .tile-detail-link {
     padding: 4px 16px;
-    line-height: var(--form-button-line-height);
+    line-height: theme.$form-button-line-height;
   }
 
   .tile-description {
-    font-size: var(--tile-font-size);
+    font-size: theme.$tile-font-size;
   }
 }

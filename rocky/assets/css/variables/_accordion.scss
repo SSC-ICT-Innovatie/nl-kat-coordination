@@ -1,0 +1,36 @@
+/* Accordion - Variables */
+
+$accordion-gap: null !default;
+
+/* Button */
+$accordion-button-padding: null !default;
+$accordion-button-justify-content: null !default;
+$accordion-button-background-color: null !default;
+$accordion-button-text-color: null !default;
+
+/* Button icon */
+
+/* Side menu button before */
+$accordion-button-icon-before-font-size: null !default;
+$accordion-button-icon-after-font-size: null !default;
+
+/* add content within "", this could be text or a unicode for an icon */
+
+/* Choose before or after */
+$accordion-button-icon-font-family: null !default;
+
+/* content on the button when the menu is collapsed */
+$accordion-button-icon-before-open-content: null !default;
+$accordion-button-icon-after-open-content: null !default;
+
+/* content on the button when the menu is expanded */
+$accordion-button-icon-before-close-content: null !default;
+$accordion-button-icon-after-close-content: null !default;
+$accordion-button-icon-after-margin-left: null !default;
+
+/* Content */
+$accordion-content-gap: null !default;
+$accordion-content-border-width: null !default;
+$accordion-content-background-color: null !default;
+$accordion-content-text-color: null !default;
+$accordion-content-padding: null !default;

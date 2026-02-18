@@ -501,7 +501,7 @@ def test_organization_edit_view(request, member, rf):
 
     assert response.status_code == 200
     assertContains(response, "Edit")
-    assertContains(response, "icon ti-edit")
+    assertContains(response, "icon icon-edit")
 
 
 @pytest.mark.parametrize("member", ["redteam_member", "client_member"])

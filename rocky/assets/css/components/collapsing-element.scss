@@ -1,0 +1,107 @@
+@use "../variables" as theme;
+
+/* Collapsing element */
+
+body header nav.collapsible {
+  /* Uncollapsed state */
+  .collapsing-element {
+    position: relative;
+
+    form {
+      &.inline {
+        width: 100%;
+      }
+
+      button {
+        background: transparent;
+        border-radius: 0;
+        border: 0;
+        font-weight: normal;
+        width: 100%;
+        max-width: 100%;
+        justify-content: flex-start;
+        height: theme.$header-navigation-button-min-height;
+        padding-top: theme.$collapsing-element-list-item-link-padding-top;
+        padding-right: theme.$collapsing-element-list-item-link-padding-right;
+        padding-bottom: theme.$collapsing-element-list-item-link-padding-bottom;
+        padding-left: theme.$collapsing-element-list-item-link-padding-left;
+        color: theme.$collapsing-element-list-item-link-text-color;
+        line-height: theme.$header-navigation-link-line-height;
+      }
+    }
+
+    .collapsible {
+      position: static;
+    }
+
+    .collapsing-element {
+      top: 4rem;
+      right: 0;
+      left: auto;
+      width: auto;
+
+      ul,
+      ol {
+        width: auto;
+
+        li {
+          border: 0;
+
+          &:hover {
+            background-color: theme.$language-selector-list-item-hover-background-color;
+          }
+        }
+
+        a[aria-selected="true"] {
+          &::before {
+            content: theme.$collapsible-list-selected-icon;
+          }
+
+          background-color: transparent;
+        }
+      }
+    }
+  }
+
+  /* Collapsed state */
+  &.collapsed {
+    button.collapsible-toggle {
+      &[aria-expanded="false"],
+      &[aria-expanded="true"] {
+        &.user-icon {
+          + .collapsing-element {
+            ul {
+              li:first-child {
+                border-width: 1px 0;
+                border-style: solid;
+                border-color: theme.$colors-grey-200;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    .collapsing-element .collapsible {
+      flex-direction: column;
+    }
+
+    .collapsing-element .collapsible button.collapsible-toggle {
+      display: none;
+
+      &[aria-expanded="false"],
+      &[aria-expanded="true"] {
+        + .collapsing-element {
+          display: flex;
+          position: static;
+          width: 100%;
+          box-shadow: none;
+        }
+      }
+
+      &::before {
+        content: none;
+      }
+    }
+  }
+}

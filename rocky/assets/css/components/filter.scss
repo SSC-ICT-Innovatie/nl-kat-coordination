@@ -1,3 +1,42 @@
+@use "../variables" as theme;
+
+.filter:has(form:not([hidden])) {
+  border-bottom: 1px solid theme.$colors-grey-200;
+}
+
+.filter form {
+  padding: 1.5rem 2rem 2rem;
+}
+
+/* Temporary fix, this needs to be updated after this issue has been solved in Manon */
 .filter > div button {
-  font-weight: var(--filter-button-font-weight);
+  font-weight: theme.$filter-button-font-weight;
+
+  &::before,
+  &::after {
+    font-family: theme.$filter-button-icon-font-family;
+    line-height: theme.$filter-button-icon-line-height;
+    font-size: theme.$filter-button-icon-font-size;
+    font-weight: theme.$filter-button-icon-font-weight;
+  }
+
+  &[aria-expanded="true"] {
+    &::before {
+      content: theme.$filter-button-icon-before-close-content;
+    }
+
+    &::after {
+      content: theme.$filter-button-icon-after-close-content;
+    }
+  }
+
+  &[aria-expanded="false"] {
+    &::before {
+      content: theme.$filter-button-icon-before-open-content;
+    }
+
+    &::after {
+      content: theme.$filter-button-icon-after-open-content;
+    }
+  }
 }

@@ -1,0 +1,19 @@
+/* Weasyprint button overrides */
+
+button,
+a.button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.dropdown button,
+.dropdown a.button,
+button.secondary,
+a.button.secondary,
+input[type="button"].secondary,
+input[type="submit"].secondary,
+input[type="reset"].secondary {
+  display: inline-block;
+  min-width: 0;
+  border: 0;
+  background-color: transparent;
+}

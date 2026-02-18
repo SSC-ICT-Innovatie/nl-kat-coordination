@@ -1,0 +1,9 @@
+@use "../variables" as theme;
+
+a {
+  text-decoration-thickness: 0.045rem;
+
+  &:hover {
+    color: theme.$colors-blue-700;
+  }
+}

@@ -38,14 +38,14 @@
                         <div class="button-container">
                             <button type="submit" class="destructive">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</button>
                             <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code %}"
-                               class="button ghost">{% translate "Cancel" %}</a>
+                               class="button secondary">{% translate "Cancel" %}</a>
                         </div>
                     </form>
                 {% else %}
                     <p>{% translate "Deletion not possible for types: KATFindingType and CVEFindingType" %}</p>
                     <div class="button-container">
                         <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code %}"
-                           class="button ghost">{% translate "Cancel" %}</a>
+                           class="button secondary">{% translate "Cancel" %}</a>
                     </div>
                 {% endif %}
             </div>

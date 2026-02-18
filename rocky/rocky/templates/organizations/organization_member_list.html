@@ -21,16 +21,16 @@
                 {% if perms.tools.add_organizationmember %}
                     <div class="horizontal-view toolbar">
                         <div class="dropdown">
-                            <button aria-controls="add-member" class="dropdown-button ghost">
-                                {% translate "Add member(s)" %}<span aria-hidden="true" class="icon ti-chevron-down"></span>
+                            <button aria-controls="add-member" class="dropdown-button secondary">
+                                {% translate "Add member(s)" %}<span aria-hidden="true" class="icon icon-chevron-down"></span>
                             </button>
                             <div id="add-member" class="dropdown-list">
                                 <ul>
                                     <li>
-                                        <a href="{% url "organization_member_add_account_type" organization.code %}"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Manually" %}</a>
+                                        <a href="{% url "organization_member_add_account_type" organization.code %}"><span class="icon icon-plus" aria-hidden="true"></span>{% translate "Manually" %}</a>
                                     </li>
                                     <li>
-                                        <a href="{% url "organization_member_upload" organization.code %}"><span class="icon ti-file-upload" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
+                                        <a href="{% url "organization_member_upload" organization.code %}"><span class="icon icon-file-upload" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
                                     </li>
                                 </ul>
                             </div>
@@ -106,10 +106,10 @@
                                         </td>
                                         <td>
                                             {% if member.user.is_superuser %}
-                                                <button class="icon ti-edit action-button disabled">{% translate "Edit" %}</button>
+                                                <button class="icon icon-edit action-button disabled">{% translate "Edit" %}</button>
                                             {% else %}
                                                 <a href="{% url "organization_member_edit" organization.code member.id %}">
-                                                    <button class="icon ti-edit action-button">{% translate "Edit" %}</button>
+                                                    <button class="icon icon-edit action-button">{% translate "Edit" %}</button>
                                                 </a>
                                             {% endif %}
                                         </td>

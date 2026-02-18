@@ -50,8 +50,8 @@
                         </td>
                         <td class="actions">
                             <button class="expando-button"
-                                    data-icon-open-class="icon ti-chevron-down"
-                                    data-icon-close-class="icon ti-chevron-up"
+                                    data-icon-open-class="icon icon-chevron-down"
+                                    data-icon-close-class="icon icon-chevron-up"
                                     data-close-label="{% translate "Close details" %}">
                                 {% translate "Open details" %}
                             </button>
@@ -93,9 +93,9 @@
                                        href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}#findings-table">
                                         {% translate "View findings report" %}
                                     </a>
-                                    <a class="button ghost"
+                                    <a class="button secondary"
                                        href="{% ooi_url "ooi_edit" dashboard_item.data.report.report_recipe dashboard_item.data.report.organization_code %}">
-                                        <span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}
+                                        <span aria-hidden="true" class="icon icon-edit action-button"></span>{% translate "Edit report recipe" %}
                                     </a>
                                 </div>
                             </div>

@@ -11,7 +11,7 @@
 
     {% if ooi_type_form.fields.ooi_type.choices|length > 4 %}
         <button type="button"
-                class="toggle-all toggle-on ghost"
+                class="toggle-all toggle-on secondary"
                 data-toggle-target="ooi_type">{% translate "Toggle all OOI types" %}</button>
     {% endif %}
     {% include "partials/form/fieldset.html" with fields=clearance_level_filter_form fieldset_parent_class="column-2" %}
@@ -25,6 +25,6 @@
         <input type="submit"
                value="{% if submit_text %}{{ submit_text }}{% else %}{% translate "Set filters" %}{% endif %}" />
         <a href="{{ request.path }}{% if request.GET.ooi_id %}?ooi_id={{ request.GET.ooi_id|urlencode }}{% endif %}"
-           class="button ghost">{% translate "Clear filters" %}</a>
+           class="button secondary">{% translate "Clear filters" %}</a>
     </div>
 </form>

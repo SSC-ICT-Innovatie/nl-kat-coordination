@@ -8,18 +8,18 @@
 
     <main id="main-content">
         <section class="hero">
-            <img src="{% static "img/keiko.jpg" %}" alt="Keiko image">
-            <div class="one-third-two-thirds">
-                <div class="tile">
-                    <h1>{% translate "Welcome to OpenKAT" %}</h1>
-                    <h2>{% translate "Kwetsbaarheden Analyse Tool" %}</h2>
-                    <p>
-                        OpenKAT is a vulnerability analysis tool. An Open Source-project developed by the Ministry of Health, Welfare and Sport to make your and our world safer.
-                    </p>
-                </div>
+            <div class="image-background">
+                <img src="{% static "img/keiko.jpg" %}" alt="Keiko image">
+            </div>
+            <div class="content-wrapper">
+                <h1>{% translate "Welcome to OpenKAT" %}</h1>
+                <h2>{% translate "Kwetsbaarheden Analyse Tool" %}</h2>
+                <p>
+                    OpenKAT is a vulnerability analysis tool. An Open Source-project developed by the Ministry of Health, Welfare and Sport to make your and our world safer.
+                </p>
             </div>
         </section>
-        <section class="background-color-offset condensed" id="OpenKAT">
+        <section id="OpenKAT">
             <div>
                 <h2>{% translate "What is OpenKAT?" %}</h2>
                 <p>
@@ -33,7 +33,7 @@
             <div class="column-2">
                 <div>
                     <h3>
-                        <span class="icon ti-eye">Eye icon</span> {% translate "OpenKAT sees" %}
+                        <span class="icon icon-eye" aria-hidden="true"></span> {% translate "OpenKAT sees" %}
                     </h3>
                     <p>
                         {% translate "Dozens of tools are integrated in OpenKAT to view the world (digital and analog)." %}
@@ -43,7 +43,7 @@
                 </div>
                 <div>
                     <h3>
-                        <span class="icon ti-bulb">Lightbulb icon</span> {% translate "OpenKAT knows" %}
+                        <span class="icon icon-bulb">Lightbulb icon</span> {% translate "OpenKAT knows" %}
                     </h3>
                     <p>
                         {% blocktranslate trimmed %}
@@ -54,7 +54,7 @@
                 </div>
                 <div>
                     <h3>
-                        <span class="icon ti-lock">Lock icon</span> {% translate "OpenKAT is secure" %}
+                        <span class="icon icon-lock">Lock icon</span> {% translate "OpenKAT is secure" %}
                     </h3>
                     <p>
                         {% blocktranslate trimmed %}
@@ -64,7 +64,7 @@
                 </div>
                 <div>
                     <h3>
-                        <span class="icon ti-heart">Heart icon</span> {% translate "OpenKAT is sweet" %}
+                        <span class="icon icon-heart">Heart icon</span> {% translate "OpenKAT is sweet" %}
                     </h3>
                     <p>
                         {% blocktranslate trimmed %}

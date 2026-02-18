@@ -18,7 +18,7 @@
                     {% translate "Organization details" as fieldset_legend %}
                     {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
 
-                    <button type="submit" class="ghost">{% translate "Submit changes" %}</button>
+                    <button type="submit" class="secondary">{% translate "Submit changes" %}</button>
                 </form>
                 <a class="button"
                    href="{% url 'step_3_indemnification_setup' organization.code %}">{% translate "Continue" %}</a>

@@ -1,0 +1,25 @@
+@use "../variables" as theme;
+
+.body-text-large {
+  font-size: theme.$body-text-large-font-size;
+  font-weight: theme.$body-text-large-font-weight;
+  line-height: theme.$body-text-large-line-height;
+  color: theme.$body-text-large-color;
+  text-align: theme.$body-text-large-text-align;
+}
+
+.body-text-normal {
+  font-size: theme.$body-text-normal-font-size;
+  font-weight: theme.$body-text-normal-font-weight;
+  line-height: theme.$body-text-normal-line-height;
+  color: theme.$body-text-normal-color;
+  text-align: theme.$body-text-normal-text-align;
+}
+
+.body-text-small {
+  font-size: theme.$body-text-small-font-size;
+  font-weight: theme.$body-text-small-font-weight;
+  line-height: theme.$body-text-small-line-height;
+  color: theme.$body-text-small-color;
+  text-align: theme.$body-text-small-text-align;
+}

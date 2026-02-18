@@ -1,0 +1,23 @@
+@use "../variables" as theme;
+
+/* Needs to be added to manon */
+button,
+a.button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  color: theme.$button-base-text-colors;
+  font-family: theme.$button-base-font-family;
+  max-width: 18rem;
+
+  .icon {
+    max-height: 1.25rem; /* Set to same height as button line-height to prevent icons from increasing line-height */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  @media (width >= 24rem) {
+    text-align: left;
+  }
+}

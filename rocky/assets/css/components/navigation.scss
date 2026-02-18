@@ -1,0 +1,24 @@
+body > header nav.collapsible-menu button.menu-toggle {
+  min-width: 2.75rem;
+
+  &:hover,
+  &:active,
+  &:focus {
+    background-color: transparent;
+  }
+}
+
+.collapsible-menu .collapsing-menu {
+  box-shadow: 0 8px 16px 0 rgb(17 20 22 / 15%);
+
+  ul {
+    li {
+      box-sizing: border-box;
+      border: 0;
+
+      a {
+        min-height: 3rem;
+      }
+    }
+  }
+}

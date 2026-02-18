@@ -1,0 +1,29 @@
+@use "../variables" as theme;
+
+main article {
+  padding-left: 1rem;
+  padding-right: 1rem;
+  box-sizing: border-box;
+}
+
+body > main > article {
+  @media screen and (min-width: $grid-m) {
+    padding-right: theme.$page-whitespace-right-grid-m;
+    padding-left: theme.$page-whitespace-left-grid-m;
+  }
+
+  @media screen and (min-width: $grid-l) {
+    padding-right: theme.$page-whitespace-right-grid-l;
+    padding-left: theme.$page-whitespace-left-grid-l;
+  }
+
+  @media screen and (min-width: $grid-xl) {
+    padding-right: theme.$page-whitespace-right-grid-xl;
+    padding-left: theme.$page-whitespace-left-grid-xl;
+  }
+
+  @media screen and (min-width: $grid-xxl) {
+    padding-right: theme.$page-whitespace-right-grid-xxl;
+    padding-left: theme.$page-whitespace-left-grid-xxl;
+  }
+}

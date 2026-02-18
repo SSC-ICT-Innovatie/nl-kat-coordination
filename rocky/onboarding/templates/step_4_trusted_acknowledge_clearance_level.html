@@ -46,7 +46,7 @@
                 {% endblocktranslate %}
             </p>
             <a href="{% url "complete_onboarding" organization.code %}"
-               class="button ghost">{% translate "Skip onboarding" %}</a>
+               class="button secondary">{% translate "Skip onboarding" %}</a>
         {% elif tcl != acl %}
             <p>
                 {% blocktranslate trimmed %}
@@ -61,7 +61,7 @@
         {% include "partials/single_action_form.html" with btn_text=btn_text_accept_tcl action="accept_clearance" key="member_id" value=member.id btn_class="button" %}
 
         <a href="{% url "complete_onboarding" organization.code %}"
-           class="button ghost">{% translate "Skip onboarding" %}</a>
+           class="button secondary">{% translate "Skip onboarding" %}</a>
     {% else %}
         <p>
             {% blocktranslate trimmed %}
@@ -72,7 +72,7 @@
             <a href="{% url "step_5_add_scan_ooi" ooi_type="URL" organization_code=organization.code %}"
                class="button">{% translate "Continue" %}</a>
             <a href="{% url "complete_onboarding" organization.code %}"
-               class="button ghost">{% translate "Skip onboarding" %}</a>
+               class="button secondary">{% translate "Skip onboarding" %}</a>
         </div>
     {% endif %}
 {% endwith %}

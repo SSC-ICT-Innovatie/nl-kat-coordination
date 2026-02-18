@@ -183,7 +183,7 @@ def test_aggregate_report_has_asset_reports(
     assertContains(response, "Nov. 21, 2024")
     assertContains(response, "Nov. 21, 2024, 10:07 a.m.")
 
-    assertContains(response, "expando-button icon ti-chevron-down")
+    assertContains(response, "expando-button icon icon-chevron-down")
 
     assertContains(
         response,

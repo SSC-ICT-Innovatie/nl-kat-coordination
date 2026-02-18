@@ -1,0 +1,177 @@
+@use "../variables" as theme;
+@use "@minvws/manon/mixins/icon";
+
+main.sidemenu {
+  --sidemenu-nav-padding-bottom: 6rem;
+
+  position: relative;
+  align-items: stretch;
+  padding-left: theme.$sidemenu-nav-padding-left;
+
+  @media (width >= 42rem) {
+    padding-left: theme.$sidemenu-nav-width;
+  }
+
+  /* Transition */
+  transition: padding-left 1s;
+
+  .sticky-container {
+    /* Behaviour */
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    > nav {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      left: 0;
+      width: theme.$sidemenu-nav-width;
+      padding-top: theme.$sidemenu-nav-padding-top;
+      padding-right: 0;
+      position: absolute;
+      padding-bottom: 0;
+      padding-left: theme.$sidemenu-nav-padding-left;
+      box-sizing: border-box;
+      background-color: theme.$colors-white;
+      border-right: 1px solid theme.$sidemenu-nav-border-color;
+      height: 100%;
+      z-index: 1;
+
+      @media (width >= 42rem) {
+        left: calc(theme.$sidemenu-nav-width) * -1;
+      }
+
+      /* Transition */
+      transition: all 1s;
+
+      /* Behaviour */
+      overflow: auto;
+
+      ol,
+      ul {
+        padding-left: 0;
+        list-style-position: inside;
+
+        li {
+          --list-base-item-padding: 0.75rem 0;
+
+          a,
+          a:visited,
+          a:focus,
+          a:active {
+            color: theme.$application-base-text-color;
+            text-decoration: none;
+          }
+
+          &.object {
+            a,
+            a:visited,
+            a:focus,
+            a:active {
+              color: theme.$application-base-text-color;
+              text-decoration: none;
+              font-style: italic;
+              word-break: break-all;
+            }
+          }
+        }
+      }
+
+      /* Menu button */
+      .sidemenu-toggle {
+        --sidemenu-button-icon-font-family: theme.$icon-font-family;
+        --sidemenu-expanded-button-icon: "\ec42";
+        --sidemenu-collapsed-button-icon: "\ec42";
+
+        /* Layout */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        min-width: theme.$sidemenu-toggle-button-min-width;
+        min-height: theme.$sidemenu-toggle-button-min-height;
+        margin-left: -1rem;
+        padding-top: 0;
+        padding-right: 0;
+        padding-bottom: 0;
+        padding-left: 0;
+        background-color: rgb(255 255 255 / 75%);
+
+        /* Needed to keep the button to stick to the top */
+        z-index: 2;
+
+        /* Styling */
+        font-size: theme.$sidemenu-toggle-button-font-size;
+        border: 0;
+        border-radius: 0;
+        color: theme.$application-base-text-color;
+
+        /* Transition */
+        transition: margin-left 1s;
+
+        &::before {
+          @include icon.icon;
+
+          line-height: 1;
+          content: theme.$sidemenu-expanded-button-icon;
+          font-family: theme.$sidemenu-button-icon-font-family;
+          font-size: theme.$sidemenu-button-icon-font-size;
+
+          /* Styling options for text input instead of icons */
+          font-weight: theme.$sidemenu-button-icon-font-weight;
+          white-space: theme.$sidemenu-button-icon-white-space;
+        }
+
+        &[aria-expanded="false"] {
+          margin-left: calc(theme.$sidemenu-nav-width) - 1rem;
+          transition: margin-left 1s;
+
+          &::before {
+            content: theme.$sidemenu-collapsed-button-icon;
+          }
+        }
+
+        @media (width >= 55rem) {
+          position: static;
+        }
+      }
+    }
+  }
+
+  &.sidemenu-closed {
+    padding-left: 0;
+
+    /* Transition */
+    transition: padding-left 1s;
+
+    .sticky-container > nav {
+      position: absolute;
+      border-right: 1px solid theme.$colors-grey-200;
+
+      /* Needed to show the button */
+      overflow: visible;
+
+      /* Move outside of the screen according to the size of the menu */
+      left: calc(theme.$sidemenu-nav-width) * -1;
+
+      @media (width >= 55rem) {
+        /* Layout */
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        height: 100%;
+        width: theme.$sidemenu-nav-width;
+        padding-top: theme.$sidemenu-nav-padding-top;
+        padding-right: theme.$sidemenu-nav-padding-right;
+        padding-bottom: 0;
+        padding-left: theme.$sidemenu-nav-padding-left;
+        box-sizing: border-box;
+      }
+
+      > div {
+        overflow: hidden;
+      }
+    }
+  }
+}

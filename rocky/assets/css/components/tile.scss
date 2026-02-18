@@ -1,0 +1,78 @@
+@use "../variables" as theme;
+
+%tile-style-overrides {
+  > a {
+    color: theme.$link-text-color;
+  }
+
+  > p {
+    font-size: theme.$tile-font-size;
+  }
+}
+
+.tile,
+.tiles,
+ul.tiles {
+  > li {
+    @extend %tile-style-overrides;
+  }
+
+  .level-indicator {
+    padding-left: 0;
+  }
+
+  & > div {
+    @extend %tile-style-overrides;
+
+    min-width: 0;
+    border: 0;
+    box-shadow: 0 8px 16px 0 #11141626;
+    gap: 1rem;
+
+    .scan-intensity {
+      border: 0;
+      padding: 0;
+    }
+  }
+
+  img + div {
+    border-top: 0;
+  }
+
+  &.plugins {
+    gap: 1.25rem;
+  }
+
+  @extend %tile-style-overrides;
+}
+
+.tiles.images-cover {
+  > div,
+  li {
+    img {
+      border-radius: theme.$tile-border-radius theme.$tile-border-radius 0 0;
+    }
+  }
+}
+
+.label-plugin-type {
+  padding: theme.$spacing-grid-050 theme.$spacing-grid-100;
+  border-radius: theme.$border-radius-s;
+
+  &.boefje {
+    background-color: theme.$boefje-plugin-type-label-background;
+    color: theme.$boefje-plugin-type-label;
+  }
+
+  &.normalizer {
+    background-color: theme.$normalizer-plugin-type-label-background;
+    color: theme.$normalizer-plugin-type-label;
+  }
+}
+
+.tiles > div > .tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}

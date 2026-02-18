@@ -19,8 +19,8 @@
         </div>
         {% if perms.tools.can_add_boefje %}
             <div class="horizontal-view toolbar">
-                <a class="button ghost"
-                   href="{% url "boefje_variant_setup" plugin_id=plugin.id organization_code=organization.code %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add variant" %}</a>
+                <a class="button secondary"
+                   href="{% url "boefje_variant_setup" plugin_id=plugin.id organization_code=organization.code %}"><span aria-hidden="true" class="icon icon-plus"></span>{% translate "Add variant" %}</a>
             </div>
         {% endif %}
     </div>
@@ -99,8 +99,8 @@
                                         </td>
                                         <td class="actions">
                                             <button class="expando-button"
-                                                    data-icon-open-class="icon ti-chevron-down"
-                                                    data-icon-close-class="icon ti-chevron-up"
+                                                    data-icon-open-class="icon icon-chevron-down"
+                                                    data-icon-close-class="icon icon-chevron-up"
                                                     data-close-label="{% translate "Close details" %}">
                                                 {% translate "Open details" %}
                                             </button>
@@ -125,8 +125,8 @@
                                             {% endif %}
                                             {% if perms.tools.can_add_boefje %}
                                                 <div class="horizontal-view toolbar">
-                                                    <a class="button ghost"
-                                                       href="{% url "edit_boefje" plugin_id=variant.id organization_code=organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit variant" %}</a>
+                                                    <a class="button secondary"
+                                                       href="{% url "edit_boefje" plugin_id=variant.id organization_code=organization.code %}"><span aria-hidden="true" class="icon icon-edit action-button"></span>{% translate "Edit variant" %}</a>
                                                 </div>
                                             {% endif %}
                                         </td>

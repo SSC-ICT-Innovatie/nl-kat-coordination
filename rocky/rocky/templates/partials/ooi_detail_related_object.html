@@ -13,7 +13,7 @@
                 {% if not ooi|is_finding and not ooi|is_finding_type %}
                     <div class="horizontal-view {% if related %}toolbar{% endif %}">
                         <a href="{% ooi_url "ooi_add_related" ooi.primary_key organization.code %}"
-                           class="button ghost"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add related object" %}</a>
+                           class="button secondary"><span aria-hidden="true" class="icon icon-plus"></span>{% translate "Add related object" %}</a>
                     </div>
                 {% endif %}
             {% endif %}

@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 .language {
   width: 100%;
   background-color: #f5f5f5;
@@ -17,7 +19,7 @@
 
       &[aria-current="true"],
       &:hover {
-        border-bottom: 4px solid var(--branding-color-1-darker);
+        border-bottom: 4px solid theme.$branding-color-1-darker;
       }
     }
   }

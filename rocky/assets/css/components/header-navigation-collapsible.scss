@@ -1,0 +1,37 @@
+@use "../variables" as theme;
+
+header nav form {
+  padding: 0;
+}
+
+.collapsible.collapsed .collapsing-element {
+  > div {
+    flex-direction: column;
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+body
+  > header
+  nav.collapsible.collapsed
+  button.collapsible-toggle[aria-expanded="true"]
+  + .collapsing-element {
+  ul li a[aria-current] {
+    &::before {
+      content: "\ea5e";
+      font-family: theme.$language-selector-list-button-icon-font-family;
+      margin-left: theme.$language-selector-list-button-icon-margin-left;
+      font-size: theme.$language-selector-list-button-icon-font-size;
+      color: theme.$language-selector-list-button-icon-text-color;
+      margin-right: 0.5rem;
+    }
+  }
+
+  .language-selector-options li,
+  .language-selector-options li a {
+    &:hover {
+      background-color: transparent;
+    }
+  }
+}

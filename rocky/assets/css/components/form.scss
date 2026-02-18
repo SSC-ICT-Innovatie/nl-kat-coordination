@@ -1,3 +1,5 @@
+@use "../variables" as theme;
+
 /* Added min height for form buttons */
 
 $breakpoint-filter: 60rem;
@@ -29,14 +31,14 @@ form {
       padding-right: 2.5rem;
 
       &:hover {
-        border-color: var(--colors-grey-700);
+        border-color: theme.$colors-grey-700;
       }
     }
 
     .icon {
       display: block;
       margin-left: -1.25rem;
-      stroke: var(--colors-blue-600);
+      stroke: theme.$colors-blue-600;
     }
   }
 
@@ -59,4 +61,36 @@ form {
 
 .indented-form fieldset button {
   margin-left: 0.5rem;
+}
+
+form fieldset .checkbox input[type="checkbox"] + label {
+  max-width: theme.$form-base-max-width;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+form label {
+  font-weight: bold;
+}
+
+form.help fieldset {
+  &.column-2 {
+    gap: theme.$layout-column-2-gap;
+  }
+
+  &.column-3 {
+    gap: theme.$layout-column-3-gap;
+  }
+
+  &.column-4 {
+    gap: theme.$layout-column-4-gap;
+  }
+}
+
+.checkbox-list {
+  row-gap: 0;
+}
+
+form textarea {
+  border-radius: theme.$form-input-border-radius;
 }

@@ -1,0 +1,17 @@
+@use "../variables" as theme;
+
+button,
+a.button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  &.icon-only {
+    &:hover {
+      background-color: theme.$colors-grey-100;
+    }
+
+    &::before {
+      color: theme.$link-text-color;
+    }
+  }
+}

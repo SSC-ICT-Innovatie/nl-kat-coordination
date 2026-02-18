@@ -41,13 +41,13 @@
                         <td>{{ info.occurrences|get_first_seen }}</td>
                         {% if is_crisis_room %}
                             <td class="number">
-                                <a href="{% url "view_report" dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
+                                <a href="{% url "view_report" dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon icon-arrow-right" aria-hidden="true"></span></a>
                             </td>
                         {% else %}
                             <td class="actions sticky-cell">
                                 <button class="expando-button"
-                                        data-icon-open-class="icon ti-chevron-down"
-                                        data-icon-close-class="icon ti-chevron-up"
+                                        data-icon-open-class="icon icon-chevron-down"
+                                        data-icon-close-class="icon icon-chevron-up"
                                         data-close-label="{% translate "Close details" %}">
                                     {% translate "Open details" %}
                                 </button>
