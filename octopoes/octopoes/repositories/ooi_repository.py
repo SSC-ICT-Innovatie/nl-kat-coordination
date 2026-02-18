@@ -103,6 +103,7 @@ class OOIRepository(Repository):
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
+        skip_errors: bool = False,
     ) -> Paginated[OOI]:
         raise NotImplementedError
 
@@ -114,7 +115,9 @@ class OOIRepository(Repository):
     ) -> list[OOI]:
         raise NotImplementedError
 
-    def list_neighbours(self, references: set[Reference], paths: set[Path], valid_time: datetime) -> set[OOI]:
+    def list_neighbours(
+        self, references: set[Reference], paths: set[Path], valid_time: datetime, skip_errors: bool = False
+    ) -> set[OOI]:
         raise NotImplementedError
 
     def save(self, ooi: OOI, valid_time: datetime, end_valid_time: datetime | None = None) -> None:
@@ -267,15 +270,22 @@ class XTDBOOIRepository(OOIRepository):
             if skip_errors:
                 logger.error(
                     """An OOI could not be validated due to a mismatch between the database and the current models.
-                    PK: %r on (wanted) type %s. Validation error: %r""",
+                    PK: %r on (wanted) type `%s`.\nValidation error:\n %r""",
                     stripped["primary_key"],
-                    object_cls,
+                    object_cls.__name__,
                     error,
+                )
+                logger.info(
+                    """The non-conforming OOI %r can be evicted from the database by issueing: \n
+                    tools/xtdb-cli.py --url $yourxdb --node $yourorga evict-ooi "%s"
+                    """,
+                    stripped["primary_key"],
+                    stripped["primary_key"]
                 )
                 error_data = {
                     "source": stripped["primary_key"],
                     "message": f"""An OOI could not be validated due to a mismatch between the database
-                    and the current models. PK: {stripped["primary_key"]} on (wanted) type {object_cls}.
+                    and the current models. PK: {stripped["primary_key"]} on (wanted) type `{object_cls.__name__}`.
                     Validation error: {error}""",
                 }
                 return OOIValidationError.model_validate(error_data)
@@ -345,6 +355,7 @@ class XTDBOOIRepository(OOIRepository):
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
+        skip_errors: bool = False,
     ) -> Paginated[OOI]:
         types = to_concrete(types)
 
@@ -409,7 +420,7 @@ class XTDBOOIRepository(OOIRepository):
         )
 
         res = self.session.client.query(data_query, valid_time)
-        oois = [deserialized for x in res if (deserialized := self.deserialize(data=x[0], skip_errors=True))]
+        oois = [deserialized for x in res if (deserialized := self.deserialize(data=x[0], skip_errors=skip_errors))]
         return Paginated(count=count, items=oois)
 
     def list_oois_by_object_types(self, types: set[type[OOI]], valid_time: datetime) -> list[OOI]:
@@ -618,7 +629,9 @@ class XTDBOOIRepository(OOIRepository):
 
         return ret
 
-    def list_neighbours(self, references: set[Reference], paths: set[Path], valid_time: datetime) -> set[OOI]:
+    def list_neighbours(
+        self, references: set[Reference], paths: set[Path], valid_time: datetime, skip_errors: bool = False
+    ) -> set[OOI]:
         query = self.construct_neighbour_query_multi(references, paths)
 
         response = self.session.client.query(query, valid_time=valid_time)
@@ -631,9 +644,9 @@ class XTDBOOIRepository(OOIRepository):
                 if value:
                     if isinstance(value, list):
                         for serialized in value:
-                            neighbours.add(self.deserialize(serialized))
+                            neighbours.add(self.deserialize(serialized, skip_errors=skip_errors))
                     else:
-                        neighbours.add(self.deserialize(value))
+                        neighbours.add(self.deserialize(value, skip_errors=skip_errors))
 
         return neighbours
 
