@@ -3,12 +3,13 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from operator import attrgetter
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, cast
 
 import structlog
 from account.mixins import OrganizationView
 from account.models import KATUser
 from django import forms
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
@@ -358,6 +359,7 @@ class EnrichedReport:
     total_asset_reports: int
     total_objects: int
     report_type_summary: dict[str, int]
+    input_oois: list[str]
 
 
 class ReportList:
@@ -372,7 +374,11 @@ class ReportList:
         self.asset_reports = None
 
         if self.report_id and self.report_id is not None:
-            asset_reports = self.octopoes_connector.get_report(self.report_id, self.valid_time).input_oois
+            asset_reports = [
+                report
+                for report in self.octopoes_connector.get_report(self.report_id, self.valid_time).input_oois
+                if isinstance(report, AssetReport)
+            ]
             self.asset_reports = sorted(asset_reports, key=lambda x: (x.report_type, x.input_ooi))
 
     @cached_property
@@ -407,10 +413,19 @@ class ReportList:
             enriched_report = EnrichedReport()
 
             enriched_report.report = report
-            enriched_report.asset_reports = sorted(report.input_oois[:5], key=attrgetter("name"))
-            enriched_report.total_asset_reports = len(report.input_oois)
-            enriched_report.total_objects = len({asset_report.input_ooi for asset_report in report.input_oois})
-            enriched_report.report_type_summary = self.report_type_summary(report.input_oois)
+
+            if settings.ASSET_REPORTS:
+                asset_reports = cast(list[AssetReport], report.input_oois)
+
+                enriched_report.total_asset_reports = len(report.input_oois)
+                enriched_report.asset_reports = sorted(asset_reports[:5], key=attrgetter("name"))
+                enriched_report.input_oois = list({asset_report.input_ooi for asset_report in asset_reports})
+                enriched_report.report_type_summary = self.report_type_summary(asset_reports)
+            else:
+                enriched_report.total_asset_reports = 0
+                enriched_report.input_oois = cast(list[str], report.input_oois)
+
+            enriched_report.total_objects = len(enriched_report.input_oois)
 
             # We want to show only 5 children reports
             enriched_reports.append(enriched_report)

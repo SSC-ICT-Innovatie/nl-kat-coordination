@@ -17,6 +17,7 @@ from octopoes.config.settings import (
     DEFAULT_OFFSET,
     DEFAULT_SCAN_LEVEL_FILTER,
     DEFAULT_SCAN_PROFILE_TYPE_FILTER,
+    Settings,
 )
 from octopoes.events.events import OOIDBEvent, OperationType
 from octopoes.events.manager import EventManager
@@ -40,6 +41,7 @@ from octopoes.xtdb.query_builder import generate_pull_query, str_val
 from octopoes.xtdb.related_field_generator import RelatedFieldNode
 
 logger = structlog.get_logger(__name__)
+settings = Settings()
 
 
 def merge_ooi(ooi_new: OOI, ooi_old: OOI) -> tuple[OOI, bool]:
@@ -857,7 +859,10 @@ class XTDBOOIRepository(OOIRepository):
         else:
             count = 0
 
-        query = query.pull(Report, fields="[* {:Report/input_oois [*]}]").order_by(date, ascending=False)
+        if settings.asset_reports:
+            query = query.pull(Report, fields="[* {:Report/input_oois [*]}]")
+
+        query = query.pull(Report).order_by(date, ascending=False)
 
         # XTDB requires the field ordered on to be returned in a find statement, see e.g. the discussion here:
         # https://github.com/xtdb/xtdb/issues/418
@@ -868,7 +873,10 @@ class XTDBOOIRepository(OOIRepository):
 
     def get_report(self, valid_time: datetime, report_id: str | Reference) -> HydratedReport:
         query = Query(Report).where(Report, primary_key=str(report_id))
-        results = self.query(query.pull(Report, fields="[* {:Report/input_oois [*]}]"), valid_time, HydratedReport)
+        if settings.asset_reports:
+            results = self.query(query.pull(Report, fields="[* {:Report/input_oois [*]}]"), valid_time, HydratedReport)
+        else:
+            results = self.query(query.pull(Report), valid_time, HydratedReport)
 
         if not results:
             raise ObjectNotFoundException(report_id)

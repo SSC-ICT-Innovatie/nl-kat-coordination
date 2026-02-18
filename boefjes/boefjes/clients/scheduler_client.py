@@ -97,13 +97,13 @@ class SchedulerAPIClient(SchedulerClientInterface):
         response = self._session.patch(f"/tasks/{task_id}", json={"status": status.value})
         self._verify_response(response)
 
-    def get_task(self, task_id: uuid.UUID) -> Task:
+    def get_task(self, task_id: uuid.UUID, hydrate: bool = True) -> Task:
         response = self._session.get(f"/tasks/{task_id}")
         self._verify_response(response)
 
         task = Task.model_validate_json(response.content)
 
-        if isinstance(task.data, BoefjeMeta):
+        if hydrate and isinstance(task.data, BoefjeMeta):
             task.data = self._hydrate_boefje_meta(task.data)
 
         return task

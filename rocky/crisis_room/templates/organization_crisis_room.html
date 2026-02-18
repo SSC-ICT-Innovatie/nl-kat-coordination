@@ -18,18 +18,12 @@
                             <h2>{{ dashboard.name }}</h2>
                             {% if organization_member.can_delete_dashboard %}
                                 <div class="dropdown">
-                                    <button id="action-dropdown-button"
-                                            type="button"
-                                            aria-label="{% translate "Options for dashboard" %}"
-                                            aria-haspopup="menu"
+                                    <button aria-label="{% translate "Options for dashboard" %}"
                                             aria-controls="action-dropdown"
                                             aria-expanded="false"
                                             class="icon-only ti-dots-vertical dropdown-button"></button>
-                                    <div id="action-dropdown"
-                                         class="dropdown-list"
-                                         role="menu"
-                                         aria-labelledby="action-dropdown-button">
-                                        <ul role="presentation">
+                                    <div id="action-dropdown" class="dropdown-list">
+                                        <ul>
                                             {% if not dashboard_items.0.item.findings_dashboard %}
                                                 <li role="option">
                                                     <button type="button" id="toggle-dashboard-button">
@@ -49,8 +43,11 @@
                             {% endif %}
                         </div>
                     </div>
+                    {% if organization_member.can_delete_dashboard %}
+                        {% include "partials/delete_dashboard_modal.html" %}
+
+                    {% endif %}
                     {% include "organization_crisis_room_dashboard_items.html" %}
-                    {% include "partials/delete_dashboard_modal.html" %}
 
                 {% else %}
                     <div class="centered">

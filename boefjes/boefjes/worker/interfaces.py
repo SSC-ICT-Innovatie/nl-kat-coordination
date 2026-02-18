@@ -118,7 +118,7 @@ class SchedulerClientInterface:
     def patch_task(self, task_id: uuid.UUID, status: TaskStatus) -> None:
         raise NotImplementedError()
 
-    def get_task(self, task_id: uuid.UUID) -> Task:
+    def get_task(self, task_id: uuid.UUID, hydrate: bool = True) -> Task:
         raise NotImplementedError()
 
     def push_item(self, p_item: Task) -> None:

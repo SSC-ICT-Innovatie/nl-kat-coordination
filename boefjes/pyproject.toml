@@ -3,7 +3,7 @@ name = "boefjes"
 version = "0.0.1.dev1"
 description = "KAT's pentest tool runtime"
 authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
-requires-python = "~=3.10"
+requires-python = ">=3.10"
 license = "EUPL-1.2"
 dependencies = [
     "alembic~=1.8",
@@ -26,10 +26,10 @@ dependencies = [
     "requests>=2.32.1,<3",
     "beautifulsoup4==4.11.1",
     "dnspython>=2.6.1,<3",
-    "tldextract>=3.4.4,<4",
+    "tldextract>5",
     "validators==0.20.0",
     "python-libnmap==0.7.3",
-    "cryptography>=44.0.1,<45",
+    "cryptography>45",
     "forcediphttpsadapter==1.1.0",
     "urllib3>=2.1.0,<3",
     "wpscan-out-parse==1.9.3",
@@ -44,7 +44,7 @@ dependencies = [
     "opentelemetry-proto",
     "opentelemetry-semantic-conventions",
     "opentelemetry-util-http",
-    "fastapi-slim>=0.115.2,<0.116",
+    "fastapi-slim>=0.115.2",
     "structlog>=25.2.0,<26",
     "maxminddb>=2.6.2,<3",
     "tanimachi>=0.0.6,<0.0.7",
@@ -58,7 +58,7 @@ dev = [
     "pytest>=8.3.5,<9",
     "pytest-env>=1.1.3,<2",
     "pytest-mock>=3.14.0,<4",
-    "pytest-cov>=6.0.0,<7",
+    "pytest-cov>=7",
 ]
 
 [tool.uv]

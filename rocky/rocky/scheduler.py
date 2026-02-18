@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections
 import datetime
-import logging
 import uuid
 from enum import Enum
 from functools import cached_property
@@ -243,7 +242,7 @@ class LazyTaskList:
         else:
             raise TypeError("Invalid slice argument type.")
 
-        logging.info("Getting max %s lazy items at offset %s with filter %s", limit, offset, self.kwargs)
+        logger.debug("Getting max %s lazy items at offset %s with filter %s", limit, offset, self.kwargs)
         res = self.scheduler_client.list_tasks(limit=limit, offset=offset, **self.kwargs)
 
         self._count = res.count

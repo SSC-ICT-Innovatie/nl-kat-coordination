@@ -12,7 +12,7 @@
         The recipe will still exist and the schedule can be enabled later on.
     {% endblocktranslate %}
 </p>
-<form id={{ form_id }} class="inline" method="post" action="{% url "enable_disable_scheduled_reports" organization.code %}">
+<form id={{ form_id }} class="hidden" method="post" action="{% url "enable_disable_scheduled_reports" organization.code %}">
     {% csrf_token %}
     <input type="hidden" name="recipe_id" value="{{ recipe_id }}" />
     <input type="hidden" name="report_name_format" value="{{ recipe_name }}" />

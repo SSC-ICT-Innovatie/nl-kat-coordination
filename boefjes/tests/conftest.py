@@ -120,7 +120,7 @@ class MockSchedulerClient(SchedulerClientInterface):
         with self.log_path.open() as f:
             return [tuple(x.strip().split(",")) for x in f]
 
-    def get_task(self, task_id: UUID) -> Task:
+    def get_task(self, task_id: UUID, hydrate: bool = True) -> Task:
         return self._task_from_id(task_id) if str(task_id) not in self._tasks else self._tasks[str(task_id)]
 
     def _task_from_id(self, task_id: UUID):

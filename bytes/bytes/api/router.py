@@ -46,7 +46,11 @@ def get_boefje_meta_by_id(
     boefje_meta_id: UUID, meta_repository: MetaDataRepository = Depends(create_meta_data_repository)
 ) -> BoefjeMeta:
     with meta_repository:
-        meta = meta_repository.get_boefje_meta_by_id(boefje_meta_id)
+        try:
+            meta = meta_repository.get_boefje_meta_by_id(boefje_meta_id)
+        except ObjectNotFoundException as error:
+            raise HTTPException(status_code=codes.NOT_FOUND, detail="Boefje meta not found") from error
+
         logger.debug("Found meta: %s", meta)
 
         return meta

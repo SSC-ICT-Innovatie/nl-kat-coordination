@@ -14,10 +14,12 @@
          class="dropdown-list"
          aria-labelledby="add-item-dropdown-button">
         <ul>
-            {% url "generate_report_landing" organization.code as index_url_generate_report %}
-            <li {% if index_url_generate_report in request.path|urlencode %}aria-current="page"{% endif %}>
-                <a href="{{ index_url_generate_report }}?{{ request.GET.urlencode }}">{% translate "Separate report(s)" %}</a>
-            </li>
+            {% if asset_reports_enabled %}
+                {% url "generate_report_landing" organization.code as index_url_generate_report %}
+                <li {% if index_url_generate_report in request.path|urlencode %}aria-current="page"{% endif %}>
+                    <a href="{{ index_url_generate_report }}?{{ request.GET.urlencode }}">{% translate "Separate report(s)" %}</a>
+                </li>
+            {% endif %}
             {% url "aggregate_report_landing" organization.code as index_url_aggregate_report %}
             <li {% if index_url_aggregate_report in request.path|urlencode %}aria-current="page"{% endif %}>
                 <a href="{{ index_url_aggregate_report }}?{{ request.GET.urlencode }}">{% translate "Aggregate report" %}</a>

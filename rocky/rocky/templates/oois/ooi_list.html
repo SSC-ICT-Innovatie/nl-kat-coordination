@@ -12,7 +12,7 @@
     <main id="main-content">
         <section>
             <div>
-                <div class="fifty-fifty">
+                <div class="introduction">
                     <div>
                         <h1>
                             {% translate "Object list" %} @
@@ -34,16 +34,34 @@
                         <a href="#new-dashboard-item-modal"
                            class="button ghost"
                            data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
+                        {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" %}
+
                     {% endif %}
                 </div>
                 {% include "partials/ooi_list_filters.html" %}
 
-                <div class="toolbar">
-                    <p class="de-emphasized">
-                        {% blocktranslate with length=ooi_list|length total=total_oois trimmed %}
-                            Showing {{ length }} of {{ total }} objects
-                        {% endblocktranslate %}
-                    </p>
+                <div class="fifty-fifty">
+                    <div>
+                        <p class="de-emphasized">
+                            {% blocktranslate with length=ooi_list|length total=total_oois trimmed %}
+                                Showing {{ length }} of {{ total }} objects
+                            {% endblocktranslate %}
+                        </p>
+                    </div>
+                    {% if ooi_list %}
+                        <div class="horizontal-view toolbar">
+                            {% if may_update_clearance_level and perms.tools.can_set_clearance_level %}
+                                <button class="button ghost" data-modal-id="edit-clearance-level-modal">
+                                    <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit clearance level" %}
+                                </button>
+                            {% endif %}
+                            {% if perms.tools.can_delete_oois %}
+                                <button class="ghost destructive" data-modal-id="delete-ooi-modal">
+                                    <icon aria-hidden="true" class="icon ti-trash"></icon>{% translate "Delete" %}
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
                 <form method="post"
                       id="ooi_list_form"
@@ -116,40 +134,28 @@
                             </tbody>
                         </table>
                     </div>
-                    {% if ooi_list %}
-                        <fieldset>
-                            <div class="horizontal-view">
-                                {% if may_update_clearance_level %}
-                                    <select id="scan-profiles" name="scan-profile">
-                                        {% for level in scan_levels %}<option value="{{ level }}">{{ level }}</option>{% endfor %}
-                                    </select>
-                                    <button type="submit"
-                                            class="dropdown-button"
-                                            name="action"
-                                            value="update-scan-profile"
-                                            form="ooi_list_form">{% translate "Set clearance level" %}</button>
-                                {% endif %}
-                                {% if perms.tools.can_delete_oois %}
-                                    <button type="submit"
-                                            class="dropdown-button ghost destructive"
-                                            name="action"
-                                            value="delete">{% translate "Delete object(s)" %}</button>
-                                {% endif %}
-                            </div>
-                        </fieldset>
-                    {% endif %}
                 </form>
-                {% include "partials/list_paginator.html" %}
-                {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" %}
+                {% if ooi_list and may_update_clearance_level %}
+                    {% include "partials/edit_ooi_clearance_level_modal.html" with type="ooi_list" %}
 
+                {% endif %}
+                {% include "partials/list_paginator.html" %}
+
+                {% if perms.tools.can_delete_oois %}
+                    {% include "partials/delete_ooi_modal.html" %}
+
+                {% endif %}
+                {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+                    {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" %}
+
+                {% endif %}
             </div>
         </section>
     </main>
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/choiceToggle.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

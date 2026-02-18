@@ -10,14 +10,12 @@
 
     <main id="main-content">
         <section>
-            <div>
-                {% if ooi_past_due %}
-                    {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
+            {% if ooi_past_due %}
+                {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
 
-                {% endif %}
-                {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
+            {% endif %}
+            {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
 
-            </div>
             <div>
                 {% include "oois/ooi_detail_object.html" with ooi=ooi object_details=object_details %}
 

@@ -79,7 +79,7 @@ class OnboardingIntroductionRegistrationView(PermissionRequiredMixin, Introducti
 
 class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegistrationStepsMixin, CreateView):
     """
-    Step 2: Create a new organization
+    Step 2a: Create a new organization
     """
 
     model = Organization

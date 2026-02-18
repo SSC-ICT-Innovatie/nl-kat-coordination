@@ -142,7 +142,7 @@ def test_step_4_onboarding_acknowledge_clearance_level(rf, redteam_member, mock_
     assertContains(response, "Trusted clearance level")
     assertContains(response, "Accepted clearance level")
     assertContains(response, "What is my clearance level?")
-    assertContains(response, "Add URL")
+    assertContains(response, "Continue")
     assertContains(response, "Skip onboarding")
     assertContains(
         response,

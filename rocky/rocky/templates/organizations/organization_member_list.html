@@ -9,12 +9,12 @@
 
     <main id="main-content">
         <section>
-            <div class="fifty-fifty">
+            <div class="introduction">
                 <div>
                     <h1>{% translate "Members" %}</h1>
                     <p>
                         {% blocktranslate with organization_name=organization.name trimmed %}
-                            An overview of members of <strong>{{ organization_name }}</strong>
+                            An overview of members of <strong>{{ organization_name }}</strong>.
                         {% endblocktranslate %}
                     </p>
                 </div>
@@ -53,7 +53,7 @@
                         <caption class="visually-hidden">{% translate "Member overview:" %}</caption>
                         <thead>
                             <tr>
-                                <th>{% translate "E-mail" %}</th>
+                                <th>{% translate "Email" %}</th>
                                 <th>{% translate "Role" %}</th>
                                 <th>{% translate "Status" %}</th>
                                 <th>{% translate "Assigned clearance level" %}</th>

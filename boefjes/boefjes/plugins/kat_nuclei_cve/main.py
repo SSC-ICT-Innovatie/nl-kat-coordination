@@ -2,14 +2,7 @@ import subprocess
 
 
 def verify_hostname_meta(input_ooi):
-    # if the input object is HostnameHTTPURL then the hostname is located in netloc
-    if "netloc" in input_ooi and "name" in input_ooi["netloc"]:
-        netloc_name = input_ooi["netloc"]["name"]
-        port = input_ooi["port"]
-        return f"{netloc_name}:{port}"
-    else:
-        # otherwise the Hostname input object is used
-        return input_ooi["name"]
+    return input_ooi["name"]
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:

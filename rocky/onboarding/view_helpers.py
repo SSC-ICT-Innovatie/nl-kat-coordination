@@ -27,9 +27,7 @@ class IntroductionStepsMixin(StepsMixin):
             },
             {
                 "text": _("2: Organization setup"),
-                "url": reverse_lazy(
-                    "step_4_trusted_acknowledge_clearance_level", kwargs={"organization_code": self.organization.code}
-                )
+                "url": reverse_lazy("step_2b_organization_update", kwargs={"organization_code": self.organization.code})
                 + get_selection(self.request),
             },
             {
@@ -68,7 +66,7 @@ class IntroductionRegistrationStepsMixin(StepsMixin):
                 "text": _("2: Organization setup"),
                 "url": reverse_lazy("step_2a_organization_setup") + get_selection(self.request),
             },
-            {"text": _("3: Add Object"), "url": "" + get_selection(self.request)},
+            {"text": _("3: Add object"), "url": "" + get_selection(self.request)},
             {"text": _("4: Plugins"), "url": "" + get_selection(self.request)},
             {"text": _("5: Generating report"), "url": "" + get_selection(self.request)},
         ]

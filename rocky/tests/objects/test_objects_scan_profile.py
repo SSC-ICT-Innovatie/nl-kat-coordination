@@ -4,7 +4,7 @@ from pytest_django.asserts import assertContains, assertNotContains
 from tools.models import Indemnification
 
 from octopoes.models.tree import ReferenceTree
-from rocky.views.scan_profile import ScanProfileDetailView, ScanProfileResetView
+from rocky.views.scan_profile import ScanProfileDetailView
 from tests.conftest import setup_request
 
 TREE_DATA = {
@@ -47,7 +47,7 @@ def test_scan_profile(rf, redteam_member, mock_scheduler, mock_organization_view
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
 
-    assertContains(response, "Set clearance level")
+    assertContains(response, "Edit clearance level")
 
 
 def test_scan_profile_submit(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
@@ -59,14 +59,14 @@ def test_scan_profile_submit(rf, redteam_member, mock_scheduler, mock_organizati
     request = setup_request(
         rf.post(
             f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}",
-            data={"level": "1", "action": "change_clearance_level"},
+            data={"scan_profile_type": "declared", "level": "1", "action": "change_clearance_level"},
         ),
         redteam_member.user,
     )
     response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
 
-    assert response.status_code == 200
-    assertContains(response, "Clearance level has been set")
+    assert response.status_code == 302
+    assert response.url == f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}"
 
 
 def test_scan_profile_submit_no_indemnification(
@@ -82,14 +82,14 @@ def test_scan_profile_submit_no_indemnification(
     request = setup_request(
         rf.post(
             f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}",
-            data={"level": "1", "action": "change_clearance_level"},
+            data={"scan_profile_type": "declared", "level": "1", "action": "change_clearance_level"},
         ),
         redteam_member.user,
     )
     response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
 
-    assert response.status_code == 200
-    assertContains(response, "Indemnification not present at organization " + redteam_member.organization.name)
+    assert response.status_code == 302
+    assert response.url == f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}"
 
 
 def test_scan_profile_no_permissions_acknowledged(
@@ -107,7 +107,7 @@ def test_scan_profile_no_permissions_acknowledged(
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
 
-    assertNotContains(response, "Set clearance level")
+    assertNotContains(response, "Edit clearance level")
 
 
 def test_scan_profile_no_permissions_trusted(
@@ -125,37 +125,24 @@ def test_scan_profile_no_permissions_trusted(
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
 
-    assertNotContains(response, "Set clearance level")
+    assertNotContains(response, "Edit clearance level")
 
 
-def test_scan_profile_reset_view(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
-    mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
+def test_scan_profile_submit_inherited(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
     mocker.patch("account.mixins.OrganizationView.get_katalogus")
-
-    request = setup_request(rf.get("scan_profile_reset", {"ooi_id": "Network|testnetwork"}), redteam_member.user)
-    response = ScanProfileResetView.as_view()(request, organization_code=redteam_member.organization.code)
-
-    assert response.status_code == 200
-    assert mock_organization_view_octopoes().get_tree.call_count == 1
-
-    assertContains(response, "Set clearance level")
-    assertContains(response, "Yes, set to inherit")
-    assertContains(response, '"declared" to "inherit"')
-
-
-def test_scan_reset_calls_octopoes(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
 
+    # Passing query params in POST requests is not well-supported for RequestFactory it seems, hence the absolute path
     query_string = urlencode({"ooi_id": "Network|testnetwork"}, doseq=True)
     request = setup_request(
         rf.post(
-            f"en/{redteam_member.organization.code}/scan_profile_reset/objects/indemnification/reset/?{query_string}"
+            f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}",
+            data={"scan_profile_type": "inherited", "action": "change_clearance_level"},
         ),
         redteam_member.user,
     )
-    response = ScanProfileResetView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 302
+    assert response.url == f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}"
     assert mock_organization_view_octopoes().get_tree.call_count == 1
-    assert mock_organization_view_octopoes().save_scan_profile.call_count == 1

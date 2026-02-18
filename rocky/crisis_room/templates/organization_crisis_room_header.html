@@ -14,11 +14,11 @@
             <li>
                 <a href="#new-dashboard">+ {% translate "Add dashboard" %}</a>
             </li>
+            {% include "partials/new_dashboard_modal.html" %}
+
         {% endif %}
     </ul>
 </nav>
-{% include "partials/new_dashboard_modal.html" %}
-
 {% block html_at_end_body %}
     <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

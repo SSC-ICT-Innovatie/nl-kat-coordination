@@ -5,6 +5,17 @@
   flex-direction: row;
   gap: 32px;
 
+  h2,
+  h3 {
+    margin-bottom: -0.5rem; /* Reducing margin below the header due to additional space within the font */
+  }
+
+  h4,
+  h5,
+  h6 {
+    margin-bottom: -0.25rem; /* Reducing margin below the header due to additional space within the font */
+  }
+
   > section {
     border: 1px solid #b4b4b4;
     border-radius: 16px;

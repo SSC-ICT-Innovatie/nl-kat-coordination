@@ -9,15 +9,14 @@
     <main id="main-content">
         <article>
             <div class="layout-form">
-                <h1>{% translate "Add finding:" %}</h1>
+                <h1>{% translate "Add finding" %}</h1>
                 <form action="{% url "finding_add" organization.code %}"
                       method="post"
                       class="help">
                     {% csrf_token %}
-                    {% translate "Finding" as fieldset_legend %}
                     {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
 
-                    <button type="submit">{% translate "Add" %} {% translate "Finding" %}</button>
+                    <button type="submit">{% translate "Add finding" %}</button>
                 </form>
             </div>
         </article>

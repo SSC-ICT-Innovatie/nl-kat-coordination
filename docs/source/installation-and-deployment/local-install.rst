@@ -16,7 +16,7 @@ You need the following things to install OpenKAT:
 
 - A computer with a Linux installation. In this document we use Ubuntu, but on many other distributions it works in a similar way. Later we will also add instructions for macOS.
 - Docker. If you don't already have this, install it first.
-- OpenKAT's `GitHub repository <https://github.com/minvws/nl-kat-coordination/>`_.
+- OpenKAT's `GitHub repository <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/>`_.
 
 Before installing
 -----------------
@@ -75,7 +75,7 @@ Default installation
 
 .. code-block:: sh
 
-	$ git clone https://github.com/minvws/nl-kat-coordination.git
+	$ git clone https://github.com/SSC-ICT-Innovatie/nl-kat-coordination.git
 
 - Go to the folder:
 
@@ -113,7 +113,7 @@ Using http works only when connecting to localhost due to the security flags on 
 Specific builds
 ***************
 
-If you want to create a specific build, you have a number of options. You can also look in the `Makefile <https://github.com/minvws/nl-kat-coordination/blob/main/Makefile>`_.
+If you want to create a specific build, you have a number of options. You can also look in the `Makefile <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/blob/main/Makefile>`_.
 
 Updates
 -------

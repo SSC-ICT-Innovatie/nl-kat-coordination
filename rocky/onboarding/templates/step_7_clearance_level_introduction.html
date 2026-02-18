@@ -8,25 +8,24 @@
 
     <main id="main-content" class="explanation-page">
         <section>
-            <h1>{% translate "Onboarding" %}</h1>
-            {% include "partials/stepper.html" %}
+            {% include "partials/onboarding_header.html" %}
 
             <div>
                 <h2>{% translate "Plugin introduction" %}</h2>
                 <p>
                     {% blocktranslate trimmed %}
-                        OpenKAT uses plugins to scan your objects. Each plugin has a scan level to specify how aggressive the scan is.  Plugins can only scan those objects with a clearance level that is equal to, or higher than the scan level of the plugin.
+                        OpenKAT uses plugins to scan your objects. Each plugin has a scan level to specify how aggressive the scan is. Plugins can only scan those objects with a clearance level that is equal to, or higher than the scan level of the plugin.
                         Plugin scan level are indicated by the number of cat paws.
                     {% endblocktranslate %}
                 </p>
                 <p>
                     {% blocktranslate trimmed %}
-                        The plugin <b>DNS Zone</b> has a scan level of 1, meaning that it performs non-intrusive scans which look for publicly available information. It scans objects with a clearance level of 1 or higher.
+                        The plugin <strong>DNS Zone</strong> has a scan level of 1, meaning that it performs non-intrusive scans which look for publicly available information. It scans objects with a clearance level of 1 or higher.
                     {% endblocktranslate %}
                 </p>
                 <p>
                     {% blocktranslate trimmed %}
-                        The plugin <b>Fierce</b> has a scan level of 3, meaning that it more aggressive and could potentially break things. It scans objects with a clearance level of 3 or higher.
+                        The plugin <strong>Fierce</strong> has a scan level of 3, meaning that it more aggressive and could potentially break things. It scans objects with a clearance level of 3 or higher.
                     {% endblocktranslate %}
                 </p>
                 <div id="id_boefjes" class="column-4 plugins tiles images-cover">

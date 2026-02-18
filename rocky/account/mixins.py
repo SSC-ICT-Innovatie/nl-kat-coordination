@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from functools import cached_property
 
+import structlog
 import structlog.contextvars
 from django.conf import settings
 from django.contrib import messages
@@ -24,6 +25,8 @@ from rocky.exceptions import (
     TrustedClearanceLevelTooLowException,
 )
 from rocky.scheduler import SchedulerClient, scheduler_client
+
+logger = structlog.get_logger(__name__)
 
 
 # There are modified versions of PermLookupDict and PermWrapper from
@@ -156,6 +159,7 @@ class OrganizationView(ContextMixin, View):
             DeclaredScanProfile(reference=ooi_reference, level=ScanLevel(level), user_id=self.request.user.id),
             datetime.now(timezone.utc),
         )
+        logger.info("Declared scan profile created", event_code="800010", ooi=ooi_reference, level=level)
 
         return True
 
@@ -168,13 +172,14 @@ class OrganizationView(ContextMixin, View):
             ],
             datetime.now(timezone.utc),
         )
+        logger.info("Declared scan profiles created", event_code="800010", ooi_count=len(ooi_references), level=level)
 
         return True
 
     def can_raise_clearance_level(self, ooi: OOI, level: int) -> bool:
         try:
             self.raise_clearance_level(ooi.reference, level)
-            messages.success(self.request, _("Clearance level has been set"))
+            messages.success(self.request, _("Clearance level has been set."))
             return True
         except IndemnificationNotPresentException:
             messages.error(

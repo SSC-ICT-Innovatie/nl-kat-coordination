@@ -1,10 +1,10 @@
 FROM mcr.microsoft.com/playwright:v1.53.0-noble
 
 RUN apt-get update && \
-    apt install software-properties-common -y &&  \
+    apt-get install -y --no-install-recommends software-properties-common &&  \
     add-apt-repository ppa:deadsnakes/ppa -y &&  \
     apt-get update &&  \
-    apt-get install python3.13-full -y && \
+    apt-get install -y --no-install-recommends python3.13 python3.13-venv && \
     python3.13 -m ensurepip --upgrade && \
     npx playwright install --with-deps chromium
 

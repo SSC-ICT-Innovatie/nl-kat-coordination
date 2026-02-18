@@ -31,9 +31,9 @@ jobs:
       COMPOSE_FILE: .ci/docker-compose.yml
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.version }}
           cache: "pip" # caching pip dependencies

@@ -74,7 +74,7 @@ class HydratedReport(BaseReport):
     object_type: Literal["HydratedReport"] = "HydratedReport"
     report_type: str  # e.g. "concatenated-report", "aggregate-organisation-report" or "multi-organization-report"
 
-    input_oois: list[AssetReport]
+    input_oois: list[AssetReport | str]
 
     _natural_key_attrs = ["report_recipe"]
 
@@ -84,7 +84,10 @@ class HydratedReport(BaseReport):
 
     def to_report(self) -> Report:
         as_dict = self.model_dump(exclude={"input_oois", "object_type"})
-        as_dict["input_oois"] = [input_ooi.reference for input_ooi in self.input_oois]
+        as_dict["input_oois"] = [
+            input_ooi.reference if isinstance(input_ooi, AssetReport) else input_ooi for input_ooi in self.input_oois
+        ]
+
         return Report.model_validate(as_dict)
 
 

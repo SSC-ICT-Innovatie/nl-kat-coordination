@@ -56,7 +56,7 @@ class BoefjeAPIClient(SchedulerClientInterface, BoefjeStorageInterface):
         response = self._session.patch(f"/api/v0/scheduler/tasks/{task_id}", json={"status": status.value})
         self._verify_response(response)
 
-    def get_task(self, task_id: uuid.UUID) -> Task:
+    def get_task(self, task_id: uuid.UUID, hydrate: bool = True) -> Task:
         response = self._session.get(f"/api/v0/scheduler/tasks/{task_id}")
         self._verify_response(response)
 

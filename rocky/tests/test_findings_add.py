@@ -9,5 +9,4 @@ def test_findings_add(rf, client_member, mock_organization_view_octopoes):
     response = FindingAddView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assertContains(response, "Add Finding")
     assertContains(response, "Add finding")

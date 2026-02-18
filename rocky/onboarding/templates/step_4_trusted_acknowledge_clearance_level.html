@@ -8,8 +8,7 @@
 
     <main id="main-content">
         <section>
-            <h1>{% translate "Onboardingn" %}</h1>
-            {% include "partials/stepper.html" %}
+            {% include "partials/onboarding_header.html" %}
 
             <div>
                 <h2>{% translate "User clearance level" %}</h2>
@@ -71,7 +70,7 @@
         </p>
         <div class="button-container">
             <a href="{% url "step_5_add_scan_ooi" ooi_type="URL" organization_code=organization.code %}"
-               class="button">{% translate "Add URL" %}</a>
+               class="button">{% translate "Continue" %}</a>
             <a href="{% url "complete_onboarding" organization.code %}"
                class="button ghost">{% translate "Skip onboarding" %}</a>
         </div>

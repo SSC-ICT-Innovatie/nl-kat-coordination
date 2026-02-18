@@ -9,7 +9,7 @@ ENV OCI_IMAGE=$OCI_IMAGE
 # libcap: set cap_net_raw permission for user nonroot
 USER root
 
-RUN apt-get update && apt-get install -y git libpcap-dev libcap2-bin make gcc
+RUN apt-get update && apt-get install -y --no-install-recommends git libpcap-dev libcap2-bin make gcc
 
 # Version pinning on specific commit. Tag in boefje.py may need an update when updating this hash.
 RUN mkdir masscan \

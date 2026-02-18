@@ -153,6 +153,8 @@ class DashboardItem(models.Model):
             except DashboardItem.DoesNotExist:
                 return
 
+        logger.info("Dashboard item position updated", dashboard_item_id=self.id, event_code="900310")
+
 
 def get_dashboard_item_positions(instance: DashboardItem) -> list[int]:
     return list(DashboardItem.objects.filter(dashboard=instance.dashboard).values_list("position", flat=True))

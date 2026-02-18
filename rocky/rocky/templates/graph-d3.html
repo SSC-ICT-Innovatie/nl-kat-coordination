@@ -37,8 +37,8 @@
     {% compress js %}
         <script src="{% static "js/stringHelpers.js" %}" nonce="{{ request.csp_nonce }}"></script>
         <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "dist/imports/graph.js" %}" nonce="{{ request.csp_nonce }}"></script>
     {% endcompress %}
+    <script src="{% static "dist/imports/graph.js" %}" nonce="{{ request.csp_nonce }}"></script>
     {% compress css %}
         <link href="{% static "dist/imports/graph.css" %}" rel="stylesheet">
     {% endcompress %}

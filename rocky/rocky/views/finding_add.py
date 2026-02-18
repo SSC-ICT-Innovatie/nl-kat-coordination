@@ -59,7 +59,7 @@ class FindingAddView(BaseOOIFormView):
             {"url": reverse("finding_list", kwargs={"organization_code": self.organization.code}), "text": "Findings"},
             {
                 "url": reverse("finding_add", kwargs={"organization_code": self.organization.code}),
-                "text": _("Add Finding"),
+                "text": _("Add finding"),
             },
         ]
 

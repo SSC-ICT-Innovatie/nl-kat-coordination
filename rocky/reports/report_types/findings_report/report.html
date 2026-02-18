@@ -24,11 +24,11 @@
                     {% endwith %}
                 </h3>
                 <p class="toggle-item" data-show="off">
-                    {% blocktranslate %}
-                This table shows the top 25 critical and high findings that have
-                been identified for this organization, grouped by finding types.
-                A table with all the identified findings can be found in the Findings Report.
-            {% endblocktranslate %}
+                    {% blocktranslate trimmed %}
+                        This table shows the top 25 critical and high findings that have
+                        been identified for this organization, grouped by finding types.
+                        A table with all the identified findings can be found in the Findings Report.
+                    {% endblocktranslate %}
                 </p>
             </div>
             {% include "partials/report_findings_table.html" with finding_types=data.findings.finding_types %}
@@ -38,7 +38,7 @@
         <div>
             <h3>{% translate "Findings overview" %}</h3>
             <p class="toggle-item" data-show="off">
-                {% blocktranslate %}
+                {% blocktranslate trimmed %}
                     No findings have been identified yet. As soon as they have been
                     identified, they will be shown on this page.
                 {% endblocktranslate %}

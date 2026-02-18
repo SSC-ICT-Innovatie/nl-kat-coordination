@@ -10,6 +10,8 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import json
+import logging.config
 import re
 from pathlib import Path
 
@@ -69,23 +71,45 @@ LOGGING_FORMAT = env("LOGGING_FORMAT", default="text")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "json_formatter": {"()": structlog.stdlib.ProcessorFormatter, "processor": structlog.processors.JSONRenderer()},
-        "plain_console": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(
-                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
-            ),
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": ("json_formatter" if LOGGING_FORMAT == "json" else "plain_console"),
-        }
-    },
+    "formatters": {"default": {"format": "%(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
     "loggers": {"root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO").upper()}},
 }
+
+
+def configure_logging(logging_settings):
+    log_cfg = env("ROCKY_LOG_CFG", default="")
+    if log_cfg:
+        with Path(log_cfg).open() as f:
+            logging.config.dictConfig(json.load(f))
+    else:
+        logging.config.dictConfig(logging_settings)
+
+
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper("iso", utc=False),
+        (
+            structlog.dev.ConsoleRenderer(
+                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
+            )
+            if LOGGING_FORMAT == "text"
+            else structlog.processors.JSONRenderer()
+        ),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+
+LOGGING_CONFIG = "rocky.settings.configure_logging"
 
 # Make sure this header can never be set by an attacker, see also the security
 # warning at https://docs.djangoproject.com/en/4.2/howto/auth-remote-user/
@@ -257,7 +281,7 @@ except ImproperlyConfigured:
 DATABASES = {"default": POSTGRES_DB}
 
 if env.bool("POSTGRES_SSL_ENABLED", False):
-    DATABASES["default"]["OPTIONS"] = {"sslmode": env("POSTGRES_SSL_MODE", "require")}
+    DATABASES["default"]["OPTIONS"] = {"sslmode": env("POSTGRES_SSL_MODE", default="require")}
 
     POSTGRES_SSL_CERT = env.path("POSTGRES_SSL_CERT", default="")
     POSTGRES_SSL_KEY = env.path("POSTGRES_SSL_KEY", default="")
@@ -493,21 +517,6 @@ KNOX_TOKEN_MODEL = "account.AuthToken"
 
 FORMS_URLFIELD_ASSUME_HTTPS = True
 
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper("iso", utc=False),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
 
 # Number of workers to run for the report queue
 POOL_SIZE = env.int("POOL_SIZE", default=2)
@@ -524,3 +533,5 @@ WORKER_HEARTBEAT = env.int("WORKER_HEARTBEAT", default=5)
 SILENCED_SYSTEM_CHECKS = ["staticfiles.W004"]
 
 ROCKY_OUTGOING_REQUEST_TIMEOUT = env.int("ROCKY_OUTGOING_REQUEST_TIMEOUT", default=30)
+
+ASSET_REPORTS = env.bool("ASSET_REPORTS", default=True)

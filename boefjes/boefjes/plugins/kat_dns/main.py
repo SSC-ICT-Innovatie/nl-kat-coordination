@@ -83,8 +83,6 @@ def get_parent_zone_soa(resolver: dns.resolver.Resolver, name: Name) -> Answer:
 def get_email_security_records(resolver: dns.resolver.Resolver, hostname: str, record_subdomain: str) -> str:
     try:
         answer = resolver.resolve(f"{record_subdomain}.{hostname}", "TXT", raise_on_no_answer=False)
-        if answer.rrset is None:
-            return "NXDOMAIN"
         return answer.response.to_text()
     except dns.resolver.NoNameservers as error:
         # no servers responded happily, we'll check the response from the first

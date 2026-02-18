@@ -3,13 +3,13 @@
   "name": "Nuclei CVE scan",
   "description": "Nuclei is used to send requests across targets based on a template, providing fast scanning. (CVE scanning).",
   "consumes": [
-    "Hostname",
-    "HostnameHTTPURL"
+    "Hostname"
   ],
   "scan_level": 3,
-  "oci_image": "ghcr.io/minvws/openkat/nuclei:latest",
+  "oci_image": "docker.underdark.nl/librekat/nuclei:latest",
   "oci_arguments": [
-    "-t", "/root/nuclei-templates/http/cves/",
+    "-t",
+    "/root/nuclei-templates/http/cves/",
     "-jsonl"
   ]
 }

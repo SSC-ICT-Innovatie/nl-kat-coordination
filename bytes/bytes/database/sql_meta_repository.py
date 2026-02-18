@@ -227,9 +227,9 @@ def create_meta_data_repository() -> Iterator[MetaDataRepository]:
     try:
         yield repository
     except Exception as error:
-        logger.exception("An error occurred during the session.")
+        logger.debug("An error occurred during the session.")
         session.rollback()
-        logger.warning("Rolled back session.")
+        logger.debug("Rolled back session.")
 
         raise error
     finally:

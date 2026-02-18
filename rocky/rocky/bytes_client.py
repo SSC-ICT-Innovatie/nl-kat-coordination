@@ -8,7 +8,6 @@ from typing import Any
 import httpx
 import structlog
 from django.conf import settings
-from django.http import Http404
 
 from octopoes.api.models import Declaration
 from rocky.health import ServiceHealth
@@ -175,8 +174,6 @@ class BytesClient:
 
         metas = response.json()
         metas = [raw_meta for raw_meta in metas if raw_meta["boefje_meta"]["organization"] == organization_code]
-        if not metas:
-            raise Http404
         if len(metas) >= self.RAW_FILES_LIMIT:
             logger.warning("Reached raw file limit for current view.")
 

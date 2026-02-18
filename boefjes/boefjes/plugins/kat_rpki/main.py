@@ -75,16 +75,19 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
                 )
                 exists = True
 
-                # check validity through bgp json
-                invalid_exists = False
-                for entry in bgp_data:
-                    if IPAddress(ip) in IPNetwork(entry["CIDR"]):
-                        bgp_entries.append(entry)
-                        if entry["ASN"] != asn:
-                            invalid_exists = True
+    if roas:
+        asns = {r["asn"] for r in roas}
 
-                if invalid_exists:
-                    invalid_bgp_entries.append({"ip": ip, "asn": asn})
+        # check validity through bgp json
+        invalid_asns = set()
+        for entry in bgp_data:
+            if IPAddress(ip) in IPNetwork(entry["CIDR"]):
+                bgp_entries.append(entry)
+                if entry["ASN"] not in asns:
+                    invalid_asns.add(entry["ASN"])
+
+        for invalid_asn in invalid_asns:
+            invalid_bgp_entries.append({"ip": ip, "asn": invalid_asn})
 
     results = {
         "vrps_records": roas,

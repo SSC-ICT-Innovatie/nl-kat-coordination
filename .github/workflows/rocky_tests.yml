@@ -30,7 +30,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build image
         run: DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose -f rocky/.ci/docker-compose.yml build --build-arg USER_UID="$(id -u)" --build-arg USER_GID="$(id -g)" --build-arg PYTHON_VERSION=${{ matrix.version }} rocky_tests rocky_integration

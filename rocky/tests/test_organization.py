@@ -216,7 +216,7 @@ def test_organization_member_list(rf, admin_member):
     assertContains(response, "Add member(s)")
     assertNotContains(response, "Name")
     assertNotContains(response, admin_member.user.full_name)
-    assertContains(response, "E-mail")
+    assertContains(response, "Email")
     assertContains(response, admin_member.user.email)
     assertContains(response, "Role")
     assertContains(response, "Admin")

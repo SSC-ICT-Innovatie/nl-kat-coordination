@@ -9,14 +9,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run unit tests
         run: make utest
         working-directory: rocky/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rocky-coverage-unit
           path: rocky/.coverage
@@ -26,14 +26,14 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Run integration tests
         run: make itest
         working-directory: rocky/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rocky-coverage-integration
           path: rocky/.coverage
@@ -47,9 +47,9 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: "pip" # caching pip dependencies
@@ -58,7 +58,7 @@ jobs:
         run: pip install coverage[toml]
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           pattern: rocky-coverage-*
 
@@ -70,7 +70,7 @@ jobs:
         working-directory: rocky/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: rocky-coverage
           path: rocky/coverage.xml

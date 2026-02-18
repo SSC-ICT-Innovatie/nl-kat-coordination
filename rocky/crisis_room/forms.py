@@ -168,6 +168,7 @@ class AddFindingListDashboardItemForm(FindingFilterForm, AddDashboardItemForm):
             ("finding_type-asc", _("Finding (A-Z)")),
             ("finding_type-desc", _("Finding (Z-A)")),
         ),
+        initial="score-desc",
     )
 
     columns = forms.MultipleChoiceField(

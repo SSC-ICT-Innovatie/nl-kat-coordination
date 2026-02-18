@@ -11,7 +11,7 @@
     <main id="main-content">
         <section>
             <div>
-                <div class="fifty-fifty">
+                <div class="introduction">
                     <div>
                         <h1>{% translate "Findings @ " %}{{ observed_at|date }}</h1>
                         <p>
@@ -24,14 +24,22 @@
                     {% include "partials/findings_list_toolbar.html" %}
 
                 </div>
-                <div class="toolbar">
-                    <a href="#new-dashboard-item-modal"
-                       class="button ghost"
-                       data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
-                </div>
+                {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+                    <div class="toolbar">
+                        <a href="#new-dashboard-item-modal"
+                           class="button ghost"
+                           data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
+                    </div>
+                    {% include "partials/new_dashboard_item_modal.html" with item_type="findings" template="partials/dashboard_finding_list.html" %}
+
+                {% endif %}
                 {% include "findings/findings_filter.html" %}
 
-                {% if object_list|length >= 1 and perms.tools.can_mute_findings %}
+                {% if object_list|length >= 1 %}
+                    {% if perms.tools.can_mute_findings %}
+                        {% include "partials/mute_findings_modal.html" %}
+
+                    {% endif %}
                     <form method="post"
                           id="finding-list-form"
                           class="inline layout-wide"
@@ -207,17 +215,12 @@
 
                     </div>
                 </form>
-                {% include "partials/mute_findings_modal.html" %}
-                {% include "partials/new_dashboard_item_modal.html" with item_type="findings" template="partials/dashboard_finding_list.html" %}
-
             </div>
         </section>
     </main>
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

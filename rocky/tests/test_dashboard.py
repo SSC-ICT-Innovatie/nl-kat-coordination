@@ -290,7 +290,7 @@ def test_delete_dashboard_item(rf, redteam_member, dashboard_items):
     position_item_4 = item_4.position
 
     request = setup_request(
-        rf.post("delete_dashboard_item", {"dashboard_item": item_3.name, "dashboard": item_3.dashboard_id}),
+        rf.post("delete_dashboard_item", {"dashboard_item_name": item_3.name, "dashboard_item_id": item_3.id}),
         redteam_member.user,
     )
     response = DeleteDashboardItemView.as_view()(request, organization_code=redteam_member.organization.code)
@@ -321,7 +321,7 @@ def test_delete_dashboard_item_no_permission(rf, client_member, dashboard_items)
     request = setup_request(
         rf.post(
             "delete_dashboard_item",
-            {"dashboard_item": dashboard_items[2].name, "dashboard": dashboard_items[2].dashboard.name},
+            {"dashboard_item_name": dashboard_items[2].name, "dashboard_item_id": dashboard_items[2].id},
         ),
         client_member.user,
     )
@@ -355,7 +355,8 @@ def test_delete_dashboard_item_no_dashboard(rf, redteam_member, dashboard_items)
     item_3 = dashboard_items[2]
 
     request = setup_request(
-        rf.post("delete_dashboard_item", {"dashboard_item": item_3.name, "dashboard": 100}), redteam_member.user
+        rf.post("delete_dashboard_item", {"dashboard_item_name": item_3.name, "dashboard_item_id": 100}),
+        redteam_member.user,
     )
     response = DeleteDashboardItemView.as_view()(request, organization_code=redteam_member.organization.code)
 
@@ -373,7 +374,7 @@ def test_delete_dashboard_item_no_dashboard_data(rf, redteam_member, dashboard_i
     item_2 = dashboard_items[1]
 
     request = setup_request(
-        rf.post("delete_dashboard_item", {"dashboard_item": "bla", "dashboard": item_2.dashboard.id}),
+        rf.post("delete_dashboard_item", {"dashboard_item_name": "bla", "dashboard_item_id": item_2.id}),
         redteam_member.user,
     )
     response = DeleteDashboardItemView.as_view()(request, organization_code=redteam_member.organization.code)

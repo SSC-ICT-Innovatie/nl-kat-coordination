@@ -8,19 +8,11 @@
 
     <main id="main-content">
         <section>
-            <h1>{% translate "Onboarding" %}</h1>
-            {% include "partials/stepper.html" %}
+            {% include "partials/onboarding_header.html" %}
 
             <div>
-                <h2>{% translate "Organization setup" %}</h2>
-                <p>
-                    {% blocktranslate trimmed %}
-                        Please enter the following organization details.
-                        The organization name can be changed later in the interface.
-                        The organization code cannot be changed as this is used
-                        by the database.
-                    {% endblocktranslate %}
-                </p>
+                {% include "partials/step_2_organization_text.html" %}
+
                 <form novalidate method="post" class="help layout-form">
                     {% csrf_token %}
                     {% translate "Organization details" as fieldset_legend %}

@@ -3,9 +3,9 @@ FROM openkat/boefje-base:latest
 ARG OCI_IMAGE=ghcr.io/minvws/openkat/wp-scan:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
-user root
+USER root
 RUN apt-get update && \
-    apt-get install -y ruby-dev build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev ruby-dev libgmp-dev zlib1g-dev && \
+    apt-get install -y --no-install-recommends ruby-dev build-essential libcurl4-openssl-dev libxml2 libxml2-dev libxslt1-dev ruby-dev libgmp-dev zlib1g-dev && \
     gem install wpscan
 
 COPY ./images/requirements.txt ./requirements.txt

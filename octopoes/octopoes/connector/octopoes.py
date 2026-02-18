@@ -16,7 +16,7 @@ from octopoes.config.settings import (
     DEFAULT_SCAN_LEVEL_FILTER,
     DEFAULT_SCAN_PROFILE_TYPE_FILTER,
 )
-from octopoes.connector import DecodeException, RemoteException
+from octopoes.connector import DecodeException
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.explanation import InheritanceSection
@@ -56,11 +56,8 @@ class OctopoesAPIConnector:
         except HTTPError as error:
             if response.status_code == 404:
                 data = response.json()
-                raise ObjectNotFoundException(data["detail"])
-            if 500 <= response.status_code < 600:
-                data = response.json()
-                raise RemoteException(value=data["detail"])
-            raise error
+                raise ObjectNotFoundException(data["detail"]) from error
+            raise
         except json.decoder.JSONDecodeError as error:
             raise DecodeException("JSON decode error") from error
 

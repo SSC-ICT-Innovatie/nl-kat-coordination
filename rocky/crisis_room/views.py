@@ -234,7 +234,9 @@ class DashboardService:
             timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT,
         )
 
-        observed_at = datetime.strptime(query["observed_at"], "%Y-%m-%d")
+        observed_at = (
+            datetime.strptime(query["observed_at"], "%Y-%m-%d") if query["observed_at"] else datetime.now(timezone.utc)
+        )
         # for now we check till end of day
         valid_time = datetime.combine(observed_at.date(), time(23, 59, 59), tzinfo=timezone.utc)
 
@@ -274,7 +276,9 @@ class DashboardService:
         exclude_muted = muted_findings == "non-muted"
         only_muted = muted_findings == "muted"
 
-        observed_at = datetime.strptime(query["observed_at"], "%Y-%m-%d")
+        observed_at = (
+            datetime.strptime(query["observed_at"], "%Y-%m-%d") if query["observed_at"] else datetime.now(timezone.utc)
+        )
         # for now we check till end of day
         valid_time = datetime.combine(observed_at.date(), time(23, 59, 59), tzinfo=timezone.utc)
 
@@ -419,15 +423,15 @@ class DeleteDashboardItemView(OrganizationView):
     """Delete the selected dashboard item."""
 
     def post(self, request, *args, **kwargs) -> HttpResponse:
-        dashboard_item_name = request.POST.get("dashboard_item")
-        dashboard_id = request.POST.get("dashboard")
+        dashboard_item_name = request.POST.get("dashboard_item_name")
+        dashboard_item_id = request.POST.get("dashboard_item_id")
 
         if not self.organization_member.can_delete_dashboard_item:
             raise PermissionDenied()
 
         try:
             dashboard_item = DashboardItem.objects.get(
-                dashboard=dashboard_id, dashboard__organization=self.organization, name=dashboard_item_name
+                id=dashboard_item_id, dashboard__organization=self.organization, name=dashboard_item_name
             )
         except DashboardItem.DoesNotExist:
             messages.error(request, f"Dashboard item '{dashboard_item_name}' not found.")

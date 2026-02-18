@@ -127,8 +127,13 @@ class Settings(BaseSettings):
         None, alias="SPAN_EXPORT_GRPC_ENDPOINT", description="OpenTelemetry endpoint"
     )
 
-    # Queue settings
-    pq_maxsize: int = Field(0, description="How many items a priority queue can hold (0 is infinite)")
+    # How many items a priority queue can hold. The default used to be 1000, but
+    # was later changed to 0. The scheduler is currently buggy if you set it to
+    # something else than 0. Since the queue is stored in the database there is
+    # no reason to limit the size of the queue anymore, so we just hardcode it
+    # to 0 here so we don't have to do a big refactor to get rid of the variable
+    # usage.
+    pq_maxsize: int = 0
 
     pq_interval: int = Field(
         60, description="Interval in seconds of the execution of the `` method of the `scheduler.Scheduler` class"

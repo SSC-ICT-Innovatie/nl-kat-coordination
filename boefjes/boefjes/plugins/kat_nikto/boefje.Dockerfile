@@ -1,9 +1,7 @@
 FROM perl:5.40
 
 WORKDIR /app
-RUN apt update
-RUN apt install -y git
-RUN apt install -y nodejs
+RUN apt-get update && apt-get install -y --no-install-recommends git nodejs
 
 RUN git clone https://github.com/sullo/nikto
 

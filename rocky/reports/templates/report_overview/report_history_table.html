@@ -14,67 +14,40 @@
         </p>
         <div class="horizontal-view toolbar">
             <div class="dropdown">
-                {% comment %} <p class="visually-hidden" id="language-selector-description">{% translate "Select your language" %}</p> {% endcomment %}
-                <button id="action-dropdown-button"
-                        type="button"
-                        aria-label="{{ aria_label_current_language }}"
-                        aria-haspopup="menu"
-                        aria-controls="action-dropdown"
+                <button aria-controls="action-dropdown"
                         aria-expanded="false"
                         class="dropdown-button ghost">
                     {% translate "Actions" %}
-                    <span class="icon ti-chevron-down"></span>
+                    <span aria-hidden="true" class="icon ti-chevron-down"></span>
                 </button>
-                <div id="action-dropdown"
-                     class="dropdown-list"
-                     role="menu"
-                     aria-labelledby="action-dropdown-button">
-                    <ul role="presentation">
+                <div id="action-dropdown" class="dropdown-list left">
+                    <ul>
                         <li>
-                            <a href="#rerun-modal" role="menuitem" data-value="test">
-                                <i class="icon ti-refresh"></i>{% translate "Rerun" %}
-                            </a>
-                        </li>
-                        {% comment %} <li>
-                        <a href="#" role="option" data-value="test">
-                            <i class="icon ti-calendar-event"></i>{% translate "Reschedule" %}
-                        </a>
-                        </li> {% endcomment %}
-                        {% comment %} <li>
-                        <a href="#" role="option" data-value="test">
-                            <i class="icon ti-share"></i>{% translate "Share" %}
-                        </a>
-                        </li> {% endcomment %}
-                        {% comment %} <li>
-                    <a href="#" role="option" data-value="test">
-                        <i class="icon ti-layers-difference"></i>{% translate "Concatenate" %}
-                    </a>
-                        </li> {% endcomment %}
-                        <li>
-                            <a href="#rename-modal" role="menuitem" data-value="test">
-                                <i class="icon ti-edit"></i>{% translate "Rename" %}
-                            </a>
+                            <a href="#rerun-modal"><i class="icon ti-refresh"></i>{% translate "Rerun" %}</a>
                         </li>
                         <li>
-                            <a href="#delete-modal"
-                               class="plain destructive"
-                               role="menuitem"
-                               data-value="test">
-                                <i class="icon ti-trash"></i>{% translate "Delete" %}
-                            </a>
+                            <a href="#rename-modal"><i class="icon ti-edit"></i>{% translate "Rename" %}</a>
                         </li>
+                        {% if perms.tools.can_delete_oois %}
+                            <li>
+                                <a href="#delete-modal" class="destructive"><i class="icon ti-trash"></i>{% translate "Delete" %}</a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
             {% include "report_overview/modal_partials/rerun_modal.html" %}
             {% include "report_overview/modal_partials/rename_modal.html" %}
-            {% include "report_overview/modal_partials/delete_modal.html" %}
 
+            {% if perms.tools.can_delete_oois %}
+                {% include "report_overview/modal_partials/delete_modal.html" %}
+
+            {% endif %}
         </div>
     </div>
     <div class="horizontal-scroll sticky-column">
         <form class="inline layout-wide">
-            <table class="nowrap">
+            <table>
                 <caption class="visually-hidden">{% translate "Reports:" %}</caption>
                 <thead>
                     <tr>
@@ -100,7 +73,7 @@
                                        {% if report.id in selected_reports or "all" in selected_reports %}checked{% endif %}
                                        {% if "all" in selected_reports %}disabled{% endif %}>
                             </td>
-                            <td class="report_name">
+                            <td class="report_name nowrap">
                                 <a id="report_name_{{ report.report.reference|slugify }}"
                                    href="{% url "view_report" organization.code %}?report_id={{ report.report.reference }}&observed_at={{ report.report.observed_at|date:"Y-m-d H:i:s:u" }}"
                                    title="{% translate "Shows parent report details" %}">{{ report.report.name }}</a>
@@ -133,14 +106,14 @@
                             </td>
                             <td class="report_oois">
                                 {% if report.total_objects == 1 %}
-                                    <a href="{% ooi_url "ooi_detail" report.report.input_oois.0.input_ooi organization.code query=ooi.mandatory_fields %}">{{ report.report.input_oois.0.input_ooi|human_readable }}</a>
+                                    <a href="{% ooi_url "ooi_detail" report.input_oois.0 organization.code query=ooi.mandatory_fields %}">{{ report.input_oois.0|human_readable }}</a>
                                 {% else %}
                                     {{ report.total_objects }}
                                 {% endif %}
                             </td>
                             <td class="nowrap report_reference_date">{{ report.report.observed_at|date }}</td>
                             <td class="nowrap report_creation_date">{{ report.report.date_generated }}</td>
-                            <td>
+                            <td class="nowrap actions sticky-cell">
                                 {% if report.total_asset_reports >= 1 %}
                                     <button type="button"
                                             class="expando-button icon ti-chevron-down"
@@ -157,7 +130,7 @@
                             <tr class="expando-row">
                                 <td colspan="6">
                                     <table>
-                                        <caption class="visually-hidden">{% translate "Asset reports details:" %}</caption>
+                                        <caption class="visually-hidden">{% translate "Asset reports details" %}:</caption>
                                         <h5>{% translate "Report types" %}</h5>
                                         <p>
                                             {% blocktranslate count counter=report.total_asset_reports trimmed %}

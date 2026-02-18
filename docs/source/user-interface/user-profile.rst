@@ -1,4 +1,0 @@
-User profile
-============
-
-Coming soon!

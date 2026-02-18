@@ -1,5 +1,5 @@
 .dropdown {
-  max-width: 50%;
+  max-width: 100%;
   width: auto;
   padding: 0;
   position: relative;
@@ -12,7 +12,6 @@
     overflow: hidden;
     min-width: 0;
     display: flex;
-    width: 100%;
   }
 
   ul {
@@ -157,6 +156,11 @@
       }
     }
   }
+}
+
+.dropdown-list.left {
+  left: auto;
+  right: 0;
 }
 
 .dropdown-list {

@@ -33,7 +33,7 @@ PIE_SCALE_EFFORT_CHOICES: Choices = [
 PIE_SCALE_CHOICES: Choices = [BLANK_CHOICE, ("low", _("low")), ("medium", _("medium")), ("high", _("high"))]
 
 CLEARANCE_TYPE_CHOICES = [("declared", _("Declared")), ("inherited", _("Inherited")), ("empty", _("Empty"))]
-SCAN_LEVEL_CHOICES = [BLANK_CHOICE] + SCAN_LEVEL.choices
+SCAN_LEVEL_CHOICES = SCAN_LEVEL.choices
 
 MANUAL_FINDING_ID_PREFIX = "KAT-"
 
@@ -57,12 +57,11 @@ BOEFJE_CONTAINER_IMAGE_HELP_TEXT = mark_safe(
     )
 )
 
-BOEFJE_DESCRIPTION_HELP_TEXT = mark_safe(
-    _(
-        "<p>A description of the Boefje explaining in short what it can do. "
-        "This will both be displayed inside the KAT-alogus and on the Boefje details page.</p> "
-    )
+BOEFJE_DESCRIPTION_HELP_TEXT = _(
+    "A description of the Boefje explaining in short what it can do. "
+    "This will both be displayed inside the KAT-alogus and on the Boefje details page."
 )
+
 
 BOEFJE_CONSUMES_HELP_TEXT = _(
     "Select the object type(s) that your Boefje consumes. "

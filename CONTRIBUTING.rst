@@ -12,9 +12,9 @@ We keep `our documentation here <https://docs.openkat.nl>`_, generated from our 
 Guidelines
 ==========
 
-`Our contribution guidelines <https://docs.openkat.nl/guidelines/contributions.html>`_ might help you find your way.
+`Our contribution guidelines <https://docs.openkat.nl/developer-documentation/contributor/index.html>`_ might help you find your way.
 
 Contact
 =======
 
-`Get in touch <https://github.com/minvws/nl-kat-coordination/blob/main/README.rst#contact>`_ with our dev team or community managers here.
+`Get in touch <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/blob/main/README.rst#contact>`_ with our dev team or community managers here.

@@ -53,7 +53,7 @@ class BytesAPIClient(BoefjeStorageInterface):
         try:
             response.raise_for_status()
         except HTTPStatusError as error:
-            if error.response.status_code != 401:
+            if error.response.status_code != 401 and error.response.status_code != 404:
                 logger.error(response.text)
             else:
                 logger.debug(response.text)

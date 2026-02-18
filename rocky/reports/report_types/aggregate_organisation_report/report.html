@@ -22,9 +22,9 @@
                 {% include "ipv6_report/report.html" with data=data.ipv6 show_heading="yes" show_system_type="yes" %}
 
             {% endif %}
-            <section id="basic-security">
-                <div>
-                    {% if data.basic_security.summary %}
+            {% if data.basic_security.summary %}
+                <section id="basic-security">
+                    <div>
                         <div id="basic-security-overview">
                             <h2>{% translate "Basic security" %}</h2>
                             <p class="toggle-item" data-show="off">
@@ -41,42 +41,42 @@
                             {% include "aggregate_organisation_report/basic_security.html" with report_section="yes" %}
 
                         </div>
-                    {% endif %}
-                    {% if data.basic_security.safe_connections %}
-                        <div id="safe-connections">
-                            <div class="horizontal-view">
-                                <h3>{% translate "Safe connections" %}</h3>
-                                {% include "partials/report_section_action_button.html" with modal_id="safe-connections-modal" template="aggregate_organisation_report/safe_connections.html" %}
+                        {% if data.basic_security.safe_connections %}
+                            <div id="safe-connections">
+                                <div class="horizontal-view">
+                                    <h3>{% translate "Safe connections" %}</h3>
+                                    {% include "partials/report_section_action_button.html" with modal_id="safe-connections-modal" template="aggregate_organisation_report/safe_connections.html" %}
+
+                                </div>
+                                {% include "aggregate_organisation_report/safe_connections.html" with report_section="yes" %}
 
                             </div>
-                            {% include "aggregate_organisation_report/safe_connections.html" with report_section="yes" %}
+                        {% endif %}
+                        {% if data.basic_security.summary %}
+                            <div id="system-specific">
+                                <div class="horizontal-view">
+                                    <h3>{% translate "System specific" %}</h3>
+                                    {% include "partials/report_section_action_button.html" with modal_id="system-specific-modal" template="aggregate_organisation_report/system_specific_overview.html" %}
 
-                        </div>
-                    {% endif %}
-                    {% if data.basic_security.summary %}
-                        <div id="system-specific">
-                            <div class="horizontal-view">
-                                <h3>{% translate "System specific" %}</h3>
-                                {% include "partials/report_section_action_button.html" with modal_id="system-specific-modal" template="aggregate_organisation_report/system_specific_overview.html" %}
-
-                            </div>
-                            {% include "aggregate_organisation_report/system_specific_overview.html" with show_heading="yes" %}
-
-                        </div>
-                    {% endif %}
-                    {% if data.basic_security.rpki %}
-                        <div id="rpki">
-                            <div class="horizontal-view">
-                                <h3>{% translate "Resource Public Key Infrastructure" %}</h3>
-                                {% include "partials/report_section_action_button.html" with modal_id="rpki-modal" template="aggregate_organisation_report/rpki.html" %}
+                                </div>
+                                {% include "aggregate_organisation_report/system_specific_overview.html" with show_heading="yes" %}
 
                             </div>
-                            {% include "aggregate_organisation_report/rpki.html" with show_heading="yes" %}
+                        {% endif %}
+                        {% if data.basic_security.rpki %}
+                            <div id="rpki">
+                                <div class="horizontal-view">
+                                    <h3>{% translate "Resource Public Key Infrastructure" %}</h3>
+                                    {% include "partials/report_section_action_button.html" with modal_id="rpki-modal" template="aggregate_organisation_report/rpki.html" %}
 
-                        </div>
-                    {% endif %}
-                </div>
-            </section>
+                                </div>
+                                {% include "aggregate_organisation_report/rpki.html" with show_heading="yes" %}
+
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            {% endif %}
             {% if data.vulnerabilities %}
                 <section id="vulnerabilities">
                     <div>
@@ -103,10 +103,10 @@
 
                             </div>
                             <p class="toggle-item" data-show="off">
-                                {% blocktranslate %}
+                                {% blocktranslate trimmed %}
                                     This chapter contains information about the findings that have been identified
                                     for this organization.
-                                {% endblocktranslate%}
+                                {% endblocktranslate %}
                             </p>
                         </div>
                         {% include "aggregate_organisation_report/findings.html" with report_section="yes" %}

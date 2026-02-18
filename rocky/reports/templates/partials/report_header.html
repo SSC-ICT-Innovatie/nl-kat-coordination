@@ -1,7 +1,7 @@
 {% load i18n %}
 {% load ooi_extra %}
 
-<section class="introduction" id="introduction">
+<section class="appendix" id="introduction">
     <div>
         <div class="horizontal-view toolbar">
             <h1>{{ report_ooi.name }}</h1>
@@ -21,7 +21,7 @@
                                 <a href="{{ report_download_json_url }}" target="_blank"><span class="icon ti-download" aria-hidden="true"></span>{% translate "Download as JSON" %}</a>
                             </li>
                         {% endif %}
-                        {% if report_ooi.input_oois|length > 1 %}
+                        {% if report_ooi.total_asset_reports >= 1 %}
                             <li>
                                 <a href="{% url "subreports" organization.code %}?report_id={{ report_ooi }}"><span class="icon ti-external-link" aria-hidden="true"></span>{% translate "Open asset reports" %}</a>
                             </li>
