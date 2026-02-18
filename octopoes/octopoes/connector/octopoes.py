@@ -38,8 +38,8 @@ OriginTypeAdapter = TypeAdapter(list[Origin])
 OriginParameterTypeAdapter = TypeAdapter(list[OriginParameter])
 HydratedReportTypeAdapter = TypeAdapter(HydratedReport)
 PaginatedHydratedReportTypeAdapter = TypeAdapter(Paginated[HydratedReport])
-ObjectsTypeAdapter = TypeAdapter(dict[str, Annotated[OOIType, Field(discriminator="object_type")])
-ObjectsDictTypeAdapter = TypeAdapter(dict[Reference, Annotated[OOIType, Field(discriminator="object_type")])
+ObjectsTypeAdapter = TypeAdapter(dict[str, Annotated[OOIType, Field(discriminator="object_type")]])
+ObjectsDictTypeAdapter = TypeAdapter(dict[Reference, Annotated[OOIType, Field(discriminator="object_type")]])
 ScanprofilesListTypeAdapter = TypeAdapter(list[InheritanceSection])
 
 
