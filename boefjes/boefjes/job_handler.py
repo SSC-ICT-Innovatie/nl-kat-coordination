@@ -94,12 +94,16 @@ class BoefjeHandler(Handler):
         self.job_runner = job_runner
         self.plugin_service = plugin_service
         self.bytes_client = bytes_client
+        self.plugins = {}
 
     def handle(self, boefje_meta: BoefjeMeta) -> None:
         logger.info("Handling boefje %s[task_id=%s]", boefje_meta.boefje.id, str(boefje_meta.id))
 
-        # Check if this boefje is container-native, if so, continue using the Docker boefjes runner
-        plugin = self.plugin_service.by_plugin_id(boefje_meta.boefje.id, boefje_meta.organization)
+        pluginname = f"{boefje_meta.organization}-{boefje_meta.boefje.id}"
+        if pluginname not in self.plugins.keys():
+            # Check if this boefje is container-native, if so, continue using the Docker boefjes runner
+            self.plugins[pluginname] = self.plugin_service.by_plugin_id(boefje_meta.boefje.id, boefje_meta.organization)
+        plugin = self.plugins[pluginname]
 
         if plugin.type != "boefje":
             raise ValueError("Plugin id does not belong to a boefje")
@@ -205,7 +209,7 @@ class NormalizerHandler(Handler):
                 for ooi in observation.results:
                     if ooi.primary_key == observation.input_ooi:
                         logger.warning(
-                            'Normalizer "%s" returned input [%s]', normalizer_meta.normalizer.id, observation.input_ooi
+                            'Normalizer "%s" returned input [%s], this creates observation loops.', normalizer_meta.normalizer.id, observation.input_ooi
                         )
                 reference = Reference.from_str(observation.input_ooi)
                 connector.save_observation(
