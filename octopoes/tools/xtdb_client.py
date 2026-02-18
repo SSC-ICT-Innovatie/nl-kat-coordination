@@ -52,6 +52,8 @@ class XTDBClient:
         return res.json()["nodes"]
 
     def create_node(self) -> JsonValue:
+        if not self.node:
+            raise ValueError("--node is required for create-node/delete-node")
         res = self.server.post(
             "/create-node", content=f'{{:node "{self.node}"}}', headers={"Content-Type": "application/edn"}
         )
@@ -59,6 +61,8 @@ class XTDBClient:
         return res.json()
 
     def delete_node(self) -> JsonValue:
+        if not self.node:
+            raise ValueError("--node is required for create-node/delete-node")
         res = self.server.post(
             "/delete-node", content=f'{{:node "{self.node}"}}', headers={"Content-Type": "application/edn"}
         )
@@ -89,7 +93,7 @@ class XTDBClient:
 
         try:
             return res.json()
-        except Exception:
+        except json.JSONDecodeError:
             raise ValueError(res.content)
 
     def entity(
@@ -141,7 +145,7 @@ class XTDBClient:
         return res.json()
 
     def attribute_stats(self) -> JsonValue:
-        res = self._client.get("/attribute-stats")
+        res = self.client.get("/attribute-stats")
 
         return res.json()
 
