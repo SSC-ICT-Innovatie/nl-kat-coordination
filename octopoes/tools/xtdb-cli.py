@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import re
 
 import click
 from xtdb_client import XTDBClient
@@ -315,7 +316,7 @@ def slowest_queries(ctx: click.Context):
 @click.pass_context
 def evict_by_objecttype(ctx: click.Context, objecttype: str):
     client: XTDBClient = ctx.obj["client"]
-
+    objecttype = re.sub(r"[^a-zA-Z0-9]", "", objecttype)  # sanitize the object type.
     objects = client.query(f'{{:query {{:find [ ?var ] :where [[?var :object_type "{objecttype}" ]]}}}}')
 
     transactions = []
@@ -354,7 +355,7 @@ def evict_ooi(ctx: click.Context, key: str):
 @click.pass_context
 def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring: str):
     client: XTDBClient = ctx.obj["client"]
-
+    
     query = (
         f'{{:query {{:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/{searchtype}? ?id "{searchstring}")]]}}}}'
     )
