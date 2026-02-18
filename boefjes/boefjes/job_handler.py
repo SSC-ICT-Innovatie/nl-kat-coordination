@@ -62,6 +62,7 @@ class DockerBoefjeHandler(BoefjeHandler):
                 remove=True,
                 network=settings.docker_network,
                 volumes=[f"{self.CACHE_VOLUME_NAME}:{self.CACHE_VOLUME_TARGET}"],
+                environment=boefje_meta.environment or {},
                 **kwargs,
             )
 
