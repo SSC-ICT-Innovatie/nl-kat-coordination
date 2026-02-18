@@ -355,7 +355,7 @@ def evict_ooi(ctx: click.Context, key: str):
 @click.pass_context
 def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring: str):
     client: XTDBClient = ctx.obj["client"]
-    
+
     query = (
         f'{{:query {{:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/{searchtype}? ?id "{searchstring}")]]}}}}'
     )
