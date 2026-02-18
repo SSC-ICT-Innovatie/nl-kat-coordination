@@ -260,6 +260,6 @@ class XTDBClient:
         return res.json()
 
     def slowest_queries(self) -> JsonValue:
-        res = self.client.get("/recent-queries")
+        res = self.client.get("/slowest-queries")
 
         return res.json()
