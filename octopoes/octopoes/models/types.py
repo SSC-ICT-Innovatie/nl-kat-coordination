@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator
+from functools import cache
 
 from pydantic.fields import FieldInfo
 
@@ -170,7 +171,7 @@ ConcreteOOIType = (
     | ReportRecipe
 )
 
-OOIType = ConcreteOOIType | NetworkType | FindingTypeType
+ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType | OOIValidationError
 
 
 def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:
@@ -181,16 +182,17 @@ def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:
 
 
 ALL_TYPES = set(get_all_types(OOI))
+ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_TYPES}
 
-
+@cache
 def get_abstract_types() -> set[type[OOI]]:
     return {t for t in ALL_TYPES if t.strict_subclasses()}
 
-
+@cache
 def get_concrete_types() -> set[type[OOI]]:
     return {t for t in ALL_TYPES if not t.strict_subclasses()}
 
-
+@cache
 def get_collapsed_types() -> set[type[OOI]]:
     abstract_ooi_subtypes = get_abstract_types() - {OOI}
 
@@ -216,21 +218,21 @@ def to_concrete(object_types: set[type[OOI]]) -> set[type[OOI]]:
             concrete_types = concrete_types.union(child_concrete_types)
     return concrete_types
 
-
+@cache
 def type_by_name(type_name: str) -> type[OOI]:
     try:
-        return next(t for t in ALL_TYPES if t.__name__ == type_name)
-    except StopIteration:
+        return ALL_TYPES_BY_NAME[type_name]
+    except KeyError:
         raise TypeNotFound
 
-
+@cache
 def related_object_type(field: FieldInfo) -> type[OOI]:
     object_type: str | type[OOI] = field.json_schema_extra["object_type"]
     if isinstance(object_type, str):
         return type_by_name(object_type)
     return object_type
 
-
+@cache
 def get_relations(object_type: type[OOI]) -> dict[str, type[OOI]]:
     return {
         name: related_object_type(field)
@@ -239,7 +241,7 @@ def get_relations(object_type: type[OOI]) -> dict[str, type[OOI]]:
         or (hasattr(field.annotation, "__args__") and Reference in field.annotation.__args__)
     }
 
-
+@cache
 def get_relation(object_type: type[OOI], property_name: str) -> type[OOI]:
     return get_relations(object_type)[property_name]
 

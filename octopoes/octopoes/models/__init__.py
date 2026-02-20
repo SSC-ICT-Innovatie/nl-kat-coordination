@@ -26,9 +26,8 @@ class Reference(str):
     def class_type(self) -> type[OOI]:
         from octopoes.models.types import type_by_name
 
-        object_type, natural_key = self.parse(self)
-        ooi_class = type_by_name(object_type)
-        return ooi_class
+        object_type, _ = self.parse(self)
+        return type_by_name(object_type)
 
     @property
     def tokenized(self) -> PrimaryKeyToken:
