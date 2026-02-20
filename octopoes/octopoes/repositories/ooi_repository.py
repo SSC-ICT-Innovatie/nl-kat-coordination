@@ -4,7 +4,7 @@ import json
 import re
 from collections import Counter
 from datetime import datetime
-from typing import Any, Literal, Type, cast
+from typing import Any, Literal, cast
 from uuid import UUID
 
 import structlog

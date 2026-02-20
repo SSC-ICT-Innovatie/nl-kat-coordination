@@ -173,6 +173,7 @@ ConcreteOOIType = (
 )
 
 OOIType = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
+BITOOIType = ConcreteOOIType | NetworkType | FindingTypeType
 
 
 @cache
