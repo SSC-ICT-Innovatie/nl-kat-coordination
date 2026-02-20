@@ -13,7 +13,14 @@ from octopoes.models.path import Direction, Path, Segment
 from octopoes.models.persistence import ReferenceField
 from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
-from tests.mocks.mock_ooi_types import ALL_OOI_TYPES, ALL_TYPES_BY_NAME, MockIPAddress, MockIPAddressV4, MockIPPort, MockNetwork
+from tests.mocks.mock_ooi_types import (
+    ALL_OOI_TYPES,
+    ALL_TYPES_BY_NAME,
+    MockIPAddress,
+    MockIPAddressV4,
+    MockIPPort,
+    MockNetwork,
+)
 
 
 class OOIRepositoryTest(TestCase):
@@ -59,7 +66,6 @@ class OOIRepositoryTest(TestCase):
         self.assertEqual("DNSZone", serial.object_type)
         self.assertEqual(internet.name, serial.hostname.tokenized.network.name)
         self.assertEqual("test.nl", serial.hostname.tokenized.name)
-
 
     @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
     @patch("octopoes.models.types.ALL_TYPES_BY_NAME", ALL_TYPES_BY_NAME)
