@@ -9,9 +9,7 @@ from pydantic import ValidationError
 from octopoes.models import OOI
 from octopoes.models.pagination import Paginated
 from octopoes.models.types import (
-    get_abstract_types,
     get_collapsed_types,
-    get_concrete_types,
     get_relations,
     to_concrete,
     type_by_name,
@@ -36,10 +34,14 @@ from tests.mocks.mock_ooi_types import (
 def get_concrete_types() -> set[type[OOI]]:
     return {t for t in ALL_OOI_TYPES if not t.strict_subclasses()}
 
+def get_abstract_types() -> set[type[OOI]]:
+    return {t for t in ALL_TYPES if t.strict_subclasses()}
+
 
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
 @patch("octopoes.models.types.ALL_TYPES_BY_NAME", ALL_TYPES_BY_NAME)
 @patch("octopoes.models.types.get_concrete_types", get_concrete_types)
+@patch("octopoes.models.types.get_abstract_types", get_abstract_types)
 class TypeSystemTest(TestCase):
     def test_concrete_types(self):
         self.assertSetEqual(
