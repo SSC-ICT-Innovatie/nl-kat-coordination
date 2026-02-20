@@ -78,6 +78,7 @@ class OctopoesAPIConnector:
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
+        skip_errors: bool = False,
     ) -> Paginated[OOIType]:
         params: dict[str, str | int | list[str | int] | None] = {
             "types": [t.__name__ for t in types],
@@ -89,6 +90,7 @@ class OctopoesAPIConnector:
             "search_string": search_string,
             "order_by": order_by,
             "asc_desc": asc_desc,
+            "skip_errors": "true" if skip_errors else "false",
         }
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values
         res = self.session.get(f"/{self.client}/objects", params=params)
