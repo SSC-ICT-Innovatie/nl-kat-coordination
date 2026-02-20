@@ -153,6 +153,7 @@ MockOOIType = (
     | MockLabel
 )
 
+ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_OOI_TYPES}
 
 for ooi_type in ALL_OOI_TYPES:
     ooi_type.model_rebuild()

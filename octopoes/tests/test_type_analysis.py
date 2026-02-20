@@ -18,6 +18,7 @@ from octopoes.models.types import (
 )
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
+    ALL_TYPES_BY_NAME,
     MockDNSCNAMERecord,
     MockDNSZone,
     MockHostname,
@@ -30,8 +31,6 @@ from tests.mocks.mock_ooi_types import (
     MockOOIType,
     MockResolvedHostname,
 )
-
-ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_OOI_TYPES}
 
 
 def get_concrete_types() -> set[type[OOI]]:
