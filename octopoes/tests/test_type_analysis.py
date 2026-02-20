@@ -35,7 +35,7 @@ def get_concrete_types() -> set[type[OOI]]:
     return {t for t in ALL_OOI_TYPES if not t.strict_subclasses()}
 
 def get_abstract_types() -> set[type[OOI]]:
-    return {t for t in ALL_TYPES if t.strict_subclasses()}
+    return {t for t in ALL_OOI_TYPES if t.strict_subclasses()}
 
 
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
