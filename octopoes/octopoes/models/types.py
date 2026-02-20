@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from functools import cache
-from typing import TypeVar
+from typing import Hashable
 
 from pydantic.fields import FieldInfo
 
@@ -176,12 +176,8 @@ OOIType = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
 BITOOIType = ConcreteOOIType | NetworkType | FindingTypeType
 
 
-# mypy does not understand that classes are cacheable.
-T = TypeVar("T", bound=OOI)
-
-
 @cache
-def get_all_types(cls_: type[T]) -> Iterator[type[OOI]]:
+def get_all_types(cls_: type[OOI] & Hashable) -> Iterator[type[OOI]]:
     yield cls_
 
     for subclass in cls_.strict_subclasses():
@@ -246,7 +242,7 @@ def related_object_type(field: FieldInfo) -> type[OOI]:
 
 
 @cache
-def get_relations(object_type: type[T]) -> dict[str, type[OOI]]:
+def get_relations(object_type: type[OOI] & Hashable) -> dict[str, type[OOI]]:
     return {
         name: related_object_type(field)
         for name, field in object_type.model_fields.items()
@@ -256,7 +252,7 @@ def get_relations(object_type: type[T]) -> dict[str, type[OOI]]:
 
 
 @cache
-def get_relation(object_type: type[T], property_name: str) -> type[OOI]:
+def get_relation(object_type: type[OOI] & Hashable, property_name: str) -> type[OOI]:
     return get_relations(object_type)[property_name]
 
 
