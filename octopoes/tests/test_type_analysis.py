@@ -32,7 +32,10 @@ from tests.mocks.mock_ooi_types import (
 )
 
 
+ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_OOI_TYPES}
+
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+@patch("octopoes.models.types.ALL_TYPES_BY_NAME", ALL_TYPES_BY_NAME)
 class TypeSystemTest(TestCase):
     def test_concrete_types(self):
         self.assertSetEqual(
