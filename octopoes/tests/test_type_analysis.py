@@ -31,7 +31,6 @@ from tests.mocks.mock_ooi_types import (
     MockResolvedHostname,
 )
 
-
 ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_OOI_TYPES}
 
 

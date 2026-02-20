@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from enum import Enum
 from functools import cache
-from typing import TypeVar, Type
+from typing import TypeVar
 
 from pyparsing import Literal, Opt, ParseException, Word, alphas
 
@@ -163,7 +163,7 @@ T = TypeVar("T", bound=OOI)
 
 
 @cache
-def get_paths_to_neighours(source_type: Type[T]) -> set[Path]:
+def get_paths_to_neighours(source_type: type[T]) -> set[Path]:
     """Gives all paths from the given ooi_type to others in the model,
     This set does not change during runtime as the models are static and as such can be cached.
     """
