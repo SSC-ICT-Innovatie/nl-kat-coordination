@@ -16,7 +16,7 @@ from octopoes.config.settings import (
     DEFAULT_SCAN_LEVEL_FILTER,
     DEFAULT_SCAN_PROFILE_TYPE_FILTER,
 )
-from octopoes.connector import DecodeException
+from octopoes.connector import DecodeException, RemoteException
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.explanation import InheritanceSection
@@ -26,7 +26,7 @@ from octopoes.models.origin import Origin, OriginParameter, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
-from octopoes.models.types import OOIType
+from octopoes.models.types import OOIType, type_by_name
 from octopoes.types import AFFIRMATION_CREATED, DECLARATION_CREATED, OBJECT_DELETED, OBSERVATION_CREATED, ORIGIN_DELETED
 
 
@@ -37,7 +37,7 @@ TransactionRecordTypeAdapter = TypeAdapter(list[TransactionRecord])
 OriginTypeAdapter = TypeAdapter(list[Origin])
 OriginParameterTypeAdapter = TypeAdapter(list[OriginParameter])
 HydratedReportTypeAdapter = TypeAdapter(HydratedReport)
-PaginatedHydratedReportTypeAdapter = TypeAdapter(Paginated[HydratedReport])
+PaginatedHydratedReportsTypeAdapter = TypeAdapter(Paginated[HydratedReport])
 ObjectsTypeAdapter = TypeAdapter(dict[str, Annotated[OOIType, Field(discriminator="object_type")]])
 ObjectsDictTypeAdapter = TypeAdapter(dict[Reference, Annotated[OOIType, Field(discriminator="object_type")]])
 ScanprofilesListTypeAdapter = TypeAdapter(list[InheritanceSection])
