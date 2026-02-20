@@ -29,7 +29,6 @@ from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import OOIType, type_by_name
 from octopoes.types import AFFIRMATION_CREATED, DECLARATION_CREATED, OBJECT_DELETED, OBSERVATION_CREATED, ORIGIN_DELETED
 
-
 HydratedReportsTypeAdapter = TypeAdapter(dict[UUID, HydratedReport])
 PaginatedOOITypeAdapter = TypeAdapter(Paginated[Annotated[OOIType, Field(discriminator="object_type")]])
 PaginatedFindingTypeAdapter = TypeAdapter(Paginated[Annotated[Finding, Field(discriminator="object_type")]])
@@ -64,13 +63,13 @@ class OctopoesAPIConnector:
         try:
             response.read()  # read the response body before raising an exception
             response.raise_for_status()
-        except HTTPError:
+        except HTTPError as error:
             if response.status_code == 404:
                 data = response.json()
-                raise ObjectNotFoundException(data["detail"])
+                raise ObjectNotFoundException(data["detail"]) from error
             if 500 <= response.status_code < 600:
                 data = response.content
-                raise RemoteException(value=data)
+                raise RemoteException(value=data) from error
             raise
         except json.decoder.JSONDecodeError as error:
             raise DecodeException("JSON decode error") from error
@@ -113,17 +112,18 @@ class OctopoesAPIConnector:
             f"/{self.client}/object", params={"reference": str(reference), "valid_time": str(valid_time)}
         )
         objectjson = res.json()
-        objecttypename = objectjson.get("object_type", False)
+        objecttypename = objectjson.get("object_type", None)
         if objecttypename:
             objecttype = type_by_name(objecttypename)
         else:
             objecttype = OOIType
+            objecttypename = 'Unknown'
         try:
             return objecttype.model_validate(objectjson)
         except ValidationError as error:
             self.logger.error(
-                "Could not validate Object: %s against schema of type: %s with data %r"
-                % (objectjson.get("primary_key", "unknown-primary-key"), objecttypename, objectjson),
+                f"Could not validate OOI: {objectjson.get('primary_key', 'unknown-primary-key')} against schema of type: {objecttypename}"
+                objectdata=objectjson,
                 error=error,
             )
             raise

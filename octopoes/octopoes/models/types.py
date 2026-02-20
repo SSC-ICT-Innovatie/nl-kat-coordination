@@ -171,7 +171,7 @@ ConcreteOOIType = (
     | ReportRecipe
 )
 
-ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType | OOIValidationError
+OOIType = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
 
 
 def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:
@@ -184,13 +184,16 @@ def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:
 ALL_TYPES = set(get_all_types(OOI))
 ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_TYPES}
 
+
 @cache
 def get_abstract_types() -> set[type[OOI]]:
     return {t for t in ALL_TYPES if t.strict_subclasses()}
 
+
 @cache
 def get_concrete_types() -> set[type[OOI]]:
     return {t for t in ALL_TYPES if not t.strict_subclasses()}
+
 
 @cache
 def get_collapsed_types() -> set[type[OOI]]:
@@ -218,6 +221,7 @@ def to_concrete(object_types: set[type[OOI]]) -> set[type[OOI]]:
             concrete_types = concrete_types.union(child_concrete_types)
     return concrete_types
 
+
 @cache
 def type_by_name(type_name: str) -> type[OOI]:
     try:
@@ -225,12 +229,14 @@ def type_by_name(type_name: str) -> type[OOI]:
     except KeyError:
         raise TypeNotFound
 
+
 @cache
 def related_object_type(field: FieldInfo) -> type[OOI]:
     object_type: str | type[OOI] = field.json_schema_extra["object_type"]
     if isinstance(object_type, str):
         return type_by_name(object_type)
     return object_type
+
 
 @cache
 def get_relations(object_type: type[OOI]) -> dict[str, type[OOI]]:
@@ -240,6 +246,7 @@ def get_relations(object_type: type[OOI]) -> dict[str, type[OOI]]:
         if field.annotation == Reference
         or (hasattr(field.annotation, "__args__") and Reference in field.annotation.__args__)
     }
+
 
 @cache
 def get_relation(object_type: type[OOI], property_name: str) -> type[OOI]:
