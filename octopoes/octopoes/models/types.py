@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from functools import cache
-from typing import Type
+from typing import TypeVar, Type
 
 from pydantic.fields import FieldInfo
 
@@ -240,8 +240,12 @@ def related_object_type(field: FieldInfo) -> type[OOI]:
     return object_type
 
 
+# mypy does not understand that classes are cacheable.
+T = TypeVar("T", bound=OOI)
+
+
 @cache
-def get_relations(object_type: Type[OOI]) -> dict[str, type[OOI]]:
+def get_relations(object_type: Type[T]) -> dict[str, type[OOI]]:
     return {
         name: related_object_type(field)
         for name, field in object_type.model_fields.items()
@@ -251,7 +255,7 @@ def get_relations(object_type: Type[OOI]) -> dict[str, type[OOI]]:
 
 
 @cache
-def get_relation(object_type: Type[OOI], property_name: str) -> type[OOI]:
+def get_relation(object_type: Type[T], property_name: str) -> type[OOI]:
     return get_relations(object_type)[property_name]
 
 
