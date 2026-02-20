@@ -107,7 +107,7 @@ class OctopoesAPIConnector:
         res = self.session.get(f"/{self.client}/objects", params=params)
         return PaginatedOOITypeAdapter.validate_json(res.content)
 
-    def get(self, reference: Reference, valid_time: datetime) -> OOI:
+    def get(self, reference: Reference, valid_time: datetime) -> OOIType:
         res = self.session.get(
             f"/{self.client}/object", params={"reference": str(reference), "valid_time": str(valid_time)}
         )
@@ -117,7 +117,7 @@ class OctopoesAPIConnector:
             objecttype = type_by_name(objecttypename)
         else:
             objecttype = OOIType
-            objecttypename = 'Unknown'
+            objecttypename = "Unknown"
         try:
             return objecttype.model_validate(objectjson)
         except ValidationError as error:

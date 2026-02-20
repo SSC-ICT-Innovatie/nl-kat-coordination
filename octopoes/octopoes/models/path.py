@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from enum import Enum
+from functools import cache
+from typing import Type
 
 from pyparsing import Literal, Opt, ParseException, Word, alphas
 
@@ -24,6 +26,18 @@ class Segment:
         self.direction = direction
         self.property_name = property_name
         self.target_type = target_type
+
+    def __hash__(self):
+        """Hashing for cache usage"""
+        return hash("".join((str(self.source_type), str(self.direction), self.property_name, str(self.target_type))))
+
+    def __eq__(self, other):
+        return (
+            self.source_type == other.source_type
+            and self.direction == other.direction
+            and self.property_name == other.property_name
+            and self.target_type == other.target_type
+        )
 
     @classmethod
     def parse_step(cls, step: str) -> tuple[Direction, str, type[OOI] | None]:
@@ -144,7 +158,11 @@ class Path:
         return str(self)
 
 
-def get_paths_to_neighours(source_type: type[OOI]) -> set[Path]:
+@cache
+def get_paths_to_neighours(source_type: Type[OOI]) -> set[Path]:
+    """Gives all paths from the given ooi_type to others in the model,
+    This set does not change during runtime as the models are static and as such can be cached.
+    """
     relation_paths = set()
     for property_name, related_type in get_relations(source_type).items():
         relation_paths.add(Path([Segment(source_type, Direction.OUTGOING, property_name, related_type)]))
@@ -157,7 +175,9 @@ def get_paths_to_neighours(source_type: type[OOI]) -> set[Path]:
     return relation_paths
 
 
+@cache
 def get_max_scan_level_inheritance(segment: Segment) -> int | None:
+    """This does not change during runtime as the models are static and as such can be cached."""
     if segment.direction == Direction.INCOMING:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
@@ -171,7 +191,9 @@ def get_max_scan_level_inheritance(segment: Segment) -> int | None:
         )
 
 
+@cache
 def get_max_scan_level_issuance(segment: Segment) -> int | None:
+    """This does not change during runtime as the models are static and as such can be cached."""
     if segment.direction == Direction.INCOMING:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from functools import cache
+from typing import Type
 
 from pydantic.fields import FieldInfo
 
@@ -174,7 +175,8 @@ ConcreteOOIType = (
 OOIType = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
 
 
-def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:
+@cache
+def get_all_types(cls_: Type[OOI]) -> Iterator[type[OOI]]:
     yield cls_
 
     for subclass in cls_.strict_subclasses():
@@ -211,7 +213,7 @@ def get_collapsed_types() -> set[type[OOI]]:
     return abstract_ooi_subtypes.union(non_abstracted_concrete_types)
 
 
-def to_concrete(object_types: set[type[OOI]]) -> set[type[OOI]]:
+def to_concrete(object_types: set[Type[OOI]]) -> set[type[OOI]]:
     concrete_types = set()
     for object_type in object_types:
         if object_type in get_concrete_types():
@@ -239,7 +241,7 @@ def related_object_type(field: FieldInfo) -> type[OOI]:
 
 
 @cache
-def get_relations(object_type: type[OOI]) -> dict[str, type[OOI]]:
+def get_relations(object_type: Type[OOI]) -> dict[str, type[OOI]]:
     return {
         name: related_object_type(field)
         for name, field in object_type.model_fields.items()
@@ -249,7 +251,7 @@ def get_relations(object_type: type[OOI]) -> dict[str, type[OOI]]:
 
 
 @cache
-def get_relation(object_type: type[OOI], property_name: str) -> type[OOI]:
+def get_relation(object_type: Type[OOI], property_name: str) -> type[OOI]:
     return get_relations(object_type)[property_name]
 
 
