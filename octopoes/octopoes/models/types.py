@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import, Iterator
+from collections.abc import Iterator
 from functools import cache
 
 from pydantic.fields import FieldInfo
