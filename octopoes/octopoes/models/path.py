@@ -6,7 +6,15 @@ from functools import cache
 from pyparsing import Literal, Opt, ParseException, Word, alphas
 
 from octopoes.models import OOI
-from octopoes.models.types import get_concrete_types, get_relation, get_relations, to_concrete, type_by_name
+from octopoes.models.types import (
+    OOITYPE_BY_NAME,
+    OOIType,
+    get_concrete_types,
+    get_relation,
+    get_relations,
+    to_concrete,
+    type_by_name,
+)
 
 type_intersection_grammar = Literal("[") + "is" + Word(alphas) + "]"
 
@@ -31,7 +39,7 @@ class Segment:
         return hash("".join((str(self.source_type), str(self.direction), self.property_name, str(self.target_type))))
 
     @classmethod
-    def parse_step(cls, step: str) -> tuple[Direction, str, type[OOI] | None]:
+    def parse_step(cls, step: str) -> tuple[Direction, str, type[OOIType] | None]:
         try:
             parsed_step = incoming_step_grammar.parse_string(step)
             incoming, property_name, _, _, target_type, _ = parsed_step
@@ -149,15 +157,26 @@ class Path:
         return str(self)
 
 
-@cache
-def get_paths_to_neighours(source_type: type[OOI]) -> set[Path]:
-    """Gives all paths from the given ooi_type to others in the model,
-    This set does not change during runtime as the models are static and as such can be cached.
+def get_paths_to_neighbours(source_type: type[OOI]) -> set[Path]:
     """
-    relation_paths = set()
+    Public API: safely caches paths using string keys.
+    """
+    return _cached_paths_to_neighbours(source_type.__name__)
+
+
+@cache
+def _cached_paths_to_neighbours(cls_name: str) -> set[Path]:
+    """
+    Internal cached function. Only takes hashable arguments (str).
+    """
+    source_type = OOITYPE_BY_NAME[cls_name]  # resolve class from name
+    relation_paths: set[Path] = set()
+
+    # OUTGOING paths from source_type
     for property_name, related_type in get_relations(source_type).items():
         relation_paths.add(Path([Segment(source_type, Direction.OUTGOING, property_name, related_type)]))
 
+    # INCOMING paths from all concrete types pointing to source_type
     for other_type in get_concrete_types():
         for property_name, related_type in get_relations(other_type).items():
             if source_type in to_concrete({related_type}):

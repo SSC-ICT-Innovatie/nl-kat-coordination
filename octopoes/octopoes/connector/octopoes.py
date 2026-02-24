@@ -26,7 +26,7 @@ from octopoes.models.origin import Origin, OriginParameter, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
-from octopoes.models.types import OOIType, type_by_name
+from octopoes.models.types import OOIType, concrete_type_by_name
 from octopoes.types import AFFIRMATION_CREATED, DECLARATION_CREATED, OBJECT_DELETED, OBSERVATION_CREATED, ORIGIN_DELETED
 
 HydratedReportsTypeAdapter = TypeAdapter(dict[UUID, HydratedReport])
@@ -114,16 +114,17 @@ class OctopoesAPIConnector:
         objectjson = res.json()
         objecttypename = objectjson.get("object_type", None)
         if objecttypename:
-            objecttype = type_by_name(objecttypename)
+            objecttype: type[OOI] = concrete_type_by_name(objecttypename)
         else:
-            objecttype = OOIType
+            objecttype = OOI
             objecttypename = "Unknown"
         try:
-            return objecttype.model_validate(objectjson)
+            instance: OOIType = objecttype.model_validate(objectjson)
+            return instance
         except ValidationError as error:
             self.logger.error(
                 "Could not validate OOI: %s against schema of type: %s",
-                objectjson.get('primary_key', 'unknown-primary-key'),
+                objectjson.get("primary_key", "unknown-primary-key"),
                 objecttypename,
                 objectdata=objectjson,
                 error=error,
