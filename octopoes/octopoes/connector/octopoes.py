@@ -122,7 +122,9 @@ class OctopoesAPIConnector:
             return objecttype.model_validate(objectjson)
         except ValidationError as error:
             self.logger.error(
-                f"Could not validate OOI: {objectjson.get('primary_key', 'unknown-primary-key')} against schema of type: {objecttypename}",
+                "Could not validate OOI: %s against schema of type: %s",
+                objectjson.get('primary_key', 'unknown-primary-key'),
+                objecttypename,
                 objectdata=objectjson,
                 error=error,
             )

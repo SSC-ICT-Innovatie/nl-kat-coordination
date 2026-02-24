@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from enum import Enum
 from functools import cache
-from typing import Hashable
 
 from pyparsing import Literal, Opt, ParseException, Word, alphas
 
@@ -30,14 +29,6 @@ class Segment:
     def __hash__(self):
         """Hashing for cache usage"""
         return hash("".join((str(self.source_type), str(self.direction), self.property_name, str(self.target_type))))
-
-    def __eq__(self, other):
-        return (
-            self.source_type == other.source_type
-            and self.direction == other.direction
-            and self.property_name == other.property_name
-            and self.target_type == other.target_type
-        )
 
     @classmethod
     def parse_step(cls, step: str) -> tuple[Direction, str, type[OOI] | None]:
@@ -159,7 +150,7 @@ class Path:
 
 
 @cache
-def get_paths_to_neighours(source_type: type[OOI] & Hashable) -> set[Path]:
+def get_paths_to_neighours(source_type: type[OOI]) -> set[Path]:
     """Gives all paths from the given ooi_type to others in the model,
     This set does not change during runtime as the models are static and as such can be cached.
     """
