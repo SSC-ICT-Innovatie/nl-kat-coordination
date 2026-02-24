@@ -6,7 +6,7 @@ from octopoes.models.path import (
     Path,
     Segment,
     get_max_scan_level_inheritance,
-    get_paths_to_neighours,
+    get_paths_to_neighbours,
     incoming_step_grammar,
 )
 from tests.mocks.mock_ooi_types import (
@@ -90,7 +90,7 @@ class PathTest(TestCase):
         self.assertEqual(path, path.reverse().reverse())
 
     def test_get_paths_to_neighbours(self):
-        neighbouring_paths = get_paths_to_neighours(MockIPAddressV4)
+        neighbouring_paths = get_paths_to_neighbours(MockIPAddressV4)
 
         expected_paths = {
             Path.parse("MockIPAddressV4.<address [is MockIPPort]"),
