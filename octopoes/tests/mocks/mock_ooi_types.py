@@ -7,6 +7,7 @@ from typing import Annotated, Literal
 from pydantic import Field
 
 from octopoes.models import OOI, Reference
+from octopoes.models.types import get_concrete_types
 from octopoes.models.persistence import ReferenceField
 
 
@@ -153,7 +154,7 @@ MockOOIType = (
     | MockLabel
 )
 
-ALL_TYPES_BY_NAME = {t.__name__: t for t in ALL_OOI_TYPES}
+CONCRETE_OOITYPE_BY_NAME = {t.__name__: t for t in get_concrete_types()}
 
 for ooi_type in ALL_OOI_TYPES:
     ooi_type.model_rebuild()
