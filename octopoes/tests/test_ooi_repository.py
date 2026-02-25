@@ -15,6 +15,7 @@ from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
+    OOITYPE_BY_NAME,
     CONCRETE_OOITYPE_BY_NAME,
     MockIPAddress,
     MockIPAddressV4,
@@ -68,6 +69,7 @@ class OOIRepositoryTest(TestCase):
         self.assertEqual("test.nl", serial.hostname.tokenized.name)
 
     @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
     @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_construct_neighbour_query(self):
         reference = Reference.from_str("MockIPAddressV4|internet|1.1.1.1")
@@ -94,12 +96,14 @@ class OOIRepositoryTest(TestCase):
         self.assertEqual(re.sub(r"\s+", " ", expected_query), re.sub(r"\s+", " ", query))
 
     @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
     @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_encode_outgoing_segment(self):
         path = Path.parse("MockIPAddressV4.network")
         self.assertEqual("MockIPAddressV4/network", path.segments[0].encode())
 
     @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
     @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_encode_incoming_segment(self):
         path = Path.parse("MockIPAddressV4.<address [is MockIPPort]")
@@ -114,6 +118,8 @@ class OOIRepositoryTest(TestCase):
         )
 
     @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
+    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
     @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_decode_incoming_segment(self):
         self.assertEqual(
@@ -122,6 +128,7 @@ class OOIRepositoryTest(TestCase):
         )
 
     @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
     @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_get_neighbours(self):
         self.session.client.query.return_value = [

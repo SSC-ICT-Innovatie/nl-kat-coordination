@@ -1,8 +1,8 @@
 import inspect
 from typing import Any
+
 from pydantic import Field
 from pydantic.fields import FieldInfo
-
 
 # Dynamically determine allowed Field() keyword parameters
 _FIELD_SIGNATURE = inspect.signature(Field)
@@ -11,7 +11,6 @@ _ALLOWED_FIELD_KWARGS = {
     for name, param in _FIELD_SIGNATURE.parameters.items()
     if param.kind in (param.POSITIONAL_OR_KEYWORD, param.KEYWORD_ONLY)
 }
-
 
 
 def ReferenceField(

@@ -11,6 +11,7 @@ from octopoes.models.path import (
 )
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
+    OOITYPE_BY_NAME,
     CONCRETE_OOITYPE_BY_NAME,
     MockDNSCNAMERecord,
     MockDNSZone,
@@ -25,6 +26,7 @@ from tests.mocks.mock_ooi_types import (
 
 
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+@patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
 @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
 class PathTest(TestCase):
     def test_path_outoing_relation(self):
