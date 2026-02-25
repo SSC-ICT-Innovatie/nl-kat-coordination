@@ -154,7 +154,7 @@ MockOOIType = (
     | MockLabel
 )
 
-OOITYPE_BY_NAME = dict[str, type[OOI]] = {t.__name__: t for t in ALL_OOI_TYPES}
+OOITYPE_BY_NAME: dict[str, type[OOI]] = {t.__name__: t for t in ALL_OOI_TYPES}
 CONCRETE_OOITYPE_BY_NAME = {t.__name__: t for t in get_concrete_types()}
 
 for ooi_type in ALL_OOI_TYPES:
