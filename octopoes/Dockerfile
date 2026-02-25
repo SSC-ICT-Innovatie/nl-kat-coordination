@@ -24,10 +24,12 @@ RUN --mount=type=cache,target=/root/.cache pip install --upgrade pip \
     && pip install -r requirements.txt \
     && if [ "$ENVIRONMENT" = "dev" ]; then pip install -r requirements-dev.txt; fi
 
-USER octopoes
-
 FROM dev
 
 COPY . .
+
+RUN chown -R octopoes:octopoes /app
+
+USER octopoes
 
 CMD ["uvicorn", "octopoes.api.api:app", "--host", "0.0.0.0", "--port", "8000"]
