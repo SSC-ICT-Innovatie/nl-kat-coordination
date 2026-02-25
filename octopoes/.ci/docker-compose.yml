@@ -25,8 +25,6 @@ services:
       - ci_octopoes
     env_file:
       - ".ci/ci.env"
-    volumes:
-      - .:/app/octopoes
 
   xtdb:
     image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
