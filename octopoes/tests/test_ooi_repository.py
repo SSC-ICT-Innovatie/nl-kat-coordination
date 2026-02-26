@@ -10,6 +10,7 @@ from octopoes.events.manager import EventManager
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import DNSZone
 from octopoes.models.ooi.network import IPAddressV4, Network
+from octopoes.models.path import _cached_paths_to_neighbours
 from octopoes.models.persistence import ReferenceField
 from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
@@ -34,7 +35,7 @@ class OOIRepositoryTest(TestCase):
         # patch the dictionary in the path module
         path_module.OOITYPE_BY_NAME = OOITYPE_BY_NAME
         # replace cached function with uncached version
-        path_module._cached_paths_to_neighbours = path_module._cached_paths_to_neighbours.__wrapped__
+        path_module._cached_paths_to_neighbours = _cached_paths_to_neighbours.__wrapped__
 
     def test_node_from_ooi(self):
         internet = Network(name="internet")
