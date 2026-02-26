@@ -5,6 +5,7 @@ from typing import Literal, cast
 from unittest import TestCase
 from unittest.mock import Mock, patch
 
+import octopoes.models.path as path_module
 from octopoes.events.manager import EventManager
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import DNSZone
@@ -21,8 +22,6 @@ from tests.mocks.mock_ooi_types import (
     MockNetwork,
 )
 
-from octopoes.models.path import _cached_paths_to_neighbours
-import octopoes.models.path as path_module
 
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
 @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
@@ -35,7 +34,7 @@ class OOIRepositoryTest(TestCase):
         # patch the dictionary in the path module
         path_module.OOITYPE_BY_NAME = OOITYPE_BY_NAME
         # replace cached function with uncached version
-        path_module._cached_paths_to_neighbours = _cached_paths_to_neighbours.__wrapped__
+        path_module._cached_paths_to_neighbours = path_module._cached_paths_to_neighbours.__wrapped__
 
     def test_node_from_ooi(self):
         internet = Network(name="internet")
@@ -112,23 +111,13 @@ class OOIRepositoryTest(TestCase):
 
     def test_decode_outgoing_segment(self):
         self.assertEqual(
-            path_module.Segment(
-                MockIPAddressV4,
-                path_module.Direction.OUTGOING,
-                "network",
-                MockNetwork,
-            ),
+            path_module.Segment(MockIPAddressV4, path_module.Direction.OUTGOING, "network", MockNetwork),
             self.repository.decode_segment("MockIPAddressV4/network"),
         )
 
     def test_decode_incoming_segment(self):
         self.assertEqual(
-            path_module.Segment(
-                MockIPAddress,
-                path_module.Direction.INCOMING,
-                "address",
-                MockIPPort,
-            ),
+            path_module.Segment(MockIPAddress, path_module.Direction.INCOMING, "address", MockIPPort),
             self.repository.decode_segment("MockIPPort/_address"),
         )
 
@@ -152,5 +141,5 @@ class OOIRepositoryTest(TestCase):
             Reference.from_str("MockHostname|internet|example.com"), datetime.now(UTC)
         )
 
-        resolved_hostname = neighbours[Path.parse("MockHostname.<hostname[is MockResolvedHostname]")][0]
+        resolved_hostname = neighbours[path_module.Path.parse("MockHostname.<hostname[is MockResolvedHostname]")][0]
         self.assertEqual(Reference.from_str("MockIPAddressV4|internet|1.1.1.1"), resolved_hostname.address)
