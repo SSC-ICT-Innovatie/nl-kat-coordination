@@ -1,5 +1,5 @@
 import re
-from datetime import datetime
+from datetime import datetime, UTC
 from ipaddress import IPv4Address
 from typing import Literal, cast
 from unittest import TestCase
@@ -16,19 +16,27 @@ from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
     OOITYPE_BY_NAME,
-    CONCRETE_OOITYPE_BY_NAME,
     MockIPAddress,
     MockIPAddressV4,
     MockIPPort,
     MockNetwork,
 )
 
+from octopoes.models.path import _cached_paths_to_neighbours
+import octopoes.models.path as path_module
 
+@patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+@patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
 class OOIRepositoryTest(TestCase):
     def setUp(self) -> None:
         self.event_manager = Mock(spec=EventManager)
         self.session = XTDBSession(Mock(spec=XTDBHTTPClient))
         self.repository = XTDBOOIRepository(self.event_manager, self.session)
+
+        # patch the dictionary in the path module
+        path_module.OOITYPE_BY_NAME = OOITYPE_BY_NAME
+        # replace cached function with uncached version
+        path_module._cached_paths_to_neighbours = _cached_paths_to_neighbours.__wrapped__
 
     def test_node_from_ooi(self):
         internet = Network(name="internet")
@@ -68,11 +76,8 @@ class OOIRepositoryTest(TestCase):
         self.assertEqual(internet.name, serial.hostname.tokenized.network.name)
         self.assertEqual("test.nl", serial.hostname.tokenized.name)
 
-    @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
-    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-    @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_construct_neighbour_query(self):
-        reference = Reference.from_str("MockIPAddressV4|internet|1.1.1.1")
+        reference = Reference.from_str("IPPort|80")
 
         query = self.repository.construct_neighbour_query(reference)
 
@@ -81,55 +86,43 @@ class OOIRepositoryTest(TestCase):
                         :find [
                             (pull ?e [
                                 :xt/id
-                                {:MockIPPort/_address [*]}
-                                {:MockResolvedHostname/_address [*]}
-                                {:MockLabel/_ooi [*]}
-                                {:MockIPAddressV4/network [*]}
+                                {:IPService/_ip_port [*]}
+                                {:Config/_ooi [*]}
+                                {:Finding/_ooi [*]}
+                                {:GeographicPoint/_ooi [*]}
+                                {:Question/_ooi [*]}
+                                {:SoftwareInstance/_ooi [*]}
+                                {:IPPort/address [*]}
                             ])
                         ]
                         :in [[ _xt_id ... ]]
                         :where [[?e :xt/id _xt_id]]
                     }
-                    :in-args [["MockIPAddressV4|internet|1.1.1.1"]]
+                    :in-args [["IPPort|80"]]
                 }"""
 
         self.assertEqual(re.sub(r"\s+", " ", expected_query), re.sub(r"\s+", " ", query))
 
-    @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
-    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-    @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_encode_outgoing_segment(self):
         path = Path.parse("MockIPAddressV4.network")
         self.assertEqual("MockIPAddressV4/network", path.segments[0].encode())
 
-    @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
-    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-    @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_encode_incoming_segment(self):
         path = Path.parse("MockIPAddressV4.<address [is MockIPPort]")
         self.assertEqual("MockIPPort/_address", path.segments[0].encode())
 
-    @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
-    @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_decode_outgoing_segment(self):
         self.assertEqual(
             Segment(MockIPAddressV4, Direction.OUTGOING, "network", MockNetwork),
             self.repository.decode_segment("MockIPAddressV4/network"),
         )
 
-    @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
-    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-    @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_decode_incoming_segment(self):
         self.assertEqual(
             Segment(MockIPAddress, Direction.INCOMING, "address", MockIPPort),
             self.repository.decode_segment("MockIPPort/_address"),
         )
 
-    @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
-    @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-    @patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
     def test_get_neighbours(self):
         self.session.client.query.return_value = [
             [
@@ -147,7 +140,7 @@ class OOIRepositoryTest(TestCase):
         ]
 
         neighbours = self.repository.get_neighbours(
-            Reference.from_str("MockHostname|internet|example.com"), datetime.utcnow()
+            Reference.from_str("MockHostname|internet|example.com"), datetime.now(UTC)
         )
 
         resolved_hostname = neighbours[Path.parse("MockHostname.<hostname[is MockResolvedHostname]")][0]

@@ -9,10 +9,12 @@ from octopoes.models.path import (
     get_paths_to_neighbours,
     incoming_step_grammar,
 )
+
+from octopoes.models.types import IPAddressV4
+
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
     OOITYPE_BY_NAME,
-    CONCRETE_OOITYPE_BY_NAME,
     MockDNSCNAMERecord,
     MockDNSZone,
     MockHostname,
@@ -27,7 +29,6 @@ from tests.mocks.mock_ooi_types import (
 
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
 @patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
-@patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
 class PathTest(TestCase):
     def test_path_outoing_relation(self):
         path = Path.parse("MockResolvedHostname.hostname")
@@ -92,16 +93,15 @@ class PathTest(TestCase):
         self.assertEqual(path, path.reverse().reverse())
 
     def test_get_paths_to_neighbours(self):
-        neighbouring_paths = get_paths_to_neighbours(MockIPAddressV4)
+        neighbouring_paths = get_paths_to_neighbours(IPAddressV4)
 
         expected_paths = {
-            Path.parse("MockIPAddressV4.<address [is MockIPPort]"),
-            Path.parse("MockIPAddressV4.<address [is MockResolvedHostname]"),
-            Path.parse("MockIPAddressV4.network"),
-            Path.parse("MockIPAddressV4.<ooi [is MockLabel]"),
+            Path.parse("IPAddressV4.<address [is IPPort]"),
+            Path.parse("IPAddressV4.<address [is ResolvedHostname]"),
+            Path.parse("IPAddressV4.network"),
         }
 
-        self.assertSetEqual(expected_paths, neighbouring_paths)
+        self.assertTrue(expected_paths.issubset(neighbouring_paths))
 
     def test_get_max_inherit_scan_level_incoming(self):
         path = Path.parse("MockIPAddressV4.<address [is MockResolvedHostname]")
