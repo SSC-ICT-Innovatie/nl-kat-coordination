@@ -4,6 +4,8 @@ from typing import Any
 from pydantic import Field
 from pydantic.fields import FieldInfo
 
+from octopoes.models import OOI
+
 # Dynamically determine allowed Field() keyword parameters
 _FIELD_SIGNATURE = inspect.signature(Field)
 _ALLOWED_FIELD_KWARGS = {
@@ -14,7 +16,7 @@ _ALLOWED_FIELD_KWARGS = {
 
 
 def ReferenceField(
-    object_type: str | type["OOI"],
+    object_type: str | type[OOI],
     *,
     max_issue_scan_level: int | None = None,
     max_inherit_scan_level: int | None = None,

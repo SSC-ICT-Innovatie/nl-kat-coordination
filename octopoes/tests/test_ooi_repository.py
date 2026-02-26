@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
 from typing import Literal, cast
 from unittest import TestCase

@@ -9,9 +9,7 @@ from octopoes.models.path import (
     get_paths_to_neighbours,
     incoming_step_grammar,
 )
-
 from octopoes.models.types import IPAddressV4
-
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
     OOITYPE_BY_NAME,
@@ -19,7 +17,6 @@ from tests.mocks.mock_ooi_types import (
     MockDNSZone,
     MockHostname,
     MockIPAddress,
-    MockIPAddressV4,
     MockIPPort,
     MockLabel,
     MockNetwork,

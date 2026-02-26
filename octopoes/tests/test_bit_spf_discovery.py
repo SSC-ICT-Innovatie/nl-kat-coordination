@@ -25,7 +25,10 @@ def test_spf_discovery_simple_success():
 
     assert results[-1].model_dump() == spf_record.model_dump()
 
-    assert results[0].model_dump() == IPAddressV4(address="1.1.1.1", network=Reference.from_str("Network|internet")).model_dump()
+    assert (
+        results[0].model_dump()
+        == IPAddressV4(address="1.1.1.1", network=Reference.from_str("Network|internet")).model_dump()
+    )
 
     assert (
         results[1].model_dump()

@@ -11,8 +11,8 @@ from octopoes.models.pagination import Paginated
 from octopoes.models.types import get_collapsed_types, get_relations, to_concrete, type_by_name
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
-    OOITYPE_BY_NAME,
     CONCRETE_OOITYPE_BY_NAME,
+    OOITYPE_BY_NAME,
     MockDNSCNAMERecord,
     MockDNSZone,
     MockHostname,

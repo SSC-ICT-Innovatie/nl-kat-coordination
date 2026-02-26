@@ -159,9 +159,11 @@ combined_types = all_dynamic_types.union(ALL_OOI_TYPES)
 
 OOITYPE_BY_NAME: dict[str, type[OOI]] = {t.__name__: t for t in combined_types}
 
+
 def get_concrete_types() -> set[type[OOI]]:
     concrete_types: set[type[OOI]] = {t for t in ALL_OOI_TYPES if not t.strict_subclasses()}
     return concrete_types
+
 
 CONCRETE_OOITYPE_BY_NAME = {t.__name__: t for t in get_concrete_types()}
 

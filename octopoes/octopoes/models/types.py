@@ -186,6 +186,7 @@ def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:
 ALL_TYPES: set[type[OOI]] = set(get_all_types(OOI))
 T = TypeVar("T", bound=OOI)
 
+
 @cache
 def get_abstract_types() -> set[type[OOI]]:
     abstract_types: set[type[OOI]] = {t for t in ALL_TYPES if t.strict_subclasses()}
