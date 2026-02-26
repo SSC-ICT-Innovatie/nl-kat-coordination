@@ -1,5 +1,5 @@
 import re
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from ipaddress import IPv4Address
 from typing import Literal, cast
 from unittest import TestCase
@@ -139,7 +139,7 @@ class OOIRepositoryTest(TestCase):
         ]
 
         neighbours = self.repository.get_neighbours(
-            Reference.from_str("MockHostname|internet|example.com"), datetime.now(UTC)
+            Reference.from_str("MockHostname|internet|example.com"), datetime.now(timezone.utc)
         )
 
         resolved_hostname = neighbours[path_module.Path.parse("MockHostname.<hostname[is MockResolvedHostname]")][0]
