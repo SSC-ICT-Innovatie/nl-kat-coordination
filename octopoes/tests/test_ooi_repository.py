@@ -9,7 +9,6 @@ from octopoes.events.manager import EventManager
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import DNSZone
 from octopoes.models.ooi.network import IPAddressV4, Network
-from octopoes.models.path import Direction, Path, Segment
 from octopoes.models.persistence import ReferenceField
 from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
@@ -104,22 +103,32 @@ class OOIRepositoryTest(TestCase):
         self.assertEqual(re.sub(r"\s+", " ", expected_query), re.sub(r"\s+", " ", query))
 
     def test_encode_outgoing_segment(self):
-        path = Path.parse("MockIPAddressV4.network")
+        path = path_module.Path.parse("MockIPAddressV4.network")
         self.assertEqual("MockIPAddressV4/network", path.segments[0].encode())
 
     def test_encode_incoming_segment(self):
-        path = Path.parse("MockIPAddressV4.<address [is MockIPPort]")
+        path = path_module.Path.parse("MockIPAddressV4.<address [is MockIPPort]")
         self.assertEqual("MockIPPort/_address", path.segments[0].encode())
 
     def test_decode_outgoing_segment(self):
         self.assertEqual(
-            Segment(MockIPAddressV4, Direction.OUTGOING, "network", MockNetwork),
+            path_module.Segment(
+                MockIPAddressV4,
+                path_module.Direction.OUTGOING,
+                "network",
+                MockNetwork,
+            ),
             self.repository.decode_segment("MockIPAddressV4/network"),
         )
 
     def test_decode_incoming_segment(self):
         self.assertEqual(
-            Segment(MockIPAddress, Direction.INCOMING, "address", MockIPPort),
+            path_module.Segment(
+                MockIPAddress,
+                path_module.Direction.INCOMING,
+                "address",
+                MockIPPort,
+            ),
             self.repository.decode_segment("MockIPPort/_address"),
         )
 
