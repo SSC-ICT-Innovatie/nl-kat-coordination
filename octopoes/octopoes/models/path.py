@@ -101,6 +101,7 @@ class Segment:
             self.source_type == other.source_type
             and self.direction == other.direction
             and self.property_name == other.property_name
+            and self.target_type == other.target_type 
         )
 
     def __str__(self) -> str:

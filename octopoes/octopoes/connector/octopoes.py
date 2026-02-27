@@ -40,7 +40,7 @@ PaginatedHydratedReportsTypeAdapter = TypeAdapter(Paginated[HydratedReport])
 ObjectsTypeAdapter = TypeAdapter(dict[str, Annotated[OOIType, Field(discriminator="object_type")]])
 ObjectsDictTypeAdapter = TypeAdapter(dict[Reference, Annotated[OOIType, Field(discriminator="object_type")]])
 ScanprofilesListTypeAdapter = TypeAdapter(list[InheritanceSection])
-
+DeclarationsTypeAdapter = TypeAdapter(list[Declaration])
 
 class OctopoesAPIConnector:
     """
@@ -68,7 +68,7 @@ class OctopoesAPIConnector:
                 data = response.json()
                 raise ObjectNotFoundException(data["detail"]) from error
             if 500 <= response.status_code < 600:
-                data = response.content
+                data = response.text
                 raise RemoteException(value=data) from error
             raise
         except json.decoder.JSONDecodeError as error:
@@ -113,19 +113,17 @@ class OctopoesAPIConnector:
         )
         objectjson = res.json()
         objecttypename = objectjson.get("object_type", None)
-        if objecttypename:
-            objecttype: type[OOI] = concrete_type_by_name(objecttypename)
-        else:
-            objecttype = OOI
-            objecttypename = "Unknown"
         try:
+            if not objecttypename:
+                raise ValidationError(f"JSON from Octopoes for `{reference}`@{valid_time}  did not contain 'object_type' property.")
+            objecttype: type[OOI] = concrete_type_by_name(objecttypename)
             instance: OOIType = objecttype.model_validate(objectjson)
             return instance
         except ValidationError as error:
             self.logger.error(
-                "Could not validate OOI: %s against schema of type: %s",
+                "Could not validate OOI: `%s` against schema of type: `%s`",
                 objectjson.get("primary_key", "unknown-primary-key"),
-                objecttypename,
+                objecttypename or "Unknown Object type",
                 objectdata=objectjson,
                 error=error,
             )
@@ -222,7 +220,7 @@ class OctopoesAPIConnector:
         self.session.post(
             f"/{self.client}/declarations/save_many",
             headers={"Content-Type": "application/json"},
-            content=TypeAdapter(list[Declaration]).dump_json(declarations),
+            content=DeclaratonsTypeAdapter.dump_json(declarations),
         )
 
         self.logger.info("Saved %s declarations", len(declarations), event_code=DECLARATION_CREATED)
