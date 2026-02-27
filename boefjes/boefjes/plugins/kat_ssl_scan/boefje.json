@@ -7,6 +7,6 @@
     "IPService"
   ],
   "scan_level": 2,
-  "oci_image": "docker.underdark.nl/librekat/ssl-scan:latest",
+  "oci_image": "docker.underdark.nl/librekat/openkat-ssl-scan:latest",
   "oci_arguments": []
 }
