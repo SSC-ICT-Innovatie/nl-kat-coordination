@@ -29,6 +29,8 @@ from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import OOIType, concrete_type_by_name
 from octopoes.types import AFFIRMATION_CREATED, DECLARATION_CREATED, OBJECT_DELETED, OBSERVATION_CREATED, ORIGIN_DELETED
 
+QueryTypeAdapter = TypeAdapter(OOIType | str)
+QueryManyTypeAdapter = TypeAdapter(list[tuple[str, OOIType | str]])
 HydratedReportsTypeAdapter = TypeAdapter(dict[UUID, HydratedReport])
 PaginatedOOITypeAdapter = TypeAdapter(Paginated[Annotated[OOIType, Field(discriminator="object_type")]])
 PaginatedFindingTypeAdapter = TypeAdapter(Paginated[Annotated[Finding, Field(discriminator="object_type")]])
@@ -41,6 +43,7 @@ ObjectsTypeAdapter = TypeAdapter(dict[str, Annotated[OOIType, Field(discriminato
 ObjectsDictTypeAdapter = TypeAdapter(dict[Reference, Annotated[OOIType, Field(discriminator="object_type")]])
 ScanprofilesListTypeAdapter = TypeAdapter(list[InheritanceSection])
 DeclarationsTypeAdapter = TypeAdapter(list[Declaration])
+
 
 class OctopoesAPIConnector:
     """
@@ -115,7 +118,9 @@ class OctopoesAPIConnector:
         objecttypename = objectjson.get("object_type", None)
         try:
             if not objecttypename:
-                raise ValidationError(f"JSON from Octopoes for `{reference}`@{valid_time}  did not contain 'object_type' property.")
+                raise ValidationError(
+                    f"JSON from Octopoes for `{reference}`@{valid_time}  did not contain 'object_type' property."
+                )
             objecttype: type[OOI] = concrete_type_by_name(objecttypename)
             instance: OOIType = objecttype.model_validate(objectjson)
             return instance
@@ -220,7 +225,7 @@ class OctopoesAPIConnector:
         self.session.post(
             f"/{self.client}/declarations/save_many",
             headers={"Content-Type": "application/json"},
-            content=DeclaratonsTypeAdapter.dump_json(declarations),
+            content=DeclarationsTypeAdapter.dump_json(declarations),
         )
 
         self.logger.info("Saved %s declarations", len(declarations), event_code=DECLARATION_CREATED)
@@ -388,7 +393,7 @@ class OctopoesAPIConnector:
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values
 
         return [
-            TypeAdapter(OOIType | str).validate_python(ooi)
+            QueryTypeAdapter.validate_python(ooi)
             for ooi in self.session.get(f"/{self.client}/query", params=params).json()
         ]
 
@@ -402,7 +407,7 @@ class OctopoesAPIConnector:
 
         result = self.session.get(f"/{self.client}/query-many", params=params).json()
 
-        return TypeAdapter(list[tuple[str, OOIType | str]]).validate_python(result)
+        return QueryManyTypeAdapter.validate_python(result)
 
     def export_all(self):
         return self.session.get(f"/{self.client}/io/export").json()
