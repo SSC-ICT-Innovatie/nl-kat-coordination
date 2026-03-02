@@ -65,13 +65,6 @@ class PluginDetailView(TaskListView, PluginSettingsListView):
                         )
         return super().post(request, *args, **kwargs)
 
-    def get_task_filters(self) -> dict[str, str | datetime | None]:
-        filters = super().get_task_filters()
-        filters["filters"]["filters"].append(
-            {"column": "data", "field": f"{self.task_type}__id", "operator": "==", "value": self.plugin.id}
-        )
-        return filters
-
     def get_oois(self, selected_oois: list[str]) -> dict[str, Any]:
         oois_with_clearance = []
         oois_without_clearance = []
@@ -190,7 +183,7 @@ class BoefjeDetailView(PluginDetailView):
 
         return self._filter_oois_with_schedules(oois)
 
-    def _filter_oois_with_schedules(self, oois: dict[str, OOIType]) -> list[tuple[OOIType, ScheduleResponse]]:
+    def _filter_oois_with_schedules(self, oois: dict[str, OOIType]) -> list[tuple[OOIType, ScheduleResponse | None]]:
         if not oois:
             return []
 
@@ -208,8 +201,13 @@ class BoefjeDetailView(PluginDetailView):
             }
         )
 
-        return [
-            (oois[schedule.data["input_ooi"]], schedule)
-            for schedule in schedules.results
-            if "input_ooi" in schedule.data
-        ]
+        results = {}
+        # corner case, not all valid Input OOI's might have a schedule, this happens when a boefje is edited (eg, new input types).
+        for ooi in oois.values():
+            results[ooi.primary_key] = (ooi, None)
+
+        for schedule in schedules.results:
+            if "input_ooi" in schedule.data:
+                results[schedule.data["input_ooi"]] = (oois[schedule.data["input_ooi"]], schedule)
+
+        return [r for r in results.values()]
