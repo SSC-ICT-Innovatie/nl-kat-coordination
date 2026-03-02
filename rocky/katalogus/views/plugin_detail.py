@@ -201,13 +201,15 @@ class BoefjeDetailView(PluginDetailView):
             }
         )
 
-        results = {}
-        # corner case, not all valid Input OOI's might have a schedule, this happens when a boefje is edited (eg, new input types).
+        results: dict[str, tuple[OOIType, ScheduleResponse | None]] = {}
+        # corner case, not all valid Input OOI's might have a schedule
+        # this happens when a boefje is edited (eg, new input types).
         for ooi in oois.values():
             results[ooi.primary_key] = (ooi, None)
 
         for schedule in schedules.results:
             if "input_ooi" in schedule.data:
-                results[schedule.data["input_ooi"]] = (oois[schedule.data["input_ooi"]], schedule)
+                key = schedule.data["input_ooi"]
+                results[key] = (oois[key], schedule)
 
-        return [r for r in results.values()]
+        return list(results.values())
