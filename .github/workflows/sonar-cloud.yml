@@ -58,7 +58,7 @@ jobs:
 
     steps:
       - name: Checkout coverage file fix script
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: .github/scripts/coverage_file_fixer.py
@@ -95,7 +95,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
