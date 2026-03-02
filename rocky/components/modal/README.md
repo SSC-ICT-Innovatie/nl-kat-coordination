@@ -14,9 +14,7 @@ First you need to add `{% load component_tags %}` at the top of your template. N
 
 ```
 {% block html_at_end_body %}
-    {% compress js %}
-        <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-    {% endcompress %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}
 ```
 

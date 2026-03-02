@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load static %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" with view_type="onboarding" %}
@@ -60,7 +59,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}
