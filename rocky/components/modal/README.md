@@ -10,7 +10,7 @@ This outlines the basic usages and provides a code block example below, of how t
 
 ### Instantiate
 
-First you need to add `{% load component_tags %}` at the top of your template. Next you need to add the following code block at the bottom, to include the corresponding JS (if you haven't already you also need to add `{% load compress %}` and `{% load static %}`).
+First you need to add `{% load component_tags %}` at the top of your template. Next you need to add the following code block at the bottom, to include the corresponding JS (if you haven't already you also need to add `{% load static %}`).
 
 ```
 {% block html_at_end_body %}
