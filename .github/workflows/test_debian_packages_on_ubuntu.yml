@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Get version from release tag or generate one
         run: |
@@ -52,7 +52,7 @@ jobs:
             --workdir /app
 
       - name: Upload .deb to artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
           path: ${{ matrix.package }}/build/kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_amd64.deb
@@ -71,7 +71,7 @@ jobs:
       PGPASSWORD: postgres # No password prompt
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Get version from release tag or generate one
         run: |
@@ -145,27 +145,27 @@ jobs:
           sudo rabbitmqctl set_permissions -p "kat" "kat" ".*" ".*" ".*"
 
       - name: Download Bytes artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: kat-bytes_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Boefjes artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: kat-boefjes_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Rocky artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: kat-rocky_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Mula artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: kat-mula_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
       - name: Download Octopoes artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: kat-octopoes_${{ env.RELEASE_VERSION }}_ubuntu.deb
 
@@ -263,7 +263,7 @@ jobs:
         run: robot -d rocky/tests/robot/results-ci -v headless:true rocky/tests/robot/ci
 
       - name: Upload Robot Framework reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: rf-results-ci
