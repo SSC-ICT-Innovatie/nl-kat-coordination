@@ -157,7 +157,7 @@ class BoefjeDetailView(PluginDetailView):
 
         return context
 
-    def get_form_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse]]:
+    def get_form_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse | None]]:
         """Get all available OOIS that plugin can consume."""
 
         oois = {
@@ -169,7 +169,7 @@ class BoefjeDetailView(PluginDetailView):
 
         return self._filter_oois_with_schedules(oois)
 
-    def get_form_filtered_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse]]:
+    def get_form_filtered_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse | None]]:
         """Return a list of oois that is filtered for oois that meets clearance level."""
         oois = {
             ooi.primary_key: ooi
