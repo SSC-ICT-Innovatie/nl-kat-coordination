@@ -65,6 +65,13 @@ class PluginDetailView(TaskListView, PluginSettingsListView):
                         )
         return super().post(request, *args, **kwargs)
 
+    def get_task_filters(self) -> dict[str, str | datetime | None]:
+        filters = super().get_task_filters()
+        filters["filters"]["filters"].append(
+            {"column": "data", "field": f"{self.task_type}__id", "operator": "==", "value": self.plugin.id}
+        )
+        return filters
+
     def get_oois(self, selected_oois: list[str]) -> dict[str, Any]:
         oois_with_clearance = []
         oois_without_clearance = []
