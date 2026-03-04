@@ -219,4 +219,4 @@ class BoefjeDetailView(PluginDetailView):
                 key = schedule.data["input_ooi"]
                 results[key] = (oois[key], schedule)
 
-        return list(results.values())  # type: ignore[return-value]
+        return list(results.values())
