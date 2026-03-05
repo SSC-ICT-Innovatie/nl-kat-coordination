@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -24,7 +24,7 @@ jobs:
         working-directory: octopoes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: octopoes-coverage-unit
           path: octopoes/.coverage
@@ -34,14 +34,14 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Run integration tests
         run: make itest
         working-directory: octopoes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: octopoes-coverage-integration
           path: octopoes/.coverage
@@ -55,7 +55,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -78,7 +78,7 @@ jobs:
         working-directory: octopoes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: octopoes-coverage
           path: octopoes/coverage.xml
