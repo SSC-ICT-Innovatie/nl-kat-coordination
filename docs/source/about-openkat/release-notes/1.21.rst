@@ -4,8 +4,8 @@ OpenKAT 1.21 - Lapjeskat
 
 In this release we have primarily focussed on patching dependencies, and fixing all issues related to our move from MinVWS to SSC-ICT-Innovatie.
 Our last release from MinVWS was 1.20 In august, and since then many of our dependencies required patching, either because of security issues (so we do strongly recommend upgrading),
-or because of other general improvements. The move from one Github Repository, while being gracefully supported on both sides, did still create a series of issues regarding naming, container storage. 
-While we have finished all those steps, it would be great to make those naming issues disappear altogether by making them dynamic. This would allow other forks of OpenKAT to also seamlessly build packages 
+or because of other general improvements. The move from one Github Repository, while being gracefully supported on both sides, did still create a series of issues regarding naming, container storage.
+While we have finished all those steps, it would be great to make those naming issues disappear altogether by making them dynamic. This would allow other forks of OpenKAT to also seamlessly build packages
 and containers, which in turn makes it easier to collaborate and keep in sync with others (and this repo).
 Besides these changes, we have also included a new docker container that sets up a local (automatically updating) CVE api. This services makes sure you never leak any discovered CVEs from your assets to an outside party or even continent.
 Work on a Performance release, addressing many of the localized issues is well underway and will be released as 1.22 soon.
@@ -37,16 +37,16 @@ Upgrading
 The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
 or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
 
-There is a migration script available in the scripts folder named 'migrate-openkat.sh' which will migrate any data on your system from the older docker volumes into the new volumes required by the new openkat packages. 
+There is a migration script available in the scripts folder named 'migrate-openkat.sh' which will migrate any data on your system from the older docker volumes into the new volumes required by the new openkat packages.
 More in depth details can be found in its documentation.
 https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/blob/main/scripts/migrate.md
 
-!! Be sure to use the backup option and dry-run options before attempting a full migration. !! 
+!! Be sure to use the backup option and dry-run options before attempting a full migration. !!
 
 Boefje container images
 -----------------------
 
-The boefje container images of 1.20 are still hosted by MinVWS, and as such can still be reached on their original URIs. 
+The boefje container images of 1.20 are still hosted by MinVWS, and as such can still be reached on their original URIs.
 They are also compatible, but might miss out on some dependency upgrades. To upgrade to the new container registry their urls need to be changed in the katalogus database.
 Docker will then subsequently download the new images. Older images can be deleted by telling docker to do so using a command similar to the one below.
 
