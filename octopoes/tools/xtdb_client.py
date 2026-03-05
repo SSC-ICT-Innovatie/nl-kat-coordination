@@ -1,5 +1,6 @@
 import datetime
 import json
+import re
 from functools import cached_property
 
 import httpx
@@ -193,6 +194,13 @@ class XTDBClient:
         tx_time: datetime.datetime | None = None,
         tx_id: int | None = None,
     ) -> JsonValue:
+
+
+        # Remove control characters that could break query
+        entity = re.sub(r'[\x00-\x1f\x7f]', '', entity)
+        # Escape double quotes
+        entity = entity.replace('"', '\\"')
+        
         if include_params:
             query = f"""
             {{
