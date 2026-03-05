@@ -53,6 +53,8 @@ Docker will then subsequently download the new images. Older images can be delet
 .. code-block:: sh
 
     docker images | grep 'ghcr.io/minvws/openkat' | awk '{print $3}' | xargs -r docker rmi
+    # optionally remove dangling layers to free up disk-space
+    docker image prune -f
 
 
 Full Changelog
