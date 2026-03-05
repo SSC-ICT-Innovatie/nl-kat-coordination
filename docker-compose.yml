@@ -307,6 +307,21 @@ services:
     ports:
       - "127.0.0.1:4000:3000"
 
+  cveapi:
+    profiles:
+      - cveapi
+    restart: unless-stopped
+    build:
+      context: cveapi/
+      dockerfile: Dockerfile
+    volumes:
+      - cveapi-data:/var/lib/kat-cveapi
+    ports:
+      - "127.0.0.1:8880:8080"
+    networks:
+      - default
+      - boefjes
+
 networks:
   default:
     enable_ipv6: true
@@ -327,5 +342,6 @@ volumes:
   postgres-data:
   bytes-data:
   xtdb-data:
+  cveapi-data:
   jaeger-data:
   prometheus-data:
