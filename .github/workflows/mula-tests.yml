@@ -7,14 +7,14 @@ jobs:
   unit-tests:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Run unit tests
         run: make utest
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mula-coverage-unit
           path: mula/.coverage
@@ -23,14 +23,14 @@ jobs:
   integration-tests:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Run integration tests
         run: make itest
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mula-coverage-integration
           path: mula/.coverage
@@ -44,7 +44,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -55,7 +55,7 @@ jobs:
         run: pip install coverage[toml]
 
       - name: Download coverage artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: mula-coverage-*
 
@@ -67,7 +67,7 @@ jobs:
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: mula-coverage
           path: mula/coverage.xml

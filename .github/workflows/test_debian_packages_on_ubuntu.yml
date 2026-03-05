@@ -19,12 +19,12 @@ jobs:
       contents: read
     strategy:
       matrix:
-        dist: [ubuntu]
+        dist: [ubuntu22.04]
         package: [bytes, boefjes, rocky, octopoes, mula]
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Get version from release tag or generate one
         run: |
@@ -52,7 +52,7 @@ jobs:
             --workdir /app
 
       - name: Upload .deb to artifacts
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
           path: ${{ matrix.package }}/build/kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_amd64.deb
@@ -71,7 +71,7 @@ jobs:
       PGPASSWORD: postgres # No password prompt
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Get version from release tag or generate one
         run: |
@@ -81,6 +81,9 @@ jobs:
             pip install setuptools-scm==7.1.0
             echo "RELEASE_VERSION=$(python -m setuptools_scm)" >> $GITHUB_ENV
           fi
+
+      - name: Set distro name (match build matrix.dist)
+        run: echo "DIST_NAME=${{ matrix.os }}" | sed 's/-//' >> $GITHUB_ENV
 
       - name: Install dependencies Docker and rabbitmq
         run: sudo apt-get update && sudo apt-get install -y docker.io containerd runc rabbitmq-server postgresql
@@ -145,29 +148,29 @@ jobs:
           sudo rabbitmqctl set_permissions -p "kat" "kat" ".*" ".*" ".*"
 
       - name: Download Bytes artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
-          name: kat-bytes_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-bytes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Boefjes artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
-          name: kat-boefjes_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-boefjes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Rocky artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
-          name: kat-rocky_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-rocky_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Mula artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
-          name: kat-mula_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-mula_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Octopoes artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
-          name: kat-octopoes_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-octopoes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Get the OpenKAT artifacts
         run: |
@@ -263,7 +266,7 @@ jobs:
         run: robot -d rocky/tests/robot/results-ci -v headless:true rocky/tests/robot/ci
 
       - name: Upload Robot Framework reports
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: rf-results-ci
