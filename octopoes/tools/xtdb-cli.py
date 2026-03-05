@@ -348,13 +348,18 @@ def evict_ooi(ctx: click.Context, key: str):
 @click.option(
     "--searchtype",
     type=click.Choice(["includes", "starts-with", "ends-with"]),
-    help="Type of matchting, defaults to 'includes'.",
+    help="Type of matching, defaults to 'includes'.",
     default="includes",
 )
 @click.argument("searchstring")
 @click.pass_context
 def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring: str):
     client: XTDBClient = ctx.obj["client"]
+
+    # Remove control characters that could break query
+    searchstring = re.sub(r'[\x00-\x1f\x7f]', '', searchstring)
+    # Escape double quotes
+    searchstring = searchstring.replace('"', '\\"')
 
     query = (
         f'{{:query {{:find [ ?e ] :where [[?e :xt/id ?id] [(clojure.string/{searchtype}? ?id "{searchstring}")]]}}}}'
