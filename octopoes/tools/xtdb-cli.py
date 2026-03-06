@@ -357,7 +357,7 @@ def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring
     client: XTDBClient = ctx.obj["client"]
 
     # Remove control characters that could break query
-    searchstring = re.sub(r'[\x00-\x1f\x7f]', '', searchstring)
+    searchstring = re.sub(r"[\x00-\x1f\x7f]", "", searchstring)
     # Escape double quotes
     searchstring = searchstring.replace('"', '\\"')
 
