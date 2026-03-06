@@ -225,11 +225,14 @@ class OOIList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
+        self._results = None
 
     @cached_property
     def count(self) -> int:
         if not self.ooi_types:
             return 0
+        if self._results:
+            return self._results.count
         return self.octopoes_connector.list_objects(
             self.ooi_types,
             valid_time=self.valid_time,
@@ -237,6 +240,7 @@ class OOIList:
             scan_level=self.scan_level,
             scan_profile_type=self.scan_profile_type,
             search_string=self.search_string,
+            skip_errors=True,
         ).count
 
     def __len__(self):
@@ -251,7 +255,7 @@ class OOIList:
             if key.stop:
                 limit = key.stop - offset
 
-            return self.octopoes_connector.list_objects(
+            self._results = self.octopoes_connector.list_objects(
                 self.ooi_types,
                 valid_time=self.valid_time,
                 offset=offset,
@@ -261,9 +265,13 @@ class OOIList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
-            ).items
+                skip_errors=True,
+            )
+            return self._results.items
 
-        elif isinstance(key, int):
+        if isinstance(key, int):
+            if key > self.count:  # lets tell upstream no more items are expected
+                raise IndexError
             return self.octopoes_connector.list_objects(
                 self.ooi_types,
                 valid_time=self.valid_time,
@@ -274,6 +282,7 @@ class OOIList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
+                skip_errors=True,
             ).items
 
 
@@ -301,9 +310,12 @@ class FindingList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
+        self._results = None
 
     @cached_property
     def count(self) -> int:
+        if self._results:
+            return self._results.count
         return self.octopoes_connector.list_findings(
             severities=self.severities,
             valid_time=self.valid_time,
@@ -322,7 +334,7 @@ class FindingList:
             limit = self.HARD_LIMIT
             if key.stop:
                 limit = key.stop - offset
-            findings = self.octopoes_connector.list_findings(
+            self._results = self.octopoes_connector.list_findings(
                 severities=self.severities,
                 valid_time=self.valid_time,
                 exclude_muted=self.exclude_muted,
@@ -332,7 +344,8 @@ class FindingList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
-            ).items
+            )
+            findings = self._results.items
             ooi_references = {finding.ooi for finding in findings}
             finding_type_references = {finding.finding_type for finding in findings}
             objects = self.octopoes_connector.load_objects_bulk(

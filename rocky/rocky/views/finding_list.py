@@ -29,6 +29,7 @@ from rocky.views.mixins import (
     OctopoesView,
     SeveritiesMixin,
 )
+from rocky.paginator import RockyPaginator
 
 logger = structlog.get_logger(__name__)
 
@@ -142,6 +143,7 @@ class FindingListView(BreadcrumbsMixin, FindingListFilter, AddDashboardItemFormM
     template_name = "findings/finding_list.html"
     paginate_by = 150
     add_dashboard_item_form = AddFindingListDashboardItemForm
+    paginator_class = RockyPaginator
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
