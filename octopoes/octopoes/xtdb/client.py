@@ -72,11 +72,17 @@ class XTDBHTTPClient:
                 pass
             raise e
 
+    @property
     def client_url(self) -> str:
         return f"/{self.client}"
 
+    def orgs(self) -> list[str]:
+        res = self._session.get(f"/list-nodes")
+        self._verify_response(res)
+        return res.json()["nodes"]
+
     def status(self) -> XTDBStatus:
-        res = self._session.get(f"{self.client_url()}/status")
+        res = self._session.get(f"{self.client_url}/status")
         self._verify_response(res)
         return XTDBStatus.model_validate_json(res.content)
 
@@ -84,7 +90,7 @@ class XTDBHTTPClient:
         if valid_time is None:
             valid_time = datetime.now(timezone.utc)
         res = self._session.get(
-            f"{self.client_url()}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()}
+            f"{self.client_url}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()}
         )
         self._verify_response(res)
         return res.json()
@@ -107,7 +113,7 @@ class XTDBHTTPClient:
             "with-docs": "true" if with_docs else "false",
         }
 
-        res = self._session.get(f"{self.client_url()}/entity", params=params)
+        res = self._session.get(f"{self.client_url}/entity", params=params)
         self._verify_response(res)
         transactions: list[TransactionRecord] = TypeAdapter(list[TransactionRecord]).validate_json(res.content)
 
@@ -126,7 +132,7 @@ class XTDBHTTPClient:
         if valid_time is None:
             valid_time = datetime.now(timezone.utc)
         res = self._session.post(
-            f"{self.client_url()}/query",
+            f"{self.client_url}/query",
             params={"valid-time": valid_time.isoformat()},
             content=" ".join(str(query).split()),
             headers={"Content-Type": "application/edn"},
@@ -135,12 +141,12 @@ class XTDBHTTPClient:
         return res.json()
 
     def await_transaction(self, transaction_id: int) -> None:
-        self._session.get(f"{self.client_url()}/await-tx", params={"txId": transaction_id})
+        self._session.get(f"{self.client_url}/await-tx", params={"txId": transaction_id})
         logger.info("Transaction completed [txId=%s]", transaction_id)
 
     def submit_transaction(self, operations: list[Operation]) -> None:
         res = self._session.post(
-            f"{self.client_url()}/submit-tx",
+            f"{self.client_url}/submit-tx",
             content=Transaction(operations=operations).model_dump_json(by_alias=True),
             headers={"Content-Type": "application/json"},
         )
@@ -169,7 +175,7 @@ class XTDBHTTPClient:
             raise XTDBException("Could not delete node") from e
 
     def export_transactions(self):
-        res = self._session.get(f"{self.client_url()}/tx-log?with-ops?=true", headers={"Accept": "application/json"})
+        res = self._session.get(f"{self.client_url}/tx-log?with-ops?=true", headers={"Accept": "application/json"})
         self._verify_response(res)
         return res.json()
 
@@ -179,13 +185,13 @@ class XTDBHTTPClient:
         if timeout is not None:
             params["timeout"] = timeout
 
-        res = self._session.get(f"{self.client_url()}/sync", params=params)
+        res = self._session.get(f"{self.client_url}/sync", params=params)
         self._verify_response(res)
 
         return res.json()
 
     def latest_completed_tx(self) -> JsonValue:
-        res = self._session.get(f"{self.client_url()}/latest-completed-tx")
+        res = self._session.get(f"{self.client_url}/latest-completed-tx")
         self._verify_response(res)
         return res.json()
 
