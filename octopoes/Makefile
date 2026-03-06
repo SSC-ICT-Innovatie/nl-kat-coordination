@@ -51,6 +51,12 @@ rtest:
 	sleep 2
 	robot -d reports tests/robot
 
+ctest:
+	docker compose --project-directory . -f .ci/docker-compose.yml kill
+	docker compose --project-directory . -f .ci/docker-compose.yml down --remove-orphans
+	docker compose --project-directory . -f .ci/docker-compose.yml build $(build_args)
+	docker compose --project-directory . -f .ci/docker-compose.yml run --rm octopoes_pytest
+
 itest:
 	docker compose --project-directory . -f .ci/docker-compose.yml kill
 	docker compose --project-directory . -f .ci/docker-compose.yml down --remove-orphans
