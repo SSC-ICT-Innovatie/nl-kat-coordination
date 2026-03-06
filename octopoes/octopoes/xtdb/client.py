@@ -184,6 +184,11 @@ class XTDBHTTPClient:
 
         return res.json()
 
+    def latest_completed_tx(self) -> JsonValue:
+        res = self._session.get(f"{self.client_url}/latest-completed-tx")
+        self._verify_response(res)
+        return res.json()
+
 
 class XTDBSession:
     def __init__(self, client: XTDBHTTPClient):

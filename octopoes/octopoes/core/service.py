@@ -10,6 +10,7 @@ from bits.definitions import get_bit_definitions
 from bits.runner import BitRunner
 from pydantic import TypeAdapter
 
+from octopoes.events.manager import EventManager
 from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -41,10 +42,10 @@ from octopoes.models.path import (
 )
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
-from octopoes.repositories.ooi_repository import OOIRepository
-from octopoes.repositories.origin_parameter_repository import OriginParameterRepository
-from octopoes.repositories.origin_repository import OriginRepository
-from octopoes.repositories.scan_profile_repository import ScanProfileRepository
+from octopoes.repositories.ooi_repository import XTDBOOIRepository
+from octopoes.repositories.origin_parameter_repository import XTDBOriginParameterRepository
+from octopoes.repositories.origin_repository import XTDBOriginRepository
+from octopoes.repositories.scan_profile_repository import XTDBScanProfileRepository
 from octopoes.xtdb.client import Operation, OperationType, XTDBSession
 
 logger = structlog.get_logger("octopoes-core-service")
@@ -66,17 +67,30 @@ def find_relation_in_tree(relation: str, tree: ReferenceTree) -> list[OOI]:
 class OctopoesService:
     def __init__(
         self,
-        ooi_repository: OOIRepository,
-        origin_repository: OriginRepository,
-        origin_parameter_repository: OriginParameterRepository,
-        scan_profile_repository: ScanProfileRepository,
+        event_manager: EventManager, 
         session: XTDBSession | None = None,
+        metrics: bool | None = False,
     ):
-        self.ooi_repository = ooi_repository
-        self.origin_repository = origin_repository
-        self.origin_parameter_repository = origin_parameter_repository
-        self.scan_profile_repository = scan_profile_repository
+        self.event_manager = event_manager
         self.session = session
+        self.bitrunners = {}
+        self.metrics = metrics
+
+    @cached_property
+    def ooi_repository(self):
+        return XTDBOOIRepository(self.event_manager, self.session)
+
+    @cached_property
+    def origin_repository(self):
+        return XTDBOriginRepository(self.event_manager, self.session)
+
+    @cached_property
+    def origin_parameter_repository(self):
+        return XTDBOriginParameterRepository(self.event_manager, self.session)
+
+    @cached_property
+    def scan_profile_repository(self):
+        return XTDBScanProfileRepository(self.event_manager, self.session)
 
     @overload
     def _populate_scan_profiles(self, oois: ValuesView[OOI], valid_time: datetime) -> ValuesView[OOI]: ...

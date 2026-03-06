@@ -1,13 +1,10 @@
+from typing import Any
 import structlog
 from amqp import AMQPError
 
 from octopoes.config.settings import GATHER_BIT_METRICS, QUEUE_NAME_OCTOPOES, Settings
 from octopoes.core.service import OctopoesService
 from octopoes.events.manager import EventManager, get_rabbit_channel
-from octopoes.repositories.ooi_repository import XTDBOOIRepository
-from octopoes.repositories.origin_parameter_repository import XTDBOriginParameterRepository
-from octopoes.repositories.origin_repository import XTDBOriginRepository
-from octopoes.repositories.scan_profile_repository import XTDBScanProfileRepository
 from octopoes.tasks.app import app as celery_app
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
 
@@ -30,17 +27,19 @@ def close_rabbit_channel(queue_uri: str) -> None:
         logger.exception("Unable to close rabbit")
 
 
+_octopoes_instances: dict[str, Any] = {}
+
+def get_octopoes(settings, client: str, session: XTDBSession) -> OctopoesService:
+    if client not in _octopoes_instances:
+        _octopoes_instances[client] = bootstrap_octopoes(
+            settings=settings,
+            client=client,
+            xtdb_session=session,
+        )
+        return _octopoes_instances[client]
+    return _octopoes_instances[client]
+
+
 def bootstrap_octopoes(settings: Settings, client: str, xtdb_session: XTDBSession) -> OctopoesService:
     event_manager = EventManager(client, str(settings.queue_uri), celery_app, QUEUE_NAME_OCTOPOES)
-
-    ooi_repository = XTDBOOIRepository(event_manager, xtdb_session)
-    origin_repository = XTDBOriginRepository(event_manager, xtdb_session)
-    origin_param_repository = XTDBOriginParameterRepository(event_manager, xtdb_session)
-    scan_profile_repository = XTDBScanProfileRepository(event_manager, xtdb_session)
-
-    if GATHER_BIT_METRICS:
-        return OctopoesService(
-            ooi_repository, origin_repository, origin_param_repository, scan_profile_repository, xtdb_session
-        )
-    else:
-        return OctopoesService(ooi_repository, origin_repository, origin_param_repository, scan_profile_repository)
+    return OctopoesService(event_manager, xtdb_session, GATHER_BIT_METRICS)
