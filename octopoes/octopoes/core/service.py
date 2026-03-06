@@ -10,7 +10,6 @@ from bits.definitions import get_bit_definitions
 from bits.runner import BitRunner
 from pydantic import TypeAdapter
 
-from octopoes.events.manager import EventManager
 from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -19,6 +18,7 @@ from octopoes.config.settings import (
     Settings,
 )
 from octopoes.events.events import DBEvent, OOIDBEvent, OriginDBEvent, OriginParameterDBEvent, ScanProfileDBEvent
+from octopoes.events.manager import EventManager
 from octopoes.models import (
     OOI,
     DeclaredScanProfile,
@@ -65,12 +65,7 @@ def find_relation_in_tree(relation: str, tree: ReferenceTree) -> list[OOI]:
 
 
 class OctopoesService:
-    def __init__(
-        self,
-        event_manager: EventManager, 
-        session: XTDBSession | None = None,
-        metrics: bool | None = False,
-    ):
+    def __init__(self, event_manager: EventManager, session: XTDBSession | None = None, metrics: bool | None = False):
         self.event_manager = event_manager
         self.session = session
         self.bitrunners = {}
