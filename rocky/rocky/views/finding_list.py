@@ -21,6 +21,7 @@ from tools.forms.findings import (
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.models.ooi.findings import RiskLevelSeverity
+from rocky.paginator import RockyPaginator
 from rocky.views.mixins import (
     FINDING_LIST_COLUMNS,
     AddDashboardItemFormMixin,
@@ -29,7 +30,7 @@ from rocky.views.mixins import (
     OctopoesView,
     SeveritiesMixin,
 )
-from rocky.paginator import RockyPaginator
+
 
 logger = structlog.get_logger(__name__)
 

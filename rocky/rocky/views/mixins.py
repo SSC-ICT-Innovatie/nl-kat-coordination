@@ -207,10 +207,10 @@ class OOIList:
     def __init__(
         self,
         octopoes_connector: OctopoesAPIConnector,
-        ooi_types: set[type[OOI]],
+        ooi_types: set[type[OOI]] | set[str],
         valid_time: datetime,
-        scan_level: set[ScanLevel],
-        scan_profile_type: set[ScanProfileType],
+        scan_level: set[ScanLevel] | None = None,
+        scan_profile_type: set[ScanProfileType] | None = None,
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
@@ -240,7 +240,6 @@ class OOIList:
             scan_level=self.scan_level,
             scan_profile_type=self.scan_profile_type,
             search_string=self.search_string,
-            skip_errors=True,
         ).count
 
     def __len__(self):
@@ -265,7 +264,6 @@ class OOIList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
-                skip_errors=True,
             )
             return self._results.items
 
@@ -282,7 +280,6 @@ class OOIList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
-                skip_errors=True,
             ).items
 
 
