@@ -4,7 +4,7 @@ FROM node:20-bookworm AS node_builder
 
 WORKDIR /app
 
-COPY rocky/package.json rocky/yarn.lock .
+COPY rocky/package.json rocky/yarn.lock rocky/.parcelrc .
 COPY rocky/assets assets
 COPY rocky/components components
 

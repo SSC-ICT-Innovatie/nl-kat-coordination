@@ -56,8 +56,8 @@ def _get_xtdb_http_session(base_url: str) -> httpx.Client:
 
 
 class XTDBHTTPClient:
-    def __init__(self, base_url: str, client: str):
-        self.client = client
+    def __init__(self, base_url: str, node: str | None):
+        self.node = node
         self._session = _get_xtdb_http_session(base_url)
 
     @staticmethod
@@ -72,11 +72,13 @@ class XTDBHTTPClient:
                 pass
             raise e
 
-    def client_url(self) -> str:
-        return f"/{self.client}"
+    def node_url(self) -> str:
+        if not self.node:
+            raise ValueError("Node not selected, cannot construct URL.")
+        return f"/{self.node}"
 
     def status(self) -> XTDBStatus:
-        res = self._session.get(f"{self.client_url()}/status")
+        res = self._session.get(f"{self.node_url()}/status")
         self._verify_response(res)
         return XTDBStatus.model_validate_json(res.content)
 
@@ -84,7 +86,7 @@ class XTDBHTTPClient:
         if valid_time is None:
             valid_time = datetime.now(timezone.utc)
         res = self._session.get(
-            f"{self.client_url()}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()}
+            f"{self.node_url()}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()}
         )
         self._verify_response(res)
         return res.json()
@@ -107,7 +109,7 @@ class XTDBHTTPClient:
             "with-docs": "true" if with_docs else "false",
         }
 
-        res = self._session.get(f"{self.client_url()}/entity", params=params)
+        res = self._session.get(f"{self.node_url()}/entity", params=params)
         self._verify_response(res)
         transactions: list[TransactionRecord] = TypeAdapter(list[TransactionRecord]).validate_json(res.content)
 
@@ -126,7 +128,7 @@ class XTDBHTTPClient:
         if valid_time is None:
             valid_time = datetime.now(timezone.utc)
         res = self._session.post(
-            f"{self.client_url()}/query",
+            f"{self.node_url()}/query",
             params={"valid-time": valid_time.isoformat()},
             content=" ".join(str(query).split()),
             headers={"Content-Type": "application/edn"},
@@ -135,12 +137,12 @@ class XTDBHTTPClient:
         return res.json()
 
     def await_transaction(self, transaction_id: int) -> None:
-        self._session.get(f"{self.client_url()}/await-tx", params={"txId": transaction_id})
+        self._session.get(f"{self.node_url()}/await-tx", params={"txId": transaction_id})
         logger.info("Transaction completed [txId=%s]", transaction_id)
 
     def submit_transaction(self, operations: list[Operation]) -> None:
         res = self._session.post(
-            f"{self.client_url()}/submit-tx",
+            f"{self.node_url()}/submit-tx",
             content=Transaction(operations=operations).model_dump_json(by_alias=True),
             headers={"Content-Type": "application/json"},
         )
@@ -148,9 +150,14 @@ class XTDBHTTPClient:
         self._verify_response(res)
         self.await_transaction(res.json()["txId"])
 
+    def list_nodes(self) -> list[str]:
+        res = self._session.get("/list-nodes")
+        self._verify_response(res)
+        return res.json()["nodes"]
+
     def create_node(self) -> None:
         try:
-            res = self._session.post("/create-node", json={"node": self.client})
+            res = self._session.post("/create-node", json={"node": self.node})
             self._verify_response(res)
         except HTTPError as e:
             logger.exception("Failed creating node %s", self._session.base_url)
@@ -158,7 +165,7 @@ class XTDBHTTPClient:
 
     def delete_node(self) -> None:
         try:
-            res = self._session.post("/delete-node", json={"node": self.client})
+            res = self._session.post("/delete-node", json={"node": self.node})
             self._verify_response(res)
         except HTTPError as e:
             if isinstance(e, HTTPStatusError) and e.response.status_code == codes.NOT_FOUND:
@@ -169,7 +176,7 @@ class XTDBHTTPClient:
             raise XTDBException("Could not delete node") from e
 
     def export_transactions(self):
-        res = self._session.get(f"{self.client_url()}/tx-log?with-ops?=true", headers={"Accept": "application/json"})
+        res = self._session.get(f"{self.node_url()}/tx-log?with-ops?=true", headers={"Accept": "application/json"})
         self._verify_response(res)
         return res.json()
 
@@ -179,7 +186,7 @@ class XTDBHTTPClient:
         if timeout is not None:
             params["timeout"] = timeout
 
-        res = self._session.get(f"{self.client_url()}/sync", params=params)
+        res = self._session.get(f"{self.node_url()}/sync", params=params)
         self._verify_response(res)
 
         return res.json()
