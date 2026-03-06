@@ -202,7 +202,7 @@ def app_settings():
 
 @pytest.fixture
 def octopoes_service() -> OctopoesService:
-    return OctopoesService(Mock(), Mock(), Mock(), Mock())
+    return OctopoesService(Mock(), Mock())
 
 
 @pytest.fixture

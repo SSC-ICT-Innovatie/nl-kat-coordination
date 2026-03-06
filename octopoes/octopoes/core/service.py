@@ -384,7 +384,6 @@ class OctopoesService:
         logger.debug(
             "Assigned empty scan profiles to OOI's without scan profile [len=%i]", len(unset_scan_profile_references)
         )
-        logger.info("Recalculated scan profiles")
 
     def process_event(self, event: DBEvent) -> None:
         # handle event
