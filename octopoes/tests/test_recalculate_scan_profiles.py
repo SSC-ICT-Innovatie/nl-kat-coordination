@@ -23,9 +23,9 @@ def test_recalculate_inherent(
 
     octopoes.recalculate_scan_profiles(valid_time)
 
-    assert scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 4
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 4
-    assert scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
+    assert octopoes.scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 4
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 4
+    assert octopoes.scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
 
 
 def test_recalculate_inherent_max(valid_time, dns_zone, resolved_hostname, ipaddressv4, event_manager, xtdb_session):
@@ -35,9 +35,9 @@ def test_recalculate_inherent_max(valid_time, dns_zone, resolved_hostname, ipadd
 
     octopoes.recalculate_scan_profiles(valid_time)
 
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 2
-    assert scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 2
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 2
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 2
+    assert octopoes.scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 2
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 2
 
 
 def test_recalculate_inherent_recalculate(
@@ -49,29 +49,29 @@ def test_recalculate_inherent_recalculate(
 
     octopoes.recalculate_scan_profiles(valid_time)
 
-    assert scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 3
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 3
-    assert scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
+    assert octopoes.scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 3
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 3
+    assert octopoes.scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
 
     octopoes.recalculate_scan_profiles(valid_time)
 
-    assert scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 3
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 3
-    assert scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
+    assert octopoes.scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 3
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 3
+    assert octopoes.scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
 
     profile = DeclaredScanProfile(reference=hostname.reference, level=2)
-    scan_profile_repository.save(None, profile, valid_time)
+    octopoes.scan_profile_repository.save(None, profile, valid_time)
 
     octopoes.recalculate_scan_profiles(valid_time)
 
-    assert scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 2
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 2
-    assert scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
+    assert octopoes.scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 2
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 2
+    assert octopoes.scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
 
-    scan_profile_repository.delete(profile, valid_time)
+    octopoes.scan_profile_repository.delete(profile, valid_time)
 
     octopoes.recalculate_scan_profiles(valid_time)
 
-    assert scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 0
-    assert scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 0
-    assert scan_profile_repository.get(dns_zone.reference, valid_time).level == 0
+    assert octopoes.scan_profile_repository.get(ipaddressv4.reference, valid_time).level == 0
+    assert octopoes.scan_profile_repository.get(resolved_hostname.reference, valid_time).level == 0
+    assert octopoes.scan_profile_repository.get(dns_zone.reference, valid_time).level == 0

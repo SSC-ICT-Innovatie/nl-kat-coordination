@@ -109,7 +109,7 @@ def recalculate_scan_profiles_for_org(session: dict) -> int | None:
 def main():
     logger.info("Scan profile recalculation process started.")
     katalogusclient = KATalogusClient(str(settings.katalogus_api))
-    octopii = {}
+    octopii: dict[str, dict] = {}
     while True:
         scan_profile_recalculations(katalogusclient, octopii)
         time.sleep(settings.scan_level_recalculation_interval)

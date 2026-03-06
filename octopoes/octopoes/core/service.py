@@ -69,7 +69,6 @@ class OctopoesService:
     def __init__(self, event_manager: EventManager, session: XTDBSession | None = None, metrics: bool | None = False):
         self.event_manager = event_manager
         self.session = session
-        self.bitrunners = {}
         self.metrics = metrics
 
     @cached_property
