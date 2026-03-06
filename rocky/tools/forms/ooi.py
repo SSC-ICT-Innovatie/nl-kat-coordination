@@ -46,7 +46,7 @@ class SelectOOIForm(BaseRockyForm):
 
     def __init__(
         self,
-        oois: list[tuple[OOI, ScheduleResponse]],
+        oois: list[tuple[OOI, ScheduleResponse | None]],
         organization_code: str,
         mandatory_fields: list | None = None,
         *args,
@@ -61,7 +61,7 @@ class SelectOOIForm(BaseRockyForm):
             self.fields["ooi"].initial = self.fields["ooi"].choices[0][0]
 
     @staticmethod
-    def _to_choice(ooi_with_schedule: tuple[OOI, ScheduleResponse]) -> tuple[str, Any]:
+    def _to_choice(ooi_with_schedule: tuple[OOI, ScheduleResponse | None]) -> tuple[str, Any]:
         ooi, schedule = ooi_with_schedule[0], ooi_with_schedule[1]
 
         return str(ooi), (ooi, ooi, ooi.scan_profile.level if ooi.scan_profile else 0, schedule)
