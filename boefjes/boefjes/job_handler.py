@@ -1,3 +1,4 @@
+import os
 from collections.abc import Callable
 from datetime import datetime, timezone
 from typing import Literal, cast
@@ -23,6 +24,16 @@ logger = structlog.get_logger(__name__)
 
 bytes_api_client = BytesAPIClient(
     str(settings.bytes_api), username=settings.bytes_username, password=settings.bytes_password
+)
+
+
+PASSTHROUGH_ENV_VARS = (
+    "REQUESTS_CA_BUNDLE",
+    "CURL_CA_BUNDLE",
+    "SSL_CERT_FILE",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY",
 )
 
 
@@ -62,6 +73,10 @@ class DockerBoefjeHandler(BoefjeHandler):
                 remove=True,
                 network=settings.docker_network,
                 volumes=[f"{self.CACHE_VOLUME_NAME}:{self.CACHE_VOLUME_TARGET}"],
+                environment={
+                    **{k: os.environ[k] for k in PASSTHROUGH_ENV_VARS if k in os.environ},
+                    **(boefje_meta.environment or {}),
+                },
                 **kwargs,
             )
 

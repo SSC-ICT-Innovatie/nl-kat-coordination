@@ -33,3 +33,22 @@ https://cve.openkat.dev/:
 
 The CVEAPI_URL configuration parameter of the kat_cve_finding_types boefje can
 then be set to your own instance.
+
+Docker Compose
+--------------
+
+For development and testing, a local CVE API can be started as an optional
+Docker Compose service using the ``cveapi`` profile:
+
+.. code-block:: sh
+
+    COMPOSE_PROFILES=cveapi make kat
+
+This starts a container that downloads all CVE data from the NVD API and serves
+it as static JSON files. The initial download takes some time (~300,000+ CVEs,
+~2 GB) but subsequent runs only fetch updates. The data is stored in a persistent
+volume and updated every 24 hours.
+
+The ``BOEFJE_CVEAPI_URL`` environment variable in ``.env-defaults`` is
+preconfigured to point to this local instance. No additional configuration is
+needed.
