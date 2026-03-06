@@ -1,5 +1,3 @@
-from unittest.mock import Mock
-
 from octopoes.core.service import OctopoesService
 from octopoes.models import DeclaredScanProfile
 
@@ -30,9 +28,7 @@ def test_recalculate_inherent(
     assert scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
 
 
-def test_recalculate_inherent_max(
-    valid_time, dns_zone, resolved_hostname, ipaddressv4, event_manager, xtdb_session
-):
+def test_recalculate_inherent_max(valid_time, dns_zone, resolved_hostname, ipaddressv4, event_manager, xtdb_session):
     octopoes = OctopoesService(event_manager, xtdb_session)
 
     octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=dns_zone.reference, level=4), valid_time)

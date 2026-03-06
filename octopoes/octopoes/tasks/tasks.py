@@ -46,6 +46,7 @@ structlog.configure(
 
 task_logger = get_task_logger(__name__)
 
+
 @app.task(queue=QUEUE_NAME_OCTOPOES, ignore_result=True)
 def handle_event(event: dict) -> None:
     try:
