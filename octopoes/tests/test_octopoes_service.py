@@ -100,7 +100,7 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
     mock_oois = [Mock(reference="test1"), Mock(reference="test2")]
     bit_runner().run = MagicMock(return_value=mock_oois)
     bit_runner().save = MagicMock(return_value=True)
-    
+
     valid_time = datetime(2023, 1, 1)
     event = ScanProfileDBEvent(
         operation_type=OperationType.CREATE,

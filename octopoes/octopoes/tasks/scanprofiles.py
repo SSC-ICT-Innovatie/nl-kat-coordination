@@ -90,9 +90,11 @@ def recalculate_scan_profiles_for_org(session: dict) -> int | None:
         transactions = session["xtdb"].commit()
         duration = timeit.default_timer() - timer
         max_id = session["xtdb"].client.latest_completed_tx()
-        # return the max_id after this update. So we dont trigger a likely empty loop just because we changed some scanprofiles this loop.
+        # return the max_id after this update. So we dont trigger a likely empty loop
+        # just because we changed some scanprofiles this loop.
         logger.info(
-            "Finished scan profile recalculation on %i unproccessed transactions, with resulting transactioncount: %i [org=%s] [dur=%.2fs]",
+            """Finished scan profile recalculation on %i unproccessed transactions, 
+            with resulting transactioncount: %i [org=%s] [dur=%.2fs]""",
             (max_id["txId"] - session["last_transaction"]),
             transactions,
             session["org"],

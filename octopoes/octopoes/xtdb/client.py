@@ -87,7 +87,9 @@ class XTDBHTTPClient:
     def get_entity(self, entity_id: str, valid_time: datetime | None = None) -> dict:
         if valid_time is None:
             valid_time = datetime.now(timezone.utc)
-        res = self._session.get(f"{self.node_url}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()})
+        res = self._session.get(
+            f"{self.node_url}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()}
+        )
 
         self._verify_response(res)
         return res.json()
