@@ -72,6 +72,7 @@ def test_on_update_origin(octopoes_service, valid_time):
 
     # and the deferenced ooi is no longer referred to by any origins
     octopoes_service.origin_repository.list_origins = MagicMock(return_value=[])
+    octopoes_service.ooi_repository.delete_if_exists = MagicMock(return_value=[])
     octopoes_service.process_event(event)
 
     # the ooi should be deleted
@@ -99,7 +100,7 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
 
     mock_oois = [Mock(reference="test1"), Mock(reference="test2")]
     bit_runner().run = MagicMock(return_value=mock_oois)
-    bit_runner().save = MagicMock(return_value=True)
+    octopoes_service.ooi_repository.save = MagicMock(return_value=True)
 
     valid_time = datetime(2023, 1, 1)
     event = ScanProfileDBEvent(
