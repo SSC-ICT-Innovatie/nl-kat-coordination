@@ -66,7 +66,7 @@ def find_relation_in_tree(relation: str, tree: ReferenceTree) -> list[OOI]:
 
 
 class OctopoesService:
-    def __init__(self, event_manager: EventManager, session: XTDBSession | None = None, metrics: bool | None = False):
+    def __init__(self, event_manager: EventManager, session: XTDBSession, metrics: bool | None = False):
         self.event_manager = event_manager
         self.session = session
         self.metrics = metrics
