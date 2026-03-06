@@ -91,12 +91,12 @@ class SQLMetaDataRepository(MetaDataRepository):
         query = self.session.query(NormalizerMetaInDB)
         meta_ids = [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas]
         query = query.filter(NormalizerMetaInDB.id.in_(meta_ids))
+        query = query.order_by(NormalizerMetaInDB.started_at.asc())
         if query_filter:
             if query_filter.offset:
                 query = query.offset(query_filter.offset)
             if query_filter.limit:
                 query = query.limit(query_filter.limit)
-        query = query.order_by(NormalizerMetaInDB.started_at.asc())
         results: dict[str, NormalizerMeta] = {}
         for normalizer_meta in query:
             results[str(normalizer_meta.id)] = to_normalizer_meta(normalizer_meta)
