@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 from pydantic import TypeAdapter
 
 from octopoes.config.settings import QUEUE_NAME_OCTOPOES, Settings
-from octopoes.core.app import get_xtdb_client
+from octopoes.core.app import get_octopoes, get_xtdb_client
 from octopoes.events.events import DBEvent, DBEventType
 from octopoes.tasks.app import app
 from octopoes.xtdb.client import XTDBSession
@@ -44,12 +44,10 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-from celery.utils.log import get_task_logger
 task_logger = get_task_logger(__name__)
 
 @app.task(queue=QUEUE_NAME_OCTOPOES, ignore_result=True)
 def handle_event(event: dict) -> None:
-    task_logger.warning("ENTER task: %s", event.get("id"))
     try:
         parsed_event: DBEvent = TypeAdapter(DBEventType).validate_python(event)
 

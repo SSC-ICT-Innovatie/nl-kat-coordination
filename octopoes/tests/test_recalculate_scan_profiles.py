@@ -21,7 +21,7 @@ def test_recalculate_inherent(
 ):
     octopoes = OctopoesService(event_manager, xtdb_session)
 
-    scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=4), valid_time)
+    octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=4), valid_time)
 
     octopoes.recalculate_scan_profiles(valid_time)
 
@@ -35,7 +35,7 @@ def test_recalculate_inherent_max(
 ):
     octopoes = OctopoesService(event_manager, xtdb_session)
 
-    scan_profile_repository.save(None, DeclaredScanProfile(reference=dns_zone.reference, level=4), valid_time)
+    octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=dns_zone.reference, level=4), valid_time)
 
     octopoes.recalculate_scan_profiles(valid_time)
 
@@ -49,7 +49,7 @@ def test_recalculate_inherent_recalculate(
 ):
     octopoes = OctopoesService(event_manager, xtdb_session)
 
-    scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=3), valid_time)
+    octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=3), valid_time)
 
     octopoes.recalculate_scan_profiles(valid_time)
 

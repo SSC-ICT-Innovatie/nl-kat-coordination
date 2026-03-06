@@ -66,6 +66,7 @@ def scan_profile_recalculations(katalogusclient: KATalogusClient, octopii: dict)
             # anyway.
             octopii[org]["last_transaction"] = last_transaction
 
+
 def recalculate_scan_profiles_for_org(session: dict) -> int | None:
     timer = timeit.default_timer()
     max_id = session["xtdb"].client.latest_completed_tx()
@@ -112,6 +113,7 @@ def main():
     while True:
         scan_profile_recalculations(katalogusclient, octopii)
         time.sleep(settings.scan_level_recalculation_interval)
-        
+
+
 if __name__ == "__main__":
     main()
