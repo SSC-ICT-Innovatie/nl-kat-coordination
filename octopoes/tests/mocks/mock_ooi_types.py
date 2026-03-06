@@ -8,6 +8,7 @@ from pydantic import Field
 
 from octopoes.models import OOI, Reference
 from octopoes.models.persistence import ReferenceField
+from octopoes.models.types import get_all_types
 
 
 class MockNetwork(OOI):
@@ -153,6 +154,18 @@ MockOOIType = (
     | MockLabel
 )
 
+all_dynamic_types = set(get_all_types(OOI))
+combined_types = all_dynamic_types.union(ALL_OOI_TYPES)
+
+OOITYPE_BY_NAME: dict[str, type[OOI]] = {t.__name__: t for t in combined_types}
+
+
+def get_concrete_types() -> set[type[OOI]]:
+    concrete_types: set[type[OOI]] = {t for t in ALL_OOI_TYPES if not t.strict_subclasses()}
+    return concrete_types
+
+
+CONCRETE_OOITYPE_BY_NAME = {t.__name__: t for t in get_concrete_types()}
 
 for ooi_type in ALL_OOI_TYPES:
     ooi_type.model_rebuild()
