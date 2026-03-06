@@ -8,7 +8,7 @@ from typing import Any
 import httpx
 import structlog
 from httpx import HTTPError, HTTPStatusError, Response, codes
-from pydantic import BaseModel, ConfigDict, Field, JsonValue TypeAdapter
+from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter
 
 from octopoes.config.settings import Settings
 from octopoes.models.transaction import TransactionRecord
