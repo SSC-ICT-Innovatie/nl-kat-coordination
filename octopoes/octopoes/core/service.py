@@ -2,6 +2,7 @@ import json
 from collections import Counter
 from collections.abc import Callable, ValuesView
 from datetime import datetime, timezone
+from functools import cached_property
 from time import perf_counter
 from typing import Literal, overload
 
