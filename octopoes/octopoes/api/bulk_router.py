@@ -33,20 +33,20 @@ def list_reports(
 
     # The reason for creating the event_manager do this in the loop is the '_try_connect()' call in the __init__
     # possibly slowing this down, while this API was introduced to improve performance. Simply reusing it for all
-    # clients works because the event manager is only used in callbacks triggered on a `commit()`, while these queries
+    # nodes works because the event manager is only used in callbacks triggered on a `commit()`, while these queries
     # are read-only and hence don't need a `commit()` as no events would be triggered. (A cleaner solution would perhaps
     #  be to extract an interface and pass a new NullManager.)
     event_manager = EventManager("null", str(settings_.queue_uri), celery_app, QUEUE_NAME_OCTOPOES)
 
-    # The xtdb_http_client is also created outside the loop and the `_client` property changed inside the loop instead,
+    # The xtdb_http_client is also created outside the loop and the `_node` property changed inside the loop instead,
     # to reuse the httpx Session for all requests.
     xtdb_http_client = get_xtdb_client(str(settings_.xtdb_uri), "")
     ooi_repository = XTDBOOIRepository(event_manager, XTDBSession(xtdb_http_client))
 
     reports = {}
 
-    for client, recipe_id in reports_filters:
-        xtdb_http_client.client = client
+    for organization, recipe_id in reports_filters:
+        xtdb_http_client.node = organization
 
         for report in ooi_repository.list_reports(valid_time, 0, 1, recipe_id, ignore_count=True).items:
             reports[recipe_id] = report
@@ -70,16 +70,16 @@ def list_object_clients(
     session = XTDBSession(xtdb_http_client)
 
     octopoes = bootstrap_octopoes(settings_, "null", session)
-    clients_with_reference = {}
+    organizations_with_reference = {}
 
-    for client in clients:
-        xtdb_http_client.client = client
+    for organization in clients:
+        xtdb_http_client.node = organization
 
         try:
             ooi = octopoes.get_ooi(reference, valid_time)
         except ObjectNotFoundException:
             continue
 
-        clients_with_reference[client] = ooi
+        organizations_with_reference[organization] = ooi
 
-    return clients_with_reference
+    return organizations_with_reference
