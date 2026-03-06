@@ -7,5 +7,5 @@
     "IPAddressV6"
   ],
   "scan_level": 1,
-  "oci_image": "docker.underdark.nl/librekat/generic:latest"
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest"
 }
