@@ -28,7 +28,7 @@ jobs:
       - name: Prep Set env
         run: echo "RELEASE_VERSION=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -198,67 +198,67 @@ jobs:
 
       # Common / Uploads
       - name: Octopoes Upload whl package
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: "octopoes-${{env.RELEASE_VERSION}}_python${{ matrix.python_version }}"
           path: "${{ github.workspace }}/octopoes/dist/octopoes*.whl"
 
       - name: Octopoes Upload venv tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: octopoes_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}
           path: ${{ env.PKGDIR }}/octopoes_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}.tar.gz
 
       - name: Octopoes Upload octopoes tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: octopoes_${{ env.RELEASE_VERSION }}
           path: ${{ env.PKGDIR }}/octopoes_${{ env.RELEASE_VERSION }}.tar.gz
 
       - name: Rocky Upload rocky tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: rocky_${{ env.RELEASE_VERSION }}
           path: ${{ env.PKGDIR }}/rocky_${{ env.RELEASE_VERSION }}.tar.gz
 
       - name: Rocky Upload venv tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: rocky_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}
           path: ${{ env.PKGDIR }}/rocky_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}.tar.gz
 
       - name: Bytes Upload bytes tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: bytes_${{ env.RELEASE_VERSION }}
           path: ${{ env.PKGDIR }}/bytes_${{ env.RELEASE_VERSION }}.tar.gz
 
       - name: Bytes Upload bytes venv tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: bytes_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}
           path: ${{ env.PKGDIR }}/bytes_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}.tar.gz
 
       - name: Upload scheduler release
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: scheduler_${{ env.RELEASE_VERSION }}
           path: ${{ env.PKGDIR }}/scheduler_${{ env.RELEASE_VERSION }}.tar.gz
 
       - name: Upload venv archive
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: scheduler_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}
           path: ${{ env.PKGDIR }}/scheduler_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}.tar.gz
 
       - name: Upload boefjes tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: boefjes_${{ env.RELEASE_VERSION }}
           path: ${{ env.PKGDIR }}/boefjes_${{ env.RELEASE_VERSION }}.tar.gz
 
       - name: Upload venv tar
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: boefjes_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}
           path: ${{ env.PKGDIR }}/boefjes_venv_${{ env.RELEASE_VERSION }}_python${{ matrix.python_version }}.tar.gz
