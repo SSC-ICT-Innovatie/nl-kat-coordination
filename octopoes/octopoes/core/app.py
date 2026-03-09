@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 def get_xtdb_client(base_uri: str, client: str) -> XTDBHTTPClient:
     base_uri = base_uri.rstrip("/")
 
-    return XTDBHTTPClient(f"{base_uri}/_xtdb", client)
+    return XTDBHTTPClient(f"{base_uri}/_xtdb", node=client)
 
 
 def close_rabbit_channel(queue_uri: str) -> None:
