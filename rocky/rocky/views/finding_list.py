@@ -31,7 +31,6 @@ from rocky.views.mixins import (
     SeveritiesMixin,
 )
 
-
 logger = structlog.get_logger(__name__)
 
 

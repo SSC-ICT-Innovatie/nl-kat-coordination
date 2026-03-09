@@ -1,5 +1,5 @@
 import json
-from collections.abc import Iterable, Sequence, Set
+from collections.abc import Iterable, Sequence
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -10,12 +10,7 @@ from httpx import HTTPError, Response
 from pydantic import Field, TypeAdapter, ValidationError
 
 from octopoes.api.models import Affirmation, Declaration, Observation, ServiceHealth
-from octopoes.config.settings import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    DEFAULT_SCAN_LEVEL_FILTER,
-    DEFAULT_SCAN_PROFILE_TYPE_FILTER,
-)
+from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET
 from octopoes.connector import DecodeException, RemoteException
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
@@ -96,7 +91,7 @@ class OctopoesAPIConnector:
         asc_desc: Literal["asc", "desc"] = "asc",
     ) -> Paginated[OOIType]:
         params: dict[str, str | int | list[str | int] | None] = {
-            "types": [t.__name__ if hasattr(t, '__name__') else t for t in types if t],
+            "types": [t.__name__ if hasattr(t, "__name__") else t for t in types if t],
             "valid_time": str(valid_time),
             "offset": offset,
             "limit": limit,
@@ -169,15 +164,11 @@ class OctopoesAPIConnector:
         return TransactionRecordTypeAdapter.validate_json(res.content)
 
     def get_tree(
-        self,
-        reference: Reference,
-        valid_time: datetime,
-        types: set[type[OOI]] | set[str] | None = None,
-        depth: int = 1,
+        self, reference: Reference, valid_time: datetime, types: set[type[OOI]] | set[str] | None = None, depth: int = 1
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
-            "types": [t.__name__ if hasattr(t, '__name__') else t for t in types if t] if types else None,
+            "types": [t.__name__ if hasattr(t, "__name__") else t for t in types if t] if types else None,
             "depth": depth,
             "valid_time": str(valid_time),
         }
