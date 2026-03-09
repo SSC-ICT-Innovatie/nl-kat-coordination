@@ -102,7 +102,6 @@ class OctopoesAPIConnector:
             "limit": limit,
             "order_by": order_by,
             "asc_desc": asc_desc,
-            "skip_errors": "true" if skip_errors else "false",
         }
 
         if scan_level:
@@ -173,12 +172,12 @@ class OctopoesAPIConnector:
         self,
         reference: Reference,
         valid_time: datetime,
-        types: set[type[OOI]] | set[str],
+        types: set[type[OOI]] | set[str] | None = None,
         depth: int = 1,
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
-            "types": [t.__name__ if hasattr(t, '__name__') else t for t in types if t],
+            "types": [t.__name__ if hasattr(t, '__name__') else t for t in types if t] if types else None,
             "depth": depth,
             "valid_time": str(valid_time),
         }
