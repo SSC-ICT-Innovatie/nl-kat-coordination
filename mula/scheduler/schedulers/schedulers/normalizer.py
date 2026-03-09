@@ -35,11 +35,6 @@ class NormalizerScheduler(Scheduler):
         super().__init__(ctx=ctx, scheduler_id=self.ID, create_schedule=False, auto_calculate_deadline=False)
         self.ranker = rankers.NormalizerRanker(ctx=self.ctx)
 
-    def log_future_exceptions(self, fut: futures.Future):
-        exc = fut.exception()
-        if exc:
-            self.logger.exception("Normalizer task crashed in ThreadPoolExecutor", exc_info=exc)
-
     def run(self) -> None:
         """The run method is called when the scheduler is started. It will
         start the listeners and the scheduling loops in separate threads. It
@@ -97,10 +92,11 @@ class NormalizerScheduler(Scheduler):
                     "organization": latest_raw_data.raw_data.boefje_meta.organization,
                 }
             )
-            self.logger.exception("deschedule received for task", task=task)
+            self.logger.debug("deschedule received for task", task=task)
             # lets disable the schedule that was responsible for this job.
             schedule = self.ctx.datastores.schedule_store.get_schedule_by_hash(task.hash)
-            self.ctx.datastores.schedule_store.delete_schedule(schedule.id)
+            if schedule:
+                self.ctx.datastores.schedule_store.delete_schedule(schedule.id)
             return
 
         # Check if the raw data doesn't contain an error mime-type,

@@ -45,9 +45,8 @@ class Octopoes(HTTPService):
 
         count = pagesize
         processed = 0
-        offset = 0
         while count > processed:
-            params["offset"] = offset
+            params["offset"] = processed
             try:
                 response = self.get(url, params=params)
             except httpx.HTTPStatusError as e:
@@ -57,9 +56,9 @@ class Octopoes(HTTPService):
 
             list_objects = ListObjectsResponse(**response.json())
             # set count to actual count on first query result.
-            if offset == 0:
+            if processed == 0:
                 count = list_objects.count
-            processed = processed + pagesize
+            processed += pagesize
             yield from list_objects.items
 
     @exception_handler

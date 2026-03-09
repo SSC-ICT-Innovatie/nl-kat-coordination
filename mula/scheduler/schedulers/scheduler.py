@@ -94,6 +94,11 @@ class Scheduler(abc.ABC):
     def run(self) -> None:
         raise NotImplementedError
 
+    def log_future_exceptions(self, fut: futures.Future):
+        exc = fut.exception()
+        if exc:
+            self.logger.exception("%s task crashed in ThreadPoolExecutor", self.ITEM_TYPE, exc_info=exc)
+
     def run_in_thread(
         self, name: str, target: Callable[[], Any], interval: float = 0.01, daemon: bool = False, loop: bool = True
     ) -> None:

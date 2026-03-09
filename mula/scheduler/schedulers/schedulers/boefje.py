@@ -68,11 +68,6 @@ class BoefjeScheduler(Scheduler):
 
         self.ranker = rankers.BoefjeRankerTimeBased(self.ctx)
 
-    def log_future_exceptions(self, fut: futures.Future):
-        exc = fut.exception()
-        if exc:
-            self.logger.exception("Boefje task crashed in ThreadPoolExecutor", exc_info=exc)
-
     def run(self) -> None:
         """The run method is called when the scheduler is started. It will
         start the listeners and the scheduling loops in separate threads. It
@@ -282,10 +277,11 @@ class BoefjeScheduler(Scheduler):
                 return
         except StorageError as error:
             self.logger.exception(
-                "Error occurred while processing rescheduling, could not fetch from Database",
+                "Error occurred while processing rescheduling, could not fetch schedules from Database",
                 error=error,
                 scheduler_id=self.scheduler_id,
             )
+            return
 
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-rescheduling") as executor:
             plugins = {}  # cache plugins while walking this loop
@@ -313,7 +309,6 @@ class BoefjeScheduler(Scheduler):
                         scheduler_id=self.scheduler_id,
                         organisation_id=org,
                     )
-                    return
 
             for schedule in schedules:
                 try:
@@ -439,14 +434,13 @@ class BoefjeScheduler(Scheduler):
         # this rescheduling situation.
         task_db = self.ctx.datastores.task_store.get_latest_task_by_hash(boefje_task.hash)
 
-        if task_db and task_db.status == models.TaskStatus.QUEUED:
+        if task_db and task_db.status in models.ACTIVE_TASK_STATUSES:
             self.logger.debug(
                 "Task is already on queue: %s",
                 boefje_task.hash,
                 task_hash=boefje_task.hash,
                 scheduler_id=self.scheduler_id,
                 caller=caller,
-                exc_info=True,
             )
             return
 
@@ -625,7 +619,9 @@ class BoefjeScheduler(Scheduler):
 
         return True
 
-    def has_boefje_task_started_running(self, task_db, task_bytes, task: models.BoefjeTask) -> bool:
+    def has_boefje_task_started_running(
+        self, task_db: models.Task | None, task_bytes: models.BoefjeMeta | None, task: models.BoefjeTask
+    ) -> bool:
         """Check if the same task is already running.
 
         Args:
@@ -672,7 +668,7 @@ class BoefjeScheduler(Scheduler):
 
         return False
 
-    def has_boefje_task_stalled(self, task_db, task: models.BoefjeTask) -> bool:
+    def has_boefje_task_stalled(self, task_db: models.Task | None, task: models.BoefjeTask) -> bool:
         """Check if the same task is stalled.
 
         Args:
@@ -694,7 +690,9 @@ class BoefjeScheduler(Scheduler):
 
         return False
 
-    def has_boefje_task_grace_period_passed(self, task_db, task_bytes, task: models.BoefjeTask) -> bool:
+    def has_boefje_task_grace_period_passed(
+        self, task_db: models.Task | None, task_bytes: models.BoefjeMeta | None, task: models.BoefjeTask
+    ) -> bool:
         """Check if the grace period has passed for a task in both the
         datastore and bytes.
 

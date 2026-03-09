@@ -94,7 +94,7 @@ class ScheduleStore:
         limit: int | None = None,
     ):
         now = now or datetime.now(timezone.utc)
-        active_statuses = tuple(active_statuses or (models.TaskStatus.QUEUED,))
+        active_statuses = tuple(active_statuses or models.ACTIVE_TASK_STATUSES)
 
         active_task_exists = (
             select(models.TaskDB.id)
