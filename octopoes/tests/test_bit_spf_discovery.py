@@ -23,15 +23,18 @@ def test_spf_discovery_simple_success():
         exp="explain._spf.example.com",
     )
 
-    assert results[-1].dict() == spf_record.dict()
-
-    assert results[0].dict() == IPAddressV4(address="1.1.1.1", network=Reference.from_str("Network|internet")).dict()
+    assert results[-1].model_dump() == spf_record.model_dump()
 
     assert (
-        results[1].dict()
+        results[0].model_dump()
+        == IPAddressV4(address="1.1.1.1", network=Reference.from_str("Network|internet")).model_dump()
+    )
+
+    assert (
+        results[1].model_dump()
         == DNSSPFMechanismIP(
             ip=Reference.from_str("IPAddressV4|internet|1.1.1.1"), spf_record=spf_record.reference, mechanism="ip4"
-        ).dict()
+        ).model_dump()
     )
 
 

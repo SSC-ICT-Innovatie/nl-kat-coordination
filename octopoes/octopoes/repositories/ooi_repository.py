@@ -27,7 +27,7 @@ from octopoes.models.ooi.config import Config
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
 from octopoes.models.ooi.reports import HydratedReport, Report, ReportRecipe
 from octopoes.models.pagination import Paginated
-from octopoes.models.path import Direction, Path, Segment, get_paths_to_neighours
+from octopoes.models.path import Direction, Path, Segment, get_paths_to_neighbours
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceNode, ReferenceTree
 from octopoes.models.types import get_concrete_types, get_relation, get_relations, to_concrete, type_by_name
@@ -525,7 +525,7 @@ class XTDBOOIRepository(OOIRepository):
     @classmethod
     def construct_neighbour_query(cls, reference: Reference, paths: set[Path] | None = None) -> str:
         if paths is None:
-            paths = get_paths_to_neighours(reference.class_type)
+            paths = get_paths_to_neighbours(reference.class_type)
 
         encoded_segments = [path.segments[0].encode() for path in sorted(paths)]
         segment_query_sections = [f"{{:{s} [*]}}" for s in encoded_segments]

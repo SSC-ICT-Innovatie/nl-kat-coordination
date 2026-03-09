@@ -23,7 +23,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - uses: actions/setup-python@v6
         with:
@@ -37,7 +37,7 @@ jobs:
         run: make docs
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: "github-pages-no-deploy"
           path: "docs/_build"
