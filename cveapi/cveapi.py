@@ -6,7 +6,6 @@ import os
 import pathlib
 import time
 from datetime import datetime, timedelta, timezone
-from urllib.parse import quote
 
 import httpx
 
@@ -23,10 +22,7 @@ def download_files(directory: pathlib.Path, last_update: datetime | None, update
 
         if last_update:
             parameters.update(
-                {
-                    "lastModStartDate": quote(last_update.isoformat()),
-                    "lastModEndDate": quote(update_timestamp.isoformat()),
-                }
+                {"lastModStartDate": last_update.isoformat(), "lastModEndDate": update_timestamp.isoformat()}
             )
 
         logger.debug("Parameters are %s", parameters)
