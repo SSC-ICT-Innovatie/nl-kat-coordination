@@ -219,20 +219,34 @@ class XTDBSession:
     def put(self, document: str | dict[str, Any], valid_time: datetime) -> None:
         self.add((OperationType.PUT, document, valid_time))
 
-    def commit(self) -> None:
-        if self._operations:
-            logger.debug(self._operations)
-            self.client.submit_transaction(self._operations)
-            self._operations = []
+    def commit(self) -> int:
+        """commits all pending operations to the database, 
+        and returns the amount of processed operations"""
+        if not self._operations:
+            return 0
+
+        logger.debug(self._operations)
+        count = len(self._operations)
+        self.client.submit_transaction(self._operations)
+        logger.debug("Committing XTDBSession with %i transactions", count)
 
         if not self.post_commit_callbacks:
-            return
+            self.reset()
+            return count
 
         for callback in self.post_commit_callbacks:
             callback()
 
-        logger.info("Called %s callbacks after committing XTDBSession", len(self.post_commit_callbacks))
+        logger.info("Called %i callbacks after committing XTDBSession with %i transactions", len(self.post_commit_callbacks), count)
+        self.reset()
+        return count
+
+    def reset(self) -> None:
+        """Resets the session, and removes all operations and callbacks."""
+        self._operations = []
         self.post_commit_callbacks = []
 
     def listen_post_commit(self, callback: Callable[[], None]) -> None:
+        """Registers a callback on the session, which will be called after the 
+        session is committed."""
         self.post_commit_callbacks.append(callback)
