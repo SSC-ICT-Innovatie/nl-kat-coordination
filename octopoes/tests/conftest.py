@@ -293,14 +293,10 @@ def xtdb_scan_profile_repository(xtdb_session: XTDBSession, event_manager) -> It
 
 @pytest.fixture
 def xtdb_octopoes_service(
-    xtdb_ooi_repository: XTDBOOIRepository,
-    xtdb_origin_repository: XTDBOriginRepository,
-    xtdb_origin_parameter_repository: XTDBOriginParameterRepository,
-    xtdb_scan_profile_repository: XTDBScanProfileRepository,
+    event_manager: EventManager,
+    xtdb_session: XTDBSession
 ) -> OctopoesService:
-    return OctopoesService(
-        xtdb_ooi_repository, xtdb_origin_repository, xtdb_origin_parameter_repository, xtdb_scan_profile_repository
-    )
+    return OctopoesService(event_manager, xtdb_session)
 
 
 @pytest.fixture
