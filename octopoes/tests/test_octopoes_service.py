@@ -25,6 +25,7 @@ def mocked_bit_definitions():
 def test_process_ooi_create_event(octopoes_service, valid_time):
     # upon creation of a new ooi
     octopoes_service.origin_repository.save = MagicMock(return_value=True)
+    octopoes_service.scan_profile_repository.get = MagicMock(return_value=True)
     ooi = Hostname(network=Network(name="internet").reference, name="example.com")
     octopoes_service.process_event(
         OOIDBEvent(
@@ -41,6 +42,7 @@ def test_process_ooi_create_event(octopoes_service, valid_time):
 def test_process_event_abstract_bit_consumes(octopoes_service, valid_time):
     # upon creation of a new ooi
     octopoes_service.origin_repository.save = MagicMock(return_value=True)
+    octopoes_service.scan_profile_repository.get = MagicMock(return_value=True)
     ooi = IPAddressV4(network=Network(name="internet").reference, address=ip_address("1.1.1.1"))
     octopoes_service.process_event(
         OOIDBEvent(
@@ -99,6 +101,7 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
     octopoes_service.origin_parameter_repository.list_by_origin = MagicMock(return_value={})
     octopoes_service.ooi_repository.load_bulk = MagicMock(return_value={})
     octopoes_service.ooi_repository.save = MagicMock(return_value=True)
+    octopoes_service.scan_profile_repository.get = MagicMock(return_value=True)
 
     mock_oois = [Mock(reference="test1"), Mock(reference="test2")]
     bit_runner().run = MagicMock(return_value=mock_oois)

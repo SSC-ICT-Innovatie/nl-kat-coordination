@@ -220,7 +220,7 @@ class XTDBSession:
         self.add((OperationType.PUT, document, valid_time))
 
     def commit(self) -> int:
-        """commits all pending operations to the database, 
+        """commits all pending operations to the database,
         and returns the amount of processed operations"""
         if not self._operations:
             return 0
@@ -237,7 +237,11 @@ class XTDBSession:
         for callback in self.post_commit_callbacks:
             callback()
 
-        logger.info("Called %i callbacks after committing XTDBSession with %i transactions", len(self.post_commit_callbacks), count)
+        logger.info(
+            "Called %i callbacks after committing XTDBSession with %i transactions",
+            len(self.post_commit_callbacks),
+            count,
+        )
         self.reset()
         return count
 
