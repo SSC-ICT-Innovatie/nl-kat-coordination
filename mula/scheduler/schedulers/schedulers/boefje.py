@@ -318,7 +318,7 @@ class BoefjeScheduler(Scheduler):
                     if boefje_task.organization in failed_orgs:
                         self.logger.debug(
                             "Skipping schedule due to earlier ReadTimeout, unable to read OOI from Octopoes",
-                            input_ooi=input_ooi,
+                            input_ooi=boefje_task.input_ooi,
                             schedule_id=schedule.id,
                             organisation_id=boefje_task.organization,
                         )
