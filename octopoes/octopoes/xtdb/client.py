@@ -251,6 +251,6 @@ class XTDBSession:
         self.post_commit_callbacks = []
 
     def listen_post_commit(self, callback: Callable[[], None]) -> None:
-        """Registers a callback on the session, which will be called after the 
+        """Registers a callback on the session, which will be called after the
         session is committed."""
         self.post_commit_callbacks.append(callback)
