@@ -294,6 +294,7 @@ class BoefjeScheduler(Scheduler):
                         oois[boefje_task.organization] = {}
                     oois[boefje_task.organization][boefje_task.input_ooi] = None
 
+            failed_orgs = set()
             # collect ooi's from octopoes.
             for org, org_oois in oois.items():
                 # do one call to octopoes to collect all ooi's ready for rescheduling for that orga
@@ -309,10 +310,19 @@ class BoefjeScheduler(Scheduler):
                         scheduler_id=self.scheduler_id,
                         organisation_id=org,
                     )
+                    failed_orgs.add(org)
 
             for schedule in schedules:
                 try:
                     boefje_task = models.BoefjeTask.model_validate(schedule.data)
+                    if boefje_task.organization in failed_orgs:
+                        self.logger.debug(
+                            "Skipping schedule due to earlier ReadTimeout, unable to read OOI from Octopoes",
+                            input_ooi=input_ooi,
+                            schedule_id=schedule.id,
+                            organisation_id=boefje_task.organization,
+                        )
+                        continue
 
                     # Plugin still exists?
                     plugin_key = f"{boefje_task.boefje.id}, {schedule.organisation}"
