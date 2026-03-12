@@ -58,13 +58,13 @@ jobs:
 
     steps:
       - name: Checkout coverage file fix script
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           sparse-checkout: .github/scripts/coverage_file_fixer.py
 
       - name: Download coverage file
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: ${{ matrix.module['name'] }}-coverage
           path: ${{ matrix.module['name'] }}-coverage
@@ -78,7 +78,7 @@ jobs:
         run: python "${{ github.workspace }}/.github/scripts/coverage_file_fixer.py" "${{ matrix.module['name'] }}-coverage/coverage.xml" "${{ matrix.module['prefix_path'] }}"
 
       - name: Upload fixed coverage file
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: "${{ matrix.module['name'] }}-coverage-fixed"
           path: "${{ matrix.module['name'] }}-coverage/coverage.xml"
@@ -95,12 +95,12 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Download artifacts
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           pattern: "*-coverage-fixed"
 

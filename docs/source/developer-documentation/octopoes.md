@@ -304,7 +304,7 @@ Please note: The XTDB version within OpenKAT is not the standard XTDB. It is an 
 The XTDB-cli tool can be found in the following folder:
 
 ```
-https://github.com/minvws/nl-kat-coordination/tree/main/octopoes/tools
+https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/tree/main/octopoes/tools
 ```
 
 It is recommended to create a virtual environment and install the developer-requirements (in the octopoes folder) within this virtual environment. You could also execute the xtdb-cli commands from within the `octopoes_api` container if you are using a Dockerized setup.

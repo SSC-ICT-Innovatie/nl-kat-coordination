@@ -149,6 +149,7 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
             origins = self.octopoes_api_connector.list_origins(self.observed_at, result=reference)
         except Exception as e:
             logger.error("Could not load origins for OOI: %s from octopoes, error: %s", reference, e)
+            messages.error(self.request, _("Could not load origins for OOI: %s from octopoes") % reference)
             return results
 
         try:
@@ -160,6 +161,9 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
 
         katalogus = self.get_katalogus()
 
+        plugins = {}
+        normalizer_datas = {}
+        bytes_origins = []
         for origin in origins:
             origin = OriginData(origin=origin)
             if origin.origin.origin_type != OriginType.OBSERVATION or not origin.origin.task_id:
@@ -168,26 +172,37 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
                 elif origin.origin.origin_type == OriginType.INFERENCE:
                     inferences.append(origin)
                 continue
+            bytes_origins.append(origin.origin.task_id)
+            observations.append(origin)
 
+        if bytes_origins:
             try:
-                normalizer_data = bytes_client.get_normalizer_meta(origin.origin.task_id)
+                normalizer_datas = bytes_client.get_normalizer_metas(bytes_origins)
             except HTTPError as e:
-                logger.error("Could not load Normalizer meta for task_id: %s, error: %s", origin.origin.task_id, e)
-            else:
-                boefje_meta = normalizer_data["raw_data"]["boefje_meta"]
-                boefje_id = boefje_meta["boefje"]["id"]
-                if boefje_meta.get("ended_at"):
+                logger.error("Could not load normalizer metas from bytes: %s", e)
+                messages.error(self.request, _("Could not load normalizer metas from bytes"))
+
+        for observation in observations:
+            normalizer_data = normalizer_datas.get(str(observation.origin.task_id))
+            if not normalizer_data:
+                continue
+            boefje_meta = normalizer_data["raw_data"]["boefje_meta"]
+            boefje_id = boefje_meta["boefje"]["id"]
+            if boefje_meta.get("ended_at"):
+                try:
+                    boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError:
+                    boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%SZ")
+            observation.normalizer = normalizer_data
+            if boefje_id != "manual":
+                if boefje_id not in plugins:
                     try:
-                        boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
-                    except ValueError:
-                        boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%SZ")
-                origin.normalizer = normalizer_data
-                if boefje_id != "manual":
-                    try:
-                        origin.boefje = katalogus.get_plugin(boefje_id)
+                        plugins[boefje_id] = katalogus.get_plugin(boefje_id)
                     except HTTPError as e:
                         logger.error("Could not load boefje %s from katalogus: %s", boefje_id, e)
-            observations.append(origin)
+                        messages.error(self.request, _("Could not load boefje %s from katalogus") % boefje_id)
+                if boefje_id in plugins:
+                    observation.boefje = plugins[boefje_id]
 
         return results
 
