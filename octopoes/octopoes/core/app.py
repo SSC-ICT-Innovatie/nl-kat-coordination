@@ -34,7 +34,6 @@ _octopoes_instances: dict[str, Any] = {}
 def get_octopoes(settings, client: str, session: XTDBSession) -> OctopoesService:
     if client not in _octopoes_instances:
         _octopoes_instances[client] = bootstrap_octopoes(settings=settings, client=client, xtdb_session=session)
-        return _octopoes_instances[client]
     return _octopoes_instances[client]
 
 
