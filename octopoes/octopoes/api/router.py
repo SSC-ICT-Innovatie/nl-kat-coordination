@@ -9,7 +9,6 @@ from typing import Any, Literal
 import structlog
 from asgiref.sync import sync_to_async
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
-from httpx import HTTPError
 from pydantic import AwareDatetime
 
 from octopoes.api.models import ServiceHealth, ValidatedAffirmation, ValidatedDeclaration, ValidatedObservation
@@ -35,7 +34,6 @@ from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import type_by_name
 from octopoes.repositories.origin_repository import XTDBOriginRepository
-from octopoes.version import __version__
 from octopoes.xtdb.client import Operation, OperationType, XTDBSession
 from octopoes.xtdb.exceptions import XTDBException
 from octopoes.xtdb.query import Aliased
@@ -81,24 +79,14 @@ def xtdb_session(
 
 def octopoes_service(
     client: str = Depends(extract_client),
-    session: XTDBSession = Depends(xtdb_session),
-    settings_: Settings = Depends(settings),
 ) -> OctopoesService:
-    return bootstrap_octopoes(settings_, client, session)
+    return bootstrap_octopoes(client)
 
 
 # Endpoints
 @router.get("/health")
-def health(xtdb_session_: XTDBSession = Depends(xtdb_session)) -> ServiceHealth:
-    try:
-        xtdb_status = xtdb_session_.client.status()
-        xtdb_health = ServiceHealth(service="xtdb", healthy=True, version=xtdb_status.version, additional=xtdb_status)
-    except HTTPError as ex:
-        xtdb_health = ServiceHealth(
-            service="xtdb", healthy=False, additional="Cannot connect to XTDB at. Service possibly down"
-        )
-        logger.exception(ex)
-    return ServiceHealth(service="octopoes", healthy=xtdb_health.healthy, version=__version__, results=[xtdb_health])
+def health(octopoes: OctopoesService = Depends(octopoes_service)) -> ServiceHealth:
+    return octopoes.health()
 
 
 # OOI-related endpoints

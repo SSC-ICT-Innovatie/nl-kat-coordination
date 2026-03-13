@@ -9,8 +9,10 @@ from typing import Literal, overload
 import structlog
 from bits.definitions import get_bit_definitions
 from bits.runner import BitRunner
+from httpx import HTTPError
 from pydantic import TypeAdapter
 
+from octopoes.api.models import ServiceHealth
 from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -47,6 +49,7 @@ from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.repositories.origin_parameter_repository import XTDBOriginParameterRepository
 from octopoes.repositories.origin_repository import XTDBOriginRepository
 from octopoes.repositories.scan_profile_repository import XTDBScanProfileRepository
+from octopoes.version import __version__
 from octopoes.xtdb.client import Operation, OperationType, XTDBSession
 
 logger = structlog.get_logger("octopoes-core-service")
@@ -660,8 +663,18 @@ class OctopoesService:
         for origin in origins:
             self._run_inference(origin, valid_time)
             bit_counter.update({origin.method})
-
         return sum(bit_counter.values())
+
+    def health(self) -> ServiceHealth:
+        try:
+            xtdb_status = self.session.client.status()
+            xtdb_health = ServiceHealth(service="xtdb", healthy=True, version=xtdb_status.version, additional=xtdb_status)
+        except HTTPError as ex:
+            xtdb_health = ServiceHealth(
+                service="xtdb", healthy=False, additional="Cannot connect to XTDB at. Service possibly down"
+            )
+            logger.exception(ex)
+        return ServiceHealth(service="octopoes", healthy=xtdb_health.healthy, version=__version__, results=[xtdb_health])
 
     def commit(self):
         self.ooi_repository.commit()

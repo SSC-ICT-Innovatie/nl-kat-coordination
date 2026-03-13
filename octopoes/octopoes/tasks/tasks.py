@@ -44,18 +44,14 @@ structlog.configure(
     cache_logger_on_first_use=True,
 )
 
-task_logger = get_task_logger(__name__)
-
 
 @app.task(queue=QUEUE_NAME_OCTOPOES, ignore_result=True)
 def handle_event(event: dict) -> None:
     try:
         parsed_event: DBEvent = TypeAdapter(DBEventType).validate_python(event)
-
-        session = XTDBSession(get_xtdb_client(str(settings.xtdb_uri), parsed_event.client))
-        octopoes = get_octopoes(settings, parsed_event.client, session)
+        octopoes = get_octopoes(parsed_event.client)
         octopoes.process_event(parsed_event)
-        session.commit()
+        octopoes.commit()
     except Exception:
         logger.exception("Failed to handle event: %s", event)
         raise

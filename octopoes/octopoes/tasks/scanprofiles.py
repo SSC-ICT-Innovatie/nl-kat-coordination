@@ -77,7 +77,7 @@ def recalculate_scan_profiles_for_org(session: dict) -> int | None:
             session["org"],
         )
         return None
-    else:
+    elif max_id:
         logger.debug(
             "Most recent worked transactions %i, most recent %i [org=%s]",
             session["last_transaction"],
