@@ -1,6 +1,7 @@
 from octopoes.core.service import OctopoesService
 from octopoes.models import DeclaredScanProfile
 
+
 def test_recalculate_no_profiles(valid_time, event_manager, xtdb_session):
     octopoes = OctopoesService(event_manager, xtdb_session)
 
@@ -14,7 +15,15 @@ def test_recalculate_only_empty_profiles(valid_time, resolved_hostname, event_ma
 
 
 def test_recalculate_inherent(
-    valid_time, dns_zone, hostname, resolved_hostname, ipaddressv4, event_manager, xtdb_session, ooi_repository, scan_profile_repository
+    valid_time,
+    dns_zone,
+    hostname,
+    resolved_hostname,
+    ipaddressv4,
+    event_manager,
+    xtdb_session,
+    ooi_repository,
+    scan_profile_repository,
 ):
     octopoes = OctopoesService(event_manager, xtdb_session)
     octopoes.ooi_repository = ooi_repository
@@ -29,7 +38,14 @@ def test_recalculate_inherent(
 
 
 def test_recalculate_inherent_max(
-    valid_time, dns_zone, resolved_hostname, ipaddressv4, event_manager, xtdb_session, ooi_repository, scan_profile_repository
+    valid_time,
+    dns_zone,
+    resolved_hostname,
+    ipaddressv4,
+    event_manager,
+    xtdb_session,
+    ooi_repository,
+    scan_profile_repository,
 ):
     octopoes = OctopoesService(event_manager, xtdb_session)
     octopoes.ooi_repository = ooi_repository
@@ -44,10 +60,18 @@ def test_recalculate_inherent_max(
 
 
 def test_recalculate_inherent_recalculate(
-    valid_time, dns_zone, hostname, resolved_hostname, ipaddressv4, event_manager, xtdb_session, ooi_repository, scan_profile_repository
+    valid_time,
+    dns_zone,
+    hostname,
+    resolved_hostname,
+    ipaddressv4,
+    event_manager,
+    xtdb_session,
+    ooi_repository,
+    scan_profile_repository,
 ):
     octopoes = OctopoesService(event_manager, xtdb_session)
-    octopoes.ooi_repository = ooi_repository    
+    octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
     octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=3), valid_time)
 

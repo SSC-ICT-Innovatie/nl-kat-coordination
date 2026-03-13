@@ -27,9 +27,7 @@ def test_health(httpx_mock, patch_pika):
         "size": 35488019,
     }
 
-    httpx_mock.add_response(
-        method="GET", url="http://xtdb:3000/_xtdb/_dev/status", json=xtdb_status, status_code=200
-    )
+    httpx_mock.add_response(method="GET", url="http://xtdb:3000/_xtdb/_dev/status", json=xtdb_status, status_code=200)
     response = client.get("/_dev/health")
     assert response.json() == {
         "service": "octopoes",

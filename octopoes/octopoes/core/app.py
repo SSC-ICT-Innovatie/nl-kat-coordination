@@ -12,6 +12,7 @@ from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
 logger = structlog.get_logger(__name__)
 settings = Settings()
 
+
 def get_xtdb_client(base_uri: str, client: str) -> XTDBHTTPClient:
     base_uri = base_uri.rstrip("/")
 

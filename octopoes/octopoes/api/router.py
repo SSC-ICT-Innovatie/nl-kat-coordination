@@ -77,9 +77,7 @@ def xtdb_session(
     yield XTDBSession(get_xtdb_client(str(settings_.xtdb_uri), client))
 
 
-def octopoes_service(
-    client: str = Depends(extract_client),
-) -> OctopoesService:
+def octopoes_service(client: str = Depends(extract_client)) -> OctopoesService:
     return bootstrap_octopoes(client)
 
 

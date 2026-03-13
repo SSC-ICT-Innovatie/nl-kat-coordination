@@ -668,13 +668,17 @@ class OctopoesService:
     def health(self) -> ServiceHealth:
         try:
             xtdb_status = self.session.client.status()
-            xtdb_health = ServiceHealth(service="xtdb", healthy=True, version=xtdb_status.version, additional=xtdb_status)
+            xtdb_health = ServiceHealth(
+                service="xtdb", healthy=True, version=xtdb_status.version, additional=xtdb_status
+            )
         except HTTPError as ex:
             xtdb_health = ServiceHealth(
                 service="xtdb", healthy=False, additional="Cannot connect to XTDB at. Service possibly down"
             )
             logger.exception(ex)
-        return ServiceHealth(service="octopoes", healthy=xtdb_health.healthy, version=__version__, results=[xtdb_health])
+        return ServiceHealth(
+            service="octopoes", healthy=xtdb_health.healthy, version=__version__, results=[xtdb_health]
+        )
 
     def commit(self):
         self.ooi_repository.commit()
