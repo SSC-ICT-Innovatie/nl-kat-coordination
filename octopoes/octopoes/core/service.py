@@ -660,5 +660,5 @@ class OctopoesService:
         self.origin_repository.commit()
         self.origin_parameter_repository.commit()
         self.scan_profile_repository.commit()
-        if sync:
+        if sync and self.session:
             self.session.sync()
