@@ -395,6 +395,7 @@ def save_scan_profile(
     scan_profile: ScanProfile = Body(discriminator="scan_profile_type"),
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     try:
         old_scan_profile = octopoes.scan_profile_repository.get(scan_profile.reference, valid_time)
@@ -402,7 +403,7 @@ def save_scan_profile(
         old_scan_profile = None
 
     octopoes.scan_profile_repository.save(old_scan_profile, scan_profile, valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/scan_profiles/save_many", tags=["Scan Profiles"])
@@ -410,6 +411,7 @@ def save_many(
     scan_profiles: list[ScanProfile],
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     for scan_profile in scan_profiles:
         try:
@@ -419,15 +421,17 @@ def save_many(
 
         octopoes.scan_profile_repository.save(old_scan_profile, scan_profile, valid_time)
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.get("/scan_profiles/recalculate", tags=["Scan Profiles"])
 def recalculate_scan_profiles(
-    octopoes: OctopoesService = Depends(octopoes_service), valid_time: datetime = Depends(extract_valid_time)
+    octopoes: OctopoesService = Depends(octopoes_service),
+    valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     octopoes.recalculate_scan_profiles(valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.get("/scan_profiles/inheritance", tags=["Scan Profiles"])
@@ -512,14 +516,14 @@ def delete_node(xtdb_session_: XTDBSession = Depends(xtdb_session)) -> None:
 
 
 @router.post("/bits/recalculate", tags=["Bits"])
-def recalculate_bits(octopoes: OctopoesService = Depends(octopoes_service)) -> int:
+def recalculate_bits(octopoes: OctopoesService = Depends(octopoes_service), sync: bool = False) -> int:
     try:
         inference_count = octopoes.recalculate_bits()
     except ObjectNotFoundException:
         logger.exception("Failed to recalculate bits")
         raise
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
     return inference_count
 

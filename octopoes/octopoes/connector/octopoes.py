@@ -207,36 +207,52 @@ class OctopoesAPIConnector:
         )
 
     def save_observation(self, observation: Observation, sync: bool = False) -> None:
+        params = {}
+        if sync:
+            params["sync"] = "true"
         self.session.post(
-            f"/{self.client}/observations{'?sync=true' if sync else ''}",
+            f"/{self.client}/observations",
             headers={"Content-Type": "application/json"},
+            params=params,
             content=observation.model_dump_json(),
         )
 
         self.logger.info("Saved observation", observation=observation, event_code=OBSERVATION_CREATED, sync=sync)
 
     def save_declaration(self, declaration: Declaration, sync: bool = False) -> None:
+        params = {}
+        if sync:
+            params["sync"] = "true"
         self.session.post(
-            f"/{self.client}/declarations{'?sync=true' if sync else ''}",
+            f"/{self.client}/declarations",
             headers={"Content-Type": "application/json"},
+            params=params,
             content=declaration.model_dump_json(),
         )
 
         self.logger.info("Saved declaration", declaration=declaration, event_code=DECLARATION_CREATED, sync=sync)
 
     def save_many_declarations(self, declarations: list[Declaration], sync: bool = False) -> None:
+        params = {}
+        if sync:
+            params["sync"] = "true"
         self.session.post(
-            f"/{self.client}/declarations/save_many{'?sync=true' if sync else ''}",
+            f"/{self.client}/declarations/save_many",
             headers={"Content-Type": "application/json"},
+            params=params,
             content=DeclarationsTypeAdapter.dump_json(declarations),
         )
 
         self.logger.info("Saved %s declarations", len(declarations), event_code=DECLARATION_CREATED, sync=sync)
 
     def save_affirmation(self, affirmation: Affirmation, sync: bool = False) -> None:
+        params = {}
+        if sync:
+            params["sync"] = "true"
         self.session.post(
-            f"/{self.client}/affirmations{'?sync=true' if sync else ''}",
+            f"/{self.client}/affirmations",
             headers={"Content-Type": "application/json"},
+            params=params,
             content=affirmation.model_dump_json(),
         )
 

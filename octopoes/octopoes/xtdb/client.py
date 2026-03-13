@@ -213,22 +213,17 @@ class XTDBSession:
 
     def commit(self, sync: bool = False) -> None:
         """commits all pending operations to the database,
-        and returns the amount of processed operations"""
+        and optionally call sync to wait for processing to finish"""
         if self._operations:
             logger.debug(self._operations)
             self.client.submit_transaction(self._operations)
             self._operations = []
 
-        if not self.post_commit_callbacks:
-            if sync:
-                self.client.sync()
-            return
-
-        for callback in self.post_commit_callbacks:
-            callback()
-
-        logger.info("Called %s callbacks after committing XTDBSession", len(self.post_commit_callbacks))
-        self.post_commit_callbacks = []
+        if self.post_commit_callbacks:
+            for callback in self.post_commit_callbacks:
+                callback()
+            logger.info("Called %s callbacks after committing XTDBSession", len(self.post_commit_callbacks))
+            self.post_commit_callbacks = []
 
         if sync:
             self.client.sync()
