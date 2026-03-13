@@ -87,17 +87,22 @@ def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
         transactions = recalc_org["octopoes"].session.commit()
         duration = timeit.default_timer() - timer
         max_id = recalc_org["octopoes"].session.client.latest_completed_tx()
-        # return the max_id after this update. So we dont trigger a likely empty loop
-        # just because we changed some scanprofiles this loop.
-        logger.info(
-            """Finished scan profile recalculation on %i unproccessed transactions,
-            with resulting transactioncount: %i [org=%s] [dur=%.2fs]""",
-            (max_id["txId"] - recalc_org["last_transaction"]),
-            transactions,
-            recalc_org["org"],
-            duration,
-        )
-        return max_id["txId"]
+        if max_id:
+            # return the max_id after this update. So we dont trigger a likely empty loop
+            # just because we changed some scanprofiles this loop.
+            logger.info(
+                """Finished scan profile recalculation on %i unproccessed transactions,
+                with resulting transactioncount: %i [org=%s] [dur=%.2fs]""",
+                (max_id["txId"] - recalc_org["last_transaction"]),
+                transactions,
+                recalc_org["org"],
+                duration,
+            )
+            return max_id["txId"]
+        else: 
+            # last_transaction should always increment, 
+            # but None is technically a possible return value
+            return 0 
     except Exception:
         logger.exception(
             "Failed recalculating scan profiles [org=%s] [dur=%.2fs]", recalc_org["org"], timeit.default_timer() - timer
