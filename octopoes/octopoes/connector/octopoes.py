@@ -202,7 +202,9 @@ class OctopoesAPIConnector:
             params["sync"] = "true"
         self.session.delete(f"/{self.client}/origins", params=params)
 
-        self.logger.info("Deleted origin", origin_id=origin_id, valid_time=valid_time, event_code=ORIGIN_DELETED, sync=sync)
+        self.logger.info(
+            "Deleted origin", origin_id=origin_id, valid_time=valid_time, event_code=ORIGIN_DELETED, sync=sync
+        )
 
     def save_observation(self, observation: Observation, sync: bool = False) -> None:
         self.session.post(
@@ -253,7 +255,9 @@ class OctopoesAPIConnector:
 
         self.logger.info("Saved Scan profile", scan_profile=scan_profile, valid_time=valid_time, sync=sync)
 
-    def save_many_scan_profiles(self, scan_profiles: list[ScanProfile], valid_time: datetime, sync: bool = False) -> None:
+    def save_many_scan_profiles(
+        self, scan_profiles: list[ScanProfile], valid_time: datetime, sync: bool = False
+    ) -> None:
         params = {"valid_time": str(valid_time)}
         if sync:
             params["sync"] = "true"
@@ -269,7 +273,9 @@ class OctopoesAPIConnector:
             params["sync"] = "true"
         self.session.delete(f"/{self.client}/", params=params)
 
-        self.logger.info("Deleted object", reference=reference, valid_time=valid_time, event_code=OBJECT_DELETED, sync=sync)
+        self.logger.info(
+            "Deleted object", reference=reference, valid_time=valid_time, event_code=OBJECT_DELETED, sync=sync
+        )
 
     def delete_many(self, references: list[Reference], valid_time: datetime, sync: bool = False) -> None:
         params = {"valid_time": str(valid_time)}
@@ -277,7 +283,9 @@ class OctopoesAPIConnector:
             params["sync"] = "true"
         self.session.post(f"/{self.client}/objects/delete_many", params=params, json=[str(ref) for ref in references])
 
-        self.logger.info("Deleted objects", references=references, valid_time=valid_time, sync=sync)
+        self.logger.info(
+            "Deleted objects", references=references, valid_time=valid_time, event_code=OBJECT_DELETED, sync=sync
+        )
 
     def list_origin_parameters(self, origin_id: set[str], valid_time: datetime) -> list[OriginParameter]:
         params = {"origin_id": list(origin_id), "valid_time": str(valid_time)}

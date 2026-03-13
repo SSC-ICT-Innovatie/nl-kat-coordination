@@ -269,6 +269,7 @@ def delete_many(
 
     octopoes.commit(sync=sync)
 
+
 @router.get("/tree", tags=["Objects"])
 def get_tree(
     octopoes: OctopoesService = Depends(octopoes_service),
@@ -314,7 +315,9 @@ def list_origin_parameters(
 
 
 @router.post("/observations", tags=["Origins"])
-def save_observation(observation: ValidatedObservation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_observation(
+    observation: ValidatedObservation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
+) -> None:
     origin = Origin(
         origin_type=OriginType.OBSERVATION,
         method=observation.method,
@@ -328,7 +331,9 @@ def save_observation(observation: ValidatedObservation, sync: bool = False, octo
 
 
 @router.post("/declarations", tags=["Origins"])
-def save_declaration(declaration: ValidatedDeclaration, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_declaration(
+    declaration: ValidatedDeclaration, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
+) -> None:
     origin = Origin(
         origin_type=OriginType.DECLARATION,
         method=declaration.method if declaration.method else "manual",
@@ -360,7 +365,9 @@ def save_many_declarations(
 
 
 @router.post("/affirmations", tags=["Origins"])
-def save_affirmation(affirmation: ValidatedAffirmation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_affirmation(
+    affirmation: ValidatedAffirmation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
+) -> None:
     origin = Origin(
         origin_type=OriginType.AFFIRMATION,
         method=affirmation.method if affirmation.method else "hydration",

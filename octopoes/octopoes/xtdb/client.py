@@ -234,9 +234,7 @@ class XTDBSession:
             self.client.sync()
 
     def sync(self) -> None:
-        logger.info(
-            "Called Sync on XTDB client, waiting for database to complete transactions.",
-        )
+        logger.info("Called Sync on XTDB client, waiting for database to complete transactions.")
         self.client.sync()
 
     def listen_post_commit(self, callback: Callable[[], None]) -> None:
