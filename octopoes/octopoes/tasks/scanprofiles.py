@@ -10,8 +10,7 @@ from httpx import HTTPError
 
 from octopoes.config.settings import Settings
 from octopoes.connector.katalogus import KATalogusClient
-from octopoes.core.app import get_octopoes, get_xtdb_client
-from octopoes.xtdb.client import XTDBSession
+from octopoes.core.app import get_octopoes
 
 settings = Settings()
 logger = structlog.get_logger(__name__)

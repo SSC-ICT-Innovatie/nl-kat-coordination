@@ -1,4 +1,3 @@
-from octopoes.core.service import OctopoesService
 from octopoes.models import DeclaredScanProfile
 
 
@@ -6,7 +5,9 @@ def test_recalculate_no_profiles(valid_time, octopoes_service):
     octopoes_service.recalculate_scan_profiles(valid_time)
 
 
-def test_recalculate_only_empty_profiles(valid_time, ooi_repository, scan_profile_repository, octopoes_service, resolved_hostname):
+def test_recalculate_only_empty_profiles(
+    valid_time, ooi_repository, scan_profile_repository, octopoes_service, resolved_hostname
+):
     octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
     octopoes_service.recalculate_scan_profiles(valid_time)
@@ -34,15 +35,7 @@ def test_recalculate_inherent(
     assert octopoes.scan_profile_repository.get(dns_zone.reference, valid_time).level == 1
 
 
-def test_recalculate_inherent_max(
-    valid_time,
-    dns_zone,
-    resolved_hostname,
-    ipaddressv4,
-    octopoes_service,
-    ooi_repository,
-    scan_profile_repository,
-):
+def test_recalculate_inherent_max(valid_time, dns_zone, resolved_hostname, ipaddressv4, octopoes_service, ooi_repository, scan_profile_repository):
     octopoes = octopoes_service
     octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
