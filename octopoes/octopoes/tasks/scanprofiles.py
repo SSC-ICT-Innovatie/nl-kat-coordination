@@ -99,10 +99,10 @@ def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
                 duration,
             )
             return max_id["txId"]
-        else: 
-            # last_transaction should always increment, 
+        else:
+            # last_transaction should always increment,
             # but None is technically a possible return value
-            return 0 
+            return 0
     except Exception:
         logger.exception(
             "Failed recalculating scan profiles [org=%s] [dur=%.2fs]", recalc_org["org"], timeit.default_timer() - timer
