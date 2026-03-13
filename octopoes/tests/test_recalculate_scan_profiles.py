@@ -1,13 +1,16 @@
 from octopoes.models import DeclaredScanProfile
 
 
-def test_recalculate_no_profiles(valid_time, octopoes_service):
+def test_recalculate_no_profiles(valid_time, scan_profile_repository, octopoes_service):
+    octopoes = octopoes_service
+    octopoes.scan_profile_repository = scan_profile_repository
     octopoes_service.recalculate_scan_profiles(valid_time)
 
 
 def test_recalculate_only_empty_profiles(
     valid_time, ooi_repository, scan_profile_repository, octopoes_service, resolved_hostname
 ):
+    octopoes = octopoes_service
     octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
     octopoes_service.recalculate_scan_profiles(valid_time)
