@@ -37,12 +37,7 @@ class InformationUpdateError(Exception):
 def iana_service_table(source: str, search_query: str) -> list[_Service]:
     services = []
 
-    response = httpx.get(
-        source,
-        params={"search": search_query},
-        timeout=SOURCE_TIMEOUT,
-        headers=REQUEST_HEADERS,
-    )
+    response = httpx.get(source, params={"search": search_query}, timeout=SOURCE_TIMEOUT, headers=REQUEST_HEADERS)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
 
