@@ -7,7 +7,7 @@ from celery.utils.log import get_task_logger
 from pydantic import TypeAdapter
 
 from octopoes.config.settings import QUEUE_NAME_OCTOPOES, Settings
-from octopoes.core.app import get_octopoes, get_xtdb_client
+from octopoes.core.app import get_octopoes
 from octopoes.events.events import DBEvent, DBEventType
 from octopoes.tasks.app import app
 from octopoes.xtdb.client import XTDBSession
