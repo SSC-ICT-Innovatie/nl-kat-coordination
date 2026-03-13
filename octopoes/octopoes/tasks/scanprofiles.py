@@ -10,7 +10,7 @@ from httpx import HTTPError
 
 from octopoes.config.settings import Settings
 from octopoes.connector.katalogus import KATalogusClient
-from octopoes.core.app import bootstrap_octopoes, get_xtdb_client
+from octopoes.core.app import get_octopoes, get_xtdb_client
 from octopoes.xtdb.client import XTDBSession
 
 settings = Settings()
@@ -52,9 +52,7 @@ def scan_profile_recalculations(katalogusclient: KATalogusClient, octopii: dict)
         raise
     for org in orgs:
         if org not in octopii:
-            xtdb_session = XTDBSession(get_xtdb_client(str(settings.xtdb_uri), org))
-            octopoes = bootstrap_octopoes(settings, org, xtdb_session)
-            octopii[org] = {"octopoes": octopoes, "xtdb": xtdb_session, "last_transaction": 0, "org": org}
+            octopii[org] = {"octopoes": get_octopoes(org), "last_transaction": 0, "org": org}
         last_transaction = recalculate_scan_profiles_for_org(octopii[org])
         if last_transaction:
             # there's a possible race condition in here, where we dont
@@ -67,29 +65,29 @@ def scan_profile_recalculations(katalogusclient: KATalogusClient, octopii: dict)
             octopii[org]["last_transaction"] = last_transaction
 
 
-def recalculate_scan_profiles_for_org(session: dict) -> int | None:
+def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
     timer = timeit.default_timer()
-    max_id = session["xtdb"].client.latest_completed_tx()
-    if max_id and session["last_transaction"] == max_id["txId"]:
+    max_id = recalc_org["octopoes"].session.client.latest_completed_tx()
+    if max_id and recalc_org["last_transaction"] == max_id["txId"]:
         logger.debug(
             "skipping scan profile recalculation task, no new transactions present, last transaction: %i [org=%s]",
             max_id["txId"],
-            session["org"],
+            recalc_org["org"],
         )
         return None
     elif max_id:
         logger.debug(
             "Most recent worked transactions %i, most recent %i [org=%s]",
-            session["last_transaction"],
+            recalc_org["last_transaction"],
             max_id["txId"],
-            session["org"],
+            recalc_org["org"],
         )
 
     try:
         session["octopoes"].recalculate_scan_profiles(datetime.now(timezone.utc))
-        transactions = session["xtdb"].commit()
+        transactions = session["octopoes"].session.commit()
         duration = timeit.default_timer() - timer
-        max_id = session["xtdb"].client.latest_completed_tx()
+        max_id = session["octopoes"].session.client.latest_completed_tx()
         # return the max_id after this update. So we dont trigger a likely empty loop
         # just because we changed some scanprofiles this loop.
         logger.info(
