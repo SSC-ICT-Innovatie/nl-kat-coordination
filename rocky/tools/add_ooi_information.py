@@ -10,7 +10,7 @@ from rocky.version import __version__
 
 SEPARATOR = "|"
 SOURCE_TIMEOUT = 10
-REQUEST_HEADERS = {"User-Agent": f"OpenKAT/{__version__} (maintainer@librekat.nl) librekat.nl/{__version__}"}
+REQUEST_HEADERS = {"User-Agent": f"OpenKAT-{__version__} (maintainer@librekat.nl) https://librekat.nl"}
 
 logger = structlog.get_logger(__name__)
 
