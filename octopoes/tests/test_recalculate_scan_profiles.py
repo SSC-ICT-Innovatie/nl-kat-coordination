@@ -2,16 +2,14 @@ from octopoes.core.service import OctopoesService
 from octopoes.models import DeclaredScanProfile
 
 
-def test_recalculate_no_profiles(valid_time, event_manager, xtdb_session):
-    octopoes = OctopoesService(event_manager, xtdb_session)
-
-    octopoes.recalculate_scan_profiles(valid_time)
+def test_recalculate_no_profiles(valid_time, octopoes_service):
+    octopoes_service.recalculate_scan_profiles(valid_time)
 
 
-def test_recalculate_only_empty_profiles(valid_time, resolved_hostname, event_manager, xtdb_session):
-    octopoes = OctopoesService(event_manager, xtdb_session)
-
-    octopoes.recalculate_scan_profiles(valid_time)
+def test_recalculate_only_empty_profiles(valid_time, ooi_repository, scan_profile_repository, octopoes_service, resolved_hostname):
+    octopoes.ooi_repository = ooi_repository
+    octopoes.scan_profile_repository = scan_profile_repository
+    octopoes_service.recalculate_scan_profiles(valid_time)
 
 
 def test_recalculate_inherent(
@@ -20,12 +18,11 @@ def test_recalculate_inherent(
     hostname,
     resolved_hostname,
     ipaddressv4,
-    event_manager,
-    xtdb_session,
+    octopoes_service,
     ooi_repository,
     scan_profile_repository,
 ):
-    octopoes = OctopoesService(event_manager, xtdb_session)
+    octopoes = octopoes_service
     octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
     octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=4), valid_time)
@@ -42,12 +39,11 @@ def test_recalculate_inherent_max(
     dns_zone,
     resolved_hostname,
     ipaddressv4,
-    event_manager,
-    xtdb_session,
+    octopoes_service,
     ooi_repository,
     scan_profile_repository,
 ):
-    octopoes = OctopoesService(event_manager, xtdb_session)
+    octopoes = octopoes_service
     octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
     octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=dns_zone.reference, level=4), valid_time)
@@ -65,12 +61,11 @@ def test_recalculate_inherent_recalculate(
     hostname,
     resolved_hostname,
     ipaddressv4,
-    event_manager,
-    xtdb_session,
+    octopoes_service,
     ooi_repository,
     scan_profile_repository,
 ):
-    octopoes = OctopoesService(event_manager, xtdb_session)
+    octopoes = octopoes_service
     octopoes.ooi_repository = ooi_repository
     octopoes.scan_profile_repository = scan_profile_repository
     octopoes.scan_profile_repository.save(None, DeclaredScanProfile(reference=hostname.reference, level=3), valid_time)
