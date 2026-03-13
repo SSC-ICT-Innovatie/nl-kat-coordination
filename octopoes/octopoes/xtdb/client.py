@@ -176,7 +176,7 @@ class XTDBHTTPClient:
             raise XTDBException("Could not delete node") from e
 
     def export_transactions(self):
-        res = self._session.get(f"{self.node_url()}/tx-log?with-ops?=true", headers={"Accept": "application/json"})
+        res = self._session.get(f"{self.node_url()}/tx-log?with-ops=true", headers={"Accept": "application/json"})
         self._verify_response(res)
         return res.json()
 
@@ -211,13 +211,17 @@ class XTDBSession:
     def put(self, document: str | dict[str, Any], valid_time: datetime) -> None:
         self.add((OperationType.PUT, document, valid_time))
 
-    def commit(self) -> None:
+    def commit(self, sync: bool = False) -> None:
+        """commits all pending operations to the database,
+        and returns the amount of processed operations"""
         if self._operations:
             logger.debug(self._operations)
             self.client.submit_transaction(self._operations)
             self._operations = []
 
         if not self.post_commit_callbacks:
+            if sync:
+                self.client.sync()
             return
 
         for callback in self.post_commit_callbacks:
@@ -225,6 +229,15 @@ class XTDBSession:
 
         logger.info("Called %s callbacks after committing XTDBSession", len(self.post_commit_callbacks))
         self.post_commit_callbacks = []
+
+        if sync:
+            self.client.sync()
+
+    def sync(self) -> None:
+        logger.info(
+            "Called Sync on XTDB client, waiting for database to complete transactions.",
+        )
+        self.client.sync()
 
     def listen_post_commit(self, callback: Callable[[], None]) -> None:
         self.post_commit_callbacks.append(callback)

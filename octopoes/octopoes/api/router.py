@@ -239,9 +239,10 @@ def delete_object(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     reference: Reference = Depends(extract_reference),
+    sync: bool = False,
 ) -> None:
     octopoes.ooi_repository.delete(reference, valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.delete("/origins", tags=["Origins"])
@@ -249,10 +250,11 @@ def delete_origin(
     origin_id: str,
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     origin = octopoes.origin_repository.get(origin_id, valid_time)
     octopoes.origin_repository.delete(origin, valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/objects/delete_many", tags=["Objects"])
@@ -260,12 +262,12 @@ def delete_many(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     references: list[Reference] = Depends(extract_references),
+    sync: bool = False,
 ) -> None:
     for reference in references:
         octopoes.ooi_repository.delete(reference, valid_time)
 
-    octopoes.commit()
-
+    octopoes.commit(sync=sync)
 
 @router.get("/tree", tags=["Objects"])
 def get_tree(
@@ -312,7 +314,7 @@ def list_origin_parameters(
 
 
 @router.post("/observations", tags=["Origins"])
-def save_observation(observation: ValidatedObservation, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_observation(observation: ValidatedObservation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
     origin = Origin(
         origin_type=OriginType.OBSERVATION,
         method=observation.method,
@@ -322,11 +324,11 @@ def save_observation(observation: ValidatedObservation, octopoes: OctopoesServic
         task_id=observation.task_id,
     )
     octopoes.save_origin(origin, observation.result, observation.valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/declarations", tags=["Origins"])
-def save_declaration(declaration: ValidatedDeclaration, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_declaration(declaration: ValidatedDeclaration, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
     origin = Origin(
         origin_type=OriginType.DECLARATION,
         method=declaration.method if declaration.method else "manual",
@@ -336,12 +338,12 @@ def save_declaration(declaration: ValidatedDeclaration, octopoes: OctopoesServic
         task_id=declaration.task_id if declaration.task_id else uuid.uuid4(),
     )
     octopoes.save_origin(origin, [declaration.ooi], declaration.valid_time, declaration.end_valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/declarations/save_many", tags=["Origins"])
 def save_many_declarations(
-    declarations: list[ValidatedDeclaration], octopoes: OctopoesService = Depends(octopoes_service)
+    declarations: list[ValidatedDeclaration], sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
 ) -> None:
     for declaration in declarations:
         origin = Origin(
@@ -354,11 +356,11 @@ def save_many_declarations(
         )
         octopoes.save_origin(origin, [declaration.ooi], declaration.valid_time, declaration.end_valid_time)
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/affirmations", tags=["Origins"])
-def save_affirmation(affirmation: ValidatedAffirmation, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_affirmation(affirmation: ValidatedAffirmation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
     origin = Origin(
         origin_type=OriginType.AFFIRMATION,
         method=affirmation.method if affirmation.method else "hydration",
@@ -368,7 +370,7 @@ def save_affirmation(affirmation: ValidatedAffirmation, octopoes: OctopoesServic
         task_id=affirmation.task_id if affirmation.task_id else uuid.uuid4(),
     )
     octopoes.save_origin(origin, [affirmation.ooi], affirmation.valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 # ScanProfile-related endpoints
