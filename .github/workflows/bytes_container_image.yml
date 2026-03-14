@@ -41,6 +41,7 @@ jobs:
         id: buildx
 
       - name: Login to librekat Container Registry
+        if: github.event_name == 'push' || github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login
         uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: docker.underdark.nl
