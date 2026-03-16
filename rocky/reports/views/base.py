@@ -403,7 +403,7 @@ class ReportPluginView(BaseReportView, TemplateView):
         self.plugins = None
 
         try:
-            self.plugins = hydrate_plugins(self.get_report_types(), self.get_katalogus())
+            self.plugins = hydrate_plugins(self.get_report_types(), self.katalogus_client)
         except KATalogusError as error:
             messages.error(self.request, error.message)
 
@@ -629,7 +629,7 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
         plugin_ids_required = plugins_dict["required"]
         plugin_ids_optional = plugins_dict["optional"]
 
-        katalogus_plugins = self.get_katalogus().get_plugins(ids=plugin_ids_required + plugin_ids_optional)
+        katalogus_plugins = self.katalogus_client.get_plugins(ids=plugin_ids_required + plugin_ids_optional)
         for plugin in katalogus_plugins:
             if plugin.id in plugin_ids_required:
                 plugins["required"].append(plugin)

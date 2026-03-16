@@ -127,7 +127,7 @@ class OrganizationView(ContextMixin, View):
         return get_bytes_client(self.organization.code)
 
     @cached_property
-    def get_katalogus(self) -> KATalogus:
+    def katalogus_client(self) -> KATalogus:
         return get_katalogus(self.organization_member)
 
     def get_context_data(self, **kwargs):
@@ -275,6 +275,10 @@ class OrganizationAPIMixin:
         return OctopoesAPIConnector(
             settings.OCTOPOES_API, self.organization.code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
         )
+
+    @cached_property
+    def katalogus_client(self) -> KATalogus:
+        return get_katalogus(self.organization_member)
 
     @cached_property
     def bytes_client(self) -> BytesClient:

@@ -69,11 +69,10 @@ class KATalogusSettingsView(OrganizationPermissionRequiredMixin, OrganizationVie
 
     def get_settings(self):
         all_plugins_settings = []
-        katalogus_client = self.get_katalogus()
 
-        for boefje in katalogus_client.get_boefjes():
+        for boefje in self.katalogus_client.get_boefjes():
             try:
-                plugin_setting = katalogus_client.get_plugin_settings(boefje.id)
+                plugin_setting = self.katalogus_client.get_plugin_settings(boefje.id)
             except HTTPError:
                 messages.add_message(
                     self.request, messages.ERROR, _("Failed getting settings for boefje {}").format(self.plugin.id)

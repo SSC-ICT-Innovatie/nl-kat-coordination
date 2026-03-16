@@ -151,9 +151,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         csv_raw_data = csv_file.read()
 
         task_id = uuid4()
-        self.bytes_client.add_manual_proof(
-            task_id, csv_raw_data, manual_mime_types={"manual/csv"}
-        )
+        self.bytes_client.add_manual_proof(task_id, csv_raw_data, manual_mime_types={"manual/csv"})
 
         csv_data = io.StringIO(csv_raw_data.decode("UTF-8"))
         rows_with_error = []

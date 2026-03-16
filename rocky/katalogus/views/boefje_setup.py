@@ -56,7 +56,7 @@ class AddBoefjeView(BoefjeSetupView):
         plugin = create_boefje_with_form_data(form_data, self.plugin_id, self.created)
 
         try:
-            self.get_katalogus().create_plugin(plugin)
+            self.katalogus_client.create_plugin(plugin)
             return super().form_valid(form)
         except DuplicatePluginError as error:
             if "name" in error.message:
@@ -72,7 +72,7 @@ class AddBoefjeVariantView(BoefjeSetupView):
 
         self.based_on_plugin_id = self.kwargs.get("plugin_id")
 
-        self.plugin = self.get_katalogus().get_plugin(self.based_on_plugin_id)
+        self.plugin = self.katalogus_client.get_plugin(self.based_on_plugin_id)
 
     def get_initial(self):
         initial = super().get_initial()
@@ -103,7 +103,7 @@ class AddBoefjeVariantView(BoefjeSetupView):
         plugin = create_boefje_with_form_data(form_data, self.plugin_id, self.created)
 
         try:
-            self.get_katalogus().create_plugin(plugin)
+            self.katalogus_client.create_plugin(plugin)
             return super().form_valid(form)
         except DuplicatePluginError as error:
             if "name" in error.message:
@@ -144,7 +144,7 @@ class EditBoefjeView(BoefjeSetupView):
 
         self.plugin_id = self.kwargs.get("plugin_id")
         self.query_params = urlencode({"new_variant": False})
-        self.plugin = self.get_katalogus().get_plugin(self.plugin_id)
+        self.plugin = self.katalogus_client.get_plugin(self.plugin_id)
         self.created = self.plugin.created
 
     def get_initial(self):
@@ -178,7 +178,7 @@ class EditBoefjeView(BoefjeSetupView):
         plugin = create_boefje_with_form_data(form_data, self.plugin_id, self.created)
 
         try:
-            self.get_katalogus().edit_plugin(plugin)
+            self.katalogus_client.edit_plugin(plugin)
             return super().form_valid(form)
         except DuplicatePluginError as error:
             if "name" in error.message:
