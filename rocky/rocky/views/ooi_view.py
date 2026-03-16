@@ -233,7 +233,6 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             create_ooi(
                 self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
             )
-            sleep(1)
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:
             for error in exception.errors():
