@@ -4,6 +4,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends git nodejs
 
 RUN git clone https://github.com/sullo/nikto
+RUN cpanm --notest JSON XML::Writer
 
 ARG BOEFJE_PATH=./boefjes/plugins/kat_nikto
 COPY $BOEFJE_PATH ./
