@@ -655,8 +655,10 @@ class OctopoesService:
 
         return sum(bit_counter.values())
 
-    def commit(self):
+    def commit(self, sync: bool = False):
         self.ooi_repository.commit()
         self.origin_repository.commit()
         self.origin_parameter_repository.commit()
         self.scan_profile_repository.commit()
+        if sync and self.session:
+            self.session.sync()
