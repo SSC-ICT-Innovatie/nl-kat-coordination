@@ -211,20 +211,26 @@ class XTDBSession:
     def put(self, document: str | dict[str, Any], valid_time: datetime) -> None:
         self.add((OperationType.PUT, document, valid_time))
 
-    def commit(self) -> None:
+    def commit(self, sync: bool = False) -> None:
+        """commits all pending operations to the database,
+        and optionally call sync to wait for processing to finish"""
         if self._operations:
             logger.debug(self._operations)
             self.client.submit_transaction(self._operations)
             self._operations = []
 
-        if not self.post_commit_callbacks:
-            return
+        if self.post_commit_callbacks:
+            for callback in self.post_commit_callbacks:
+                callback()
+            logger.info("Called %s callbacks after committing XTDBSession", len(self.post_commit_callbacks))
+            self.post_commit_callbacks = []
 
-        for callback in self.post_commit_callbacks:
-            callback()
+        if sync:
+            self.client.sync()
 
-        logger.info("Called %s callbacks after committing XTDBSession", len(self.post_commit_callbacks))
-        self.post_commit_callbacks = []
+    def sync(self) -> None:
+        logger.info("Called Sync on XTDB client, waiting for database to complete transactions.")
+        self.client.sync()
 
     def listen_post_commit(self, callback: Callable[[], None]) -> None:
         self.post_commit_callbacks.append(callback)
