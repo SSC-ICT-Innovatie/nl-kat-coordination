@@ -219,7 +219,7 @@ class XTDBSession:
     def put(self, document: str | dict[str, Any], valid_time: datetime) -> None:
         self.add((OperationType.PUT, document, valid_time))
 
-  def commit(self, sync: bool = False) -> int:
+    def commit(self, sync: bool = False) -> int:
         """commits all pending operations to the database,
         and optionally call sync to wait for processing to finish
         and returns the amount of processed operations."""
