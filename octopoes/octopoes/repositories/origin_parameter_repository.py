@@ -43,8 +43,8 @@ class XTDBOriginParameterRepository(OriginParameterRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
     def serialize(cls, origin_parameter: OriginParameter) -> dict[str, Any]:

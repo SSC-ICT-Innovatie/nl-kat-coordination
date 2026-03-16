@@ -219,36 +219,40 @@ class XTDBSession:
     def put(self, document: str | dict[str, Any], valid_time: datetime) -> None:
         self.add((OperationType.PUT, document, valid_time))
 
-    def commit(self) -> int:
+  def commit(self, sync: bool = False) -> int:
         """commits all pending operations to the database,
-        and returns the amount of processed operations"""
+        and optionally call sync to wait for processing to finish
+        and returns the amount of processed operations."""
         if not self._operations:
+            self.reset()
             return 0
 
-        logger.debug(self._operations)
         count = len(self._operations)
+        logger.debug("Committing XTDBSession with %i transactions", count, operations=self._operations)
         self.client.submit_transaction(self._operations)
-        logger.debug("Committing XTDBSession with %i transactions", count)
 
-        if not self.post_commit_callbacks:
-            self.reset()
-            return count
-
-        for callback in self.post_commit_callbacks:
-            callback()
-
-        logger.info(
-            "Called %i callbacks after committing XTDBSession with %i transactions",
-            len(self.post_commit_callbacks),
-            count,
-        )
+        if self.post_commit_callbacks:
+            for callback in self.post_commit_callbacks:
+              callback()
+            logger.info(
+              "Called %i callbacks after committing XTDBSession with %i transactions",
+              len(self.post_commit_callbacks),
+              count,
+            )
         self.reset()
+
+        if sync:
+            self.client.sync()
         return count
 
     def reset(self) -> None:
         """Resets the session, and removes all operations and callbacks."""
         self._operations = []
         self.post_commit_callbacks = []
+
+    def sync(self) -> None:
+        logger.info("Called Sync on XTDB client, waiting for database to complete transactions.")
+        self.client.sync()
 
     def listen_post_commit(self, callback: Callable[[], None]) -> None:
         """Registers a callback on the session, which will be called after the

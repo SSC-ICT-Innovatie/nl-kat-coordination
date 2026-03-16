@@ -680,8 +680,10 @@ class OctopoesService:
             service="octopoes", healthy=xtdb_health.healthy, version=__version__, results=[xtdb_health]
         )
 
-    def commit(self):
+    def commit(self, sync: bool = False):
         self.ooi_repository.commit()
         self.origin_repository.commit()
         self.origin_parameter_repository.commit()
         self.scan_profile_repository.commit()
+        if sync and self.session:
+            self.session.sync()
