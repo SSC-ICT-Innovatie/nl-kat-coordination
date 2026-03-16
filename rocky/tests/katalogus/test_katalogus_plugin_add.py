@@ -161,7 +161,7 @@ def test_plugin_single_settings_add_view_no_schema(rf, superuser_member, mock_mi
     )
 
     assert response.status_code == 302
-    mock_katalogus.upsert_plugin_settings.assert_not_called()
+    mock_mixins_katalogus.upsert_plugin_settings.assert_not_called()
 
     assert response.headers["Location"] == reverse(
         "boefje_detail", kwargs={"organization_code": superuser_member.organization.code, "plugin_id": "test-boefje"}
