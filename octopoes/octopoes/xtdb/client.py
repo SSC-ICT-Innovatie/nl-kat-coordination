@@ -233,11 +233,11 @@ class XTDBSession:
 
         if self.post_commit_callbacks:
             for callback in self.post_commit_callbacks:
-              callback()
+                callback()
             logger.info(
-              "Called %i callbacks after committing XTDBSession with %i transactions",
-              len(self.post_commit_callbacks),
-              count,
+                "Called %i callbacks after committing XTDBSession with %i transactions",
+                len(self.post_commit_callbacks),
+                count,
             )
         self.reset()
 
