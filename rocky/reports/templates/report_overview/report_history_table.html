@@ -3,7 +3,6 @@
 {% load ooi_extra %}
 {% load report_extra %}
 {% load component_tags %}
-{% load compress %}
 
 {% if reports %}
     <div class="fifty-fifty">
@@ -214,7 +213,5 @@
     <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
     <script src="{% static "js/grabSelectionOnModalOpen.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
     <script src="{% static "js/renameReports.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

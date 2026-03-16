@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 {% load static %}
-{% load compress %}
 {% load i18n %}
 
 {% get_current_language as LANGUAGE_CODE %}
@@ -9,9 +8,7 @@
         <title>OpenKAT report</title>
         <meta charset="UTF-8">
         <link rel="shortcut icon" href="{% static "img/favicon.svg" %}" />
-        {% compress css %}
-            <link href="{% static "dist/report.css" %}" rel="stylesheet">
-        {% endcompress %}
+        <link href="{% static "dist/report.css" %}" rel="stylesheet">
     </head>
     <body>
         <main id="main-content" tabindex="-1" class="choose-report">
