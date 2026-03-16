@@ -277,10 +277,6 @@ class OrganizationAPIMixin:
         )
 
     @cached_property
-    def katalogus_client(self) -> KATalogus:
-        return get_katalogus(self.organization_member)
-
-    @cached_property
     def bytes_client(self) -> BytesClient:
         return get_bytes_client(self.organization.code)
 

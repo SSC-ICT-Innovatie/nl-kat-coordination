@@ -37,7 +37,6 @@ from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report
 from octopoes.models.origin import Origin, OriginType
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import get_relations
-from rocky.bytes_client import get_bytes_client
 
 logger = structlog.get_logger(__name__)
 

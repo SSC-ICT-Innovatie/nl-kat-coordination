@@ -301,7 +301,7 @@ def test_step_7_onboarding_clearance_level_introduction(rf, redteam_member, mock
 
 @pytest.mark.parametrize("member", ["superuser_member", "redteam_member"])
 def test_step_8_onboarding_select_plugins(request, member, rf, mocker, mock_organization_view_octopoes, url):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     member = request.getfixturevalue(member)
     request = setup_request(rf.get("step_setup_scan_select_plugins", {"ooi": url.primary_key}), member.user)
 
@@ -346,7 +346,7 @@ def test_step_9a_onboarding_ooi_detail_scan(
 ):
     member = request.getfixturevalue(member)
 
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
     mock_organization_view_octopoes().get.return_value = url
     mock_bytes_client().upload_raw.return_value = "raw_id"
@@ -370,7 +370,7 @@ def test_step_9a_onboarding_ooi_detail_scan_create_report_schedule(
 ):
     member = request.getfixturevalue(member)
 
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
     mock_organization_view_octopoes().get.return_value = url
     mock_bytes_client().upload_raw.return_value = "raw_id"
@@ -394,7 +394,7 @@ def test_step_10_onboarding_scanning_boefjes(
 ):
     member = request.getfixturevalue(member)
 
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get.return_value = url
     mock_bytes_client().upload_raw.return_value = "raw_id"
 

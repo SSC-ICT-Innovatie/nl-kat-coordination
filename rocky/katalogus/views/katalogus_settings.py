@@ -34,7 +34,7 @@ class ConfirmCloneSettingsView(
     def post(self, request, *args, **kwargs):
         to_organization = Organization.objects.get(code=kwargs["to_organization"])
         logger.info("Cloning organization settings", event_code=910000, to_organization_code=to_organization.code)
-        self.get_katalogus().clone_all_configuration_to_organization(to_organization.code)
+        self.katalogus_client.clone_all_configuration_to_organization(to_organization.code)
         messages.add_message(
             self.request,
             messages.SUCCESS,

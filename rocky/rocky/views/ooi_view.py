@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from time import sleep
 from typing import Literal
 
 from django.forms import Form
