@@ -21,7 +21,7 @@ from octopoes.models.ooi.findings import (
     SnykFindingType,
 )
 from octopoes.models.types import OOI_TYPES
-from rocky.bytes_client import BytesClient, get_bytes_client
+from rocky.bytes_client import BytesClient
 from rocky.views.ooi_view import BaseOOIFormView
 
 FINDING_TYPES_PREFIXES = {
@@ -113,10 +113,9 @@ class FindingAddView(BaseOOIFormView):
             proof.append(Declaration(ooi=finding, valid_time=observed_at, task_id=str(task_id)))
             proof.append(Declaration(ooi=finding_type, valid_time=observed_at, task_id=str(task_id)))
 
-        get_bytes_client(self.organization.code).add_manual_proof(task_id, BytesClient.raw_from_declarations(proof))
+        self.bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations(proof))
 
-        for declaration in proof:
-            self.octopoes_api_connector.save_declaration(declaration)
+        self.octopoes_api_connector.save_many_declarations(proof, sync=True)
 
         return redirect(get_ooi_url("ooi_detail", ooi_id, self.organization.code))
 

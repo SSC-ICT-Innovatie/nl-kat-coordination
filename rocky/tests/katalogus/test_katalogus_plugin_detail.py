@@ -15,7 +15,7 @@ def test_plugin_detail_view(
     mock_scheduler_client_task_list,
     mocker,
 ):
-    mock_mixins_katalogus().get_plugin.return_value = plugin_details
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
     katalogus_mocker = mocker.patch("katalogus.client.KATalogusClient")()
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records, boefje_nmap_tcp]
 
@@ -82,7 +82,7 @@ def test_plugin_detail_view_no_consumes(
     mock_scheduler_client_task_list,
 ):
     plugin_details.consumes = []
-    mock_mixins_katalogus().get_plugin.return_value = plugin_details
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
     katalogus_mocker = mocker.patch("katalogus.client.KATalogusClient")()
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records, boefje_nmap_tcp]
 
