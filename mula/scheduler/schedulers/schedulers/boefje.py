@@ -445,14 +445,29 @@ class BoefjeScheduler(Scheduler):
         task_db = self.ctx.datastores.task_store.get_latest_task_by_hash(boefje_task.hash)
 
         if task_db and task_db.status in models.ACTIVE_TASK_STATUSES:
-            self.logger.debug(
-                "Task is already on queue: %s",
-                boefje_task.hash,
-                task_hash=boefje_task.hash,
-                scheduler_id=self.scheduler_id,
-                caller=caller,
-            )
-            return
+            # Check if the task is stalled before giving up
+            if self.has_boefje_task_stalled(task_db, boefje_task):
+                self.logger.debug(
+                    "Task is stalled: %s",
+                    boefje_task.hash,
+                    task_hash=boefje_task.hash,
+                    scheduler_id=self.scheduler_id,
+                    caller=caller,
+                )
+
+                # Update task in datastore to be failed
+                task_db.status = models.TaskStatus.FAILED
+                self.ctx.datastores.task_store.update_task(task_db)
+                # Fall through to create a new task
+            else:
+                self.logger.debug(
+                    "Task is already on queue: %s",
+                    boefje_task.hash,
+                    task_hash=boefje_task.hash,
+                    scheduler_id=self.scheduler_id,
+                    caller=caller,
+                )
+                return
 
         task_bytes = self.ctx.services.bytes.get_last_run_boefje(
             boefje_id=boefje_task.boefje.id, input_ooi=boefje_task.input_ooi, organization_id=boefje_task.organization
@@ -468,21 +483,7 @@ class BoefjeScheduler(Scheduler):
                 caller=caller,
             )
             return
-
-        is_stalled = self.has_boefje_task_stalled(task_db, boefje_task)
-        if is_stalled:
-            self.logger.debug(
-                "Task is stalled: %s",
-                boefje_task.hash,
-                task_hash=boefje_task.hash,
-                scheduler_id=self.scheduler_id,
-                caller=caller,
-            )
-
-            # Update task in datastore to be failed
-            task_db.status = models.TaskStatus.FAILED
-            self.ctx.datastores.task_store.update_task(task_db)
-
+        
         is_running = self.has_boefje_task_started_running(task_db, task_bytes, boefje_task)
         if is_running:
             self.logger.debug(
