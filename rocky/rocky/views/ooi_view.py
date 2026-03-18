@@ -134,7 +134,7 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
 class BaseOOIListView(OOIFilterView, ListView):
     paginate_by = 150
     context_object_name = "ooi_list"
-    paginator = RockyPaginator
+    paginator_class = RockyPaginator
 
     def get_queryset(self) -> OOIList:
         return OOIList(self.octopoes_api_connector, **self.get_queryset_params())
