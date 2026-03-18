@@ -483,7 +483,7 @@ class BoefjeScheduler(Scheduler):
                 caller=caller,
             )
             return
-        
+
         is_running = self.has_boefje_task_started_running(task_db, task_bytes, boefje_task)
         if is_running:
             self.logger.debug(
