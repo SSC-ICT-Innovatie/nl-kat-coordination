@@ -19,7 +19,7 @@ MISSING_HEADER_TO_KAT_FINDING_TYPE = {
 def scan_nikto_output(data: list[dict[str, Any]], ooi_ref: Reference) -> Iterable[NormalizerOutput]:
     for scan in data:
         for vulnerability in scan["vulnerabilities"]:
-            vulnerability_id: str = vulnerability["id"]
+            vulnerability_id = str(vulnerability["id"])
 
             # If the scanned vulnerability has to do with outdated software
             if vulnerability_id.startswith("6"):

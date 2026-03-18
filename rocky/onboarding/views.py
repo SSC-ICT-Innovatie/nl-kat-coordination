@@ -315,9 +315,8 @@ class OnboardingSetupScanSelectPluginsView(
 
     def get_plugins(self) -> dict[str, list[Plugin]]:
         all_plugins = {}
-        katalogus = self.get_katalogus()
         for required_optional, plugin_ids in self.plugins.items():
-            plugins = katalogus.get_plugins(ids=[plugin_id for plugin_id in plugin_ids])  # type: ignore
+            plugins = self.katalogus_client.get_plugins(ids=[plugin_id for plugin_id in plugin_ids])  # type: ignore
             all_plugins[required_optional] = plugins
 
         return all_plugins
@@ -334,7 +333,7 @@ class OnboardingSetupScanSelectPluginsView(
                 return self.get(request, *args, **kwargs)
         for selected_plugin in selected_plugins:
             try:
-                self.get_katalogus().enable_boefje_by_id(selected_plugin)
+                self.katalogus_client.enable_boefje_by_id(selected_plugin)
             except HTTPError:
                 messages.error(
                     request,

@@ -24,7 +24,6 @@ class SinglePluginView(OrganizationView):
         Prepare organization info and KAT-alogus API client.
         """
         super().setup(request, *args, plugin_id=plugin_id, **kwargs)
-        self.katalogus_client = self.get_katalogus()
 
         try:
             self.plugin = self.katalogus_client.get_plugin(plugin_id)

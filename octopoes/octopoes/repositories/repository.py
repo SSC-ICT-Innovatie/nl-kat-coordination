@@ -1,3 +1,3 @@
 class Repository:
-    def commit(self):
+    def commit(self, sync: bool = False):
         raise NotImplementedError
