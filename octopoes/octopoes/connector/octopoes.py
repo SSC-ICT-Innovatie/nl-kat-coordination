@@ -102,7 +102,7 @@ class OctopoesAPIConnector:
         if scan_level:
             scan_levels: list[int] = []
             for slevel in scan_level:
-                if isinstance(s, int):
+                if isinstance(slevel, int):
                     scan_levels.append(slevel)
                 else:
                     scan_levels.append(slevel.value)
