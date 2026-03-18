@@ -7,7 +7,7 @@ import pika
 import structlog
 from celery import Celery
 from pika.adapters.blocking_connection import BlockingChannel
-from pika.exceptions import StreamLostError, ChannelWrongStateError
+from pika.exceptions import ChannelWrongStateError, StreamLostError
 from pydantic import BaseModel
 
 from octopoes.events.events import DBEvent, OperationType, ScanProfileDBEvent
@@ -68,7 +68,7 @@ class EventManager:
     def publish(self, event: DBEvent) -> None:
         try:
             self._publish(event)
-        except (StreamLostError, ChannelWrongStateError):    # Retry publishing once on connection issues
+        except (StreamLostError, ChannelWrongStateError):  # Retry publishing once on connection issues
             logger.exception("Failed publishing event, retrying...")
 
             try:
@@ -94,7 +94,6 @@ class EventManager:
                 format_id_short(event.primary_key),
                 event.client,
             )
-
 
         if not isinstance(event, ScanProfileDBEvent):
             return
