@@ -21,6 +21,7 @@ from tools.forms.findings import (
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.models.ooi.findings import RiskLevelSeverity
+from rocky.paginator import RockyPaginator
 from rocky.views.mixins import (
     FINDING_LIST_COLUMNS,
     AddDashboardItemFormMixin,
@@ -142,6 +143,7 @@ class FindingListView(BreadcrumbsMixin, FindingListFilter, AddDashboardItemFormM
     template_name = "findings/finding_list.html"
     paginate_by = 150
     add_dashboard_item_form = AddFindingListDashboardItemForm
+    paginator_class = RockyPaginator
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [

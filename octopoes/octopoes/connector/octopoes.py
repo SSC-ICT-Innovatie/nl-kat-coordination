@@ -1,5 +1,5 @@
 import json
-from collections.abc import Iterable, Sequence, Set
+from collections.abc import Iterable, Sequence
 from datetime import datetime
 from typing import Annotated, Literal
 from uuid import UUID
@@ -10,12 +10,7 @@ from httpx import HTTPError, Response
 from pydantic import Field, TypeAdapter, ValidationError
 
 from octopoes.api.models import Affirmation, Declaration, Observation, ServiceHealth
-from octopoes.config.settings import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    DEFAULT_SCAN_LEVEL_FILTER,
-    DEFAULT_SCAN_PROFILE_TYPE_FILTER,
-)
+from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET
 from octopoes.connector import DecodeException, RemoteException
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
@@ -85,27 +80,43 @@ class OctopoesAPIConnector:
 
     def list_objects(
         self,
-        types: set[type[OOI]],
+        types: set[type[OOI]] | set[str],
         valid_time: datetime,
         offset: int = DEFAULT_OFFSET,
         limit: int = DEFAULT_LIMIT,
-        scan_level: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER,
-        scan_profile_type: set[ScanProfileType] = DEFAULT_SCAN_PROFILE_TYPE_FILTER,
+        scan_level: set[ScanLevel] | set[int] | None = None,
+        scan_profile_type: set[ScanProfileType] | set[str] | None = None,
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
     ) -> Paginated[OOIType]:
-        params: dict[str, str | int | list[str | int] | None] = {
-            "types": [t.__name__ for t in types],
+        params: dict[str, str | int | list[str] | list[int] | None] = {
+            "types": [t.__name__ if hasattr(t, "__name__") else t for t in types if t],
             "valid_time": str(valid_time),
             "offset": offset,
             "limit": limit,
-            "scan_level": [s.value for s in scan_level],
-            "scan_profile_type": [s.value for s in scan_profile_type],
-            "search_string": search_string,
             "order_by": order_by,
             "asc_desc": asc_desc,
         }
+
+        if scan_level:
+            scan_levels: list[int] = []
+            for slevel in scan_level:
+                if isinstance(slevel, int):
+                    scan_levels.append(slevel)
+                else:
+                    scan_levels.append(slevel.value)
+            params["scan_level"] = scan_levels
+        if scan_profile_type:
+            scan_profile_types: list[str] = []
+            for sprofile in scan_profile_type:
+                if isinstance(sprofile, str):
+                    scan_profile_types.append(sprofile)
+                else:
+                    scan_profile_types.append(sprofile.value)
+            params["scan_profile_type"] = scan_profile_types
+        if search_string:
+            params["search_string"] = search_string
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values
         res = self.session.get(f"/{self.client}/objects", params=params)
         return PaginatedOOITypeAdapter.validate_json(res.content)
@@ -159,14 +170,15 @@ class OctopoesAPIConnector:
         return TransactionRecordTypeAdapter.validate_json(res.content)
 
     def get_tree(
-        self, reference: Reference, valid_time: datetime, types: Set = frozenset(), depth: int = 1
+        self, reference: Reference, valid_time: datetime, types: set[type[OOI]] | set[str] | None = None, depth: int = 1
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
-            "types": [t.__name__ for t in types],
             "depth": depth,
             "valid_time": str(valid_time),
         }
+        if types:
+            params["types"] = [t.__name__ if hasattr(t, "__name__") else t for t in types if t]
         res = self.session.get(f"/{self.client}/tree", params=params)
         return ReferenceTree.model_validate_json(res.content)
 
@@ -347,10 +359,11 @@ class OctopoesAPIConnector:
             "severities": [s.value for s in severities],
             "exclude_muted": exclude_muted,
             "only_muted": only_muted,
-            "search_string": search_string,
             "order_by": order_by,
             "asc_desc": asc_desc,
         }
+        if search_string:
+            params["search_string"] = search_string
 
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values
         res = self.session.get(f"/{self.client}/findings", params=params)

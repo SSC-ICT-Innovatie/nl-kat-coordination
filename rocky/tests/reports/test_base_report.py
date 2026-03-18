@@ -23,7 +23,7 @@ def test_aggregate_report_select_oois(rf, client_member, mock_organization_view_
     response = OOISelectionAggregateReportView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert mock_organization_view_octopoes().list_objects.call_count == 1
 
     assertContains(response, "Showing " + str(len(listed_hostnames)) + " of " + str(len(listed_hostnames)) + " objects")
     assertContains(response, "Hostname")
