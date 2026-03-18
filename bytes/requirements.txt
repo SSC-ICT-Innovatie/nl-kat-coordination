@@ -77,9 +77,9 @@ bcrypt==4.3.0 \
     # via
     #   bytes
     #   passlib
-boto3==1.42.48 \
-    --hash=sha256:c9164fae0dc196f5040cf15d4fbc309475b09cb15649087fad4b65af55f815f2 \
-    --hash=sha256:f4e37445be869157c4aaa53ef3e1b1d1986f9722e64d36f4894de832dd4b11ef
+boto3==1.42.70 \
+    --hash=sha256:18a108c4d5df89a200b3949de0d39c0879b100c455e3229ea38275dd392db0f4 \
+    --hash=sha256:d060b0d83d2832e403671b9a895e73c3b025df8bb5896d89e401b0678705aac4
     # via bytes
 botocore==1.42.48 \
     --hash=sha256:57d23635a90239051bab1e1e980401890ec2d87ded38623b1e4570260aec56f7 \
