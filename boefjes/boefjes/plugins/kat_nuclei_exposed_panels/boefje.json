@@ -3,7 +3,6 @@
   "name": "Nuclei Exposed panels",
   "description": "Nuclei is used to send requests across targets based on a template, providing fast scanning. Can be used to find specific exposed administrative panels in your network.",
   "consumes": [
-    "Hostname",
     "HostnameHTTPURL"
   ],
   "scan_level": 3,
