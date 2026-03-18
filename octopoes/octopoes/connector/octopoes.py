@@ -90,7 +90,7 @@ class OctopoesAPIConnector:
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
     ) -> Paginated[OOIType]:
-        params: dict[str, str | int | list[str | int] | None] = {
+        params: dict[str, str | int | list[str] | list[int] | None] = {
             "types": [t.__name__ if hasattr(t, "__name__") else t for t in types if t],
             "valid_time": str(valid_time),
             "offset": offset,
@@ -101,19 +101,19 @@ class OctopoesAPIConnector:
 
         if scan_level:
             scan_levels: list[int] = []
-            for s in scan_level:
+            for slevel in scan_level:
                 if isinstance(s, int):
-                    scan_levels.append(s)
+                    scan_levels.append(slevel)
                 else:
-                    scan_levels.append(s.value)
+                    scan_levels.append(slevel.value)
             params["scan_level"] = scan_levels
         if scan_profile_type:
             scan_profile_types: list[str] = []
-            for s in scan_profile_type:
-                if isinstance(s, str):
-                    scan_profile_types.append(s)
+            for sprofile in scan_profile_type:
+                if isinstance(sprofile, str):
+                    scan_profile_types.append(sprofile)
                 else:
-                    scan_profile_types.append(s.value)
+                    scan_profile_types.append(sprofile.value)
             params["scan_profile_type"] = scan_profile_types
         if search_string:
             params["search_string"] = search_string
