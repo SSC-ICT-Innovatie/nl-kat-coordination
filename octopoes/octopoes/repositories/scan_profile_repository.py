@@ -48,8 +48,8 @@ class XTDBScanProfileRepository(ScanProfileRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
     def format_id(cls, ooi_reference: Reference) -> str:

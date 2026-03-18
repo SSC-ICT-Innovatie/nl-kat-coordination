@@ -74,7 +74,7 @@ class SchedulerAPI:
 
         results = s.pop_item_from_queue(limit=limit, filters=filters)
 
-        return schemas.TaskPop(results=[schemas.Task(**item.dict()) for item in results])
+        return schemas.TaskPop(results=[schemas.Task(**item.model_dump()) for item in results])
 
     def push(self, scheduler_id: str, item: schemas.TaskPush) -> schemas.Task:
         s = self.schedulers.get(scheduler_id)

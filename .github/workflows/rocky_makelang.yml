@@ -29,15 +29,12 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      # ============================================================
-      # CHECKOUT + SETUP
-      # ============================================================
-
       - name: Checkout PR branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+
 
       - name: Set up Python
         uses: actions/setup-python@v6

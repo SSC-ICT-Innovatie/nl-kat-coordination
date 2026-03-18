@@ -38,7 +38,7 @@ TREE_DATA = {
 
 
 def test_scan_profile(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
     request = setup_request(rf.get("scan_profile_detail", {"ooi_id": "Network|testnetwork"}), redteam_member.user)
@@ -51,7 +51,7 @@ def test_scan_profile(rf, redteam_member, mock_scheduler, mock_organization_view
 
 
 def test_scan_profile_submit(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
     # Passing query params in POST requests is not well-supported for RequestFactory it seems, hence the absolute path
@@ -72,7 +72,7 @@ def test_scan_profile_submit(rf, redteam_member, mock_scheduler, mock_organizati
 def test_scan_profile_submit_no_indemnification(
     rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker
 ):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
     Indemnification.objects.get(user=redteam_member.user).delete()
@@ -95,7 +95,7 @@ def test_scan_profile_submit_no_indemnification(
 def test_scan_profile_no_permissions_acknowledged(
     rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker
 ):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
     redteam_member.acknowledged_clearance_level = -1
@@ -114,7 +114,7 @@ def test_scan_profile_no_permissions_trusted(
     rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker
 ):
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
 
     redteam_member.trusted_clearance_level = -1
     redteam_member.save()
@@ -129,7 +129,7 @@ def test_scan_profile_no_permissions_trusted(
 
 
 def test_scan_profile_submit_inherited(rf, redteam_member, mock_scheduler, mock_organization_view_octopoes, mocker):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
     # Passing query params in POST requests is not well-supported for RequestFactory it seems, hence the absolute path

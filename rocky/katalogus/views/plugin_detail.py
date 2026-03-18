@@ -21,7 +21,7 @@ class PluginCoverImgView(OrganizationView):
     """Get the cover image of a plugin."""
 
     def get(self, request, *args, **kwargs):
-        file = FileResponse(self.get_katalogus().get_cover(kwargs["plugin_id"]))
+        file = FileResponse(self.katalogus_client.get_cover(kwargs["plugin_id"]))
         file.headers["Cache-Control"] = "max-age=604800"
         return file
 
@@ -133,7 +133,7 @@ class BoefjeDetailView(PluginDetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["new_variant"] = self.request.GET.get("new_variant")
-        context["variants"] = self.get_katalogus().get_plugins(oci_image=self.plugin.oci_image)
+        context["variants"] = self.katalogus_client.get_plugins(oci_image=self.plugin.oci_image)
 
         for variant in context["variants"]:
             if variant.created:
@@ -164,7 +164,7 @@ class BoefjeDetailView(PluginDetailView):
 
         return context
 
-    def get_form_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse]]:
+    def get_form_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse | None]]:
         """Get all available OOIS that plugin can consume."""
 
         oois = {
@@ -176,7 +176,7 @@ class BoefjeDetailView(PluginDetailView):
 
         return self._filter_oois_with_schedules(oois)
 
-    def get_form_filtered_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse]]:
+    def get_form_filtered_consumable_oois(self) -> list[tuple[OOIType, ScheduleResponse | None]]:
         """Return a list of oois that is filtered for oois that meets clearance level."""
         oois = {
             ooi.primary_key: ooi
@@ -184,13 +184,13 @@ class BoefjeDetailView(PluginDetailView):
                 self.plugin.consumes,
                 valid_time=datetime.now(timezone.utc),
                 limit=self.limit_ooi_list,
-                scan_level={level for level in ScanLevel if level.value >= self.plugin.scan_level.value},
+                scan_level={level.value for level in ScanLevel if level.value >= self.plugin.scan_level.value},
             ).items
         }
 
         return self._filter_oois_with_schedules(oois)
 
-    def _filter_oois_with_schedules(self, oois: dict[str, OOIType]) -> list[tuple[OOIType, ScheduleResponse]]:
+    def _filter_oois_with_schedules(self, oois: dict[str, OOIType]) -> list[tuple[OOIType, ScheduleResponse | None]]:
         if not oois:
             return []
 
@@ -208,8 +208,15 @@ class BoefjeDetailView(PluginDetailView):
             }
         )
 
-        return [
-            (oois[schedule.data["input_ooi"]], schedule)
-            for schedule in schedules.results
-            if "input_ooi" in schedule.data
-        ]
+        results: dict[str, tuple[OOIType, ScheduleResponse | None]] = {}
+        # corner case, not all valid Input OOI's might have a schedule
+        # this happens when a boefje is edited (eg, new input types).
+        for ooi in oois.values():
+            results[ooi.primary_key] = (ooi, None)
+
+        for schedule in schedules.results:
+            if "input_ooi" in schedule.data:
+                key = schedule.data["input_ooi"]
+                results[key] = (oois[key], schedule)
+
+        return list(results.values())

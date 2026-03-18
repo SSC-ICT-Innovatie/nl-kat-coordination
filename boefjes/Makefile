@@ -38,53 +38,53 @@ build: images
 base-image:
 	docker build -f **/base.Dockerfile -t openkat/boefje-base:latest .
 
-export REGISTRY=ghcr.io/minvws/openkat
+export REGISTRY=docker.underdark.nl/librekat
 
 # TODO: nikto cannot run as a worker as it uses a custom javascript image. We should differentiate between these images.
 # Build the images for the containerized boefjes
 images: dns-sec nmap export-http nikto adr-validator masscan nuclei ssl-certificates ssl-scan testssl-sh-ciphers webpage-capture wp-scan pdio-subfinder generic
 
 dns-sec: base-image
-	docker build -f */*/kat_dnssec/boefje.Dockerfile -t $(REGISTRY)/dns-sec:latest -t openkat/dns-sec .
+	docker build -f */*/kat_dnssec/boefje.Dockerfile -t $(REGISTRY)/openkat-dns-sec:latest -t openkat/dns-sec .
 
 nmap: base-image
-	docker build -f */*/kat_nmap_tcp/boefje.Dockerfile -t $(REGISTRY)/nmap:latest -t openkat/nmap .
+	docker build -f */*/kat_nmap_tcp/boefje.Dockerfile -t $(REGISTRY)/openkat-nmap:latest -t openkat/nmap .
 
 export-http: base-image
-	docker build -f */*/kat_export_http/boefje.Dockerfile -t $(REGISTRY)/export-http:latest -t openkat/export-http .
+	docker build -f */*/kat_export_http/boefje.Dockerfile -t $(REGISTRY)/openkat-export-http:latest -t openkat/export-http .
 
 nikto: base-image
-	docker build -f */*/kat_nikto/boefje.Dockerfile -t $(REGISTRY)/nikto:latest .
+	docker build -f */*/kat_nikto/boefje.Dockerfile -t $(REGISTRY)/openkat-nikto:latest .
 
 adr-validator: base-image
-	docker build -f */*/kat_adr_validator/boefje.Dockerfile -t $(REGISTRY)/adr-validator:latest .
+	docker build -f */*/kat_adr_validator/boefje.Dockerfile -t $(REGISTRY)/openkat-adr-validator:latest .
 
 masscan: base-image
-	docker build -f */*/kat_masscan/boefje.Dockerfile -t $(REGISTRY)/masscan:latest .
+	docker build -f */*/kat_masscan/boefje.Dockerfile -t $(REGISTRY)/openkat-masscan:latest .
 
 nuclei: base-image
-	docker build -f */*/kat_nuclei_cve/boefje.Dockerfile -t $(REGISTRY)/nuclei:latest .
+	docker build -f */*/kat_nuclei_cve/boefje.Dockerfile -t $(REGISTRY)/openkat-nuclei:latest .
 
 ssl-certificates: base-image
-	docker build -f */*/kat_ssl_certificates/boefje.Dockerfile -t $(REGISTRY)/ssl-certificates:latest .
+	docker build -f */*/kat_ssl_certificates/boefje.Dockerfile -t $(REGISTRY)/openkat-ssl-certificates:latest .
 
 ssl-scan: base-image
-	docker build -f */*/kat_ssl_scan/boefje.Dockerfile -t $(REGISTRY)/ssl-scan:latest .
+	docker build -f */*/kat_ssl_scan/boefje.Dockerfile -t $(REGISTRY)/openkat-ssl-scan:latest .
 
 testssl-sh-ciphers: base-image
-	docker build -f */*/kat_testssl_sh_ciphers/boefje.Dockerfile -t $(REGISTRY)/testssl-sh-ciphers:latest .
+	docker build -f */*/kat_testssl_sh_ciphers/boefje.Dockerfile -t $(REGISTRY)/openkat-testssl-sh-ciphers:latest .
 
 webpage-capture: base-image
-	docker build -f */*/kat_webpage_capture/boefje.Dockerfile -t $(REGISTRY)/webpage-capture:latest .
+	docker build -f */*/kat_webpage_capture/boefje.Dockerfile -t $(REGISTRY)/openkat-webpage-capture:latest .
 
 wp-scan: base-image
-	docker build -f */*/kat_wpscan/boefje.Dockerfile -t $(REGISTRY)/wp-scan:latest .
+	docker build -f */*/kat_wpscan/boefje.Dockerfile -t $(REGISTRY)/openkat-wp-scan:latest .
 
 pdio-subfinder: base-image
-	docker build -f */*/kat_pdio_subfinder/boefje.Dockerfile -t $(REGISTRY)/pdio-subfinder:latest .
+	docker build -f */*/kat_pdio_subfinder/boefje.Dockerfile -t $(REGISTRY)/openkat-pdio-subfinder:latest .
 
 generic: base-image
-	docker build -f */generic.Dockerfile -t $(REGISTRY)/generic:latest -t openkat/generic .
+	docker build -f */generic.Dockerfile -t $(REGISTRY)/openkat-generic:latest -t openkat/generic .
 
 
 ##

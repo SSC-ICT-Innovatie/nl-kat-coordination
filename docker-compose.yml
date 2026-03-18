@@ -36,7 +36,7 @@ services:
       APPS: "ROCKY BYTES KATALOGUS SCHEDULER"
 
   crux:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:main"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
@@ -86,6 +86,23 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+
+  octopoes_api_scanprofiles:
+    restart: unless-stopped
+    build:
+      context: octopoes/
+      target: dev
+      args:
+        ENVIRONMENT: dev
+    command: scanprofiles
+    env_file:
+      - .env-defaults
+      - .env
+    depends_on:
+      - octopoes_api
+      - katalogus
+    volumes:
+      - ./octopoes:/app/octopoes
 
   boefje:
     restart: unless-stopped
@@ -307,6 +324,21 @@ services:
     ports:
       - "127.0.0.1:4000:3000"
 
+  cveapi:
+    profiles:
+      - cveapi
+    restart: unless-stopped
+    build:
+      context: cveapi/
+      dockerfile: Dockerfile
+    volumes:
+      - cveapi-data:/var/lib/kat-cveapi
+    ports:
+      - "127.0.0.1:8880:8080"
+    networks:
+      - default
+      - boefjes
+
 networks:
   default:
     enable_ipv6: true
@@ -327,5 +359,6 @@ volumes:
   postgres-data:
   bytes-data:
   xtdb-data:
+  cveapi-data:
   jaeger-data:
   prometheus-data:

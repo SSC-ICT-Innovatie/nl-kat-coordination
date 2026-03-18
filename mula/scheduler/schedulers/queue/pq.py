@@ -10,6 +10,7 @@ import pydantic
 import structlog
 
 from scheduler import models, storage
+from scheduler.storage.errors import IntegrityError
 
 from .errors import InvalidItemError, NotAllowedError, QueueFullError
 
@@ -190,13 +191,27 @@ class PriorityQueue(abc.ABC):
 
         # If already on queue update the item, else create a new one
         if not item_on_queue:
-            task.hash = self.create_hash(task)
-            task.status = models.TaskStatus.QUEUED
-            item_db = self.pq_store.push(task)
-            return item_db
+            try:
+                task.hash = self.create_hash(task)
+                task.status = models.TaskStatus.QUEUED
+                item_db = self.pq_store.push(task)
+                return item_db
+            except IntegrityError as exc:
+                # check for collision warning on schedule_id / active state
+                if "ix_tasks_active_per_schedule" not in str(exc):
+                    raise
+                item_on_queue = self.pq_store.get_active_task_by_schedule(task.schedule_id)
+                if not item_on_queue:
+                    # This should never happen, we had a collision,
+                    # but cannot find the colliding scheduled task.
+                    # maybe it was a race condition, lets insert again
+                    task.hash = self.create_hash(task)
+                    task.status = models.TaskStatus.QUEUED
+                    item_db = self.pq_store.push(task)
+                    return item_db
 
         # Update the item with the new data
-        patch_data = task.dict(exclude_unset=True)
+        patch_data = task.model_dump(exclude_unset=True)
         updated_task = item_on_queue.model_copy(update=patch_data)
 
         # Update the item in the queue

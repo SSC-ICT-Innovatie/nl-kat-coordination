@@ -134,14 +134,14 @@ class ScheduleAPI:
             raise ConflictError(f"schedule with the same hash already exists: {new_schedule.hash}")
 
         self.ctx.datastores.schedule_store.create_schedule(new_schedule)
-        return schemas.Schedule(**new_schedule.dict())
+        return schemas.Schedule(**new_schedule.model_dump())
 
     def get(self, schedule_id: uuid.UUID) -> schemas.Schedule:
         schedule = self.ctx.datastores.schedule_store.get_schedule(schedule_id)
         if schedule is None:
             raise NotFoundError(f"schedule not found, by schedule_id: {schedule_id}")
 
-        return schemas.Schedule(**schedule.dict())
+        return schemas.Schedule(**schedule.model_dump())
 
     def patch(self, schedule_id: uuid.UUID, schedule: schemas.SchedulePatch) -> schemas.Schedule:
         schedule_db = self.ctx.datastores.schedule_store.get_schedule(schedule_id)
@@ -157,14 +157,14 @@ class ScheduleAPI:
 
         # Validate schedule, model_copy() does not validate the model
         try:
-            models.Schedule(**updated_schedule.dict())
+            models.Schedule(**updated_schedule.model_dump())
         except ValueError:
             raise ValidationError("validation error")
 
         # Update schedule in database
         self.ctx.datastores.schedule_store.update_schedule(updated_schedule)
 
-        return schemas.Schedule(**updated_schedule.dict())
+        return schemas.Schedule(**updated_schedule.model_dump())
 
     def search(
         self,
