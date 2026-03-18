@@ -184,7 +184,7 @@ class BoefjeDetailView(PluginDetailView):
                 self.plugin.consumes,
                 valid_time=datetime.now(timezone.utc),
                 limit=self.limit_ooi_list,
-                scan_level={level for level in ScanLevel if level.value >= self.plugin.scan_level.value},
+                scan_level={level.value for level in ScanLevel if level.value >= self.plugin.scan_level.value},
             ).items
         }
 

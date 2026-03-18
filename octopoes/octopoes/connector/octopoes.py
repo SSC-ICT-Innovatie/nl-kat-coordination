@@ -84,7 +84,7 @@ class OctopoesAPIConnector:
         valid_time: datetime,
         offset: int = DEFAULT_OFFSET,
         limit: int = DEFAULT_LIMIT,
-        scan_level: set[ScanLevel] | set[str] | None = None,
+        scan_level: set[ScanLevel] | set[int] | None = None,
         scan_profile_type: set[ScanProfileType] | set[str] | None = None,
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
@@ -168,10 +168,11 @@ class OctopoesAPIConnector:
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
-            "types": [t.__name__ if hasattr(t, "__name__") else t for t in types if t] if types else None,
             "depth": depth,
             "valid_time": str(valid_time),
         }
+        if types:
+            params["types"] = [t.__name__ if hasattr(t, "__name__") else t for t in types if t]
         res = self.session.get(f"/{self.client}/tree", params=params)
         return ReferenceTree.model_validate_json(res.content)
 
