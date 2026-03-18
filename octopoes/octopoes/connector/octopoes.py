@@ -100,15 +100,21 @@ class OctopoesAPIConnector:
         }
 
         if scan_level:
-            params["scan_level"] = (
-                list(scan_level) if all(isinstance(t, int) for t in scan_level) else [s.value for s in scan_level]
-            )
+            scan_levels: list[int] = []
+            for s in scan_level:
+                if isinstance(s, int):
+                    scan_levels.append(s)
+                else:
+                    scan_levels.append(s.value)
+            params["scan_level"] = scan_levels
         if scan_profile_type:
-            params["scan_profile_type"] = (
-                list(scan_profile_type)
-                if all(isinstance(t, str) for t in scan_profile_type)
-                else [s.value for s in scan_profile_type]
-            )
+            scan_profile_types: list[int] = []
+            for s in scan_profile_type:
+                if isinstance(s, str):
+                    scan_profile_type.append(s)
+                else:
+                    scan_profile_type.append(s.value)
+            params["scan_profile_type"] = scan_profile_type
         if search_string:
             params["search_string"] = search_string
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values

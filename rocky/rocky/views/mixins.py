@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from operator import attrgetter
-from typing import Literal, Optional, TypedDict, cast
+from typing import Literal, TypedDict, cast
 
 import structlog
 from account.mixins import OrganizationView
@@ -231,7 +231,7 @@ class OOIList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
-        self._results: Optional[Paginated[OOI]] = None
+        self._results: Paginated[OOI] | None = None
 
     @cached_property
     def count(self) -> int:
@@ -313,7 +313,7 @@ class FindingList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
-        self._results: Optional[Paginated[Finding]] = None
+        self._results: Paginated[OOI] | None = None
 
     @cached_property
     def count(self) -> int:
