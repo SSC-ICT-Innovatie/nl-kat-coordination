@@ -108,7 +108,7 @@ class OctopoesAPIConnector:
                     scan_levels.append(s.value)
             params["scan_level"] = scan_levels
         if scan_profile_type:
-            scan_profile_types: list[int] = []
+            scan_profile_types: list[str] = []
             for s in scan_profile_type:
                 if isinstance(s, str):
                     scan_profile_types.append(s)
