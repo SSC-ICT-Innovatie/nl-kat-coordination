@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from dateutil.parser import parse
 
-from boefjes.job_models import NormalizerAffirmation, NormalizerOutput
+from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
     AlgorithmType,

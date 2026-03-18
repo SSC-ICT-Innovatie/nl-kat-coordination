@@ -3,8 +3,8 @@ from enum import Enum
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint, types
 from sqlalchemy.orm import relationship
 
-from boefjes.models import RunOn
 from boefjes.sql.db import SQL_BASE
+from boefjes.worker.models import RunOn
 
 
 class ScanLevel(Enum):

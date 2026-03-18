@@ -5,5 +5,9 @@
   "consumes": [
     "SoftwareInstance"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_snyk.main"
+  ]
 }

@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import text
 
-from boefjes.local_repository import get_local_repository
+from boefjes.worker.repository import get_local_repository
 
 # revision identifiers, used by Alembic.
 revision = "5be152459a7b"
@@ -30,18 +30,17 @@ def upgrade() -> None:
     local_repo = get_local_repository()
     connection = op.get_bind()
 
-    with connection.begin():
-        plugins = local_repo.get_all()
-        logger.info("Found %s plugins", len(plugins))
+    plugins = local_repo.get_all()
+    logger.info("Found %s plugins", len(plugins))
 
-        for plugin in plugins:
-            schema = local_repo.schema(plugin.id)
-            if schema:
-                query = text("UPDATE boefje SET schema = :schema WHERE plugin_id = :plugin_id")  # noqa: S608
-                connection.execute(query, {"schema": schema, "plugin_id": plugin.id})
-                logger.info("Updated any database entries for plugin %s", plugin.id)
-            else:
-                logger.info("No schema present for plugin %s", plugin.id)
+    for plugin in plugins:
+        schema = local_repo.schema(plugin.id)
+        if schema:
+            query = text("UPDATE boefje SET schema = :schema WHERE plugin_id = :plugin_id")  # noqa: S608
+            connection.execute(query, {"schema": schema, "plugin_id": plugin.id})
+            logger.info("Updated any database entries for plugin %s", plugin.id)
+        else:
+            logger.info("No schema present for plugin %s", plugin.id)
 
     # ### end Alembic commands ###
 

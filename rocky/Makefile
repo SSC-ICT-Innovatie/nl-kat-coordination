@@ -63,6 +63,7 @@ export_migrations:
 	python3 manage.py export_migrations tools 0001
 	python3 manage.py export_migrations fmea 0001
 	python3 manage.py export_migrations accounts 0001
+	python3 manage.py export_migrations crisis_room 0001
 
 languages:
 # Extracts strings to `.pot` file which should be translated

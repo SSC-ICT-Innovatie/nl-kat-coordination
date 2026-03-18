@@ -1,3 +1,4 @@
+from collections.abc import Iterator
 from datetime import datetime, timezone
 
 import httpx
@@ -26,35 +27,26 @@ class Octopoes(HTTPService):
     @exception_handler
     def get_objects_by_object_types(
         self, organisation_id: str, object_types: list[str], scan_level: list[int]
-    ) -> list[OOI]:
+    ) -> Iterator[OOI]:
         """Get all oois from octopoes"""
         if scan_level is None:
             scan_level = []
 
         url = f"{self.host}/{organisation_id}/objects"
 
+        pagesize = 1000
         params = {
             "types": object_types,
             "scan_level": [s for s in scan_level],
             "offset": 0,
-            "limit": 1,
+            "limit": pagesize,
             "valid_time": datetime.now(timezone.utc),
         }
 
-        # Get the total count of objects
-        response = self.get(url, params=params)
-        list_objects = ListObjectsResponse(**response.json())
-        count = list_objects.count
-
-        # Update the limit for the paginated results
-        limit = 1000
-        params["limit"] = limit
-
-        # Loop over the paginated results
-        oois = []
-        for offset in range(0, count, limit):
-            params["offset"] = offset
-
+        count = pagesize
+        processed = 0
+        while count > processed:
+            params["offset"] = processed
             try:
                 response = self.get(url, params=params)
             except httpx.HTTPStatusError as e:
@@ -63,9 +55,11 @@ class Octopoes(HTTPService):
                 raise
 
             list_objects = ListObjectsResponse(**response.json())
-            oois.extend([ooi for ooi in list_objects.items])
-
-        return oois
+            # set count to actual count on first query result.
+            if processed == 0:
+                count = list_objects.count
+            processed += pagesize
+            yield from list_objects.items
 
     @exception_handler
     def get_random_objects(self, organisation_id: str, n: int, scan_level: list[int]) -> list[OOI]:
@@ -84,6 +78,15 @@ class Octopoes(HTTPService):
             if e.response.status_code == httpx.codes.NOT_FOUND:
                 return []
             raise
+
+    @exception_handler
+    def get_objects(self, organisation_id: str, references: list[str]) -> Iterator[OOI]:
+        """Get an ooi from octopoes"""
+        url = f"{self.host}/{organisation_id}/objects/by_reference"
+        response = self.get(url, params={"references": references, "valid_time": datetime.now(timezone.utc)})
+        list_objects = response.json()
+        for ooi in list_objects:
+            yield OOI(**list_objects[ooi])
 
     @exception_handler
     def get_object(self, organisation_id: str, reference: str) -> OOI | None:

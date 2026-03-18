@@ -7,7 +7,7 @@ import pika
 import structlog
 from celery import Celery
 from pika.adapters.blocking_connection import BlockingChannel
-from pika.exceptions import StreamLostError
+from pika.exceptions import ChannelWrongStateError, StreamLostError
 from pydantic import BaseModel
 
 from octopoes.events.events import DBEvent, OperationType, ScanProfileDBEvent
@@ -68,31 +68,32 @@ class EventManager:
     def publish(self, event: DBEvent) -> None:
         try:
             self._publish(event)
-        except StreamLostError:  # Retry publishing once on connection issues
+        except (StreamLostError, ChannelWrongStateError):  # Retry publishing once on connection issues
             logger.exception("Failed publishing event, retrying...")
 
             try:
                 self._connect()
-                self._publish(event)
+                self._publish(event, push_to_celery=False)
             except StreamLostError:
                 logger.exception("Failed publishing event again")
                 raise
 
-    def _publish(self, event: DBEvent) -> None:
-        # schedule celery event processor
-        self.celery_app.send_task(
-            "octopoes.tasks.tasks.handle_event",
-            (json.loads(event.model_dump_json()),),
-            queue=self.celery_queue_name,
-            task_id=str(uuid.uuid4()),
-        )
+    def _publish(self, event: DBEvent, push_to_celery=True) -> None:
+        if push_to_celery:
+            # schedule celery event processor
+            self.celery_app.send_task(
+                "octopoes.tasks.tasks.handle_event",
+                (json.loads(event.model_dump_json()),),
+                queue=self.celery_queue_name,
+                task_id=str(uuid.uuid4()),
+            )
 
-        logger.debug(
-            "Published handle_event task [operation_type=%s] [primary_key=%s] [client=%s]",
-            event.operation_type,
-            format_id_short(event.primary_key),
-            event.client,
-        )
+            logger.debug(
+                "Published handle_event task [operation_type=%s] [primary_key=%s] [client=%s]",
+                event.operation_type,
+                format_id_short(event.primary_key),
+                event.client,
+            )
 
         if not isinstance(event, ScanProfileDBEvent):
             return

@@ -1,0 +1,13 @@
+.introduction {
+  flex-direction: row;
+  justify-content: space-between;
+  width: 100%;
+
+  .toolbar {
+    width: unset;
+  }
+
+  .tabs {
+    margin-top: calc(var(--section-gap) * -1);
+  }
+}

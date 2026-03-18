@@ -67,24 +67,27 @@ class Report(BaseReport):
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        return f"HydratedReport for recipe {reference.tokenized.report_recipe}"
+        return f"HydratedReport for ReportRecipe|{reference.tokenized.report_recipe.recipe_id}"
 
 
 class HydratedReport(BaseReport):
     object_type: Literal["HydratedReport"] = "HydratedReport"
     report_type: str  # e.g. "concatenated-report", "aggregate-organisation-report" or "multi-organization-report"
 
-    input_oois: list[AssetReport]
+    input_oois: list[AssetReport | str]
 
     _natural_key_attrs = ["report_recipe"]
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        return f"HydratedReport for recipe {reference.tokenized.report_recipe}"
+        return f"HydratedReport for ReportRecipe|{reference.tokenized.report_recipe.recipe_id}"
 
     def to_report(self) -> Report:
         as_dict = self.model_dump(exclude={"input_oois", "object_type"})
-        as_dict["input_oois"] = [input_ooi.reference for input_ooi in self.input_oois]
+        as_dict["input_oois"] = [
+            input_ooi.reference if isinstance(input_ooi, AssetReport) else input_ooi for input_ooi in self.input_oois
+        ]
+
         return Report.model_validate(as_dict)
 
 

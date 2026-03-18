@@ -1,14 +1,10 @@
-FROM python:3.13-slim
+FROM openkat/boefje-base:latest
 
-WORKDIR /app
-RUN adduser --disabled-password --gecos '' nonroot
-RUN apt update -y && apt-get install -y --no-install-recommends ldnsutils dnsutils dns-root-data && pip install httpx
+ARG OCI_IMAGE=ghcr.io/minvws/openkat/dns-sec:latest
+ENV OCI_IMAGE=$OCI_IMAGE
 
-ARG BOEFJE_PATH=./boefjes/plugins/kat_dnssec
-ENV PYTHONPATH=/app:$BOEFJE_PATH
-
-COPY ./images/oci_adapter.py ./
-COPY $BOEFJE_PATH $BOEFJE_PATH
-
-ENTRYPOINT ["/usr/local/bin/python", "-m", "oci_adapter"]
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends ldnsutils dnsutils dns-root-data
 USER nonroot
+
+COPY ./boefjes/plugins/kat_dnssec ./kat_dnssec

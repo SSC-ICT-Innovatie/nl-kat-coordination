@@ -1,0 +1,18 @@
+{% load i18n %}
+{% load static %}
+
+<div>
+    <h5>{% translate "Current configuration" %}</h5>
+    <div>
+        <dl>
+            {% for key, value in config.items %}
+                <div>
+                    <dt>{{ key }}</dt>
+                    <dd>
+                        {{ value }}
+                    </dd>
+                </div>
+            {% endfor %}
+        </dl>
+    </div>
+</div>

@@ -16,7 +16,7 @@
             You will find previously generated reports in the report history tab.
         {% endblocktranslate %}
     </p>
-    <form id={{ form_id }} class="inline" method="post">
+    <form id={{ form_id }} class="hidden" method="post">
         {% csrf_token %}
         <input type="hidden" name="recipe_id" value="{{ recipe_id }}" />
     </form>

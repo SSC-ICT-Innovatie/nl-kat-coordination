@@ -10,8 +10,6 @@ from dns.edns import EDEOption
 from dns.name import Name
 from dns.resolver import Answer
 
-from boefjes.job_models import BoefjeMeta
-
 logger = logging.getLogger(__name__)
 DEFAULT_RECORD_TYPES = {"A", "AAAA", "CAA", "CERT", "RP", "SRV", "TXT", "MX", "NS", "CNAME", "DNAME", "SOA"}
 
@@ -34,8 +32,8 @@ def get_record_types() -> set[str]:
     return set(parsed_requested_record_types).intersection(DEFAULT_RECORD_TYPES)
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    hostname = boefje_meta.arguments["input"]["name"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    hostname = boefje_meta["arguments"]["input"]["name"]
 
     requested_dns_name = dns.name.from_text(hostname)
     resolver = dns.resolver.Resolver()
@@ -85,8 +83,6 @@ def get_parent_zone_soa(resolver: dns.resolver.Resolver, name: Name) -> Answer:
 def get_email_security_records(resolver: dns.resolver.Resolver, hostname: str, record_subdomain: str) -> str:
     try:
         answer = resolver.resolve(f"{record_subdomain}.{hostname}", "TXT", raise_on_no_answer=False)
-        if answer.rrset is None:
-            return "NXDOMAIN"
         return answer.response.to_text()
     except dns.resolver.NoNameservers as error:
         # no servers responded happily, we'll check the response from the first

@@ -1,10 +1,12 @@
-# Nmap IP-range
+# Nmap
 
-This boefje checks an IP range/NetBlock and stores any IP addresses that seem to be active.
+Nmap is a network scanning tool that uses IP packets to identify all the devices connected to a network and to provide
+information on the services and operating systems they are running. In KAT, a Python wrapper around Nmap is used to find
+open ports with their services of an IpAddress. Nmap itself runs in a temporary Docker container.
 
 ### Options
 
-This Nmap boefje has the following hardcoded options:
+This Nmap has the following hardcoded options:
 
 | Option | Function                                     |
 | ------ | -------------------------------------------- |
@@ -12,26 +14,46 @@ This Nmap boefje has the following hardcoded options:
 | `Pn`   | skips host discovery, treats hosts as online |
 | `-r`   | scan ports in order                          |
 | `-v10` | use verbosity level 10                       |
+| `-sV`  | probe open ports to determine version info   |
 | `-oX`  | Output in XML                                |
+| `-sS`  | TCP SYN scan                                 |
 
-For TCP `-sS` is used, for UDP `-sU` is used. Both have their own TOP_PORTS argument.
+`TOP_PORTS` defaults to `250`.
 
 ### Input OOIs
 
-Nmap expects an NetBlock as input.
+Nmap expects an IpAddress or NetBlock as input which, can be of type IpAddressV4, IpAddressV6, IPV4NetBlock or IPV6NetBlock.
 
 ### Output OOIs
 
 Nmap outputs the following OOIs:
 
-| OOI type    | Description                                      |
-| ----------- | ------------------------------------------------ |
-| IPAddressV4 | IPv4                                             |
-| IPAddressV6 | IPv6                                             |
-| IpPort      | Open ports of IpAddress                          |
-| Service     | Services that are found                          |
-| IpService   | IpService that couples a service to an open port |
+| OOI type       | Description                                                   |
+| -------------- | ------------------------------------------------------------- |
+| IpPort         | Open ports of IpAddress                                       |
+| Service        | Services that are found                                       |
+| IpService      | IpService that couples a service to an open port              |
+| Finding        | Finding if ports are open that should not be open (TEMP!)     |
+| KatFindingType | FindingType if ports are open that should not be open (TEMP!) |
 
-The boefje uses the same normalizer and structure as the generic `kat_nmap` boefje.
+### Running Boefje
 
-**Cat name**: Elsje (inverted, mirrored)
+```json
+{
+  "id": "nmap-scan-job",
+  "organization": "_dev",
+  "arguments": {
+    "host": "1.1.1.1"
+  }
+}
+```
+
+### Boefje structure
+
+```
+boefjes/tools/kat_nmap
+├── normalize.py
+├── main.py
+```
+
+**Cat name**: Elsje

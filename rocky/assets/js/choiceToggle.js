@@ -39,7 +39,10 @@ function initChoiceTogglers() {
       if (tag.tagName == "INPUT" && tag.classList.contains("radio-choice")) {
         let toggle_group = tag.dataset.choicegroup;
         let visible_group = tag.value;
-        toggleChoice(tag.form, toggle_group, visible_group);
+        let formElement =
+          tag.closest("form") ||
+          document.getElementById(tag.getAttribute("form"));
+        toggleChoice(formElement, toggle_group, visible_group);
       }
     });
   });

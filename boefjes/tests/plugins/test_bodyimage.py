@@ -2,11 +2,12 @@ import json
 
 from requests.models import CaseInsensitiveDict, PreparedRequest, Response
 
-from boefjes.job_models import BoefjeMeta, NormalizerMeta
+from boefjes.plugins.kat_webpage_analysis.main import run
+from boefjes.worker.job_models import BoefjeMeta, NormalizerMeta
 from tests.loading import get_dummy_data
 
 
-def test_website_analysis(boefje_runner, mocker):
+def test_website_analysis(local_repository, mocker):
     do_request_mock = mocker.patch("boefjes.plugins.kat_webpage_analysis.main.do_request", spec=Response)
     meta = BoefjeMeta.model_validate_json(get_dummy_data("webpage-analysis.json"))
 
@@ -19,14 +20,14 @@ def test_website_analysis(boefje_runner, mocker):
 
     do_request_mock.return_value = mock_response
 
-    output = boefje_runner.run(meta, {})
+    output = run(meta.model_dump())
 
     assert "application/json+har" in output[0][0]
     assert "openkat-http/headers" in output[1][0]
     assert "openkat-http/body" in output[2][0]
 
 
-def test_website_analysis_for_image(boefje_runner, mocker):
+def test_website_analysis_for_image(mocker):
     do_request_mock = mocker.patch("boefjes.plugins.kat_webpage_analysis.main.do_request", spec=Response)
     meta = BoefjeMeta.model_validate_json(get_dummy_data("webpage-analysis.json"))
 
@@ -39,7 +40,7 @@ def test_website_analysis_for_image(boefje_runner, mocker):
 
     do_request_mock.return_value = mock_response
 
-    output = boefje_runner.run(meta, {})
+    output = run(meta.model_dump())
     assert "image/jpeg" in output[2][0]
 
 

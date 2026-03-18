@@ -4,13 +4,14 @@ from collections.abc import Iterator
 
 from sqlalchemy.orm import Session
 
+from boefjes.config import EncryptionMiddleware
 from boefjes.config import settings as config_settings
 from boefjes.dependencies.encryption import EncryptMiddleware, IdentityMiddleware, NaclBoxMiddleware
-from boefjes.models import BoefjeConfig, EncryptionMiddleware
 from boefjes.sql.db import ObjectNotFoundException, session_managed_iterator
 from boefjes.sql.db_models import BoefjeConfigInDB, BoefjeInDB, NormalizerConfigInDB, NormalizerInDB, OrganisationInDB
 from boefjes.sql.session import SessionMixin
 from boefjes.storage.interfaces import ConfigNotFound, ConfigStorage, OrganisationNotFound, PluginNotFound
+from boefjes.worker.models import BoefjeConfig
 
 logger = logging.getLogger(__name__)
 
@@ -169,6 +170,31 @@ class SQLConfigStorage(SessionMixin, ConfigStorage):
             .filter(NormalizerConfigInDB.organisation_pk == OrganisationInDB.pk)
             .filter(OrganisationInDB.id == organisation_id)
             .filter(NormalizerConfigInDB.enabled)
+        )
+
+        return [plugin[0] for plugin in enabled_normalizers.all()]
+
+    def get_disabled_boefjes(self, organisation_id: str) -> list[str]:
+        enabled_boefjes = (
+            self.session.query(BoefjeInDB.plugin_id)
+            .join(BoefjeConfigInDB)
+            .filter(BoefjeConfigInDB.boefje_id == BoefjeInDB.id)
+            .join(OrganisationInDB)
+            .filter(BoefjeConfigInDB.organisation_pk == OrganisationInDB.pk)
+            .filter(OrganisationInDB.id == organisation_id)
+            .filter(BoefjeConfigInDB.enabled == False)  # noqa: E712
+        )
+        return [x[0] for x in enabled_boefjes.all()]
+
+    def get_disabled_normalizers(self, organisation_id: str) -> list[str]:
+        enabled_normalizers = (
+            self.session.query(NormalizerInDB.plugin_id)
+            .join(NormalizerConfigInDB)
+            .filter(NormalizerConfigInDB.normalizer_id == NormalizerInDB.id)
+            .join(OrganisationInDB)
+            .filter(NormalizerConfigInDB.organisation_pk == OrganisationInDB.pk)
+            .filter(OrganisationInDB.id == organisation_id)
+            .filter(NormalizerConfigInDB.enabled == False)  # noqa: E712
         )
 
         return [plugin[0] for plugin in enabled_normalizers.all()]

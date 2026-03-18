@@ -7,7 +7,7 @@ from types import ModuleType
 import structlog
 from pydantic import BaseModel
 
-from octopoes.models.types import OOIType
+from octopoes.models.types import BITOOIType
 
 BITS_DIR = Path(__file__).parent
 BIT_ATTR_NAME = "BIT"
@@ -15,13 +15,13 @@ logger = structlog.get_logger(__name__)
 
 
 class BitParameterDefinition(BaseModel):
-    ooi_type: type[OOIType]
+    ooi_type: type[BITOOIType]
     relation_path: str
 
 
 class BitDefinition(BaseModel):
     id: str
-    consumes: type[OOIType]
+    consumes: type[BITOOIType]
     parameters: list[BitParameterDefinition]
     module: str
     min_scan_level: int = 1

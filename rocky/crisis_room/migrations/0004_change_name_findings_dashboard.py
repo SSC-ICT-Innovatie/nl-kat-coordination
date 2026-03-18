@@ -2,11 +2,12 @@
 
 from django.db import migrations
 
-from crisis_room.management.commands.dashboards import FINDINGS_DASHBOARD_NAME
-from crisis_room.models import Dashboard
+from crisis_room.models import FINDINGS_DASHBOARD_NAME
 
 
-def change_name_findings_dashboard(_apps, _schema_editor):
+def change_name_findings_dashboard(apps, _schema_editor):
+    Dashboard = apps.get_model("crisis_room", "Dashboard")
+
     dashboards = Dashboard.objects.filter(name="Crisis Room Findings Dashboard")
     for dashboard in dashboards:
         dashboard.name = FINDINGS_DASHBOARD_NAME

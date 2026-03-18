@@ -47,7 +47,7 @@ def session_managed_iterator(service_factory: Callable[[Session], Any]) -> Itera
         session.rollback()
         raise error
     finally:
-        logger.info("Closing session for %s", service.__class__)
+        logger.debug("Closing session for %s", service.__class__)
         session.close()
 
 

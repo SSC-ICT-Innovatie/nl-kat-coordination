@@ -12,7 +12,7 @@ from uuid import UUID
 
 import pytest
 import structlog
-from crisis_room.models import Dashboard, DashboardData
+from crisis_room.models import Dashboard, DashboardItem
 from crisis_room.views import DashboardItemView, DashboardService
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
@@ -133,12 +133,11 @@ def add_admin_group_permissions(member):
         Permission.objects.get(codename="add_dashboard").id,
         Permission.objects.get(codename="change_dashboard").id,
         Permission.objects.get(codename="delete_dashboard").id,
-        Permission.objects.get(codename="add_dashboarddata").id,
-        Permission.objects.get(codename="change_dashboarddata").id,
-        Permission.objects.get(codename="delete_dashboarddata").id,
-        Permission.objects.get(codename="change_dashboarddata_position").id,
+        Permission.objects.get(codename="add_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem").id,
+        Permission.objects.get(codename="delete_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem_position").id,
     ]
-
     group.permissions.set(admin_permissions)
 
 
@@ -157,12 +156,11 @@ def add_redteam_group_permissions(member):
         Permission.objects.get(codename="add_dashboard").id,
         Permission.objects.get(codename="change_dashboard").id,
         Permission.objects.get(codename="delete_dashboard").id,
-        Permission.objects.get(codename="add_dashboarddata").id,
-        Permission.objects.get(codename="change_dashboarddata").id,
-        Permission.objects.get(codename="delete_dashboarddata").id,
-        Permission.objects.get(codename="change_dashboarddata_position").id,
+        Permission.objects.get(codename="add_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem").id,
+        Permission.objects.get(codename="delete_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem_position").id,
     ]
-
     group.permissions.set(redteam_permissions)
 
 
@@ -1286,7 +1284,7 @@ def get_plugins_data() -> list[dict]:
 
 @pytest.fixture()
 def mock_mixins_katalogus(mocker):
-    return mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    return mocker.patch("account.mixins.OrganizationView.katalogus_client")
 
 
 @pytest.fixture()
@@ -1891,9 +1889,9 @@ def reports_task_list():
 
 
 @pytest.fixture
-def findings_dashboard_data(client_member, client_member_b):
+def findings_dashboard_item(client_member, client_member_b):
     # make sure that no dashboards exist to test this particular set
-    Dashboard.objects.all().delete()  # deleting dashboard deletes DashboardData as well
+    Dashboard.objects.all().delete()  # deleting dashboard deletes DashboardItem as well
 
     recipe_id_a = "7ebcdb32-e7f2-4c2d-840a-d7b8e6b37616"
     recipe_id_b = "c41bbf9a-7102-4b6b-b256-b3036e106316"
@@ -1901,10 +1899,10 @@ def findings_dashboard_data(client_member, client_member_b):
     dashboard_a = Dashboard.objects.create(name="Findings Dashboard", organization=client_member.organization)
     dashboard_b = Dashboard.objects.create(name="Findings Dashboard", organization=client_member_b.organization)
 
-    dashboard_data_a = DashboardData.objects.create(dashboard=dashboard_a, recipe=recipe_id_a, findings_dashboard=True)
-    dashboard_data_b = DashboardData.objects.create(dashboard=dashboard_b, recipe=recipe_id_b, findings_dashboard=True)
+    dashboard_item_a = DashboardItem.objects.create(dashboard=dashboard_a, recipe=recipe_id_a, findings_dashboard=True)
+    dashboard_item_b = DashboardItem.objects.create(dashboard=dashboard_b, recipe=recipe_id_b, findings_dashboard=True)
 
-    return [dashboard_data_a, dashboard_data_b]
+    return [dashboard_item_a, dashboard_item_b]
 
 
 @pytest.fixture
@@ -2169,21 +2167,21 @@ def findings_reports_data():
 
 
 @pytest.fixture
-def findings_results(mocker, findings_dashboard_data, findings_reports, findings_reports_data):
+def findings_results(mocker, findings_dashboard_item, findings_reports, findings_reports_data):
     octopoes_client = mocker.patch("crisis_room.views.OctopoesAPIConnector")
     bytes_client = mocker.patch("crisis_room.views.get_bytes_client")
 
     octopoes_client().bulk_list_reports.return_value = findings_reports
     bytes_client().get_raws_all.return_value = findings_reports_data
 
-    return DashboardService().get_dashboard_items(findings_dashboard_data)
+    return DashboardService().get_dashboard_items(findings_dashboard_item)
 
 
 @pytest.fixture
-def expected_findings_results(findings_dashboard_data, findings_reports, findings_reports_data):
+def expected_findings_results(findings_dashboard_item, findings_reports, findings_reports_data):
     findings_dashboard = []
 
-    for index, data in enumerate(findings_dashboard_data):
+    for index, data in enumerate(findings_dashboard_item):
         dashboard_item = DashboardItemView()
         dashboard_item.item = data
         report = findings_reports[data.recipe]
@@ -2251,17 +2249,17 @@ def scheduled_reports_list():
 
 
 @pytest.fixture
-def dashboard_items(client_member):
+def dashboard_items(redteam_member):
     # first delete to test that no other dashboard and items exists
     Dashboard.objects.all().delete()
 
-    dashboard = Dashboard.objects.create(name="Test", organization=client_member.organization)
-    dashboard_data_1 = DashboardData.objects.create(
+    dashboard = Dashboard.objects.create(name="Test", organization=redteam_member.organization)
+    dashboard_item_1 = DashboardItem.objects.create(
         dashboard=dashboard,
         name="URLs",
-        query_from="object_list",
-        query='{"ooi_types": ["URL"], "scan_level": [], "scan_profile_type": [], "search_string": "", '
-        '"order_by": "object_type", "asc_desc": "asc", "limit": 20}',
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["URL"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
         settings={
             "size": "1",
             "columns": {
@@ -2273,12 +2271,12 @@ def dashboard_items(client_member):
         },
         display_in_dashboard=True,
     )
-    dashboard_data_2 = DashboardData.objects.create(
+    dashboard_item_2 = DashboardItem.objects.create(
         dashboard=dashboard,
         name="Hostnames",
-        query_from="object_list",
-        query='{"ooi_types": ["Hostname"], "scan_level": [], "scan_profile_type": [], "search_string": "", '
-        '"order_by": "object_type", "asc_desc": "asc", "limit": 20}',
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["Hostname"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
         settings={
             "size": "1",
             "columns": {
@@ -2290,12 +2288,12 @@ def dashboard_items(client_member):
         },
         display_in_dashboard=True,
     )
-    dashboard_data_3 = DashboardData.objects.create(
+    dashboard_item_3 = DashboardItem.objects.create(
         dashboard=dashboard,
         name="IPs",
-        query_from="object_list",
-        query='{"ooi_types": ["IPAddress"], "scan_level": [], "scan_profile_type": [], "search_string": "", '
-        '"order_by": "object_type", "asc_desc": "asc", "limit": 20}',
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["IPAddress"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
         settings={
             "size": "1",
             "columns": {
@@ -2307,12 +2305,12 @@ def dashboard_items(client_member):
         },
         display_in_dashboard=True,
     )
-    dashboard_data_4 = DashboardData.objects.create(
+    dashboard_item_4 = DashboardItem.objects.create(
         dashboard=dashboard,
         name="Networks",
-        query_from="object_list",
-        query='{"ooi_types": ["Network"], "scan_level": [], "scan_profile_type": [], "search_string": "", '
-        '"order_by": "object_type", "asc_desc": "asc", "limit": 20}',
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["Network"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
         settings={
             "size": "1",
             "columns": {
@@ -2324,4 +2322,33 @@ def dashboard_items(client_member):
         },
         display_in_dashboard=True,
     )
-    return [dashboard_data_1, dashboard_data_2, dashboard_data_3, dashboard_data_4]
+    return [dashboard_item_1, dashboard_item_2, dashboard_item_3, dashboard_item_4]
+
+
+@pytest.fixture
+def dashboard_items_from_findings_list(redteam_member):
+    # first delete to test that no other dashboard and items exists
+    Dashboard.objects.all().delete()
+
+    dashboard = Dashboard.objects.create(name="Test", organization=redteam_member.organization)
+
+    dashboard_item_1 = DashboardItem.objects.create(
+        dashboard=dashboard,
+        name="Medium severity findings",
+        source="findings_list",
+        query='{"observed_at":"2015-06-06", "order_by": "score", "asc_desc": "asc", "limit": 5,'
+        '"severities": ["medium"], "exclude_muted": true, "only_muted": false, "search_string": ""}',
+        settings={
+            "size": "2",
+            "columns": {
+                "tree": "Tree",
+                "graph": "Graph",
+                "finding": "Finding",
+                "location": "Location",
+                "severity": "Severity",
+            },
+        },
+        display_in_dashboard=True,
+    )
+
+    return [dashboard_item_1]

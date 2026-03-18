@@ -5,6 +5,17 @@
   flex-direction: row;
   gap: 32px;
 
+  h2,
+  h3 {
+    margin-bottom: -0.5rem; /* Reducing margin below the header due to additional space within the font */
+  }
+
+  h4,
+  h5,
+  h6 {
+    margin-bottom: -0.25rem; /* Reducing margin below the header due to additional space within the font */
+  }
+
   > section {
     border: 1px solid #b4b4b4;
     border-radius: 16px;
@@ -14,6 +25,10 @@
 
     &.width-1 {
       width: 100%;
+
+      .dashboard-item-link {
+        margin-left: auto;
+      }
     }
 
     &.width-2 {
@@ -21,12 +36,86 @@
     }
   }
 
+  [id^="item-"] {
+    .toggle-item {
+      &[data-show="off"] {
+        display: none;
+      }
+    }
+
+    .toggle-item-button {
+      [data-show="off"] {
+        display: none;
+      }
+
+      span {
+        display: flex;
+        gap: 0.5rem;
+      }
+    }
+  }
+
   &-item {
     width: 100%;
     gap: 24px;
 
-    .horizontal-scroll {
-      padding-bottom: 1rem;
+    .header {
+      width: 100%;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: flex-start;
+      flex-direction: row;
+
+      &-group {
+        flex: 1 1 auto;
+        min-width: 0;
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 1rem;
+
+        &-item {
+          flex: 0 0 auto;
+          min-width: 0;
+        }
+
+        a.dashboard-item-link {
+          display: inline-block;
+          word-break: break-word;
+          max-width: 100%;
+          text-decoration: none;
+          border: 1px solid #d4d4d4;
+          border-radius: 12px;
+          padding: 8px 16px;
+
+          span.date {
+            color: var(--application-base-text-color);
+            text-decoration: none;
+          }
+
+          span.name {
+            font-weight: 600;
+          }
+        }
+      }
+
+      &-toolbar {
+        flex: 0 0 auto;
+        white-space: nowrap;
+        flex-shrink: 0;
+      }
     }
+  }
+}
+
+#toggle-dashboard-button {
+  span {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  [data-show="off"] {
+    display: none;
   }
 }

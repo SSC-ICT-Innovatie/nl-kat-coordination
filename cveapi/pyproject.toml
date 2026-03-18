@@ -1,17 +1,23 @@
-[tool.poetry]
+[project]
 name = "cveapi"
 version = "0.0.1.dev1"
 description = "CVE API"
-license = "EUPL"
-authors = ["MinVWS <maintainer@openkat.nl>"]
+authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
+license = { text = "EUPL-1.2" }
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.28.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-httpx = "^0.28.1"
+[project.scripts]
+cveapi = "cveapi:run"
 
-[tool.poetry.scripts]
-cveapi = 'cveapi:run'
+[tool.uv]
+package = false
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+exclude = ["debian*", "packaging*"]

@@ -12,7 +12,7 @@ from tools.view_helpers import get_ooi_url
 
 from octopoes.api.models import Declaration
 from octopoes.models.ooi.findings import KATFindingType
-from rocky.bytes_client import BytesClient, get_bytes_client
+from rocky.bytes_client import BytesClient
 
 
 class FindingTypeAddView(OrganizationView, FormView):
@@ -58,9 +58,7 @@ class FindingTypeAddView(OrganizationView, FormView):
         task_id = uuid4()
         declaration = Declaration(ooi=finding_type, valid_time=datetime.now(timezone.utc), task_id=str(task_id))
 
-        get_bytes_client(self.organization.code).add_manual_proof(
-            task_id, BytesClient.raw_from_declarations([declaration])
-        )
-        self.api_connector.save_declaration(declaration)
+        self.bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations([declaration]))
+        self.api_connector.save_declaration(declaration, sync=True)
 
         return redirect(get_ooi_url("ooi_detail", finding_type.primary_key, self.organization.code))

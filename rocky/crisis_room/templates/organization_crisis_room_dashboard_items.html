@@ -1,0 +1,92 @@
+{% load i18n %}
+{% load static %}
+
+{% if dashboard_items %}
+    <div class="dashboard">
+        {% for dashboard_item in dashboard_items %}
+            {% if dashboard_item.item.findings_dashboard %}
+                {% include dashboard_items.0.item.template with dashboard_item=dashboard_items.0.item data=dashboard_items.0.data.report_data is_dashboard_item="yes" %}
+
+            {% else %}
+                <section id="item-{{ dashboard_item.item.id }}"
+                         class="width-{{ dashboard_item.item.settings.size }}">
+                    <div class="dashboard-item">
+                        <div class="header">
+                            <div class="header-group">
+                                <h3 class="header-group-item header-title"
+                                    id="dashboard-item-{{ dashboard_item.item.name|slugify }}">
+                                    {{ dashboard_item.item.name }}
+                                </h3>
+                                <span class="header-group-item label system-tag color-grey">
+                                    {% if dashboard_item.item.source == "object_list" %}
+                                        {% translate "Object list" %}
+                                    {% elif dashboard_item.item.source == "finding_list" %}
+                                        {% translate "Finding list" %}
+                                    {% elif dashboard_item.item.recipe %}
+                                        {% translate "Report section" %}
+                                    {% endif %}
+                                </span>
+                                {% if dashboard_item.item.recipe and dashboard_item.item.source %}
+                                    <a class="header-group-item dashboard-item-link"
+                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.parent_report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s:u" }}">
+                                        <span class="date">{{ dashboard_item.data.report.reference_date }}</span> <span class="name">{{ dashboard_item.data.parent_report.name }}</span>
+                                    </a>
+                                {% elif dashboard_item.item.recipe %}
+                                    <a class="header-group-item dashboard-item-link"
+                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s:u" }}">
+                                        <span class="date">{{ dashboard_item.data.report.reference_date }}</span> <span class="name">{{ dashboard_item.data.report.name }}</span>
+                                    </a>
+                                {% endif %}
+                            </div>
+                            <div class="header-toolbar">
+                                {% if organization_member.can_modify_dashboard_item %}
+                                    {% include "partials/dashboard_item_action_button.html" %}
+
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if organization_member.can_delete_dashboard_item %}
+                            {% include "partials/delete_dashboard_item_modal.html" with name=dashboard_item.item.name item_id=dashboard_item.item.id|stringformat:"s" %}
+
+                        {% endif %}
+                        {% if dashboard_item.item.recipe and dashboard_item.item.source %}
+                            {% include "partials/report_dashboard_item_filter.html" with type="report-section" recipe=dashboard_item.data.recipe input_oois=dashboard_item.data.report_data.input_data.input_oois %}
+                            {% include dashboard_item.item.template with dashboard_item=dashboard_item.item data=dashboard_item.data.report_data.report_data %}
+
+                        {% elif dashboard_item.item.recipe %}
+                            {% include "partials/report_dashboard_item_filter.html" with type="report-section" recipe=dashboard_item.data.recipe input_oois=dashboard_item.data.recipe.input_recipe.input_oois %}
+                            {% include dashboard_item.item.template with dashboard_item=dashboard_item.item data=dashboard_item.data.report_data aggregate_dashboard_item="yes" %}
+
+                        {% else %}
+                            {% include "partials/report_dashboard_item_filter.html" %}
+                            {% include dashboard_item.item.template with dashboard_item=dashboard_item.item data=dashboard_item.data %}
+
+                        {% endif %}
+                    </div>
+                </section>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="centered">
+        <img src="{% static "img/fishbone.svg" %}" alt="Fishbone image">
+        <p>{% translate "There are no dashboard items added yet." %}</p>
+        {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+            <p>
+                {% blocktranslate trimmed %}
+                    You can add dashboard items via the filters on the objects and
+                    findings page or you can add a report section.
+                {% endblocktranslate %}
+            </p>
+            <div class="button-container">
+                <a class="button ghost"
+                   href="{% url "ooi_list" organization_code=organization.code %}">{% translate "Add objects" %}</a>
+                <a class="button ghost"
+                   href="{% url "finding_list" organization_code=organization.code %}">{% translate "Add findings" %}</a>
+                <a class="button ghost" href="#dashboard-item-explanation-modal">{% translate "Add report section" %}</a>
+            </div>
+        {% endif %}
+    </div>
+    {% include "partials/new_dashboard_item_explanation_modal.html" %}
+
+{% endif %}

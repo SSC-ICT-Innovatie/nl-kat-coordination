@@ -3,7 +3,8 @@
   "name": "Nuclei takeover",
   "description": "Parses Nuclei takeover data into findings.",
   "consumes": [
-    "boefje/nuclei-takeover"
+    "boefje/nuclei-takeover",
+    "openkat/nuclei-output"
   ],
   "produces": [
     "Finding",

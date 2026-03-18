@@ -1,0 +1,27 @@
+{% load i18n %}
+{% load static %}
+
+<div class="dropdown">
+    <button id="action-dropdown-button"
+            type="button"
+            aria-label="{% translate "Add section to dashboard" %}"
+            aria-haspopup="menu"
+            aria-controls="action-dropdown"
+            aria-expanded="false"
+            class="icon-only ti-dots-vertical dropdown-button"></button>
+    <div id="action-dropdown"
+         class="dropdown-list"
+         role="menu"
+         aria-labelledby="action-dropdown-button">
+        <ul role="presentation">
+            <li>
+                <a href="#{{ modal_id }}" data-modal-id="{{ modal_id }}">{% translate "Add section to dashboard" %}</a>
+            </li>
+        </ul>
+    </div>
+</div>
+{% include "partials/new_dashboard_item_modal_report_section.html" %}
+
+{% block html_at_end_body %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+{% endblock html_at_end_body %}

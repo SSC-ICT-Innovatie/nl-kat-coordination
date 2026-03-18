@@ -3,12 +3,11 @@ import json
 import requests
 from bs4 import BeautifulSoup
 
-from boefjes.job_models import BoefjeMeta
 from boefjes.plugins.kat_snyk import check_version
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]["software"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]["software"]
     software_name = input_["name"]
     software_version = input_["version"]
 

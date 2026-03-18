@@ -139,10 +139,10 @@ class AggregateOrganisationReport(AggregateReport):
                             "total_occurrences": 0,
                         }
 
-                    for data in report_specific_data["finding_types"]:
-                        finding_type = data["finding_type"]
+                    for report_specific_data_ft in report_specific_data["finding_types"]:
+                        finding_type = report_specific_data_ft["finding_type"]
                         finding_type_id = finding_type.id
-                        occurrences = data["occurrences"]
+                        occurrences = report_specific_data_ft["occurrences"]
                         severity = finding_type.risk_severity.value
 
                         if finding_type_id not in findings["finding_types"]:

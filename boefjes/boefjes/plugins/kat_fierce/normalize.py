@@ -4,7 +4,7 @@ from ipaddress import IPv4Address, ip_address
 
 from tldextract import tldextract
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.dns.zone import Hostname, ResolvedHostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 

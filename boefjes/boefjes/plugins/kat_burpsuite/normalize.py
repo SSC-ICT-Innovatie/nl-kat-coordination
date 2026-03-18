@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from defusedxml import minidom
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CAPECFindingType, CVEFindingType, CWEFindingType, Finding
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, Protocol

@@ -12,7 +12,6 @@ from httpx import HTTPError, HTTPStatusError
 from tools.forms.upload_raw import UploadRawForm
 
 from octopoes.models.types import OOI_TYPES
-from rocky.bytes_client import get_bytes_client
 
 
 class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
@@ -67,7 +66,7 @@ class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             valid_time = form.cleaned_data["date"].replace(tzinfo=timezone.utc)
 
         try:
-            get_bytes_client(self.organization.code).upload_raw(
+            self.bytes_client.upload_raw(
                 raw_file.read(),
                 mime_types,
                 input_ooi=input_ooi.primary_key,

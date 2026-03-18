@@ -1,3 +1,4 @@
+import structlog
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import views as auth_views
@@ -7,6 +8,8 @@ from django.utils.translation import gettext_lazy as _
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from account.forms import PasswordResetForm, SetPasswordForm
+
+logger = structlog.get_logger(__name__)
 
 
 class PasswordResetView(auth_views.PasswordResetView):
@@ -34,7 +37,10 @@ class PasswordResetView(auth_views.PasswordResetView):
             self.add_success_notification()
         else:
             self.add_error_notification()
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        logger.info("User reset password", event_code="900105", user=self.request.user)
+
+        return response
 
     def is_smtp_valid(self):
         smtp_credentials = [settings.EMAIL_HOST, settings.EMAIL_PORT]

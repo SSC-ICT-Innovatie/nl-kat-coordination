@@ -1,9 +1,8 @@
 import random
-from urllib.parse import urlencode
 
 import pytest
-from crisis_room.forms import ObjectListSettingsForm
-from crisis_room.models import Dashboard, DashboardData
+from crisis_room.forms import AddFindingListDashboardItemForm, AddObjectListDashboardItemForm
+from crisis_room.models import Dashboard, DashboardItem
 from crisis_room.views import (
     AddDashboardView,
     CrisisRoomView,
@@ -224,10 +223,10 @@ def test_update_dashboard_item_positioning(rf, redteam_member, dashboard_items):
 
     assert response.status_code == 302
 
-    dashboard_data_item_1 = DashboardData.objects.get(id=item_1.id, dashboard__organization=redteam_member.organization)
-    dashboard_data_item_2 = DashboardData.objects.get(id=item_2.id, dashboard__organization=redteam_member.organization)
-    dashboard_data_item_3 = DashboardData.objects.get(id=item_3.id, dashboard__organization=redteam_member.organization)
-    dashboard_data_item_4 = DashboardData.objects.get(id=item_4.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_1 = DashboardItem.objects.get(id=item_1.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_2 = DashboardItem.objects.get(id=item_2.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_3 = DashboardItem.objects.get(id=item_3.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_4 = DashboardItem.objects.get(id=item_4.id, dashboard__organization=redteam_member.organization)
 
     # item 1 must have moved down (+1), because we have changed item 2 to move up (-1)
     assert dashboard_data_item_2.position == position_item_2 + 1
@@ -257,7 +256,7 @@ def test_update_dashboard_item_positioning_lower_than_first_item(rf, redteam_mem
 
     assert response.status_code == 302
 
-    dashboard_data_item_1 = DashboardData.objects.get(id=item_1.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_1 = DashboardItem.objects.get(id=item_1.id, dashboard__organization=redteam_member.organization)
 
     # nothing will be updated, as we cannot move up if this is the first item
     assert dashboard_data_item_1.position == position_item_1
@@ -274,7 +273,7 @@ def test_update_dashboard_item_positioning_greater_than_last_item(rf, redteam_me
 
     assert response.status_code == 302
 
-    dashboard_data_item_4 = DashboardData.objects.get(id=item_4.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_4 = DashboardItem.objects.get(id=item_4.id, dashboard__organization=redteam_member.organization)
 
     # nothing will be updated, as we cannot move down if this is the last item
     assert dashboard_data_item_4.position == position_item_4
@@ -288,23 +287,23 @@ def test_delete_dashboard_item(rf, redteam_member, dashboard_items):
 
     position_item_1 = item_1.position
     position_item_2 = item_2.position
-
     position_item_4 = item_4.position
 
     request = setup_request(
-        rf.post("delete_dashboard_item", {"dashboard_item": item_3.name, "dashboard": item_3.id}), redteam_member.user
+        rf.post("delete_dashboard_item", {"dashboard_item_name": item_3.name, "dashboard_item_id": item_3.id}),
+        redteam_member.user,
     )
     response = DeleteDashboardItemView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 302
 
-    dashboard_data_item_1 = DashboardData.objects.get(id=item_1.id, dashboard__organization=redteam_member.organization)
-    dashboard_data_item_2 = DashboardData.objects.get(id=item_2.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_1 = DashboardItem.objects.get(id=item_1.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_2 = DashboardItem.objects.get(id=item_2.id, dashboard__organization=redteam_member.organization)
 
-    with pytest.raises(DashboardData.DoesNotExist):
-        DashboardData.objects.get(id=item_3.id, dashboard__organization=redteam_member.organization)
+    with pytest.raises(DashboardItem.DoesNotExist):
+        DashboardItem.objects.get(id=item_3.id, dashboard__organization=redteam_member.organization)
 
-    dashboard_data_item_4 = DashboardData.objects.get(id=item_4.id, dashboard__organization=redteam_member.organization)
+    dashboard_data_item_4 = DashboardItem.objects.get(id=item_4.id, dashboard__organization=redteam_member.organization)
 
     messages = list(request._messages)
 
@@ -322,7 +321,7 @@ def test_delete_dashboard_item_no_permission(rf, client_member, dashboard_items)
     request = setup_request(
         rf.post(
             "delete_dashboard_item",
-            {"dashboard_item": dashboard_items[2].name, "dashboard": dashboard_items[2].dashboard.name},
+            {"dashboard_item_name": dashboard_items[2].name, "dashboard_item_id": dashboard_items[2].id},
         ),
         client_member.user,
     )
@@ -345,7 +344,7 @@ def test_delete_dashboard_item_repositioning(rf, client_member, dashboard_items)
     dashboard_items[1].delete()
 
     # get items after deleting, we order items by position
-    dashboard_items = DashboardData.objects.all().order_by("position")
+    dashboard_items = DashboardItem.objects.all().order_by("position")
 
     # position must match index of items
     for index, dashboard_item in enumerate(dashboard_items, start=1):
@@ -356,14 +355,15 @@ def test_delete_dashboard_item_no_dashboard(rf, redteam_member, dashboard_items)
     item_3 = dashboard_items[2]
 
     request = setup_request(
-        rf.post("delete_dashboard_item", {"dashboard_item": item_3.name, "dashboard": 100}), redteam_member.user
+        rf.post("delete_dashboard_item", {"dashboard_item_name": item_3.name, "dashboard_item_id": 100}),
+        redteam_member.user,
     )
     response = DeleteDashboardItemView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 302
 
     # item still exists but dashboard with unknown name cannot be found
-    DashboardData.objects.get(id=item_3.id, dashboard__organization=redteam_member.organization)
+    DashboardItem.objects.get(id=item_3.id, dashboard__organization=redteam_member.organization)
 
     messages = list(request._messages)
 
@@ -374,14 +374,14 @@ def test_delete_dashboard_item_no_dashboard_data(rf, redteam_member, dashboard_i
     item_2 = dashboard_items[1]
 
     request = setup_request(
-        rf.post("delete_dashboard_item", {"dashboard_item": "bla", "dashboard": item_2.dashboard.id}),
+        rf.post("delete_dashboard_item", {"dashboard_item_name": "bla", "dashboard_item_id": item_2.id}),
         redteam_member.user,
     )
     response = DeleteDashboardItemView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 302
 
-    DashboardData.objects.get(id=item_2.id, dashboard__organization=redteam_member.organization)
+    DashboardItem.objects.get(id=item_2.id, dashboard__organization=redteam_member.organization)
 
     messages = list(request._messages)
 
@@ -418,32 +418,35 @@ def test_delete_dashboard_no_permission(rf, client_member, dashboard_items):
         DeleteDashboardView.as_view()(request, organization_code=client_member.organization.code)
 
 
-def test_create_dashboard_item_form(client_member, dashboard_items):
-    form_data = {
-        "dashboard": dashboard_items[0].dashboard.id,
-        "title": "Test Form",
-        "order_by": "object_type-asc",
-        "limit": "10",
-        "size": "2",
-        "observed_at": "2025-05-07",
-        "ooi_type": "Hostname",
-        "search_string": "",
-        "template": "partials/dashboard_ooi_list.html",
-        "recipe_id": "",
-        "query_from": "object_list",
-        "column_names": ["Object", "Type", "Clearance level", "Clearance type"],
-        "column_values": ["object", "object_type", "clearance_level", "clearance_type"],
-    }
+def test_create_dashboard_item_form_object_list(client_member, dashboard_items):
+    qdict = QueryDict(mutable=True)
+    qdict.update(
+        {
+            "dashboard": dashboard_items[0].dashboard.id,
+            "title": "Test Form",
+            "order_by": "object_type-asc",
+            "limit": "10",
+            "size": "2",
+            "observed_at": "2025-05-07",
+            "ooi_type": "Hostname",
+            "search_string": "",
+            "template": "partials/dashboard_ooi_list.html",
+            "recipe_id": "",
+            "source": "object_list",
+        }
+    )
 
-    form = ObjectListSettingsForm(organization=client_member.organization, data=QueryDict(urlencode(form_data)))
+    qdict.setlist("columns", ["object", "object_type"])
+
+    form = AddObjectListDashboardItemForm(organization=client_member.organization, data=qdict)
 
     assert form.is_valid()
 
     # Check if dashboard data is created, after form is valid, should be created at this point
-    DashboardData.objects.get(dashboard=dashboard_items[0].dashboard, name="Test Form")
+    DashboardItem.objects.get(dashboard=dashboard_items[0].dashboard, name="Test Form")
 
     # test empty data
-    form = ObjectListSettingsForm(organization=client_member.organization, data=QueryDict(""))
+    form = AddObjectListDashboardItemForm(organization=client_member.organization, data=QueryDict(""))
 
     assert not form.is_valid()
 
@@ -457,9 +460,9 @@ def test_create_dashboard_item_form(client_member, dashboard_items):
     assert "size" in fields
 
     # change for data to have the same title that already exists
-    form_data["title"] = dashboard_items[0].name
+    qdict["title"] = dashboard_items[0].name
 
-    form = ObjectListSettingsForm(organization=client_member.organization, data=QueryDict(urlencode(form_data)))
+    form = AddObjectListDashboardItemForm(organization=client_member.organization, data=qdict)
     assert not form.is_valid()
 
     fields = list(form.errors)
@@ -469,15 +472,18 @@ def test_create_dashboard_item_form(client_member, dashboard_items):
 
     # duplicate title throws form error
     for error_list in errors:
-        assert "An item with that name already exists. Try a different title." in error_list
+        assert (
+            "An item with that name already exists. Try a different title." in error_list
+            or "An error occurred while adding dashboard item." in error_list
+        )
 
     # set it back
-    form_data["title"] = "Test Form"
+    qdict["title"] = "Test Form"
 
     # None existent dashboard
-    form_data["dashboard"] = "None"
+    qdict["dashboard"] = ""
 
-    form = ObjectListSettingsForm(organization=client_member.organization, data=QueryDict(urlencode(form_data)))
+    form = AddObjectListDashboardItemForm(organization=client_member.organization, data=qdict)
     assert not form.is_valid()
 
     fields = list(form.errors)
@@ -486,10 +492,7 @@ def test_create_dashboard_item_form(client_member, dashboard_items):
     assert "dashboard" in fields
 
     for error_list in errors:
-        assert (
-            "Select a valid choice. None is not one of the available choices." in error_list
-            or "Dashboard does not exist." in error_list
-        )
+        assert "This field is required." in error_list or "Dashboard does not exist." in error_list
 
 
 def test_organization_crisis_room(rf, mocker, client_member, dashboard_items):
@@ -526,3 +529,79 @@ def test_clients_permissions_for_dashboard(rf, mocker, client_member, dashboard_
     assertNotContains(response, "+ Add Dashboard")
     assertNotContains(response, "Delete Dashboard")
     assertNotContains(response, "Delete item ")
+
+
+def test_create_dashboard_item_form_findings_list(client_member, dashboard_items_from_findings_list):
+    qdict = QueryDict(mutable=True)
+    qdict.update(
+        {
+            "dashboard": dashboard_items_from_findings_list[0].dashboard.id,
+            "title": "Test Form",
+            "order_by": "score-asc",
+            "limit": "10",
+            "size": "2",
+            "observed_at": "2025-05-07",
+            "muted_findings": "non-muted",
+            "source": "finding_list",
+            "template": "partials/dashboard_finding_list.html",
+        }
+    )
+
+    qdict.setlist("columns", ["severity", "finding"])
+
+    form = AddFindingListDashboardItemForm(organization=client_member.organization, data=qdict)
+
+    assert form.is_valid()
+
+    # Check if dashboard data is created, after form is valid, should be created at this point
+    DashboardItem.objects.get(dashboard=dashboard_items_from_findings_list[0].dashboard, name="Test Form")
+
+    # test empty data
+    form = AddFindingListDashboardItemForm(organization=client_member.organization, data=QueryDict(""))
+
+    assert not form.is_valid()
+
+    fields = list(form.errors)
+
+    # errors on all fields
+    assert "dashboard" in fields
+    assert "title" in fields
+    assert "order_by" in fields
+    assert "limit" in fields
+    assert "size" in fields
+
+    # change for data to have the same title that already exists
+    qdict["title"] = dashboard_items_from_findings_list[0].name
+
+    form = AddFindingListDashboardItemForm(organization=client_member.organization, data=qdict)
+
+    assert not form.is_valid()
+
+    fields = list(form.errors)
+    errors = list(form.errors.values())
+
+    assert "title" in fields
+
+    # duplicate title throws form error
+    for error_list in errors:
+        assert (
+            "An item with that name already exists. Try a different title." in error_list
+            or "An error occurred while adding dashboard item." in error_list
+        )
+
+    # set it back
+    qdict["title"] = "Test Form"
+
+    # None existent dashboard
+    qdict["dashboard"] = ""
+
+    form = AddFindingListDashboardItemForm(organization=client_member.organization, data=qdict)
+    assert not form.is_valid()
+
+    fields = list(form.errors)
+    errors = list(form.errors.values())
+
+    assert "dashboard" in fields
+
+    for error_list in errors:
+        assert "This field is required." in error_list or "Dashboard does not exist." in error_list

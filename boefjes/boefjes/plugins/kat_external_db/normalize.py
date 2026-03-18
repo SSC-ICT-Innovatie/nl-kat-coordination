@@ -3,7 +3,7 @@ import logging
 from collections.abc import Iterable
 from ipaddress import IPv4Interface, ip_interface
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import DeclaredScanProfile
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPV4NetBlock, IPV6NetBlock, Network

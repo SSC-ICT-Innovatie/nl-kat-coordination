@@ -37,7 +37,7 @@ class Migration(migrations.Migration):
             model_name="dashboarddata",
             name="settings",
             field=models.JSONField(
-                blank=True, default=crisis_room.models.get_default_dashboard_data_settings, null=True
+                blank=True, default=crisis_room.models.get_default_dashboard_item_settings, null=True
             ),
         ),
         migrations.AddField(model_name="dashboarddata", name="updated_at", field=models.DateTimeField(auto_now=True)),

@@ -1,0 +1,33 @@
+{% load i18n %}
+{% load static %}
+{% load ooi_extra %}
+
+<div class="dropdown">
+    <button aria-label="{% translate "Actions for creating a new report" %}"
+            aria-controls="add-report-dropdown"
+            aria-expanded="false"
+            class="dropdown-button ghost">
+        {% translate "Generate report" %}
+        <span class="icon ti-chevron-down" aria-hidden="true"></span>
+    </button>
+    <div id="add-report-dropdown"
+         class="dropdown-list"
+         aria-labelledby="add-item-dropdown-button">
+        <ul>
+            {% if asset_reports_enabled %}
+                {% url "generate_report_landing" organization.code as index_url_generate_report %}
+                <li {% if index_url_generate_report in request.path|urlencode %}aria-current="page"{% endif %}>
+                    <a href="{{ index_url_generate_report }}?{{ request.GET.urlencode }}">{% translate "Separate report(s)" %}</a>
+                </li>
+            {% endif %}
+            {% url "aggregate_report_landing" organization.code as index_url_aggregate_report %}
+            <li {% if index_url_aggregate_report in request.path|urlencode %}aria-current="page"{% endif %}>
+                <a href="{{ index_url_aggregate_report }}?{{ request.GET.urlencode }}">{% translate "Aggregate report" %}</a>
+            </li>
+            {% url "multi_report_landing" organization.code as index_url_multi_report %}
+            <li {% if index_url_multi_report in request.path|urlencode %}aria-current="page"{% endif %}>
+                <a href="{{ index_url_multi_report }}?{{ request.GET.urlencode }}">{% translate "Multi report" %}</a>
+            </li>
+        </ul>
+    </div>
+</div>

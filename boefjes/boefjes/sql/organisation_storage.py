@@ -4,11 +4,11 @@ import structlog
 from sqlalchemy.orm import Session
 
 from boefjes.config import Settings, settings
-from boefjes.models import Organisation
 from boefjes.sql.db import ObjectNotFoundException, session_managed_iterator
 from boefjes.sql.db_models import OrganisationInDB
 from boefjes.sql.session import SessionMixin
 from boefjes.storage.interfaces import OrganisationNotFound, OrganisationStorage
+from boefjes.worker.models import Organisation
 
 logger = structlog.get_logger(__name__)
 

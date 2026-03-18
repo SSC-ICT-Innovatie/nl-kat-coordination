@@ -4,11 +4,11 @@ import structlog
 from sqlalchemy.orm import Session
 
 from boefjes.config import Settings, settings
-from boefjes.models import Boefje, Normalizer, PluginType
 from boefjes.sql.db import ObjectNotFoundException, session_managed_iterator
 from boefjes.sql.db_models import BoefjeInDB, NormalizerInDB, RunOnDB
 from boefjes.sql.session import SessionMixin
 from boefjes.storage.interfaces import NotAllowed, PluginNotFound, PluginStorage
+from boefjes.worker.models import Boefje, Normalizer, PluginType
 
 logger = structlog.get_logger(__name__)
 

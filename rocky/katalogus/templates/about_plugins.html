@@ -11,36 +11,34 @@
             {% include "partials/katalogus_header.html" %}
             {% include "partials/plugins_navigation.html" with active="about-plugins" %}
 
-            <div class="fifty-fifty">
-                <div>
-                    <h2>{% translate "About plugins" %}</h2>
-                    <p>
-                        {% blocktranslate trimmed %}
-                            Plugins gather data, objects and insight. Each plugin has its own focus area
-                            and strengths and may be able to work with other plugins to gain even more insights.
-                        {% endblocktranslate %}
-                    </p>
-                    <h3>Boefjes</h3>
-                    <p>
-                        {% blocktranslate trimmed %}
-                            Boefjes are used to scan for objects. They detect vulnerabilities,
-                            security issues, and give insight. Each boefje is a separate scan that
-                            can run on a selection of objects.
-                        {% endblocktranslate %}
-                    </p>
-                    <h3>Normalizers</h3>
-                    <p>
-                        {% blocktranslate trimmed %}
-                            Normalizers analyze the information and turn it into objects for the data model in Octopoes.
-                        {% endblocktranslate %}
-                    </p>
-                    <h3>Bits</h3>
-                    <p>
-                        {% blocktranslate trimmed %}
-                            Bits are business rules that look for insight within the current dataset and search for specific insight and draw conclusions.
-                        {% endblocktranslate %}
-                    </p>
-                </div>
+            <div>
+                <h2>{% translate "About plugins" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Plugins gather data, objects and insight. Each plugin has its own focus area
+                        and strengths and may be able to work with other plugins to gain even more insights.
+                    {% endblocktranslate %}
+                </p>
+                <h3>Boefjes</h3>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Boefjes are used to scan for objects. They detect vulnerabilities,
+                        security issues, and give insight. Each boefje is a separate scan that
+                        can run on a selection of objects.
+                    {% endblocktranslate %}
+                </p>
+                <h3>Normalizers</h3>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Normalizers analyze the information and turn it into objects for the data model in Octopoes.
+                    {% endblocktranslate %}
+                </p>
+                <h3>Bits</h3>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Bits are business rules that look for insight within the current dataset and search for specific insight and draw conclusions.
+                    {% endblocktranslate %}
+                </p>
             </div>
         </section>
     </main>

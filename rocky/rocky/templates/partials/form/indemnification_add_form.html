@@ -1,28 +1,24 @@
 {% load i18n %}
 
 <div class="layout-form">
-    <p class="emphasized">{% translate "Here, an indemnification can be given on behalf of your organization:" %}</p>
     <p>
         {% blocktranslate trimmed %}
-            Some scans are lightweight while others might be a bit
-            more aggressive with their scanning.
-            OpenKAT requires you to set a clearance level
-            for each object to prevent you from unintentionally
-            running aggressive scans. For example you might have the
-            right to run any type of scan on your own server but you
-            probably don’t have the right to do so for objects owned
-            by other people of companies.
+            Performing security scans against assets is generally
+            only allowed if you have permission to scan those assets.
+            Certain scans might also have a negative impact on (your)
+            assets. Therefore it is important to know and be aware of
+            the impact of security scans.
         {% endblocktranslate %}
     </p>
     <p>
         {% blocktranslate trimmed %}
-            Before you're able to add assets to OpenKAT and to assign clearance levels,
-            you have to give indemnification on the organization and declare that you as a person can be held accountable.
+            An organization indemnification is required before you can use OpenKAT.
+            With the indemnification you declare that you, as a person, can be held accountable.
         {% endblocktranslate %}
     </p>
     <form method="post">
         {% csrf_token %}
-        {% translate "Register an indemnification" as fieldset_legend %}
+        {% translate "Set an indemnification" as fieldset_legend %}
         {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
 
         <button type="submit">{% translate "Submit" %}</button>

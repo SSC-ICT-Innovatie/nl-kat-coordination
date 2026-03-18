@@ -59,8 +59,8 @@ def test_setting_to_settings_json(migration_197672984df0):
     session.close()
     alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "-1"])
 
-    results = [x[1:] for x in session.execute(text("SELECT * FROM setting")).fetchall()]  # ignore pk's
-    decoded_results = [(x[0], encrypter.decode(x[1]), x[2], x[3]) for x in results]  # compare decoded, since
+    results = session.execute(text("SELECT key, value, organisation_pk, plugin_id FROM setting")).fetchall()
+    decoded_results = [(x[0], encrypter.decode(x[1]), x[2], x[3]) for x in results]
     decoded_entries = [(x[0], encrypter.decode(x[1]), x[2], x[3]) for x in entries]  # encoding changes every time.
 
     assert set(decoded_entries) == set(decoded_results)

@@ -1,3 +1,11 @@
+.modal-wrapper {
+  position: fixed;
+}
+
+.modal-wrapper:not(:has(dialog[open])) {
+  display: none;
+}
+
 dialog {
   border: 1px solid var(--colors-grey-200);
   border-radius: 8px;

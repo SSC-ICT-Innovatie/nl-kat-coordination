@@ -46,7 +46,7 @@ class SelectOOIForm(BaseRockyForm):
 
     def __init__(
         self,
-        oois: list[tuple[OOI, ScheduleResponse]],
+        oois: list[tuple[OOI, ScheduleResponse | None]],
         organization_code: str,
         mandatory_fields: list | None = None,
         *args,
@@ -61,7 +61,7 @@ class SelectOOIForm(BaseRockyForm):
             self.fields["ooi"].initial = self.fields["ooi"].choices[0][0]
 
     @staticmethod
-    def _to_choice(ooi_with_schedule: tuple[OOI, ScheduleResponse]) -> tuple[str, Any]:
+    def _to_choice(ooi_with_schedule: tuple[OOI, ScheduleResponse | None]) -> tuple[str, Any]:
         ooi, schedule = ooi_with_schedule[0], ooi_with_schedule[1]
 
         return str(ooi), (ooi, ooi, ooi.scan_profile.level if ooi.scan_profile else 0, schedule)
@@ -81,13 +81,28 @@ class PossibleBoefjesFilterForm(BaseRockyForm):
 
 
 class SetClearanceLevelForm(forms.Form):
+    clearance_type = forms.CharField(
+        required=True,
+        label=_("Clearance type"),
+        widget=forms.RadioSelect(
+            choices=[("inherited", "Inherited"), ("declared", "Declared")],
+            attrs={"class": "radio-choice", "data-choicegroup": "scan_type_selector"},
+        ),
+        initial="inherited",
+    )
+
     level = forms.IntegerField(
+        required=False,
         label=_("Clearance level"),
         help_text=_(
-            "Boefjes that has a scan level below or equal to the clearance level, is permitted to scan an object."
+            "All the boefjes with a scan level below or equal to the clearance level will "
+            "be allowed to scan this object."
         ),
         error_messages={"level": {"required": _("Please select a clearance level to proceed.")}},
-        widget=forms.Select(choices=SCAN_LEVEL_CHOICES, attrs={"aria-describedby": _("explanation-clearance-level")}),
+        widget=forms.Select(
+            choices=SCAN_LEVEL_CHOICES,
+            attrs={"aria-describedby": _("explanation-clearance-level"), "class": "scan_type_selector declared"},
+        ),
     )
 
 

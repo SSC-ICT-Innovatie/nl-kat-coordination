@@ -1,4 +1,4 @@
-from boefjes.job_models import NormalizerAffirmation
+from boefjes.normalizer_models import NormalizerAffirmation
 from boefjes.plugins.kat_cve_finding_types.normalize import run
 from octopoes.models.ooi.findings import RiskLevelSeverity
 from octopoes.models.types import CVEFindingType

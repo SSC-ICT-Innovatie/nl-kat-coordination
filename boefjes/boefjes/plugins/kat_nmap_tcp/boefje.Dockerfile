@@ -1,12 +1,9 @@
-FROM python:3.13-slim
+FROM openkat/boefje-base:latest
 
-WORKDIR /app
-RUN apt-get update && apt-get install -y nmap && pip install httpx
+ARG OCI_IMAGE=ghcr.io/minvws/openkat/nmap:latest
+ENV OCI_IMAGE=$OCI_IMAGE
 
-ARG BOEFJE_PATH=./boefjes/plugins/kat_nmap_tcp
-ENV PYTHONPATH=/app:$BOEFJE_PATH
+USER root
+RUN apt-get update && apt-get install -y --no-install-recommends nmap
 
-COPY ./images/oci_adapter.py ./
-COPY $BOEFJE_PATH $BOEFJE_PATH
-
-ENTRYPOINT ["/usr/local/bin/python", "-m", "oci_adapter"]
+COPY ./boefjes/plugins/kat_nmap_tcp ./kat_nmap_tcp

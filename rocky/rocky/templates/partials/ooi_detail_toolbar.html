@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% translate props.ooi_type as display_type %}
-<div class="horizontal-view toolbar">
+<div class="horizontal-view">
     {% if possible_reports %}
         <div class="dropdown">
             <button type="button"
@@ -30,15 +30,15 @@
     {% if not ooi_past_due %}
         {% if ooi|is_finding and perms.tools.can_mute_findings %}
             <a href="{% ooi_url 'finding_mute' ooi_id organization.code %}"
-               class="button ghost">{% translate "Mute Finding" %}</a>
+               class="button ghost nowrap">{% translate "Mute finding" %}</a>
         {% endif %}
         {% if not ooi|is_finding and not ooi|is_finding_type %}
             <a href="{% ooi_url 'ooi_edit' ooi_id organization.code %}"
-               class="button ghost">{% blocktranslate %}Edit {{ display_type }}{% endblocktranslate %}</a>
+               class="button ghost nowrap">{% blocktranslate %}Edit {{ display_type }}{% endblocktranslate %}</a>
         {% endif %}
         {% if not ooi|is_finding_type and perms.tools.can_delete_oois %}
             <a href="{% ooi_url 'ooi_delete' ooi_id organization.code %}"
-               class="button ghost destructive">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</a>
+               class="button ghost destructive nowrap">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</a>
         {% endif %}
     {% endif %}
 </div>

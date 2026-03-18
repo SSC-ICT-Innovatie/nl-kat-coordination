@@ -2,7 +2,7 @@
 
 <h3>{% translate "Records found" %}</h3>
 {% if data.records %}
-    <p>
+    <p class="toggle-item" data-show="off">
         {% blocktranslate trimmed %}
             The DNS report gives an overview of the DNS records that were found
             for the DNSZone. Additionally the security measures table shows whether
@@ -12,7 +12,7 @@
     <div class="horizontal-scroll">
         <table>
             <caption class="visually-hidden">{% translate "Records found" %}</caption>
-            <p>
+            <p class="toggle-item" data-show="off">
                 {% blocktranslate trimmed %}
                     <strong>Disclaimer:</strong>
                     Not all DNSRecords are parsed in OpenKAT.
@@ -20,7 +20,7 @@
                 {% endblocktranslate %}
                 A, AAAA, CAA, CNAME, NS, MX, PTR, SOA, SRV, TXT.
             </p>
-            <div class="nota-bene">
+            <div class="nota-bene toggle-item" data-show="off">
                 <span>{% translate "All existing DNS record types can be found here:" %}
                     <a class="nota-bene"
                        href="https://en.wikipedia.org/wiki/List_of_DNS_record_types"
@@ -52,7 +52,7 @@
     <p>{% translate "No records have been found." %}</p>
 {% endif %}
 <h3>{% translate "Security measures" %}</h3>
-<p>
+<p class="toggle-item" data-show="off">
     {% blocktranslate trimmed %}
         The security measures table below shows which DNS relating security
         measures are enabled based on the contents of the DNS records.

@@ -29,14 +29,14 @@ def OnboardingMiddleware(get_response):
             ):
                 # Not onboarded superusers goes to registration of the their first organization + adding members to it.
                 if request.user.is_superuser:
-                    return redirect(reverse("step_introduction_registration"))
+                    return redirect(reverse("step_1_introduction_registration"))
 
                 # Members with these permissions can run a full DNS-report onboarding.
                 if (member := OrganizationMember.objects.filter(user=request.user).first()) and member.has_perms(
                     ONBOARDING_PERMISSIONS
                 ):
                     return redirect(
-                        reverse("step_introduction", kwargs={"organization_code": member.organization.code})
+                        reverse("step_1a_introduction", kwargs={"organization_code": member.organization.code})
                     )
 
         return response

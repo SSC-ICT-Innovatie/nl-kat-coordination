@@ -191,7 +191,7 @@ def test_report_types_selection(
     Will send the selected report types to the configuration page (set plugins).
     """
 
-    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.get_katalogus")()
+    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.katalogus_client")
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records, boefje_nmap_tcp]
 
     rocky_health_mocker = mocker.patch("reports.report_types.aggregate_organisation_report.report.get_rocky_health")()
@@ -234,7 +234,7 @@ def test_save_aggregate_report_view(
     Will send data through post to aggregate report and immediately creates a report (not scheduled).
     """
 
-    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.get_katalogus")()
+    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.katalogus_client")
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records]
 
     rocky_health_mocker = mocker.patch("reports.report_types.aggregate_organisation_report.report.get_rocky_health")()
@@ -283,7 +283,7 @@ def test_save_aggregate_report_view_scheduled(
     Will send data through post to aggregate report and creates a scheduled aggregate report.
     """
 
-    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.get_katalogus")()
+    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.katalogus_client")
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records]
 
     rocky_health_mocker = mocker.patch("reports.report_types.aggregate_organisation_report.report.get_rocky_health")()

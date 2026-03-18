@@ -6,5 +6,9 @@
     "Network"
   ],
   "scan_level": 0,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_external_db.main"
+  ],
   "deduplicate": false
 }

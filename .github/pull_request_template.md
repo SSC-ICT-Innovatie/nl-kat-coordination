@@ -41,10 +41,10 @@ _Please add some information for QA on how to test the newly created code._
 
 ## Checklist for code reviewers:
 
-Copy-paste the checklist from [the docs/source/contributor/templates folder](https://github.com/minvws/nl-kat-coordination/blob/main/docs/source/contributor/templates/pull_request_template_review_code.md) into your comment.
+Copy-paste the checklist from [the docs/source/developer-documentation/contributor/templates folder](https://github.com/minvws/nl-kat-coordination/blob/main/docs/source/developer-documentation/contributor/templates/pull_request_template_review_code.md) into your comment.
 
 ---
 
 ## Checklist for QA:
 
-Copy-paste the checklist from [the docs/source/contributor/templates folder](https://github.com/minvws/nl-kat-coordination/blob/main/docs/source/contributor/templates/pull_request_template_review_qa.md) into your comment.
+Copy-paste the checklist from [the docs/source/developer-documentation/contributor/templates folder](https://github.com/minvws/nl-kat-coordination/blob/main/docs/source/developer-documentation/contributor/templates/pull_request_template_review_qa.md) into your comment.

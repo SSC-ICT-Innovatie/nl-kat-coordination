@@ -36,7 +36,7 @@ from rocky.views.organization_member_edit import OrganizationMemberEditView
 from rocky.views.organization_member_list import OrganizationMemberListView
 from rocky.views.organization_settings import OrganizationSettingsView
 from rocky.views.privacy_statement import PrivacyStatementView
-from rocky.views.scan_profile import ScanProfileDetailView, ScanProfileResetView
+from rocky.views.scan_profile import ScanProfileDetailView
 from rocky.views.scans import ScanListView
 from rocky.views.task_detail import BoefjeTaskDetailView, DownloadTaskDetail, NormalizerTaskJSONView
 from rocky.views.tasks import (
@@ -124,9 +124,6 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/objects/delete/", OOIDeleteView.as_view(), name="ooi_delete"),
     path("<organization_code>/objects/detail/", OOIDetailView.as_view(), name="ooi_detail"),
     path("<organization_code>/objects/export", OOIListExportView.as_view(), name="ooi_list_export"),
-    path(
-        "<organization_code>/objects/indemnification/reset/", ScanProfileResetView.as_view(), name="scan_profile_reset"
-    ),
     path("<organization_code>/objects/scan-profile/", ScanProfileDetailView.as_view(), name="scan_profile_detail"),
     path("<organization_code>/objects/scans/", ScanListView.as_view(), name="scan_list"),
     path("<organization_code>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),

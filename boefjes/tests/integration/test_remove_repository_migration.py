@@ -77,7 +77,9 @@ def test_fail_on_non_unique(migration_cd34fdfafdaf):
 
     alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
 
-    all_plugin_states = [x[1:] for x in session.get_bind().execute(text("SELECT * FROM plugin_state")).fetchall()]
+    all_plugin_states = [
+        (x[1], x[2], x[3]) for x in session.get_bind().execute(text("SELECT * FROM plugin_state")).fetchall()
+    ]
     assert all_plugin_states == [("test_plugin_id", True, 1)]
 
 
@@ -88,7 +90,9 @@ def test_downgrade(migration_cd34fdfafdaf):
     alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
     alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "-1"])
 
-    all_plugin_states = [x[1:] for x in session.get_bind().execute(text("SELECT * FROM plugin_state")).fetchall()]
+    all_plugin_states = [
+        (x[1], x[2], x[3], x[4]) for x in session.get_bind().execute(text("SELECT * FROM plugin_state")).fetchall()
+    ]
 
     assert all_plugin_states == [("test_plugin_id", True, 1, 1)]
     assert session.get_bind().execute(text("SELECT * from repository")).fetchall() == [

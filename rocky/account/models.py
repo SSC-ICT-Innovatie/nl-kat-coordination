@@ -25,7 +25,7 @@ class KATUserManager(BaseUserManager):
         Create and save a User with the given email and password.
         """
         if not email:
-            raise ValueError(_("The Email must be set"))
+            raise ValueError(_("The email must be set"))
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save()
@@ -96,14 +96,14 @@ class KATUser(AbstractBaseUser, PermissionsMixin):
 
     @cached_property
     def all_organizations(self) -> list[Organization]:
-        return list(Organization.objects.all())
+        return list(Organization.objects.all().order_by("name"))
 
     @cached_property
     def organization_members(self) -> list[OrganizationMember]:
         """
         Lists the user's OrganizationMembers including the related Organizations.
         """
-        return self.members.select_related("organization")
+        return self.members.select_related("organization").order_by("organization__name")
 
     @cached_property
     def organizations(self) -> list[Organization]:

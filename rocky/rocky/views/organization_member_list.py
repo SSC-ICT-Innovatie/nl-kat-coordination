@@ -1,5 +1,6 @@
 from enum import Enum
 
+import structlog
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
@@ -12,6 +13,8 @@ from tools.models import OrganizationMember
 from tools.view_helpers import OrganizationMemberBreadcrumbsMixin
 
 from rocky.forms import MemberFilterForm
+
+logger = structlog.get_logger(__name__)
 
 
 class PageActions(Enum):
@@ -65,6 +68,8 @@ class OrganizationMemberListView(
                 )
             else:
                 raise Exception(f"Unhandled allowed action: {action}")
+
+            logger.info("Account status changed", event_code="900104", blocked=organizationmember.blocked)
             organizationmember.save()
         except RequestError as exception:
             messages.add_message(self.request, messages.ERROR, f"{action} failed: '{exception}'")
