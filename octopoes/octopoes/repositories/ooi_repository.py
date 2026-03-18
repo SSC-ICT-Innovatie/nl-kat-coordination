@@ -222,8 +222,8 @@ class XTDBOOIRepository(OOIRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
     def serialize(cls, ooi: OOI) -> dict[str, Any]:

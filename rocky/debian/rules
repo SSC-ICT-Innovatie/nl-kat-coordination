@@ -34,7 +34,6 @@ override_dh_virtualenv:
 	BYTES_USERNAME="username" KATALOGUS_API="http://katalogus:8000" \
 	OCTOPOES_API="http://octopoes_api:80" SCHEDULER_API="http://scheduler:8000" SECRET_KEY="foo" \
 	&& $(DH_VENV_DIR)/bin/python manage.py collectstatic --noinput --clear \
-	&& $(DH_VENV_DIR)/bin/python manage.py compress \
 	&& $(DH_VENV_DIR)/bin/python manage.py compilemessages
 	find static -type f -exec install -m 644 -D "{}" "$(DESTDIR)/usr/share/kat-rocky/{}" \;
 	find components -type f -name *.html -exec install -m 644 -D "{}" "$(DH_VENV_DIR)/lib/`py3versions -d`/site-packages/{}" \;

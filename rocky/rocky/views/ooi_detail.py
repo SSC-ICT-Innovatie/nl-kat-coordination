@@ -66,7 +66,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
     def start_boefje_scan(self) -> None:
         boefje_id = self.request.POST.get("boefje_id")
-        boefje = self.get_katalogus().get_plugin(boefje_id)
+        boefje = self.katalogus_client.get_plugin(boefje_id)
         ooi_id = self.request.GET.get("ooi_id")
         ooi = self.get_single_ooi(pk=ooi_id)
         self.run_boefje(boefje, ooi)
@@ -109,7 +109,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
         context["ooi"] = self.ooi
 
-        enabled_boefjes = self.get_katalogus().get_enabled_boefjes()
+        enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
         ooi_boefjes = self.get_boefjes_for_ooi(enabled_boefjes)
 
         filter_form = self.get_boefjes_filter_form()
@@ -122,7 +122,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         else:
             context["boefjes"] = ooi_boefjes
 
-        context.update(self.get_origins(self.ooi.reference, self.organization))
+        context.update(self.get_origins(self.ooi.reference))
         if context["inferences"]:
             inference_params = self.octopoes_api_connector.list_origin_parameters(
                 {inference.origin.id for inference in context["inferences"]}, self.observed_at

@@ -253,7 +253,7 @@ def create_ooi(
     declaration = Declaration(ooi=ooi, valid_time=observed_at, task_id=task_id, end_valid_time=end_valid_time)
     bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations([declaration]))
 
-    api_connector.save_declaration(declaration)
+    api_connector.save_declaration(declaration, sync=True)
 
 
 def create_oois(
@@ -272,4 +272,4 @@ def create_oois(
         )
 
     bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations(declarations))
-    api_connector.save_many_declarations(declarations)
+    api_connector.save_many_declarations(declarations, sync=True)

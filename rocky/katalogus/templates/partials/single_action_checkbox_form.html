@@ -1,5 +1,4 @@
 {% load static %}
-{% load compress %}
 
 <form method="post" class="inline">
     {% csrf_token %}
@@ -13,6 +12,4 @@
         {% if label_text %}<label>{{ label_text }}</label>{% endif %}
     </div>
 </form>
-{% compress js %}
-    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-{% endcompress %}
+<script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>

@@ -113,7 +113,7 @@ jobs:
         working-directory: ./rocky
 
       - name: Rocky Compilemessages
-        run: /var/www/html/.venv/bin/python${{ matrix.python_version }} manage.py collectstatic && /var/www/html/.venv/bin/python${{ matrix.python_version }} manage.py compress && /var/www/html/.venv/bin/python${{ matrix.python_version }} manage.py compilemessages
+        run: /var/www/html/.venv/bin/python${{ matrix.python_version }} manage.py collectstatic && /var/www/html/.venv/bin/python${{ matrix.python_version }} manage.py compilemessages
         working-directory: ./rocky
         env:
           BYTES_API: http://bytes:8000

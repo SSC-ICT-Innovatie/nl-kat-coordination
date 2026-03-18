@@ -1284,7 +1284,7 @@ def get_plugins_data() -> list[dict]:
 
 @pytest.fixture()
 def mock_mixins_katalogus(mocker):
-    return mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    return mocker.patch("account.mixins.OrganizationView.katalogus_client")
 
 
 @pytest.fixture()

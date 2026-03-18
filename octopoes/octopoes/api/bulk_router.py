@@ -69,7 +69,7 @@ def list_object_clients(
     xtdb_http_client = get_xtdb_client(str(settings_.xtdb_uri), "")
     session = XTDBSession(xtdb_http_client)
 
-    octopoes = bootstrap_octopoes(settings_, "null", session)
+    octopoes = bootstrap_octopoes("null", session)
     organizations_with_reference = {}
 
     for organization in clients:

@@ -20,7 +20,6 @@ dependencies = [
     "djangorestframework>=3.16.0,<4",
     "django-tagulous>=2.1.0,<3",
     "drf-standardized-errors>=0.14.1,<0.15",
-    "django-compressor",
     "django-weasyprint>=2.4.0,<3",
     "strenum>=0.4.15,<0.5",
     "django-rest-knox>=5.0.2,<6",
@@ -79,7 +78,6 @@ package = false
 
 [tool.uv.sources]
 django-admin-auto-tests = { git = "https://github.com/dekkers/django-admin-auto-tests", rev = "f6eb4cbb9112b5aa933313d79e4da823adb41e1e" }
-django-compressor = { git = "https://github.com/dekkers/django-compressor.git", rev = "csp-nonce" }
 
 [tool.coverage.run]
 relative_files = true
