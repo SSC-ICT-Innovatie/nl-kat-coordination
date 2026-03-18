@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from operator import attrgetter
-from typing import Literal, TypedDict, cast
+from typing import Literal, Optional, TypedDict, cast
 
 import structlog
 from account.mixins import OrganizationView
@@ -35,6 +35,7 @@ from octopoes.models.explanation import InheritanceSection
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
 from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report
 from octopoes.models.origin import Origin, OriginType
+from octopoes.models.pagination import Paginated
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import get_relations
 
@@ -230,7 +231,7 @@ class OOIList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
-        self._results = None
+        self._results: Optional[Paginated[OOI]] = None
 
     @cached_property
     def count(self) -> int:
@@ -312,7 +313,7 @@ class FindingList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
-        self._results = None
+        self._results: Optional[Paginated[Finding]] = None
 
     @cached_property
     def count(self) -> int:
