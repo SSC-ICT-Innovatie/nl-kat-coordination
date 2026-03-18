@@ -111,10 +111,10 @@ class OctopoesAPIConnector:
             scan_profile_types: list[int] = []
             for s in scan_profile_type:
                 if isinstance(s, str):
-                    scan_profile_type.append(s)
+                    scan_profile_types.append(s)
                 else:
-                    scan_profile_type.append(s.value)
-            params["scan_profile_type"] = scan_profile_type
+                    scan_profile_types.append(s.value)
+            params["scan_profile_type"] = scan_profile_types
         if search_string:
             params["search_string"] = search_string
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values
