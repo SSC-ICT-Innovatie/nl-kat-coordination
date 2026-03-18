@@ -173,7 +173,6 @@ INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "django.contrib.sites",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.humanize",
@@ -361,7 +360,6 @@ STATICFILES_FINDERS = [
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "crisis_room"
-SITE_ID = 1
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
