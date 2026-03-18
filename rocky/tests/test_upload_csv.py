@@ -122,7 +122,7 @@ def test_upload_csv(
     response = UploadCSV.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 302
-    assert mock_organization_view_octopoes().save_declaration.call_count == expected_ooi_counts / 2
+    assert mock_organization_view_octopoes().save_declaration.call_count == 0
     assert mock_organization_view_octopoes().save_many_declarations.call_count == 1
 
     task_id = mock_bytes_client().add_manual_proof.call_args[0][0]

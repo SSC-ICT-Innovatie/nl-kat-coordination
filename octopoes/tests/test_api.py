@@ -27,9 +27,7 @@ def test_health(httpx_mock, patch_pika):
         "size": 35488019,
     }
 
-    httpx_mock.add_response(
-        method="GET", url="http://testxtdb:3000/_xtdb/_dev/status", json=xtdb_status, status_code=200
-    )
+    httpx_mock.add_response(method="GET", url="http://xtdb:3000/_xtdb/_dev/status", json=xtdb_status, status_code=200)
     response = client.get("/_dev/health")
     assert response.json() == {
         "service": "octopoes",
@@ -45,7 +43,7 @@ def test_health(httpx_mock, patch_pika):
 
 def test_health_no_xtdb_connection(httpx_mock, patch_pika):
     httpx_mock.add_exception(
-        httpx.ConnectTimeout("Connection timed out"), method="GET", url="http://testxtdb:3000/_xtdb/_dev/status"
+        httpx.ConnectTimeout("Connection timed out"), method="GET", url="http://xtdb:3000/_xtdb/_dev/status"
     )
     response = client.get("/_dev/health")
     assert response.json() == {
@@ -82,7 +80,7 @@ def test_get_scan_profiles(httpx_mock, patch_pika, valid_time):
 
     httpx_mock.add_response(
         method="POST",
-        url=re.compile(r"http://testxtdb:3000/_xtdb/_dev/query\?valid-time=(.*)"),
+        url=re.compile(r"http://xtdb:3000/_xtdb/_dev/query\?valid-time=(.*)"),
         json=[[scan_profile]],
         status_code=200,
     )
@@ -95,7 +93,7 @@ def test_get_scan_profiles(httpx_mock, patch_pika, valid_time):
 
 def test_create_node(httpx_mock):
     httpx_mock.add_response(
-        method="POST", url="http://testxtdb:3000/_xtdb/create-node", json={"created": "true"}, status_code=200
+        method="POST", url="http://xtdb:3000/_xtdb/create-node", json={"created": "true"}, status_code=200
     )
     response = client.post("/_dev/node")
     assert response.status_code == 200
@@ -103,7 +101,7 @@ def test_create_node(httpx_mock):
 
 def test_delete_node(httpx_mock):
     httpx_mock.add_response(
-        method="POST", url="http://testxtdb:3000/_xtdb/delete-node", json={"deleted": "true"}, status_code=200
+        method="POST", url="http://xtdb:3000/_xtdb/delete-node", json={"deleted": "true"}, status_code=200
     )
     response = client.delete("/_dev/node")
     assert response.status_code == 200
@@ -132,7 +130,7 @@ def test_count_findings_by_severity(httpx_mock, patch_pika, caplog, valid_time):
 
     httpx_mock.add_response(
         method="POST",
-        url=re.compile(r"http://testxtdb:3000/_xtdb/_dev/query\?valid-time=(.*)"),
+        url=re.compile(r"http://xtdb:3000/_xtdb/_dev/query\?valid-time=(.*)"),
         json=xt_response,
         status_code=200,
     )

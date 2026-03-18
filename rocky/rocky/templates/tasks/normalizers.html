@@ -3,7 +3,6 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -106,7 +105,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/renderNormalizerOutputOOIs.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/renderNormalizerOutputOOIs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

@@ -87,6 +87,23 @@ services:
         soft: 262144
         hard: 262144
 
+  octopoes_api_scanprofiles:
+    restart: unless-stopped
+    build:
+      context: octopoes/
+      target: dev
+      args:
+        ENVIRONMENT: dev
+    command: scanprofiles
+    env_file:
+      - .env-defaults
+      - .env
+    depends_on:
+      - octopoes_api
+      - katalogus
+    volumes:
+      - ./octopoes:/app/octopoes
+
   boefje:
     restart: unless-stopped
     depends_on:

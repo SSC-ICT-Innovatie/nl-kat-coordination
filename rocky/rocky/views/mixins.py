@@ -37,7 +37,6 @@ from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report
 from octopoes.models.origin import Origin, OriginType
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import get_relations
-from rocky.bytes_client import get_bytes_client
 
 logger = structlog.get_logger(__name__)
 
@@ -139,7 +138,7 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
             self.handle_connector_exception(e)
             raise
 
-    def get_origins(self, reference: Reference, organization: Organization) -> Origins:
+    def get_origins(self, reference: Reference) -> Origins:
         declarations: list[OriginData] = []
         observations: list[OriginData] = []
         inferences: list[OriginData] = []
@@ -151,15 +150,6 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
             logger.error("Could not load origins for OOI: %s from octopoes, error: %s", reference, e)
             messages.error(self.request, _("Could not load origins for OOI: %s from octopoes") % reference)
             return results
-
-        try:
-            bytes_client = get_bytes_client(organization.code)
-            bytes_client.login()
-        except HTTPError as e:
-            logger.error(e)
-            return results
-
-        katalogus = self.get_katalogus()
 
         plugins = {}
         normalizer_datas = {}
@@ -177,7 +167,7 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
 
         if bytes_origins:
             try:
-                normalizer_datas = bytes_client.get_normalizer_metas(bytes_origins)
+                normalizer_datas = self.bytes_client.get_normalizer_metas(bytes_origins)
             except HTTPError as e:
                 logger.error("Could not load normalizer metas from bytes: %s", e)
                 messages.error(self.request, _("Could not load normalizer metas from bytes"))
@@ -197,7 +187,7 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
             if boefje_id != "manual":
                 if boefje_id not in plugins:
                     try:
-                        plugins[boefje_id] = katalogus.get_plugin(boefje_id)
+                        plugins[boefje_id] = self.katalogus_client.get_plugin(boefje_id)
                     except HTTPError as e:
                         logger.error("Could not load boefje %s from katalogus: %s", boefje_id, e)
                         messages.error(self.request, _("Could not load boefje %s from katalogus") % boefje_id)
