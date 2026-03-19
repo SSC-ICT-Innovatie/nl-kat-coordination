@@ -3,5 +3,10 @@
 {% include "partials/ooi_detail_toolbar.html" with ooi_id=ooi.primary_key %}
 
 <h1>{{ ooi.get_ooi_type }}: {{ ooi.human_readable }}</h1>
-<p>{% translate "Data from:" %} {{ observed_at }} GMT {% if not historic_view %}{% translate "(Now)" %}{% endif %}</p>
+<p>
+    {% translate "Data from:" %} {{ observed_at }} GMT
+    {% if not historic_view %}
+        {% translate "(Now)" %}
+    {% endif %}
+</p>
 {% include "oois/ooi_page_tabs.html" with view=view ooi=ooi %}
