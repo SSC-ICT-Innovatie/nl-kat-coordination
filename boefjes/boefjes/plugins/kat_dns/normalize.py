@@ -67,6 +67,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # keep track of discovered zones
     zone_links: dict[str, DNSZone] = {}
 
+    resultcount = 0
     for response in responses:
         for rrset in response.answer:
             for rr in rrset:
@@ -94,17 +95,20 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     ipv4 = IPAddressV4(network=internet.reference, address=IPv4Address(str(rr)))
                     yield ipv4
                     register_record(DNSARecord(address=ipv4.reference, **default_args))
+                    resultcount = resultcount + 1
 
                 if isinstance(rr, AAAA):
                     ipv6 = IPAddressV6(network=internet.reference, address=IPv6Address(str(rr)))
                     yield ipv6
                     register_record(DNSAAAARecord(address=ipv6.reference, **default_args))
+                    resultcount = resultcount + 1
 
                 if isinstance(rr, TXT):
                     # TODO: concatenated txt records should be handled better
                     # see https://www.rfc-editor.org/rfc/rfc1035 3.3.14
                     default_args["value"] = str(rr).strip('"').replace('" "', "")
                     register_record(DNSTXTRecord(**default_args))
+                    resultcount = resultcount + 1
 
                 if isinstance(rr, MX):
                     mail_hostname_reference = None
@@ -130,6 +134,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     default_args["tag"] = re.sub("[^\\w]", "", record_value[1].lower())
                     default_args["value"] = record_value[2]
                     register_record(DNSCAARecord(**default_args))
+
+    # check if we got any useful result for the query:
+    if "rcode NOERROR" in results["dns_records"] and resultcount == 0:
+        yield NXDOMAIN(hostname=Reference.from_str(input_ooi["primary_key"]))
 
     # link the hostnames to their discovered zones
     for hostname_, zone in zone_links.items():

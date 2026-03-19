@@ -15,7 +15,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     fqdn = input_ooi["hostname"]["name"]
     current = fqdn.lstrip(".")
 
-    network = Network(name="internet")
+    network = Network(name="internet")  # crt.sh only ever sees the Internet
     network_reference = network.reference
 
     unique_domains = set()
