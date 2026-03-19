@@ -87,8 +87,7 @@ class AccountTypeSelectForm(forms.Form):
     ]
 
     account_type = forms.CharField(
-        label=_("Account Type"),
-        help_text=_("Every member of OpenKAT must be part of an account type."),
+        label=_("Account type"),
         error_messages={"group": {"required": _("Please select an account type to proceed.")}},
         widget=forms.Select(choices=ACCOUNT_TYPE_CHOICES, attrs={"aria-describedby": "explanation-account-type"}),
     )
@@ -155,7 +154,7 @@ class OrganizationForm(BaseRockyModelForm):
             ),
             "code": forms.TextInput(
                 attrs={
-                    "placeholder": _("A unique code of {code_length} characters.").format(
+                    "placeholder": _("A unique code of maximum {code_length} characters in length.").format(
                         code_length=ORGANIZATION_CODE_LENGTH
                     ),
                     "autocomplete": "off",
@@ -180,13 +179,13 @@ class IndemnificationAddForm(BaseRockyForm):
         label=_(
             "I declare that OpenKAT may scan the assets of my organization and "
             "that I have permission to scan these assets. "
-            "I am aware of the implications a scan with a higher scan level brings on my systems."
+            "I am aware of the implications a scan (with a higher scan level) brings on my systems."
         ),
         widget=forms.CheckboxInput(),
     )
     am_authorized = forms.CharField(
         label=_(
-            "I declare that I am authorized to give this indemnification within my organization. "
+            "I declare that I am authorized to give this indemnification on behalf of my organization. "
             "I have the experience and knowledge to know what the consequences might be and"
             " can be held responsible for them."
         ),

@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerDeclaration, NormalizerOutput
+from boefjes.normalizer_models import NormalizerDeclaration, NormalizerOutput
 from octopoes.models.ooi.reports import ReportData
 
 

@@ -45,27 +45,31 @@ def upgrade() -> None:
 def upgrade_encrypted_settings(conn: Connection) -> None:
     encrypter = create_encrypter()
 
-    with conn.begin():
-        res = conn.execute(
+    res = conn.execute(
+        sa.text(
             "SELECT json_object_agg(key, value) "
             "AS values, plugin_id, organisation_pk FROM setting GROUP BY plugin_id, organisation_pk"
         )
+    )
 
-        results = []
-        for result in res.fetchall():
-            new_values = {}
-            for key, value in result[0].items():
-                new_values[key] = encrypter.decode(value)
+    results = []
+    for result in res.fetchall():
+        new_values = {}
+        for key, value in result[0].items():
+            new_values[key] = encrypter.decode(value)
 
-            new_result = (encrypter.encode(json.dumps(new_values)), result[1], result[2])
-            results.append(new_result)
+        new_result = (encrypter.encode(json.dumps(new_values)), result[1], result[2])
+        results.append(new_result)
 
-        # Seed the encrypted original data into the new table
-        for result in results:
-            conn.execute(
-                "INSERT INTO settings (values, plugin_id, organisation_pk) VALUES (%s, %s, %s)",
-                [result[0], result[1], result[2]],
-            )
+    # Seed the encrypted original data into the new table
+    for result in results:
+        conn.execute(
+            sa.text(
+                "INSERT INTO settings (values, plugin_id, organisation_pk) VALUES "
+                "(:values, :plugin_id, :organisation_pk)"
+            ),
+            {"values": result[0], "plugin_id": result[1], "organisation_pk": result[2]},
+        )
 
 
 def downgrade() -> None:

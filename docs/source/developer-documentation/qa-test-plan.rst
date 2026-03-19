@@ -61,6 +61,7 @@ The following things are always checked:
 		- Check if the normalizer creates Yielded tasks (not every normalizer creates yielded tasks, requires manual verification to verify that this is correct).
 		- Click the link of the yielded objects to see that the redirect works.
 - Generally click around, and see if you observe any unexpected behaviour.
+- Add a second organization and verify that no data from organization 1 shows up in organization 2.
 
 If a potential bug is identified, usually the first step is to verify if this also happens on the main branch. If it is a PR specific bug the bug is discussed with the author of the PR to discuss if this is (currently) expected behaviour. The next step is to write the QA notes.
 

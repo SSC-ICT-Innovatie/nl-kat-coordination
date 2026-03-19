@@ -27,7 +27,7 @@ class OrganizationSettingsView(
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         """Perform actions based on action type"""
         action = request.POST.get("action")
-        if not self.request.user.has_perm("tools.can_recalculate_bits"):
+        if not self.organization_member.has_perm("tools.can_recalculate_bits"):
             raise PermissionDenied()
         if action == PageActions.RECALCULATE.value:
             logger.info("Recalculating bits", event_code=920000)

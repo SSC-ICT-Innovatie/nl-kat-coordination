@@ -7,11 +7,13 @@
     {% include "header.html" %}
 
     <main id="main-content" tabindex="-1" class="katalogus">
+        {% include "partials/no_enabling_permission_message.html" %}
+
         <section>
             {% include "partials/katalogus_header.html" %}
             {% include "partials/plugins_navigation.html" with active="normalizers" %}
 
-            <div class="fifty-fifty">
+            <div class="introduction">
                 <div>
                     <h2>Normalizers</h2>
                     <p>
@@ -19,15 +21,21 @@
                             Normalizers analyze the information and turn it into objects for the data model in Octopoes.
                         {% endblocktranslate %}
                     </p>
-                    <p class="emphasized">
-                        <strong>{{ object_list|length }}</strong> Normalizer{{ object_list|pluralize:"s" }} {% translate "available" %}
-                    </p>
                 </div>
             </div>
-            {% include "partials/katalogus_filter.html" with form=form %}
-            {% include "partials/katalogus_toolbar.html" %}
-            {% include "partials/plugins.html" %}
+            <div>
+                {% include "partials/katalogus_filter.html" with form=form %}
 
+                <div class="fifty-fifty">
+                    <p>
+                        <strong>{{ object_list|length }}</strong> Normalizer{{ object_list|pluralize:"s" }} {% translate "available" %}
+                    </p>
+                    {% include "partials/katalogus_toolbar.html" %}
+
+                </div>
+                {% include "partials/plugins.html" %}
+
+            </div>
         </section>
     </main>
 {% endblock content %}

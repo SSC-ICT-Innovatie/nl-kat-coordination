@@ -7,11 +7,13 @@
     {% include "header.html" %}
 
     <main id="main-content" tabindex="-1" class="katalogus">
+        {% include "partials/no_enabling_permission_message.html" %}
+
         <section>
             {% include "partials/katalogus_header.html" %}
             {% include "partials/plugins_navigation.html" with active="all" %}
 
-            <div class="fifty-fifty">
+            <div class="introduction">
                 <div>
                     <h2>{% translate "All plugins" %}</h2>
                     <p>
@@ -20,20 +22,21 @@
                             and strengths and may be able to work with other plugins to gain even more insights.
                         {% endblocktranslate %}
                     </p>
-                    <p class="emphasized">
-                        <strong>{{ object_list|length }}</strong>
-                        {% blocktranslate count counter=object_list|length trimmed %}
-                            Plugin available
-                        {% plural %}
-                            Plugins available
-                        {% endblocktranslate %}
-                    </p>
                 </div>
             </div>
-            {% include "partials/katalogus_filter.html" with form=form %}
-            {% include "partials/katalogus_toolbar.html" %}
-            {% include "partials/plugins.html" with active="all" %}
+            <div>
+                {% include "partials/katalogus_filter.html" with form=form %}
 
+                <div class="fifty-fifty">
+                    <p>
+                        <strong>{{ object_list|length }}</strong> Plugin{{ object_list|pluralize:"s" }} {% translate "available" %}
+                    </p>
+                    {% include "partials/katalogus_toolbar.html" %}
+
+                </div>
+                {% include "partials/plugins.html" with active="all" %}
+
+            </div>
         </section>
     </main>
 {% endblock content %}

@@ -109,8 +109,8 @@ def test_download_task_same_org(rf, client_member, mock_bytes_client, bytes_raw_
     assert response.status_code == 200
 
 
-def test_download_task_forbidden(rf, client_member, mock_bytes_client, bytes_raw_metas):
-    mock_bytes_client().get_raw_metas.side_effect = Http404
+def test_download_task_no_raw(rf, client_member, mock_bytes_client, bytes_raw_metas):
+    mock_bytes_client().get_raw_metas.return_value = []
 
     request = setup_request(rf.get("bytes_raw"), client_member.user)
 
@@ -119,4 +119,4 @@ def test_download_task_forbidden(rf, client_member, mock_bytes_client, bytes_raw
     )
 
     assert response.status_code == 302
-    assert list(request._messages)[0].message == "Getting raw data failed."
+    assert list(request._messages)[0].message == "The task does not have any raw data."

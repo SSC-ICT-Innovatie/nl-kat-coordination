@@ -1,12 +1,15 @@
+import gc
 import multiprocessing as mp
 import os
 import signal
 import sys
 import time
+from datetime import datetime
 from queue import Queue
 
 import structlog
 from django.conf import settings
+from django.db import close_old_connections
 from httpx import HTTPError
 
 from reports.runner.models import ReportRunner, WorkerManager
@@ -116,9 +119,17 @@ class SchedulerWorkerManager(WorkerManager):
             except ValueError:
                 closed = True  # worker is closed, so we create a new one
 
-            logger.warning(
-                "Worker[pid=%s, %s] not alive, creating new worker...", worker.pid, _format_exit_code(worker.exitcode)
-            )
+            try:
+                pid = worker.pid
+            except ValueError:
+                pid = None
+
+            try:
+                exitcode_str = _format_exit_code(worker.exitcode)
+            except ValueError:
+                exitcode_str = "exitcode=Unknown"
+
+            logger.warning("Worker[pid=%s, %s] not alive, creating new worker...", pid or "unknown", exitcode_str)
 
             if not closed:  # Closed workers do not have a pid, so cleaning up would fail
                 self._cleanup_pending_worker_task(worker)
@@ -199,30 +210,37 @@ def _format_exit_code(exitcode: int | None) -> str:
 def _start_working(
     task_queue: mp.Queue, runner: ReportRunner, scheduler: SchedulerClient, handling_tasks: dict[int, str]
 ):
-    logger.info("Started listening for tasks from worker[pid=%s]", os.getpid())
+    logger.info("Started listening for tasks from worker", pid=os.getpid())
 
     while True:
         p_item = task_queue.get()
+        close_old_connections()  # See https://github.com/minvws/nl-kat-coordination/issues/4632
         status = TaskStatus.FAILED
         handling_tasks[os.getpid()] = str(p_item.id)
 
         try:
             scheduler.patch_task(p_item.id, TaskStatus.RUNNING)
+            start_time = datetime.now()
             runner.run(p_item.data)
             status = TaskStatus.COMPLETED
         except Exception:  # noqa
-            logger.exception("An error occurred handling scheduler item[id=%s]", p_item.id)
+            logger.exception("An error occurred handling scheduler item", task=str(p_item.id))
         except:  # noqa
-            logger.exception("An unhandled error occurred handling scheduler item[id=%s]", p_item.id)
+            logger.exception("An unhandled error occurred handling scheduler item", task=str(p_item.id))
             raise
         finally:
+            duration = (datetime.now() - start_time).total_seconds()
             try:
                 # The docker runner could have handled this already
                 if scheduler.get_task_details(str(p_item.id)).status == TaskStatus.RUNNING:
                     scheduler.patch_task(p_item.id, status)  # Note that implicitly, we have p_item.id == task_id
-                    logger.info("Set status to %s in the scheduler for task[id=%s]", status, p_item.id)
+                    logger.info(
+                        "Set status in the scheduler", status=status.value, task=str(p_item.id), duration=duration
+                    )
             except HTTPError:
-                logger.exception("Could not patch scheduler task to %s", status.value)
+                logger.exception("Could not patch scheduler task", status=status.value, task=str(p_item.id))
+
+            gc.collect()
 
 
 def get_runtime_manager() -> WorkerManager:

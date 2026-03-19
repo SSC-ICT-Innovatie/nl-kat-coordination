@@ -15,18 +15,18 @@
             {% if not task_list %}
                 <div>
                     <h2>{% translate "Boefjes" %}</h2>
-                    <p>{% translate "There are no tasks for boefjes" %}</p>
+                    <p>{% translate "There are no tasks for boefjes." %}</p>
                 </div>
                 {% include "tasks/partials/task_filter.html" %}
 
             {% else %}
                 <div>
                     <h2>{% translate "Boefjes" %}</h2>
-                    <p>{% translate "List of tasks for boefjes" %}</p>
+                    <p>{% translate "List of tasks for boefjes." %}</p>
                 </div>
-                {% include "tasks/partials/task_filter.html" %}
-
                 <div class="horizontal-scroll sticky-column">
+                    {% include "tasks/partials/task_filter.html" %}
+
                     <table rf-selector="table-scan-history" class="nowrap">
                         <thead>
                             <tr>
@@ -46,7 +46,7 @@
                                 <tr data-task-id="{{ task.id }}">
                                     {% if not organization.code %}
                                         <td>
-                                            <a href="{% url "organization_crisis_room" task.data.organization %}">{{ task.data.organization }}</a>
+                                            <a href="{% url "organization_crisis_room_landing" task.data.organization %}">{{ task.data.organization }}</a>
                                         </td>
                                     {% endif %}
                                     <td>

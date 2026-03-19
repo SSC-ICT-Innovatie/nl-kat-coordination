@@ -2,8 +2,6 @@ import json
 
 import requests
 
-from boefjes.job_models import BoefjeMeta
-
 CRT_SH_API = "https://crt.sh/"
 MATCHES = ("=", "ILIKE", "LIKE", "single", "any", "FTS")
 SEARCH_TYPES = (
@@ -61,8 +59,8 @@ def request_certs(
     return response.text
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     fqdn = input_["hostname"]["name"]
     results = request_certs(fqdn)
 

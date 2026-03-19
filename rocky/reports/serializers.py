@@ -10,7 +10,7 @@ class ReportSerializer(serializers.BaseSerializer):
         else:
             report = instance
         return {
-            "id": report.report_id,
+            "id": report.reference,
             "valid_time": report.observed_at,
             "name": report.name,
             "report_type": report.report_type,

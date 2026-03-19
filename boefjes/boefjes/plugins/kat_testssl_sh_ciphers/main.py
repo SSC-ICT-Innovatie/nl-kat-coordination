@@ -1,45 +1,48 @@
-import logging
+import os
+import subprocess
 from ipaddress import ip_address
-from os import getenv
+from pathlib import Path
 
-import docker
-from docker.errors import APIError
-from requests.exceptions import RequestException
+TLS_CAPABLE_SERVICES = ("https", "ftps", "smtps", "imaps", "pops")
+STARTTLS_CAPABLE_SERVICES = (
+    "ftp",
+    "smtp",
+    "lmtp",
+    "pop3",
+    "imap",
+    "xmpp",
+    "telnet",
+    "ldap",
+    "nntp",
+    "postgres",
+    "mysql",
+)
 
-from boefjes.job_models import BoefjeMeta
-from boefjes.plugins.helpers import get_file_from_container
 
-SSL_TEST_IMAGE = "drwetter/testssl.sh:3.2"
-
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     ip_port = input_["ip_port"]["port"]
     address = input_["ip_port"]["address"]["address"]
+    servicename = input_["service"]["name"]
+
+    if servicename not in TLS_CAPABLE_SERVICES + STARTTLS_CAPABLE_SERVICES:
+        return [({"info/boefje"}, "Skipping check due to non-TLS/STARTTLS service")]
+
+    cmd = ["/usr/local/bin/testssl.sh"] + boefje_meta["arguments"]["oci_arguments"]
+
+    if servicename in STARTTLS_CAPABLE_SERVICES:
+        cmd.extend(["--starttls", servicename])
 
     if ip_address(address).version == 6:
-        args = f" --jsonfile tmp/output.json --server-preference -6 [{address}]:{ip_port}"
+        cmd.extend(["-6", f"[{address}]:{ip_port}"])
     else:
-        args = f" --jsonfile tmp/output.json --server-preference {address}:{ip_port}"
+        cmd.append(f"[{address}]:{ip_port}")
 
-    timeout = getenv("TIMEOUT", 30)
+    env = os.environ.copy()
 
-    environment_vars = {"OPENSSL_TIMEOUT": timeout, "CONNECT_TIMEOUT": timeout}
+    env["OPENSSL_TIMEOUT"] = os.getenv("TIMEOUT", "30")
+    env["CONNECT_TIMEOUT"] = env["OPENSSL_TIMEOUT"]
+    output = subprocess.run(cmd, capture_output=True, env=env)
+    output.check_returncode()
 
-    client = docker.from_env()
-    container = client.containers.run(SSL_TEST_IMAGE, args, detach=True, environment=environment_vars)
-
-    try:
-        container.wait(timeout=300)
-        output = get_file_from_container(container, "tmp/output.json")
-    except (APIError, RequestException) as e:
-        logging.warning("DockerException occurred: %s", e)
-        container.stop()
-        raise Exception("Error occurred (possibly a timeout) while running testssl.sh")
-    finally:
-        container.remove()
-
-    if not output:
-        raise Exception("Couldn't get tmp/output.json from testsll container")
-
-    return [(set(), output)]
+    return [({"openkat/testssl-sh-ciphers-output"}, Path("/tmp/output.json").read_bytes())]

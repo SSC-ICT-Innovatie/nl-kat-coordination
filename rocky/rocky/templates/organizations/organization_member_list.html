@@ -2,26 +2,21 @@
 
 {% load i18n %}
 {% load static %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div>
-                <h1>{% translate "Organization:" %} {{ organization.name }}</h1>
-                {% blocktranslate with organization_name=organization.name trimmed %}
-                    An overview of "{{ organization_name }}" its members.
-                {% endblocktranslate %}
-                <h2>
-                    {% translate "Members" %}
-                    {% if members.count %}
-                        ({{ members.count }})
-                    {% else %}
-                        (0)
-                    {% endif %}
-                </h2>
+            <div class="introduction">
+                <div>
+                    <h1>{% translate "Members" %}</h1>
+                    <p>
+                        {% blocktranslate with organization_name=organization.name trimmed %}
+                            An overview of members of <strong>{{ organization_name }}</strong>.
+                        {% endblocktranslate %}
+                    </p>
+                </div>
                 {% if perms.tools.add_organizationmember %}
                     <div class="horizontal-view toolbar">
                         <div class="dropdown">
@@ -34,21 +29,30 @@
                                         <a href="{% url "organization_member_add_account_type" organization.code %}"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Manually" %}</a>
                                     </li>
                                     <li>
-                                        <a href="{% url "organization_member_upload" organization.code %}"><span class="icon ti-file-type-csv" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
+                                        <a href="{% url "organization_member_upload" organization.code %}"><span class="icon ti-file-upload" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
                                     </li>
                                 </ul>
                             </div>
                         </div>
                     </div>
-                {% endif %}
+                </div>
+            {% endif %}
+            <div>
                 {% include "partials/organization_member_list_filters.html" with checkbox_filters=checkbox_filters %}
 
+                <div class="toolbar">
+                    <p class="de-emphasized">
+                        {% blocktranslate with total=members.count %}
+                        Showing {{ total }} members
+                    {% endblocktranslate %}
+                    </p>
+                </div>
                 <div class="horizontal-scroll">
                     <table class="nowrap">
-                        <caption>{% translate "Member overview:" %}</caption>
+                        <caption class="visually-hidden">{% translate "Member overview:" %}</caption>
                         <thead>
                             <tr>
-                                <th>{% translate "E-mail" %}</th>
+                                <th>{% translate "Email" %}</th>
                                 <th>{% translate "Role" %}</th>
                                 <th>{% translate "Status" %}</th>
                                 <th>{% translate "Assigned clearance level" %}</th>
@@ -78,14 +82,10 @@
                                             {% if member.user.is_superuser %}
                                                 <span class="icon positive">{% translate "Active" %}</span>&nbsp;{% translate "Active" %}
                                             {% else %}
-                                                {% if member.blocked %}
-                                                    <span class="icon negative">{% translate "Blocked" %}</span>&nbsp;{% translate "Blocked" %}
-                                                {% else %}
-                                                    {% if member.status == 'active' %}
-                                                        <span class="icon positive">{% translate "Active" %}</span>&nbsp;{% translate "Active" %}
-                                                    {% elif member.status == 'new' %}
-                                                        <span class="icon neutral">{% translate "New" %}</span>&nbsp;{% translate "New" %}
-                                                    {% endif %}
+                                                {% if member.status == 'active' %}
+                                                    <span class="icon positive">{% translate "Active" %}</span>&nbsp;{% translate "Active" %}
+                                                {% elif member.status == 'new' %}
+                                                    <span class="icon neutral">{% translate "New" %}</span>&nbsp;{% translate "New" %}
                                                 {% endif %}
                                             {% endif %}
                                         </td>
@@ -139,7 +139,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

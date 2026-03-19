@@ -2,13 +2,11 @@ from urllib.parse import urljoin
 
 import requests
 
-from boefjes.job_models import BoefjeMeta
-
 ENDPOINT_PATH = "/mifs/c/windows/api/v2/device/registration"
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, str | bytes]]:
-    input_ = boefje_meta.arguments["input"]  # input is website
+def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
+    input_ = boefje_meta["arguments"]["input"]  # input is website
     hostname = input_["hostname"]["name"]
     service = input_["ip_service"]["service"]["name"]
     website = f"{service}://{hostname}"

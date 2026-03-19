@@ -1,12 +1,10 @@
 #!/usr/bin/make -f
 export DH_VERBOSE = 1
 export DH_VIRTUALENV_INSTALL_ROOT = /opt/venvs
-export SNAKE=/usr/bin/python3
-export EXTRA_REQUIREMENTS=--upgrade-pip --preinstall "setuptools>=65" --preinstall "wheel"
 export PACKAGE=$(shell dh_listpackages)
-export DH_VENV_ARGS=--python $(SNAKE) $(EXTRA_REQUIREMENTS)
 export DH_VENV_DIR=debian/$(PACKAGE)$(DH_VIRTUALENV_INSTALL_ROOT)/$(PACKAGE)
 export DESTDIR = $(CURDIR)/debian/$(PACKAGE)
+export UV_LINK_MODE=copy
 
 %:
 	dh $@ --with python-virtualenv
@@ -19,11 +17,19 @@ override_dh_fixperms:
 	find $(DESTDIR)/etc/kat -type f -exec chmod 640 {} \;
 
 override_dh_virtualenv:
-	dh_virtualenv $(DH_VENV_ARGS)
-	$(DH_VENV_DIR)/bin/python -m pip install gunicorn==20.1.0
+# We want to use uv but dh_virtualenv doesn't support that. So we create an
+# empty requirements file and call uv manually..
+	touch /tmp/requirements-empty.txt
+	dh_virtualenv --requirements=/tmp/requirements-empty.txt --skip-install --preinstall "uv"
+	$(DH_VENV_DIR)/bin/python -m uv sync --locked --active
+	$(DH_VENV_DIR)/bin/python -m uv pip install .
+	$(DH_VENV_DIR)/bin/python -m uv pip install gunicorn==23.0.0
 
-# remove pip to prevent mutation of venv
-	$(DH_VENV_DIR)/bin/python -m pip uninstall --yes pip
+# remove pip and uv to prevent mutation of venv
+	$(DH_VENV_DIR)/bin/python -m uv pip uninstall pip uv
+
+# Fix shebang
+	sed -i 's|#!.*$(DH_VIRTUALENV_INSTALL_ROOT)/$(PACKAGE)/bin/python|#!$(DH_VIRTUALENV_INSTALL_ROOT)/$(PACKAGE)/bin/python|' $(DH_VENV_DIR)/bin/*
 
 override_dh_gencontrol:
 	dh_gencontrol -- -Vpython=`py3versions -d`
@@ -37,3 +43,10 @@ execute_after_dh_install:
 
 # Disables dh_strip_nondeterminism because it very slow and not useful for us
 override_dh_strip_nondeterminism:
+
+# Disable dh_dwz because it is also not useful for us
+override_dh_dwz:
+
+# Let dpkg-shlibdeps ignore venvs
+override_dh_shlibdeps:
+	dh_shlibdeps -X/opt/venvs

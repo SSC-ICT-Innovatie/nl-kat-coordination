@@ -25,3 +25,14 @@ class BoefjeMeta(BaseModel):
 
     started_at: datetime.datetime | None
     ended_at: datetime.datetime | None
+
+
+class BoefjeConfig(BaseModel):
+    """BoefjeConfig is the configuration object for a Boefje"""
+
+    id: int
+    boefje_id: str
+    enabled: bool
+    organisation_id: str
+    settings: dict
+    duplicates: list["BoefjeConfig"] = Field(default_factory=list)

@@ -1,0 +1,20 @@
+{% load i18n %}
+{% load static %}
+
+<h2>{% translate "Welcome to OpenKAT!" %}</h2>
+<p>
+    {% blocktranslate trimmed %}
+        Welcome to the onboarding of OpenKAT.
+        We will walk you through some steps to set everything up.
+    {% endblocktranslate %}
+</p>
+<p>
+    {% blocktranslate trimmed %}
+        At the end of this onboarding you have added your first object, created your
+        first DNS report and learned about some basic concepts used within OpenKAT.
+    {% endblocktranslate %}
+</p>
+<p>
+    {% translate "The full documentation for OpenKAT can be found at:" %}
+    <a href="https://docs.openkat.nl">https://docs.openkat.nl</a>.
+</p>

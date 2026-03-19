@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "Enabling plugins and start scanning" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        OpenKAT uses plugins to scan, check and analyze. There are three types of plugins.
+                    {% endblocktranslate %}
+                </p>
+                <p>
+                    {% blocktranslate trimmed %}
+                        The first plugin are <b>Boefjes</b>, which scan objects for data. These are security tools like nmap, LeakIX and WPscan.
+                    </p>
+                {% endblocktranslate %}
+                <p>
+                    {% blocktranslate trimmed %}
+                        The other two plugins are <b>Normalizers</b> and <b>Bits</b>, which are used to process the output of Boefjes. They can create findings and related objects.
+                        Bits are also used to create organization specific findings, based on policy requirements.
+                    </p>
+                {% endblocktranslate %}
+                <br>
+                <p>
+                    {% blocktranslate trimmed %}
+                        For the onboarding we will enable the Boefjes shown below. Once enabled these Boefjes gather publicly available information on suitable objects with a clearance level of 1 or higher. Normalizers and Bits are enabled by default.
+                    {% endblocktranslate %}
+                </p>
+                <div class="column-4 tiles plugins images-cover">
+                    {% for required_plugin in plugins.required %}
+                        {% include "partials/plugin_tile.html" with form_id="enable_plugin_form" plugin=required_plugin remove_action_buttons="yes" add_checkbox="yes" checked="yes" %}
+
+                    {% endfor %}
+                    {% for optional_plugin in plugins.optional %}
+                        {% include "partials/plugin_tile.html" with form_id="enable_plugin_form" plugin=optional_plugin remove_action_buttons="yes" add_checkbox="yes" checked="yes" %}
+
+                    {% endfor %}
+                </div>
+                <br>
+                <form id="enable_plugin_form" novalidate method="post" class="inline">
+                    {% csrf_token %}
+                    <div class="button-container">
+                        <button type="submit">{% translate "Enable and continue" %}</button>
+                        <a href="{% url "complete_onboarding" organization.code %}"
+                           class="button ghost">{% translate "Skip onboarding" %}</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}
+{% block html_at_end_body %}
+    {{ block.super }}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+{% endblock html_at_end_body %}

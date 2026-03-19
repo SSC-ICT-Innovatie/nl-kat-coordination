@@ -19,8 +19,10 @@
     </form>
 {% else %}
     <span class="de-emphasized">
-        {% blocktranslate trimmed with plugin=plugin.type %}
-            You don't have permission to enable this {{ plugin }}
-        {% endblocktranslate %}
+        {% if plugin.enabled %}
+            <span class="label system-tag color-2">{% translate "Enabled" %}</span>
+        {% else %}
+            <span class="label system-tag color-3">{% translate "Disabled" %}</span>
+        {% endif %}
     </span>
 {% endif %}

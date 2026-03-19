@@ -5,7 +5,7 @@ from boefjes.storage.interfaces import SettingsNotConformingToSchema
 
 def test_get_plugins(mock_plugin_service, test_organisation):
     plugins = mock_plugin_service.get_all(test_organisation.id)
-    assert len(plugins) == 14
+    assert len(plugins) == 15
 
     kat_test = list(filter(lambda x: x.id == "kat_test", plugins)).pop()
     assert kat_test.id == "kat_test"
@@ -100,7 +100,7 @@ def test_clone_one_setting(mock_plugin_service, test_organisation):
     assert "api_key" not in mock_plugin_service.get_all_settings(new_org_id, plugin_id)
 
     new_org_plugins = mock_plugin_service.get_all(new_org_id)
-    assert len(new_org_plugins) == 14
+    assert len(new_org_plugins) == 15
     assert len([x for x in new_org_plugins if x.enabled]) == 5  # 2 Normalizers
     assert plugin_id not in [x.id for x in new_org_plugins if x.enabled]
 
@@ -110,7 +110,7 @@ def test_clone_one_setting(mock_plugin_service, test_organisation):
     assert mock_plugin_service.get_all_settings(new_org_id, plugin_id) == {"api_key": "24"}
 
     new_org_plugins = mock_plugin_service.get_all(new_org_id)
-    assert len(new_org_plugins) == 14
+    assert len(new_org_plugins) == 15
     assert len([x for x in new_org_plugins if x.enabled]) == 6  # 2 Normalizers, 1 boefje
     assert plugin_id in [x.id for x in new_org_plugins if x.enabled]
 

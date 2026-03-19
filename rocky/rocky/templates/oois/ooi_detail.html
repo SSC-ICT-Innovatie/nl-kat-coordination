@@ -3,37 +3,36 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div>
-                {% if ooi_past_due %}
-                    {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
+            {% if ooi_past_due %}
+                {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
 
-                {% endif %}
-                {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
+            {% endif %}
+            {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
 
-            </div>
             <div>
                 {% include "oois/ooi_detail_object.html" with ooi=ooi object_details=object_details %}
 
                 {% if is_question %}
+                    {% if current_config %}
+                        {% include "partials/current_config.html" with config=current_config %}
+
+                    {% endif %}
                     {% include "forms/json_schema_form.html" with json_schema=ooi.json_schema %}
 
                 {% endif %}
             </div>
-            <div>
-                {% include "oois/ooi_detail_origins_declarations.html" %}
-                {% include "oois/ooi_detail_origins_observations.html" %}
-                {% include "oois/ooi_detail_origins_inference.html" %}
-                {% include "partials/ooi_detail_related_object.html" with query=mandatory_fields ooi_past_due=ooi_past_due related=related ooi=ooi %}
-                {% include "tasks/ooi_detail_task_list.html" %}
+            {% include "oois/ooi_detail_origins_declarations.html" %}
+            {% include "oois/ooi_detail_origins_observations.html" %}
+            {% include "oois/ooi_detail_origins_inference.html" %}
+            {% include "partials/ooi_detail_related_object.html" with query=mandatory_fields ooi_past_due=ooi_past_due related=related ooi=ooi %}
+            {% include "tasks/ooi_detail_task_list.html" %}
 
-            </div>
             {% if not ooi|is_finding and not ooi|is_finding_type %}
                 <div>
                     {% include "oois/ooi_detail_findings_overview.html" with severity_summary=findings_severity_summary severity_summary_totals=severity_summary_totals %}
@@ -143,8 +142,6 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

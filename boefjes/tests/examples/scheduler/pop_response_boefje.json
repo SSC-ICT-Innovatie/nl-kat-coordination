@@ -16,6 +16,7 @@
         "id": "70da7d4f-f41f-4940-901b-d98a92e9014b",
         "boefje": {
           "id": "dns-records",
+          "oci_image": null,
           "version": null
         },
         "input_ooi": "Hostname|internet|test.test",

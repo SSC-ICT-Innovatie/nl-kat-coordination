@@ -40,4 +40,9 @@ span.system-tag {
     color: var(--colors-purrple-600);
     border-color: var(--colors-purrple-600);
   }
+
+  &.color-grey {
+    color: var(--colors-grey-600);
+    border-color: var(--colors-grey-600);
+  }
 }

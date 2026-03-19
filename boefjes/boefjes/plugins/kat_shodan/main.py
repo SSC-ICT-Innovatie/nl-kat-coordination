@@ -5,12 +5,10 @@ from os import getenv
 
 import shodan
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     api = shodan.Shodan(getenv("SHODAN_API"))
-    input_ = boefje_meta.arguments["input"]
+    input_ = boefje_meta["arguments"]["input"]
     ip = input_["address"]
     results = {}
 

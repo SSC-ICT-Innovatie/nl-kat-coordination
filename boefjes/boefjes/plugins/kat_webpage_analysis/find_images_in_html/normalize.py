@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import validators
 from bs4 import BeautifulSoup
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import URL
 

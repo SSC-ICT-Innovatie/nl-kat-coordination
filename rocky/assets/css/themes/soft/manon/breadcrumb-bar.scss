@@ -21,4 +21,7 @@
 
 body > header nav.breadcrumb-bar ul li a {
   border: 0;
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }

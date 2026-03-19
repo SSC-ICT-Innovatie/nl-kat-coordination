@@ -11,36 +11,8 @@
         </button>
     </div>
     <form method="get">
-        <fieldset>
-            <legend>{% translate "Shown status types" %}</legend>
-            <div>
-                {% for option in status_filters %}
-                    <div class="checkbox">
-                        <input type="checkbox"
-                               id="option-filter-{{ option.value }}"
-                               name="client_status"
-                               value="{{ option.value }}"
-                               {% if option %}checked{% endif %}>
-                        <label for="option-filter-{{ option.value }}">{{ option.label }}</label>
-                    </div>
-                {% endfor %}
-            </div>
-        </fieldset>
-        <fieldset>
-            <legend>{% translate "Blocked status" %}</legend>
-            <div>
-                {% for option in blocked_filters %}
-                    <div class="checkbox">
-                        <input type="checkbox"
-                               id="option-filter-{{ option.value }}"
-                               name="blocked_status"
-                               value="{{ option.value }}"
-                               {% if option.checked %}checked{% endif %}>
-                        <label for="option-filter-{{ option.value }}">{{ option.label }}</label>
-                    </div>
-                {% endfor %}
-            </div>
-        </fieldset>
+        {% include "partials/form/fieldset.html" with fields=member_filter_form %}
+
         <input type="submit" value="{% translate "Update List" %}">
     </form>
 </div>

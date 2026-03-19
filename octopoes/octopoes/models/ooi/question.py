@@ -33,3 +33,8 @@ class Question(OOI):
             raise ValueError("The json_schema field is not a valid JSON schema") from e
 
         return schema
+
+    @property
+    def config_pk(self) -> str:
+        config_id = self.schema_id.split("/")[-1]
+        return f"Config|{self.ooi.tokenized.name}|{config_id}"

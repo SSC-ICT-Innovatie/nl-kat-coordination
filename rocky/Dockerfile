@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.13
 FROM node:20-bookworm AS node_builder
 
 WORKDIR /app
 
-COPY rocky/package.json rocky/yarn.lock .
+COPY rocky/package.json rocky/yarn.lock rocky/.parcelrc .
 COPY rocky/assets assets
 COPY rocky/components components
 
@@ -52,7 +52,7 @@ RUN --mount=type=cache,target=/root/.cache \
 FROM dev
 
 COPY octopoes/ /tmp/octopoes
-RUN cd /tmp/octopoes && python setup.py bdist_wheel
+RUN pip install setuptools && cd /tmp/octopoes && python setup.py bdist_wheel
 RUN pip install /tmp/octopoes/dist/octopoes*.whl
 
 COPY rocky .
@@ -66,7 +66,7 @@ COPY --link --from=node_builder /app/assets/dist assets/dist
 RUN export SECRET_KEY="secret" BYTES_API="http://bytes:8000" BYTES_PASSWORD="password" \
     BYTES_USERNAME="username" KATALOGUS_API="http://katalogus:8000" \
     OCTOPOES_API="http://octopoes_api:80" SCHEDULER_API="http://scheduler:8000" \
-    && python manage.py collectstatic -l && python manage.py compress && python manage.py compilemessages
+    && python manage.py collectstatic -l && python manage.py compilemessages
 
 USER rocky
 

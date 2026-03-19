@@ -1,9 +1,9 @@
 {% load i18n %}
 
-<div class="fifty-fifty">
+<div class="introduction">
     <div>
         <h1>{% translate "KAT-alogus" %}</h1>
-        <p class="emphasized">{% translate "An overview of all available plugins." %}</p>
+        <p>{% translate "An overview of all available plugins." %}</p>
     </div>
     {% if perms.tools.can_view_katalogus_settings %}
         <div class="horizontal-view toolbar">

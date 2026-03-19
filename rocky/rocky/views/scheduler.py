@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from typing import Any
 
+import structlog
 from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.utils.translation import gettext_lazy as _
@@ -34,6 +35,8 @@ from rocky.scheduler import (
 from rocky.scheduler import Normalizer as SchedulerNormalizer
 from rocky.views.mixins import OctopoesView
 
+logger = structlog.get_logger(__name__)
+
 
 def get_date_time(date: str | None) -> datetime | None:
     if date:
@@ -56,7 +59,8 @@ class SchedulerView(OctopoesView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.scheduler_client = scheduler_client(self.organization.code)
-        self.scheduler_id = self.task_type
+        if hasattr(self, "task_type"):
+            self.scheduler_id = self.task_type
 
     def get_task_filters(self) -> dict[str, Any]:
         return {
@@ -150,7 +154,7 @@ class SchedulerView(OctopoesView):
 
     def get_report_schedules(self) -> list[dict[str, Any]]:
         try:
-            return self.scheduler_client.get_scheduled_reports(scheduler_id=self.scheduler_id)
+            return self.scheduler_client.get_scheduled_reports()
         except SchedulerError as error:
             messages.error(self.request, error.message)
         return []
@@ -197,11 +201,16 @@ class SchedulerView(OctopoesView):
         except SchedulerError as error:
             return messages.error(self.request, error.message)
 
-    def get_schedule_with_filters(self, filters: dict[str, list[dict[str, str]]]) -> ScheduleResponse:
+    def get_schedule_with_filters(self, filters: dict[str, list[dict[str, str]]]) -> ScheduleResponse | None:
         try:
-            return self.scheduler_client.post_schedule_search(filters).results[0]
+            schedule = self.scheduler_client.post_schedule_search(filters)
+            if schedule.results:
+                return schedule.results[0]
+            else:
+                return None
         except SchedulerError as error:
-            return messages.error(self.request, error.message)
+            messages.error(self.request, error.message)
+            return None
 
     def schedule_task(self, task: TaskPush) -> None:
         if not self.indemnification_present:
@@ -261,6 +270,12 @@ class SchedulerView(OctopoesView):
             )
 
             self.schedule_task(new_task)
+            logger.info(
+                "Normalizer Task created manually",
+                event_code="800051",
+                boefje=katalogus_normalizer.id,
+                task_id=new_task.id,
+            )
         except SchedulerError as error:
             messages.error(self.request, error.message)
 
@@ -277,7 +292,9 @@ class SchedulerView(OctopoesView):
             )
 
             self.schedule_task(new_task)
-
+            logger.info(
+                "Boefje Task created manually", event_code="800051", boefje=katalogus_boefje.id, task_id=new_task.id
+            )
         except SchedulerError as error:
             messages.error(self.request, error.message)
 

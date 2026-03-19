@@ -2,7 +2,7 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.software import Software, SoftwareInstance
@@ -19,7 +19,7 @@ MISSING_HEADER_TO_KAT_FINDING_TYPE = {
 def scan_nikto_output(data: list[dict[str, Any]], ooi_ref: Reference) -> Iterable[NormalizerOutput]:
     for scan in data:
         for vulnerability in scan["vulnerabilities"]:
-            vulnerability_id: str = vulnerability["id"]
+            vulnerability_id = str(vulnerability["id"])
 
             # If the scanned vulnerability has to do with outdated software
             if vulnerability_id.startswith("6"):

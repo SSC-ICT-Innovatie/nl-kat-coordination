@@ -3,6 +3,7 @@ import random
 import threading
 import time
 from collections.abc import Callable
+from concurrent import futures
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -32,7 +33,10 @@ class Scheduler(abc.ABC):
             The maximum number of retries for an item to be pushed to
             the queue.
         create_schedule:
-            Whether to create a schedule for a task.
+            Whether to create a Schedule for a task.
+        auto_calculate_deadline:
+            Whether to automatically calculate the deadline at of the Schedule
+            from a task.
         last_activity:
             The last activity of the scheduler.
         queue:
@@ -90,6 +94,11 @@ class Scheduler(abc.ABC):
     @abc.abstractmethod
     def run(self) -> None:
         raise NotImplementedError
+
+    def log_future_exceptions(self, fut: futures.Future):
+        exc = fut.exception()
+        if exc:
+            self.logger.exception("%s task crashed in ThreadPoolExecutor", self.ITEM_TYPE, exc_info=exc)
 
     def run_in_thread(
         self, name: str, target: Callable[[], Any], interval: float = 0.01, daemon: bool = False, loop: bool = True
@@ -190,28 +199,27 @@ class Scheduler(abc.ABC):
                 item.type = self.ITEM_TYPE.type
             item.status = models.TaskStatus.QUEUED
             item = self.queue.push(item)
-        except NotAllowedError as exc:
-            self.logger.warning(
-                "Not allowed to push to queue %s (%s)",
+        except NotAllowedError:
+            self.logger.debug(
+                "Not allowed to push to queue %s",
                 self.queue.pq_id,
-                exc,
                 item_id=item.id,
                 queue_id=self.queue.pq_id,
                 scheduler_id=self.scheduler_id,
+                item=item,
             )
-            raise exc
-        except QueueFullError as exc:
+            raise
+        except QueueFullError:
             self.logger.warning(
-                "Queue %s is full, not pushing new items (%s)",
+                "Queue %s is full, not pushing new items",
                 self.queue.pq_id,
-                exc,
                 item_id=item.id,
                 queue_id=self.queue.pq_id,
                 queue_qsize=self.queue.qsize(),
                 scheduler_id=self.scheduler_id,
             )
-            raise exc
-        except InvalidItemError as exc:
+            raise
+        except InvalidItemError:
             self.logger.warning(
                 "Invalid item %s",
                 item.id,
@@ -220,7 +228,7 @@ class Scheduler(abc.ABC):
                 queue_qsize=self.queue.qsize(),
                 scheduler_id=self.scheduler_id,
             )
-            raise exc
+            raise
 
         self.logger.debug(
             "Pushed item %s to queue %s with priority %s ",
@@ -238,7 +246,14 @@ class Scheduler(abc.ABC):
         return item
 
     def post_push(self, item: models.Task, create_schedule: bool = True) -> models.Task:
-        """After an in item is pushed to the queue, we execute this function
+        """After an item is pushed to the queue, we execute this function. We
+        perform the following actions:
+
+        - We set the last activity of the scheduler to now.
+        - We check if we should create a schedule for the item.
+        - If a schedule already exists, we update the deadline.
+        - If no schedule exists, we create a new schedule and set the deadline.
+        - We update the item with the schedule id.
 
         Args:
             item: The item from the priority queue.
@@ -312,9 +327,10 @@ class Scheduler(abc.ABC):
         return item
 
     def pop_item_from_queue(
-        self, limit: int = 1, filters: storage.filters.FilterRequest | None = None
+        self, limit: int | None = None, filters: storage.filters.FilterRequest | None = None
     ) -> list[models.Task]:
         """Pop an item from the queue.
+
         Args:
             filters: Optional filters to apply when popping an item.
 
@@ -347,7 +363,8 @@ class Scheduler(abc.ABC):
         self.last_activity = datetime.now(timezone.utc)
 
     def calculate_deadline(self, schedule: models.Schedule) -> models.Schedule:
-        """
+        """Calculate the deadline for a schedule.
+
         When the schedule is not set, and the auto_calculate_deadline is
         not set, we set the deadline to None. This means that the task
         will not be scheduled and was likely a one-off scheduled task.
@@ -411,10 +428,7 @@ class Scheduler(abc.ABC):
         Returns:
             True if there is space on the queue, False otherwise.
         """
-        if self.queue.maxsize == 0:
-            return True
-
-        if self.queue.maxsize <= self.queue.qsize():
+        if self.queue.maxsize != 0 and (self.queue.maxsize - self.queue.qsize()) <= 0:
             return False
 
         return True

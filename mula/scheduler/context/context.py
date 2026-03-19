@@ -118,6 +118,10 @@ class AppContext:
 
         self.logger: structlog.BoundLogger = structlog.get_logger(__name__)
 
+        # Set the logging level
+        if self.config.debug:
+            self.logger.setLevel(logging.DEBUG)
+
         # Services
         katalogus_service = clients.Katalogus(
             host=remove_trailing_slash(str(self.config.host_katalogus)),

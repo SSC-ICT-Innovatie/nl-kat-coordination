@@ -4,7 +4,7 @@ import httpx
 
 from scheduler.clients.errors import exception_handler
 from scheduler.clients.http import HTTPService
-from scheduler.models import Boefje, Organisation, Plugin
+from scheduler.models import Boefje, BoefjeConfig, Organisation, Plugin
 
 
 class Katalogus(HTTPService):
@@ -138,3 +138,31 @@ class Katalogus(HTTPService):
             )
 
             return new_boefjes
+
+    def get_configs(
+        self,
+        organisation_id: str,
+        boefje_id: str | None = None,
+        enabled: bool | None = None,
+        with_duplicates: bool = False,
+        offset: int = 0,
+        limit: int = 0,
+    ) -> list[BoefjeConfig]:
+        url = f"{self.host}/v1/configs"
+        try:
+            response = self.get(
+                url,
+                params={
+                    "organisation_id": organisation_id,
+                    "boefje_id": boefje_id,
+                    "enabled": enabled,
+                    "with_duplicates": with_duplicates,
+                    "offset": offset,
+                    "limit": limit,
+                },
+            )
+            return [BoefjeConfig(**config) for config in response.json()]
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == httpx.codes.NOT_FOUND:
+                return []
+            raise

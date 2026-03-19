@@ -27,7 +27,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="organization",
             name="name",
-            field=models.CharField(help_text="The name of the organisation", max_length=126, unique=True),
+            field=models.CharField(help_text="The name of the organization", max_length=126, unique=True),
         ),
         migrations.CreateModel(
             name="OrganizationTag",

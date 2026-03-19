@@ -1,13 +1,8 @@
-import docker
-
-from boefjes.job_models import BoefjeMeta
-
-OPENSSL_IMAGE = "alpine/openssl:latest"
+import subprocess
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    client = docker.from_env()
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     hostname = input_["hostname"]["name"]
     scheme = input_["ip_service"]["service"]["name"]
     ip_address = input_["ip_service"]["ip_port"]["address"]["address"]
@@ -16,13 +11,13 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
     if scheme != "https":
         return [({"info/boefje"}, "Skipping check due to non-TLS scheme")]
 
-    try:
-        output = client.containers.run(
-            OPENSSL_IMAGE,
-            ["s_client", "-host", ip_address, "-port", port, "-prexit", "-showcerts", "-servername", hostname],
-            remove=True,
-        )
-    except docker.errors.ContainerError as e:
-        output = f"error {str(e)}"
+    cmd = (
+        ["/usr/bin/openssl"]
+        + boefje_meta["arguments"]["oci_arguments"]
+        + ["-host", ip_address, "-port", port, "-servername", hostname]
+    )
 
-    return [(set(), output)]
+    output = subprocess.run(cmd, capture_output=True)
+    output.check_returncode()
+
+    return [({"openkat/ssl-certificates-output"}, output.stdout.decode())]

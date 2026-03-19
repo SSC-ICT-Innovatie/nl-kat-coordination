@@ -1,7 +1,7 @@
 import json
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import ADRFindingType, Finding
 from octopoes.models.ooi.web import APIDesignRule, APIDesignRuleResult
