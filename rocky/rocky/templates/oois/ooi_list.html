@@ -121,7 +121,7 @@
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{{ request.path }}?{% if observed_at_query %}observed_at={{ observed_at|date:"Y-m-d" }}&amp;ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
+                                            <a href="{{ request.path }}?{% if observed_at_query %}observed_at={{ observed_at|date:"Y-m-d" }}&amp;{% endif %}ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
                                         </td>
                                         <td>
                                             {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
