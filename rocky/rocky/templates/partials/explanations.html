@@ -12,7 +12,6 @@
                         <th>{% translate "OOI" %}</th>
                         <th>{% translate "Clearance level" %}</th>
                         <th>{% translate "Object Type" %}</th>
-
                     </tr>
                 </thead>
                 <tbody>
@@ -28,7 +27,14 @@
                             <td>
                                 <a href="{% ooi_url 'ooi_detail' section.primary_key organization.code %}">{{ section.human_readable }}</a>
                             </td>
-                            <td>L{{ section.level }} {% if forloop.last %}{% translate "declared"%}{% else %}{% translate "inherited from ↓"%}{% endif %} </td>
+                            <td>
+                                L{{ section.level }}
+                                {% if forloop.last %}
+                                    {% translate "declared" %}
+                                {% else %}
+                                    {% translate "inherited from ↓" %}
+                                {% endif %}
+                            </td>
                             <td>{{ section.object_type }}</td>
 
                         </tr>
