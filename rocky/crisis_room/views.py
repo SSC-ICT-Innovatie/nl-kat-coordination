@@ -305,10 +305,10 @@ class CrisisRoomView(TemplateView):
         super().setup(request, *args, **kwargs)
 
         dashboard_service = DashboardService()
-        if self.has_perm("tools.can_access_all_organizations"):
+        if self.request.user.has_perm("tools.can_access_all_organizations"):
             dashboard_items = DashboardItem.objects.filter(findings_dashboard=True)
         else:
-            organizations = self.request.user.organizations
+            organizations = [org.code for org in self.request.user.organizations]
             dashboard_items = DashboardItem.objects.filter(
                 dashboard__organization__in=organizations, findings_dashboard=True
             )
@@ -317,9 +317,6 @@ class CrisisRoomView(TemplateView):
         self.organizations_findings_summary = dashboard_service.get_organizations_findings_summary(
             self.organizations_findings
         )
-
-    def get_user_organizations(self) -> list[Organization]:
-        return [member.organization for member in OrganizationMember.objects.filter(user=self.request.user)]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
