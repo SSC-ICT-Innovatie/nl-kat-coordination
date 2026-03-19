@@ -257,7 +257,11 @@ task_buttons.forEach((button) => {
 
           rawfiles_element.appendChild(rawfiles_list);
         } else if (task_type == "boefje") {
-          rawfiles_element.innerHTML = `<p class='explanation'>Task ${raw_task_id} yielded no raw files.</p>`;
+          const message = document.createElement("p");
+          message.className = "explanation";
+          message.textContent = `Task ${raw_task_id} yielded no raw files.`;
+          rawfiles_element.innerHTML = "";
+          rawfiles_element.appendChild(message);
         }
 
         expando_row
