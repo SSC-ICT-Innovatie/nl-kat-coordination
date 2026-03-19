@@ -14,7 +14,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     results = json.loads(raw)
 
     pk_ooi = Reference.from_str(input_ooi["primary_key"])
-    #depending on the input type of the boefje, our input_ooi is either a software, or softwareinstance.
+    # Depending on the input type of the boefje, our input_ooi is either a software, or softwareinstance.
     if "software" in input_ooi:
         software_name = input_ooi["software"]["name"]
         software_version = input_ooi["software"]["version"]

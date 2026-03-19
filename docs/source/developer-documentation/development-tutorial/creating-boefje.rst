@@ -367,7 +367,7 @@ The scheduler will in these cases de-schedule the specific boefje + inputooi com
 This in turn makes sure no new jobs will be created for that combination.
 Good examples of when this usecase is useful are:
 * A local IP, and a Shodan like api which cannot possibly know anything about your local lan.
-* A scan on a ipPort that only handles specific port numbers, or similary a scan on a given protocol.
+* A scan on a ipPort that only handles specific port numbers, or similarly a scan on a given protocol.
 
 --------------
 
