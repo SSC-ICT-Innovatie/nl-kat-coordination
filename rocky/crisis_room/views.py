@@ -305,11 +305,13 @@ class CrisisRoomView(TemplateView):
         super().setup(request, *args, **kwargs)
 
         dashboard_service = DashboardService()
-        organizations = self.get_user_organizations()
-
-        dashboard_items = DashboardItem.objects.filter(
-            dashboard__organization__in=organizations, findings_dashboard=True
-        )
+        if self.has_perm("tools.can_access_all_organizations"):
+            dashboard_items = DashboardItem.objects.filter(findings_dashboard=True)
+        else:
+            organizations = self.request.user.organizations
+            dashboard_items = DashboardItem.objects.filter(
+                dashboard__organization__in=organizations, findings_dashboard=True
+            )
 
         self.organizations_findings = dashboard_service.get_dashboard_items(dashboard_items)
         self.organizations_findings_summary = dashboard_service.get_organizations_findings_summary(
