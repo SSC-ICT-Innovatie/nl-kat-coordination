@@ -126,6 +126,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 if isinstance(rr, CNAME):
                     target_fqdn = register_hostname(str(rr.target))
                     register_record(DNSCNAMERecord(target_hostname=target_fqdn.reference, **default_args))
+                    resultcount = resultcount + 1
 
                 if isinstance(rr, CAA):
                     record_value = str(rr).split(" ", 2)
