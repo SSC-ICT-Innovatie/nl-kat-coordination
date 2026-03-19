@@ -163,7 +163,7 @@ task_buttons.forEach((button) => {
             rawfile["mime_types"].forEach((mime_type) => {
               mimetypes += `<li>${mime_type["value"]}</li>`;
             });
-            rawdata = atob(rawfile["raw_file"]);
+            let rawdata = atob(rawfile["raw_file"]);
             let rawfile_container = document.createElement("div");
             let signed = rawfile["signing_provider_url"]
               ? `, signed by <a href="${rawfile["signing_provider_url"]}">${rawfile["signing_provider_url"]}</a>`
