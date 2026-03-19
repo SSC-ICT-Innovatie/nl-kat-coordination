@@ -102,24 +102,31 @@ class ObservedAtMixin:
     request: HttpRequest
 
     @cached_property
+    def observed_at_query(self) -> bool:
+        return bool(self.request.GET.get("observed_at", False) or self.request.POST.get("observed_at", False))
+
+    @cached_property
     def observed_at(self) -> datetime:
-        observed_at = self.request.GET.get("observed_at", None)
+        observed_at = self.request.GET.get("observed_at", self.request.POST.get("observed_at", None))
+        # handle empty input
         if not observed_at:
             return datetime.now(timezone.utc)
 
+        # handle date only input
         try:
             datetime_format = "%Y-%m-%d"
-            date_time = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
-            if date_time.date() > datetime.now(timezone.utc).date():
+            observed_at = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
+            if observed_at.date() > datetime.now(timezone.utc).date():
                 messages.warning(self.request, _("The selected date is in the future."))
-            return date_time
+            return observed_at
         except ValueError:
+            # handle iso format input
             try:
-                ret = datetime.fromisoformat(observed_at)
-                if not ret.tzinfo:
-                    ret = ret.replace(tzinfo=timezone.utc)
+                observed_at = datetime.fromisoformat(observed_at)
+                if not observed_at.tzinfo:
+                    observed_at = observed_at.replace(tzinfo=timezone.utc)
 
-                return ret
+                return observed_at
             except ValueError:
                 messages.error(self.request, _("Can not parse date, falling back to show current date."))
                 return datetime.now(timezone.utc)
