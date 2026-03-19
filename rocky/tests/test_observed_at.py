@@ -12,11 +12,11 @@ from tests.conftest import setup_request
 
 
 def test_observed_at_no_value(mocker):
-    mock_mixin_datetime = mocker.patch("rocky.views.mixins.datetime")
+    mock_mixin_datetime_now = mocker.patch("rocky.views.mixins.datetime.now")
     mock_request = mocker.Mock()
     mock_request.GET = {}
     now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=timezone.utc)
-    mock_mixin_datetime.now.return_value = now
+    mock_mixin_datetime_now.return_value = now
 
     observed_at = ObservedAtMixin()
     observed_at.request = mock_request
