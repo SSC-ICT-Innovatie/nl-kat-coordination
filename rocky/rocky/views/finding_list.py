@@ -123,6 +123,7 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
         context["observed_at_query"] = self.observed_at_query
         context["observed_at_form"] = self.get_connector_form()
         context["observed_at"] = self.observed_at
+        context["observed_at_query"] = self.observed_at_query
         context["severity_filter"] = FindingSeverityMultiSelectForm(self.request.GET)
         context["muted_findings_filter"] = MutedFindingSelectionForm(self.request.GET)
         context["table_columns"] = FINDING_LIST_COLUMNS
