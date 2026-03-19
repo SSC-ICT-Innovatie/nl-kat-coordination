@@ -22,7 +22,6 @@ from httpx import HTTPStatusError, ReadTimeout
 from pydantic import Field
 from reports.report_types.findings_report.report import SEVERITY_OPTIONS
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES
-from tools.models import Organization, OrganizationMember
 
 from crisis_room.forms import AddDashboardForm
 from crisis_room.models import MAX_POSITION, Dashboard, DashboardItem
@@ -308,9 +307,8 @@ class CrisisRoomView(TemplateView):
         if self.request.user.has_perm("tools.can_access_all_organizations"):
             dashboard_items = DashboardItem.objects.filter(findings_dashboard=True)
         else:
-            organizations = [org.code for org in self.request.user.organizations]
             dashboard_items = DashboardItem.objects.filter(
-                dashboard__organization__in=organizations, findings_dashboard=True
+                dashboard__organization__in=self.request.user.organizations, findings_dashboard=True
             )
 
         self.organizations_findings = dashboard_service.get_dashboard_items(dashboard_items)
