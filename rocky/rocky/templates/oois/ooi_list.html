@@ -115,8 +115,7 @@
                                         </td>
                                         <td>
                                             {% if observed_at_query %}
-                                                <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_read
-able }}</a>
+                                                <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
                                             {% else %}
                                                 <a href="{% ooi_url "ooi_detail" object.primary_key organization.code %}">{{ object.human_readable }}</a>
                                             {% endif %}
