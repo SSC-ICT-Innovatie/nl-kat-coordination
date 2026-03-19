@@ -222,7 +222,7 @@ task_buttons.forEach((button) => {
                 rawdata;
               // json view
               try {
-                jsondata = JSON.parse(rawdata);
+                let jsondata = JSON.parse(rawdata);
                 rawfile_container.querySelector("pre.json").innerText =
                   JSON.stringify(jsondata, null, "\t");
                 rawfile_container
