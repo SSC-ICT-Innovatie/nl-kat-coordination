@@ -17,8 +17,10 @@
                         <fieldset>
                             <legend>{% translate "Object details" %}</legend>
                             <div class="required">
-                                <label for="select_ooi_type">{% translate "Object type" %}</label>
-                                <span class="nota-bene">This field is required</span>
+                                <label for="select_ooi_type">
+                                    {% translate "Object type" %}
+                                    <span class="nota-bene">({% translate "Required" %})</span>
+                                </label>
                                 <div>
                                     <select id="select_ooi_type" name="add_ooi_type" required>
                                         <option disabled selected value="">-- {% translate "Choose an object type to add" %} --</option>

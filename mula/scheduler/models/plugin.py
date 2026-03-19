@@ -22,3 +22,5 @@ class Plugin(BaseModel):
     cron: str | None = None
     interval: int | None = None
     run_on: list[RunOn] | None = None
+    oci_image: str | None = None
+    oci_arguments: list[str] | None = None

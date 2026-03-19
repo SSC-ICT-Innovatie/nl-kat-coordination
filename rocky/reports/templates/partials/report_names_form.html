@@ -2,14 +2,13 @@
 {% load static %}
 {% load report_extra %}
 {% load ooi_extra %}
-{% load compress %}
 
 <table id="report-name-table">
     <caption class="visually-hidden">{% translate "Report names:" %}</caption>
     <thead>
         <tr>
             <th scope="col" colspan="2">
-                {% translate "Name" %} <span class="nota-bene" aria-hidden>{% translate "(Required)" %}</span>
+                {% translate "Name" %} <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
             </th>
             <th scope="col">{% translate "Add reference date" %}</th>
         </tr>

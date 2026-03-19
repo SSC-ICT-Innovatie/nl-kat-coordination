@@ -27,6 +27,7 @@ class OrganizationListView(OrganizationBreadcrumbsMixin, ListView):
             Organization.objects.annotate(member_count=Count("members"))
             .prefetch_related("tags")
             .filter(id__in=[organization.id for organization in user.organizations])
+            .order_by("name")
         )
 
     def post(self, request: HttpRequest, *args, **kwargs) -> HttpResponse:

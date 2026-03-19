@@ -1,17 +1,15 @@
 {% load i18n %}
 
 {% if data.number_of_hostnames > 0 %}
-    {% if generate_report %}
-        <p>
-            {% blocktranslate trimmed %}
-                The Mail Report provides an overview of the compliance checks associated with
-                e-mail servers. The current compliance checks the presence of SPF, DKIM and DMARC
-                records. The table below shows for each of these checks how many of the identified
-                mail servers are compliant, and if applicable a compliance issue description and
-                risk level. The risk level may be different for your specific environment.
-            {% endblocktranslate %}
-        </p>
-    {% endif %}
+    <p class="toggle-item" data-show="off">
+        {% blocktranslate trimmed %}
+            The Mail Report provides an overview of the compliance checks associated with
+            email servers. The current compliance checks the presence of SPF, DKIM and DMARC
+            records. The table below shows for each of these checks how many of the identified
+            mail servers are compliant, and if applicable a compliance issue description and
+            risk level. The risk level may be different for your specific environment.
+        {% endblocktranslate %}
+    </p>
     <div class="horizontal-scroll">
         <table>
             <caption class="visually-hidden">{% translate "Mailserver compliance" %}</caption>

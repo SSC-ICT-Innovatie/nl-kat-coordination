@@ -1,30 +1,24 @@
 import os
-import traceback
 from collections.abc import Callable
 from datetime import datetime, timezone
-from functools import cache
-from typing import cast
+from typing import Literal, cast
 
-import httpx
+import docker
 import structlog
+from docker.errors import APIError, ContainerError, ImageNotFound
 from httpx import HTTPError
-from jsonschema.exceptions import ValidationError
-from jsonschema.validators import validate
 
 from boefjes.clients.bytes_client import BytesAPIClient
+from boefjes.clients.scheduler_client import SchedulerAPIClient, get_octopoes_api_connector
 from boefjes.config import settings
-from boefjes.dependencies.plugins import PluginService
-from boefjes.docker_boefjes_runner import DockerBoefjesRunner
-from boefjes.job_models import BoefjeMeta, NormalizerMeta
-from boefjes.plugins.models import _default_mime_types
-from boefjes.runtime_interfaces import BoefjeJobRunner, Handler, NormalizerJobRunner
-from boefjes.storage.interfaces import SettingsNotConformingToSchema
+from boefjes.normalizer_interfaces import NormalizerJobRunner
+from boefjes.worker.boefje_handler import _copy_raw_files
+from boefjes.worker.interfaces import BoefjeHandler, BoefjeOutput, NormalizerHandler, Task, TaskStatus
+from boefjes.worker.job_models import BoefjeMeta
+from boefjes.worker.repository import _default_mime_types
 from octopoes.api.models import Affirmation, Declaration, Observation
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference, ScanLevel
-from octopoes.models.exception import ObjectNotFoundException
-
-MIMETYPE_MIN_LENGTH = 5  # two chars before, and 2 chars after the slash ought to be reasonable
 
 logger = structlog.get_logger(__name__)
 
@@ -33,149 +27,108 @@ bytes_api_client = BytesAPIClient(
 )
 
 
-def get_octopoes_api_connector(org_code: str) -> OctopoesAPIConnector:
-    return OctopoesAPIConnector(str(settings.octopoes_api), org_code, timeout=settings.outgoing_request_timeout)
+PASSTHROUGH_ENV_VARS = (
+    "REQUESTS_CA_BUNDLE",
+    "CURL_CA_BUNDLE",
+    "SSL_CERT_FILE",
+    "HTTP_PROXY",
+    "HTTPS_PROXY",
+    "NO_PROXY",
+)
 
 
-@cache
-def boefje_env_variables() -> dict:
-    """
-    Return all environment variables that start with BOEFJE_. The returned
-    keys have the BOEFJE_ prefix removed.
-    """
+class DockerBoefjeHandler(BoefjeHandler):
+    CACHE_VOLUME_NAME = "openkat_cache"
+    CACHE_VOLUME_TARGET = "/home/nonroot/openkat_cache"
 
-    boefje_variables = {}
-    for key, value in os.environ.items():
-        if key.startswith("BOEFJE_"):
-            boefje_variables[key.removeprefix("BOEFJE_")] = value
+    def __init__(self, scheduler_client: SchedulerAPIClient, bytes_api_client: BytesAPIClient):
+        self.docker_client = docker.from_env()
+        self.scheduler_client = scheduler_client
+        self.bytes_api_client = bytes_api_client
 
-    return boefje_variables
+    def handle(self, task: Task) -> tuple[BoefjeMeta, BoefjeOutput] | None | Literal[False]:
+        boefje_meta = task.data
+        oci_image = boefje_meta.arguments["oci_image"]
 
+        if not oci_image:
+            raise RuntimeError("Boefje does not have OCI image")
 
-def get_system_env_settings_for_boefje(allowed_keys: list[str]) -> dict:
-    return {key: value for key, value in boefje_env_variables().items() if key in allowed_keys}
-
-
-def get_environment_settings(boefje_meta: BoefjeMeta, schema: dict | None = None) -> dict[str, str]:
-    try:
-        katalogus_api = str(settings.katalogus_api).rstrip("/")
-        response = httpx.get(
-            f"{katalogus_api}/v1/organisations/{boefje_meta.organization}/{boefje_meta.boefje.id}/settings",
-            timeout=settings.outgoing_request_timeout,
-        )
-        response.raise_for_status()
-    except HTTPError:
-        logger.exception("Error getting environment settings")
-        raise
-
-    allowed_keys = schema.get("properties", []) if schema else []
-    new_env = get_system_env_settings_for_boefje(allowed_keys)
-
-    settings_from_katalogus = response.json()
-
-    for key, value in settings_from_katalogus.items():
-        if key in allowed_keys:
-            new_env[key] = value
-
-    # The schema, besides dictating that a boefje cannot run if it is not matched, also provides an extra safeguard:
-    # it is possible to inject code if arguments are passed that "escape" the call to a tool. Hence, we should enforce
-    # the schema somewhere and make the schema as strict as possible.
-    if schema is not None:
-        try:
-            validate(instance=new_env, schema=schema)
-        except ValidationError as e:
-            raise SettingsNotConformingToSchema(boefje_meta.boefje.id, e.message) from e
-
-    return new_env
-
-
-class BoefjeHandler(Handler):
-    def __init__(self, job_runner: BoefjeJobRunner, plugin_service: PluginService, bytes_client: BytesAPIClient):
-        self.job_runner = job_runner
-        self.plugin_service = plugin_service
-        self.bytes_client = bytes_client
-
-    def handle(self, boefje_meta: BoefjeMeta) -> None:
-        logger.info("Handling boefje %s[task_id=%s]", boefje_meta.boefje.id, str(boefje_meta.id))
-
-        # Check if this boefje is container-native, if so, continue using the Docker boefjes runner
-        plugin = self.plugin_service.by_plugin_id(boefje_meta.boefje.id, boefje_meta.organization)
-
-        if plugin.type != "boefje":
-            raise ValueError("Plugin id does not belong to a boefje")
-
-        if plugin.oci_image:
-            logger.info(
-                "Delegating boefje %s[task_id=%s] to Docker runner with OCI image [%s]",
-                boefje_meta.boefje.id,
-                str(boefje_meta.id),
-                plugin.oci_image,
-            )
-            docker_runner = DockerBoefjesRunner(plugin, boefje_meta)
-            return docker_runner.run()
-
-        if boefje_meta.input_ooi:
-            reference = Reference.from_str(boefje_meta.input_ooi)
-            try:
-                ooi = get_octopoes_api_connector(boefje_meta.organization).get(
-                    reference, valid_time=datetime.now(timezone.utc)
-                )
-            except ObjectNotFoundException:
-                logger.info(
-                    "Can't run boefje because OOI does not exist anymore",
-                    boefje_id=boefje_meta.boefje.id,
-                    ooi=reference,
-                    task_id=boefje_meta.id,
-                )
-                return
-
-            boefje_meta.arguments["input"] = ooi.serialize()
-
-        boefje_meta.runnable_hash = plugin.runnable_hash
-        boefje_meta.environment = get_environment_settings(boefje_meta, plugin.boefje_schema)
-
-        logger.info("Starting boefje %s[%s]", boefje_meta.boefje.id, str(boefje_meta.id))
-
+        stderr_mime_types = _default_mime_types(boefje_meta.boefje)
+        task_id = boefje_meta.id
         boefje_meta.started_at = datetime.now(timezone.utc)
 
-        boefje_results: list[tuple[set, bytes | str]] = []
-
         try:
-            boefje_results = self.job_runner.run(boefje_meta, boefje_meta.environment)
-        except:
-            logger.exception("Error running boefje %s[%s]", boefje_meta.boefje.id, str(boefje_meta.id))
-            boefje_results = [({"error/boefje"}, traceback.format_exc())]
-
-            raise
-        finally:
-            boefje_meta.ended_at = datetime.now(timezone.utc)
-            logger.info("Saving to Bytes for boefje %s[%s]", boefje_meta.boefje.id, str(boefje_meta.id))
-
-            self.bytes_client.save_boefje_meta(boefje_meta)
-
-            if boefje_results:
-                for boefje_added_mime_types, output in boefje_results:
-                    valid_mimetypes = set()
-                    for mimetype in boefje_added_mime_types:
-                        if len(mimetype) < MIMETYPE_MIN_LENGTH or "/" not in mimetype:
-                            logger.warning(
-                                "Invalid mime-type encountered in output for boefje %s[%s]",
-                                boefje_meta.boefje.id,
-                                str(boefje_meta.id),
-                            )
-                        else:
-                            valid_mimetypes.add(mimetype)
-                    raw_file_id = self.bytes_client.save_raw(
-                        boefje_meta.id, output, _default_mime_types(boefje_meta.boefje).union(valid_mimetypes)
-                    )
-                    logger.info(
-                        "Saved raw file %s for boefje %s[%s]", raw_file_id, boefje_meta.boefje.id, boefje_meta.id
-                    )
+            input_url = str(settings.api).rstrip("/") + f"/api/v0/tasks/{task_id}"
+            if settings.docker_internal_host:
+                kwargs = {"extra_hosts": {"host.docker.internal": "host-gateway"}}
             else:
-                logger.info("No results for boefje %s[%s]", boefje_meta.boefje.id, boefje_meta.id)
+                kwargs = {}
+
+            container_logs = self.docker_client.containers.run(
+                image=oci_image,
+                name="kat_boefje_" + str(task_id),
+                command=input_url,
+                stdout=False,
+                stderr=True,
+                remove=True,
+                network=settings.docker_network,
+                volumes=[f"{self.CACHE_VOLUME_NAME}:{self.CACHE_VOLUME_TARGET}"],
+                environment={
+                    **{k: os.environ[k] for k in PASSTHROUGH_ENV_VARS if k in os.environ},
+                    **(boefje_meta.environment or {}),
+                },
+                **kwargs,
+            )
+
+            task = self.scheduler_client.get_task(task_id)
+
+            # if status is still running the container didn't call the output API endpoint, so set to status to failed
+            if task.status == TaskStatus.RUNNING:
+                boefje_meta.ended_at = datetime.now(timezone.utc)
+                self.bytes_api_client.save_boefje_meta(boefje_meta)  # The task didn't create a boefje_meta object
+                self.bytes_api_client.save_raw(task_id, container_logs, stderr_mime_types.union({"error/boefje"}))
+                self.scheduler_client.patch_task(task_id, TaskStatus.FAILED)
+
+                # have to raise exception to prevent _start_working function from setting status to completed
+                raise RuntimeError("Boefje did not call output API endpoint")
+        except ContainerError as e:
+            logger.error("Container for task %s failed and returned exit status %d", task_id, e.exit_status)
+            self.bytes_api_client.login()
+
+            try:
+                self.bytes_api_client.get_boefje_meta(boefje_meta.id)
+                logger.info("Container managed to save its raw data to bytes itself.")
+            except HTTPError:
+                logger.info(
+                    "Container did not manage to save its raw data to bytes, saving the container stderr instead."
+                )
+
+                boefje_meta.ended_at = datetime.now(timezone.utc)
+                self.bytes_api_client.save_boefje_meta(boefje_meta)
+                self.bytes_api_client.save_raw(task_id, e.stderr, stderr_mime_types)
+                self.scheduler_client.patch_task(task_id, TaskStatus.FAILED)
+        except ImageNotFound:
+            logger.error("Docker image %s not found", oci_image)
+            self.scheduler_client.patch_task(task_id, TaskStatus.FAILED)
+        except APIError as e:
+            logger.error("Docker API error: %s", e)
+            self.scheduler_client.patch_task(task_id, TaskStatus.FAILED)
+
+        return False
+
+    def copy_raw_files(
+        self, task: Task, output: tuple[BoefjeMeta, BoefjeOutput] | Literal[False], duplicated_tasks: list[Task]
+    ) -> None:
+        if output is not False:
+            return  # Output belonged to a regular boefje
+
+        boefje_meta = self.bytes_api_client.get_boefje_meta(task.data.id)
+        boefje_output = self.bytes_api_client.get_raws(task.data.id)
+
+        _copy_raw_files(self.bytes_api_client, boefje_meta, boefje_output, duplicated_tasks)
 
 
-class NormalizerHandler(Handler):
+class LocalNormalizerHandler(NormalizerHandler):
     def __init__(
         self,
         job_runner: NormalizerJobRunner,
@@ -188,7 +141,8 @@ class NormalizerHandler(Handler):
         self.whitelist = whitelist or {}
         self.octopoes_factory = octopoes_factory
 
-    def handle(self, normalizer_meta: NormalizerMeta) -> None:
+    def handle(self, task: Task):
+        normalizer_meta = task.data
         logger.info("Handling normalizer %s[%s]", normalizer_meta.normalizer.id, normalizer_meta.id)
 
         raw = self.bytes_client.get_raw(normalizer_meta.raw_data.id)
@@ -281,7 +235,3 @@ class NormalizerHandler(Handler):
             self.bytes_client.save_normalizer_meta(normalizer_meta)
 
         logger.info("Done with normalizer %s[%s]", normalizer_meta.normalizer.id, normalizer_meta.id)
-
-
-class InvalidWhitelist(Exception):
-    pass

@@ -3,7 +3,7 @@
   "name": "SSL scan",
   "description": "Parses SSL scan version data into findings.",
   "consumes": [
-    "boefje/ssl-version"
+    "openkat/ssl-scan-output"
   ],
   "produces": [
     "KATFindingType",

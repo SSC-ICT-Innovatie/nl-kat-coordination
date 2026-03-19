@@ -49,3 +49,27 @@
   --h6-line-height: var(--heading-xs-line-height);
   --h6-margin: var(--heading-xs-margin);
 }
+
+h1 {
+  max-width: var(--h1-max-line-length-max-width);
+}
+
+h2 {
+  max-width: var(--h2-max-line-length-max-width);
+}
+
+h3 {
+  max-width: var(--h3-max-line-length-max-width);
+}
+
+h4 {
+  max-width: var(--h4-max-line-length-max-width);
+}
+
+h5 {
+  max-width: var(--h5-max-line-length-max-width);
+}
+
+h6 {
+  max-width: var(--h6-max-line-length-max-width);
+}

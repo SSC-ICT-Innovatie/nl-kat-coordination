@@ -3,9 +3,13 @@
 <section id="open-ports">
     <div class="horizontal-scroll">
         {% if show_heading %}
-            <h2>{% translate "Open ports" %}</h2>
+            <div class="horizontal-view">
+                <h2>{% translate "Open ports" %}</h2>
+                {% include "partials/report_section_action_button.html" with modal_id="open-ports-modal" template="open_ports_report/report.html" %}
+
+            </div>
         {% endif %}
-        <p>
+        <p class="toggle-item" data-show="off">
             {% blocktranslate trimmed %}
                 The Open Ports Report provides an overview of the open ports identified on
                 a system. The ports that are marked as <b>bold</b> were identified by direct
@@ -24,35 +28,67 @@
                 </tr>
             </thead>
             <tbody>
-                {% for ip, detailed_data in data.items %}
-                    <tr>
-                        <td>{{ ip }}</td>
-                        {# djLint formatting adds spaces before the comma. #}
-                        {# djlint:off #}
-                        <td>
-                            {% if detailed_data.ports %}
-                                {% for port, found_by_openkat in detailed_data.ports.items %}
-                                    {% if found_by_openkat %}
-                                        <strong><span class="visually-hidden">({% translate "Direct scan" %})</span>{{ port }}</strong>{% if not forloop.last %},{% endif %}
+                {% if aggregate_dashboard_item %}
+                    {% for ip, detailed_data in data.open_ports.items %}
+                        <tr>
+                            <td>{{ ip }}</td>
+                            {# djLint formatting adds spaces before the comma. #}
+                            {# djlint:off #}
+                                <td>
+                                    {% if detailed_data.ports %}
+                                        {% for port, found_by_openkat in detailed_data.ports.items %}
+                                            {% if found_by_openkat %}
+                                                <strong><span class="visually-hidden">({% translate "Direct scan" %})</span>{{ port }}</strong>{% if not forloop.last %},{% endif %}
+                                            {% else %}
+                                                {{ port }}{% if not forloop.last %},{% endif %}
+                                            {% endif %}
+                                        {% endfor %}
                                     {% else %}
-                                        {{ port }}{% if not forloop.last %},{% endif %}
+                                        -
                                     {% endif %}
-                                {% endfor %}
-                            {% else %}
-                                -
-                            {% endif %}
 
-                        </td>
-                        <td>
-                            {% if detailed_data.hostnames %}
-                                {{ detailed_data.hostnames|join:", " }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                        {# djlint:on #}
-                    </tr>
-                {% endfor %}
+                                </td>
+                                <td>
+                                    {% if detailed_data.hostnames %}
+                                        {{ detailed_data.hostnames|join:", " }}
+                                    {% else %}
+                                        -
+                                    {% endif %}
+                                </td>
+                            {# djlint:on #}
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    {% for ip, detailed_data in data.items %}
+                        <tr>
+                            <td>{{ ip }}</td>
+                            {# djLint formatting adds spaces before the comma. #}
+                            {# djlint:off #}
+                            <td>
+                                {% if detailed_data.ports %}
+                                    {% for port, found_by_openkat in detailed_data.ports.items %}
+                                        {% if found_by_openkat %}
+                                            <strong><span class="visually-hidden">({% translate "Direct scan" %})</span>{{ port }}</strong>{% if not forloop.last %},{% endif %}
+                                        {% else %}
+                                            {{ port }}{% if not forloop.last %},{% endif %}
+                                        {% endif %}
+                                    {% endfor %}
+                                {% else %}
+                                    -
+                                {% endif %}
+
+                            </td>
+                            <td>
+                                {% if detailed_data.hostnames %}
+                                    {{ detailed_data.hostnames|join:", " }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            {# djlint:on #}
+                        </tr>
+                    {% endfor %}
+                {% endif %}
             </tbody>
         </table>
     </div>

@@ -1,7 +1,5 @@
 import socket
 
-from boefjes.job_models import BoefjeMeta
-
 TIMEOUT = 1.0
 
 
@@ -31,8 +29,8 @@ def get_banner(sock):
         return [({"error/boefje"}, f"Unable to get banner. {str(e)}")]
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, str | bytes]]:
-    input_ = boefje_meta.arguments["input"]  # input is IPPort
+def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
+    input_ = boefje_meta["arguments"]["input"]  # input is IPPort
     port = input_["port"]
     ip = input_["address"]["address"]
 

@@ -5,12 +5,9 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from boefjes.config import settings
 from boefjes.dependencies.encryption import NaclBoxMiddleware
-from boefjes.models import Organisation
 from boefjes.sql.config_storage import create_encrypter
 from boefjes.sql.db import SQL_BASE, get_engine
-from boefjes.sql.organisation_storage import SQLOrganisationStorage
 
 pytestmark = pytest.mark.skipif(os.environ.get("CI") != "1", reason="Needs a CI database.")
 
@@ -37,10 +34,12 @@ def migration_197672984df0() -> Session:
 def test_setting_to_settings_json(migration_197672984df0):
     session = migration_197672984df0
 
-    with SQLOrganisationStorage(session, settings) as storage:
-        storage.create(Organisation(id="dev1", name="Test 1 "))
-        storage.create(Organisation(id="dev2", name="Test 2 "))
-        storage.create(Organisation(id="dev3", name="Test 3 "))
+    query = f"""INSERT INTO organisation (id, name) values {','.join(map(str, [
+        ("dev1", "Test 1 "),
+         ("dev2", "Test 2 "),
+          ("dev3", "Test 3 "),
+    ]))}"""  # noqa: S608
+    session.get_bind().execute(text(query))
 
     encrypter = create_encrypter()
     entries = _collect_entries(encrypter)
@@ -60,8 +59,8 @@ def test_setting_to_settings_json(migration_197672984df0):
     session.close()
     alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "-1"])
 
-    results = [x[1:] for x in session.execute(text("SELECT * FROM setting")).fetchall()]  # ignore pk's
-    decoded_results = [(x[0], encrypter.decode(x[1]), x[2], x[3]) for x in results]  # compare decoded, since
+    results = session.execute(text("SELECT key, value, organisation_pk, plugin_id FROM setting")).fetchall()
+    decoded_results = [(x[0], encrypter.decode(x[1]), x[2], x[3]) for x in results]
     decoded_entries = [(x[0], encrypter.decode(x[1]), x[2], x[3]) for x in entries]  # encoding changes every time.
 
     assert set(decoded_entries) == set(decoded_results)

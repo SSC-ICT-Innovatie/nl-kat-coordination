@@ -3,7 +3,8 @@
   "name": "Nuclei CVE",
   "description": "Parses Nuclei CVE data into findings.",
   "consumes": [
-    "boefje/nuclei-cve"
+    "boefje/nuclei-cve",
+    "openkat/nuclei-output"
   ],
   "produces": [
     "Finding",

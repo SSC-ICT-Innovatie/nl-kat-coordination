@@ -7,14 +7,67 @@ jobs:
   unit-tests:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Run unit tests
         run: make utest
         working-directory: mula/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mula-coverage-unit
+          path: mula/.coverage
+          include-hidden-files: true
+
+  integration-tests:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run integration tests
+        run: make itest
+        working-directory: mula/
+
+      - name: Upload coverage as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: mula-coverage-integration
+          path: mula/.coverage
+          include-hidden-files: true
+
+  coverage:
+    runs-on: ubuntu-24.04
+    needs:
+      - unit-tests
+      - integration-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip" # caching pip dependencies
+
+      - name: Install coverage
+        run: pip install coverage[toml]
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: mula-coverage-*
+
+      - name: Merge and generate coverage report
+        run: |
+          coverage combine ../**/.coverage
+          coverage report
+          coverage xml --ignore-errors
+        working-directory: mula/
+
+      - name: Upload coverage as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: mula-coverage
           path: mula/coverage.xml

@@ -3,9 +3,10 @@ from pathlib import Path
 
 from pydantic import AnyUrl
 
-from boefjes.job_models import NormalizerMeta, NormalizerResults
-from boefjes.local import LocalNormalizerJobRunner
-from boefjes.local_repository import LocalPluginRepository
+from boefjes.local.runner import LocalNormalizerJobRunner
+from boefjes.normalizer_models import NormalizerResults
+from boefjes.worker.job_models import NormalizerMeta
+from boefjes.worker.repository import LocalPluginRepository
 from octopoes.models import Reference
 from tests.loading import get_dummy_data
 

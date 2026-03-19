@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import collections
 import datetime
-import logging
 import uuid
 from enum import Enum
 from functools import cached_property
@@ -26,6 +25,7 @@ class Boefje(BaseModel):
     id: str
     name: str | None = Field(default=None)
     version: str | None = Field(default=None)
+    oci_image: str | None = Field(default=None)
 
 
 class BoefjeMeta(BaseModel):
@@ -83,6 +83,7 @@ class BoefjeTask(BaseModel):
     boefje: Boefje
     input_ooi: str | None = None
     organization: str
+    deduplication_key: uuid.UUID | None = None
 
 
 class ReportTask(BaseModel):
@@ -179,6 +180,17 @@ class ScheduleResponse(BaseModel):
     modified_at: datetime.datetime
 
 
+class SchedulerResponse(BaseModel):
+    id: str
+    enabled: bool
+    priority_queue: dict[str, Any]
+    last_activity: str | None
+
+
+class SchedulerNoResponse(BaseModel):
+    detail: str
+
+
 class Queue(BaseModel):
     id: str
     size: int
@@ -230,7 +242,7 @@ class LazyTaskList:
         else:
             raise TypeError("Invalid slice argument type.")
 
-        logging.info("Getting max %s lazy items at offset %s with filter %s", limit, offset, self.kwargs)
+        logger.debug("Getting max %s lazy items at offset %s with filter %s", limit, offset, self.kwargs)
         res = self.scheduler_client.list_tasks(limit=limit, offset=offset, **self.kwargs)
 
         self._count = res.count
@@ -304,6 +316,7 @@ class SchedulerClient:
 
     def post_schedule_search(self, filters: dict[str, list[dict[str, Any]]]) -> PaginatedSchedulesResponse:
         try:
+            filters["filters"].append({"column": "organisation", "operator": "eq", "value": self.organization_code})
             res = self._client.post("/schedules/search", json=filters)
             res.raise_for_status()
             return PaginatedSchedulesResponse.model_validate_json(res.content)
@@ -319,7 +332,6 @@ class SchedulerClient:
             raise SchedulerHTTPError()
 
     def post_schedule(self, schedule: ScheduleRequest) -> ScheduleResponse:
-        logger.info("Creating schedule", schedule=schedule)
         try:
             res = self._client.post("/schedules", json=schedule.model_dump(exclude_none=True))
             logger.info(res.content)
@@ -327,8 +339,12 @@ class SchedulerClient:
             logger.info("Schedule created", event_code=800081, schedule=schedule)
 
             return ScheduleResponse.model_validate_json(res.content)
-        except (ValidationError, HTTPStatusError, ConnectError):
+        except ValidationError:
             raise SchedulerValidationError(extra_message="Report schedule failed: ")
+        except HTTPStatusError:
+            raise SchedulerHTTPError()
+        except ConnectError:
+            raise SchedulerConnectError()
 
     def delete_schedule(self, schedule_id: str) -> None:
         try:
@@ -407,9 +423,9 @@ class SchedulerClient:
     def _get_task_stats(self, scheduler_id: str, organisation_id: str | None = None) -> dict:
         """Return task stats for specific scheduler."""
         if organisation_id is None:
-            return self._get(f"/tasks/stats?=scheduler_id={scheduler_id}")  # type: ignore
+            return self._get(f"/tasks/stats?scheduler_id={scheduler_id}")  # type: ignore
 
-        return self._get(f"/tasks/stats?=scheduler_id={scheduler_id}&organisation_id={organisation_id}")  # type: ignore
+        return self._get(f"/tasks/stats?scheduler_id={scheduler_id}&organisation_id={organisation_id}")  # type: ignore
 
     def get_task_stats(self, task_type: str) -> dict:
         """Return task stats for specific task type."""
@@ -424,9 +440,12 @@ class SchedulerClient:
                 stat_sum[timeslot].update(counts)
         return dict(stat_sum)
 
+    def get_task_stats_for_all_organizations(self, scheduler_id: str) -> dict:
+        return self._get_task_stats(scheduler_id)
+
     def get_combined_schedulers_stats(self, scheduler_id: str, organization_codes: list[str]) -> dict:
         """Return merged stats for a set of scheduler ids."""
-        return SchedulerClient._merge_stat_dicts(
+        return self._merge_stat_dicts(
             dicts=[self._get_task_stats(scheduler_id, org_code) for org_code in organization_codes]
         )
 
@@ -444,9 +463,16 @@ class SchedulerClient:
             return res.content
         return res.json()
 
-    def get_scheduled_reports(self, **params) -> list[dict[str, Any]]:
+    def get_scheduled_reports(self) -> list[dict[str, Any]]:
         try:
-            response = self._client.get("/schedules", params=params)
+            filters: dict[str, list[dict[str, Any]]] = {
+                "filters": [
+                    {"column": "scheduler_id", "operator": "eq", "value": "report"},
+                    {"column": "organisation", "operator": "eq", "value": self.organization_code},
+                ]
+            }
+
+            response = self._client.post("/schedules/search", json=filters)
             response.raise_for_status()
         except HTTPStatusError:
             logger.error("A HTTPStatusError occurred. Check logs for more info.")

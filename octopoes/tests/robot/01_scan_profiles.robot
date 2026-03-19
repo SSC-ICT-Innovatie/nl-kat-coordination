@@ -19,9 +19,6 @@ Inheritance Of Two Declared Scan Profiles
     Verify Scan Level    ${REF_HOSTNAME}    ${4}
     Verify Scan Level    ${REF_IPADDR}    ${2}
     Verify Scan Level    ${REF_RESOLVEDHOSTNAME}    ${4}
-    Verify Scan Profile Increment Queue    ${REF_HOSTNAME}    ${4}
-    Verify Scan Profile Increment Queue    ${REF_IPADDR}    ${2}
-    Verify Scan Profile Increment Queue    ${REF_RESOLVEDHOSTNAME}    ${4}
     Verify Scan LeveL Filter    1    ${0}
     Verify Scan LeveL Filter    2    ${2}
     Verify Scan LeveL Filter    3    ${0}
@@ -45,9 +42,6 @@ Recalculate Inheritance After Modification
     Verify Scan Level    ${REF_HOSTNAME}    ${0}
     Verify Scan Level    ${REF_IPADDR}    ${2}
     Verify Scan Level    ${REF_RESOLVEDHOSTNAME}    ${0}
-    Verify Scan Profile Increment Queue    ${REF_HOSTNAME}    ${4}
-    Verify Scan Profile Increment Queue    ${REF_IPADDR}    ${2}
-    Verify Scan Profile Increment Queue    ${REF_RESOLVEDHOSTNAME}    ${4}
     Verify Scan Profile Mutation Queue    ${REF_HOSTNAME}    ${{[0, 4, 0]}}
     Verify Scan Profile Mutation Queue    ${REF_IPADDR}    ${{[0, 2]}}
     Verify Scan Profile Mutation Queue    ${REF_RESOLVEDHOSTNAME}    ${{[0, 4, 0]}}
@@ -92,23 +86,6 @@ Verify Scan Level
     ...    ${response_data["scan_profile"]["level"]}
     ...    ${scan_level}
     ...    Scan Level of ${reference} should be ${scan_level} in the database
-
-Verify Scan Profile Increment Queue
-    [Arguments]    ${reference}    ${scan_level}
-    ${messages}    Get Messages From Queue    ${SCAN_PROFILE_INCREMENT_QUEUE}    ack_requeue_true
-    FOR    ${message}    IN    @{messages}
-        ${payload}    Evaluate    json.loads("""${message["payload"]}""")    json
-        IF    "${payload['primary_key']}" == "${reference}"
-            Should Be Equal As Integers
-            ...    ${payload["scan_profile"]["level"]}
-            ...    ${scan_level}
-            ...    Scan Level of ${reference} should be ${scan_level} in the increment queue
-            @{reference_parts}    Split String    ${reference}    |
-            Should Be Equal    ${payload["object_type"]}    ${reference_parts}[0]
-            RETURN
-        END
-    END
-    Fail    Scan Level of ${reference} should be incremented to ${scan_level}
 
 Verify Scan LeveL Filter
     [Arguments]    ${scan_level}    ${expected_count}

@@ -1,0 +1,11 @@
+{% load i18n %}
+
+<div>
+    <nav class="tabs" aria-label="{% translate "Crisis room navigation" %}">
+        <ul>
+            <li {% if active == "findings" %}aria-current="page"{% endif %}>
+                <a href="{% url 'crisis_room' %}">{% translate "Findings" %}</a>
+            </li>
+        </ul>
+    </nav>
+</div>

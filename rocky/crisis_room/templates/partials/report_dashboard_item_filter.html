@@ -1,0 +1,87 @@
+{% load i18n %}
+{% load static %}
+
+<div class="filter">
+    <div>
+        {% if type == "report-section" %}
+            <button aria-expanded="false"
+                    data-hide-filters-label='{% translate "Objects" %}'>{% translate "Objects" %}</button>
+        {% else %}
+            <button aria-expanded="false"
+                    data-hide-filters-label='{% translate "Applied filters" %}'>
+                {% translate "Applied filters" %}
+            </button>
+        {% endif %}
+    </div>
+    <form>
+        {% if type == "report-section" %}
+            <div class="horizontal-scroll">
+                {% if recipe.input_recipe.query %}
+                    {% with query=recipe.input_recipe.query %}
+                        <dl>
+                            <div>
+                                <dt>{% translate "Object types" %}</dt>
+                                <dd>
+                                    {{ query.ooi_types|join:", " }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>{% translate "Clearance level" %}</dt>
+                                <dd>
+                                    {{ query.scan_level|join:", " }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>{% translate "Clearance type" %}</dt>
+                                <dd>
+                                    {{ query.scan_type|join:", " }}
+                                </dd>
+                            </div>
+                        </dl>
+                    {% endwith %}
+                {% else %}
+                    <dl>
+                        <div>
+                            <dt>{% translate "Input objects" %}</dt>
+                            <dd>
+                                {% with oois=input_oois|slice:":10" %}{{ oois|join:", " }}{% endwith %}
+                            </dd>
+                        </div>
+                    </dl>
+                    {% if input_oois|length > 10 %}
+                        <div class="toolbar">
+                            <a class="button ghost"
+                               href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s:u" }}#selected-oois">
+                                {% translate "Show all objects" %}
+                                <span class="icon ti-chevron-right" aria-hidden="true"></span>
+                            </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        {% else %}
+            {% if dashboard_item.item.query %}
+                {% with query=dashboard_item.item.get_query %}
+                    <dl>
+                        {% for filter, value in query.items %}
+                            {% if value %}
+                                <div>
+                                    <dt>{{ filter|capfirst }}</dt>
+                                    <dd>
+                                        {% if filter == "ooi_type" %}
+                                            {{ value|join:"," }}
+                                        {% else %}
+                                            {{ value }}
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </dl>
+                {% endwith %}
+            {% else %}
+                <li>{% translate "No filters applied" %}</li>
+            {% endif %}
+        {% endif %}
+    </form>
+</div>

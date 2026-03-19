@@ -67,7 +67,7 @@ table td .icon {
 
   &.failed {
     &::before {
-      content: "\ea6a"; // $ti-icon-circle-x
+      content: "\ea05"; // $ti-icon-alert-circle
       color: var(--color-alert-negative);
     }
   }
@@ -81,14 +81,14 @@ table td .icon {
 
   &.running {
     &::before {
-      content: "\ed27"; // $ti-icon-circle-dashed (should become ti-icon-progress, when we have it)
+      content: "\fa0d"; // $ti-icon-progress
       color: var(--color-alert-informative);
     }
   }
 
   &.dispatched {
     &::before {
-      content: "\ed27"; // $ti-icon-circle-dashed (should become ti-icon-progress, when we have it)
+      content: "\fd5d"; // $ti-icon-send-2
       color: var(--color-alert-informative);
     }
   }
@@ -96,21 +96,21 @@ table td .icon {
   &.queued {
     &::before {
       content: "\ea70"; // $ti-icon-clock
-      color: var(--color-alert-warning);
+      color: var(--color-alert-informative);
     }
   }
 
   &.pending {
     &::before {
-      content: "\ea70"; // $ti-icon-clock
-      color: var(--color-alert-warning);
+      content: "\eca3"; // $ti-icon-loader
+      color: var(--color-alert-informative);
     }
   }
 
   &.cancelled {
     &::before {
-      content: "\ea05"; // $ti-icon-alert-circle
-      color: var(--color-alert-negative);
+      content: "\ea6a"; // $ti-icon-alert-circle-x
+      color: var(--colors-grey-900);
     }
   }
 }

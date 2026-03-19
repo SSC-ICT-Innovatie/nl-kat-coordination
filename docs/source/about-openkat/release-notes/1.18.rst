@@ -1,0 +1,387 @@
+============================================
+OpenKAT 1.18 - Sneeuwkat
+============================================
+
+This release adds report scheduling, which implements periodic report generation: by adding an interval to a report, it will automatically update with the latest information. With our new Dashboarding feature, these reports can be added to custom dashboards.
+
+Dashboard and Report data also have historical versions available. Future versions of the user interface will include moving back and forth in time and comparing these historic versions, highlighting changes and trends.
+We also included a new HTTP export boefje that you can use to export all objects in the graph to an external API either on an interval (e.g. every hour), or when the OOI is either created or changed, using our new Run-On functionality. This can be used to alert that findings have been created or their score has been updated.
+There's also a new S3 backend for Bytes and various new boefjes, normalizers and fixes to bits from our growing community. Thanks! Docs on how to setup S3 for your (new) install can be found here: https://docs.openkat.nl/installation-and-deployment/s3-buckets.html
+
+The language Tamil has been added via the hard work of a community volunteer. Since we have not yet tested it ourselves, it's currently only available if you add it to the languages list manually.
+If you want to add a language to OpenKAT, or just help translate smaller parts, please take a look at our weblate: https://hosted.weblate.org/projects/openkat/nl-kat-coordination/ any help is much appreciated!
+
+The Keiko module (formerly used to generate reports Via LaTeX) has been removed as we are now using full html reports that can also be exported as PDF.
+
+In total 30 contributors have made 267 commits to Main in which 1,332 Files where changed.
+
+New Features and Bug fixes
+==========================
+
+
+* Feature: improve settings and environment logic and phase out redundant environment keys by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3384
+* feat: adds notification styling and icons by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3461
+* Make the "name" field for plugins mandatory by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3471
+* Feature/upload multiple files at once to bytes by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3476
+* Add report scheduler functionality to scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3352
+* Add json download to report export by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3460
+* feat: multi select dropdown by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3446
+* Add timezone to valid time by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3429
+* Exclude OOIs creation from the OOI add form by OOI-types by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3490
+* Hotfix for normalizer API bug by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3475
+* fix: toggle styling by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3449
+* Dont yield all snyk findings when no version was found by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3431
+* Handle empty normalizer results by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3482
+* Fix enabling normalizers from Rocky by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3481
+* Fix report types selection not being overridden by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3436
+* Add new Boefje by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3400
+* Fix hanging upload of large files by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3489
+* Check if the task is still running according to the scheduler before changing the status by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3506
+* Use the right variable name in the template's if-statement by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3519
+* Add regex pattern check to PORTS setting of nmap-ports by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3516
+* Update xtdb-http-multinode to the latest version by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3523
+* Updated findings in the findings database by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3427
+* remove unneeded column from filtered plugin table view by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3515
+* Also delete self-affirming or self-infered objects by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3498
+* Support valid_time and the like for queries in xtdb tools by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3430
+* Chore: use only Pytest in the boefjes by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3536
+* Invert findings, add source URLs. by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3538
+* Fix JSON line logging by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3511
+* Fix xtdb-cli by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3543
+* Create boefje variant by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3456
+* make session commit less chatty by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3544
+* Fix duplicate OOI references in result in origin by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3531
+* a bit more detailed erroring in the scheduler client. by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3546
+* Show proper error message instead of stacktrace if boefje API is unreachable by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3550
+* Fix headings by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3528
+* Feat/bit domain ownership pending by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3290
+* Improve boefje runner error messages on container failure by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3548
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3567
+* Clean more stale origins by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3561
+* Fix Pydantic warnings by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3557
+* Prevent race conditions between Octopoes' event manager and the scheduler from recreating already deleted OOIs through affirmations by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3564
+* burpsuite fix by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3381
+* Fix boefje schema on Boefje Setup page by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3574
+* Set default findingtype risk in model instead of in bit by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3562
+* Add permission that grants access to all organizations by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3532
+* Add unique constraint to database plugin names by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3556
+* Feature/add boefje scheduling fields by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3555
+* Refactor and fix faulty save_origin exception code by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3577
+* Dont show manual tasks in normalizer list by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3580
+* Update a Boefje by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3521
+* Explicitly use the fork context for multiprocessing to fix running boefjes on macOS by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3576
+* fix: button style by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3565
+* Use stdlib instead of dateutil to parse ISO datetime by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3590
+* Do not store the hypothetically produced mime-types always by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3583
+* Remove old Findings Report by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3560
+* Add 'set start date' functionality to scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3589
+* Make API usable by non-admin users and check specific permissions by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3571
+* fix: button styling by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3591
+* Add interval to Boefje by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3579
+* Add boefje interval and cron check for deadline in scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3529
+* Always redirect to katalogus when enabling plugins by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3584
+* Fixes notification alignment by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3522
+* REST API to recalculate bits and clone katalogus settings by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3572
+* fix: form styling by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3588
+* Remove an erroneously generated request body from an object history GET call in Octopoes' router by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3605
+* RFD 0002: Code of Conduct: Code Reviews by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3425
+* Fix grace period is being used instead of interval for boefjes that have interval specified in scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3602
+* Use identifiers on modal triggers and modal component instead of integral trigger by @TwistMeister in https://github.com/minvws/nl-kat-coordination/pull/3541
+* Refactoring for Report Recipe, Report Task Runner and Scheduling by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3597
+* Handle existing Boefje name by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3573
+* Update boefje interval texts to make functionality more clear by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3609
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3610
+* Feature/sort ooi type clearance level by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3300
+* Feature/report runner integration by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3607
+* Report Schedules List by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3608
+* Add s3 functionality in Bytes by @Souf149 in https://github.com/minvws/nl-kat-coordination/pull/3505
+* Implement SonarCloud integrations by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3001
+* Fixed references in SonarCloud workflow by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3620
+* Update filter unit and integration tests by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3595
+* Enable ruff format skip-magic-trailing-comma by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/2975
+* Fixes for xtdb-cli by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3624
+* Give python-docker-boefjes the possibility to use modules that are not part of OpenKAT by @Souf149 in https://github.com/minvws/nl-kat-coordination/pull/3621
+* fix tagging list in scheduled_reports_table.html by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3615
+* Revert 1b4aed6 by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3647
+* Add audit trail logging to boefje crud actions in boefje by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3613
+* use correct error mimetype by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3646
+* Update katalogus client, input sanitization / validation by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3396
+* Bug fixes for the reports flow by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3630
+* Remove source link in Findings Report when source is none by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3642
+* add CA bundle env var to dadb boefje schema. by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3618
+* Fix nmap-ports regex pattern not allowing 80 by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3651
+* Fix boefje container image url by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3622
+* Fix description on plugin page when all plugins are enabled by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3644
+* Fix for downloading PDF by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3664
+* Fix sorting plugins list by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3659
+* fix the boefje id check for uuid's. A cleaner match regex would probably be better. by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3665
+* Fix table in DNS Report by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3650
+* Pass bytes instead of string to BytesClient.upload_raw() by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3670
+* make some things look better by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3661
+* Fix/yielded objects by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3669
+* Add rocky worker service to debian packages by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3619
+* Update upload_raw.py by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3645
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3673
+* Add plugins to findings report by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3657
+* Fix jsonb 'contained by' query by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3643
+* Fix empty vulnerability reports by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3662
+* Silence KATFindingType not found error in JobHandler by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3686
+* Github action should trigger if workflow definition changes by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3680
+* Do not run dh_strip_nondeterminism in Debian packaging by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3674
+* Fix first order dangling affirmation delete by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/3682
+* Fix javascript and component template in prod environments by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3672
+* Add delete schedule functionality for schedules in the scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3678
+* Fix/report naming by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3666
+* Add search endpoint for schedules for scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3695
+* feat: ✨ add Shodan InternetDB boefje by @zcrt in https://github.com/minvws/nl-kat-coordination/pull/2615
+* Add sterr to output list by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3649
+* Rework workflow for variable python version, add python 3.11 by @sigio in https://github.com/minvws/nl-kat-coordination/pull/3721
+* Fixes in Report Overview by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3707
+* Add REST API to list report and download pdf report by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3689
+* Add start date to report schedule by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3701
+* Edit report recipe by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3690
+* Fix Multi Report recursion error by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3714
+* Fix report names for scheduled reports by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3726
+* Refactor Multi Report to comply to the new report flow by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3705
+* Add exception handling to the rest api by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3708
+* Add rocky REST API for report recipes by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3746
+* Fix auth token middleware with wrong format header by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3755
+* Fix vulnerability chapters in Aggregate table of content by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3780
+* Make systemctl call for kat-rocky-worker conditional by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3782
+* Fix scheduled Aggregate Report naming by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3748
+* Fixes for dropdowns by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3732
+* Exclude Report from ooi list by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3768
+* Fix reports with organization tags by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3790
+* Silence staticfiles warning by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3795
+* Add configurable httpx request timeout and increase default by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3786
+* fix: Long links within tables by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3724
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3762
+* Update web system report to make "certificate valid" check positive by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3798
+* Add live set (filter/query) to ReportRecipe by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3769
+* Add reports to scheduled table by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3787
+* fix: Adds code element styling by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3722
+* Fix filtered ooi types for reports by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3807
+* Replace finding description 'None' with the id by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3806
+* Button styling by @HeleenSG in https://github.com/minvws/nl-kat-coordination/pull/3772
+* Fix settings boefje settings via system env vars by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3766
+* Update normalizer texts in katalogus for some normalizers. by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3821
+* Add searching and sorting to Findings page by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3804
+* Fix typo in InternetDB boefje name by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3828
+* Refactor KATalogus client in Rocky by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3717
+* Check queue size before polling by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3829
+* Do not fail silently when deleting non-existing objects in octopoes by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3813
+* Add bulk actions on report overview by @TwistMeister in https://github.com/minvws/nl-kat-coordination/pull/3777
+* Upgrade script notes and fix for 1.16 on Debian by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3824
+* Bug fix: When opening subreports it throws index error by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3775
+* Delete log.txt by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3851
+* Support a Schedule without a schedule in scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3834
+* Report types listed in a modal @ report plugins by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3718
+* Skip empty queues in the Rocky worker by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3860
+* Let local plugins (files) take precedence over database entries by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3858
+* Limit requesting prior tasks for ranking in scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3836
+* Add configuration setting for number of octopoes workers by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3796
+* Add start time to scheduled reports by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3809
+* Sub reports for Aggregate Report by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3852
+* Fix cron for last day of the month by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3831
+* Fixes for empty tables by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3844
+* optimize locking in katalogus.py, reuse available data by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3752
+* Enable/disable scheduled reports by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3871
+* Fix rocky katalogus tests and delete unused fixtures by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3884
+* Change plugins enabling in report flow to checkboxes by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3747
+* Let mailserver inherit l1 by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3704
+* Ignore specific url parameters when following location headers by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3856
+* Add auto_calculate_deadline attribute to Scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3869
+* Fix for task id as valid UUID by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3744
+* Increase max number of PostgreSQL connections by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3889
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3870
+* Update scheduler folder structure by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3883
+* Feature/improve rename bulk modal by @TwistMeister in https://github.com/minvws/nl-kat-coordination/pull/3885
+* fix: 🐛 allow boefje completion with 404 by @zcrt in https://github.com/minvws/nl-kat-coordination/pull/3893
+* Create separate finding for Microsoft RDP port by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3882
+* Add additional check if task already run for report scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3900
+* Adds loggers to report flow by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3872
+* Fix mula migrations Debian package by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3919
+* Bug fix: KAT-alogus parameter is now organization member instead of organization code by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3895
+* Fix call to get_katalogus by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3924
+* add support for detecting Lame dns delegations on ip ranges by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3899
+* Add bgp.jsonl and bgp-meta.json to .gitignore by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3928
+* Improve the KATalogus /plugins endpoint performance by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3892
+* Create scheduled report with zero objects selectable by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3907
+* Fix layout issues on scheduled reports page by @TwistMeister in https://github.com/minvws/nl-kat-coordination/pull/3930
+* Add export http boefje by @noamblitz in https://github.com/minvws/nl-kat-coordination/pull/3901
+* Update website_discovery.py by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3921
+* add unpkg.com to disallowed hostnames in CSP by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3927
+* Dont check for Locations on local Ip's. by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3894
+* fix: 🔨 do not store CDN findings by @zcrt in https://github.com/minvws/nl-kat-coordination/pull/3931
+* Boefje runonce functionality in scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3906
+* Fix report recipe API by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3942
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3939
+* Report flaws by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3880
+* Fix typing in more places and configure mypy to follow imports by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3932
+* Do not let enabling plugins affect the global plugin cache by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3944
+* fix typos in description.md by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3952
+* Add documentation for S3 Support by @Souf149 in https://github.com/minvws/nl-kat-coordination/pull/3953
+* fix/Makes expando row chevron buttons sticky in report history and scheduled reports tables by @TwistMeister in https://github.com/minvws/nl-kat-coordination/pull/3954
+* Move event codes logging to KATalogus client by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3956
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3969
+* Add cron parser to make cron human readable. Add "next scan" to object table on boefje detail view by @TwistMeister in https://github.com/minvws/nl-kat-coordination/pull/3960
+* Upsert report recipe in REST API by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3968
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/3984
+* Fix test_report_runner.py by @originalsouth in https://github.com/minvws/nl-kat-coordination/pull/4003
+* minor changes to onboarding, remove header, make preferred route more visible. by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3986
+* Move the NXDomain catch to look at the results now that we dont raise… by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3997
+* Add SPF optional machnism qualifier to model and parser. fix Human readable formatting for various mechanisms by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3999
+* Changes to schedule all reports, even for once by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/3840
+* Documentation Export HTTP API boefje by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/4030
+* catch the schema mismatch error and produce an error raw file by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3995
+* Fix pagination in the history API by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/4041
+* Fix/remove unneeded lookups for inference params by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4031
+* Update dropdown.scss, add scrolling / max height by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4040
+* Fix/remove unneeded tree lookups on ooi views by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4032
+* Fix/ooi detail fixes by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4024
+* Update organization_list and settings page, remove unused stuff, add tags + direct settings link by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4039
+* Fix/reuse report ooi entities by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/4047
+* make reference parsing more strict in init.py by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4065
+* Add normalizer name to tasklist on object details page, observation table. by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4034
+* Feat/plugin selection toggler by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/4063
+* Report Task List by @Rieven in https://github.com/minvws/nl-kat-coordination/pull/4059
+* Add one-off jobs for report scheduler by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/4045
+* Remove the keiko report module by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/4066
+* Translations update from Hosted Weblate by @weblate in https://github.com/minvws/nl-kat-coordination/pull/4046
+* Add run-on to Boefje Setup page by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/4061
+
+Documentation
+=============
+
+* Docs/update userguide objects tasks members settings by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3957
+* Add risk level severities to docs by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/4037
+* Docs: adding Questions and Configs by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3975
+* Docs: adding Questions and Configs by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3975
+* Add Kubernetes and Ansible to docs by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3970
+* Fix docs target in Makefile by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3987
+* Docs: adding Questions and Configs by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3975
+* Update intro.rst, fix security email address by @underdarknl in https://github.com/minvws/nl-kat-coordination/pull/3846
+* Update scheduler documentation by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/3692
+* Update folder structure in scheduler architecture doc by @jpbruinsslot in https://github.com/minvws/nl-kat-coordination/pull/4002
+* Update docs for creating a new Boefje by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3540
+* update readme by @F3licity in https://github.com/minvws/nl-kat-coordination/pull/3648
+* Updates boefje clearances and descriptions by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3863
+* Update development tutorial documentation by @allan-firelay in https://github.com/minvws/nl-kat-coordination/pull/3611
+* Add docs for xtdb analyze bits. by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3688
+* Docs/add muted findings by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3699
+* Update helper text for report names by @madelondohmen in https://github.com/minvws/nl-kat-coordination/pull/3616
+* Update README.rst - Fix guidelines URLs by @Thijs0x57 in https://github.com/minvws/nl-kat-coordination/pull/3789
+* Add descriptions to katalogus by @stephanie0x00 in https://github.com/minvws/nl-kat-coordination/pull/3545
+
+Dependency Updates
+==================
+
+* Bump cryptography from 42.0.8 to 43.0.1 in /bytes by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/3473
+* Bump django from 5.0.10 to 5.0.11 in /rocky by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/4025
+* Bump django from 5.0.9 to 5.0.10 in /rocky by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/3940*
+* Bump SonarSource/sonarcloud-github-action from 3.1.0 to 4.0.0 by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/4001
+* Bump python-multipart from 0.0.9 to 0.0.18 in /bytes by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/3925
+* Remove sigrid workflows by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3920
+* Update Sphinx and documentation by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3710
+* Fix/pin pydicom dependency and revert irrelevant version bumps by @Donnype in https://github.com/minvws/nl-kat-coordination/pull/3553
+* Bump django from 5.0.8 to 5.0.9 in /rocky by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/3653
+* Bump sphinx-rtd-theme from 2.0.0 to 3.0.0 by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/3625
+* Bump waitress from 3.0.0 to 3.0.1 in /octopoes by @dependabot in https://github.com/minvws/nl-kat-coordination/pull/3760
+* Update Wappalyzer by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3800
+* Update packages by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3990
+* Updates CWE archive to 4.16 by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3943
+* Update croniter by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3767
+* Updated packages by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3694
+* Update Packages by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3563
+* Updated packages by @ammar92 in https://github.com/minvws/nl-kat-coordination/pull/3898
+* Update pre-commit and all hooks by @dekkers in https://github.com/minvws/nl-kat-coordination/pull/3923
+
+Upgrading
+=========
+
+Keiko has been removed. You should uninstall / remove the Keiko package or container.
+
+Containers
+----------
+
+When using docker with docker compose, you need to remove keiko from the
+docker-compose.yml file. You can then use `--remove-orphan` option to tell
+docker compose to remove containers that are no longer in the compose file:
+
+.. code-block:: sh
+
+    docker compose up -d --remove-orphans
+
+Debian packages
+---------------
+
+If you are using the :doc:`/installation-and-deployment/scripts` we provide to install/upgrade OpenKAT you
+need to get the latest version that includes the kat-rocky-worker service.
+
+You should also remove the kat-keiko package:
+
+.. code-block:: sh
+
+    apt purge kat-keiko
+
+Note that if you use the openkat-update.sh script to update to a newer 1.18
+version (for example from 1.18.0rc1 to 1.18.0), then the kat-keiko will be
+installed again because the script will update or install all the packages. In 1.19
+this won't happen because the kat-keiko package will not exist anymore.
+
+Deleting Outdated Reports
+=========================
+
+It was possible to test the new reporting feature in v1.17.0.
+However, v1.18.0 introduces newer versions of the Reports that are not compatible with these older models.
+If you have tested this feature in v1.17.0 or get a 500 error on the report (history) page,
+please use the database CLI tool to purge the old reporting data.
+
+Script For The Containers
+-------------------------
+
+The following script should perform this operation.
+Check the `--url` (the XTDB_URI environment variable in a usual setup) and `--node` flags (the organisation code) and run the following command.
+
+.. code-block:: sh
+
+    docker compose run --rm octopoes_api tools/xtdb-cli.py --url http://crux:3000 --node test evict-all-reports
+
+Note that you should repeat the process for all organizations that face this issue.
+To find all your organisation codes, consider checking in Rocky or calling the KATalogus API:
+
+.. code-block:: sh
+
+    docker compose run --rm -e DATABASE_MIGRATION=0 octopoes_api bash -c 'curl http://katalogus:8000/v1/organisations'
+    # To print only the organisation ids:
+    docker compose run --rm -e DATABASE_MIGRATION=0 octopoes_api bash -c 'curl -s http://katalogus:8000/v1/organisations | python -c "import sys, json; print(list(json.loads(sys.stdin.read()).keys()))"'
+
+
+Script Tor The Debian Packages
+------------------------------
+
+The same holds for the debian packages, but invoking the script means having to set up the environment first.
+Check the `--url` (the XTDB_URI environment variable in a usual setup) and `--node` flags (the organisation code) and run the following command.
+
+.. code-block:: sh
+
+    source /opt/venvs/kat-octopoes/bin/activate
+    export $(cat /usr/lib/kat/octopoes.defaults | grep -v "#") && export $(cat /etc/kat/octopoes.conf | grep -v "#")
+    cd /opt/venvs/kat-octopoes/lib/python3.11/site-packages
+    /opt/venvs/kat-octopoes/bin/python tools/xtdb-cli.py --url $XTDB_URI --node test evict-all-reports
+
+To find all your organisation codes to apply this to multiple organisations,
+consider checking your organisations in Rocky or call the KATalogus API:
+
+.. code-block:: sh
+
+    curl $KATALOGUS_API/v1/organisations
+    # To print only the organisation ids:
+    curl -s $KATALOGUS_API/v1/organisations | /opt/venvs/kat-octopoes/bin/python -c "import sys, json; print(list(json.loads(sys.stdin.read()).keys()))"
+
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/minvws/nl-kat-coordination/compare/v1.17.0...v1.18.0rc1>`_.

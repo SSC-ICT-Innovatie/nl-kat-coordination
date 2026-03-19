@@ -1,72 +1,72 @@
 {% load i18n %}
 
-{% if generate_report %}
-    <p>
-        {% blocktranslate trimmed %}
-            The TLS Report shows which TLS protocols and ciphers were identified
-            on the host for the provided port.
-        {% endblocktranslate %}
-    </p>
-{% endif %}
-<h3>Ciphers</h3>
-{% if data.suites %}
-    <p>
-        {% blocktranslate trimmed %}
-            The table below provides an overview of the identified TLS
-            protocols and ciphers, including a status suggestion.
-        {% endblocktranslate %}
-    </p>
-    <div class="horizontal-scroll">
-        <table>
-            <caption class="visually-hidden">{% translate "Ciphers" %}</caption>
-            <thead>
-                <tr>
-                    <th>{% translate "Status" %}</th>
-                    <th>{% translate "Protocol" %}</th>
-                    <th>{% translate "Name" %}</th>
-                    <th>{% translate "Encryption Algorithm" %}</th>
-                    <th>{% translate "Bits" %}</th>
-                    <th>{% translate "Key Size" %}</th>
-                    <th>{% translate "Code" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for protocol, suites in data.suites.items %}
-                    {% for suite in suites %}
-                        <tr>
-                            <td>
-                                {% if suite.cipher_suite_name in data.suites_with_findings %}
-                                    <i class="icon alert"></i> {% translate "Phase out" %}
-                                {% else %}
-                                    <i class="icon positive"></i> {% translate "Good" %}
-                                {% endif %}
-                            </td>
-                            <td>{{ protocol }}</td>
-                            <td>{{ suite.cipher_suite_alias }}</td>
-                            <td>{{ suite.encryption_algorithm }}</td>
-                            <td>{{ suite.bits }}</td>
-                            <td>{{ suite.key_size }}</td>
-                            <td>{{ suite.cipher_suite_code }}</td>
-                        </tr>
+<p class="toggle-item" data-show="off">
+    {% blocktranslate trimmed %}
+        The TLS Report shows which TLS protocols and ciphers were identified
+        on the host for the provided port.
+    {% endblocktranslate %}
+</p>
+{% for ip_service, data in data.items %}
+    <h3>Ciphers for {{ data.input_ooi|human_readable }}</h3>
+    {% if data.suites %}
+        <p class="toggle-item" data-show="off">
+            {% blocktranslate trimmed %}
+                The table below provides an overview of the identified TLS
+                protocols and ciphers, including a status suggestion.
+            {% endblocktranslate %}
+        </p>
+        <div class="horizontal-scroll">
+            <table>
+                <caption class="visually-hidden">{% translate "Ciphers" %}</caption>
+                <thead>
+                    <tr>
+                        <th>{% translate "Status" %}</th>
+                        <th>{% translate "Protocol" %}</th>
+                        <th>{% translate "Name" %}</th>
+                        <th>{% translate "Encryption Algorithm" %}</th>
+                        <th>{% translate "Bits" %}</th>
+                        <th>{% translate "Key Size" %}</th>
+                        <th>{% translate "Code" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for protocol, suites in data.suites.items %}
+                        {% for suite in suites %}
+                            <tr>
+                                <td>
+                                    {% if suite.cipher_suite_name in data.suites_with_findings %}
+                                        <i class="icon alert"></i> {% translate "Phase out" %}
+                                    {% else %}
+                                        <i class="icon positive"></i> {% translate "Good" %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ protocol }}</td>
+                                <td>{{ suite.cipher_suite_alias }}</td>
+                                <td>{{ suite.encryption_algorithm }}</td>
+                                <td>{{ suite.bits }}</td>
+                                <td>{{ suite.key_size }}</td>
+                                <td>{{ suite.cipher_suite_code }}</td>
+                            </tr>
+                        {% endfor %}
                     {% endfor %}
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-{% else %}
-    <p>{% translate "No ciphers were found for this combination of IP address, port and service." %}</p>
-{% endif %}
-{% if data.findings %}
-    <h3>{% translate "Findings" %}</h3>
-    <p>
-        {% blocktranslate trimmed %}
-            The list below gives an overview of the findings based on the
-            identified TLS protocols and ciphers. This includes the reasoning
-            why the cipher or protocol is marked as a finding.
-        {% endblocktranslate %}
-    </p>
-    {% for finding in data.findings %}
-        <h4>{{ finding.finding_type.tokenized.id }}</h4>
-        <p>{{ finding.description|linebreaks }}</p>
-    {% endfor %}
-{% endif %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <p>{% translate "No ciphers were found for this combination of IP address, port and service." %}</p>
+    {% endif %}
+    {% if data.findings %}
+        <h3>{% translate "Findings" %}</h3>
+        <p>
+            {% blocktranslate trimmed %}
+                The list below gives an overview of the findings based on the
+                identified TLS protocols and ciphers. This includes the reasoning
+                why the cipher or protocol is marked as a finding.
+            {% endblocktranslate %}
+        </p>
+        {% for finding in data.findings %}
+            <h4>{{ finding.finding_type.tokenized.id }}</h4>
+            <p>{{ finding.description|linebreaks }}</p>
+        {% endfor %}
+    {% endif %}
+{% endfor %}

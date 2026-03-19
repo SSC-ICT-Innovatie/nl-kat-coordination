@@ -22,7 +22,8 @@ class OnboardingSetClearanceLevelForm(forms.Form):
     level = forms.IntegerField(
         label=_("Clearance level"),
         help_text=_(
-            "Boefjes that has a scan level below or equal to the clearance level, is permitted to scan an object."
+            "The clearance level determines how aggressive the object can be "
+            "scanned by plugins. A higher clearance level means more aggressive scans are allowed."
         ),
         error_messages={"level": {"required": _("Please select a clearance level to proceed.")}},
         widget=ClearanceLevelSelect(
@@ -41,5 +42,5 @@ class OnboardingCreateObjectURLForm(forms.Form):
         label_suffix="",
         required=True,
         help_text=_("Please enter a valid URL starting with 'http://' or 'https://'."),
-        widget=forms.URLInput({"placeholder": "Enter URL here (e.g., https://www.example.com)"}),
+        widget=forms.URLInput({"placeholder": "Enter your URL (e.g., https://example.com)"}),
     )

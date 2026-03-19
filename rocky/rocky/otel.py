@@ -20,7 +20,7 @@ class OpenTelemetryHelper:
     def setup_instrumentation(span_export_grpc_endpoint):
         logger.info("Setting up instrumentation with span exporter endpoint [%s]", span_export_grpc_endpoint)
 
-        DjangoInstrumentor().instrument()
+        DjangoInstrumentor().instrument(is_sql_commentor_enabled=True)
         Psycopg2Instrumentor().instrument()
         HTTPXClientInstrumentor().instrument()
 

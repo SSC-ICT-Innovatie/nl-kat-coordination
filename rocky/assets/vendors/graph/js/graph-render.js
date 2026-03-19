@@ -140,7 +140,7 @@ const goToOoi = (ooiId) => {
 
   window.location.href = window.location.href.replace(
     rootObj["xt/id"],
-    ooiId
+    encodeURIComponent(ooiId)
   );
 };
 

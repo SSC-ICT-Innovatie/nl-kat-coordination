@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 import defusedxml.ElementTree as ET
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 
@@ -18,6 +18,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         enabled = protocol.attrib["enabled"] == "1"
 
         protocols.append((type_, version, enabled))
+
+    if not any(protocol[2] for protocol in protocols):
+        # No protocol is enabled. This might happen if we send a hostname that
+        # is not configured for TLS. We shouldn't create a false positive
+        # finding for this.
+        return
 
     if ("ssl", "2", True) in protocols:
         kft = KATFindingType(id="KAT-SSL-2-SUPPORT")

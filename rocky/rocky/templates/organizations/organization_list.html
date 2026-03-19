@@ -8,17 +8,29 @@
 
     <main id="main-content">
         <section>
-            <div>
-                <h1>{% translate "Organizations" %}</h1>
+            <div class="introduction">
+                <div>
+                    <h1>{% translate "Organizations" %}</h1>
+                    <p>{% translate "An overview of all organizations you are a member of." %}</p>
+                </div>
                 <div class="horizontal-view toolbar">
                     {% if perms.tools.add_organization %}
                         <a href="{% url 'organization_add' %}" class="button ghost"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Add new organization" %}</a>
                     {% endif %}
                 </div>
+            </div>
+            <div>
                 <div class="horizontal-scroll">
                     {% if object_list %}
+                        <div class="toolbar">
+                            <p class="de-emphasized">
+                                {% blocktranslate with total=object_list.count %}
+                            Showing {{ total }} organizations
+                        {% endblocktranslate %}
+                            </p>
+                        </div>
                         <table>
-                            <caption>{% translate "Organization overview:" %}</caption>
+                            <caption class="visually-hidden">{% translate "Organization overview:" %}</caption>
                             <thead>
                                 <tr>
                                     <th>{% translate "Name" %}</th>
@@ -31,10 +43,10 @@
                                 {% for organization in object_list %}
                                     <tr>
                                         <td>
-                                            <a href="{% url 'organization_crisis_room' organization_code=organization.code %}">{{ organization.name }}</a>
+                                            <a href="{% url 'organization_crisis_room_landing' organization_code=organization.code %}">{{ organization.name }}</a>
                                         </td>
                                         <td>
-                                            <a href="{% url 'organization_crisis_room' organization_code=organization.code %}">{{ organization.code }}</a>
+                                            <a href="{% url 'organization_crisis_room_landing' organization_code=organization.code %}">{{ organization.code }}</a>
                                         </td>
                                         <td>
                                             {% include "organizations/organization_tags.html" %}

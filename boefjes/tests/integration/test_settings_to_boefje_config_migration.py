@@ -5,11 +5,8 @@ import pytest
 from sqlalchemy import text
 from sqlalchemy.orm import Session, sessionmaker
 
-from boefjes.config import settings
-from boefjes.models import Organisation
 from boefjes.sql.config_storage import SQLConfigStorage, create_encrypter
 from boefjes.sql.db import SQL_BASE, get_engine
-from boefjes.sql.organisation_storage import SQLOrganisationStorage
 
 pytestmark = pytest.mark.skipif(os.environ.get("CI") != "1", reason="Needs a CI database.")
 
@@ -25,9 +22,11 @@ def migration_6f99834a4a5a() -> Session:
     engine = get_engine()
     session = sessionmaker(bind=engine)()
 
-    with SQLOrganisationStorage(session, settings) as storage:
-        storage.create(Organisation(id="dev1", name="Test 1 "))
-        storage.create(Organisation(id="dev2", name="Test 2 "))
+    query = f"""INSERT INTO organisation (id, name) values {','.join(map(str, [
+        ("dev1", "Test 1 "),
+        ("dev2", "Test 2 "),
+    ]))}"""  # noqa: S608
+    session.get_bind().execute(text(query))
 
     encrypter = create_encrypter()
     entries = [
@@ -89,12 +88,14 @@ def test_fail_on_wrong_plugin_ids(migration_6f99834a4a5a):
     session.close()
 
     config_storage = SQLConfigStorage(session, encrypter)
-    assert config_storage.get_all_settings("dev1", "dns-records") == {"key1": "val1"}
-    assert config_storage.get_all_settings("dev1", "nmap-udp") == {}
-    assert config_storage.get_all_settings("dev2", "dns-records") == {"key1": "val1", "key2": "val2"}
 
-    assert config_storage.is_enabled_by_id("dns-records", "dev1")
-    assert config_storage.is_enabled_by_id("nmap-udp", "dev1")
+    with config_storage:
+        assert config_storage.get_all_settings("dev1", "dns-records") == {"key1": "val1"}
+        assert config_storage.get_all_settings("dev1", "nmap-udp") == {}
+        assert config_storage.get_all_settings("dev2", "dns-records") == {"key1": "val1", "key2": "val2"}
+
+        assert config_storage.is_enabled_by_id("dns-records", "dev1")
+        assert config_storage.is_enabled_by_id("nmap-udp", "dev1")
 
     session.commit()
     session.close()

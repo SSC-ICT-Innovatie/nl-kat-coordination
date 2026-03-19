@@ -3,11 +3,9 @@ import logging
 
 from pynetdicom import AE
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     ip = input_["address"]
 
     # it prints errors if the port is not open, ignore these errors as we expect them to happen a lot

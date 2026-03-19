@@ -1,0 +1,22 @@
+discovery.docker "local_containers" {
+ host = "unix:///var/run/docker.sock"
+}
+
+pyroscope.ebpf "instance" {
+ forward_to     = [pyroscope.write.endpoint.receiver]
+ targets = discovery.docker.local_containers.targets
+}
+
+pyroscope.write "endpoint" {
+ endpoint {
+  basic_auth {
+   password = "<PASSWORD>"
+   username = "<USERNAME>"
+  }
+  url = "http://pyroscope:4040"
+ }
+ external_labels = {
+  "env"      = "testing",
+  "instance" = env("HOSTNAME"),
+ }
+}

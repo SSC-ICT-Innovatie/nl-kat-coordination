@@ -3,8 +3,8 @@ from enum import Enum
 from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, UniqueConstraint, types
 from sqlalchemy.orm import relationship
 
-from boefjes.models import RunOn
 from boefjes.sql.db import SQL_BASE
+from boefjes.worker.models import RunOn
 
 
 class ScanLevel(Enum):
@@ -51,6 +51,7 @@ class OrganisationInDB(SQL_BASE):
     pk = Column(Integer, primary_key=True, autoincrement=True)
     id = Column(String(length=32), unique=True, nullable=False)
     name = Column(String(length=64), nullable=False)
+    deduplicate = Column(Boolean, nullable=False, server_default="true")
 
 
 class BoefjeConfigInDB(SQL_BASE):
@@ -66,6 +67,7 @@ class BoefjeConfigInDB(SQL_BASE):
 
     organisation_pk = Column(Integer, ForeignKey("organisation.pk", ondelete="CASCADE"), nullable=False)
     organisation = relationship("OrganisationInDB")
+    boefje = relationship("BoefjeInDB")
 
 
 class NormalizerConfigInDB(SQL_BASE):
@@ -91,6 +93,7 @@ class BoefjeInDB(SQL_BASE):
     plugin_id = Column(types.String(length=64), nullable=False, unique=True)
     created = Column(types.DateTime(timezone=True), nullable=True)
     static = Column(Boolean, nullable=False, server_default="false")
+    deduplicate = Column(Boolean, nullable=False, server_default="true")
 
     # Metadata
     name = Column(String(length=64), nullable=False, unique=True)

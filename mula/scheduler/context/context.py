@@ -102,7 +102,7 @@ class AppContext:
                     structlog.dev.set_exc_info,
                     structlog.stdlib.PositionalArgumentsFormatter(),
                     structlog.processors.TimeStamper("iso", utc=False),
-                    structlog.dev.ConsoleRenderer(),
+                    structlog.dev.ConsoleRenderer(pad_level=False, exception_formatter=structlog.dev.plain_traceback),
                 ],
                 context_class=dict,
                 # `logger_factory` is used to create wrapped loggers that are used
@@ -117,6 +117,10 @@ class AppContext:
             )
 
         self.logger: structlog.BoundLogger = structlog.get_logger(__name__)
+
+        # Set the logging level
+        if self.config.debug:
+            self.logger.setLevel(logging.DEBUG)
 
         # Services
         katalogus_service = clients.Katalogus(

@@ -1,6 +1,6 @@
 import json
+from datetime import datetime
 from typing import Any
-from urllib import parse
 
 from account.models import KATUser
 from django import template
@@ -12,11 +12,6 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from tools.view_helpers import get_ooi_url
 
 register = template.Library()
-
-
-@register.filter
-def get_encoded_dict(data_dict: dict) -> str:
-    return parse.urlencode(data_dict)
 
 
 @register.filter
@@ -102,6 +97,17 @@ def clearance_level(ooi: OOI) -> ScanLevel:
 @register.filter
 def ooi_type(reference_string: str) -> str:
     return Reference.from_str(reference_string).class_
+
+
+@register.filter
+def get_datetime(date_str: str) -> datetime:
+    return datetime.fromisoformat(date_str)
+
+
+@register.filter
+def get_first_seen(occurrences: dict) -> datetime:
+    first_seen = min(occurrences, key=lambda occurrence: occurrence["first_seen"])["first_seen"]
+    return datetime.fromisoformat(first_seen)
 
 
 @register.filter

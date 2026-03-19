@@ -6,7 +6,7 @@ import pytest
 from httpx import HTTPError
 from prometheus_client.parser import text_string_to_metric_families
 
-from bytes.api.models import BoefjeOutput, File
+from bytes.api.models import BoefjeOutput, File, StatusEnum
 from bytes.models import MimeType
 from bytes.rabbitmq import RabbitMQEventManager
 from bytes.repositories.meta_repository import BoefjeMetaFilter, NormalizerMetaFilter, RawDataFilter
@@ -81,13 +81,13 @@ def test_get_mime_type_count(bytes_api_client: BytesAPIClient) -> None:
     normalizer_meta = get_normalizer_meta(raw_id)
     bytes_api_client.save_normalizer_meta(normalizer_meta)
 
-    assert bytes_api_client.get_mime_type_count(RawDataFilter(organization="test")) == {"boefje": 2, "text/boefje": 1}
+    assert bytes_api_client.get_mime_type_count(RawDataFilter(organization=["test"])) == {"boefje": 2, "text/boefje": 1}
 
-    assert bytes_api_client.get_mime_type_count(RawDataFilter(organization="test", normalized=True)) == {
+    assert bytes_api_client.get_mime_type_count(RawDataFilter(organization=["test"], normalized=True)) == {
         "boefje": 1,
         "text/boefje": 1,
     }
-    assert bytes_api_client.get_mime_type_count(RawDataFilter(organization="test", normalized=False)) == {"boefje": 1}
+    assert bytes_api_client.get_mime_type_count(RawDataFilter(organization=["test"], normalized=False)) == {"boefje": 1}
 
 
 def test_boefje_meta(bytes_api_client: BytesAPIClient) -> None:
@@ -298,14 +298,22 @@ def test_save_raw_no_mime_types(bytes_api_client: BytesAPIClient) -> None:
 
 def test_get_many_actual_raw_files(bytes_api_client: BytesAPIClient) -> None:
     boefje_meta = get_boefje_meta(meta_id=uuid.uuid4())
+    boefje_meta3 = get_boefje_meta(meta_id=uuid.uuid4())
+    boefje_meta3.organization = "test2"
+
     bytes_api_client.save_boefje_meta(boefje_meta)
+    bytes_api_client.save_boefje_meta(boefje_meta3)
+
     mime_types = ["text/kat-test", "text/html"]
     second_mime_types = ["text/kat-test", "text/status-code"]
+    third_mime_types = ["text/kat-test", "text/test"]
 
     raw = b"test 123456"
     second_raw = b"second test 200"
+    third_raw = b"third test 200"
     first_id = bytes_api_client.save_raw(boefje_meta.id, raw, mime_types)
     second_id = bytes_api_client.save_raw(boefje_meta.id, second_raw, second_mime_types)
+    bytes_api_client.save_raw(boefje_meta3.id, third_raw, third_mime_types)
 
     result = bytes_api_client.get_raws(RawDataFilter(raw_ids=[first_id], limit=10))
     assert len(result) == 1
@@ -315,6 +323,21 @@ def test_get_many_actual_raw_files(bytes_api_client: BytesAPIClient) -> None:
     assert len(result) == 2
     assert b64decode(result[0]["content"]) == raw
     assert b64decode(result[1]["content"]) == second_raw
+
+    result = bytes_api_client.get_raws(RawDataFilter(organization=["test"], limit=10))
+    assert len(result) == 2
+    assert b64decode(result[0]["content"]) == raw
+    assert b64decode(result[1]["content"]) == second_raw
+
+    result = bytes_api_client.get_raws(RawDataFilter(organization=["test2"], limit=10))
+    assert len(result) == 1
+    assert b64decode(result[0]["content"]) == third_raw
+
+    result = bytes_api_client.get_raws(RawDataFilter(organization=["test", "test2"], limit=10))
+    assert len(result) == 3
+    assert b64decode(result[0]["content"]) == raw
+    assert b64decode(result[1]["content"]) == second_raw
+    assert b64decode(result[2]["content"]) == third_raw
 
 
 def test_raw_mimes(bytes_api_client: BytesAPIClient) -> None:
@@ -358,7 +381,7 @@ def test_raw_mimes(bytes_api_client: BytesAPIClient) -> None:
     assert len(retrieved_raws) == 0
 
     query_filter = RawDataFilter(
-        organization=boefje_meta.organization,
+        organization=[boefje_meta.organization],
         boefje_meta_id=boefje_meta.id,
         mime_types=[MimeType(value="text/kat-test")],
         limit=3,
@@ -396,10 +419,11 @@ def test_save_multiple_raw_files(bytes_api_client: BytesAPIClient) -> None:
     first_raw = b"first"
     second_raw = b"second"
     boefje_output = BoefjeOutput(
+        status=StatusEnum.COMPLETED,
         files=[
             File(name="first", content=b64encode(first_raw).decode(), tags=[]),
             File(name="second", content=b64encode(second_raw).decode(), tags=["mime", "type"]),
-        ]
+        ],
     )
 
     ids = bytes_api_client.save_raws(boefje_meta.id, boefje_output)

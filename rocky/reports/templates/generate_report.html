@@ -17,14 +17,26 @@
                 {% include "summary/report_asset_overview.html" %}
 
                 {% for report_type, report in report_data.items %}
-                    {% for ooi,data in report.items %}
+                    {% for ooi, data in report.items %}
                         {% if data.data %}
                             <section id="{{ report_type }}-{{ ooi }}">
-                                <div>
-                                    <h2>{{ data.report_name }}</h2>
-                                    {% include data.template with data=data.data show_introduction="yes" %}
+                                {% with modal_id=data.report_name|slugify|add:"-modal" %}
+                                    <div>
+                                        {% if report_ooi.report_type != "multi-organization-report" %}
+                                            <div class="horizontal-view">
+                                                <h2>{{ data.report_name }}</h2>
+                                                {% with ooi=data.input_oois.0 report_type=data.report_types.0 %}
+                                                    {% include "partials/report_section_action_button.html" with template=data.template report_pk="AssetReport|"|add:ooi|add:"|"|add:report_type show_introduction="yes" %}
 
-                                </div>
+                                                {% endwith %}
+                                            </div>
+                                        {% else %}
+                                            <h2>{{ data.report_name }}</h2>
+                                        {% endif %}
+                                        {% include data.template with data=data.data show_introduction="yes" %}
+
+                                    </div>
+                                {% endwith %}
                             </section>
                         {% endif %}
                     {% endfor %}
@@ -36,4 +48,5 @@
 {% block html_at_end_body %}
     {{ block.super }}
     <script src="{% static "js/sidemenuOl.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

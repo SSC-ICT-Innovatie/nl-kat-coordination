@@ -7,44 +7,47 @@
         <ul>
             {% if page_obj.has_previous %}
                 <li>
-                    <a aria-label="{% translate "Previous Page" %}"
-                       href="{{ request.path }}?{% url_replace page_param|default:'page' page_obj.previous_page_number %}">
+                    <a title="{% translate "Previous Page" %}"
+                       aria-label="{% translate "Previous Page" %}"
+                       href="{% querystring page=page_obj.previous_page_number %}">
                         <span>{% translate "Previous" %}</span>
                     </a>
                 </li>
             {% endif %}
             {% if page_obj.number|add:'-4' > 1 %}
                 <li>
-                    <a aria-label="{% translate "Five Pages Back" %}"
-                       href="{{ request.path }}?{% url_replace page_param|default:"page" page_obj.number|add:'-5' %}">
-                        …
-                    </a>
+                    <a title="{% translate "Five Pages Back" %}"
+                       aria-label="{% translate "Five Pages Back" %}"
+                       href="{% querystring page=page_obj.number|add:'-5' %}">…</a>
                 </li>
             {% endif %}
             {% for i in page_obj.paginator.page_range %}
                 {% if page_obj.number == i %}
                     <li>
-                        <a aria-label="{% translate "Page" %} {{ i }}" aria-current="true">{{ page_obj.number }}</a>
+                        <a title="{% translate "Page" %} {{ i }} ({% translate "Current" %})"
+                           aria-label="{% translate "Page" %} {{ i }}"
+                           aria-current="true">{{ page_obj.number }}</a>
                     </li>
                 {% elif i > page_obj.number|add:'-5' and i < page_obj.number|add:'5' %}
                     <li>
-                        <a aria-label="{% translate "Page" %} {{ i }}"
-                           href="{{ request.path }}?{% url_replace page_param|default:"page" i %}">{{ i }}</a>
+                        <a title="{% translate "Page" %} {{ i }}"
+                           aria-label="{% translate "Page" %} {{ i }}"
+                           href="{% querystring page=i %}">{{ i }}</a>
                     </li>
                 {% endif %}
             {% endfor %}
             {% if page_obj.paginator.num_pages > page_obj.number|add:'4' %}
                 <li>
-                    <a aria-label="{% translate "Five Pages Forward" %}"
-                       href="{{ request.path }}?{% url_replace page_param|default:"page" page_obj.number|add:'5' %}">
-                        …
-                    </a>
+                    <a title="{% translate "Five Pages Forward" %}"
+                       aria-label="{% translate "Five Pages Forward" %}"
+                       href="{% querystring page=page_obj.number|add:'5' %}">…</a>
                 </li>
             {% endif %}
             {% if page_obj.has_next %}
                 <li>
-                    <a aria-label="{% translate "Next Page" %}"
-                       href="{{ request.path }}?{% url_replace page_param|default:"page" page_obj.next_page_number %}">
+                    <a title="{% translate "Next Page" %}"
+                       aria-label="{% translate "Next Page" %}"
+                       href="{% querystring page=page_obj.next_page_number %}">
                         <span>{% translate "Next" %}</span>
                     </a>
                 </li>

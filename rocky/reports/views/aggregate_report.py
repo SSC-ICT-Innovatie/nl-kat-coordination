@@ -7,7 +7,6 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from httpx import HTTPError
-from katalogus.client import get_katalogus
 from tools.view_helpers import Breadcrumb, PostRedirect
 
 from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
@@ -61,7 +60,7 @@ class OOISelectionAggregateReportView(AggregateReportStepsMixin, BreadcrumbsAggr
     Select Objects for the 'Aggregate Report' flow.
     """
 
-    template_name = "aggregate_report/select_oois.html"
+    template_name = "generate_report/select_oois.html"
     breadcrumbs_step = 3
     current_step = 1
     report_type = AggregateOrganisationReport
@@ -80,7 +79,7 @@ class ReportTypesSelectionAggregateReportView(
     Chooses report types for the 'Aggregate Report' flow.
     """
 
-    template_name = "aggregate_report/select_report_types.html"
+    template_name = "generate_report/select_report_types.html"
     breadcrumbs_step = 4
     current_step = 2
     report_type = AggregateOrganisationReport
@@ -93,7 +92,7 @@ class SetupScanAggregateReportView(
     Show required and optional plugins to start scans to generate OOIs to include in report.
     """
 
-    template_name = "aggregate_report/setup_scan.html"
+    template_name = "generate_report/setup_scan.html"
     breadcrumbs_step = 5
     current_step = 3
     report_type = AggregateOrganisationReport
@@ -106,7 +105,7 @@ class ExportSetupAggregateReportView(
     Shows the export setup page where users can set their export preferences.
     """
 
-    template_name = "aggregate_report/export_setup.html"
+    template_name = "generate_report/export_setup.html"
     breadcrumbs_step = 6
     current_step = 4
     report_type = AggregateOrganisationReport
@@ -121,10 +120,9 @@ class ExportSetupAggregateReportView(
             messages.error(request, _("You do not have the required permissions to enable plugins."))
             return PostRedirect(self.get_previous())
 
-        client = get_katalogus(self.organization_member)
         for selected_plugin in selected_plugins:
             try:
-                client.enable_boefje_by_id(selected_plugin)
+                self.katalogus_client.enable_boefje_by_id(selected_plugin)
             except HTTPError:
                 messages.error(
                     request,

@@ -23,6 +23,14 @@ class OrganizationAdminTestCase(ModelAdminTestCase):
         octopoes_patcher.start()
         self.addCleanup(octopoes_patcher.stop)
 
+        scheduler_patcher = patch("crisis_room.management.commands.dashboards.scheduler_client")
+        scheduler_patcher.start()
+        self.addCleanup(scheduler_patcher.stop)
+
+        bytes_patcher = patch("rocky.bytes_client.BytesClient")
+        bytes_patcher.start()
+        self.addCleanup(bytes_patcher.stop)
+
 
 class AuthTokenAdminTestCase(ModelAdminTestCase):
     model = AuthToken

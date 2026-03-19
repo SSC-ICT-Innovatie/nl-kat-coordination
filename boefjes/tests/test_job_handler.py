@@ -1,4 +1,4 @@
-from boefjes.job_handler import boefje_env_variables, get_system_env_settings_for_boefje
+from boefjes.clients.scheduler_client import boefje_env_variables, get_system_env_settings_for_boefje
 
 
 def test_boefje_systems_vars(monkeypatch):

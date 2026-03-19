@@ -72,10 +72,6 @@ class ReportScheduler(Scheduler):
     def push_report_task(
         self, report_task: models.ReportTask, organisation_id: str, create_schedule: bool, caller: str = ""
     ) -> None:
-        if self.is_item_on_queue_by_hash(report_task.hash):
-            self.logger.debug("Report task already on queue", scheduler_id=self.scheduler_id, caller=caller)
-            return
-
         task = models.Task(
             scheduler_id=self.scheduler_id,
             organisation=organisation_id,

@@ -6,13 +6,16 @@ from ipaddress import ip_address
 import pytest
 
 from octopoes.api.models import Declaration, Observation
+from octopoes.config.settings import Settings
 from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
+from octopoes.core.app import get_xtdb_client
+from octopoes.models import OOI, DeclaredScanProfile, EmptyScanProfile, Reference, ScanLevel
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.dns.records import DNSAAAARecord, DNSARecord, DNSMXRecord, DNSNSRecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
+from octopoes.models.ooi.reports import Report, ReportRecipe
 from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.web import Website
 from octopoes.models.origin import OriginType
@@ -84,6 +87,96 @@ def test_bulk_operations(octopoes_api_connector: OctopoesAPIConnector, valid_tim
 
     for hostname in hostnames:
         assert bulk_hostnames[hostname.reference].scan_profile is not None
+
+
+def test_bulk_reports(app_settings: Settings, octopoes_api_connector: OctopoesAPIConnector, valid_time: datetime):
+    filters = []
+    reports = []
+
+    for client in ["test1", "test2", "test3"]:
+        xtdb_client = get_xtdb_client(str(app_settings.xtdb_uri), client)
+        xtdb_client.create_node()
+
+        octopoes_api_connector.client = client
+        recipe = ReportRecipe(
+            report_type="concatenated-report",
+            recipe_id=uuid.uuid4(),
+            report_name_format="test",
+            cron_expression="* * * *",
+            input_recipe={},
+            asset_report_types=[],
+        )
+        report = Report(
+            name=f"report-{client}",
+            date_generated=valid_time,
+            organization_code="code",
+            organization_name="name",
+            organization_tags=["tag1", "tag2"],
+            data_raw_id="raw",
+            observed_at=valid_time,
+            reference_date=valid_time,
+            report_recipe=recipe.reference,
+            input_oois=[],
+            report_type="concatenated-report",
+        )
+        octopoes_api_connector.save_declaration(Declaration(ooi=recipe, valid_time=valid_time))
+        octopoes_api_connector.save_declaration(Declaration(ooi=report, valid_time=valid_time))
+
+        filters.append((client, str(recipe.recipe_id)))
+        reports.append(report)
+
+    recipe_ids = [x[1] for x in filters]
+
+    result = octopoes_api_connector.bulk_list_reports(valid_time, filters)
+    assert len(result) == 3
+    assert result[uuid.UUID(recipe_ids[0])].to_report() == reports[0]
+    assert result[uuid.UUID(recipe_ids[1])].to_report() == reports[1]
+    assert result[uuid.UUID(recipe_ids[2])].to_report() == reports[2]
+
+    result = octopoes_api_connector.bulk_list_reports(valid_time, [filters[0], filters[2]])
+    assert len(result) == 2
+    assert result[uuid.UUID(recipe_ids[0])].to_report() == reports[0]
+    assert result[uuid.UUID(recipe_ids[2])].to_report() == reports[2]
+
+
+def test_list_object_clients(
+    app_settings: Settings, octopoes_api_connector: OctopoesAPIConnector, valid_time: datetime
+):
+    clients = ["test1", "test2", "test3", "test4"]
+    for client in clients:
+        xtdb_client = get_xtdb_client(str(app_settings.xtdb_uri), client)
+        xtdb_client.create_node()
+
+    network = Network(name="test")
+
+    for client in ["test2", "test4"]:
+        octopoes_api_connector.client = client
+        octopoes_api_connector.save_declaration(Declaration(ooi=network, valid_time=valid_time))
+
+    octopoes_api_connector.client = "test1"
+    network2 = Network(name="test1")
+    hostname = Hostname(network=network2.reference, name="test1-hostname")
+    octopoes_api_connector.save_declaration(Declaration(ooi=network2, valid_time=valid_time))
+    octopoes_api_connector.save_declaration(Declaration(ooi=hostname, valid_time=valid_time))
+
+    hostname.scan_profile = EmptyScanProfile(reference=hostname.reference)
+    network.scan_profile = EmptyScanProfile(reference=network.reference)
+    network2.scan_profile = EmptyScanProfile(reference=network2.reference)
+
+    result = octopoes_api_connector.list_object_clients(network.reference, set(clients), valid_time)
+    assert result == {"test4": network, "test2": network}
+
+    result = octopoes_api_connector.list_object_clients(network.reference, {"test2"}, valid_time)
+    assert result == {"test2": network}
+
+    result = octopoes_api_connector.list_object_clients(network.reference, {"test1"}, valid_time)
+    assert result == {}
+
+    result = octopoes_api_connector.list_object_clients(hostname.reference, set(clients), valid_time)
+    assert result == {"test1": hostname}
+
+    result = octopoes_api_connector.list_object_clients(network2.reference, set(clients), valid_time)
+    assert result == {"test1": network2}
 
 
 def test_history(octopoes_api_connector: OctopoesAPIConnector):

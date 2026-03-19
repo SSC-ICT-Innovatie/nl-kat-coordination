@@ -2,21 +2,20 @@
   "title": "Arguments",
   "type": "object",
   "properties": {
-    "TOP_PORTS_TCP": {
-      "title": "TOP_PORTS_TCP",
+    "TOP_PORTS": {
+      "title": "TOP_PORTS",
       "type": "integer",
-      "minimum": 0,
+      "minimum": 1,
       "maximum": 65535,
       "default": 250,
-      "description": "Scan TOP_PORTS_TCP most common TCP ports. Defaults to 250."
+      "description": "Scan TOP_PORTS most common TCP ports. Defaults to 250."
     },
     "TOP_PORTS_UDP": {
       "title": "TOP_PORTS_UDP",
       "type": "integer",
       "minimum": 0,
       "maximum": 65535,
-      "default": 10,
-      "description": "Scan TOP_PORTS_UDP most common UDP ports. Defaults to 10."
+      "default": 10
     },
     "MIN_VLSM_IPV4": {
       "title": "MIN_VLSM_IPV4",

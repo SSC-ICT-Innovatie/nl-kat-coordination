@@ -4,10 +4,9 @@ import threading
 import time
 import unittest
 import uuid
-from unittest import mock
 
 from scheduler import config, models, storage
-from scheduler.schedulers.queue import InvalidItemError, ItemNotFoundError, NotAllowedError
+from scheduler.schedulers.queue import InvalidItemError, NotAllowedError
 from scheduler.storage import stores
 
 from tests.mocks import queue as mock_queue
@@ -51,23 +50,6 @@ class PriorityQueueTestCase(unittest.TestCase):
         self.assertEqual(item.id, item_db.id)
 
         self.assertEqual(1, self.pq.qsize())
-
-    @mock.patch("scheduler.storage.stores.PriorityQueueStore.push")
-    def test_push_item_not_found_in_db(self, mock_push):
-        """When adding an item to the priority queue, but the item is not
-        found in the database, the item shouldn't be added.
-        """
-        item = functions.create_task(scheduler_id=self.pq.pq_id, organisation=self.pq.pq_id, priority=1)
-
-        mock_push.return_value = None
-
-        with self.assertRaises(ItemNotFoundError):
-            self.pq.push(item)
-
-        self.assertEqual(0, self.pq.qsize())
-
-        item_db = self.pq_store.get(self.pq.pq_id, item.id)
-        self.assertIsNone(item_db)
 
     def test_push_incorrect_item_type(self):
         """When pushing an item that is not of the correct type, the item

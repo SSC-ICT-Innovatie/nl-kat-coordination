@@ -4,7 +4,14 @@ from ipaddress import IPv4Address, IPv6Address
 import pytest
 from pydantic import BaseModel
 
-from boefjes.job_models import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, ObservationsWithoutInputOOI, RawDataMeta
+from boefjes.worker.job_models import (
+    Boefje,
+    BoefjeMeta,
+    Normalizer,
+    NormalizerMeta,
+    ObservationsWithoutInputOOI,
+    RawDataMeta,
+)
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.records import (
     DNSAAAARecord,

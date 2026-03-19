@@ -1,27 +1,44 @@
 {% load i18n %}
 
 {% translate props.ooi_type as display_type %}
-<div class="horizontal-view toolbar">
-    <form method="post"
-          action="{% url 'generate_report_setup_scan' organization.code %}"
-          class="inline">
-        {% csrf_token %}
-        <input type="hidden" name="ooi" value="{{ ooi_id }}">
-        <input type="hidden" name="report_type" value="findings-report">
-        <button class="ghost">{% translate "Generate Findings Report" %}</button>
-    </form>
+<div class="horizontal-view">
+    {% if possible_reports %}
+        <div class="dropdown">
+            <button type="button"
+                    aria-controls="report-selector"
+                    aria-expanded="false"
+                    class="dropdown-button ghost">
+                {% translate "Generate Report" %}
+                <span aria-hidden="true" class="icon ti-chevron-down"></span>
+            </button>
+            <ul id="report-selector" role="listbox" class="dropdown-list">
+                {% for report in possible_reports %}
+                    <li>
+                        <form method="post"
+                              action="{% url 'generate_report_setup_scan' organization.code %}"
+                              class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="ooi" value="{{ ooi_id }}">
+                            <input type="hidden" name="report_type" value="{{ report.id }}">
+                            <button type="submit" role="option">{{ report.name }}</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
     {% if not ooi_past_due %}
         {% if ooi|is_finding and perms.tools.can_mute_findings %}
             <a href="{% ooi_url 'finding_mute' ooi_id organization.code %}"
-               class="button ghost">{% translate "Mute Finding" %}</a>
+               class="button ghost nowrap">{% translate "Mute finding" %}</a>
         {% endif %}
         {% if not ooi|is_finding and not ooi|is_finding_type %}
             <a href="{% ooi_url 'ooi_edit' ooi_id organization.code %}"
-               class="button ghost">{% blocktranslate %}Edit {{ display_type }}{% endblocktranslate %}</a>
+               class="button ghost nowrap">{% blocktranslate %}Edit {{ display_type }}{% endblocktranslate %}</a>
         {% endif %}
         {% if not ooi|is_finding_type and perms.tools.can_delete_oois %}
             <a href="{% ooi_url 'ooi_delete' ooi_id organization.code %}"
-               class="button ghost destructive">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</a>
+               class="button ghost destructive nowrap">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</a>
         {% endif %}
     {% endif %}
 </div>

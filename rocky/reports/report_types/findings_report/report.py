@@ -3,20 +3,15 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 
-import octopoes.models.ooi.reports as report_models
 from octopoes.models import Reference
+from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
-from octopoes.models.ooi.monitoring import Incident
-from octopoes.models.ooi.question import Question
-from octopoes.models.ooi.web import RESTAPI, ImageMetadata
-from octopoes.models.types import ALL_TYPES
+from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
+from octopoes.models.ooi.web import URL
 from reports.report_types.definitions import Report, ReportPlugins
 
 TREE_DEPTH = 9
 SEVERITY_OPTIONS = [severity.value for severity in RiskLevelSeverity]
-
-_EXCLUDE_OOI_TYPES = [Question, RESTAPI, Incident, ImageMetadata, report_models.ReportData, report_models.Report]
-_INPUT_OOI_TYPES = {ooi_type for ooi_type in ALL_TYPES if ooi_type not in _EXCLUDE_OOI_TYPES}
 
 
 class FindingsReport(Report):
@@ -35,7 +30,7 @@ class FindingsReport(Report):
         },
         "optional": {"snyk", "service_banner", "shodan", "leakix"},
     }
-    input_ooi_types = ALL_TYPES
+    input_ooi_types = {Hostname, IPAddressV4, IPAddressV6, URL}
     template_path = "findings_report/report.html"
     label_style = "3-light"
 
@@ -71,12 +66,10 @@ class FindingsReport(Report):
             total_by_severity[severity] += 1
 
             if finding.reference not in history_cache:
-                history_cache[finding.reference] = self.octopoes_api_connector.get_history(reference=reference)
+                history_cache[finding.reference] = self.octopoes_api_connector.get_history(finding.reference)
 
-            time_history = [transaction.valid_time for transaction in history_cache[finding.reference]]
-
-            if time_history:
-                first_seen = str(time_history[0])
+            if history_cache[finding.reference]:
+                first_seen = str(history_cache[finding.reference][0].valid_time)
             else:
                 first_seen = "-"
 

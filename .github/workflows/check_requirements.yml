@@ -1,0 +1,52 @@
+name: Check dependencies
+
+on:
+  push:
+    branches:
+      - "main"
+      - "release-*"
+    tags:
+      - "*"
+    paths:
+      - "**/requirements.txt"
+      - "**/requirements-dev.txt"
+      - "**/pyproject.toml"
+      - "**/uv.lock"
+      - ".github/workflows/check_requirements.yml"
+  pull_request:
+    paths:
+      - "**/requirements.txt"
+      - "**/requirements-dev.txt"
+      - "**/pyproject.toml"
+      - "**/uv.lock"
+      - ".github/workflows/check_requirements.yml"
+
+jobs:
+  poetry-dependencies:
+    permissions:
+      # Give the default GITHUB_TOKEN write permission to commit and push the
+      # added or changed files to the repository.
+      contents: write
+
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        id: py313
+        with:
+          python-version: 3.13
+          cache: pip
+
+      - name: Install uv
+        run: pip install uv==0.7.13
+
+      - name: Check, lock, and export requirements
+        run: make requirements
+
+      - name: Check if there are any changed files
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: git diff --exit-code

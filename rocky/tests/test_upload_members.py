@@ -15,9 +15,8 @@ def test_upload_members_page(rf, superuser_member):
 
     response = MembersUploadView.as_view()(request, organization_code=superuser_member.organization.code)
     assert response.status_code == 200
-    assertContains(response, "Upload a csv file with members for organisation")
+    assertContains(response, "To create a custom CSV file, make sure it meets the following criteria:")
     assertContains(response, "Upload CSV file")
-    assertContains(response, "criteria")
     assertContains(response, "email")
 
 

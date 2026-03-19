@@ -547,7 +547,7 @@ check for `Schedule` objects whose `deadline_at` has passed and will push the
 │   ├── __main__.py
 │   ├── app.py                      # openkat scheduler app implementation
 │   └── version.py                  # version information
-└─── tests/                        # test suite
+└─── tests/                         # test suite
 ```
 
 The following describes the main components of the scheduler application:

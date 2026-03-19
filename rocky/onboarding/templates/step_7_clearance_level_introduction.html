@@ -1,0 +1,47 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content" class="explanation-page">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "Plugin introduction" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        OpenKAT uses plugins to scan your objects. Each plugin has a scan level to specify how aggressive the scan is. Plugins can only scan those objects with a clearance level that is equal to, or higher than the scan level of the plugin.
+                        Plugin scan level are indicated by the number of cat paws.
+                    {% endblocktranslate %}
+                </p>
+                <p>
+                    {% blocktranslate trimmed %}
+                        The plugin <strong>DNS Zone</strong> has a scan level of 1, meaning that it performs non-intrusive scans which look for publicly available information. It scans objects with a clearance level of 1 or higher.
+                    {% endblocktranslate %}
+                </p>
+                <p>
+                    {% blocktranslate trimmed %}
+                        The plugin <strong>Fierce</strong> has a scan level of 3, meaning that it more aggressive and could potentially break things. It scans objects with a clearance level of 3 or higher.
+                    {% endblocktranslate %}
+                </p>
+                <div id="id_boefjes" class="column-4 plugins tiles images-cover">
+                    {% for boefje in boefjes %}
+                        {% include "partials/plugin_tile.html" with plugin=boefje remove_action_buttons=True %}
+
+                    {% endfor %}
+                </div>
+                <br>
+                <div class="button-container">
+                    <a href="{% url "step_8_setup_scan_select_plugins" organization.code %}?{{ request.GET.urlencode }}"
+                       class="button">{% translate "Continue" %}</a>
+                    <a href="{% url "complete_onboarding" organization.code %}"
+                       class="button ghost">{% translate "Skip onboarding" %}</a>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

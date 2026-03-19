@@ -94,54 +94,100 @@ The input is a JSON object, specified by the following JSON schema:
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openkat.nl/boefje_input.schema.json",
+  "type": "object",
   "title": "Boefje input",
+  "additionalProperties": false,
   "properties": {
-    "task_id": {
-      "type": "string"
-    },
     "output_url": {
       "type": "string"
     },
-    "boefje_meta": {
-      "type": "object",
+    "task": {
       "properties": {
-        "boefje": {
-          "type": "object",
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "data": {
           "properties": {
             "id": {
+              "format": "uuid",
               "type": "string"
             },
-            "version": {
+            "boefje": {
+              "properties": {
+                "id": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "version": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                },
+                "oci_image": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "default": null
+                }
+              },
+              "required": ["id"],
+              "type": "object"
+            },
+            "input_ooi": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "arguments": {
+              "additionalProperties": true,
+              "default": {},
+              "type": "object"
+            },
+            "organization": {
               "type": "string"
+            },
+            "environment": {
+              "anyOf": [
+                {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
             }
-          }
-        },
-        "input_ooi": {
-          "type": "string"
-        },
-        "arguments": {
+          },
+          "required": ["id", "boefje", "organization"],
           "type": "object"
-        },
-        "organization": {
-          "type": "string"
-        },
-        "environment": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
         }
-      }
-    },
-    "required": [
-      "boefje",
-      "input_ooi",
-      "arguments",
-      "organization",
-      "environment"
-    ]
+      },
+      "required": ["id", "data"],
+      "type": "object"
+    }
   },
-  "required": ["task_id", "output_url", "boefje_meta"]
+  "required": ["output_url", "task"]
 }
 ```
 
@@ -156,32 +202,50 @@ JSON schema:
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://openkat.nl/boefje_output.schema.json",
   "title": "Boefje output",
+  "type": "object",
   "properties": {
     "status": {
-      "type": "string",
-      "enum": ["COMPLETED", "FAILED"]
+      "enum": ["COMPLETED", "FAILED"],
+      "type": "string"
     },
     "files": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "properties": {
-          "name": {
-            "type": "string"
+      "anyOf": [
+        {
+          "items": {
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "content": {
+                "contentEncoding": "base64",
+                "type": "string"
+              },
+              "tags": {
+                "anyOf": [
+                  {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array",
+                    "uniqueItems": true
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null
+              }
+            },
+            "required": ["name", "content"],
+            "type": "object"
           },
-          "content": {
-            "type": "string",
-            "contentEncoding": "base64"
-          },
-          "tags": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
+          "type": "array"
         },
-        "required": ["content"]
-      }
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
     }
   },
   "required": ["status"]
@@ -262,8 +326,8 @@ The approach to building OCI images from the boefjes we currently have in our
 system has been discussed in [this ticket][ticket], with the first versions
 having been implemented in these PRs:
 
-- https://github.com/minvws/nl-kat-coordination/pull/2709
-- https://github.com/minvws/nl-kat-coordination/pull/2832
+- https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/2709
+- https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/2832
 
 ### Summary of decisions
 
@@ -301,7 +365,7 @@ In terms of when to build images, we decided to:
 - Make the builds part of the installation script through `make -C boefjes images`.
 - Put the responsibility to (re)build new images while developing boefjes on developers.
 
-[ticket]: https://github.com/minvws/nl-kat-coordination/issues/2443
+[ticket]: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/2443
 [dockerfile-naming]: https://docs.docker.com/build/building/packaging/#filename
 [wheels]: https://pythonspeed.com/articles/alpine-docker-python/
 

@@ -4,9 +4,7 @@
     <h2>{% translate "Tasks" %}</h2>
     {% ooi_url 'ooi_detail' ooi.primary_key organization.code query=mandatory_fields as this_url %}
     {% if not task_list %}
-        <p class="emphasized">{% translate "There have been no tasks" %}</p>
-        {% include "tasks/partials/task_filter.html" with clear_filter_url=this_url %}
-
+        <p>{% translate "There have been no tasks." %}</p>
     {% else %}
         {% include "tasks/partials/task_filter.html" with clear_filter_url=this_url %}
 

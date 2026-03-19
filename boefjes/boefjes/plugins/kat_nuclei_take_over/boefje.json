@@ -6,5 +6,10 @@
     "Hostname",
     "HostnameHTTPURL"
   ],
-  "scan_level": 3
+  "scan_level": 3,
+  "oci_image": "docker.underdark.nl/librekat/openkat-nuclei:latest",
+  "oci_arguments": [
+    "/root/nuclei-templates/http/takeovers/",
+    "-jsonl"
+  ]
 }

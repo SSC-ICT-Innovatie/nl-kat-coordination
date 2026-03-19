@@ -7,6 +7,7 @@ from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.ooi.reports import ReportData
 from reports.report_types.definitions import MultiReport, ReportPlugins
+from reports.report_types.findings_report.report import SEVERITY_OPTIONS
 
 
 class OpenPortsDict(TypedDict):
@@ -51,6 +52,7 @@ class MultiOrganizationReport(MultiReport):
         system_specific: dict[str, SystemSpecificDict] = {}
         rpki_summary = {}
         ipv6 = {}
+        findings: dict[str, Any] = {}
         recommendation_counts = {}
         organization_metrics: dict[str, Any] = {}
 
@@ -169,6 +171,32 @@ class MultiOrganizationReport(MultiReport):
 
                 recommendation_counts[recommendation] += 1
 
+            # Findings
+            if not findings:
+                findings["finding_types"] = {}
+                findings["summary"] = {
+                    "total_by_severity": {severity: 0 for severity in SEVERITY_OPTIONS},
+                    "total_by_severity_per_finding_type": {severity: 0 for severity in SEVERITY_OPTIONS},
+                    "total_finding_types": 0,
+                    "total_occurrences": 0,
+                }
+            if aggregate_data["findings"]:
+                for finding_type_with_occurrences in aggregate_data["findings"]["finding_types"]:
+                    finding_type = finding_type_with_occurrences["finding_type"]
+                    finding_type_id = finding_type["id"]
+                    occurrences = finding_type_with_occurrences["occurrences"]
+                    severity = finding_type["risk_severity"]
+
+                    if finding_type_id not in findings["finding_types"]:
+                        findings["finding_types"][finding_type_id] = {
+                            "finding_type": finding_type,
+                            "occurrences": occurrences,
+                        }
+                        findings["summary"]["total_by_severity_per_finding_type"][severity] += 1
+                        findings["summary"]["total_finding_types"] += 1
+                    else:
+                        findings["finding_types"][finding_type_id]["occurrences"].extend(occurrences)
+
             # Get metrics per organization for best and worst security score
             ## Safe Connections
             is_check_compliant = (
@@ -222,6 +250,27 @@ class MultiOrganizationReport(MultiReport):
             sorted(system_vulnerabilities.items(), key=lambda x: x[1]["cvss"] or 0, reverse=True)
         )
 
+        # Remove duplicate occurrences
+        for finding_type in findings["finding_types"].values():
+            severity = finding_type["finding_type"]["risk_severity"]
+            unique_occurrences = []
+            seen_keys = set()
+
+            for occurrence in finding_type["occurrences"]:
+                occurrence_ooi = occurrence["finding"]["ooi"]
+
+                if occurrence_ooi not in seen_keys:
+                    seen_keys.add(occurrence_ooi)
+                    unique_occurrences.append(occurrence)
+                    findings["summary"]["total_by_severity"][severity] += 1
+
+            finding_type["occurrences"] = unique_occurrences
+            findings["summary"]["total_occurrences"] += len(unique_occurrences)
+
+        findings["finding_types"] = sorted(
+            findings["finding_types"].values(), key=lambda x: x["finding_type"]["risk_score"] or 0, reverse=True
+        )
+
         return {
             "multi_data": data,
             "organizations": [value["organization_code"] for key, value in data.items()],
@@ -252,6 +301,7 @@ class MultiOrganizationReport(MultiReport):
             "best_scoring": best_score,
             "worst_scoring": worst_score,
             "ipv6": ipv6,
+            "findings": findings,
         }
 
 

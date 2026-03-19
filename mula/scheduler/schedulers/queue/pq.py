@@ -1,3 +1,4 @@
+# TODO: Use database row locking instead of threading locks, see: #4129
 from __future__ import annotations
 
 import abc
@@ -9,8 +10,9 @@ import pydantic
 import structlog
 
 from scheduler import models, storage
+from scheduler.storage.errors import IntegrityError
 
-from .errors import InvalidItemError, ItemNotFoundError, NotAllowedError, QueueFullError
+from .errors import InvalidItemError, NotAllowedError, QueueFullError
 
 
 def with_lock(method):
@@ -98,7 +100,7 @@ class PriorityQueue(abc.ABC):
         self.lock: threading.RLock = threading.RLock()
 
     @with_lock
-    def pop(self, limit: int = 1, filters: storage.filters.FilterRequest | None = None) -> list[models.Task]:
+    def pop(self, limit: int | None = None, filters: storage.filters.FilterRequest | None = None) -> list[models.Task]:
         """Remove and return the highest priority items from the queue.
         Optionally apply filters to the queue.
 
@@ -169,19 +171,17 @@ class PriorityQueue(abc.ABC):
         )
 
         if not allowed:
-            message = f"Item {task} already on queue {self.pq_id}."
+            message = f"Item already on queue {self.pq_id}. "
 
             if item_on_queue and not self.allow_replace:
-                message = "Item already on queue, we're not allowed to replace the item that is already on the queue."
-
-            if item_on_queue and item_changed and not self.allow_updates:
-                message = (
+                message += "Item already on queue, we're not allowed to replace the item that is already on the queue."
+            elif item_on_queue and item_changed and not self.allow_updates:
+                message += (
                     "Item already on queue, and item changed, we're not "
                     "allowed to update the item that is already on the queue."
                 )
-
-            if item_on_queue and priority_changed and not self.allow_priority_updates:
-                message = (
+            elif item_on_queue and priority_changed and not self.allow_priority_updates:
+                message += (
                     "Item already on queue, and priority changed, "
                     "we're not allowed to update the priority of the item "
                     "that is already on the queue."
@@ -190,30 +190,33 @@ class PriorityQueue(abc.ABC):
             raise NotAllowedError(message)
 
         # If already on queue update the item, else create a new one
-        item_db = None
         if not item_on_queue:
-            identifier = self.create_hash(task)
-            task.hash = identifier
-            task.status = models.TaskStatus.QUEUED
-            item_db = self.pq_store.push(task)
-        else:
-            # Get the item from the queue and update it
-            stored_item_data = self.get_item_by_identifier(task)
-            if stored_item_data is None:
-                raise ItemNotFoundError(f"Item {task} not found in datastore {self.pq_id}")
+            try:
+                task.hash = self.create_hash(task)
+                task.status = models.TaskStatus.QUEUED
+                item_db = self.pq_store.push(task)
+                return item_db
+            except IntegrityError as exc:
+                # check for collision warning on schedule_id / active state
+                if "ix_tasks_active_per_schedule" not in str(exc):
+                    raise
+                item_on_queue = self.pq_store.get_active_task_by_schedule(task.schedule_id)
+                if not item_on_queue:
+                    # This should never happen, we had a collision,
+                    # but cannot find the colliding scheduled task.
+                    # maybe it was a race condition, lets insert again
+                    task.hash = self.create_hash(task)
+                    task.status = models.TaskStatus.QUEUED
+                    item_db = self.pq_store.push(task)
+                    return item_db
 
-            # Update the item with the new data
-            patch_data = task.dict(exclude_unset=True)
-            updated_task = stored_item_data.model_copy(update=patch_data)
+        # Update the item with the new data
+        patch_data = task.model_dump(exclude_unset=True)
+        updated_task = item_on_queue.model_copy(update=patch_data)
 
-            # Update the item in the queue
-            self.pq_store.update(self.pq_id, updated_task)
-            item_db = self.get_item_by_identifier(task)
-
-        if not item_db:
-            raise ItemNotFoundError(f"Item {task} not found in datastore {self.pq_id}")
-
-        return item_db
+        # Update the item in the queue
+        self.pq_store.update(self.pq_id, updated_task)
+        return updated_task
 
     @with_lock
     def peek(self, index: int) -> models.Task | None:
@@ -257,11 +260,10 @@ class PriorityQueue(abc.ABC):
     @with_lock
     def full(self) -> bool:
         """Return True if the queue is full, False otherwise."""
-        current_size = self.qsize()
         if self.maxsize is None or self.maxsize == 0:
             return False
 
-        return current_size >= self.maxsize
+        return self.qsize() >= self.maxsize
 
     @with_lock
     def is_item_on_queue(self, task: models.Task) -> bool:

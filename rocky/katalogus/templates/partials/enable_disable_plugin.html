@@ -18,5 +18,11 @@
         </button>
     </form>
 {% else %}
-    <span class="de-emphasized">{% translate "You don't have permission to enable" %} {{ plugin.type }}</span>
+    <span class="de-emphasized">
+        {% if plugin.enabled %}
+            <span class="label system-tag color-2">{% translate "Enabled" %}</span>
+        {% else %}
+            <span class="label system-tag color-3">{% translate "Disabled" %}</span>
+        {% endif %}
+    </span>
 {% endif %}

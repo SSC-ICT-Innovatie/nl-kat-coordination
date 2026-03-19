@@ -4,14 +4,12 @@ from os import getenv
 
 from pybinaryedge import BinaryEdge
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     be = BinaryEdge(getenv("BINARYEDGE_API"))
     results: dict[str, list] = {"results": []}
 
-    input_ = boefje_meta.arguments["input"]
+    input_ = boefje_meta["arguments"]["input"]
 
     if input_["object_type"] in ["IPAddressV4", "IPAddressV6"]:
         ip = input_["address"]

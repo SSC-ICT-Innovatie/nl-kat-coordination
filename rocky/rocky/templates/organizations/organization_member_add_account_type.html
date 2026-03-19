@@ -8,16 +8,13 @@
 
     <main id="main-content">
         <section>
-            <div class="layout-form">
-                <h1>{% translate "Member account type setup" %}</h1>
-                <p>{% translate "Choose an account type for this new member." %}</p>
-                <form novalidate  method="get" class="help">
-                    {% translate "Account type details" as fieldset_legend %}
-                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+            {% include "organizations/organization_member_add_header.html" %}
 
-                    <button type="submit">{% translate "Submit" %}</button>
-                </form>
-            </div>
+            <form novalidate  method="get" class="help">
+                {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                <button type="submit">{% translate "Submit" %}</button>
+            </form>
         </section>
     </main>
 {% endblock content %}

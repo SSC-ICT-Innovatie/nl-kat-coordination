@@ -348,7 +348,7 @@
     "description": "The domain name does not exist.",
     "source": "https://datatracker.ietf.org/doc/html/rfc8020",
     "risk": "medium",
-    "impact": "If this is a critical service, it stopped working. Fix it now. :).",
+    "impact": "If this is a service you rely on, have in your allow lists or redirect to, it stopped working. Fix it now. In addition someone might register this hostname and use it for nefarious reasons. :).",
     "recommendation": "Try again later, or verify if the host should be reachable."
   },
   "KAT-NXDOMAIN-HEADER": {
@@ -356,7 +356,7 @@
     "description": "The hostname in this header does not exist.",
     "source": "https://datatracker.ietf.org/doc/html/rfc8020",
     "risk": "critical",
-    "impact": "If this is a critical service, it stopped working. Fix it now. :).",
+    "impact": "If this is a service you rely on, have in your allow lists or redirect to, it stopped working. Fix it now. In addition someone might register this hostname and use it for nefarious reasons. :).",
     "recommendation": "Check if the hostname in the header is correct and update accordingly."
   },
   "KAT-NAMESERVER-NO-TWO-IPV6": {
@@ -384,16 +384,16 @@
     "recommendation": "Make changes to your web server in order to comply with the Internet.nl standards."
   },
   "KAT-NO-CERTIFICATE": {
-    "name":"Unencrypted website traffic",
-    "description": "This website does not have an SSL certificate.",
+    "name":"No Certificate was found.",
+    "description": "This website does not have an TLS certificate, this might indicate no encryption is being used or OpenKAT has not found the seen the certificate just yet.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280",
     "risk": "high",
-    "impact": "Attackers, who can perform a man-in-the-middle attack, can read all your traffic.",
-    "recommendation": "Generate SSL certificates for web servers that do not use secure connections to offer confidentiality and integrity to users and data."
+    "impact": "If no encryption is being used, attackers with the ability to do a man-in-the-middle attack, can read all your traffic. Modern clients also refuse to connect to sites without encryption.",
+    "recommendation": "Generate TLS certificates for web servers that do not use secure connections to offer confidentiality and integrity to users and data."
   },
   "KAT-SSL-CERT-HOSTNAME-MISMATCH": {
     "name":"SSL/TLS certificate name mismatch",
-    "description": "The alternative name of the certificate does not match with the hostname of the website.",
+    "description": "The alternative name of the certificate does not match with the hostname of the website. Modern clients also refuse to connect to sites using invalid certificates.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.6",
     "risk": "high",
     "impact": "A properly configured client cannot connect to your server.",
@@ -420,7 +420,7 @@
     "description": "TLS certificate has expired",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
     "risk": "critical",
-    "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
+    "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service. Modern clients also refuse to connect to sites using expired certificates.",
     "recommendation": "Replace the certificate with a valid one."
   },
   "KAT-NO-DMARC": {
@@ -428,7 +428,7 @@
     "description": "This hostname does not have a DMARC record.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-dmarc-record/",
     "risk": "medium",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
+    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF. Not having DMARC setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
     "recommendation": "Set a DMARC record to protect your domain."
   },
   "KAT-NO-DKIM": {
@@ -436,8 +436,8 @@
     "description": "This hostname does not support a DKIM record.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-dkim-record/",
     "risk": "medium",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
-    "recommendation": "Set a DKIM record to protect your domain."
+    "impact": "E-mail from this domain can potentially be spoofed if DKIM is not (properly) implemented in combination with DMARC and SPF.  Not having DKIM setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
+    "recommendation": "Set a DKIM record to protect your domain, and Sign outgoing mails accordingly."
   },
   "KAT-NO-SECURITY-TXT": {
     "name":"Security.txt file missing",
@@ -468,7 +468,7 @@
     "description": "This hostname does not have an SPF record.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-spf-record/",
     "risk": "medium",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
+    "impact": "E-mail from this domain can potentially be spoofed if SPF is not (properly) implemented in combination with DKIM and DMARC. Not having SPF setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
     "recommendation": "Set an SPF record to protect your domain."
   },
   "KAT-INVALID-SPF": {
@@ -476,7 +476,7 @@
     "description": "This SPF record could not be parsed by the internet.nl SPF parser and is therefore deemed invalid.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-spf-record/",
     "risk": "low",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
+    "impact": "E-mail from this domain can potentially be spoofed if SPF is not (properly) implemented in combination with DKIM and DMARC. Not having SPF setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
     "recommendation": "Fix the syntax of the SPF record."
   },
   "KAT-EXPENSIVE-SPF": {
@@ -500,8 +500,8 @@
     "description": "Subdomain takeover is when an attacker takes control of an unused or improperly configured subdomain, potentially accessing sensitive information or conducting phishing attacks.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/Security/Subdomain_takeovers",
     "risk": "high",
-    "impact": "An attacker using your hosting provider may setup a virtual host for your domain and thus intercept and trick users.",
-    "recommendation": "To prevent subdomain takeover, organizations should regularly monitor their DNS records to identify and remove any unused subdomains. Additionally, they should ensure that all subdomains are properly configured and point to valid services."
+    "impact": "An attacker using your hosting provider may setup a virtual host for your domain and thus intercept and trick users. Since they control content available under your (sub-domain) they could reach user cookies/sessions and perform various other attacks without breaking the browsers same-site principles.",
+    "recommendation": "To prevent subdomain takeover, organizations should regularly monitor their DNS records to identify and remove any unused subdomains. Additionally, they should ensure that all subdomains are properly configured and point to valid services that you control."
   },
   "EXPOSED-ADMIN-PANELS": {
     "name":"Administrative login interface reachable",

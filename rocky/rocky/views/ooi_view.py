@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from time import sleep
 from typing import Literal
 
 from django.forms import Form
@@ -21,7 +20,14 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.types import get_collapsed_types, type_by_name
 from rocky.paginator import RockyPaginator
-from rocky.views.mixins import ConnectorFormMixin, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
+from rocky.views.mixins import (
+    OBJECT_LIST_COLUMNS,
+    ConnectorFormMixin,
+    OctopoesView,
+    OOIList,
+    SingleOOIMixin,
+    SingleOOITreeMixin,
+)
 
 
 class OOIFilterView(ConnectorFormMixin, OctopoesView):
@@ -61,12 +67,14 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
             active_filters[_("Searching for: ")] = self.search_string
         return active_filters
 
-    def count_active_filters(self):
+    @property
+    def count_active_filters(self) -> int:
         return (
             len(self.filtered_ooi_types)
             + len(self.clearance_levels)
             + len(self.clearance_types)
             + self.count_observed_at_filter()
+            + (1 if self.search_string else 0)
         )
 
     def get_ooi_scan_levels(self) -> set[ScanLevel]:
@@ -112,20 +120,21 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
 
         context["sorting_order"] = self.sorting_order
         context["sorting_order_class"] = "ascending" if self.sorting_order == "asc" else "descending"
+        context["search_string"] = self.search_string
         context["ooi_types_selection"] = self.filtered_ooi_types
         context["clearance_levels_selection"] = self.clearance_levels
         context["clearance_level_filter_form"] = ClearanceFilterForm(self.request.GET)
         context["clearance_types_selection"] = self.clearance_types
         context["active_filters"] = self.get_active_filters()
-        context["active_filters_counter"] = self.count_active_filters()
 
+        context["active_filters_counter"] = self.count_active_filters
         return context
 
 
 class BaseOOIListView(OOIFilterView, ListView):
     paginate_by = 150
     context_object_name = "ooi_list"
-    paginator = RockyPaginator
+    paginator_class = RockyPaginator
 
     def get_queryset(self) -> OOIList:
         return OOIList(self.octopoes_api_connector, **self.get_queryset_params())
@@ -134,6 +143,7 @@ class BaseOOIListView(OOIFilterView, ListView):
         context = super().get_context_data(**kwargs)
         context["mandatory_fields"] = get_mandatory_fields(self.request)
         context["total_oois"] = len(self.object_list)
+        context["table_columns"] = OBJECT_LIST_COLUMNS
         return context
 
 
@@ -222,7 +232,6 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             create_ooi(
                 self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
             )
-            sleep(1)
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:
             for error in exception.errors():

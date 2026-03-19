@@ -14,10 +14,10 @@ from boefjes.dependencies.plugins import (
     get_plugin_service,
     get_plugins_filter_parameters,
 )
-from boefjes.models import FilterParameters, PaginationParameters, PluginType
 from boefjes.sql.db_models import RunOn
 from boefjes.sql.plugin_storage import get_plugin_storage
-from boefjes.storage.interfaces import DuplicatePlugin, IntegrityError, NotAllowed, PluginStorage
+from boefjes.storage.interfaces import DuplicatePlugin, IntegrityError, NotAllowed, PluginStorage, UniqueViolation
+from boefjes.worker.models import FilterParameters, PaginationParameters, PluginType
 
 router = APIRouter(prefix="/organisations/{organisation_id}", tags=["plugins"])
 
@@ -107,6 +107,10 @@ def add_plugin(plugin: PluginType, plugin_service: PluginService = Depends(get_p
 
             if plugin.type == "normalizer":
                 return service.create_normalizer(plugin)
+    except UniqueViolation as error:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, f"Duplicate plugin: a plugin with this {error.field} already exists"
+        )
     except DuplicatePlugin as error:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, error.message)
 

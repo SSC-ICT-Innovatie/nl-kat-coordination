@@ -1,0 +1,39 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "Set object clearance level" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        After creating a new object you can set a clearance level for this object. A clearance level determines how aggressive the object can be scanned. A higher clearance level, means that more aggressive scans are allowed.
+                        Clearance levels can always be adjusted later on.
+                    {% endblocktranslate %}
+                </p>
+                <p>
+                    {% blocktranslate trimmed %}
+                        For the onboarding we use a clearance level of L{{ dns_report_least_clearance_level }}, meaning only informational scans are allowed.
+                    {% endblocktranslate %}
+                </p>
+                <form novalidate action="" method="post" class="help layout-form">
+                    {% csrf_token %}
+                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                    <div class="button-container">
+                        <button type="submit">{% translate "Set clearance level" %}</button>
+                        <a href="{% url "complete_onboarding" organization.code %}"
+                           class="button ghost">{% translate "Skip onboarding" %}</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

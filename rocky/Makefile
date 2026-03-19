@@ -14,6 +14,9 @@ build-rocky:
 # Set DATABASE_MIGRATION=false to prevent entrypoint from running migration
 	docker compose run --rm -e DATABASE_MIGRATION=false rocky make build-rocky-native
 
+dashboards:
+	docker compose run --rm rocky python3 manage.py dashboards
+
 build-rocky-native:
 	while ! nc -vz $$ROCKY_DB_HOST $$ROCKY_DB_PORT; do sleep 0.1; done
 	python3 manage.py migrate
@@ -60,6 +63,7 @@ export_migrations:
 	python3 manage.py export_migrations tools 0001
 	python3 manage.py export_migrations fmea 0001
 	python3 manage.py export_migrations accounts 0001
+	python3 manage.py export_migrations crisis_room 0001
 
 languages:
 # Extracts strings to `.pot` file which should be translated

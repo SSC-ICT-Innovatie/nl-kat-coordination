@@ -2,7 +2,7 @@ import json
 import logging
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerAffirmation, NormalizerOutput
+from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models.ooi.findings import RiskLevelSeverity, SnykFindingType
 
 logger = logging.getLogger(__name__)

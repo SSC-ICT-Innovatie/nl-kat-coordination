@@ -176,8 +176,7 @@ def test_check_add_redteamer_form(rf, admin_member):
     )
 
     assert response.status_code == 200
-    assertContains(response, "Redteam member")
-    print(response.content)
+    assertContains(response, "Redteam account setup")
 
     # Check first and last radio input of trusted clearance level form input
     assertContains(
@@ -203,7 +202,7 @@ def test_check_add_admin_client_form(rf, admin_member, account_type):
     )
 
     assert response.status_code == 200
-    assertContains(response, account_type.capitalize() + " member")
+    assertContains(response, account_type.capitalize() + " account setup")
 
     # Check first and last radio input of trusted clearance level form input
     assertNotContains(

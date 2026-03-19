@@ -3,7 +3,7 @@ from collections.abc import Iterable
 
 from wpscan_out_parse import WPScanJsonParser
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 

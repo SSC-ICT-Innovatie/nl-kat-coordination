@@ -2,6 +2,15 @@ import re
 import subprocess
 
 
+def run_drill(domain: str, record_type: str) -> bytes:
+    cmd = ["/usr/bin/drill", "-DT", domain, record_type]
+
+    output = subprocess.run(cmd, capture_output=True)
+    output.check_returncode()
+
+    return output.stdout
+
+
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     input_ = boefje_meta["arguments"]["input"]
     domain = input_["name"]
@@ -14,9 +23,10 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
             "hostname?"
         )
 
-    cmd = ["/usr/bin/drill", "-DT", domain]
-    output = subprocess.run(cmd, capture_output=True)
+    output = run_drill(domain, "A")
+    if f"[U] No data found for: {domain}. type A".encode() in output:
+        output = run_drill(domain, "CNAME")
+        if f"[U] No data found for: {domain}. type CNAME".encode() in output:
+            output = run_drill(domain, "AAAA")
 
-    output.check_returncode()
-
-    return [({"openkat/dnssec-output"}, output.stdout)]
+    return [({"openkat/dnssec-output"}, output)]

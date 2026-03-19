@@ -3,7 +3,7 @@
 <div {% if field.field.required %}class="required"{% endif %}>
     {% if field.field.required %}
         <label>
-            {{ field.label_tag }} <span class="nota-bene" aria-hidden>{% translate "(Required)" %}</span>
+            {{ field.label_tag }} <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
         </label>
     {% else %}
         {{ field.label_tag }}
@@ -39,7 +39,7 @@
         <div>
             {% if field.field.required %}
                 <label>
-                    {{ field.label_tag }} <span class="nota-bene" aria-hidden>{% translate "(Required)" %}</span>
+                    {{ field.label_tag }} <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
                 </label>
             {% endif %}
             <div>

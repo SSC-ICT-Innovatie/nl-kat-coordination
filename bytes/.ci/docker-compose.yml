@@ -3,7 +3,6 @@ services:
     build:
       args:
         ENVIRONMENT: dev
-        PYTHON_VERSION: "3.10"
         USER_UID: 1001
         USER_GID: 1001
       context: .

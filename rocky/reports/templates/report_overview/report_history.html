@@ -6,18 +6,20 @@
 {% block content %}
     {% include "header.html" %}
 
-    <main id="main-content" tabindex="-1" class="katalogus">
+    <main id="main-content">
         <section>
             {% include "report_overview/report_overview_header.html" %}
             {% include "report_overview/report_overview_navigation.html" with active="history" %}
 
-            <h2>{% translate "Reports history" %}</h2>
-            <p>
-                {% translate "On this page you can see all the reports that have been generated in the past. To create a new report, click the 'Generate Report' button." %}
-            </p>
-            {% include "report_overview/report_history_table.html" %}
-            {% include "partials/list_paginator.html" %}
+            <div class="horizontal-scroll">
+                <h2>{% translate "Reports history" %}</h2>
+                <p>
+                    {% translate "On this page you can see all the reports that have been generated in the past. To create a new report, click the 'Generate Report' button." %}
+                </p>
+                {% include "report_overview/report_history_table.html" %}
+                {% include "partials/list_paginator.html" %}
 
+            </div>
         </section>
     </main>
 {% endblock content %}

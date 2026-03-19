@@ -1,0 +1,46 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content" tabindex="-1" class="crisisroom">
+        <section>
+            <div>
+                <h2>{% translate "Dashboards" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        On this page you can see an overview of the dashboards for all organizations.
+                        **More context can be written here**
+                    {% endblocktranslate %}
+                </p>
+            </div>
+            {% for organization, organization_dashboards in organizations_dashboards.items %}
+                <section>
+                    <div>
+                        <h3>{{ organization.name }} {% translate "dashboards" %}</h3>
+                        {% if organization_dashboards %}
+                            {% for dashboards in organization_dashboards %}
+                                {% for dashboard_item, report in dashboards.items %}
+                                    {% if report %}
+                                        <section>
+                                            <div>
+                                                <h4 id="dashboard_{{ dashboard_item|slugify }}">{{ dashboard_item }}</h4>
+                                                {% include dashboard_item.template with data=report.1 is_dashboard_item="yes" %}
+
+                                            </div>
+                                        </section>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <p>{% translate "There are no dashboards to display." %}</p>
+                        {% endif %}
+                    </div>
+                </section>
+            {% endfor %}
+        </section>
+    </main>
+{% endblock content %}

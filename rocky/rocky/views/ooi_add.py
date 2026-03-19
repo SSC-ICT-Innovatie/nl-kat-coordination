@@ -11,23 +11,13 @@ from octopoes.models import OOI
 from octopoes.models.ooi.monitoring import Incident
 from octopoes.models.ooi.question import Question
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData
-from octopoes.models.ooi.web import RESTAPI, ImageMetadata
+from octopoes.models.ooi.web import ImageMetadata
 from octopoes.models.types import type_by_name
 from rocky.views.ooi_view import BaseOOIFormView
 
 EXCLUDE_OOI_TYPES = [
     ooi_type.get_object_type()
-    for ooi_type in [
-        Question,
-        RESTAPI,
-        Incident,
-        ImageMetadata,
-        Report,
-        ReportData,
-        BaseReport,
-        AssetReport,
-        HydratedReport,
-    ]
+    for ooi_type in [Question, Incident, ImageMetadata, Report, ReportData, BaseReport, AssetReport, HydratedReport]
 ]
 
 
@@ -97,7 +87,7 @@ class OOIAddView(BaseOOIFormView):
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
                 "url": reverse("ooi_add_type_select", kwargs={"organization_code": self.organization.code}),
-                "text": _("Type select"),
+                "text": _("Add object"),
             },
             {
                 "url": reverse(

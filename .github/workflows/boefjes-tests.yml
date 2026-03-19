@@ -4,15 +4,15 @@ on:
   workflow_call:
 
 jobs:
-  Tests:
+  unit-tests:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
-          python-version: "3.10"
+          python-version: "3.13"
           cache: "pip" # caching pip dependencies
 
       - name: Install pip
@@ -29,11 +29,66 @@ jobs:
       - name: Install Octopoes
         run: cd octopoes && python setup.py bdist_wheel && pip install dist/octopoes*.whl
 
-      - name: Run pytests
-        run: python3 -m pytest --cov boefjes/ --cov-report xml --cov-branch boefjes/tests
+      - name: Run tests
+        run: python3 -m pytest --cov boefjes/ --cov-report xml --cov-branch tests/
+        working-directory: boefjes/
 
       - name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: boefjes-coverage-unit
-          path: coverage.xml
+          path: boefjes/.coverage
+          include-hidden-files: true
+
+  integration-tests:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run integration tests
+        run: make itest
+        working-directory: boefjes/
+
+      - name: Upload coverage as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: boefjes-coverage-integration
+          path: boefjes/.coverage
+          include-hidden-files: true
+
+  coverage:
+    runs-on: ubuntu-24.04
+    needs:
+      - unit-tests
+      - integration-tests
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+          cache: "pip" # caching pip dependencies
+
+      - name: Install coverage
+        run: pip install coverage[toml]
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: boefjes-coverage-*
+
+      - name: Merge and generate coverage report
+        run: |
+          coverage combine ../**/.coverage
+          coverage report
+          coverage xml --ignore-errors
+        working-directory: boefjes/
+
+      - name: Upload coverage as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: boefjes-coverage
+          path: boefjes/coverage.xml

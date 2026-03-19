@@ -1,8 +1,12 @@
 from collections.abc import Iterable
 from datetime import datetime, timezone
+from enum import Enum
 from typing import Any, Literal
 
 import structlog
+from crisis_room.forms import AddFindingListDashboardItemForm
+from django.contrib import messages
+from django.http import HttpRequest, HttpResponse
 from django.urls.base import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
@@ -17,7 +21,15 @@ from tools.forms.findings import (
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.models.ooi.findings import RiskLevelSeverity
-from rocky.views.mixins import ConnectorFormMixin, FindingList, OctopoesView, SeveritiesMixin
+from rocky.paginator import RockyPaginator
+from rocky.views.mixins import (
+    FINDING_LIST_COLUMNS,
+    AddDashboardItemFormMixin,
+    ConnectorFormMixin,
+    FindingList,
+    OctopoesView,
+    SeveritiesMixin,
+)
 
 logger = structlog.get_logger(__name__)
 
@@ -55,6 +67,10 @@ def generate_findings_metadata(
     return sort_by_severity_desc(findings_meta)
 
 
+class PageActions(Enum):
+    ADD_TO_DASHBOARD = "add_to_dashboard"
+
+
 class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListView):
     connector_form_class = ObservedAtForm
 
@@ -71,8 +87,14 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
     def count_observed_at_filter(self) -> int:
         return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
 
+    @property
     def count_active_filters(self):
-        return len(self.severities) + 1 if self.muted_findings else 0 + self.count_observed_at_filter()
+        return (
+            len(self.severities)
+            + (1 if self.muted_findings else 0)
+            + self.count_observed_at_filter()
+            + (1 if self.search_string else 0)
+        )
 
     def get_queryset(self) -> FindingList:
         return FindingList(self.octopoes_api_connector, **self.get_queryset_params())
@@ -100,22 +122,28 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
         context = super().get_context_data(**kwargs)
         context["observed_at_form"] = self.get_connector_form()
         context["observed_at"] = self.observed_at
-        context["severity_filter"] = FindingSeverityMultiSelectForm({"severity": list(self.severities)})
-        context["muted_findings_filter"] = MutedFindingSelectionForm({"muted_findings": self.muted_findings})
+        context["severity_filter"] = FindingSeverityMultiSelectForm(self.request.GET)
+        context["muted_findings_filter"] = MutedFindingSelectionForm(self.request.GET)
+        context["table_columns"] = FINDING_LIST_COLUMNS
         context["finding_search_form"] = FindingSearchForm(self.request.GET)
-        context["only_muted"] = self.only_muted
-        context["active_filters_counter"] = self.count_active_filters()
+        context["active_filters_counter"] = self.count_active_filters
         context["order_by"] = self.order_by
         context["order_by_severity_form"] = OrderBySeverityForm(self.request.GET)
         context["order_by_finding_type_form"] = OrderByFindingTypeForm(self.request.GET)
         context["sorting_order"] = self.sorting_order
         context["sorting_order_class"] = "ascending" if self.sorting_order == "asc" else "descending"
+        context["severities"] = self.severities
+        context["exclude_muted"] = self.exclude_muted
+        context["only_muted"] = self.only_muted
+        context["search_string"] = self.search_string
         return context
 
 
-class FindingListView(BreadcrumbsMixin, FindingListFilter):
+class FindingListView(BreadcrumbsMixin, FindingListFilter, AddDashboardItemFormMixin):
     template_name = "findings/finding_list.html"
     paginate_by = 150
+    add_dashboard_item_form = AddFindingListDashboardItemForm
+    paginator_class = RockyPaginator
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
@@ -125,15 +153,12 @@ class FindingListView(BreadcrumbsMixin, FindingListFilter):
             }
         ]
 
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        """Perform bulk action on selected oois."""
+        action = request.POST.get("action")
 
-class Top10FindingListView(FindingListView):
-    template_name = "findings/finding_list.html"
-    paginate_by = 10
+        if action == PageActions.ADD_TO_DASHBOARD.value:
+            return self.add_to_dashboard()
 
-    def build_breadcrumbs(self) -> list[Breadcrumb]:
-        return [
-            {
-                "url": reverse_lazy("organization_crisis_room", kwargs={"organization_code": self.organization.code}),
-                "text": _("Crisis room"),
-            }
-        ]
+        messages.add_message(request, messages.ERROR, _("Unknown action."))
+        return self.get(request, status=404, *args, **kwargs)

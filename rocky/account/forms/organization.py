@@ -1,7 +1,9 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 from tools.forms.settings import BLANK_CHOICE
-from tools.models import Organization, OrganizationMember
+from tools.models import Organization
+
+from account.models import KATUser
 
 
 class OrganizationListForm(forms.Form):
@@ -11,21 +13,13 @@ class OrganizationListForm(forms.Form):
 
     error_messages = {"required": _("Organization is required.")}
 
-    def __init__(self, user, exclude_organization=None, *args, **kwargs):
+    def __init__(self, user: KATUser, exclude_organization: Organization, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.exclude_organization = exclude_organization
-        self.populate_dropdown_list(user)
-
-    def populate_dropdown_list(self, user):
-        organizations = []
-
-        members = OrganizationMember.objects.filter(user=user)
-
-        for member in members:
-            organization = Organization.objects.get(name=member.organization)
-
-            if not self.exclude_organization or organization != self.exclude_organization:
-                organizations.append([organization.code, organization.name])
+        organizations = [
+            [organization.code, organization.name]
+            for organization in user.organizations
+            if organization != exclude_organization
+        ]
 
         if organizations:
             self.fields["organization"] = forms.ChoiceField(

@@ -1,0 +1,22 @@
+{% load i18n %}
+
+{% component "modal" modal_id="dashboard-item-explanation-modal" size="dialog-small" %}
+{% fill "header" %}
+{% translate "Add dashboard item" %}
+{% endfill %}
+{% fill "content" %}
+<p>
+    {% blocktranslate trimmed %}
+        To  add a <strong>report section</strong>, go to the history page and open a report.
+        Then go to the section that you want to add to your dashboard and press the options button next to the
+        section name to create a dashboard item.
+    {% endblocktranslate %}
+</p>
+{% endfill %}
+{% fill "footer_buttons" %}
+<a class="button"
+   href="{% url "report_history" organization_code=organization.code %}">{% translate "Go to report history" %}</a>
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

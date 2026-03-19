@@ -34,7 +34,11 @@ def katalogus_mock(mocker):
 
 
 @pytest.fixture
-def integration_organization(katalogus_mock, request) -> Organization:
+def integration_organization(katalogus_mock, mocker, request) -> Organization:
+    mocker.patch("rocky.signals.OctopoesAPIConnector")
+    mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
+    mocker.patch("crisis_room.management.commands.dashboards.get_bytes_client")
+
     test_node = f"test-{request.node.originalname}"
 
     return Organization.objects.create(name="Test", code=test_node)
