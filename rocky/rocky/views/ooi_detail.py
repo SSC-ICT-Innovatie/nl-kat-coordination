@@ -1,6 +1,5 @@
 import json
 from collections import defaultdict
-from datetime import datetime
 
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -151,7 +150,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             except Exception:
                 context["current_config"] = None
 
-        context["ooi_past_due"] = context["observed_at"].date() < datetime.utcnow().date()
+        context["historic_view"] = self.observed_at_query
         context["related"] = self.get_related_objects(context["observed_at"])
 
         context["count_findings_per_severity"] = dict(self.count_findings_per_severity())
