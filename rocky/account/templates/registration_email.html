@@ -1,12 +1,12 @@
 {% load i18n %}
 
 {% autoescape off %}
-    {% blocktranslate %}Welcome to {{site_name}}
-        You're receiving this email because you have been added to organization "{{ organization }}" at {{ site_name }}.
+    {% blocktranslate %}Welcome to OpenKAT
+        You're receiving this email because you have been added to organization "{{ organization }}" at {{ host }}.
     {% endblocktranslate %}
     {% translate "Please go to the following page and choose a new password:" %}
     {% block reset_link %}
-        {{ protocol }}://{{ domain }}{% url "password_reset_confirm" uidb64=uid token=token %}
+        {{ host }}{% url "password_reset_confirm" uidb64=uid token=token %}
     {% endblock reset_link %}
     {% translate "Sincerely," %}
     {% blocktranslate %}The {{site_name}} team{% endblocktranslate %}
