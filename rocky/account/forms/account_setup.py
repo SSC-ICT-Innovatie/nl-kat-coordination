@@ -12,11 +12,10 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
-from tools.enums import SCAN_LEVEL
+from tools.enums import SCAN_LEVEL, MAX_SCAN_LEVEL
 from tools.forms.base import BaseRockyForm, BaseRockyModelForm
 from tools.models import (
     GROUP_ADMIN,
-    GROUP_CLIENT,
     GROUP_REDTEAM,
     ORGANIZATION_CODE_LENGTH,
     Organization,
@@ -137,42 +136,38 @@ class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPaw
         if self.account_type != GROUP_REDTEAM:
             self.fields.pop("trusted_clearance_level")
 
-    def create_new_member(self, user: AbstractUser | None = None) -> None:
-        """When no user is passed, create a new user as well."""
+    def get_or_create_user(self, email) -> AbstractUser:
         try:
-            if user is None:
-                user = self.register_user()
-                # new registered user must set a password through the password reset form.
-                self.send_password_reset_email(user, self.organization)
-
-            member = OrganizationMember.objects.create(user=user, organization=self.organization)
+            user = self.register_user()
+        except IntegrityError as error:
+            logger.error("User already existed by Email: %s", error)
+            return User.objects.get(email=email)
+        # new registered user must set a password through the password reset form.
+        self.send_password_reset_email(user, self.organization)
+        return user
+    
+    def get_or_create_member(self, user: AbstractUser) -> bool:
+        member, _ = OrganizationMember.objects.get_or_create(
+            user=user,
+            organization=self.organization,
+        )
+        try:
+            group = Group.objects.get(name=self.account_type)
             member.groups.add(Group.objects.get(name=self.account_type))
+        except Group.DoesNotExist as error:
+            logger.error("Unknown group selected, user created but no permissions set: %s", error)
+            return False
 
-            if self.account_type == GROUP_REDTEAM:
-                member.trusted_clearance_level = self.cleaned_data.get("trusted_clearance_level")
+        member.trusted_clearance_level = max(-1, min(self.cleaned_data.get("trusted_clearance_level", -1), MAX_SCAN_LEVEL))
+        if self.account_type == GROUP_ADMIN:
+            member.trusted_clearance_level = MAX_SCAN_LEVEL
+        member.save()
+        return True
 
-            if self.account_type == GROUP_ADMIN:
-                member.trusted_clearance_level = 4
-                member.acknowledged_clearance_level = 4
-            member.save()
-
-        except (IntegrityError, Group.DoesNotExist) as error:
-            logger.error("An error occurred, more info: %s", error)
-            return None
-
-    def register_member(self) -> None:
+    def register_member(self) -> bool:
         email = self.cleaned_data.get("email")
-
-        try:
-            user = User.objects.get(email=email)
-            try:
-                OrganizationMember.objects.get(user=user, organization=self.organization)
-            except OrganizationMember.DoesNotExist:
-                self.create_new_member(user)
-
-        # if user does not exist, neither can it be a member, create a new user and member.
-        except User.DoesNotExist:
-            self.create_new_member()
+        user = self.get_or_create_user(email)
+        return self.create_new_member(user)
 
     def is_valid(self):
         is_valid = super().is_valid()
