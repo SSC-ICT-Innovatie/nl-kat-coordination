@@ -6,7 +6,6 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth.tokens import default_token_generator
-from django.contrib.sites.models import Site
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
 from django.template.loader import render_to_string
@@ -62,20 +61,13 @@ class UserRegistrationForm(forms.Form):
     def send_password_reset_email(user, organization: Organization):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-
-        current_site = Site.objects.get_current()
-        site_name = "OpenKAT" if current_site.name == "example.com" else current_site.name
-        domain = "localhost:8000" if current_site.domain == "example.com" else current_site.domain
-        protocol = "http" if domain == "localhost:8000" else "https"
-
+      
         subject = _("Set password for your new account.")
         message = render_to_string(
             "registration_email.html",
             {
                 "organization": organization,
-                "site_name": site_name,
-                "protocol": protocol,
-                "domain": domain,
+                "host": request._current_scheme_host(),
                 "uid": uid,
                 "token": token,
             },
@@ -90,22 +82,37 @@ class UserRegistrationForm(forms.Form):
 
 
 class AccountTypeSelectForm(forms.Form):
-    """
-    Shows a dropdown list of account types
-    """
-
-    ACCOUNT_TYPE_CHOICES = [
-        ("", _("--- Please select one of the available options ----")),
-        (GROUP_ADMIN, GROUP_ADMIN),
-        (GROUP_REDTEAM, GROUP_REDTEAM),
-        (GROUP_CLIENT, GROUP_CLIENT),
-    ]
-
-    account_type = forms.CharField(
+    account_type = forms.ModelChoiceField(
+        queryset=Group.objects.none(),
+        empty_label=_("--- Please select one of the available options ----"),
         label=_("Account type"),
-        error_messages={"group": {"required": _("Please select an account type to proceed.")}},
-        widget=forms.Select(choices=ACCOUNT_TYPE_CHOICES, attrs={"aria-describedby": "explanation-account-type"}),
+        widget=forms.Select(attrs={"aria-describedby": "explanation-account-type"}),
+        error_messages={"required": _("Please select an account type to proceed.")},
     )
+
+    def __init__(self, *args, user, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["account_type"].queryset = get_allowed_groups(user)
+
+def get_allowed_groups(user):
+    """Lists all groups that are the same, or a subset of the current users group based on
+    the permissions associated with it.
+    This allows users to create users with less or similar permissons to
+    themselves but no higher."""
+    user_perms = user.get_all_permissions()
+    allowed_groups = []
+
+    for group in Group.objects.all().prefetch_related("permissions"):
+        group_perms = {
+            f"{perm.content_type.app_label}.{perm.codename}"
+            for perm in group.permissions.all()
+        }
+
+        if group_perms.issubset(user_perms):
+            allowed_groups.append(group)
+
+    return Group.objects.filter(id__in=[g.id for g in allowed_groups])
 
 
 class TrustedClearanceLevelRadioPawsForm(forms.Form):
