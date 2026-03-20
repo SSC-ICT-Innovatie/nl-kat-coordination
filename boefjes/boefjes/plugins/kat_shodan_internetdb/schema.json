@@ -5,7 +5,7 @@
     "REQUEST_TIMEOUT": {
       "title": "REQUEST_TIMEOUT",
       "max": 9999,
-      "type": "int",
+      "type": "integer",
       "description": "Timeout before giving up on reaching the api, in seconds."
     }
   }
