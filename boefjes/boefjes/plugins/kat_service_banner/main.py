@@ -19,8 +19,6 @@ def get_sock(ip, port, timeout):
 def get_banner(sock, bytescount):
     """Tries to get the banner using the supplied socket,
     reading as many bytes as requested"""
-    if not sock:
-        return [({"error/boefje"}, "Unable to connect to the service")]
     try:
         banner = sock.recv(bytescount)
         try:
