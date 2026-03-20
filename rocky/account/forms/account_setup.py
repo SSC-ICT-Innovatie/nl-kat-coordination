@@ -151,13 +151,7 @@ class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPaw
             user=user,
             organization=self.organization,
         )
-        try:
-            group = Group.objects.get(name=self.account_type)
-            member.groups.add(Group.objects.get(name=self.account_type))
-        except Group.DoesNotExist as error:
-            logger.error("Unknown group selected, user created but no permissions set: %s", error)
-            return False
-
+        member.groups.add(self.account_type)
         member.trusted_clearance_level = max(-1, min(self.cleaned_data.get("trusted_clearance_level", -1), MAX_SCAN_LEVEL))
         if self.account_type == GROUP_ADMIN:
             member.trusted_clearance_level = MAX_SCAN_LEVEL
