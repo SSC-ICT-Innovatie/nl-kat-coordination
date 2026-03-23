@@ -8,7 +8,7 @@ from octopoes.models.ooi.findings import SnykFindingType
 from octopoes.models.types import CVEFindingType, Finding, Software
 from tests.loading import get_dummy_data
 
-input_ooi = {"primary_key": "Software|lodash|1.1.0|", "software": {"name": "lodash", "version": "1.1.0"}}
+input_ooi = {"primary_key": "Software|lodash|1.1.0|", "name": "lodash", "version": "1.1.0"}
 
 
 def test_snyk_no_findings():

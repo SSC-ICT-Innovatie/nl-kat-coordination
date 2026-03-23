@@ -7,7 +7,7 @@ from boefjes.plugins.kat_snyk import check_version
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta["arguments"]["input"]["software"]
+    input_ = boefje_meta["arguments"]["input"]
     software_name = input_["name"]
     software_version = input_["version"]
 
