@@ -12,15 +12,9 @@ from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
-from tools.enums import SCAN_LEVEL, MAX_SCAN_LEVEL
+from tools.enums import MAX_SCAN_LEVEL, SCAN_LEVEL
 from tools.forms.base import BaseRockyForm, BaseRockyModelForm
-from tools.models import (
-    GROUP_ADMIN,
-    GROUP_REDTEAM,
-    ORGANIZATION_CODE_LENGTH,
-    Organization,
-    OrganizationMember,
-)
+from tools.models import GROUP_ADMIN, GROUP_REDTEAM, ORGANIZATION_CODE_LENGTH, Organization, OrganizationMember
 
 from account.validators import get_password_validators_help_texts
 
@@ -34,6 +28,10 @@ class UserRegistrationForm(forms.Form):
     Basic User form fields, name, email and password.
     With fields validation.
     """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
 
     name = forms.CharField(
         label=_("Name"),
@@ -60,16 +58,11 @@ class UserRegistrationForm(forms.Form):
     def send_password_reset_email(user, organization: Organization):
         uid = urlsafe_base64_encode(force_bytes(user.pk))
         token = default_token_generator.make_token(user)
-      
+
         subject = _("Set password for your new account.")
         message = render_to_string(
             "registration_email.html",
-            {
-                "organization": organization,
-                "host": request._current_scheme_host(),
-                "uid": uid,
-                "token": token,
-            },
+            {"organization": organization, "host": self.request._current_scheme_host(), "uid": uid, "token": token},
         )
 
         send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
@@ -94,19 +87,17 @@ class AccountTypeSelectForm(forms.Form):
 
         self.fields["account_type"].queryset = get_allowed_groups(user)
 
+
 def get_allowed_groups(user):
     """Lists all groups that are the same, or a subset of the current users group based on
     the permissions associated with it.
-    This allows users to create users with less or similar permissons to
+    This allows users to create users with less or similar permissions to
     themselves but no higher."""
     user_perms = user.get_all_permissions()
     allowed_groups = []
 
     for group in Group.objects.all().prefetch_related("permissions"):
-        group_perms = {
-            f"{perm.content_type.app_label}.{perm.codename}"
-            for perm in group.permissions.all()
-        }
+        group_perms = {f"{perm.content_type.app_label}.{perm.codename}" for perm in group.permissions.all()}
 
         if group_perms.issubset(user_perms):
             allowed_groups.append(group)
@@ -145,14 +136,13 @@ class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPaw
         # new registered user must set a password through the password reset form.
         self.send_password_reset_email(user, self.organization)
         return user
-    
+
     def get_or_create_member(self, user: AbstractUser) -> bool:
-        member, _ = OrganizationMember.objects.get_or_create(
-            user=user,
-            organization=self.organization,
-        )
+        member, _ = OrganizationMember.objects.get_or_create(user=user, organization=self.organization)
         member.groups.add(self.account_type)
-        member.trusted_clearance_level = max(-1, min(self.cleaned_data.get("trusted_clearance_level", -1), MAX_SCAN_LEVEL))
+        member.trusted_clearance_level = max(
+            -1, min(self.cleaned_data.get("trusted_clearance_level", -1), MAX_SCAN_LEVEL)
+        )
         if self.account_type == GROUP_ADMIN:
             member.trusted_clearance_level = MAX_SCAN_LEVEL
         member.save()

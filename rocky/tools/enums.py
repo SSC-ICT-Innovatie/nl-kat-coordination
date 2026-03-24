@@ -1,6 +1,3 @@
-from enum import Enum
-from typing import cast
-
 from django.db import models
 
 
