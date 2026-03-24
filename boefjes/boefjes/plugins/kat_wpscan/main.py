@@ -6,7 +6,7 @@ from os import getenv
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     input_ = boefje_meta["arguments"]["input"]
-    info_mimetype = {"info/boefje"}
+    info_mimetype = {"openkat/deschedule"}
 
     if input_["software"]["name"] != "WordPress":
         return [(info_mimetype, "Not wordpress.")]

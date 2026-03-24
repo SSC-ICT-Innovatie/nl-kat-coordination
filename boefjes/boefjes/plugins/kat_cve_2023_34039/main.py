@@ -21,7 +21,7 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
     input_ = boefje_meta["arguments"]["input"]  # input is IPService
     ip_port = input_["ip_port"]
     if input_["service"]["name"] != "ssh":
-        return [({"info/boefje"}, "Skipping because service is not an ssh service")]
+        return [({"openkat/deschedule"}, "Skipping because service is not an ssh service")]
 
     ip = ip_port["address"]["address"]
     port = ip_port["port"]
