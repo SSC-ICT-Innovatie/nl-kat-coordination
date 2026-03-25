@@ -17,7 +17,9 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic import ListView
+from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from httpx import HTTPError
 from katalogus.client import Boefje
@@ -98,7 +100,7 @@ class OOIAttributeError(AttributeError):
     pass
 
 
-class ObservedAtMixin:
+class ObservedAtMixin(ContextMixin, View):
     connector_form_class: type[ObservedAtForm] = ObservedAtForm
 
     @cached_property
