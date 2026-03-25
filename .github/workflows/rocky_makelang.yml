@@ -35,7 +35,6 @@ jobs:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
 
-
       - name: Set up Python
         uses: actions/setup-python@v6
         with:
