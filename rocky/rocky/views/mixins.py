@@ -99,8 +99,7 @@ class OOIAttributeError(AttributeError):
 
 
 class ObservedAtMixin:
-    connector_form_class: type[ObservedAtForm]
-    request: HttpRequest
+    connector_form_class: type[ObservedAtForm] = ObservedAtForm
 
     @cached_property
     def is_historic_view(self) -> bool:
