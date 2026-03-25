@@ -43,11 +43,12 @@ def run(resource: HTTPResource, additional_oois: list[HTTPHeader], config: dict[
         findings.append("Http should not be used in the CSP settings of an HTTP Header.")
 
     # checks for a wildcard in domains in the header
-    # 1 \*\. - literal wildcard and dot (*.)
-    # 2 [a-z0-9._-]+ - domain parts (e.g., example, cdn.example), including the invalid _, no need to skip those
-    # 3 \.[a-z]{2,} - final TLD, like .com, .org, .co.uk (optional to tweak further)
-    # 4 (?:\s+|$|;|:\d+) - Delimiter
-    if re.search(r"\*\.[a-z0-9._-]+\.[a-z]{2,}(?:\s+|$|;|:\d+)", csp_header):
+    # 1 (?:^|\s|;) - must be preceded by start of string, whitespace, or ; (prevents matching inside other tokens)
+    # 2 (?:https?://)? - optional http:// or https:// scheme
+    # 3 \* - the literal wildcard
+    # 4 (?:\.[a-z0-9._-]+)* - zero or more domain parts (.com, .example.com, etc.)
+    # 5 (?:\s+|$|;|:\d+) - delimiter (whitespace, end, semicolon, or port)
+    if re.search(r"(?:^|\s|;)(?:https?://)?\*(?:\.[a-z0-9._-]+)*(?:\s+|$|;|:\d+)", csp_header):
         findings.append("The wildcard * for the scheme and host part of any URL should never be used in CSP settings.")
 
     if "unsafe-inline" in csp_header or "unsafe-eval" in csp_header or "unsafe-hashes" in csp_header:
