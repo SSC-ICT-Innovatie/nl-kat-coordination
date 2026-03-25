@@ -14,8 +14,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     results = json.loads(raw)
 
     pk_ooi = Reference.from_str(input_ooi["primary_key"])
-    software_name = input_ooi["software"]["name"]
-    software_version = input_ooi["software"]["version"]
+    # Depending on the input type of the boefje, our input_ooi is either a software, or softwareinstance.
+    if "software" in input_ooi:
+        software_name = input_ooi["software"]["name"]
+        software_version = input_ooi["software"]["version"]
+    else:
+        software_name = input_ooi["name"]
+        software_version = input_ooi["version"]
 
     if not results["table_versions"] and not results["table_vulnerabilities"] and not results["cve_vulnerabilities"]:
         logger.warning("Couldn't find software %s in the SNYK vulnerability database", software_name)
