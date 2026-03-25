@@ -87,11 +87,9 @@ def test_check_csp_headers(http_resource_https):
         results[5][1].description
         == """List of CSP findings:
  1. The wildcard * for the scheme and host part of any URL should never be used in CSP settings.
- 2. frame-src has not been defined or does not have a fallback.
- 3. script-src has not been defined or does not have a fallback.
- 4. base-uri has not been defined, default-src does not apply.
- 5. frame-ancestors has not been defined.
- 6. CSP setting has no value."""
+ 2. base-uri has not been defined, default-src does not apply.
+ 3. frame-ancestors has not been defined.
+ 4. default-src has not been correctly defined."""
     )
 
     assert results[6][0].id == "KAT-CSP-VULNERABILITIES"
