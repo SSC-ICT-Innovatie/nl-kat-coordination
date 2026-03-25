@@ -9,16 +9,16 @@
                 <thead>
                     <tr>
                         <th>{% translate "Type" %}</th>
-                        <th>{% translate "Object Type" %}</th>
                         <th>{% translate "OOI" %}</th>
                         <th>{% translate "Clearance level" %}</th>
+                        <th>{% translate "Object Type" %}</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for section in clearance_level_inheritance %}
                         <tr>
                             {% if forloop.first %}
-                                <td>{% translate "OOI" %}</td>
+                                <td>{% translate "This OOI" %}</td>
                             {% elif forloop.last %}
                                 <td>{% translate "Origin" %}</td>
                             {% else %}
@@ -27,8 +27,15 @@
                             <td>
                                 <a href="{% ooi_url 'ooi_detail' section.primary_key organization.code %}">{{ section.human_readable }}</a>
                             </td>
+                            <td>
+                                L{{ section.level }}
+                                {% if forloop.last %}
+                                    {% translate "declared" %}
+                                {% else %}
+                                    {% translate "inherited from ↓" %}
+                                {% endif %}
+                            </td>
                             <td>{{ section.object_type }}</td>
-                            <td>L{{ section.level }}</td>
                         </tr>
                     {% endfor %}
                 </tbody>

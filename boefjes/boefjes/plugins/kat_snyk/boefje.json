@@ -3,7 +3,7 @@
   "name": "Snyk.io-vulnerabilities",
   "description": "Get Snyk.io vulnerabilities based on identified Software.",
   "consumes": [
-    "SoftwareInstance"
+    "Software"
   ],
   "scan_level": 1,
   "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",

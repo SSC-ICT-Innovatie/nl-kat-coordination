@@ -3,7 +3,7 @@
   "name": "Subfinder",
   "description": "A subdomain discovery tool. (projectdiscovery.io). Returns valid subdomains for websites using passive online sources. Beware that many of the online sources require their own API key to get more accurate data.",
   "consumes": [
-    "Hostname"
+    "DNSZone"
   ],
   "environment_keys": [
     "SUBFINDER_RATE_LIMIT",

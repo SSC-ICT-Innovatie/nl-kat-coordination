@@ -20,7 +20,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         servicename = input_["service"]["name"]
 
     if servicename not in TLS_CAPABLE_SERVICES + STARTTLS_CAPABLE_SERVICES:
-        return [({"info/boefje"}, "Skipping check due to non-TLS/STARTTLS service")]
+        return [({"openkat/deschedule"}, "Skipping check due to non-TLS/STARTTLS service")]
 
     command = ["/usr/bin/sslscan", "--no-colour", "--show-sigs"]
     if servicename in STARTTLS_CAPABLE_SERVICES:
