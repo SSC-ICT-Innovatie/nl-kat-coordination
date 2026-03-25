@@ -61,7 +61,6 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
         context["tree"] = self.get_filtered_tree(self.get_tree_dict())
         context["tree_view"] = self.request.GET.get("view", "condensed")
-        context["observed_at_form"] = self.get_connector_form()
         context["active_filters_counter"] = self.count_active_filters()
         return context
 

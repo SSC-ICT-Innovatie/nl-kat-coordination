@@ -14,7 +14,7 @@
                     <div>
                         <h1>
                             {% translate "Findings " %}
-                            {% if observed_at_query %}
+                            {% if historic_view %}
                                 @ {{ observed_at|date:'DATE_FORMAT' }}
                             {% else %}
                                 @ now ({{ observed_at|date:'DATE_FORMAT' }})

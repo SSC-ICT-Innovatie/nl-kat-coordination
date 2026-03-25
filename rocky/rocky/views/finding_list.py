@@ -71,8 +71,7 @@ class PageActions(Enum):
     ADD_TO_DASHBOARD = "add_to_dashboard"
 
 
-class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListView):
-    connector_form_class = ObservedAtForm
+class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -85,7 +84,7 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
         self.search_string = request.GET.get("search", "")
 
     def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
+        return int(self.is_historic_view)
 
     @property
     def count_active_filters(self):
@@ -120,10 +119,6 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["observed_at_query"] = self.observed_at_query
-        context["observed_at_form"] = self.get_connector_form()
-        context["observed_at"] = self.observed_at
-        context["observed_at_query"] = self.observed_at_query
         context["severity_filter"] = FindingSeverityMultiSelectForm(self.request.GET)
         context["muted_findings_filter"] = MutedFindingSelectionForm(self.request.GET)
         context["table_columns"] = FINDING_LIST_COLUMNS
