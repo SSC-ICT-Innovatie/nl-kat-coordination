@@ -39,7 +39,6 @@ jobs:
           python-version: 3.13
           cache: pip
 
-
       - name: Install prek
         run: pip install prek==0.3.2
 
