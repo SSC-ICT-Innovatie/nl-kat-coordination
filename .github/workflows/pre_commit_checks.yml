@@ -24,27 +24,29 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-<<<<<<< feat/workflow-suggestions
       - name: Checkout PR branch
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
-=======
-      - uses: actions/checkout@v6
->>>>>>> main
 
       - uses: actions/setup-python@v6
         with:
           python-version: 3.13
           cache: pip
 
-<<<<<<< feat/workflow-suggestions
-      - run: pip install pre-commit==4.0.1
 
-      - name: Run pre-commit
-        # or true so we dont stop this workflow on errors
-        run: pre-commit run --all-files --show-diff-on-failure || true
+      - name: Install prek
+        run: pip install prek==0.3.2
+
+      - name: Cache prek
+        uses: actions/cache@v5
+        with:
+          path: ~/.cache/prek
+          key: prek|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Run prek
+        run: prek run --all-files --show-diff-on-failure --color always
 
       - name: Detect changes
         id: diff
@@ -320,16 +322,3 @@ jobs:
                 });
               }
             }
-=======
-      - name: Install prek
-        run: pip install prek==0.3.2
-
-      - name: Cache prek
-        uses: actions/cache@v5
-        with:
-          path: ~/.cache/prek
-          key: prek|${{ steps.setup-python.outputs.python-version }}|${{ hashFiles('.pre-commit-config.yaml') }}
-
-      - name: Run prek
-        run: prek run --all-files --show-diff-on-failure --color always
->>>>>>> main
