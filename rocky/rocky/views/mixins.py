@@ -145,6 +145,9 @@ class ObservedAtMixin:
         context["historic_view"] = self.is_historic_view
         return context
 
+    def count_observed_at_filter(self) -> int:
+        return int(self.is_historic_view)
+
 
 class OctopoesView(ObservedAtMixin, OrganizationView):
     add_object_to_dashboard_form = None

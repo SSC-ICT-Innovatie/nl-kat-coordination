@@ -49,9 +49,6 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
         self.clearance_types = request.GET.getlist("clearance_type", [])
         self.search_string = request.GET.get("search", "")
 
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
-
     def get_active_filters(self) -> dict[str, str]:
         active_filters = {}
         if self.count_observed_at_filter() > 0:

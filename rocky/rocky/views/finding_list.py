@@ -83,9 +83,6 @@ class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
 
         self.search_string = request.GET.get("search", "")
 
-    def count_observed_at_filter(self) -> int:
-        return int(self.is_historic_view)
-
     @property
     def count_active_filters(self):
         return (

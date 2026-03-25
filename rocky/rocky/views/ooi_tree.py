@@ -28,9 +28,6 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
         filtered_types = self.request.GET.getlist("ooi_type", [])
         return filter_ooi_tree(tree_dict, filtered_types)
 
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
-
     def count_active_filters(self):
         count_depth_filter = len(self.request.GET.getlist("depth", []))
         count_ooi_type_filter = len(self.request.GET.getlist("ooi_type", []))
