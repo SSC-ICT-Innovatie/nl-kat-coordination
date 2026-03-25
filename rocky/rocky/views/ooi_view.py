@@ -20,13 +20,7 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.types import get_collapsed_types, type_by_name
 from rocky.paginator import RockyPaginator
-from rocky.views.mixins import (
-    OBJECT_LIST_COLUMNS,
-    OctopoesView,
-    OOIList,
-    SingleOOIMixin,
-    SingleOOITreeMixin,
-)
+from rocky.views.mixins import OBJECT_LIST_COLUMNS, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
 
 
 class OOIFilterView(OctopoesView):
@@ -141,7 +135,6 @@ class BaseOOIListView(OOIFilterView, ListView):
 
 
 class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
-
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         tree = self.tree

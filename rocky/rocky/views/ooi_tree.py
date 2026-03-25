@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from tools.forms.ooi import OoiTreeSettingsForm

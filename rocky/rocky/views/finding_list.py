@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal
 
@@ -10,7 +9,6 @@ from django.http import HttpRequest, HttpResponse
 from django.urls.base import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
-from tools.forms.base import ObservedAtForm
 from tools.forms.findings import (
     FindingSearchForm,
     FindingSeverityMultiSelectForm,
@@ -25,7 +23,6 @@ from rocky.paginator import RockyPaginator
 from rocky.views.mixins import (
     FINDING_LIST_COLUMNS,
     AddDashboardItemFormMixin,
-    ConnectorFormMixin,
     FindingList,
     OctopoesView,
     SeveritiesMixin,
