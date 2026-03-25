@@ -6,8 +6,6 @@ import dns.resolver
 from dns.name import Name
 from dns.resolver import Answer
 
-from boefjes.job_models import BoefjeMeta
-
 logger = logging.getLogger(__name__)
 
 
@@ -15,8 +13,8 @@ class ZoneNotFoundException(Exception):
     pass
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     zone_ooi = input_["hostname"]["name"]
 
     zone_name = dns.name.from_text(zone_ooi)

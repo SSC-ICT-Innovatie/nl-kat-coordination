@@ -52,9 +52,9 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
                     {"column": "data", "field": "report_recipe_id", "operator": "eq", "value": report_recipe_id}
                 ]
             }
-
-            schedule_id = str(self.get_schedule_with_filters(filters).id)
-            self.edit_report_schedule(schedule_id, {"schedule": cron_expression, "deadline_at": deadline_at})
+            schedule = self.get_schedule_with_filters(filters)
+            if schedule:
+                self.edit_report_schedule(str(schedule.id), {"schedule": cron_expression, "deadline_at": deadline_at})
 
         return super().form_valid(form)
 

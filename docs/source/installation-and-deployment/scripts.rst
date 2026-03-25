@@ -95,9 +95,6 @@ Below is a description on how these backup scripts can be used.
 How to backup your volume
 -------------------------
 
-.. warning::
-    Please note that this is currently a Linux only script.
-
 In your OpenKAT directory go to the ``scripts/backup`` folder:
 
 ``$ cd scripts/backup``
@@ -108,9 +105,15 @@ Make the script executable:
 
 Run the backup script with root rights. The -p parameter specifies the folder where your backup files will be stored. If this folder doesn't exist yet, it will automatically be created. Change <backup_path> to a descriptive backup name. The full path for this folder will be: ``/<path_to_OpenKAT_files>/scripts/backup/<backup_path>``.
 
+Optionally, use the -n parameter to specify the docker compose project name. This is used to filter which volumes to backup. If not specified, it defaults to the ``COMPOSE_PROJECT_NAME`` environment variable or the current directory name (matching docker compose behavior).
+
 Run the script with the chosen backup path:
 
 ``$ sudo ./backup-volumes.sh -p <backup_path>``
+
+Or with an explicit project name:
+
+``$ sudo ./backup-volumes.sh -p <backup_path> -n <project_name>``
 
 This directory will contain multiple folders each containing the backup file for that specific docker container as archived files (.tar.gz). If you run the command again it will create new archived files into those subdirectories. Your old backup will remain, as each backup name contains the timestamp of moment of creation. An example of such a file is: ``2024-03-28_173258_nl-kat-coordination_bytes-data.tar.gz``.
 

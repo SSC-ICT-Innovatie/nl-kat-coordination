@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "Generate a report" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Reports can be used to gain more insights in your organizations assets. You can generate different types of reports in OpenKAT. Each report may require one or more plugins that provide the input for the report.
+                    {% endblocktranslate %}
+                </p>
+                <p>
+                    {% blocktranslate trimmed %}
+                        For the onboarding we will generate a DNS report for your added URL. In the previous step you enabled the required plugins for this report.
+                    {% endblocktranslate %}
+                </p>
+                <form method="post"
+                      action="{% url "step_9a_setup_scan_ooi_detail" organization.code %}?{{ request.GET.urlencode }}"
+                      class="inline">
+                    {% csrf_token %}
+                    <div class="button-container">
+                        {% if organization %}
+                            <button name="report_type" value="dns-report" type="submit" class="button">
+                                {% translate "Generate DNS Report" %}
+                            </button>
+                        {% endif %}
+                        {% if organization %}
+                            <a href="{% url "complete_onboarding" organization.code %}"
+                               class="button ghost">{% translate "Skip onboarding" %}</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

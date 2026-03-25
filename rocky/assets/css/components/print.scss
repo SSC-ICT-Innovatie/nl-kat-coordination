@@ -13,6 +13,12 @@
     display: none;
   }
 
+  /* Removing dropdowns from printed version */
+  body > main,
+  .dropdown {
+    display: none;
+  }
+
   /* Removing action buttons from printed version */
   .toolbar {
     button,

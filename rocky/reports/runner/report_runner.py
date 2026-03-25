@@ -131,15 +131,21 @@ def save_report_data(
 
     plugins = report_plugins_union([get_report_by_id(type_id) for type_id in recipe.asset_report_types])
 
-    asset_reports = create_asset_reports(
-        bytes_client, plugins, observed_at, observed_at, octopoes_api_connector, organization, recipe, report_data
-    )
+    input_oois: list[str | Reference]
+
+    if settings.ASSET_REPORTS:
+        asset_reports = create_asset_reports(
+            bytes_client, plugins, observed_at, observed_at, octopoes_api_connector, organization, recipe, report_data
+        )
+        input_oois = [asset_report.reference for asset_report in asset_reports]
+    else:
+        input_ooi_set: set[str] = set()
+        for ooi_data in report_data.values():
+            input_ooi_set.update(ooi for ooi in ooi_data)
+        input_oois = sorted(input_ooi_set)
+
     input_data = {
-        "input_data": {
-            "input_oois": [asset_report.reference for asset_report in asset_reports],
-            "report_types": recipe.asset_report_types,
-            "plugins": plugins,
-        }
+        "input_data": {"input_oois": input_oois, "report_types": recipe.asset_report_types, "plugins": plugins}
     }
 
     raw_id = bytes_client.upload_raw(
@@ -147,7 +153,11 @@ def save_report_data(
         manual_mime_types={"openkat/report"},
     )
 
-    report_type_name = str(get_report_by_id(recipe.report_type).name)
+    report_type_name = str(
+        get_report_by_id(
+            recipe.report_type if len(recipe.asset_report_types) > 1 else recipe.asset_report_types[0]
+        ).name
+    )
     report_name = observed_at.strftime(
         Template(recipe.report_name_format).safe_substitute(oois_count=str(len(oois)), report_type=report_type_name)
     )
@@ -165,7 +175,7 @@ def save_report_data(
         data_raw_id=raw_id,
         date_generated=observed_at,
         reference_date=observed_at,
-        input_oois=[asset_report.reference for asset_report in asset_reports],
+        input_oois=input_oois,
         observed_at=observed_at,
         report_recipe=recipe.reference,
     )

@@ -1,3 +1,26 @@
+[project]
+name = "openkat"
+version = "0.0.1.dev1"
+description = "OpenKAT"
+authors = [{ name = "LibreKAT", email = "maintainer@librekat.nl" }]
+requires-python = ">=3.10"
+readme = "README.rst"
+license = "EUPL-1.2"
+dependencies = [
+    "sphinx>=8.1.3,<9",
+    "sphinx_rtd_theme>=3.0.2,<4",
+    "sphinxcontrib-mermaid>=1.0.0,<3",
+    "myst-parser>=4.0.1,<5",
+    "settings-doc>=4.3.2,<5",
+    "colorama==0.4.6",
+    "autodoc-pydantic>=2.2.0,<3",
+    "croniter>=6.0.0,<7",
+    "jsonschema>=4.17.0,<5",
+]
+
+[tool.uv]
+package = false
+
 [tool.mypy]
 python_version = "3.10"
 plugins = ["pydantic.mypy"]
@@ -31,7 +54,6 @@ write_to = "_version.py"
 min_confidence = 90
 exclude = ["/tests/", "*venv*", "rocky/tools/migrations"]
 paths = ["."]
-
 
 [tool.ruff]
 fix = true
@@ -83,7 +105,7 @@ task-tags = ["Example", "todo", "TODO", "FIXME"]
 "setup.py" = ["INP"]
 "manage.py" = ["INP"]
 "*/tests/*" = ["T20"]
-"boefjes/boefjes/plugins/*" = ["PTH"]
+"boefjes/boefjes/plugins/*" = ["PTH", "S108"]
 "boefjes/images/*" = ["INP001"]
 "scripts/*.py" = ["INP001", "T201"]
 "cveapi/cveapi.py" = ["INP001"]
@@ -96,28 +118,3 @@ split-on-trailing-comma = false
 
 [tool.codespell]
 ignore-words-list = 'edn,juxt,assertIn'
-
-[tool.poetry]
-name = "openkat"
-version = "0.0.1.dev1"
-description = "OpenKAT Coordination package"
-authors = ["MinVWS <maintainer@openkat.nl>"]
-license = "EUPL"
-readme = "README.rst"
-
-[build-system]
-requires = ["poetry-core>=1.0.0","setuptools>=65", "setuptools_scm[toml]>=7.1"]
-build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.dependencies]
-python = "^3.10"
-sphinx = "^8.1.3"
-sphinx_rtd_theme = "^3.0.2"
-sphinxcontrib-mermaid = "^1.0.0"
-myst-parser = "^4.0.1"
-settings-doc = "^4.3.2"
-colorama = "0.4.6" # Required on all platforms, not just win32
-autodoc-pydantic = "^2.2.0"
-# Needed for settings-doc and autodoc
-croniter = "^6.0.0"
-jsonschema = "^4.17.0"

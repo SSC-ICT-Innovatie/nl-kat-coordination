@@ -3,7 +3,8 @@
   "name": "WPscan",
   "description": "Creates findings from WPscan data.",
   "consumes": [
-    "boefje/wp-scan"
+    "boefje/wp-scan",
+    "openkat/wp-scan"
   ],
   "produces": [
     "Finding",

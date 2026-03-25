@@ -1,11 +1,8 @@
 {% load i18n %}
 
-{% if show_heading %}
-    <h2>{% translate "Resource Public Key Infrastructure" %}</h2>
-{% endif %}
 {% if type %}
     <h4 id="rpki-{{ type }}">{{ type }} {% translate "server" %}</h4>
-    <p>
+    <p class="toggle-item" data-show="off">
         {% blocktranslate trimmed %}
             This table shows which checks were performed. Following that, the compliance
             issues, if any, are shown for each {{ type }} Server.
@@ -13,11 +10,11 @@
     </p>
 {% endif %}
 {% if data.rpki_ips %}
-    {% if show_heading or generate_report %}
-        <p>
+    {% if show_introduction %}
+        <p class="toggle-item" data-show="off">
             {% blocktranslate trimmed %}
-                This section contains basic security information about resource public key
-                infrastructure. If your web server employs RPKI for its IP addresses and
+                This section contains basic security information about Resource Public Key
+                Infrastructure (RPKI). If your web server employs RPKI for its IP addresses and
                 associated nameservers, then it enhances visitor protection against
                 misconfigurations and malicious route intercepts through verified route
                 announcements, ensuring reliable server access and secure internet traffic.

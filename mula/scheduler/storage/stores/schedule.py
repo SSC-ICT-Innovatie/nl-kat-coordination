@@ -1,6 +1,7 @@
-from datetime import datetime
+from collections.abc import Iterable
+from datetime import datetime, timezone
 
-from sqlalchemy import exc
+from sqlalchemy import exc, not_, select
 
 from scheduler import models
 from scheduler.storage import DBConn
@@ -20,6 +21,7 @@ class ScheduleStore:
     def get_schedules(
         self,
         scheduler_id: str | None = None,
+        organisation: str | None = None,
         schedule_hash: str | None = None,
         enabled: bool | None = None,
         min_deadline_at: datetime | None = None,
@@ -35,6 +37,9 @@ class ScheduleStore:
 
             if scheduler_id is not None:
                 query = query.filter(models.ScheduleDB.scheduler_id == scheduler_id)
+
+            if organisation is not None:
+                query = query.filter(models.ScheduleDB.organisation == organisation)
 
             if enabled is not None:
                 query = query.filter(models.ScheduleDB.enabled == enabled)
@@ -77,6 +82,43 @@ class ScheduleStore:
                 return None
 
             return models.Schedule.model_validate(schedule_orm)
+
+    @retry()
+    @exception_handler
+    def get_due_schedules(
+        self,
+        *,
+        scheduler_id: str,
+        now: datetime | None = None,
+        active_statuses: Iterable[models.TaskStatus] | None = None,
+        limit: int | None = None,
+    ):
+        now = now or datetime.now(timezone.utc)
+        active_statuses = tuple(active_statuses or models.ACTIVE_TASK_STATUSES)
+
+        active_task_exists = (
+            select(models.TaskDB.id)
+            .where(models.TaskDB.schedule_id == models.ScheduleDB.id, models.TaskDB.status.in_(active_statuses))
+            .exists()
+        )
+
+        stmt = (
+            select(models.ScheduleDB)
+            .where(
+                models.ScheduleDB.scheduler_id == scheduler_id,
+                models.ScheduleDB.enabled.is_(True),
+                models.ScheduleDB.deadline_at.is_not(None),
+                models.ScheduleDB.deadline_at < now,
+                not_(active_task_exists),
+            )
+            .order_by(models.ScheduleDB.deadline_at.asc())
+        )
+
+        if limit:
+            stmt = stmt.limit(limit)
+        with self.dbconn.session.begin() as session:
+            schedules = session.scalars(stmt).all()
+            return [models.Schedule.model_validate(s) for s in schedules]
 
     @retry()
     @exception_handler

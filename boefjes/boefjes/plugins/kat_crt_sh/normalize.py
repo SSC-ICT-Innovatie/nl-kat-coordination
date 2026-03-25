@@ -4,7 +4,7 @@ from collections.abc import Iterable
 
 from dateutil.parser import parse
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.certificate import X509Certificate
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
@@ -15,7 +15,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     fqdn = input_ooi["hostname"]["name"]
     current = fqdn.lstrip(".")
 
-    network = Network(name="internet")
+    network = Network(name="internet")  # crt.sh only ever sees the Internet
     network_reference = network.reference
 
     unique_domains = set()

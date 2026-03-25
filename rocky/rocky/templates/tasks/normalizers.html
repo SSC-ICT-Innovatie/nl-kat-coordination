@@ -3,7 +3,6 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -49,7 +48,7 @@
                                     {% if not organization %}data-organization-code="{{ task.data.raw_data.boefje_meta.organization }}"{% endif %}>
                                     {% if not organization %}
                                         <td>
-                                            <a href="{% url "organization_crisis_room" task.data.raw_data.boefje_meta.organization %}">{{ task.data.raw_data.boefje_meta.organization }}</a>
+                                            <a href="{% url "organization_crisis_room_landing" task.data.raw_data.boefje_meta.organization %}">{{ task.data.raw_data.boefje_meta.organization }}</a>
                                         </td>
                                     {% endif %}
                                     <td>
@@ -106,7 +105,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/renderNormalizerOutputOOIs.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/renderNormalizerOutputOOIs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

@@ -3,7 +3,7 @@ import unittest
 from types import SimpleNamespace
 from unittest import mock
 
-from scheduler import clients, config, models, schedulers, storage
+from scheduler import config, models, schedulers, storage
 from scheduler.storage import stores
 from structlog.testing import capture_logs
 
@@ -91,46 +91,6 @@ class NormalizerSchedulerTestCase(NormalizerSchedulerBaseTestCase):
         # Assert
         self.assertFalse(allowed_to_run)
 
-    @mock.patch("scheduler.context.AppContext.services.katalogus.get_normalizers_by_org_id_and_type")
-    def test_get_normalizers_for_mime_type(self, mock_get_normalizers_by_org_id_and_type):
-        # Arrange
-        normalizer = NormalizerFactory()
-
-        # Mocks
-        mock_get_normalizers_by_org_id_and_type.return_value = [normalizer]
-
-        # Act
-        result = self.scheduler.get_normalizers_for_mime_type("text/plain", self.organisation.id)
-
-        # Assert
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0], normalizer)
-
-    @mock.patch("scheduler.context.AppContext.services.katalogus.get_normalizers_by_org_id_and_type")
-    def test_get_normalizers_for_mime_type_request_exception(self, mock_get_normalizers_by_org_id_and_type):
-        # Mocks
-        mock_get_normalizers_by_org_id_and_type.side_effect = [
-            clients.errors.ExternalServiceError("External service is not available."),
-            clients.errors.ExternalServiceError("External service is not available."),
-        ]
-
-        # Act
-        result = self.scheduler.get_normalizers_for_mime_type("text/plain", self.organisation.id)
-
-        # Assert
-        self.assertEqual(len(result), 0)
-
-    @mock.patch("scheduler.context.AppContext.services.katalogus.get_normalizers_by_org_id_and_type")
-    def test_get_normalizers_for_mime_type_response_is_none(self, mock_get_normalizers_by_org_id_and_type):
-        # Mocks
-        mock_get_normalizers_by_org_id_and_type.return_value = None
-
-        # Act
-        result = self.scheduler.get_normalizers_for_mime_type("text/plain", self.organisation.id)
-
-        # Assert
-        self.assertEqual(len(result), 0)
-
 
 class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
     def setUp(self):
@@ -145,7 +105,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
         ).start()
 
         self.mock_get_normalizers_for_mime_type = mock.patch(
-            "scheduler.schedulers.NormalizerScheduler.get_normalizers_for_mime_type"
+            "scheduler.context.AppContext.services.katalogus.get_normalizers_by_org_id_and_type"
         ).start()
 
         self.mock_get_plugin = mock.patch(

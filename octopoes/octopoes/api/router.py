@@ -9,7 +9,6 @@ from typing import Any, Literal
 import structlog
 from asgiref.sync import sync_to_async
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
-from httpx import HTTPError
 from pydantic import AwareDatetime
 
 from octopoes.api.models import ServiceHealth, ValidatedAffirmation, ValidatedDeclaration, ValidatedObservation
@@ -35,7 +34,6 @@ from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import type_by_name
 from octopoes.repositories.origin_repository import XTDBOriginRepository
-from octopoes.version import __version__
 from octopoes.xtdb.client import Operation, OperationType, XTDBSession
 from octopoes.xtdb.exceptions import XTDBException
 from octopoes.xtdb.query import Aliased
@@ -69,6 +67,10 @@ def extract_references(references: list[str]) -> list[Reference]:
     return [Reference.from_str(reference) for reference in references]
 
 
+def extract_references_from_query(references: list[str] = Query("")) -> list[Reference]:
+    return [Reference.from_str(reference) for reference in references]
+
+
 def settings() -> Settings:
     return Settings()
 
@@ -79,26 +81,14 @@ def xtdb_session(
     yield XTDBSession(get_xtdb_client(str(settings_.xtdb_uri), client))
 
 
-def octopoes_service(
-    client: str = Depends(extract_client),
-    session: XTDBSession = Depends(xtdb_session),
-    settings_: Settings = Depends(settings),
-) -> OctopoesService:
-    return bootstrap_octopoes(settings_, client, session)
+def octopoes_service(client: str = Depends(extract_client)) -> OctopoesService:
+    return bootstrap_octopoes(client)
 
 
 # Endpoints
 @router.get("/health")
-def health(xtdb_session_: XTDBSession = Depends(xtdb_session)) -> ServiceHealth:
-    try:
-        xtdb_status = xtdb_session_.client.status()
-        xtdb_health = ServiceHealth(service="xtdb", healthy=True, version=xtdb_status.version, additional=xtdb_status)
-    except HTTPError as ex:
-        xtdb_health = ServiceHealth(
-            service="xtdb", healthy=False, additional="Cannot connect to XTDB at. Service possibly down"
-        )
-        logger.exception(ex)
-    return ServiceHealth(service="octopoes", healthy=xtdb_health.healthy, version=__version__, results=[xtdb_health])
+def health(octopoes: OctopoesService = Depends(octopoes_service)) -> ServiceHealth:
+    return octopoes.health()
 
 
 # OOI-related endpoints
@@ -193,6 +183,15 @@ def load_objects_bulk(
     return octopoes.ooi_repository.load_bulk(references, valid_time)
 
 
+@router.get("/objects/by_reference", tags=["Objects"])
+def get_objects_by_reference(
+    octopoes: OctopoesService = Depends(octopoes_service),
+    valid_time: datetime = Depends(extract_valid_time),
+    references: set[Reference] = Depends(extract_references_from_query),
+):
+    return octopoes.ooi_repository.load_bulk(references, valid_time)
+
+
 @router.get("/object", tags=["Objects"])
 def get_object(
     octopoes: OctopoesService = Depends(octopoes_service),
@@ -239,9 +238,10 @@ def delete_object(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     reference: Reference = Depends(extract_reference),
+    sync: bool = False,
 ) -> None:
     octopoes.ooi_repository.delete(reference, valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.delete("/origins", tags=["Origins"])
@@ -249,10 +249,11 @@ def delete_origin(
     origin_id: str,
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     origin = octopoes.origin_repository.get(origin_id, valid_time)
     octopoes.origin_repository.delete(origin, valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/objects/delete_many", tags=["Objects"])
@@ -260,11 +261,12 @@ def delete_many(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     references: list[Reference] = Depends(extract_references),
+    sync: bool = False,
 ) -> None:
     for reference in references:
         octopoes.ooi_repository.delete(reference, valid_time)
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.get("/tree", tags=["Objects"])
@@ -312,7 +314,9 @@ def list_origin_parameters(
 
 
 @router.post("/observations", tags=["Origins"])
-def save_observation(observation: ValidatedObservation, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_observation(
+    observation: ValidatedObservation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
+) -> None:
     origin = Origin(
         origin_type=OriginType.OBSERVATION,
         method=observation.method,
@@ -322,11 +326,13 @@ def save_observation(observation: ValidatedObservation, octopoes: OctopoesServic
         task_id=observation.task_id,
     )
     octopoes.save_origin(origin, observation.result, observation.valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/declarations", tags=["Origins"])
-def save_declaration(declaration: ValidatedDeclaration, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_declaration(
+    declaration: ValidatedDeclaration, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
+) -> None:
     origin = Origin(
         origin_type=OriginType.DECLARATION,
         method=declaration.method if declaration.method else "manual",
@@ -336,12 +342,12 @@ def save_declaration(declaration: ValidatedDeclaration, octopoes: OctopoesServic
         task_id=declaration.task_id if declaration.task_id else uuid.uuid4(),
     )
     octopoes.save_origin(origin, [declaration.ooi], declaration.valid_time, declaration.end_valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/declarations/save_many", tags=["Origins"])
 def save_many_declarations(
-    declarations: list[ValidatedDeclaration], octopoes: OctopoesService = Depends(octopoes_service)
+    declarations: list[ValidatedDeclaration], sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
 ) -> None:
     for declaration in declarations:
         origin = Origin(
@@ -354,11 +360,13 @@ def save_many_declarations(
         )
         octopoes.save_origin(origin, [declaration.ooi], declaration.valid_time, declaration.end_valid_time)
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/affirmations", tags=["Origins"])
-def save_affirmation(affirmation: ValidatedAffirmation, octopoes: OctopoesService = Depends(octopoes_service)) -> None:
+def save_affirmation(
+    affirmation: ValidatedAffirmation, sync: bool = False, octopoes: OctopoesService = Depends(octopoes_service)
+) -> None:
     origin = Origin(
         origin_type=OriginType.AFFIRMATION,
         method=affirmation.method if affirmation.method else "hydration",
@@ -368,7 +376,7 @@ def save_affirmation(affirmation: ValidatedAffirmation, octopoes: OctopoesServic
         task_id=affirmation.task_id if affirmation.task_id else uuid.uuid4(),
     )
     octopoes.save_origin(origin, [affirmation.ooi], affirmation.valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 # ScanProfile-related endpoints
@@ -386,6 +394,7 @@ def save_scan_profile(
     scan_profile: ScanProfile = Body(discriminator="scan_profile_type"),
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     try:
         old_scan_profile = octopoes.scan_profile_repository.get(scan_profile.reference, valid_time)
@@ -393,7 +402,7 @@ def save_scan_profile(
         old_scan_profile = None
 
     octopoes.scan_profile_repository.save(old_scan_profile, scan_profile, valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.post("/scan_profiles/save_many", tags=["Scan Profiles"])
@@ -401,6 +410,7 @@ def save_many(
     scan_profiles: list[ScanProfile],
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     for scan_profile in scan_profiles:
         try:
@@ -410,15 +420,17 @@ def save_many(
 
         octopoes.scan_profile_repository.save(old_scan_profile, scan_profile, valid_time)
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.get("/scan_profiles/recalculate", tags=["Scan Profiles"])
 def recalculate_scan_profiles(
-    octopoes: OctopoesService = Depends(octopoes_service), valid_time: datetime = Depends(extract_valid_time)
+    octopoes: OctopoesService = Depends(octopoes_service),
+    valid_time: datetime = Depends(extract_valid_time),
+    sync: bool = False,
 ) -> None:
     octopoes.recalculate_scan_profiles(valid_time)
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
 
 @router.get("/scan_profiles/inheritance", tags=["Scan Profiles"])
@@ -503,14 +515,14 @@ def delete_node(xtdb_session_: XTDBSession = Depends(xtdb_session)) -> None:
 
 
 @router.post("/bits/recalculate", tags=["Bits"])
-def recalculate_bits(octopoes: OctopoesService = Depends(octopoes_service)) -> int:
+def recalculate_bits(octopoes: OctopoesService = Depends(octopoes_service), sync: bool = False) -> int:
     try:
         inference_count = octopoes.recalculate_bits()
     except ObjectNotFoundException:
         logger.exception("Failed to recalculate bits")
         raise
 
-    octopoes.commit()
+    octopoes.commit(sync=sync)
 
     return inference_count
 

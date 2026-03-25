@@ -9,7 +9,7 @@ from octopoes.api.models import Declaration, Observation
 from octopoes.config.settings import Settings
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.core.app import get_xtdb_client
-from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
+from octopoes.models import OOI, DeclaredScanProfile, EmptyScanProfile, Reference, ScanLevel
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.dns.records import DNSAAAARecord, DNSARecord, DNSMXRecord, DNSNSRecord
 from octopoes.models.ooi.dns.zone import Hostname
@@ -137,6 +137,46 @@ def test_bulk_reports(app_settings: Settings, octopoes_api_connector: OctopoesAP
     assert len(result) == 2
     assert result[uuid.UUID(recipe_ids[0])].to_report() == reports[0]
     assert result[uuid.UUID(recipe_ids[2])].to_report() == reports[2]
+
+
+def test_list_object_clients(
+    app_settings: Settings, octopoes_api_connector: OctopoesAPIConnector, valid_time: datetime
+):
+    clients = ["test1", "test2", "test3", "test4"]
+    for client in clients:
+        xtdb_client = get_xtdb_client(str(app_settings.xtdb_uri), client)
+        xtdb_client.create_node()
+
+    network = Network(name="test")
+
+    for client in ["test2", "test4"]:
+        octopoes_api_connector.client = client
+        octopoes_api_connector.save_declaration(Declaration(ooi=network, valid_time=valid_time))
+
+    octopoes_api_connector.client = "test1"
+    network2 = Network(name="test1")
+    hostname = Hostname(network=network2.reference, name="test1-hostname")
+    octopoes_api_connector.save_declaration(Declaration(ooi=network2, valid_time=valid_time))
+    octopoes_api_connector.save_declaration(Declaration(ooi=hostname, valid_time=valid_time))
+
+    hostname.scan_profile = EmptyScanProfile(reference=hostname.reference)
+    network.scan_profile = EmptyScanProfile(reference=network.reference)
+    network2.scan_profile = EmptyScanProfile(reference=network2.reference)
+
+    result = octopoes_api_connector.list_object_clients(network.reference, set(clients), valid_time)
+    assert result == {"test4": network, "test2": network}
+
+    result = octopoes_api_connector.list_object_clients(network.reference, {"test2"}, valid_time)
+    assert result == {"test2": network}
+
+    result = octopoes_api_connector.list_object_clients(network.reference, {"test1"}, valid_time)
+    assert result == {}
+
+    result = octopoes_api_connector.list_object_clients(hostname.reference, set(clients), valid_time)
+    assert result == {"test1": hostname}
+
+    result = octopoes_api_connector.list_object_clients(network2.reference, set(clients), valid_time)
+    assert result == {"test1": network2}
 
 
 def test_history(octopoes_api_connector: OctopoesAPIConnector):

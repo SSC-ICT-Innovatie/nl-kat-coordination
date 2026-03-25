@@ -24,7 +24,6 @@ from rocky.views.ooi_list import OOIListExportView, OOIListView
 from rocky.views.ooi_mute import MuteFindingsBulkView, MuteFindingView
 from rocky.views.ooi_tree import OOIGraphView, OOISummaryView, OOITreeView
 from rocky.views.organization_add import OrganizationAddView
-from rocky.views.organization_crisis_room import OrganizationCrisisRoomView
 from rocky.views.organization_edit import OrganizationEditView
 from rocky.views.organization_list import OrganizationListView
 from rocky.views.organization_member_add import (
@@ -37,12 +36,13 @@ from rocky.views.organization_member_edit import OrganizationMemberEditView
 from rocky.views.organization_member_list import OrganizationMemberListView
 from rocky.views.organization_settings import OrganizationSettingsView
 from rocky.views.privacy_statement import PrivacyStatementView
-from rocky.views.scan_profile import ScanProfileDetailView, ScanProfileResetView
+from rocky.views.scan_profile import ScanProfileDetailView
 from rocky.views.scans import ScanListView
 from rocky.views.task_detail import BoefjeTaskDetailView, DownloadTaskDetail, NormalizerTaskJSONView
 from rocky.views.tasks import (
     AllBoefjesTaskListView,
     AllNormalizersTaskListView,
+    AllReportsTaskListView,
     BoefjesTaskListView,
     NormalizersTaskListView,
     ReportsTaskListView,
@@ -76,6 +76,7 @@ urlpatterns += i18n_patterns(
     path("tasks/", AllBoefjesTaskListView.as_view(), name="all_task_list"),
     path("tasks/boefjes", AllBoefjesTaskListView.as_view(), name="all_boefjes_task_list"),
     path("tasks/normalizers", AllNormalizersTaskListView.as_view(), name="all_normalizers_task_list"),
+    path("tasks/reports", AllReportsTaskListView.as_view(), name="all_reports_task_list"),
     path(
         "<organization_code>/settings/indemnifications/", IndemnificationAddView.as_view(), name="indemnification_add"
     ),
@@ -107,7 +108,6 @@ urlpatterns += i18n_patterns(
         name="download_organization_member_template",
     ),
     path("<organization_code>/members/upload/", MembersUploadView.as_view(), name="organization_member_upload"),
-    path("<organization_code>/", OrganizationCrisisRoomView.as_view(), name="organization_crisis_room"),
     path("<organization_code>/settings", OrganizationSettingsView.as_view(), name="organization_settings"),
     path("<organization_code>/members", OrganizationMemberListView.as_view(), name="organization_member_list"),
     path(
@@ -124,9 +124,6 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/objects/delete/", OOIDeleteView.as_view(), name="ooi_delete"),
     path("<organization_code>/objects/detail/", OOIDetailView.as_view(), name="ooi_detail"),
     path("<organization_code>/objects/export", OOIListExportView.as_view(), name="ooi_list_export"),
-    path(
-        "<organization_code>/objects/indemnification/reset/", ScanProfileResetView.as_view(), name="scan_profile_reset"
-    ),
     path("<organization_code>/objects/scan-profile/", ScanProfileDetailView.as_view(), name="scan_profile_detail"),
     path("<organization_code>/objects/scans/", ScanListView.as_view(), name="scan_list"),
     path("<organization_code>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),

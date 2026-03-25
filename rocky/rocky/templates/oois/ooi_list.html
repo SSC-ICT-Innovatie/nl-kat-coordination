@@ -3,39 +3,64 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
+{% load component_tags %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div class="fifty-fifty">
-                <div>
-                    <h1>
-                        {% translate "Object list" %} @
-                        {% if observed_at %}{{ observed_at|date:'DATE_FORMAT' }}{% endif %}
-                    </h1>
-                    <p>
-                        {% blocktranslate trimmed with organization.name as organization_name %}
-                            An overview of objects found for organization <strong>{{ organization_name }}</strong>.
-                            Objects can be added manually or by running Boefjes.
-                            Click an object for additional information.
-                        {% endblocktranslate %}
-                    </p>
-                </div>
-                {% include "partials/ooi_list_toolbar.html" %}
-
-            </div>
             <div>
+                <div class="introduction">
+                    <div>
+                        <h1>
+                            {% translate "Object list" %} @
+                            {% if observed_at %}{{ observed_at|date:'DATE_FORMAT' }}{% endif %}
+                        </h1>
+                        <p>
+                            {% blocktranslate trimmed with organization.name as organization_name %}
+                                An overview of objects found for organization <strong>{{ organization_name }}</strong>.
+                                Objects can be added manually or by running Boefjes.
+                                Click an object for additional information.
+                            {% endblocktranslate %}
+                        </p>
+                    </div>
+                    {% include "partials/ooi_list_toolbar.html" %}
+
+                </div>
+                <div class="toolbar">
+                    {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+                        <a href="#new-dashboard-item-modal"
+                           class="button ghost"
+                           data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
+                        {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" %}
+
+                    {% endif %}
+                </div>
                 {% include "partials/ooi_list_filters.html" %}
 
-                <div class="toolbar">
-                    <p class="de-emphasized">
-                        {% blocktranslate with length=ooi_list|length total=total_oois trimmed %}
-                            Showing {{ length }} of {{ total }} objects
-                        {% endblocktranslate %}
-                    </p>
+                <div class="fifty-fifty">
+                    <div>
+                        <p class="de-emphasized">
+                            {% blocktranslate with length=ooi_list|length total=total_oois trimmed %}
+                                Showing {{ length }} of {{ total }} objects
+                            {% endblocktranslate %}
+                        </p>
+                    </div>
+                    {% if ooi_list %}
+                        <div class="horizontal-view toolbar">
+                            {% if may_update_clearance_level and perms.tools.can_set_clearance_level %}
+                                <button class="button ghost" data-modal-id="edit-clearance-level-modal">
+                                    <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit clearance level" %}
+                                </button>
+                            {% endif %}
+                            {% if perms.tools.can_delete_oois %}
+                                <button class="ghost destructive" data-modal-id="delete-ooi-modal">
+                                    <icon aria-hidden="true" class="icon ti-trash"></icon>{% translate "Delete" %}
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %}
                 </div>
                 <form method="post"
                       id="ooi_list_form"
@@ -51,7 +76,7 @@
                                 <th>
                                     <input class="toggle-all" data-toggle-target="ooi" type="checkbox">
                                 </th>
-                                <th>{% translate "Object" %}</th>
+                                <th>{{ table_columns.object }}</th>
                                 <th scope="col"
                                     class="sortable"
                                     {% if order_by == "object_type" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
@@ -59,7 +84,7 @@
                                             name="order_by"
                                             value="object_type"
                                             class="sort">
-                                        {% translate "Type" %}
+                                        {{ table_columns.object_type }}
                                         <span aria-hidden="true"
                                               class="icon ti-{% if order_by == "object_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "object_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                     </button>
@@ -71,12 +96,12 @@
                                             name="order_by"
                                             value="scan_level"
                                             lass="sort">
-                                        {% translate "Clearance level" %}
+                                        {{ table_columns.clearance_level }}
                                         <span aria-hidden="true"
                                               class="icon ti-{% if order_by == "scan_level" and sorting_order == "asc" %}chevron-up{% elif order_by == "scan_level" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                     </button>
                                 </th>
-                                <th>{% translate "Clearance type" %}</th>
+                                <th>{{ table_columns.clearance_type }}</th>
                             </thead>
                             <tbody>
                                 {% for object in ooi_list %}
@@ -100,38 +125,28 @@
                             </tbody>
                         </table>
                     </div>
-                    {% if ooi_list %}
-                        <fieldset>
-                            <div class="horizontal-view">
-                                {% if may_update_clearance_level %}
-                                    <select id="scan-profiles" name="scan-profile">
-                                        {% for level in scan_levels %}<option value="{{ level }}">{{ level }}</option>{% endfor %}
-                                    </select>
-                                    <button type="submit"
-                                            class="dropdown-button"
-                                            name="action"
-                                            value="update-scan-profile"
-                                            form="ooi_list_form">{% translate "Set clearance level" %}</button>
-                                {% endif %}
-                                {% if perms.tools.can_delete_oois %}
-                                    <button type="submit"
-                                            class="dropdown-button ghost destructive"
-                                            name="action"
-                                            value="delete">{% translate "Delete object(s)" %}</button>
-                                {% endif %}
-                            </div>
-                        </fieldset>
-                    {% endif %}
                 </form>
+                {% if ooi_list and may_update_clearance_level %}
+                    {% include "partials/edit_ooi_clearance_level_modal.html" with type="ooi_list" %}
+
+                {% endif %}
                 {% include "partials/list_paginator.html" %}
 
+                {% if perms.tools.can_delete_oois %}
+                    {% include "partials/delete_ooi_modal.html" %}
+
+                {% endif %}
+                {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+                    {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" %}
+
+                {% endif %}
             </div>
         </section>
     </main>
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/choiceToggle.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

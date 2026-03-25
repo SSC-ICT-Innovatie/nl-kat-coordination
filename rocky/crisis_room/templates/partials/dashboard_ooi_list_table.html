@@ -1,0 +1,38 @@
+{% load i18n %}
+{% load static %}
+{% load crisis_room %}
+
+<table>
+    <caption class="visually-hidden">
+        {% translate "Objects " %}
+        <span class="visually-hidden">, {% translate "column headers with buttons are sortable" %}</span>
+    </caption>
+    <thead>
+        <tr>
+            {% for column_value in dashboard_item.settings.columns %}
+                <th>{{ column_value|get_column_name_object_list }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for object in data.object_list %}
+            <tr>
+                {% for column_value in dashboard_item.settings.columns %}
+                    <td>
+                        {% if column_value == "object" %}
+                            <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
+                        {% endif %}
+                        {% if column_value == "object_type" %}
+                            <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
+                        {% endif %}
+                        {% if column_value == "clearance_level" %}
+                            {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
+
+                        {% endif %}
+                        {% if column_value == "clearance_type" %}{{ object.scan_profile.scan_profile_type|title }}{% endif %}
+                    </td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

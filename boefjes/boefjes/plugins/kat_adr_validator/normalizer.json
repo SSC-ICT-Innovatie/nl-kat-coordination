@@ -3,7 +3,8 @@
   "name": "API Design Rules validator",
   "description": "Parses and validates the API Design Rules (ADR). https://www.forumstandaardisatie.nl/open-standaarden/rest-api-design-rules",
   "consumes": [
-    "boefje/adr-validator"
+    "boefje/adr-validator",
+    "openkat/adr-validator-output"
   ],
   "produces": [
     "APIDesignRule",

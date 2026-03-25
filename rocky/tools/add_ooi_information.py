@@ -6,8 +6,11 @@ import httpx
 import structlog
 from bs4 import BeautifulSoup
 
+from rocky.version import __version__
+
 SEPARATOR = "|"
 SOURCE_TIMEOUT = 10
+REQUEST_HEADERS = {"User-Agent": f"OpenKAT-{__version__} (maintainer@librekat.nl) https://librekat.nl"}
 
 logger = structlog.get_logger(__name__)
 
@@ -34,7 +37,7 @@ class InformationUpdateError(Exception):
 def iana_service_table(source: str, search_query: str) -> list[_Service]:
     services = []
 
-    response = httpx.get(source, params={"search": search_query}, timeout=SOURCE_TIMEOUT)
+    response = httpx.get(source, params={"search": search_query}, timeout=SOURCE_TIMEOUT, headers=REQUEST_HEADERS)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -143,7 +146,7 @@ def _map_usage_value(value: str) -> bool:
 
 
 def wiki_port_tables(source: str) -> list[_PortInfo]:
-    response = httpx.get(source, timeout=SOURCE_TIMEOUT)
+    response = httpx.get(source, timeout=SOURCE_TIMEOUT, headers=REQUEST_HEADERS)
     response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
 
@@ -161,7 +164,7 @@ def wiki_port_tables(source: str) -> list[_PortInfo]:
             protocols = []
             if _map_usage_value(tcp):
                 protocols.append("tcp")
-            if _map_usage_value(tcp):
+            if _map_usage_value(udp):
                 protocols.append("udp")
             description = description.strip()
         except Exception:  # noqa: S112
@@ -207,6 +210,6 @@ def get_info(ooi_type: str, natural_key: str) -> dict:
                 "information updated": datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
             }
     except httpx.HTTPError as error:
-        logger.error("Getting OOI information for %s %s failed due to http error: ", ooi_type, natural_key, error)
+        logger.error("Getting OOI information for %s %s failed due to http error: %s", ooi_type, natural_key, error)
         raise InformationUpdateError()
     return {"description": "No source available."}

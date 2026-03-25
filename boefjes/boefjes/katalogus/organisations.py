@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from boefjes.models import Organisation
 from boefjes.sql.db import ObjectNotFoundException
 from boefjes.sql.organisation_storage import get_organisations_store
 from boefjes.storage.interfaces import OrganisationStorage
+from boefjes.worker.models import Organisation
 
 router = APIRouter(prefix="/organisations", tags=["organisations"])
 
@@ -27,6 +27,12 @@ def get_organisation(organisation_id: str, storage: OrganisationStorage = Depend
 def add_organisation(organisation: Organisation, storage: OrganisationStorage = Depends(get_organisations_store)):
     with storage as store:
         store.create(organisation)
+
+
+@router.put("/")
+def upsert_organisation(organisation: Organisation, storage: OrganisationStorage = Depends(get_organisations_store)):
+    with storage as store:
+        store.update(organisation)
 
 
 @router.delete("/{organisation_id}")

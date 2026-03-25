@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from dns.message import Message, from_text
 from dns.rdtypes.ANY.SOA import SOA
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.dns.records import DNSSOARecord
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname
 from octopoes.models.ooi.network import Network

@@ -2,13 +2,11 @@ import json
 
 import defusedxml.ElementTree as ET
 
-from boefjes.job_models import BoefjeMeta
-
 FINDING_TYPE_PATH = "boefjes/plugins/kat_cwe_finding_types/cwec_v4.16.xml"
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    cwe_id = boefje_meta.arguments["input"]["id"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    cwe_id = boefje_meta["arguments"]["input"]["id"]
 
     root = ET.parse(FINDING_TYPE_PATH)
     root = root.getroot()

@@ -1,168 +1,154 @@
 {% load i18n %}
 {% load static %}
 
-<section>
-    <div>
-        <h2>{% translate "Object selection" %}</h2>
-        <p>
-            {% blocktranslate trimmed %}
-                Select which objects you want to include in your report. You can either continue
-                with a live set or you can select the objects manually from the table below.
-            {% endblocktranslate %}
-        </p>
-        <p>
-            {% blocktranslate trimmed %}
-                A live set is a set of objects based on the applied filters.
-                Any object that matches this applied filter (now or in the future) will be used as
-                input for the scheduled report. If your live set filter (e.g. 'hostnames' with
-                'L2 clearance' that are 'declared') shows 2 hostnames that match the filter today,
-                the scheduled report will run for those 2 hostnames. If you add 3 more hostnames
-                tomorrow (with the same filter criteria), your next scheduled report will contain
-                5 hostnames. Your live set will update as you go.
-            {% endblocktranslate %}
-        </p>
-        {% include "partials/ooi_list_filters.html" %}
+<div>
+    <h2>{% translate "Object selection" %}</h2>
+    <p>
+        {% blocktranslate trimmed %}
+            Select which objects you want to include in your report. You can either continue
+            with a live set or you can select the objects manually from the table below.
+        {% endblocktranslate %}
+    </p>
+    <p>
+        {% blocktranslate trimmed %}
+            A live set is a set of objects based on the applied filters.
+            Any object that matches this applied filter (now or in the future) will be used as
+            input for the scheduled report. If your live set filter (e.g. 'hostnames' with
+            'L2 clearance' that are 'declared') shows 2 hostnames that match the filter today,
+            the scheduled report will run for those 2 hostnames. If you add 3 more hostnames
+            tomorrow (with the same filter criteria), your next scheduled report will contain
+            5 hostnames. Your live set will update as you go.
+        {% endblocktranslate %}
+    </p>
+    {% include "partials/ooi_list_filters.html" %}
 
-    </div>
-    <div>
-        {% if active_filters %}
+</div>
+<div>
+    <p>
+        {% blocktranslate trimmed %}
+            Based on the current dataset, your selected filters result in the following objects.
+        {% endblocktranslate %}
+    </p>
+    {% if all_oois_selected %}
+        <div class="horizontal-view horizontal-scroll toolbar start">
+            <p class="de-emphasized">{{ total_oois }} {% translate "objects selected" %}</p>
+            <a class="select_all_objects_element">{% translate "Deselect all objects" %}</a>
+            <p class="de-emphasized end">
+                {% blocktranslate with length=ooi_list|length total=total_oois %}Showing {{ length }} of {{ total }} objects{% endblocktranslate %}
+            </p>
+        </div>
+    {% elif ooi_list %}
+        <div class="horizontal-view horizontal-scroll toolbar">
             <div>
-                <strong>{% translate "Applied filters:" %}</strong>
-                <ul>
-                    {% for filter, value in active_filters.items %}
-                        <li>
-                            <strong>{{ filter }}</strong> {{ value }}
-                        </li>
-                    {% endfor %}
-                </ul>
+                <a class="select_all_objects_element">
+                    {% blocktranslate trimmed count counter=object_list|length %}
+                        Select all {{ total_oois }} object
+                    {% plural %}
+                        Select all {{ total_oois }} objects
+                    {% endblocktranslate %}
+                </a>
             </div>
-        {% endif %}
-        <p>
-            {% blocktranslate trimmed %}
-                Based on the current dataset, your selected filters result in the following objects.
-            {% endblocktranslate %}
-        </p>
-        {% if all_oois_selected %}
-            <div class="horizontal-view horizontal-scroll toolbar start">
-                <p class="de-emphasized">{{ total_oois }} {% translate "objects selected" %}</p>
-                <a class="select_all_objects_element">{% translate "Deselect all objects" %}</a>
-                <p class="de-emphasized end">
+            <div class="end">
+                <p class="de-emphasized">
                     {% blocktranslate with length=ooi_list|length total=total_oois %}Showing {{ length }} of {{ total }} objects{% endblocktranslate %}
                 </p>
             </div>
-        {% elif ooi_list %}
-            <div class="horizontal-view horizontal-scroll toolbar">
-                <div>
-                    <a class="select_all_objects_element">
-                        {% blocktranslate trimmed count counter=object_list|length %}
-                            Select all {{ total_oois }} object
-                        {% plural %}
-                            Select all {{ total_oois }} objects
-                        {% endblocktranslate %}
-                    </a>
-                </div>
-                <div class="end">
-                    <p class="de-emphasized">
-                        {% blocktranslate with length=ooi_list|length total=total_oois %}Showing {{ length }} of {{ total }} objects{% endblocktranslate %}
-                    </p>
-                </div>
-            </div>
-        {% endif %}
-        <form novalidate
-              method="post"
-              action="{{ next }}"
-              class="inline layout-wide checkboxes_required"
-              id="object_table_form">
-            {% csrf_token %}
-            {% if all_oois_selected %}
-                {% include "forms/report_form_fields.html" %}
-
-            {% else %}
-                {% include "forms/report_form_fields.html" with disable_ooi_selection_fields=True %}
-
-            {% endif %}
-            <div class="horizontal-scroll">
-                <table>
-                    <caption class="visually-hidden">{% translate "Objects" %}</caption>
-                    <thead>
-                        <th>
-                            <input class="select_all_objects_element"
-                                   type="checkbox"
-                                   {% if all_oois_selected %}checked{% endif %}>
-                        </th>
-                        <th>{% translate "Object name" %}</th>
-                        <th>{% translate "Type" %}</th>
-                        <th>{% translate "Clearance level" %}</th>
-                        <th>{% translate "Clearance type" %}</th>
-                    </thead>
-                    <tbody>
-                        {% for object in ooi_list %}
-                            <tr>
-                                <td>
-                                    <input type="checkbox"
-                                           name="ooi"
-                                           value="{{ object.primary_key }}"
-                                           {% if object.primary_key in selected_oois or all_oois_selected %}checked{% endif %}
-                                           {% if all_oois_selected %}disabled{% endif %}>
-                                </td>
-                                <td>{{ object.human_readable }}</td>
-                                <td>{{ object.ooi_type }}</td>
-                                <td>
-                                    {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
-
-                                </td>
-                                <td>{{ object.scan_profile.scan_profile_type|title }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% if not ooi_list %}
-                    <div class="explanation">
-                        <div>
-                            <span>{% translate "Report(s) may be empty due to no objects in the selected filters." %}</span>
-                            {% blocktranslate trimmed %}
-                                Reports matching the selected filters will be empty at this moment in time.
-                                Future reports may contain data. It is still possible to generate the
-                                (potentially empty) report.
-                            {% endblocktranslate %}
-                        </div>
-                    </div>
-                {% else %}
-                    {% include "partials/list_paginator.html" %}
-
-                {% endif %}
-            </div>
-        </form>
-        <form id="live_set"
-              novalidate
-              method="post"
-              action="{{ next }}"
-              class="inline layout-wide checkboxes_required">
-            {% csrf_token %}
+        </div>
+    {% endif %}
+    <form novalidate
+          method="post"
+          action="{{ next }}"
+          class="inline layout-wide checkboxes_required"
+          id="object_table_form">
+        {% csrf_token %}
+        {% if all_oois_selected %}
             {% include "forms/report_form_fields.html" %}
 
-            <input type="hidden" name="ooi" value="all">
-        </form>
-    </div>
-    <div class="button-container">
-        <button form="live_set"
-                type="submit"
-                class="button select_all_objects_element"
-                name="object_selection"
-                value="query">
-            {% translate "Continue with live set" %}<span class="icon ti-chevron-right"></span>
-        </button>
-        {% if ooi_list %}
-            <button form="object_table_form"
-                    type="submit"
-                    class="button ghost"
-                    name="object_selection"
-                    value="selection">
-                {% translate "Continue with selection" %}<span class="icon ti-chevron-right"></span>
-            </button>
+        {% else %}
+            {% include "forms/report_form_fields.html" with disable_ooi_selection_fields=True %}
+
         {% endif %}
-    </div>
-</section>
+        <div class="horizontal-scroll">
+            <table>
+                <caption class="visually-hidden">{% translate "Objects" %}</caption>
+                <thead>
+                    <th>
+                        <input class="select_all_objects_element"
+                               type="checkbox"
+                               {% if all_oois_selected %}checked{% endif %}>
+                    </th>
+                    <th>{% translate "Object name" %}</th>
+                    <th>{% translate "Type" %}</th>
+                    <th>{% translate "Clearance level" %}</th>
+                    <th>{% translate "Clearance type" %}</th>
+                </thead>
+                <tbody>
+                    {% for object in ooi_list %}
+                        <tr>
+                            <td>
+                                <input type="checkbox"
+                                       name="ooi"
+                                       value="{{ object.primary_key }}"
+                                       {% if object.primary_key in selected_oois or all_oois_selected %}checked{% endif %}
+                                       {% if all_oois_selected %}disabled{% endif %}>
+                            </td>
+                            <td>{{ object.human_readable }}</td>
+                            <td>{{ object.ooi_type }}</td>
+                            <td>
+                                {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
+
+                            </td>
+                            <td>{{ object.scan_profile.scan_profile_type|title }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not ooi_list %}
+                <div class="explanation">
+                    <div>
+                        <span>{% translate "Report(s) may be empty due to no objects in the selected filters." %}</span>
+                        {% blocktranslate trimmed %}
+                            Reports matching the selected filters will be empty at this moment in time.
+                            Future reports may contain data. It is still possible to generate the
+                            (potentially empty) report.
+                        {% endblocktranslate %}
+                    </div>
+                </div>
+            {% else %}
+                {% include "partials/list_paginator.html" %}
+
+            {% endif %}
+        </div>
+    </form>
+    <form id="live_set"
+          novalidate
+          method="post"
+          action="{{ next }}"
+          class="inline layout-wide checkboxes_required">
+        {% csrf_token %}
+        {% include "forms/report_form_fields.html" %}
+
+        <input type="hidden" name="ooi" value="all">
+    </form>
+</div>
+<div class="button-container">
+    <button form="live_set"
+            type="submit"
+            class="button select_all_objects_element"
+            name="object_selection"
+            value="query">
+        {% translate "Continue with live set" %}<span class="icon ti-chevron-right"></span>
+    </button>
+    {% if ooi_list %}
+        <button form="object_table_form"
+                type="submit"
+                class="button ghost"
+                name="object_selection"
+                value="selection">
+            {% translate "Continue with selection" %}<span class="icon ti-chevron-right"></span>
+        </button>
+    {% endif %}
+</div>
 <form novalidate id="select_all_objects_form" class="inline" method="get">
     {% include "forms/report_form_fields.html" with disable_ooi_selection_fields=True %}
 

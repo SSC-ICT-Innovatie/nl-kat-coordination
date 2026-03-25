@@ -52,8 +52,9 @@ def test_organizationmember_permissions_superuser(superuser_member, django_asser
 
 
 def test_user_two_organization(client_user_two_organizations, organization, organization_b):
-    assert client_user_two_organizations.organizations == [organization, organization_b]
-    assert client_user_two_organizations.organizations_including_blocked == [organization, organization_b]
+    # Organisations are sorted by name in the model results
+    assert client_user_two_organizations.organizations == [organization_b, organization]
+    assert client_user_two_organizations.organizations_including_blocked == [organization_b, organization]
 
 
 def test_user_one_organization(client_member, organization_b):
@@ -65,7 +66,7 @@ def test_user_organization_blocked(blocked_member, organization_b):
 
 
 def test_superuser_organizations(superuser, organization, organization_b):
-    assert superuser.organizations == [organization, organization_b]
+    assert superuser.organizations == [organization_b, organization]
 
 
 def test_can_access_all_organizations(client_member, organization_b):
@@ -76,7 +77,7 @@ def test_can_access_all_organizations(client_member, organization_b):
 
     client_member.user.user_permissions.add(can_access_all_organizations)
 
-    assert client_member.user.organizations == [client_member.organization, organization_b]
+    assert client_member.user.organizations == [organization_b, client_member.organization]
 
 
 def test_max_clearance_level(client_member):

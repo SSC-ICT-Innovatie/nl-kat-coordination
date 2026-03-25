@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator
 from libnmap.objects import NmapHost, NmapService
 from libnmap.parser import NmapParser
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
 from octopoes.models.ooi.service import IPService, Service
@@ -33,8 +33,17 @@ def get_ip_ports_and_service(host: NmapHost, network: Network, netblock: Referen
             yield ip_port
 
             service_name = service.service
-            if service_name == "http" and service.tunnel == "ssl":
-                service_name = "https"
+            if service.tunnel == "ssl":
+                if service_name == "http":
+                    service_name = "https"
+                elif service_name == "smtp":
+                    service_name = "smtps"
+                elif service_name == "imap":
+                    service_name = "imaps"
+                elif service_name == "pop3":
+                    service_name = "pop3s"
+                elif service_name == "ftp":
+                    service_name = "ftps"
 
             port_service = Service(name=service_name)
             yield port_service

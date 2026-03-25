@@ -26,18 +26,23 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
     def post(self, request, *args, **kwargs):
         if self.action == self.CHANGE_CLEARANCE_LEVEL:
             self.set_clearance_level()
-        if self.action == self.SUBMIT_ANSWER:
+        elif self.action == self.SUBMIT_ANSWER:
             self.answer_ooi_questions()
-        if self.action == self.START_SCAN:
+        elif self.action == self.START_SCAN:
             self.start_boefje_scan()
         return super().post(request, *args, **kwargs)
 
     def set_clearance_level(self) -> None:
         if not self.indemnification_present:
-            return self.indemnification_error()
-        else:
-            clearance_level = int(self.request.POST.get("level"))
+            self.indemnification_error()
+            return
+        try:
+            clearance_level = int(self.request.POST["level"])
             self.can_raise_clearance_level(self.ooi, clearance_level)  # returns appropriate messages
+        except (ValueError, KeyError):
+            messages.error(
+                self.request, _("Cannot set clearance level. It must be provided and must be a valid number.")
+            )
 
     def answer_ooi_questions(self) -> None:
         if not isinstance(self.ooi, Question):
@@ -61,7 +66,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
     def start_boefje_scan(self) -> None:
         boefje_id = self.request.POST.get("boefje_id")
-        boefje = self.get_katalogus().get_plugin(boefje_id)
+        boefje = self.katalogus_client.get_plugin(boefje_id)
         ooi_id = self.request.GET.get("ooi_id")
         ooi = self.get_single_ooi(pk=ooi_id)
         self.run_boefje(boefje, ooi)
@@ -104,7 +109,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
         context["ooi"] = self.ooi
 
-        enabled_boefjes = self.get_katalogus().get_enabled_boefjes()
+        enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
         ooi_boefjes = self.get_boefjes_for_ooi(enabled_boefjes)
 
         filter_form = self.get_boefjes_filter_form()
@@ -117,7 +122,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         else:
             context["boefjes"] = ooi_boefjes
 
-        context.update(self.get_origins(self.ooi.reference, self.organization))
+        context.update(self.get_origins(self.ooi.reference))
         if context["inferences"]:
             inference_params = self.octopoes_api_connector.list_origin_parameters(
                 {inference.origin.id for inference in context["inferences"]}, self.observed_at
@@ -140,6 +145,12 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         context["ooi_types"] = self.get_ooi_types_input_values(self.ooi)
 
         context["is_question"] = isinstance(self.ooi, Question)
+        if isinstance(self.ooi, Question):
+            try:
+                context["current_config"] = self.get_ooi(self.ooi.config_pk).config
+            except Exception:
+                context["current_config"] = None
+
         context["ooi_past_due"] = context["observed_at"].date() < datetime.utcnow().date()
         context["related"] = self.get_related_objects(context["observed_at"])
 

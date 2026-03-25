@@ -8,16 +8,11 @@ from pydantic import ValidationError
 
 from octopoes.models import OOI
 from octopoes.models.pagination import Paginated
-from octopoes.models.types import (
-    get_abstract_types,
-    get_collapsed_types,
-    get_concrete_types,
-    get_relations,
-    to_concrete,
-    type_by_name,
-)
+from octopoes.models.types import get_collapsed_types, get_relations, to_concrete, type_by_name
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
+    CONCRETE_OOITYPE_BY_NAME,
+    OOITYPE_BY_NAME,
     MockDNSCNAMERecord,
     MockDNSZone,
     MockHostname,
@@ -32,7 +27,19 @@ from tests.mocks.mock_ooi_types import (
 )
 
 
+def get_concrete_types() -> set[type[OOI]]:
+    return {t for t in ALL_OOI_TYPES if not t.strict_subclasses()}
+
+
+def get_abstract_types() -> set[type[OOI]]:
+    return {t for t in ALL_OOI_TYPES if t.strict_subclasses()}
+
+
 @patch("octopoes.models.types.ALL_TYPES", ALL_OOI_TYPES)
+@patch("octopoes.models.types.OOITYPE_BY_NAME", OOITYPE_BY_NAME)
+@patch("octopoes.models.types.CONCRETE_OOITYPE_BY_NAME", CONCRETE_OOITYPE_BY_NAME)
+@patch("octopoes.models.types.get_concrete_types", get_concrete_types)
+@patch("octopoes.models.types.get_abstract_types", get_abstract_types)
 class TypeSystemTest(TestCase):
     def test_concrete_types(self):
         self.assertSetEqual(

@@ -1,14 +1,14 @@
 {% load i18n %}
 
 {% if show_introduction %}
-    <p>
+    <p class="toggle-item" data-show="off">
         {% blocktranslate %}
             This overview shows the total number of findings per
             severity that have been identified for this organization.
         {% endblocktranslate %}
     </p>
 {% endif %}
-<div class="horizontal-scroll">
+<div>
     <table>
         <caption class="visually-hidden">{% translate "Total per severity overview" %}</caption>
         <thead>

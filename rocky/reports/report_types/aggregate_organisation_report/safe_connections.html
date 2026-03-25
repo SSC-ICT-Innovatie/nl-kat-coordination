@@ -1,0 +1,16 @@
+{% load i18n %}
+
+<p class="toggle-item" data-show="off">
+    {% blocktranslate trimmed %}
+        In this chapter we check if the connections of all the IP ports of the system are safe.
+        Safe connections are important to prevent unauthorised access and data breaches. Strong
+        ciphers are crucial because they ensure strong encryption which protects the data from
+        interception during communiction.
+    {% endblocktranslate %}
+</p>
+{% for system_type, system in data.basic_security.safe_connections.items %}
+    {% if system %}
+        {% include "safe_connections_report/report.html" with data=system type=system_type %}
+
+    {% endif %}
+{% endfor %}

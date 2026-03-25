@@ -21,8 +21,8 @@ def migration_f9de6eb7824b(local_repository) -> Session:
     engine = get_engine()
     session = sessionmaker(bind=engine)()
 
-    dns_records = local_repository.by_id("dns-records")
-    nmap_udp = local_repository.by_id("nmap-udp")
+    dns_records = local_repository.by_id("dns-records").boefje
+    nmap_udp = local_repository.by_id("nmap-udp").boefje
     entries = [
         (
             boefje.id,
@@ -69,8 +69,8 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             ["Hostname"],
             ["boefje/dns-records"],
             ["RECORD_TYPES", "REMOTE_NS"],
-            None,
-            [],
+            "docker.underdark.nl/librekat/openkat-generic:latest",
+            ["kat_dns.main"],
             None,
             False,
         ),
@@ -81,10 +81,10 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             "Nmap UDP",
             "Defaults to top 250 UDP ports. Includes service detection.",
             "2",
-            ["IPAddressV4", "IPAddressV6"],
+            ["IPAddressV4", "IPAddressV6", "IPV4NetBlock", "IPV6NetBlock"],
             ["boefje/nmap-udp"],
             ["RECORD_TYPES", "REMOTE_NS"],
-            "ghcr.io/minvws/openkat/nmap:latest",
+            "docker.underdark.nl/librekat/openkat-nmap:latest",
             ["--open", "-T4", "-Pn", "-r", "-v10", "-sV", "-sU"],
             None,
             False,
@@ -122,10 +122,30 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             "TOP_PORTS_UDP": {
                 "title": "TOP_PORTS_UDP",
                 "type": "integer",
-                "minimum": 1,
+                "minimum": 0,
                 "maximum": 65535,
-                "description": "Scan TOP_PORTS_UDP most common ports. Defaults to 250.",
-            }
+                "default": 250,
+                "description": "Scan TOP_PORTS_UDP most common UDP ports. Defaults to 250 unless we are scanning a "
+                "NetBlock, in which case we default to 10.",
+            },
+            "MIN_VLSM_IPV4": {
+                "title": "MIN_VLSM_IPV4",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 32,
+                "default": 22,
+                "description": "Minimum variable-length subnet mask for IPv4-ranges. Defaults to 22. Use this value to"
+                " prevent scanning large ranges.",
+            },
+            "MIN_VLSM_IPV6": {
+                "title": "MIN_VLSM_IPV6",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 128,
+                "default": 118,
+                "description": "Minimum variable-length subnet mask for IPv6-ranges. Defaults to 118. Use this value to"
+                " prevent scanning large ranges.",
+            },
         },
         "required": [],
     }
@@ -141,8 +161,8 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             ["Hostname"],
             ["boefje/dns-records"],
             ["RECORD_TYPES", "REMOTE_NS"],
-            None,
-            [],
+            "docker.underdark.nl/librekat/openkat-generic:latest",
+            ["kat_dns.main"],
             None,
             False,
             schema_dns,
@@ -154,10 +174,10 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             "Nmap UDP",
             "Defaults to top 250 UDP ports. Includes service detection.",
             "2",
-            ["IPAddressV4", "IPAddressV6"],
+            ["IPAddressV4", "IPAddressV6", "IPV4NetBlock", "IPV6NetBlock"],
             ["boefje/nmap-udp"],
             ["RECORD_TYPES", "REMOTE_NS"],
-            "ghcr.io/minvws/openkat/nmap:latest",
+            "docker.underdark.nl/librekat/openkat-nmap:latest",
             ["--open", "-T4", "-Pn", "-r", "-v10", "-sV", "-sU"],
             None,
             False,

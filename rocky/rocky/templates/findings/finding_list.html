@@ -3,42 +3,68 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div class="fifty-fifty">
-                <div>
-                    <h1>{% translate "Findings @ " %}{{ observed_at|date }}</h1>
-                    <p>
-                        {% blocktranslate trimmed with organization.name as organization_name %}
-                            An overview of all findings OpenKAT found for organization <strong>{{ organization_name }}</strong>.
-                            Each finding relates to an object. Click a finding for additional information.
-                        {% endblocktranslate %}
-                    </p>
-                </div>
-                {% include "partials/findings_list_toolbar.html" %}
-
-            </div>
             <div>
+                <div class="introduction">
+                    <div>
+                        <h1>{% translate "Findings @ " %}{{ observed_at|date }}</h1>
+                        <p>
+                            {% blocktranslate trimmed with organization.name as organization_name %}
+                                An overview of all findings OpenKAT found for organization <strong>{{ organization_name }}</strong>.
+                                Each finding relates to an object. Click a finding for additional information.
+                            {% endblocktranslate %}
+                        </p>
+                    </div>
+                    {% include "partials/findings_list_toolbar.html" %}
+
+                </div>
+                {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+                    <div class="toolbar">
+                        <a href="#new-dashboard-item-modal"
+                           class="button ghost"
+                           data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
+                    </div>
+                    {% include "partials/new_dashboard_item_modal.html" with item_type="findings" template="partials/dashboard_finding_list.html" %}
+
+                {% endif %}
                 {% include "findings/findings_filter.html" %}
 
-                {% if object_list|length > 1 and perms.tools.can_mute_findings %}
+                {% if object_list|length >= 1 %}
+                    {% if perms.tools.can_mute_findings %}
+                        {% include "partials/mute_findings_modal.html" %}
+
+                    {% endif %}
                     <form method="post"
                           id="finding-list-form"
                           class="inline layout-wide"
                           action="{% url 'finding_mute_bulk' organization.code %}">
                         {% csrf_token %}
                     {% endif %}
-                    <div class="toolbar">
-                        <p class="de-emphasized">
-                            {% blocktranslate trimmed with length=object_list|length total=paginator.count %}
-                                Showing {{ length }} of {{ total }} findings
-                            {% endblocktranslate %}
-                        </p>
+                    <div class="fifty-fifty">
+                        <div>
+                            <p class="de-emphasized">
+                                {% blocktranslate trimmed with length=object_list|length total=paginator.count %}
+                                    Showing {{ length }} of {{ total }} findings
+                                {% endblocktranslate %}
+                            </p>
+                        </div>
+                        {% if object_list|length >= 1 and perms.tools.can_mute_findings %}
+                            <div class="horizontal-view toolbar">
+                                {% if not only_muted %}
+                                    <a class="button ghost" href="#mute-findings-modal"><icon aria-hidden="true" class="icon ti-bell-off"></icon>{% translate "Mute findings" %}</a>
+                                {% else %}
+                                    <button type="submit" class="ghost" form="finding-list-form">
+                                        <icon aria-hidden="true" class="icon ti-bell"></icon>{% translate "Unmute findings" %}
+                                    </button>
+                                    <input type="checkbox" class="hidden" value="true" name="unmute" checked>
+                                {% endif %}
+                            </div>
+                        {% endif %}
                     </div>
                     <div class="horizontal-scroll sticky-column">
                         <table class="action-buttons nowrap">
@@ -48,7 +74,7 @@
                             </caption>
                             <thead>
                                 <tr>
-                                    {% if object_list|length > 1 and perms.tools.can_mute_findings %}
+                                    {% if object_list and perms.tools.can_mute_findings %}
                                         <th>
                                             <input class="toggle-all" data-toggle-target="finding" type="checkbox">
                                         </th>
@@ -57,7 +83,7 @@
                                         class="sortable"
                                         {% if order_by == "score" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
                                         <button form="finding-list" name="order_by" value="score" class="sort">
-                                            {% translate "Severity" %}
+                                            {{ table_columns.severity }}
                                             <span aria-hidden="true"
                                                   class="icon ti-{% if order_by == "score" and sorting_order == "asc" %}chevron-up{% elif order_by == "score" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                         </button>
@@ -66,21 +92,21 @@
                                         class="sortable"
                                         {% if order_by == "finding_type" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
                                         <button form="finding-list" name="order_by" value="finding_type" class="sort">
-                                            {% translate "Finding" %}
+                                            {{ table_columns.finding }}
                                             <span aria-hidden="true"
                                                   class="icon ti-{% if order_by == "finding_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "finding_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                         </button>
                                     </th>
-                                    <th>{% translate "Location" %}</th>
-                                    <th>{% translate "Tree" %}</th>
-                                    <th>{% translate "Graph" %}</th>
+                                    <th>{{ table_columns.location }}</th>
+                                    <th>{{ table_columns.tree }}</th>
+                                    <th>{{ table_columns.graph }}</th>
                                     <th class="sticky-cell visually-hidden actions">{% translate "Details" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for hydrated_finding in object_list %}
                                     <tr>
-                                        {% if object_list|length > 1 and perms.tools.can_mute_findings %}
+                                        {% if object_list and perms.tools.can_mute_findings %}
                                             <td>
                                                 <input type="checkbox"
                                                        name="finding"
@@ -92,26 +118,26 @@
                                         </td>
                                         <td>
                                             {% if hydrated_finding.finding_type.name %}
-                                                <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.primary_key organization.code query=mandatory_fields %}"
+                                                <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
                                                    title="{% blocktranslate trimmed with finding=hydrated_finding.finding_type.name %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding_type.name }}</a>
                                             {% else %}
-                                                <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.primary_key organization.code query=mandatory_fields %}"
+                                                <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
                                                    title="{% blocktranslate trimmed with finding=hydrated_finding.finding.finding_type %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding.finding_type.human_readable }}</a>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.ooi organization.code query=mandatory_fields %}"
+                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.ooi organization.code query=mandatory_fields observed_at=observed_at %}"
                                                title="{% blocktranslate trimmed with finding=hydrated_finding.finding.primary_key %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding.ooi.human_readable }}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to tree view of {{ hydrated_finding.finding.human_readable }}"
                                                class="icon ti-subtask button"
-                                               href="{% ooi_url 'ooi_tree' hydrated_finding.finding.primary_key organization.code query=mandatory_fields %}">{% translate "Tree" %}</a>
+                                               href="{% ooi_url 'ooi_tree' hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to graph view of {{ hydrated_finding.finding.human_readable }}"
                                                class="icon ti-affiliate button"
-                                               href="{% ooi_url 'ooi_graph' hydrated_finding.finding.primary_key organization.code query=mandatory_fields %}">{% translate "Graph" %}</a>
+                                               href="{% ooi_url 'ooi_graph' hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
                                         </td>
                                         <td class="actions sticky-cell">
                                             <button type="button"
@@ -130,22 +156,15 @@
                                                     <div>
                                                         <dt>{% translate "Finding type" %}</dt>
                                                         <dd>
-                                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding_type organization.code query=mandatory_fields %}"
+                                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding_type organization.code query=mandatory_fields observed_at=observed_at %}"
                                                                title="{% blocktranslate trimmed with finding_type=hydrated_finding.finding_type.human_readable %} Show details for {{ finding_type }} {% endblocktranslate %}">{{ hydrated_finding.finding_type.human_readable }}</a>
                                                         </dd>
                                                     </div>
                                                     <div>
                                                         <dt>{% translate "OOI type" %}</dt>
                                                         <dd>
-                                                            <a href="{% url "ooi_list" organization_code=organization.code %}?ooi_type={{ hydrated_finding.ooi.object_type }}"
+                                                            <a href="{% url "ooi_list" organization_code=organization.code %}?observed_at={{ observed_at }}&ooi_type={{ hydrated_finding.ooi.object_type }}"
                                                                title="{% blocktranslate trimmed with ooi_type=hydrated_finding.ooi.object_type %} Show {{ ooi_type }} objects {% endblocktranslate %}">{{ hydrated_finding.ooi.object_type }}</a>
-                                                        </dd>
-                                                    </div>
-                                                    <div>
-                                                        <dt>{% translate "Source OOI" %}</dt>
-                                                        <dd>
-                                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.ooi organization.code query=mandatory_fields %}"
-                                                               title="{% blocktranslate trimmed with ooi=hydrated_finding.finding.ooi.human_readable %} Show details for {{ ooi }} {% endblocktranslate %}">{{ hydrated_finding.finding.ooi.human_readable }}</a>
                                                         </dd>
                                                     </div>
                                                     <div>
@@ -194,39 +213,13 @@
                         {% include "partials/list_paginator.html" %}
 
                     </div>
-                    {% if object_list|length > 1 and perms.tools.can_mute_findings %}
-                        {% if not only_muted %}
-                            <fieldset>
-                                <legend>{% translate "Mute findings" %}</legend>
-                                <div>
-                                    <label for="id_reason">{% translate "Reason:" %}</label>
-                                    <div>
-                                        <textarea name="reason" cols="5" rows="3" id="id_reason"></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="id_end_valid_time">{% translate "Expires by (UTC):" %}</label>
-                                        <input type="datetime-local" name="end_valid_time" id="id_end_valid_time">
-                                    </div>
-                                </div>
-                            </fieldset>
-                        {% endif %}
-                        <div class="button-container">
-                            {% if only_muted %}
-                                <button type="submit" form="finding-list-form">{% translate "Unmute Findings" %}</button>
-                                <input type="checkbox" class="hidden" value="true" name="unmute" checked>
-                            {% else %}
-                                <button type="submit" form="finding-list-form">{% translate "Mute Findings" %}</button>
-                            {% endif %}
-                        </div>
-                    </form>
-                {% endif %}
+                </form>
             </div>
         </section>
     </main>
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

@@ -142,7 +142,7 @@ class Migration(migrations.Migration):
             name="Organization",
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("name", models.CharField(help_text="The name of the organisation", max_length=126, unique=True)),
+                ("name", models.CharField(help_text="The name of the organization", max_length=126, unique=True)),
                 (
                     "code",
                     tools.fields.LowerCaseSlugField(

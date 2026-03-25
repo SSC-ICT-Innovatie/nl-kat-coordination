@@ -22,98 +22,94 @@
                 {% include "ipv6_report/report.html" with data=data.ipv6 show_heading="yes" show_system_type="yes" %}
 
             {% endif %}
-            <section id="basic-security">
-                <div>
-                    {% if data.basic_security.summary %}
+            {% if data.basic_security.summary %}
+                <section id="basic-security">
+                    <div>
                         <div id="basic-security-overview">
-                            {% include "aggregate_organisation_report/basic_security.html" %}
-
-                        </div>
-                    {% endif %}
-                    {% if data.basic_security.safe_connections %}
-                        <div id="safe-connections">
-                            <h3>{% translate "Safe connections" %}</h3>
-                            <p>
+                            <h2>{% translate "Basic security" %}</h2>
+                            <p class="toggle-item" data-show="off">
                                 {% blocktranslate trimmed %}
-                                    In this chapter we check if the connections of all the IP ports of the system are safe.
-                                    Safe connections are important to prevent unauthorised access and data breaches. Strong
-                                    ciphers are crucial because they ensure strong encryption which protects the data from
-                                    interception during communiction.
+                                    In this chapter, first a table of compliance checks is displayed, followed by a
+                                    detailed examination of compliance issues for each component.
                                 {% endblocktranslate %}
                             </p>
-                            {% for system_type, system in data.basic_security.safe_connections.items %}
-                                {% if system %}
-                                    {% include "safe_connections_report/report.html" with data=system type=system_type %}
+                            <div class="horizontal-view">
+                                <h3>{% translate "Overview of the basic security status" %}</h3>
+                                {% include "partials/report_section_action_button.html" with modal_id="basic-security-modal" template="aggregate_organisation_report/basic_security.html" %}
 
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                    {% if data.basic_security.summary %}
-                        <div id="system-specific">
-                            <h3>{% translate "System specific" %}</h3>
-                            <p>
-                                {% blocktranslate trimmed %}
-                                    This is where checks are done that are specific to system types. Different security
-                                    and compliance issues come into play for different systems. They are listed here
-                                    under each other.
-                                {% endblocktranslate %}
-                            </p>
-                            {% for check, system in data.basic_security.summary.items %}
-                                {% if system.system_specific.checks or system.system_specific.ips %}
-                                    {% include "aggregate_organisation_report/system_specific.html" with data=system.system_specific type=check %}
+                            </div>
+                            {% include "aggregate_organisation_report/basic_security.html" with report_section="yes" %}
 
-                                {% endif %}
-                            {% endfor %}
                         </div>
-                    {% endif %}
-                    {% if data.basic_security.rpki %}
-                        <div id="rpki">
-                            <h3>{% translate "Resource Public Key Infrastructure" %}</h3>
-                            <p>
-                                {% blocktranslate trimmed %}
-                                    This section contains basic security information about resource public key
-                                    infrastructure. If your web server employs RPKI for its IP addresses and
-                                    associated nameservers, then it enhances visitor protection against
-                                    misconfigurations and malicious route intercepts through verified route
-                                    announcements, ensuring reliable server access and secure internet traffic.
-                                {% endblocktranslate %}
-                            </p>
-                            {% for system_type, system in data.basic_security.rpki.items %}
-                                {% if system %}
-                                    {% include "rpki_report/report.html" with data=system type=system_type %}
+                        {% if data.basic_security.safe_connections %}
+                            <div id="safe-connections">
+                                <div class="horizontal-view">
+                                    <h3>{% translate "Safe connections" %}</h3>
+                                    {% include "partials/report_section_action_button.html" with modal_id="safe-connections-modal" template="aggregate_organisation_report/safe_connections.html" %}
 
-                                {% endif %}
-                            {% endfor %}
-                        </div>
-                    {% endif %}
-                </div>
-            </section>
+                                </div>
+                                {% include "aggregate_organisation_report/safe_connections.html" with report_section="yes" %}
+
+                            </div>
+                        {% endif %}
+                        {% if data.basic_security.summary %}
+                            <div id="system-specific">
+                                <div class="horizontal-view">
+                                    <h3>{% translate "System specific" %}</h3>
+                                    {% include "partials/report_section_action_button.html" with modal_id="system-specific-modal" template="aggregate_organisation_report/system_specific_overview.html" %}
+
+                                </div>
+                                {% include "aggregate_organisation_report/system_specific_overview.html" with show_heading="yes" %}
+
+                            </div>
+                        {% endif %}
+                        {% if data.basic_security.rpki %}
+                            <div id="rpki">
+                                <div class="horizontal-view">
+                                    <h3>{% translate "Resource Public Key Infrastructure" %}</h3>
+                                    {% include "partials/report_section_action_button.html" with modal_id="rpki-modal" template="aggregate_organisation_report/rpki.html" %}
+
+                                </div>
+                                {% include "aggregate_organisation_report/rpki.html" with show_heading="yes" %}
+
+                            </div>
+                        {% endif %}
+                    </div>
+                </section>
+            {% endif %}
             {% if data.vulnerabilities %}
                 <section id="vulnerabilities">
                     <div>
-                        <h2>{% translate "Vulnerabilities" %}</h2>
-                        <p>{% translate "Vulnerabilities found are grouped per system." %}</p>
-                        {% if not data.vulnerabilities %}
-                            <p>{% translate "No CVEs have been found." %}</p>
-                        {% else %}
-                            {% include "vulnerability_report/report.html" with data=data.vulnerabilities show_heading="yes" %}
+                        <div>
+                            <div class="horizontal-view">
+                                <h2>{% translate "Vulnerabilities" %}</h2>
+                                {% include "partials/report_section_action_button.html" with modal_id="vulnerabilities-modal" template="aggregate_organisation_report/vulnerabilities.html" %}
 
-                        {% endif %}
+                            </div>
+                            <p class="toggle-item" data-show="off">{% translate "Vulnerabilities found are grouped per system." %}</p>
+                        </div>
+                        {% include "aggregate_organisation_report/vulnerabilities.html" with report_section="yes" %}
+
                     </div>
                 </section>
             {% endif %}
             {% if data.findings %}
                 <section id="findings">
                     <div>
-                        <h2>{% translate "Findings" %}</h2>
-                        <p>
-                            {% blocktranslate %}
-                                This chapter contains information about the findings that have been identified
-                                for this organization.
-                            {% endblocktranslate%}
-                        </p>
-                        {% include "findings_report/report.html" with data=data.findings %}
+                        <div>
+                            <div class="horizontal-view">
+                                <h2>{% translate "Findings" %}</h2>
+                                {% include "partials/report_section_action_button.html" with modal_id="findings-modal" template="aggregate_organisation_report/findings.html" %}
+
+                            </div>
+                            <p class="toggle-item" data-show="off">
+                                {% blocktranslate trimmed %}
+                                    This chapter contains information about the findings that have been identified
+                                    for this organization.
+                                {% endblocktranslate %}
+                            </p>
+                        </div>
+                        {% include "aggregate_organisation_report/findings.html" with report_section="yes" %}
 
                     </div>
                 </section>

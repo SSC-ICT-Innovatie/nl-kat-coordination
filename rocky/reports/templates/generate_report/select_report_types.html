@@ -7,14 +7,15 @@
     {% include "header.html" %}
 
     <main id="main-content" tabindex="-1" class="choose-report">
-        {% include "partials/main_navigation.html" %}
-
         <section>
-            {% include "partials/stepper.html" %}
+            {% include "partials/generate_report_header.html" %}
 
         </section>
-        {% include "partials/report_types_selection.html" %}
+        <section>
+            {% include "partials/stepper.html" %}
+            {% include "partials/report_types_selection.html" %}
 
+        </section>
     </main>
 {% endblock content %}
 {% block html_at_end_body %}

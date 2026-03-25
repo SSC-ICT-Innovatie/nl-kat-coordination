@@ -1,14 +1,14 @@
 import json
 from unittest import mock
 
-from boefjes.job_models import BoefjeMeta
 from boefjes.plugins.kat_snyk.main import run as run_boefje
 from boefjes.plugins.kat_snyk.normalize import run
+from boefjes.worker.job_models import BoefjeMeta
 from octopoes.models.ooi.findings import SnykFindingType
 from octopoes.models.types import CVEFindingType, Finding, Software
 from tests.loading import get_dummy_data
 
-input_ooi = {"primary_key": "Software|lodash|1.1.0|", "software": {"name": "lodash", "version": "1.1.0"}}
+input_ooi = {"primary_key": "Software|lodash|1.1.0|", "name": "lodash", "version": "1.1.0"}
 
 
 def test_snyk_no_findings():
@@ -72,7 +72,7 @@ def test_snyk_html_parser(mocker):
 
     mock_get.side_effect = [mock_first_get] + [mock_second_get] + [mock_third_get] * 7
 
-    mime_types, result = run_boefje(boefje_meta)[0]
+    mime_types, result = run_boefje(boefje_meta.model_dump())[0]
 
     output = json.loads(result)
 
