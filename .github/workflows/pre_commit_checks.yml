@@ -17,9 +17,12 @@ permissions:
 
 jobs:
   precommit-fixes:
-    # Only same-repo PRs (no forks)
+    # Only same-repo PRs (no forks) on pull_request events.
+    # For other events (push/tags/workflow_call), run on the trusted commit without PR-specific context.
     if: >
-      github.event.pull_request.head.repo.full_name == github.repository
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository) ||
+      (github.event_name != 'pull_request')
 
     runs-on: ubuntu-24.04
 
@@ -29,6 +32,7 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-python@v6
         with:
