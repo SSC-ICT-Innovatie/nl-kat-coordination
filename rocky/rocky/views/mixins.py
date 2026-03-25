@@ -140,6 +140,7 @@ class ObservedAtMixin:
         return self.connector_form_class(**self.get_connector_form_kwargs())
 
     def get_context_data(self, **kwargs):
+        context = {}
         context["observed_at_form"] = self.get_connector_form()
         context["observed_at"] = self.observed_at
         context["historic_view"] = self.is_historic_view

@@ -60,11 +60,6 @@ class ObservedAtForm(BaseRockyForm):
         label=_("Date"), widget=DateInput(format="%Y-%m-%d"), required=False, help_text=OBSERVED_AT_HELP_TEXT
     )
 
-    def clean_observed_at(self):
-        observed_at = self.cleaned_data["observed_at"]
-        now = datetime.now(tz=timezone.utc)
-        return observed_at
-
 
 class LabeledCheckboxInput(forms.CheckboxInput):
     template_name = "forms/widgets/checkbox_option.html"

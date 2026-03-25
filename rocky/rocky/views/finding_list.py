@@ -69,7 +69,6 @@ class PageActions(Enum):
 
 
 class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
-
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.severities = self.get_severities()
