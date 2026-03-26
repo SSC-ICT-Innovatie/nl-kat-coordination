@@ -107,13 +107,11 @@ def generate_select_ooi_field(
     field: FieldInfo,
     related_ooi_type: type[OOI],
     initial: str | None = None,
-    advanced: bool | None = False
 ) -> forms.fields.Field | None:
     # field is a relation, query all objects, and build select
     default_attrs = default_field_options(name, field)
     is_multiselect = getattr(field.annotation, "__origin__", None) is list
     option_label = default_attrs.get("label", _("option"))
-    advanced = False
     
     manytext = "one or more:" if is_multiselect else "a"
     if field.is_required():
