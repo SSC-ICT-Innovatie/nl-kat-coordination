@@ -8,14 +8,14 @@ import requests
 from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 from requests import Session
 
-from boefjes.job_models import BoefjeMeta
+# TODO: refactor
 from boefjes.plugins.kat_webpage_analysis.har.requests import create_har_object
 
 ALLOWED_CONTENT_TYPES = mimetypes.types_map.values()
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     useragent = getenv("USERAGENT", default="OpenKAT")
 
     uri = get_uri(input_)

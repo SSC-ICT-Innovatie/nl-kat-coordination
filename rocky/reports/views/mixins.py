@@ -108,7 +108,7 @@ class SaveMultiReportMixin(BaseReportView):
             template=report_type.template_path,
             organization_code=self.organization.code,
             organization_name=self.organization.name,
-            organization_tags=list(self.organization.tags.all()),
+            organization_tags=set(self.organization.tags.all()),
             data_raw_id=report_data_raw_id,
             date_generated=now,
             reference_date=observed_at,  # TODO: https://github.com/minvws/nl-kat-coordination/issues/4014

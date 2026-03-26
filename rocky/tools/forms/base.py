@@ -57,17 +57,13 @@ class DataListInput(forms.Select):
 
 class ObservedAtForm(BaseRockyForm):
     observed_at = forms.DateField(
-        label=_("Date"),
-        widget=DateInput(format="%Y-%m-%d"),
-        initial=lambda: datetime.now(tz=timezone.utc).date(),
-        required=True,
-        help_text=OBSERVED_AT_HELP_TEXT,
+        label=_("Date"), widget=DateInput(format="%Y-%m-%d"), required=False, help_text=OBSERVED_AT_HELP_TEXT
     )
 
     def clean_observed_at(self):
         observed_at = self.cleaned_data["observed_at"]
         now = datetime.now(tz=timezone.utc)
-        if observed_at > now.date():
+        if observed_at and observed_at > now.date():
             raise forms.ValidationError(_("The selected date is in the future. Please select a different date."))
         return observed_at
 

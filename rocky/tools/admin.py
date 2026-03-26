@@ -2,7 +2,7 @@ import json
 from json import JSONDecodeError
 
 import tagulous.admin
-from crisis_room.models import Dashboard, DashboardData
+from crisis_room.models import Dashboard, DashboardItem
 from django.contrib import admin, messages
 from django.db.models import JSONField
 from django.forms import widgets
@@ -87,7 +87,7 @@ class OrganizationTagAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(DashboardData)
+@admin.register(DashboardItem)
 class DahboardDataAdmin(admin.ModelAdmin):
     pass
 

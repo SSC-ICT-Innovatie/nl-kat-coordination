@@ -4,13 +4,14 @@ from collections.abc import Iterator
 
 from sqlalchemy.orm import Session
 
+from boefjes.config import EncryptionMiddleware
 from boefjes.config import settings as config_settings
 from boefjes.dependencies.encryption import EncryptMiddleware, IdentityMiddleware, NaclBoxMiddleware
-from boefjes.models import BoefjeConfig, EncryptionMiddleware
 from boefjes.sql.db import ObjectNotFoundException, session_managed_iterator
 from boefjes.sql.db_models import BoefjeConfigInDB, BoefjeInDB, NormalizerConfigInDB, NormalizerInDB, OrganisationInDB
 from boefjes.sql.session import SessionMixin
 from boefjes.storage.interfaces import ConfigNotFound, ConfigStorage, OrganisationNotFound, PluginNotFound
+from boefjes.worker.models import BoefjeConfig
 
 logger = logging.getLogger(__name__)
 
@@ -49,26 +50,30 @@ class SQLConfigStorage(SessionMixin, ConfigStorage):
         # encrypted with a nonce. Hence distinct encrypted settings could be identical once decrypted.
         if all([organisation_id, boefje_id, with_duplicates]):
             # The unique constraint on boefje_id and organisation_id ensures at most 1 result
-            config = self._to_boefje_config(query.offset(offset).limit(limit).first())
+            config = query.offset(offset).limit(limit).first()
 
-            if not config:
+            if config is None:
                 return []
 
             query = (
                 self.session.query(BoefjeConfigInDB)
                 .join(BoefjeInDB, BoefjeConfigInDB.boefje_id == BoefjeInDB.id)
-                .filter(BoefjeInDB.plugin_id == config.boefje_id)
+                .join(OrganisationInDB, BoefjeConfigInDB.organisation_pk == OrganisationInDB.pk)
+                .filter(BoefjeInDB.plugin_id == config.boefje.plugin_id)
                 .filter(BoefjeConfigInDB.enabled == config.enabled)
                 .filter(BoefjeConfigInDB.id != config.id)
+                .filter(OrganisationInDB.deduplicate == True)  # noqa: E712
+                .filter(BoefjeInDB.deduplicate == True)  # noqa: E712
             )
 
-            config.duplicates = [
+            parsed = self._to_boefje_config(config)
+            parsed.duplicates = [
                 duplicate
                 for duplicate in [self._to_boefje_config(config) for config in query.all()]
-                if duplicate.settings == config.settings
+                if duplicate.settings == parsed.settings
             ]
 
-            return [config]
+            return [parsed]
 
         return [self._to_boefje_config(x) for x in query.offset(offset).limit(limit).all()]
 
@@ -165,6 +170,31 @@ class SQLConfigStorage(SessionMixin, ConfigStorage):
             .filter(NormalizerConfigInDB.organisation_pk == OrganisationInDB.pk)
             .filter(OrganisationInDB.id == organisation_id)
             .filter(NormalizerConfigInDB.enabled)
+        )
+
+        return [plugin[0] for plugin in enabled_normalizers.all()]
+
+    def get_disabled_boefjes(self, organisation_id: str) -> list[str]:
+        enabled_boefjes = (
+            self.session.query(BoefjeInDB.plugin_id)
+            .join(BoefjeConfigInDB)
+            .filter(BoefjeConfigInDB.boefje_id == BoefjeInDB.id)
+            .join(OrganisationInDB)
+            .filter(BoefjeConfigInDB.organisation_pk == OrganisationInDB.pk)
+            .filter(OrganisationInDB.id == organisation_id)
+            .filter(BoefjeConfigInDB.enabled == False)  # noqa: E712
+        )
+        return [x[0] for x in enabled_boefjes.all()]
+
+    def get_disabled_normalizers(self, organisation_id: str) -> list[str]:
+        enabled_normalizers = (
+            self.session.query(NormalizerInDB.plugin_id)
+            .join(NormalizerConfigInDB)
+            .filter(NormalizerConfigInDB.normalizer_id == NormalizerInDB.id)
+            .join(OrganisationInDB)
+            .filter(NormalizerConfigInDB.organisation_pk == OrganisationInDB.pk)
+            .filter(OrganisationInDB.id == organisation_id)
+            .filter(NormalizerConfigInDB.enabled == False)  # noqa: E712
         )
 
         return [plugin[0] for plugin in enabled_normalizers.all()]

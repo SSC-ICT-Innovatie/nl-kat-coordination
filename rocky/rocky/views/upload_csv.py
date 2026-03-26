@@ -21,7 +21,6 @@ from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 from octopoes.models.ooi.web import URL
-from rocky.bytes_client import get_bytes_client
 
 CSV_CRITERIA = [
     _("Add column titles. Followed by each object on a new line."),
@@ -101,7 +100,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
 
         return ooi
 
-    def get_ooi_from_csv(self, ooi_type_name: str, values: dict[str, str]) -> tuple[OOI, int | None]:
+    def get_ooi_from_csv(self, ooi_type_name: str, values: dict[str, str]) -> tuple[OOI, int | None, list[Declaration]]:
         key = "clearance"
         level = int(values[key]) if key in values and values[key] in CLEARANCE_VALUES else None
         ooi_type = self.ooi_types[ooi_type_name]["type"]
@@ -112,13 +111,12 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         ]
 
         kwargs: dict[str, Any] = {}
+        declarations = []
         for field, is_reference, required in ooi_fields:
             if is_reference and required:
                 try:
                     referenced_ooi = self.get_or_create_reference(field, values.get(field))
-                    self.octopoes_api_connector.save_declaration(
-                        Declaration(ooi=referenced_ooi, valid_time=datetime.now(timezone.utc))
-                    )
+                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=datetime.now(timezone.utc)))
                     kwargs[field] = referenced_ooi.reference
                 except IndexError:
                     if required:
@@ -131,7 +129,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             else:
                 kwargs[field] = values.get(field)
 
-        return ooi_type(**kwargs), level
+        return ooi_type(**kwargs), level, declarations
 
     def form_valid(self, form):
         if not self.process_csv(form):
@@ -153,9 +151,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         csv_raw_data = csv_file.read()
 
         task_id = uuid4()
-        get_bytes_client(self.organization.code).add_manual_proof(
-            task_id, csv_raw_data, manual_mime_types={"manual/csv"}
-        )
+        self.bytes_client.add_manual_proof(task_id, csv_raw_data, manual_mime_types={"manual/csv"})
 
         csv_data = io.StringIO(csv_raw_data.decode("UTF-8"))
         rows_with_error = []
@@ -165,7 +161,9 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
                 if not row:
                     continue  # skip empty lines
                 try:
-                    ooi, level = self.get_ooi_from_csv(object_type, row)
+                    ooi, level, declarations = self.get_ooi_from_csv(object_type, row)
+                    if declarations:
+                        oois.extend(declarations)
                     oois.append(Declaration(ooi=ooi, valid_time=datetime.now(timezone.utc), task_id=task_id))
                     if isinstance(level, int):
                         self.raise_clearance_level(ooi.reference, level)
@@ -181,6 +179,6 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             return self.add_error_notification(CSV_ERRORS["csv_error"])
 
         try:
-            self.octopoes_api_connector.save_many_declarations(oois)
+            self.octopoes_api_connector.save_many_declarations(oois, sync=True)
         except HTTPError:
             return self.add_error_notification("Failed to save data from the CSV")

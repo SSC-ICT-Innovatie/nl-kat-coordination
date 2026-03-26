@@ -11,3 +11,5 @@ recursive-include account/templates *.txt
 recursive-include onboarding/templates *.html
 recursive-include onboarding/templates *.txt
 recursive-include reports *.html
+recursive-include crisis_room *.html
+recursive-include crisis_room *.json

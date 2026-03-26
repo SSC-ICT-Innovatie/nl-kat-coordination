@@ -63,6 +63,7 @@ class BoefjeSetupForm(BaseRockyForm):
             choices=SCAN_TYPE_CHOICES, attrs={"class": "radio-choice", "data-choicegroup": "runon_selector"}
         ),
         help_text=BOEFJE_RUN_ON_HELP_TEXT,
+        initial="interval",
     )
     interval_number = forms.CharField(
         required=False,

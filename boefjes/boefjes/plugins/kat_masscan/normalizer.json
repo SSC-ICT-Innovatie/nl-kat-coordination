@@ -3,7 +3,8 @@
   "name": "masscan",
   "description": "Parse output from masscan into open ports for each scanned IP.",
   "consumes": [
-    "boefje/masscan"
+    "boefje/masscan",
+    "openkat/masscan-output"
   ],
   "produces": [
     "IPAddressV4",

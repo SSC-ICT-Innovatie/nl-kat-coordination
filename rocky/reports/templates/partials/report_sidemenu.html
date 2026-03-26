@@ -49,6 +49,20 @@
                         </ol>
                     </li>
                 {% endif %}
+                {% if data.vulnerabilities %}
+                    <li>
+                        <a href="#vulnerabilities">{% translate "Vulnerabilities" %}</a>
+                        <ol>
+                            {% for input_ooi, vulnerabilities in data.vulnerabilities.items %}
+                                {% if vulnerabilities.vulnerabilities %}
+                                    <li class="object">
+                                        <a href="#vulnerabilities">{{ vulnerabilities.title }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ol>
+                    </li>
+                {% endif %}
                 {% if data.findings.summary %}
                     <li>
                         <a href="#findings">{% translate "Findings" %}</a>
@@ -61,20 +75,6 @@
                                     <a href="#findings-table">{% translate "Findings" %}</a>
                                 </li>
                             {% endif %}
-                        </ol>
-                    </li>
-                {% endif %}
-                <li>
-                    <a href="#vulnerabilities">{% translate "Vulnerabilities" %}</a>
-                    {% if data.vulnerabilities %}
-                        <ol>
-                            {% for input_ooi, vulnerabilities in data.vulnerabilities.items %}
-                                {% if vulnerabilities.vulnerabilities %}
-                                    <li class="object">
-                                        <a href="#vulnerabilities">{{ vulnerabilities.title }}</a>
-                                    </li>
-                                {% endif %}
-                            {% endfor %}
                         </ol>
                     </li>
                 {% endif %}

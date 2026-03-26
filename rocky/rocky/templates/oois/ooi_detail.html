@@ -3,25 +3,26 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div>
-                {% if ooi_past_due %}
-                    {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
+            {% if ooi_past_due %}
+                {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
 
-                {% endif %}
-                {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
+            {% endif %}
+            {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
 
-            </div>
             <div>
                 {% include "oois/ooi_detail_object.html" with ooi=ooi object_details=object_details %}
 
                 {% if is_question %}
+                    {% if current_config %}
+                        {% include "partials/current_config.html" with config=current_config %}
+
+                    {% endif %}
                     {% include "forms/json_schema_form.html" with json_schema=ooi.json_schema %}
 
                 {% endif %}
@@ -141,8 +142,6 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

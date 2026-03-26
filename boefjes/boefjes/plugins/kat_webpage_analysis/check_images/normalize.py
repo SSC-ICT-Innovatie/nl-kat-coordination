@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import ImageMetadata

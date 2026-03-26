@@ -2,7 +2,7 @@ import json
 from collections.abc import Iterable
 from ipaddress import ip_address
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 

@@ -2,7 +2,6 @@
 {% load static %}
 {% load ooi_extra %}
 {% load report_extra %}
-{% load compress %}
 {% load component_tags %}
 
 {% if scheduled_reports %}
@@ -21,14 +20,14 @@
                     <th scope="col">{% translate "Scheduled for" %}</th>
                     <th scope="col">{% translate "Recurrence" %}</th>
                     <th class="nowrap" scope="col">{% translate "Schedule status" %}</th>
-                    <th scope="col">{% translate "Details" %}</th>
+                    <th scope="col"></th>
                 </tr>
             </thead>
             <tbody>
                 {% for schedule in scheduled_reports %}
                     {% if schedule.recipe %}
                         <tr>
-                            <td class="nowrap">{{ schedule.recipe.report_name_format }}</td>
+                            <td>{{ schedule.recipe.report_name_format }}</td>
                             <td>
                                 <ul class="tags horizontal-view">
                                     {% if schedule.recipe.report_type == "aggregate-organisation-report" %}
@@ -51,7 +50,7 @@
                                 </ul>
                             </td>
                             <td class="nowrap">{{ schedule.deadline_at }}</td>
-                            <td class="nowrap">
+                            <td>
                                 {% if schedule.cron is None %}
                                     {% translate "Once" %}
                                 {% else %}
@@ -101,7 +100,7 @@
                                                     </td>
                                                     <td>
                                                         {% if report.input_oois|length == 1 or schedule.recipe.input_recipe.input_oois|length == 1 %}
-                                                            {% with ooi=report.input_oois.0.input_ooi %}
+                                                            {% with ooi=report.input_oois.0 %}
                                                                 <a href="{% ooi_url 'ooi_detail' ooi organization.code query=ooi.mandatory_fields %}">{{ ooi|human_readable }}</a>
                                                             {% endwith %}
                                                         {% else %}
@@ -143,10 +142,12 @@
                                             <a class="button ghost"
                                                href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
                                         {% endif %}
-                                        {% include "report_schedules/delete_recipe_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
+                                        {% if perms.tools.can_enable_disable_schedule %}
+                                            <a class="button ghost destructive"
+                                               href="#delete-recipe-modal-{{ schedule.recipe.recipe_id }}">{% translate "Delete" %}</a>
+                                            {% include "report_schedules/delete_recipe_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
 
-                                        <a class="button ghost destructive"
-                                           href="#delete-recipe-modal-{{ schedule.recipe.recipe_id }}">{% translate "Delete" %}</a>
+                                        {% endif %}
                                     </div>
                                 </div>
                             </td>

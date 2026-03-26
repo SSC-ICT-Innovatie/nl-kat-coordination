@@ -1,4 +1,0 @@
-Glossary
-========
-
-Coming soon!

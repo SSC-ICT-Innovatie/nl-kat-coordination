@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
-from crisis_room.forms import ObjectListSettingsForm
+from crisis_room.forms import AddObjectListDashboardItemForm
 from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -12,20 +12,21 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from httpx import HTTPError
-from tools.enums import CUSTOM_SCAN_LEVEL
+from tools.enums import CUSTOM_SCAN_LEVEL, SCAN_LEVEL
+from tools.forms.ooi import SetClearanceLevelForm
 from tools.forms.ooi_form import OOISearchForm, OOITypeMultiCheckboxForm
 from tools.models import Indemnification
 from tools.view_helpers import get_mandatory_fields
 
 from octopoes.connector import RemoteException
-from octopoes.models import EmptyScanProfile, Reference
+from octopoes.models import EmptyScanProfile, Reference, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
 from rocky.exceptions import (
     AcknowledgedClearanceLevelTooLowException,
     IndemnificationNotPresentException,
     TrustedClearanceLevelTooLowException,
 )
-from rocky.views.mixins import OctopoesView, OOIList
+from rocky.views.mixins import AddDashboardItemFormMixin, OctopoesView, OOIList
 from rocky.views.ooi_view import BaseOOIListView
 
 
@@ -35,21 +36,17 @@ class PageActions(Enum):
     ADD_TO_DASHBOARD = "add_to_dashboard"
 
 
-class OOIListView(BaseOOIListView, OctopoesView):
+class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
     breadcrumbs = [{"url": reverse_lazy("ooi_list"), "text": gettext_lazy("Objects")}]
     template_name = "oois/ooi_list.html"
-
-    def get_object_list_settings_form_kwargs(self):
-        data = self.request.POST if self.request.POST else None
-
-        return {"organization": self.organization, "data": data}
+    add_dashboard_item_form = AddObjectListDashboardItemForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["ooi_type_form"] = OOITypeMultiCheckboxForm(self.request.GET)
         context["ooi_search_form"] = OOISearchForm(self.request.GET)
-        context["object_list_settings_form"] = ObjectListSettingsForm(**self.get_object_list_settings_form_kwargs())
+        context["edit_clearance_level_form"] = SetClearanceLevelForm
         context["mandatory_fields"] = get_mandatory_fields(self.request, params=["observed_at"])
         context["member"] = self.organization_member
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
@@ -80,34 +77,20 @@ class OOIListView(BaseOOIListView, OctopoesView):
             return self._delete_oois(selected_oois, request, *args, **kwargs)
 
         if action == PageActions.UPDATE_SCAN_PROFILE.value:
-            scan_profile = request.POST.get("scan-profile")
+            scan_type = request.POST.get("clearance_type")
             # Mypy doesn't understand that CUSTOM_SCAN_LEVEL is an enum without
             # the Django type hints
-            level = CUSTOM_SCAN_LEVEL[str(scan_profile).upper()]  # type: ignore[misc, valid-type]
-            if level.value == "inherit":
+            if scan_type == ScanProfileType.INHERITED.value:
                 return self._set_oois_to_inherit(selected_oois, request, *args, **kwargs)
+            level = int(request.POST["level"])
+            level = SCAN_LEVEL(level)
             return self._set_scan_profiles(selected_oois, level, request, *args, **kwargs)
 
         if action == PageActions.ADD_TO_DASHBOARD.value:
-            return self.add_to_dashboard(request, *args, **kwargs)
+            return self.add_to_dashboard()
 
         messages.add_message(request, messages.ERROR, _("Unknown action."))
         return self.get(request, status=404, *args, **kwargs)
-
-    def add_to_dashboard(self, request, *args, **kwargs) -> HttpResponse:
-        form = ObjectListSettingsForm(**self.get_object_list_settings_form_kwargs())
-
-        if form.is_valid():
-            dashboard_id = form.cleaned_data.get("dashboard")
-            messages.success(self.request, _("Dashboard item has been added."))
-
-            return redirect(
-                reverse(
-                    "organization_crisis_room", kwargs={"organization_code": self.organization.code, "id": dashboard_id}
-                )
-            )
-
-        return self.get(request, *args, **kwargs)
 
     def _set_scan_profiles(
         self, selected_oois: list[str], level: CUSTOM_SCAN_LEVEL, request: HttpRequest, *args: Any, **kwargs: Any
@@ -162,9 +145,9 @@ class OOIListView(BaseOOIListView, OctopoesView):
         messages.add_message(
             request,
             messages.SUCCESS,
-            _("Successfully set scan profile to %s for %d oois.") % (level.name, len(selected_oois)),
+            _("Successfully set scan profile to %s for %d OOIs.") % (level.name, len(selected_oois)),
         )
-        return self.get(request, *args, **kwargs)
+        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
 
     def _set_oois_to_inherit(
         self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any
@@ -187,9 +170,9 @@ class OOIListView(BaseOOIListView, OctopoesView):
             return self.get(request, status=404, *args, **kwargs)
 
         messages.add_message(
-            request, messages.SUCCESS, _("Successfully set %d ooi(s) clearance level to inherit.") % len(selected_oois)
+            request, messages.SUCCESS, _("Successfully set %d OOI(s) clearance level to inherit.") % len(selected_oois)
         )
-        return self.get(request, *args, **kwargs)
+        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
 
     def _delete_oois(self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         connector = self.octopoes_api_connector
@@ -202,7 +185,7 @@ class OOIListView(BaseOOIListView, OctopoesView):
             return self.get(request, status=500, *args, **kwargs)
         except ObjectNotFoundException:
             messages.add_message(
-                request, messages.ERROR, _("An error occurred while deleting oois: one of the OOIs doesn't exist.")
+                request, messages.ERROR, _("An error occurred while deleting OOIs: one of the OOIs doesn't exist.")
             )
             return self.get(request, status=404, *args, **kwargs)
 
@@ -212,7 +195,7 @@ class OOIListView(BaseOOIListView, OctopoesView):
             _("Successfully deleted %d ooi(s). Note: Bits can recreate objects automatically.") % len(selected_oois),
         )
 
-        return self.get(request, *args, **kwargs)
+        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
 
     def get_organization_indemnification(self):
         return Indemnification.objects.filter(organization=self.organization).exists()

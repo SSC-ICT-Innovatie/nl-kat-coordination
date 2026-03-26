@@ -3,7 +3,7 @@ Development tutorial
 We will be making a boefje, a normalizer, a bit, a new OOI-model and a report type which will check the database for an IPAddressV4 or IPAddressV6 OOI and create a simple Greeting object that contains a string provided by the user with an IPAddressV4 or IPAddressV6 OOI.
 
 Glossary
-=========
+--------
 
 +------------+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
 | Term       | Description                                                                                                                                                                                                                                                           |

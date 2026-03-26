@@ -1,0 +1,1 @@
+ALTER TABLE boefje ADD COLUMN schema JSON;

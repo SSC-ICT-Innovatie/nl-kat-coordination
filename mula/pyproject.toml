@@ -1,53 +1,52 @@
-[tool.poetry]
+[project]
 name = "mula"
 version = "0.0.1.dev1"
 description = "KAT's intelligent job scheduler"
-authors = ["MinVWS <maintainer@openkat.nl>"]
-license = "EUPL"
+authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
+requires-python = ">=3.10"
+license = "EUPL-1.2"
+dependencies = [
+    "alembic>=1.12.1,<2",
+    "croniter>=6.0.0,<7",
+    "mmh3>=5.1.0,<6",
+    "pika>=1.3.2,<2",
+    "prometheus-client>=0.19.0,<0.20",
+    "psycopg2-binary>=2.9.10",
+    "pydantic>=2.11.3,<3",
+    "pydantic-settings>=2.8.1,<3",
+    "python-dotenv>=1.0.0,<2",
+    "retry2>=0.9.5,<0.10",
+    "sqlalchemy>=2.0.23,<3",
+    "structlog>=25.2.0,<26",
+    "uvicorn>=0.29.0,<0.30",
+    "httpx>=0.28.1,<0.29",
+    "fastapi-slim>=0.115.12",
+    "opentelemetry-sdk",
+    "opentelemetry-api",
+    "opentelemetry-proto",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "opentelemetry-exporter-otlp-proto-common",
+    "opentelemetry-util-http",
+    "opentelemetry-instrumentation",
+    "opentelemetry-instrumentation-httpx",
+    "opentelemetry-instrumentation-asgi",
+    "opentelemetry-instrumentation-dbapi",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-psycopg2",
+    "opentelemetry-semantic-conventions",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-alembic = "^1.12.1"
-croniter = "^6.0.0"
-mmh3 = "^5.1.0"
-pika = "^1.3.2"
-prometheus-client = "^0.19.0"
-psycopg2 = "^2.9.10"
-pydantic = "^2.11.3"
-pydantic-settings= "^2.8.1"
-python-dotenv = "^1.0.0"
-retry2 = "^0.9.5"
-sqlalchemy = "^2.0.23"
-structlog = "^25.2.0"
-uvicorn = "^0.29.0"
-httpx = "^0.28.1"
-fastapi-slim = "^0.115.12"
+[dependency-groups]
+dev = [
+    "factory_boy>=3.2.1,<4",
+    "click>=8.0.4,<9",
+    "psutil>=7",
+    "pytest>=8.3.5,<9",
+    "pytest-cov>=7",
+]
 
-# OpenTelemetry
-opentelemetry-sdk = "^1.32.1"
-opentelemetry-api = "^1.32.1"
-opentelemetry-proto = "^1.32.1"
-opentelemetry-exporter-otlp-proto-grpc = "^1.32.1"
-opentelemetry-exporter-otlp-proto-common = "^1.32.1"
-opentelemetry-util-http = "^0.53b1"
-opentelemetry-instrumentation = "^0.53b1"
-opentelemetry-instrumentation-httpx = "^0.53b1"
-opentelemetry-instrumentation-asgi = "^0.53b1"
-opentelemetry-instrumentation-dbapi = "^0.53b1"
-opentelemetry-instrumentation-fastapi = "^0.53b1"
-opentelemetry-instrumentation-psycopg2 = "^0.53b1"
-opentelemetry-semantic-conventions = "^0.53b1"
-
-[tool.poetry.group.dev.dependencies]
-factory_boy = "^3.2.1"
-click = "^8.0.4"
-psutil = "^5.9.5"
-pytest = "^8.3.5"
-pytest-cov = "^6.0.0"
-
-[build-system]
-requires = ["setuptools>=59", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+[tool.uv]
+package = false
 
 [tool.coverage.run]
 relative_files = true

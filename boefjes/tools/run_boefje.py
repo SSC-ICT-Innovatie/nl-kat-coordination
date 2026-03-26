@@ -10,17 +10,18 @@ from pathlib import Path
 import click
 from sqlalchemy.orm import sessionmaker
 
+from boefjes.clients.scheduler_client import SchedulerAPIClient
 from boefjes.dependencies.plugins import PluginService
 from boefjes.sql.config_storage import create_config_storage
 from boefjes.sql.db import get_engine
 from boefjes.sql.plugin_storage import create_plugin_storage
+from boefjes.worker.boefje_handler import LocalBoefjeHandler
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
-from boefjes.job_handler import BoefjeHandler, bytes_api_client
-from boefjes.job_models import Boefje, BoefjeMeta
-from boefjes.local import LocalBoefjeJobRunner
-from boefjes.local_repository import get_local_repository
+from boefjes.job_handler import bytes_api_client
+from boefjes.worker.job_models import Boefje, BoefjeMeta
+from boefjes.worker.repository import get_local_repository
 
 logging.basicConfig(stream=sys.stdout, level=logging.INFO, force=True)
 
@@ -39,8 +40,9 @@ def run_boefje(start_pdb, organization_code, boefje_id, input_ooi):
 
     session = sessionmaker(bind=get_engine())()
     plugin_service = PluginService(create_plugin_storage(session), create_config_storage(session), local_repository)
+    meta = SchedulerAPIClient(plugin_service, "/dev/null")._hydrate_boefje_meta(meta)
 
-    handler = BoefjeHandler(LocalBoefjeJobRunner(local_repository), plugin_service, bytes_api_client)
+    handler = LocalBoefjeHandler(local_repository, bytes_api_client)
     try:
         handler.handle(meta)
     except Exception:

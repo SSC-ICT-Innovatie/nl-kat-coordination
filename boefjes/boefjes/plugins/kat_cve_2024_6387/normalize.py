@@ -6,7 +6,7 @@ Author: Mischa van Geelen <@rickgeex>
 
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 from packaging.version import Version

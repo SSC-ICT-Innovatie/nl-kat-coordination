@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load static %}
+{% load crisis_room %}
 
 <table>
     <caption class="visually-hidden">
@@ -7,41 +8,30 @@
         <span class="visually-hidden">, {% translate "column headers with buttons are sortable" %}</span>
     </caption>
     <thead>
-        {% if "object" in dashboard_item.settings.columns %}
-            <th>{% translate "Object" %}</th>
-        {% endif %}
-        {% if "object_type" in dashboard_item.settings.columns %}
-            <th>{% translate "Type" %}</th>
-        {% endif %}
-        {% if "clearance_level" in dashboard_item.settings.columns %}
-            <th>{% translate "Clearance level" %}</th>
-        {% endif %}
-        {% if "clearance_type" in dashboard_item.settings.columns %}
-            <th>{% translate "Clearance type" %}</th>
-        {% endif %}
+        <tr>
+            {% for column_value in dashboard_item.settings.columns %}
+                <th>{{ column_value|get_column_name_object_list }}</th>
+            {% endfor %}
+        </tr>
     </thead>
     <tbody>
         {% for object in data.object_list %}
             <tr>
-                {% if "object" in dashboard_item.settings.columns %}
+                {% for column_value in dashboard_item.settings.columns %}
                     <td>
-                        <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
-                    </td>
-                {% endif %}
-                {% if "object_type" in dashboard_item.settings.columns %}
-                    <td>
-                        <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
-                    </td>
-                {% endif %}
-                {% if "clearance_level" in dashboard_item.settings.columns %}
-                    <td>
-                        {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
+                        {% if column_value == "object" %}
+                            <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
+                        {% endif %}
+                        {% if column_value == "object_type" %}
+                            <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
+                        {% endif %}
+                        {% if column_value == "clearance_level" %}
+                            {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
 
+                        {% endif %}
+                        {% if column_value == "clearance_type" %}{{ object.scan_profile.scan_profile_type|title }}{% endif %}
                     </td>
-                {% endif %}
-                {% if "clearance_type" in dashboard_item.settings.columns %}
-                    <td>{{ object.scan_profile.scan_profile_type|title }}</td>
-                {% endif %}
+                {% endfor %}
             </tr>
         {% endfor %}
     </tbody>

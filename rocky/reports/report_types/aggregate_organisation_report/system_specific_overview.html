@@ -1,0 +1,15 @@
+{% load i18n %}
+
+<p class="toggle-item" data-show="off">
+    {% blocktranslate trimmed %}
+        This is where checks are done that are specific to system types. Different security
+        and compliance issues come into play for different systems. They are listed here
+        under each other.
+    {% endblocktranslate %}
+</p>
+{% for check, system in data.basic_security.summary.items %}
+    {% if system.system_specific.checks or system.system_specific.ips %}
+        {% include "aggregate_organisation_report/system_specific.html" with data=system.system_specific type=check %}
+
+    {% endif %}
+{% endfor %}

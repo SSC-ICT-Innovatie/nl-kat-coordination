@@ -2,8 +2,8 @@
 
 {% if data.services %}
     <div class="horizontal-scroll">
-        {% if generate_report %}
-            <p>
+        {% if show_introduction %}
+            <p class="toggle-item" data-show="off">
                 {% blocktranslate trimmed %}
                     The System Report provides an overview of the system types (types of
                     similar services) that were identified for each system. The following

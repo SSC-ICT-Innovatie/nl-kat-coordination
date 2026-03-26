@@ -8,11 +8,9 @@
   "input_ooi": "Software|lodash|1.1.0|",
   "arguments": {
     "input": {
-      "software": {
-        "pk": "Software|lodash|1.1.0|",
-        "name": "lodash",
-        "version": "1.1.0"
-      }
+      "pk": "Software|lodash|1.1.0|",
+      "name": "lodash",
+      "version": "1.1.0"
     }
   },
   "dispatches": [

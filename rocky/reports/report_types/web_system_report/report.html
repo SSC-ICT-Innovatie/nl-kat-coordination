@@ -2,18 +2,16 @@
 {% load report_extra %}
 
 {% if data.web_checks|length > 0 %}
-    {% if generate_report %}
-        <p>
-            {% blocktranslate trimmed %}
-                The Web System Report provides an overview of various web server checks
-                that were performed against the scanned system(s). For each performed
-                check the table below shows whether or not the server is compliant with
-                the checks. A description of why this compliant check failed is also
-                shown, including an general risk level. The risk level may be different
-                for your specific environment.
-            {% endblocktranslate %}
-        </p>
-    {% endif %}
+    <p class="toggle-item" data-show="off">
+        {% blocktranslate trimmed %}
+            The Web System Report provides an overview of various web server checks
+            that were performed against the scanned system(s). For each performed
+            check the table below shows whether or not the server is compliant with
+            the checks. A description of why this compliant check failed is also
+            shown, including an general risk level. The risk level may be different
+            for your specific environment.
+        {% endblocktranslate %}
+    </p>
     <div class="horizontal-scroll">
         <table>
             <caption class="visually-hidden">{% translate "Web system compliance" %}</caption>

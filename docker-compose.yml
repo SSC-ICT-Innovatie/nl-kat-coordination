@@ -36,7 +36,7 @@ services:
       APPS: "ROCKY BYTES KATALOGUS SCHEDULER"
 
   crux:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:main"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
     restart: unless-stopped
     ports:
       - "127.0.0.1:3000:3000"
@@ -87,6 +87,23 @@ services:
         soft: 262144
         hard: 262144
 
+  octopoes_api_scanprofiles:
+    restart: unless-stopped
+    build:
+      context: octopoes/
+      target: dev
+      args:
+        ENVIRONMENT: dev
+    command: scanprofiles
+    env_file:
+      - .env-defaults
+      - .env
+    depends_on:
+      - octopoes_api
+      - katalogus
+    volumes:
+      - ./octopoes:/app/octopoes
+
   boefje:
     restart: unless-stopped
     depends_on:
@@ -111,7 +128,10 @@ services:
       - .env-defaults
       - .env
     environment:
-      - BOEFJES_DOCKER_NETWORK=${COMPOSE_PROJECT_NAME:-nl-kat-coordination}_default
+      - BOEFJES_DOCKER_NETWORK=${COMPOSE_PROJECT_NAME:-nl-kat-coordination}_boefjes
+    networks:
+      - default
+      - boefjes
 
   normalizer:
     restart: unless-stopped
@@ -248,11 +268,11 @@ services:
       - ./monitoring/jaeger.yml:/etc/jaeger/config.yml
     command: ["--config", "/etc/jaeger/config.yml"]
     ports:
-      - "16686:16686"
-      - "8888:8888"
-      - "8889:8889"
-      - "4317:4317"
-      - "4318:4318"
+      - "127.0.0.1:16686:16686"
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:8889:8889"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
 
   prometheus:
     profiles:
@@ -270,7 +290,7 @@ services:
       - monitoring
     image: docker.io/grafana/pyroscope:1.13.2
     ports:
-      - 4040:4040
+      - "127.0.0.1:4040:4040"
 
   alloy:
     profiles:
@@ -283,7 +303,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./monitoring/config.alloy:/config.alloy
     ports:
-      - 12345:12345
+      - "127.0.0.1:12345:12345"
     command:
       - run
       - /config.alloy
@@ -302,7 +322,22 @@ services:
     volumes:
       - ./monitoring/grafana-provisioning:/etc/grafana/provisioning
     ports:
-      - 4000:3000
+      - "127.0.0.1:4000:3000"
+
+  cveapi:
+    profiles:
+      - cveapi
+    restart: unless-stopped
+    build:
+      context: cveapi/
+      dockerfile: Dockerfile
+    volumes:
+      - cveapi-data:/var/lib/kat-cveapi
+    ports:
+      - "127.0.0.1:8880:8080"
+    networks:
+      - default
+      - boefjes
 
 networks:
   default:
@@ -312,10 +347,18 @@ networks:
         - subnet: fc42:ca7::/64
         - subnet: 172.30.0.0/16
           gateway: 172.30.0.1
+  boefjes:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: fc42:ca7:1::/64
+        - subnet: 172.31.0.0/16
+          gateway: 172.31.0.1
 
 volumes:
   postgres-data:
   bytes-data:
   xtdb-data:
+  cveapi-data:
   jaeger-data:
   prometheus-data:

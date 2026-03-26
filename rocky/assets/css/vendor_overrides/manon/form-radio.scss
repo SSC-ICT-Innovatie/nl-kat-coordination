@@ -7,3 +7,7 @@ form input[type="radio"] {
     font-weight: normal;
   }
 }
+
+form label:has(input[type="radio"]) {
+  font-weight: normal;
+}

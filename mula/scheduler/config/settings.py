@@ -100,35 +100,50 @@ class Settings(BaseSettings):
 
     # External services settings
     host_katalogus: AnyHttpUrl = Field(
-        ..., example="http://localhost:8003", alias="KATALOGUS_API", description="Katalogus API URL"
+        ...,
+        json_schema_extra={"example": "http://localhost:8003"},
+        alias="KATALOGUS_API",
+        description="Katalogus API URL",
     )
 
-    host_bytes: AnyHttpUrl = Field(..., example="http://localhost:8004", alias="BYTES_API", description="Bytes API URL")
+    host_bytes: AnyHttpUrl = Field(
+        ..., json_schema_extra={"example": "http://localhost:8004"}, alias="BYTES_API", description="Bytes API URL"
+    )
 
-    host_bytes_user: str = Field(..., example="test", alias="BYTES_USERNAME", description="Bytes JWT login username")
+    host_bytes_user: str = Field(
+        ..., json_schema_extra={"example": "test"}, alias="BYTES_USERNAME", description="Bytes JWT login username"
+    )
 
     host_bytes_password: str = Field(
-        ..., example="secret", alias="BYTES_PASSWORD", description="Bytes JWT login password"
+        ..., json_schema_extra={"example": "secret"}, alias="BYTES_PASSWORD", description="Bytes JWT login password"
     )
 
     host_octopoes: AnyHttpUrl = Field(
-        ..., example="http://localhost:8001", alias="OCTOPOES_API", description="Octopoes API URL"
+        ...,
+        json_schema_extra={"example": "http://localhost:8001"},
+        alias="OCTOPOES_API",
+        description="Octopoes API URL",
     )
 
     host_mutation: AmqpDsn = Field(
-        ..., example="amqp://", alias="QUEUE_URI", description="KAT queue URI for host mutations"
+        ..., json_schema_extra={"example": "amqp://"}, alias="QUEUE_URI", description="KAT queue URI for host mutations"
     )
 
     host_raw_data: AmqpDsn = Field(
-        ..., example="amqp://", alias="QUEUE_URI", description="KAT queue URI for host raw data"
+        ..., json_schema_extra={"example": "amqp://"}, alias="QUEUE_URI", description="KAT queue URI for host raw data"
     )
 
     host_metrics: AnyHttpUrl | None = Field(
         None, alias="SPAN_EXPORT_GRPC_ENDPOINT", description="OpenTelemetry endpoint"
     )
 
-    # Queue settings
-    pq_maxsize: int = Field(0, description="How many items a priority queue can hold (0 is infinite)")
+    # How many items a priority queue can hold. The default used to be 1000, but
+    # was later changed to 0. The scheduler is currently buggy if you set it to
+    # something else than 0. Since the queue is stored in the database there is
+    # no reason to limit the size of the queue anymore, so we just hardcode it
+    # to 0 here so we don't have to do a big refactor to get rid of the variable
+    # usage.
+    pq_maxsize: int = 0
 
     pq_interval: int = Field(
         60, description="Interval in seconds of the execution of the `` method of the `scheduler.Scheduler` class"
@@ -144,7 +159,9 @@ class Settings(BaseSettings):
 
     # Database settings
     db_uri: PostgresDsn = Field(
-        ..., example="postgresql://xx:xx@host:5432/scheduler", description="Scheduler Postgres DB URI"
+        ...,
+        json_schema_extra={"example": "postgresql://xx:xx@host:5432/scheduler"},
+        description="Scheduler Postgres DB URI",
     )
     db_connection_pool_size: int = Field(25, description="Database connection pool size")
 

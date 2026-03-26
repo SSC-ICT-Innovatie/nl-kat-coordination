@@ -9,6 +9,7 @@ from queue import Queue
 
 import structlog
 from django.conf import settings
+from django.db import close_old_connections
 from httpx import HTTPError
 
 from reports.runner.models import ReportRunner, WorkerManager
@@ -118,9 +119,17 @@ class SchedulerWorkerManager(WorkerManager):
             except ValueError:
                 closed = True  # worker is closed, so we create a new one
 
-            logger.warning(
-                "Worker[pid=%s, %s] not alive, creating new worker...", worker.pid, _format_exit_code(worker.exitcode)
-            )
+            try:
+                pid = worker.pid
+            except ValueError:
+                pid = None
+
+            try:
+                exitcode_str = _format_exit_code(worker.exitcode)
+            except ValueError:
+                exitcode_str = "exitcode=Unknown"
+
+            logger.warning("Worker[pid=%s, %s] not alive, creating new worker...", pid or "unknown", exitcode_str)
 
             if not closed:  # Closed workers do not have a pid, so cleaning up would fail
                 self._cleanup_pending_worker_task(worker)
@@ -205,6 +214,7 @@ def _start_working(
 
     while True:
         p_item = task_queue.get()
+        close_old_connections()  # See https://github.com/minvws/nl-kat-coordination/issues/4632
         status = TaskStatus.FAILED
         handling_tasks[os.getpid()] = str(p_item.id)
 

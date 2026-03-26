@@ -8,6 +8,22 @@
       "type": "string",
       "pattern": "^((6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})|(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})-(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4}))$|^((6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})|(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})-(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4}))(,((6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})|(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})-(6553[0-5]|655[0-2]\\d|65[0-4]\\d{2}|6[0-4]\\d{3}|[1-5]\\d{4}|\\d{1,4})))+$",
       "description": "Specify the ports that need to be scanned (nmap format). Single ports are comma separated, port ranges can be specified using the dash symbol. For example: 22,111,137,80-100 will scan ports 22, 111, 137 and the port range 80 up to 100."
+    },
+    "MIN_VLSM_IPV4": {
+      "title": "MIN_VLSM_IPV4",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 32,
+      "default": 22,
+      "description": "Minimum variable-length subnet mask for IPv4-ranges. Defaults to 22. Use this value to prevent scanning large ranges."
+    },
+    "MIN_VLSM_IPV6": {
+      "title": "MIN_VLSM_IPV6",
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 128,
+      "default": 118,
+      "description": "Minimum variable-length subnet mask for IPv6-ranges. Defaults to 118. Use this value to prevent scanning large ranges."
     }
   },
   "required": [

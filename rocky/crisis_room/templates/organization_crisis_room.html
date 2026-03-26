@@ -8,19 +8,63 @@
 
     <main id="main-content">
         <section>
-            {% include "organization_crisis_room_header.html" with active=dashboard.name %}
+            <div>
+                <h1>{% translate "Crisis room" %}</h1>
+                {% include "organization_crisis_room_header.html" with active=dashboard.name %}
 
-            {% if dashboards %}
-                {% include "organization_crisis_room_dashboards.html" %}
+                {% if dashboards %}
+                    <div class="fifty-fifty">
+                        <div class="horizontal-view">
+                            <h2>{{ dashboard.name }}</h2>
+                            {% if organization_member.can_delete_dashboard %}
+                                <div class="dropdown">
+                                    <button aria-label="{% translate "Options for dashboard" %}"
+                                            aria-controls="action-dropdown"
+                                            aria-expanded="false"
+                                            class="icon-only ti-dots-vertical dropdown-button"></button>
+                                    <div id="action-dropdown" class="dropdown-list">
+                                        <ul>
+                                            {% if not dashboard_items.0.item.findings_dashboard %}
+                                                <li role="option">
+                                                    <button type="button" id="toggle-dashboard-button">
+                                                        <span class="toggle-item"><i class="icon ti-eye"></i>{% translate "Show all descriptions" %}</span>
+                                                        <span class="toggle-item" data-show="off"><i class="icon ti-eye-off"></i>{% translate "Hide all descriptions" %}</span>
+                                                    </button>
+                                                </li>
+                                            {% endif %}
+                                            <li>
+                                                <a href="#delete-dashboard-modal" class="plain destructive">
+                                                    <i class="icon ti-trash"></i>{% translate "Delete dashboard" %}
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% if organization_member.can_delete_dashboard %}
+                        {% include "partials/delete_dashboard_modal.html" %}
 
-            {% else %}
-                <p>
-                    {% blocktranslate trimmed %}
-                        There are no dashboards yet.
-                        Click on "Add dashboard" to create a new dashboard.
-                    {% endblocktranslate %}
-                </p>
-            {% endif %}
+                    {% endif %}
+                    {% include "organization_crisis_room_dashboard_items.html" %}
+
+                {% else %}
+                    <div class="centered">
+                        <img src="{% static "img/fishbone.svg" %}" alt="Fishbone image">
+                        <p>
+                            {% blocktranslate trimmed %}
+                                There are no dashboards yet.
+                                Click on "Add dashboard" to create a new dashboard.
+                            {% endblocktranslate %}
+                        </p>
+                    </div>
+                {% endif %}
+            </div>
         </section>
     </main>
 {% endblock content %}
+{% block html_at_end_body %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+    <script src="{% static "js/dashboard.js" %}" nonce="{{ request.csp_nonce }}"></script>
+{% endblock html_at_end_body %}

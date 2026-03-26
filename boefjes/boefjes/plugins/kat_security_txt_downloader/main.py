@@ -1,18 +1,17 @@
 import ipaddress
 import json
 from os import getenv
+from urllib.parse import urlparse, urlunparse
 
 import requests
 from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 from requests import Session
 from requests.models import Response
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
-    netloc = input_["hostname"]["name"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
+    hostname = input_["hostname"]["name"]
     scheme = input_["ip_service"]["service"]["name"]
     ip = input_["ip_service"]["ip_port"]["address"]["address"]
 
@@ -22,7 +21,7 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
     results = {}
 
     for path in [".well-known/security.txt", "security.txt"]:
-        uri = f"{scheme}://{netloc}/{path}"
+        uri = f"{scheme}://{hostname}/{path}"
 
         if scheme == "https":
             session.mount(uri, ForcedIPHTTPSAdapter(dest_ip=ip))
@@ -32,7 +31,7 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
 
             uri = f"{scheme}://{netloc}/{path}"
 
-        response = do_request(netloc, session, uri, useragent)
+        response = do_request(hostname, session, uri, useragent)
 
         # if the response is 200, return the content
         if response.status_code == 200:
@@ -40,7 +39,12 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
         # if the response is 301, we need to follow the location header to the correct security txt,
         # we can not force the ip anymore
         elif response.status_code in [301, 302, 307, 308]:
-            uri = response.headers["Location"]
+            # Redirect can be absolute or relative
+            parsed = urlparse(response.headers["Location"])
+            scheme = parsed.scheme if parsed.scheme else scheme
+            netloc = parsed.netloc if parsed.netloc else hostname
+            uri = urlunparse((scheme, netloc, parsed.path, parsed.params, parsed.query, parsed.fragment))
+
             response = requests.get(uri, stream=True, timeout=30, verify=False)  # noqa: S501
             if response.raw._connection:
                 ip = response.raw._connection.sock.getpeername()[0]

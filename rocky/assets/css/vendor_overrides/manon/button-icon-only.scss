@@ -4,6 +4,10 @@ input[type="button"],
 input[type="submit"],
 input[type="reset"] {
   &.icon-only {
+    &:hover {
+      background-color: var(--colors-grey-100);
+    }
+
     &::before {
       color: var(--link-text-color);
     }

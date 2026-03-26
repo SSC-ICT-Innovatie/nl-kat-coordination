@@ -1,0 +1,43 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "Add an object" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        OpenKAT uses various kinds of objects, like IP addresses, hostnames and URLs. In the onboarding we will add an URL object, such as our vulnerable OpenKAT website: https://mispo.es.
+                    {% endblocktranslate %}
+                </p>
+                <h3>{% translate "Related objects" %}</h3>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Most objects have dependencies on the existence of related objects.
+                        For example a URL needs to be connected to a network, hostname,
+                        fqdn (fully qualified domain name) and IP address.
+                        When possible OpenKAT automatically collects and adds these related objects by running scans. Objects can also be manually added.
+                    {% endblocktranslate %}
+                </p>
+                <form novalidate method="post" class="help layout-form">
+                    {% csrf_token %}
+                    {% translate type as fieldset_legend %}
+                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                    <div class="button-container">
+                        <button type="submit">{% translate "Create object" %}</button>
+                        <a href="{% url "complete_onboarding" organization.code %}"
+                           class="button ghost">{% translate "Skip onboarding" %}</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

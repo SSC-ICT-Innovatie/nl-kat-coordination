@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from boefjes.models import Boefje, Normalizer, Organisation
+from boefjes.worker.models import Boefje, Normalizer, Organisation
 
 pytestmark = pytest.mark.skipif(os.environ.get("CI") != "1", reason="Needs a CI database.")
 
@@ -15,9 +15,16 @@ def test_get_local_plugin(test_client, organisation):
     assert data["id"] == "dns-records"
 
 
+def test_create_org(test_client):
+    response = test_client.post("/v1/organisations/", json={"id": "test2", "name": "test2"})
+    assert response.status_code == 201
+
+    assert test_client.get("/v1/organisations/test2/").json() == {"id": "test2", "name": "test2", "deduplicate": True}
+
+
 def test_filter_plugins(test_client, organisation):
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins")
-    assert len(response.json()) > 100
+    assert len(response.json()) >= 100
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"plugin_type": "boefje"})
     assert len(response.json()) > 10
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"state": "true"})
@@ -36,23 +43,28 @@ def test_filter_plugins(test_client, organisation):
     response = test_client.get(
         f"/v1/organisations/{organisation.id}/plugins", params={"consumes": ["ADRFindingType", "Hostname"]}
     )
-    assert len(response.json()) == 10
+    assert len(response.json()) == 8
 
     response = test_client.get(
-        f"/v1/organisations/{organisation.id}/plugins", params={"oci_image": "ghcr.io/minvws/openkat/nmap:latest"}
+        f"/v1/organisations/{organisation.id}/plugins",
+        params={"oci_image": "docker.underdark.nl/librekat/openkat-nmap:latest"},
     )
-    assert {x["id"] for x in response.json()} == {"nmap", "nmap-udp"}  # Nmap TCP and UDP
+    assert {x["id"] for x in response.json()} == {"nmap", "nmap-ip-range", "nmap-udp", "nmap-ports"}
 
     boefje = Boefje(
-        id="test_plugin", name="My test boefje", static=False, oci_image="ghcr.io/minvws/openkat/nmap:latest"
+        id="test_plugin",
+        name="My test boefje",
+        static=False,
+        oci_image="docker.underdark.nl/librekat/openkat-nmap:latest",
     )
     response = test_client.post(f"/v1/organisations/{organisation.id}/plugins", content=boefje.model_dump_json())
     assert response.status_code == 201
 
     response = test_client.get(
-        f"/v1/organisations/{organisation.id}/plugins", params={"oci_image": "ghcr.io/minvws/openkat/nmap:latest"}
+        f"/v1/organisations/{organisation.id}/plugins",
+        params={"oci_image": "docker.underdark.nl/librekat/openkat-nmap:latest"},
     )
-    assert {x["id"] for x in response.json()} == {"nmap", "nmap-udp", "test_plugin"}  # Nmap TCP and UDP
+    assert {x["id"] for x in response.json()} == {"nmap", "nmap-ip-range", "nmap-udp", "nmap-ports", "test_plugin"}
 
 
 def test_cannot_add_plugin_reserved_id(test_client, organisation):
@@ -316,6 +328,7 @@ def test_clone_settings_and_config_api_shows_both(test_client, organisation):
         json={"test_key": "test value", "test_key_2": "test value 2"},
     )
     test_client.patch(f"/v1/organisations/{organisation.id}/plugins/{plug}", json={"enabled": True})
+    test_client.patch(f"/v1/organisations/{organisation.id}/plugins/kat_dns_normalize", json={"enabled": False})
 
     assert test_client.get(f"/v1/organisations/{organisation.id}/{plug}/settings").json() == {
         "test_key": "test value",
@@ -350,6 +363,10 @@ def test_clone_settings_and_config_api_shows_both(test_client, organisation):
 
     # And the originally enabled boefje got disabled
     response = test_client.get(f"/v1/organisations/{new_org_id}/plugins/nmap")
+    assert response.json()["enabled"] is False
+
+    # And the originally disabled normalizer got disabled
+    response = test_client.get(f"/v1/organisations/{new_org_id}/plugins/kat_dns_normalize")
     assert response.json()["enabled"] is False
 
     # Assert we can fetch the settings with the new configs API
@@ -407,3 +424,11 @@ def test_clone_settings_and_config_api_shows_both(test_client, organisation):
     assert test_client.get(
         "/v1/configs", params={"boefje_id": "dns-records", "organisation_id": "org2", "with_duplicates": True}
     ).json() == [expected_with_duplicates[1]]
+
+    org2.deduplicate = False
+    test_client.put("/v1/organisations/", content=org2.model_dump_json())
+    assert test_client.get(f"/v1/organisations/{org2.id}").json()["deduplicate"] is False
+
+    assert test_client.get(
+        "/v1/configs", params={"boefje_id": "dns-records", "organisation_id": "test", "with_duplicates": True}
+    ).json() == [expected[0]]

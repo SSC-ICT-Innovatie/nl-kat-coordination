@@ -18,10 +18,6 @@ class App:
         * Schedulers: The schedulers are responsible for managing the queues
         and tasks for a specific organisation.
 
-        * Monitors: The monitors are responsible for monitoring the state of
-        the application, and executing procedures based on the state of the
-        application.
-
         * Server: The server is responsible for exposing the application
         through a REST API.
 
@@ -57,7 +53,6 @@ class App:
         following processes:
 
             * schedulers
-            * monitors
             * metrics collecting
             * api server
         """

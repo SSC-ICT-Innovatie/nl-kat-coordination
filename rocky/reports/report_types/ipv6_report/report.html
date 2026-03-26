@@ -1,9 +1,15 @@
 {% load i18n %}
 
 <section id="ipv6">
-    <div>
-        {% if show_heading %}<h2>IPv6</h2>{% endif %}
-        <p>
+    <div class="horizontal-scroll">
+        {% if show_heading %}
+            <div class="horizontal-view">
+                <h2>IPv6</h2>
+                {% include "partials/report_section_action_button.html" with modal_id="ipv6-modal" template="ipv6_report/report.html" %}
+
+            </div>
+        {% endif %}
+        <p class="toggle-item" data-show="off">
             {% blocktranslate trimmed %}
                 The IPv6 report provides an overview of the current IPv6 status of the
                 identified system. The table below shows whether the domain is reachable
@@ -11,19 +17,39 @@
                 A grey compliance cross is shown if no IPv6 address was detected.
             {% endblocktranslate %}
         </p>
-        <div class="horizontal-scroll">
-            <table>
-                <caption class="visually-hidden">{% translate "IPv6 overview" %}</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">{% translate "Domain" %}</th>
-                        {% if show_system_type %}
-                            <th scope="col">{% translate "System type" %}</th>
-                        {% endif %}
-                        <th scope="col">IPv6</th>
-                    </tr>
-                </thead>
-                <tbody>
+        <table>
+            <caption class="visually-hidden">{% translate "IPv6 overview" %}</caption>
+            <thead>
+                <tr>
+                    <th scope="col">{% translate "Domain" %}</th>
+                    {% if show_system_type or aggregate_dashboard_item %}
+                        <th scope="col">{% translate "System type" %}</th>
+                    {% endif %}
+                    <th scope="col">IPv6</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if aggregate_dashboard_item %}
+                    {% for hostname, info in data.ipv6.items %}
+                        <tr>
+                            <td>{{ hostname }}</td>
+                            <td>
+                                {% if info.systems %}
+                                    {{ info.systems|join:", " }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if info.enabled %}
+                                    <span class="icon positive"></span>
+                                {% else %}
+                                    <span class="icon incomplete"></span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
                     {% for hostname, info in data.items %}
                         <tr>
                             <td>{{ hostname }}</td>
@@ -45,8 +71,8 @@
                             </td>
                         </tr>
                     {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 </section>

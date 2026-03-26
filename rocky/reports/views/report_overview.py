@@ -4,6 +4,7 @@ from uuid import UUID
 
 import structlog
 from account.mixins import OrganizationPermissionRequiredMixin
+from django.conf import settings
 from django.contrib import messages
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -76,6 +77,14 @@ class ScheduledReportsView(BreadcrumbsReportOverviewView, SchedulerView, ListVie
             report_recipe = self.get_recipe_ooi(recipe_id)
             reports = self.get_reports(recipe_id)
             schedule_datetime = schedule["deadline_at"]
+            total_oois = len(
+                {
+                    input_ooi.input_ooi if isinstance(input_ooi, AssetReport) else input_ooi
+                    for report in reports
+                    for input_ooi in report.input_oois
+                }
+            )
+
             recipes.append(
                 {
                     "schedule_id": schedule["id"],
@@ -88,9 +97,7 @@ class ScheduledReportsView(BreadcrumbsReportOverviewView, SchedulerView, ListVie
                         else "asap"
                     ),
                     "reports": reports,
-                    "total_oois": len(
-                        {asset_report.input_ooi for report in reports for asset_report in report.input_oois}
-                    ),
+                    "total_oois": total_oois,
                 }
             )
 
@@ -128,6 +135,7 @@ class ScheduledReportsView(BreadcrumbsReportOverviewView, SchedulerView, ListVie
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["total_report_schedules"] = len(self.object_list)
+        context["asset_reports_enabled"] = settings.ASSET_REPORTS
         return context
 
 
@@ -192,6 +200,14 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
             self.run_bulk_actions()
         except (ObjectNotFoundException, ValidationError):
             messages.error(request, _("An unexpected error occurred, please check logs for more info."))
+
+        dashboard = self.request.POST.get("dashboard")
+        if dashboard:
+            return redirect(
+                reverse(
+                    "organization_crisis_room", kwargs={"organization_code": self.organization.code, "id": dashboard}
+                )
+            )
         return self.get(request, *args, **kwargs)
 
     def get_queryset(self) -> ReportList:
@@ -203,7 +219,6 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
     def run_bulk_actions(self) -> None:
         action = self.request.POST.get("action", "")
         report_references = self.request.POST.getlist("report_reference", [])
-        logger.error("Report_references: %s", report_references)
 
         if action == "rename":
             return self.rename_reports(report_references)
@@ -247,7 +262,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
 
                 if updated_all:
                     for asset_report in report_ooi.input_oois:
-                        if not self.rerun_report(asset_report):
+                        if isinstance(asset_report, AssetReport) and not self.rerun_report(asset_report):
                             updated_all = False
                 if not updated_all:
                     not_updated_reports.append(report_ooi.name)
@@ -323,6 +338,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
         context = super().get_context_data(**kwargs)
         context["total_reports"] = len(self.object_list)
         context["selected_reports"] = self.request.GET.getlist("report", [])
+        context["asset_reports_enabled"] = settings.ASSET_REPORTS
         return context
 
 

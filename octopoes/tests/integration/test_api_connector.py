@@ -9,7 +9,7 @@ from octopoes.api.models import Declaration, Observation
 from octopoes.config.settings import Settings
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.core.app import get_xtdb_client
-from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
+from octopoes.models import OOI, DeclaredScanProfile, EmptyScanProfile, Reference, ScanLevel
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.dns.records import DNSAAAARecord, DNSARecord, DNSMXRecord, DNSNSRecord
 from octopoes.models.ooi.dns.zone import Hostname
@@ -159,20 +159,24 @@ def test_list_object_clients(
     octopoes_api_connector.save_declaration(Declaration(ooi=network2, valid_time=valid_time))
     octopoes_api_connector.save_declaration(Declaration(ooi=hostname, valid_time=valid_time))
 
+    hostname.scan_profile = EmptyScanProfile(reference=hostname.reference)
+    network.scan_profile = EmptyScanProfile(reference=network.reference)
+    network2.scan_profile = EmptyScanProfile(reference=network2.reference)
+
     result = octopoes_api_connector.list_object_clients(network.reference, set(clients), valid_time)
-    assert set(result) == {"test4", "test2"}
+    assert result == {"test4": network, "test2": network}
 
     result = octopoes_api_connector.list_object_clients(network.reference, {"test2"}, valid_time)
-    assert set(result) == {"test2"}
+    assert result == {"test2": network}
 
     result = octopoes_api_connector.list_object_clients(network.reference, {"test1"}, valid_time)
-    assert set(result) == set()
+    assert result == {}
 
     result = octopoes_api_connector.list_object_clients(hostname.reference, set(clients), valid_time)
-    assert set(result) == {"test1"}
+    assert result == {"test1": hostname}
 
     result = octopoes_api_connector.list_object_clients(network2.reference, set(clients), valid_time)
-    assert set(result) == {"test1"}
+    assert result == {"test1": network2}
 
 
 def test_history(octopoes_api_connector: OctopoesAPIConnector):

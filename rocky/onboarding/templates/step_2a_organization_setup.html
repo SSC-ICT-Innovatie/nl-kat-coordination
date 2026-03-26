@@ -1,0 +1,29 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                {% include "partials/step_2_organization_text.html" %}
+
+                <form novalidate
+                      action="{% url "step_2a_organization_setup" %}"
+                      method="post"
+                      class="help layout-form">
+                    {% csrf_token %}
+                    {% translate "Organization details" as fieldset_legend %}
+                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                    <button type="submit">{% translate "Submit" %}</button>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

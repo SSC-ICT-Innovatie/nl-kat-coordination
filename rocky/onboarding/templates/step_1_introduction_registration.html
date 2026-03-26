@@ -1,0 +1,20 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                {% include "partials/step_1_introduction_text.html" %}
+
+                <a href="{% url "step_2a_organization_setup" %}" class="button">{% translate "Let's get started" %}</a>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

@@ -7,6 +7,9 @@ Contains documentation for developers and contributors.
    :maxdepth: 4
    :caption: Contents
 
+   contributor/index
+   quick-start
+   basic-principles/index
    rocky
    mula
    boefjes

@@ -11,7 +11,7 @@
         <h1>{% translate "Asset reports" %}</h1>
         <p>
             {% translate "An overview of all underlying reports of" %}
-            <a href="{% url "view_report" organization.code %}?report_id={{ report_ooi }}"
+            <a href="{% url "view_report" organization.code %}?report_id={{ report_ooi }}&amp;observed_at={{ report_ooi.observed_at|date:"Y-m-d H:i:s:u" }}"
                title="{% translate "Shows report details" %}">{{ report_ooi.name }}</a>
         </p>
     </div>

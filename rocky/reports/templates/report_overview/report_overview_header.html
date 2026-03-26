@@ -1,12 +1,12 @@
 {% load i18n %}
 
-<div class="fifty-fifty">
+<div class="introduction">
     <div>
         <h1>{% translate "Reports" %}</h1>
         <p>{% translate "An overview of reports that are scheduled or have been generated." %}</p>
     </div>
     <div class="horizontal-view toolbar">
-        <a class="button ghost"
-           href="{% url 'generate_report_landing' organization.code %}">{% translate "Generate report" %}</a>
+        {% include "partials/new_report_action_button.html" %}
+
     </div>
 </div>

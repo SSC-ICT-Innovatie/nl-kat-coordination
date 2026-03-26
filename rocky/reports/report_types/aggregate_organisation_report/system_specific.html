@@ -1,17 +1,7 @@
 {% load i18n %}
 
-{% if show_heading %}
-    <h2>{% translate "System specific checks" %}</h2>
-    <p>
-        {% blocktranslate trimmed %}
-            This is where checks are done that are specific to system types. Different security
-            and compliance issues come into play for different systems. They are listed here
-            under each other.
-        {% endblocktranslate %}
-    </p>
-{% endif %}
 <h4 id="system-specific-{{ type }}">{{ type }} {% translate "server" %}</h4>
-<p>
+<p class="toggle-item" data-show="off">
     {% blocktranslate trimmed %}
         This table shows which checks were performed. Following that, the compliance
         issues, if any, are shown for each {{ type }} Server.
