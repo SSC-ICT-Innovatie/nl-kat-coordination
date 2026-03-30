@@ -459,12 +459,6 @@ class SchedulerClient:
     def get_task_stats_for_all_organizations(self, scheduler_id: str) -> dict:
         return self._get_task_stats(scheduler_id)
 
-    def get_combined_schedulers_stats(self, scheduler_id: str, organization_codes: list[str]) -> dict:
-        """Return merged stats for a set of scheduler ids."""
-        return self._merge_stat_dicts(
-            dicts=[self._get_task_stats(scheduler_id, org_code) for org_code in organization_codes]
-        )
-
     def _get(self, path: str, params: dict | None, return_type: str = "json") -> dict | bytes:
         """Helper to do a get request and raise warning for path."""
         try:

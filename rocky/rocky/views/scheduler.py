@@ -62,8 +62,7 @@ class UnboundSchedulerView:
         self.scheduler_id = self.task_type
 
     def get_task_type(self):
-        if self.task_type:
-            return self.task_type
+        return self.task_type
 
     def get_plugin_specific_tasks_for_normalizers(self, plugin_id) -> list[dict[str, str]]:
         if plugin_id:
@@ -152,7 +151,7 @@ class UnboundSchedulerView:
 
         return count
 
-    def get_organization_specific_tasks(self, organizations: list[str]) -> dict[str, str]:
+    def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str]:
         if organizations:
             return {"column": "organisation", "operator": "in", "value": organizations}
         return {}
@@ -464,7 +463,9 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
             messages.error(self.request, error.message)
         return stats
 
-    def get_organization_specific_tasks(self) -> dict[str, str]:
+    def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str]:
+        if organizations:
+            raise ValueError("Bound SchedulerView does not support organization arguent, use UnboundSchedulerView")
         return {"column": "organisation", "operator": "==", "value": self.organization.code}
 
     def run_boefje(self, katalogus_boefje: Boefje, ooi: OOI | None) -> None:

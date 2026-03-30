@@ -65,9 +65,8 @@ class TaskFilterForm(forms.Form):
 
         # swap dates around if user swapped them by accident.
         if min_created_at is not None and max_created_at is not None and min_created_at > max_created_at:
-            temp = max_created_at
-            max_created_at = min_created_at
-            min_created_at = temp
+            cleaned_data["max_created_at"] = min_created_at
+            cleaned_data["min_created_at"] = max_created_at
 
         return cleaned_data
 
