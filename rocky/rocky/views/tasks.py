@@ -169,10 +169,12 @@ class AllTaskListView(UnboundSchedulerView, SchedulerListView, PageActionsView):
             first_page = context["page_obj"].number == 1
 
         if context["active_filters_counter"] == 0 and first_page:
-            task_organizations = self.get_user_organizations() if not self.request.user.has_perm("tools.can_access_all_organizations") else None
-            context["stats"] = self.client.get_combined_schedulers_stats(
-                self.get_task_type(), task_organizations
+            task_organizations = (
+                self.get_user_organizations() 
+                if not self.request.user.has_perm("tools.can_access_all_organizations")
+                else None
             )
+            context["stats"] = self.client.get_combined_schedulers_stats(self.get_task_type(), task_organizations)
         context["breadcrumbs"] = [{"url": reverse("all_task_list", kwargs={}), "text": _("All Tasks")}]
         return context
 

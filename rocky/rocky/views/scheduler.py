@@ -238,7 +238,7 @@ class UnboundSchedulerView:
     def get_output_oois(self, task):
         try:
             origins = self.octopoes_api_connector.list_origins(
-                valid_time=task.modified_at+timedelta(seconds=1),  # we need to account for XTDB's sync time
+                valid_time=task.modified_at + timedelta(seconds=1),  # we need to account for XTDB's sync time
                 task_id=task.id,
             )
             for origin in origins:
