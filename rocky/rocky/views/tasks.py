@@ -132,7 +132,7 @@ class AllTaskListView(SchedulerListView, PageActionsView):
     def get_user_organizations(self) -> list[str]:
         return [org.code for org in self.request.user.organizations]
 
-    def get_organization_filter(self) -> dict[str, dict[str, list[dict[str, str | list[str]]]]]:
+    def get_organizations_filter(self) -> dict[str, dict[str, list[dict[str, str | list[str]]]]]:
         if self.request.user.has_perm("tools.can_access_all_organizations"):
             # We don't need to add a filter if the user can access all organizations
             return {}
