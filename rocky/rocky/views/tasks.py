@@ -15,20 +15,13 @@ from rocky.views.scheduler import SchedulerView, UnboundSchedulerView
 
 
 class SchedulerListView(ListView):
-    def dispatch(
-        self,
-        request: HttpRequest,
-        *args: Any,
-        **kwargs: Any
-    ) -> HttpResponse:
+    def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         try:
             return super().dispatch(request, *args, **kwargs)
         except SchedulerError as error:
             messages.error(request, error.message)
             self.object_list = []
-            return self.render_to_response(
-                self.get_context_data()
-            )
+            return self.render_to_response(self.get_context_data())
 
 
 class TaskListView(SchedulerView, SchedulerListView, PageActionsView):
@@ -52,9 +45,11 @@ class TaskListView(SchedulerView, SchedulerListView, PageActionsView):
         context["active_filters_counter"] = self.count_active_task_filters()
         first_page = True
 
-        if context["page_obj"]:
+        page_obj = context.get("page_obj")
+
+        if page_obj:
             # Explicitly check if this is the first page
-            first_page = context["page_obj"].number == 1
+            first_page = page_obj.number == 1
 
         if context["active_filters_counter"] == 0 and first_page:
             context["stats"] = self.get_task_statistics()
@@ -170,9 +165,11 @@ class AllTaskListView(UnboundSchedulerView, SchedulerListView, PageActionsView):
         context["active_filters_counter"] = self.count_active_task_filters()
         first_page = True
 
-        if context["page_obj"]:
+        page_obj = context.get("page_obj")
+
+        if page_obj:
             # Explicitly check if this is the first page
-            first_page = context["page_obj"].number == 1
+            first_page = page_obj.number == 1
 
         if context["active_filters_counter"] == 0 and first_page:
             task_organizations = (
