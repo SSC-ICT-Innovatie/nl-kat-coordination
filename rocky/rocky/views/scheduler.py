@@ -466,7 +466,7 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
 
     def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str]:
         if organizations:
-            raise ValueError("Bound SchedulerView does not support organization arguent, use UnboundSchedulerView")
+            raise ValueError("Bound SchedulerView does not support organization argument, use UnboundSchedulerView")
         return {"column": "organisation", "operator": "==", "value": self.organization.code}
 
     def run_boefje(self, katalogus_boefje: Boefje, ooi: OOI | None) -> None:
