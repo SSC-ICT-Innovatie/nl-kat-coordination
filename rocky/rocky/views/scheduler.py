@@ -70,6 +70,7 @@ class UnboundSchedulerView:
                 {"column": "data", "field": f"{self.task_type}__id", "operator": "==", "value": plugin_id},
                 {"column": "data", "field": "raw_data__boefje_meta__boefje__id", "operator": "==", "value": plugin_id},
             ]
+        return []
 
     def get_plugin_specific_tasks_for_boefjes(self, plugin_id) -> dict[str, str]:
         if plugin_id:
