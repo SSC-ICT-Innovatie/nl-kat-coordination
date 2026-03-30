@@ -11,27 +11,55 @@
                         <thead>
                             <tr>
                                 <th scope="col">{% translate "Timeslot" %}</th>
-                                <th scope="col">{% translate "Pending" %}
-                                    <a href="{{ request.path }}?status=pending" title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='pending' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
-                                <th scope="col">{% translate "Queued" %}
-                                    <a href="{{ request.path }}?status=queued" title="{% translate "Flter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='queued' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
-                                <th scope="col">{% translate "Dispatched" %}
-                                    <a href="{{ request.path }}?status=dispatched" title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='dispatched' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
-                                <th scope="col">{% translate "Running" %}
-                                    <a href="{{ request.path }}?status=running" title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='running' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
-                                <th scope="col">{% translate "Completed" %}
-                                    <a href="{{ request.path }}?status=completed" title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='completed' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
-                                <th scope="col">{% translate "Failed" %}
-                                    <a href="{{ request.path }}?status=failed" title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='failed' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
-                                <th scope="col">{% translate "Cancelled" %}
-                                    <a href="{{ request.path }}?status=canceled" title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
-                                    <a href="{{ request.path }}{% querystring status='canceled' %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a></th>
+                                <th scope="col">
+                                    {% translate "Pending" %}
+                                    <a href="{{ request.path }}?status=pending"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='pending' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Queued" %}
+                                    <a href="{{ request.path }}?status=queued"
+                                       title="{% translate "Flter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='queued' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Dispatched" %}
+                                    <a href="{{ request.path }}?status=dispatched"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='dispatched' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Running" %}
+                                    <a href="{{ request.path }}?status=running"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='running' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Completed" %}
+                                    <a href="{{ request.path }}?status=completed"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='completed' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Failed" %}
+                                    <a href="{{ request.path }}?status=failed"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='failed' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Cancelled" %}
+                                    <a href="{{ request.path }}?status=canceled"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='canceled' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>

@@ -24,7 +24,7 @@ table th .icon {
     }
   }
 
-  /*Icon Id's from https://tabler.io/ */
+  /* Icon Id's from https://tabler.io/ */
 
   &.warning {
     &::before {
@@ -133,21 +133,21 @@ table th .icon {
 
   &.search {
     &::before {
-      content: "\1F50D"; //
+      content: "\eb1c"; // $ti-icon-search
       color: var(--color-alert-informative);
     }
   }
 
   &.filter {
     &::before {
-      content: "\eaa5"; //
+      content: "\eaa5"; // $ti-icon-filter
       color: var(--color-alert-informative);
     }
   }
 
   &.filteradd {
     &::before {
-      content: "\fa02"; //
+      content: "\fa02"; // $ti-icon-filter-plus
       color: var(--color-alert-informative);
     }
   }

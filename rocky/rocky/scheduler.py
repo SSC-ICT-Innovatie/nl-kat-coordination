@@ -430,9 +430,7 @@ class SchedulerClient:
     def _get_task_stats(self, scheduler_id: str, organisation_ids: list[str] | None = None) -> dict:
         """Return task stats for specific scheduler."""
 
-        params: dict[str, object] = {
-            "scheduler_id": scheduler_id,
-        }
+        params: dict[str, object] = {"scheduler_id": scheduler_id}
 
         if organisation_ids:
             params["organisation_id"] = organisation_ids

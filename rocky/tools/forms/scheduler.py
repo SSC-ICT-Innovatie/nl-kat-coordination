@@ -37,19 +37,14 @@ class TaskFilterForm(forms.Form):
         label=_("Task id"), widget=forms.TextInput(attrs={"placeholder": _("Search by task ID")}), required=False
     )
 
-    organizations = forms.MultipleChoiceField(
-        choices=(),
-        required=False,
-    )
+    organizations = forms.MultipleChoiceField(choices=(), required=False)
 
     def __init__(self, *args, organizations=None, **kwargs):
         super().__init__(*args, **kwargs)
 
         if organizations is not None:
             choices = [("", _("All"))]
-            choices.extend([
-                (org, org) for org in organizations
-            ])
+            choices.extend([(org, org) for org in organizations])
             self.fields["organizations"].choices = choices
 
     def clean(self):

@@ -15,7 +15,7 @@ from octopoes.models import Reference
 from octopoes.models.ooi.question import Question
 from rocky.views.ooi_detail_related_object import OOIFindingManager, OOIRelatedObjectManager
 from rocky.views.ooi_view import BaseOOIDetailView
-from rocky.views.tasks import TaskListView
+from rocky.views.tasks import OOIDetailTaskListView
 
 
 class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, OOIDetailTaskListView):
@@ -111,8 +111,8 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
         try:
             enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
-        except KATalogusError as error:
-            messages.error(self.request, 'Could not get enabled boefjes from KATalogus, request failed')
+        except KATalogusError:
+            messages.error(self.request, "Could not get enabled boefjes from KATalogus, request failed")
             enabled_boefjes = []
         ooi_boefjes = self.get_boefjes_for_ooi(enabled_boefjes)
 

@@ -13,7 +13,7 @@ from reports.forms import (
     ReportScheduleStartDateChoiceForm,
     ReportScheduleStartDateForm,
 )
-from tools.forms.scheduler import TaskFilterForm, OrganizationTaskFilterForm
+from tools.forms.scheduler import OrganizationTaskFilterForm, TaskFilterForm
 
 from octopoes.models import OOI
 from octopoes.models.ooi.reports import ReportRecipe
@@ -108,7 +108,7 @@ class UnboundSchedulerView:
     def get_task_filters(self) -> dict[str, Any]:
         formdata = self.get_task_filter_form_data()
 
-        filters = {"filters":{"and": []}}
+        filters = {"filters": {"and": []}}
         organizations = formdata.get("organizations", None)
         if organizations and organizations != [""]:
             filters = {"filters": {"and": [self.get_organization_specific_tasks(organizations)]}}
@@ -238,8 +238,8 @@ class UnboundSchedulerView:
     def get_output_oois(self, task):
         try:
             origins = self.octopoes_api_connector.list_origins(
-                valid_time=task.modified_at+timedelta(seconds=1), # we need to account for XTDB's sync time
-                task_id=task.id
+                valid_time=task.modified_at+timedelta(seconds=1),  # we need to account for XTDB's sync time
+                task_id=task.id,
             )
             for origin in origins:
                 for ooi in origin.result:

@@ -122,7 +122,7 @@ class ReportsTaskListView(TaskListView):
         return context
 
 
-class AllTaskListView(SchedulerListView, PageActionsView):
+class AllTaskListView(UnboundSchedulerView, SchedulerListView, PageActionsView):
     paginator_class = RockyPaginator
     paginate_by = 150
     context_object_name = "task_list"

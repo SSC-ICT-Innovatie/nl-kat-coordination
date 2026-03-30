@@ -58,12 +58,12 @@
                                     </td>
                                     <td>
                                         <i class="icon {{ task.status.value }}"></i>
-                                            <a href="{{ request.path }}?status={{ task.status.value }}" title="{% translate "Filter on this status" %}">{{ task.status.value|capfirst }}</a>
-                                            <a href="{{ request.path }}{% querystring status=task.status.value %}" title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                        <a href="{{ request.path }}?status={{ task.status.value }}"
+                                           title="{% translate "Filter on this status" %}">{{ task.status.value|capfirst }}</a>
+                                        <a href="{{ request.path }}{% querystring status=task.status.value %}"
+                                           title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
                                     </td>
-                                    <td>
-                                        {{ task.created_at }}
-                                    </td>
+                                    <td>{{ task.created_at }}</td>
                                     <td>{{ task.modified_at }}</td>
                                     <td>
                                         <a href="{{ request.path }}?ooi_id={{ task.data.input_ooi }}"
