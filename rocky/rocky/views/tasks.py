@@ -1,4 +1,5 @@
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
