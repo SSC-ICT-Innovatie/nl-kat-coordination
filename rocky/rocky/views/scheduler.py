@@ -13,11 +13,11 @@ from reports.forms import (
     ReportScheduleStartDateChoiceForm,
     ReportScheduleStartDateForm,
 )
+from rocky.account.mixins import UnboundOrganizationView
 from tools.forms.scheduler import OrganizationTaskFilterForm, TaskFilterForm
 
 from octopoes.models import OOI
 from octopoes.models.ooi.reports import ReportRecipe
-from rockty.account.mixins import UnboundOrganizationView
 from rocky.scheduler import Boefje as SchedulerBoefje
 from rocky.scheduler import (
     BoefjeTask,
@@ -220,9 +220,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
         try:
             task = self.get_task_details(self.kwargs["task_id"])
             if task:
-                params: dict[str, list[str] | str] = {
-                    "oois": list(self.get_output_oois(task))
-                }
+                params: dict[str, list[str] | str] = {"oois": list(self.get_output_oois(task))}
                 if task.modified_at:
                     params["valid_time"] = task.modified_at.strftime("%Y-%m-%dT%H:%M:%S")
                 return JsonResponse(params, safe=False)
