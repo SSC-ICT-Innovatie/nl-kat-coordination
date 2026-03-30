@@ -17,6 +17,7 @@ from tools.forms.scheduler import OrganizationTaskFilterForm, TaskFilterForm
 
 from octopoes.models import OOI
 from octopoes.models.ooi.reports import ReportRecipe
+from rockt.account.mixins import UnboundOrganizationView
 from rocky.scheduler import Boefje as SchedulerBoefje
 from rocky.scheduler import (
     BoefjeTask,
@@ -44,7 +45,7 @@ def get_date_time(date: str | None) -> datetime | None:
     return None
 
 
-class UnboundSchedulerView:
+class UnboundSchedulerView(UnboundOrganizationView):
     task_type: str
     task_filter_form = TaskFilterForm
     _form_instance = None
@@ -152,7 +153,7 @@ class UnboundSchedulerView:
 
         return count
 
-    def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str]:
+    def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str | list[str]]:
         if organizations:
             return {"column": "organisation", "operator": "in", "value": organizations}
         return {}
@@ -184,48 +185,12 @@ class UnboundSchedulerView:
     def get_task_details(self, task_id: str) -> Task | None:
         try:
             task = self.scheduler_client.get_task_details(task_id)
-            if task.organization_id() != self.organization.code:
+            if task.organization_id() in self.get_user_organizations():
                 raise SchedulerTaskNotFound()
 
             return task
         except SchedulerTaskNotFound:
             raise Http404()
-
-    def create_report_schedule(self, report_recipe: ReportRecipe, deadline_at: datetime) -> ScheduleResponse | None:
-        try:
-            report_task = ReportTask(
-                organisation_id=self.organization.code, report_recipe_id=str(report_recipe.recipe_id)
-            ).model_dump()
-
-            schedule_request = ScheduleRequest(
-                scheduler_id=self.scheduler_id,
-                organisation=self.organization.code,
-                data=report_task,
-                schedule=report_recipe.cron_expression,
-                deadline_at=deadline_at.isoformat(),
-            )
-
-            submit_schedule = self.scheduler_client.post_schedule(schedule=schedule_request)
-            messages.success(self.request, _("Your report has been scheduled."))
-            return submit_schedule
-        except SchedulerError as error:
-            return messages.error(self.request, error.message)
-
-    def delete_report_schedule(self, schedule_id: str) -> None:
-        try:
-            self.scheduler_client.delete_schedule(schedule_id)
-        except SchedulerError as error:
-            return messages.error(self.request, error.message)
-
-    def edit_report_schedule(self, schedule_id: str, params):
-        self.scheduler_client.patch_schedule(schedule_id=schedule_id, params=params)
-
-    def get_report_schedules(self) -> list[dict[str, Any]]:
-        try:
-            return self.scheduler_client.get_scheduled_reports()
-        except SchedulerError as error:
-            messages.error(self.request, error.message)
-        return []
 
     def get_task_statistics(self) -> dict[Any, Any]:
         stats = {}
@@ -329,60 +294,6 @@ class UnboundSchedulerView:
         except SchedulerTaskNotFound:
             raise Http404()
 
-    def run_normalizer(self, katalogus_normalizer: Normalizer, raw_data: RawData) -> None:
-        try:
-            normalizer_task = NormalizerTask(
-                normalizer=SchedulerNormalizer.model_validate(katalogus_normalizer.model_dump()), raw_data=raw_data
-            )
-
-            new_task = TaskPush(
-                priority=1,
-                data=normalizer_task.model_dump(),
-                scheduler_id="normalizer",
-                organisation=self.organization.code,
-            )
-
-            self.schedule_task(new_task)
-            logger.info(
-                "Normalizer Task created manually",
-                event_code="800051",
-                boefje=katalogus_normalizer.id,
-                task_id=new_task.id,
-            )
-        except SchedulerError as error:
-            messages.error(self.request, error.message)
-
-    def run_boefje(self, katalogus_boefje: Boefje, ooi: OOI | None) -> None:
-        try:
-            boefje_task = BoefjeTask(
-                boefje=SchedulerBoefje.model_validate(katalogus_boefje.model_dump()),
-                input_ooi=ooi.reference if ooi else None,
-                organization=self.organization.code,
-            )
-
-            new_task = TaskPush(
-                priority=1, data=boefje_task.model_dump(), scheduler_id="boefje", organisation=self.organization.code
-            )
-
-            self.schedule_task(new_task)
-            logger.info(
-                "Boefje Task created manually", event_code="800051", boefje=katalogus_boefje.id, task_id=new_task.id
-            )
-        except SchedulerError as error:
-            messages.error(self.request, error.message)
-
-    def run_boefje_for_oois(self, boefje: Boefje, oois: list[OOI]) -> None:
-        try:
-            if not oois and not boefje.consumes:
-                self.run_boefje(boefje, None)
-
-            for ooi in oois:
-                if ooi.scan_profile and ooi.scan_profile.level < boefje.scan_level:
-                    self.can_raise_clearance_level(ooi, boefje.scan_level)
-                self.run_boefje(boefje, ooi)
-        except SchedulerError as error:
-            messages.error(self.request, error.message)
-
     def convert_recurrence_to_cron_expressions(self, recurrence: str, start_date_time: datetime) -> str:
         """
         The user defines the start date and time.
@@ -455,6 +366,42 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
             filters["filters"]["and"].append(self.get_specific_tasks_by_id(task_id))
 
         return {"scheduler_id": self.scheduler_id, "task_type": self.task_type, "filters": filters, **formdata}
+
+    def create_report_schedule(self, report_recipe: ReportRecipe, deadline_at: datetime) -> ScheduleResponse | None:
+        try:
+            report_task = ReportTask(
+                organisation_id=self.organization.code, report_recipe_id=str(report_recipe.recipe_id)
+            ).model_dump()
+
+            schedule_request = ScheduleRequest(
+                scheduler_id=self.scheduler_id,
+                organisation=self.organization.code,
+                data=report_task,
+                schedule=report_recipe.cron_expression,
+                deadline_at=deadline_at.isoformat(),
+            )
+
+            submit_schedule = self.scheduler_client.post_schedule(schedule=schedule_request)
+            messages.success(self.request, _("Your report has been scheduled."))
+            return submit_schedule
+        except SchedulerError as error:
+            return messages.error(self.request, error.message)
+
+    def delete_report_schedule(self, schedule_id: str) -> None:
+        try:
+            self.scheduler_client.delete_schedule(schedule_id)
+        except SchedulerError as error:
+            return messages.error(self.request, error.message)
+
+    def edit_report_schedule(self, schedule_id: str, params):
+        self.scheduler_client.patch_schedule(schedule_id=schedule_id, params=params)
+
+    def get_report_schedules(self) -> list[dict[str, Any]]:
+        try:
+            return self.scheduler_client.get_scheduled_reports()
+        except SchedulerError as error:
+            messages.error(self.request, error.message)
+        return []
 
     def get_task_statistics(self) -> dict[Any, Any]:
         stats = {}

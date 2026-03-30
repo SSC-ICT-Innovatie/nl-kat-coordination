@@ -369,7 +369,7 @@ class SchedulerClient:
     def get_task_details(self, task_id: str) -> Task:
         try:
             task_id = str(uuid.UUID(task_id))
-            return Task.model_validate_json(self._get(f"/tasks/{task_id}", "content"))
+            return Task.model_validate_json(self._get(f"/tasks/{task_id}", return_type="content"))
         except ValueError:
             raise SchedulerTaskNotFound()
 
@@ -420,32 +420,25 @@ class SchedulerClient:
     def health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self._get("/health", return_type="content"))
 
-    def _get_task_stats(self, scheduler_id: str, organisation_id: str | None = None) -> dict:
-        """Return task stats for specific scheduler."""
-        if organisation_id is None:
-            return self._get(f"/tasks/stats?scheduler_id={scheduler_id}")  # type: ignore
-
-        return self._get(f"/tasks/stats?scheduler_id={scheduler_id}&organisation_id={organisation_id}")  # type: ignore
-
-    def _get_task_stats(self, scheduler_id: str, organisation_ids: list[str] | None = None) -> dict:
+    def _get_task_stats(self, scheduler_id: str, organization_ids: list[str] | None = None) -> dict:
         """Return task stats for specific scheduler."""
 
         params: dict[str, object] = {"scheduler_id": scheduler_id}
 
-        if organisation_ids:
-            params["organisation_id"] = organisation_ids
+        if organization_ids:
+            params["organisation_id"] = organization_ids
 
         return self._get("/tasks/stats", params=params)  # type: ignore
 
     def get_task_stats(self, task_type: str) -> dict:
         """Return task stats for specific task type."""
         if not self.organization_code:
-            raise ValueError("No organisation_code set")
-        return self._get_task_stats(scheduler_id=task_type, organisation_ids=[self.organization_code])
+            raise ValueError("No organization_code set")
+        return self._get_task_stats(scheduler_id=task_type, organization_ids=[self.organization_code])
 
-    def get_combined_schedulers_stats(self, scheduler_id: str, organisation_ids: list[str]) -> dict:
-        """Return merged stats for a set of organisation ids."""
-        return self._get_task_stats(scheduler_id, organisation_ids)
+    def get_combined_schedulers_stats(self, scheduler_id: str, organization_ids: list[str]) -> dict:
+        """Return merged stats for a set of organization ids."""
+        return self._get_task_stats(scheduler_id, organization_ids)
 
     @staticmethod
     def _merge_stat_dicts(dicts: list[dict]) -> dict:
@@ -459,7 +452,7 @@ class SchedulerClient:
     def get_task_stats_for_all_organizations(self, scheduler_id: str) -> dict:
         return self._get_task_stats(scheduler_id)
 
-    def _get(self, path: str, params: dict | None, return_type: str = "json") -> dict | bytes:
+    def _get(self, path: str, params: dict | None = None, return_type: str = "json") -> dict | bytes:
         """Helper to do a get request and raise warning for path."""
         try:
             res = self._client.get(path, params=params)

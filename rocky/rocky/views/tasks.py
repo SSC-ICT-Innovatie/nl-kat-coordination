@@ -129,9 +129,6 @@ class AllTaskListView(UnboundSchedulerView, SchedulerListView, PageActionsView):
     client = scheduler_client(None)
     task_filter_form = TaskFilterForm
 
-    def get_user_organizations(self) -> list[str]:
-        return [org.code for org in self.request.user.organizations]
-
     def get_organizations_filter(self) -> dict[str, dict[str, list[dict[str, str | list[str]]]]]:
         if self.request.user.has_perm("tools.can_access_all_organizations"):
             # We don't need to add a filter if the user can access all organizations
