@@ -109,7 +109,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
     def get_task_filters(self) -> dict[str, Any]:
         formdata = self.get_task_filter_form_data()
 
-        filters = {"filters": {"and": []}}
+        filters: dict[str, Any] = {"filters": {"and": []}}
         organizations = formdata.get("organizations", None)
         if organizations and organizations != [""]:
             filters = {"filters": {"and": [self.get_organization_specific_tasks(organizations)]}}
