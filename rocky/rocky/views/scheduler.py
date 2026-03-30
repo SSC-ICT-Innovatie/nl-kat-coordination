@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import structlog
+from account.mixins import UnboundOrganizationView
 from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.utils.translation import gettext_lazy as _
@@ -17,7 +18,6 @@ from tools.forms.scheduler import OrganizationTaskFilterForm, TaskFilterForm
 
 from octopoes.models import OOI
 from octopoes.models.ooi.reports import ReportRecipe
-from account.mixins import UnboundOrganizationView
 from rocky.scheduler import Boefje as SchedulerBoefje
 from rocky.scheduler import (
     BoefjeTask,
@@ -336,7 +336,7 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
     def get_task_filters(self) -> dict[str, Any]:
         formdata = self.get_task_filter_form_data()
 
-        filters = {"filters": {"and": [self.get_organization_specific_tasks()]}}
+        filters: dict[str, Any] = {"filters": {"and": [self.get_organization_specific_tasks()]}}
 
         plugin_id = formdata.get("plugin_id", self.plugin.id if hasattr(self, "plugin") else None)
         if plugin_id:
