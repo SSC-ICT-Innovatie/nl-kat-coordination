@@ -73,7 +73,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
     def get_task_filters(self) -> dict[str, str | datetime | None]:
         filters = super().get_task_filters()
-        filters["filters"]["filters"].append(
+        filters["filters"]["filters"]["and"].append(
             {"column": "data", "field": "input_ooi", "operator": "==", "value": str(self.ooi)}
         )
         return filters
