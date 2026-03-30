@@ -185,7 +185,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
     def get_task_details(self, task_id: str) -> Task | None:
         try:
             task = self.scheduler_client.get_task_details(task_id)
-            if task.organization_id() in self.get_user_organizations():
+            if task.organization_id() not in self.get_user_organizations():
                 raise SchedulerTaskNotFound()
 
             return task
