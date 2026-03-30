@@ -1,6 +1,7 @@
 from typing import Any
 
 from django.contrib import messages
+from django.http import HttpRequest, HttpResponse
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.list import ListView
@@ -14,12 +15,20 @@ from rocky.views.scheduler import SchedulerView, UnboundSchedulerView
 
 
 class SchedulerListView(ListView):
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+    def dispatch(
+        self,
+        request: HttpRequest,
+        *args: Any,
+        **kwargs: Any
+    ) -> HttpResponse:
         try:
-            return super().get_context_data(**kwargs)
+            return super().dispatch(request, *args, **kwargs)
         except SchedulerError as error:
-            messages.error(self.request, error.message)
-        return {}
+            messages.error(request, error.message)
+            self.object_list = []
+            return self.render_to_response(
+                self.get_context_data()
+            )
 
 
 class TaskListView(SchedulerView, SchedulerListView, PageActionsView):
