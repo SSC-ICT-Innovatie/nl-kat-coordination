@@ -17,7 +17,7 @@ from tools.forms.scheduler import OrganizationTaskFilterForm, TaskFilterForm
 
 from octopoes.models import OOI
 from octopoes.models.ooi.reports import ReportRecipe
-from rockt.account.mixins import UnboundOrganizationView
+from rockty.account.mixins import UnboundOrganizationView
 from rocky.scheduler import Boefje as SchedulerBoefje
 from rocky.scheduler import (
     BoefjeTask,
@@ -220,13 +220,12 @@ class UnboundSchedulerView(UnboundOrganizationView):
         try:
             task = self.get_task_details(self.kwargs["task_id"])
             if task:
-                return JsonResponse(
-                    {
-                        "oois": list(self.get_output_oois(task)),
-                        "valid_time": task.modified_at.strftime("%Y-%m-%dT%H:%M:%S"),
-                    },
-                    safe=False,
-                )
+                params: dict[str, list[str] | str] = {
+                    "oois": list(self.get_output_oois(task))
+                }
+                if task.modified_at:
+                    params["valid_time"] = task.modified_at.strftime("%Y-%m-%dT%H:%M:%S")
+                return JsonResponse(params, safe=False)
             else:
                 raise SchedulerTaskNotFound()
 
@@ -411,7 +410,7 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
             messages.error(self.request, error.message)
         return stats
 
-    def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str]:
+    def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str | list[str]]:
         if organizations:
             raise ValueError("Bound SchedulerView does not support organization argument, use UnboundSchedulerView")
         return {"column": "organisation", "operator": "==", "value": self.organization.code}

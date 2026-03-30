@@ -436,7 +436,7 @@ class SchedulerClient:
             raise ValueError("No organization_code set")
         return self._get_task_stats(scheduler_id=task_type, organization_ids=[self.organization_code])
 
-    def get_combined_schedulers_stats(self, scheduler_id: str, organization_ids: list[str]) -> dict:
+    def get_combined_schedulers_stats(self, scheduler_id: str, organization_ids: list[str] | None = None) -> dict:
         """Return merged stats for a set of organization ids."""
         return self._get_task_stats(scheduler_id, organization_ids)
 

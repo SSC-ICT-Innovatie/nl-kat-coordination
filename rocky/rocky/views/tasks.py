@@ -167,7 +167,7 @@ class AllTaskListView(UnboundSchedulerView, SchedulerListView, PageActionsView):
 
         if context["active_filters_counter"] == 0 and first_page:
             task_organizations = (
-                self.get_user_organizations() 
+                self.get_user_organizations()
                 if not self.request.user.has_perm("tools.can_access_all_organizations")
                 else None
             )

@@ -5,7 +5,7 @@ from datetime import datetime
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from jsonschema.validators import Draft202012Validator
-from katalogus.client import Boefje
+from katalogus.client import Boefje, KATalogusError
 from reports.report_types.helpers import get_report_types_for_ooi
 from tools.forms.ooi import PossibleBoefjesFilterForm
 from tools.forms.scheduler import OOIDetailTaskFilterForm
