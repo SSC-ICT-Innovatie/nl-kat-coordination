@@ -361,8 +361,8 @@ class SchedulerClient:
             endpoint = "/tasks"
             res = self._client.post(endpoint, params=params, json=kwargs.get(filter_key))
             return PaginatedTasksResponse.model_validate_json(res.content)
-        except ValidationError:
-            raise SchedulerValidationError(extra_message=_("Task list: "))
+        except ValidationError as error:
+            raise SchedulerValidationError(extra_message=_("Task list: ")) from error
         except ConnectError:
             raise SchedulerConnectError(extra_message=_("Task list: "))
 
@@ -427,9 +427,27 @@ class SchedulerClient:
 
         return self._get(f"/tasks/stats?scheduler_id={scheduler_id}&organisation_id={organisation_id}")  # type: ignore
 
+    def _get_task_stats(self, scheduler_id: str, organisation_ids: list[str] | None = None) -> dict:
+        """Return task stats for specific scheduler."""
+
+        params: dict[str, object] = {
+            "scheduler_id": scheduler_id,
+        }
+
+        if organisation_ids:
+            params["organisation_id"] = organisation_ids
+
+        return self._get("/tasks/stats", params=params)  # type: ignore
+
     def get_task_stats(self, task_type: str) -> dict:
         """Return task stats for specific task type."""
-        return self._get_task_stats(scheduler_id=task_type, organisation_id=self.organization_code)
+        if not self.organization_code:
+            raise ValueError("No organisation_code set")
+        return self._get_task_stats(scheduler_id=task_type, organisation_ids=[self.organization_code])
+
+    def get_combined_schedulers_stats(self, scheduler_id: str, organisation_ids: list[str]) -> dict:
+        """Return merged stats for a set of organisation ids."""
+        return self._get_task_stats(scheduler_id, organisation_ids)
 
     @staticmethod
     def _merge_stat_dicts(dicts: list[dict]) -> dict:
@@ -449,10 +467,10 @@ class SchedulerClient:
             dicts=[self._get_task_stats(scheduler_id, org_code) for org_code in organization_codes]
         )
 
-    def _get(self, path: str, return_type: str = "json") -> dict | bytes:
+    def _get(self, path: str, params: dict | None, return_type: str = "json") -> dict | bytes:
         """Helper to do a get request and raise warning for path."""
         try:
-            res = self._client.get(path)
+            res = self._client.get(path, params=params)
             res.raise_for_status()
         except HTTPError as exc:
             raise SchedulerError(path) from exc

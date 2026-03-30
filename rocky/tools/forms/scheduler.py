@@ -22,9 +22,35 @@ class TaskFilterForm(forms.Form):
         ),
         required=False,
     )
-    input_ooi = forms.CharField(
-        label=_("Search"), widget=forms.TextInput(attrs={"placeholder": _("Search by object name")}), required=False
+    ooi_search = forms.CharField(
+        label=_("Search (in OOI)"),
+        widget=forms.TextInput(attrs={"placeholder": _("Search by object name")}),
+        required=False,
     )
+    ooi_id = forms.CharField(
+        label=_("Input OOI"), widget=forms.TextInput(attrs={"placeholder": _("Select specific object")}), required=False
+    )
+    plugin_id = forms.CharField(
+        label=_("Plugin"), widget=forms.TextInput(attrs={"placeholder": _("Search by plugin")}), required=False
+    )
+    task_id = forms.CharField(
+        label=_("Task id"), widget=forms.TextInput(attrs={"placeholder": _("Search by task ID")}), required=False
+    )
+
+    organizations = forms.MultipleChoiceField(
+        choices=(),
+        required=False,
+    )
+
+    def __init__(self, *args, organizations=None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if organizations is not None:
+            choices = [("", _("All"))]
+            choices.extend([
+                (org, org) for org in organizations
+            ])
+            self.fields["organizations"].choices = choices
 
     def clean(self):
         cleaned_data = super().clean()
@@ -37,15 +63,28 @@ class TaskFilterForm(forms.Form):
         now = datetime.now(tz=timezone.utc)
 
         if min_created_at is not None and min_created_at > now.date():
-            self.add_error("min_created_at", date_message)
+            self.add_error("min_created_at", date_message % _("'from'"))
 
         if max_created_at is not None and max_created_at > now.date():
-            self.add_error("max_created_at", date_message)
+            self.add_error("max_created_at", date_message % _("'to'"))
+
+        # swap dates around if user swapped them by accident.
+        if min_created_at is not None and max_created_at is not None and min_created_at > max_created_at:
+            temp = max_created_at
+            max_created_at = min_created_at
+            min_created_at = temp
 
         return cleaned_data
 
 
-class OOIDetailTaskFilterForm(TaskFilterForm):
+class OrganizationTaskFilterForm(TaskFilterForm):
+    organizations = None
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+
+class OOIDetailTaskFilterForm(OrganizationTaskFilterForm):
     """
     Task filter at OOI detail to pass observed_at and ooi_id values.
     """
@@ -54,4 +93,4 @@ class OOIDetailTaskFilterForm(TaskFilterForm):
     ooi_id = forms.CharField(widget=forms.HiddenInput(), required=False)
 
     # No need to search for OOI if you are already at the OOI detail page.
-    input_ooi = None
+    ooi_search = None

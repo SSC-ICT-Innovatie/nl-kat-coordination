@@ -10,7 +10,7 @@ from tools.forms.scheduler import TaskFilterForm
 from rocky.paginator import RockyPaginator
 from rocky.scheduler import LazyTaskList, SchedulerError, scheduler_client
 from rocky.views.page_actions import PageActionsView
-from rocky.views.scheduler import SchedulerView
+from rocky.views.scheduler import SchedulerView, UnboundSchedulerView
 
 
 class SchedulerListView(ListView):
@@ -41,10 +41,22 @@ class TaskListView(SchedulerView, SchedulerListView, PageActionsView):
         context = super().get_context_data(**kwargs)
         context["task_filter_form"] = self.get_task_filter_form()
         context["active_filters_counter"] = self.count_active_task_filters()
+        first_page = True
+
+        if context["page_obj"]:
+            # Explicitly check if this is the first page
+            first_page = context["page_obj"].number == 1
+
+        if context["active_filters_counter"] == 0 and first_page:
+            context["stats"] = self.get_task_statistics()
         context["breadcrumbs"] = [
             {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")}
         ]
         return context
+
+
+class OOIDetailTaskListView(TaskListView):
+    paginate_by = 20
 
 
 class BoefjesTaskListView(TaskListView):
@@ -53,7 +65,6 @@ class BoefjesTaskListView(TaskListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["stats"] = self.get_task_statistics()
         context["breadcrumbs"] = [
             {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")},
             {
@@ -70,7 +81,6 @@ class NormalizersTaskListView(TaskListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["stats"] = self.get_task_statistics()
         context["breadcrumbs"] = [
             {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")},
             {
@@ -102,7 +112,6 @@ class ReportsTaskListView(TaskListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["stats"] = self.get_task_statistics()
         context["breadcrumbs"] = [
             {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")},
             {
@@ -135,11 +144,11 @@ class AllTaskListView(SchedulerListView, PageActionsView):
         }
 
     def get_queryset(self):
-        form_data = self.task_filter_form(self.request.GET).data.dict()
-        kwargs = {k: v for k, v in form_data.items() if v} | self.get_organization_filter()
+        form_data = self.get_task_filters()
+        kwargs = {k: v for k, v in form_data.items() if v} | self.get_organizations_filter()
 
         try:
-            return LazyTaskList(self.client, task_type=self.task_type, **kwargs)
+            return LazyTaskList(self.client, **kwargs)
 
         except HTTPError as error:
             error_message = _(f"Fetching tasks failed: no connection with scheduler: {error}")
@@ -151,11 +160,19 @@ class AllTaskListView(SchedulerListView, PageActionsView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["task_filter_form"] = self.task_filter_form(self.request.GET)
-        if self.request.user.has_perm("tools.can_access_all_organizations"):
-            context["stats"] = self.client.get_task_stats_for_all_organizations(self.task_type)
-        else:
-            context["stats"] = self.client.get_combined_schedulers_stats(self.task_type, self.get_user_organizations())
+        context["task_filter_form"] = self.get_task_filter_form()
+        context["active_filters_counter"] = self.count_active_task_filters()
+        first_page = True
+
+        if context["page_obj"]:
+            # Explicitly check if this is the first page
+            first_page = context["page_obj"].number == 1
+
+        if context["active_filters_counter"] == 0 and first_page:
+            task_organizations = self.get_user_organizations() if not self.request.user.has_perm("tools.can_access_all_organizations") else None
+            context["stats"] = self.client.get_combined_schedulers_stats(
+                self.get_task_type(), task_organizations
+            )
         context["breadcrumbs"] = [{"url": reverse("all_task_list", kwargs={}), "text": _("All Tasks")}]
         return context
 

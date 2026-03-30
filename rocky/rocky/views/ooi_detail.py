@@ -18,7 +18,7 @@ from rocky.views.ooi_view import BaseOOIDetailView
 from rocky.views.tasks import TaskListView
 
 
-class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, TaskListView):
+class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, OOIDetailTaskListView):
     template_name = "oois/ooi_detail.html"
     task_filter_form = OOIDetailTaskFilterForm
     task_type = "boefje"
@@ -109,7 +109,11 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
         context["ooi"] = self.ooi
 
-        enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
+        try:
+            enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
+        except KATalogusError as error:
+            messages.error(self.request, 'Could not get enabled boefjes from KATalogus, request failed')
+            enabled_boefjes = []
         ooi_boefjes = self.get_boefjes_for_ooi(enabled_boefjes)
 
         filter_form = self.get_boefjes_filter_form()
@@ -138,7 +142,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             context["inference_origin_params"] = inference_origin_params
         else:
             context["inference_origin_params"] = None
-        context["member"] = self.organization_member
 
         # TODO: generic solution to render ooi fields properly: https://github.com/minvws/nl-kat-coordination/issues/145
         context["object_details"] = format_display(self.get_ooi_properties(self.ooi), ignore=["json_schema"])
@@ -157,7 +160,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         context["severity_summary_totals"] = sum(context["count_findings_per_severity"].values())
 
         context["possible_boefjes_filter_form"] = self.get_boefjes_filter_form()
-        context["organization_indemnification"] = self.indemnification_present
 
         context["possible_reports"] = [
             report.class_attributes() for report in get_report_types_for_ooi(self.ooi.primary_key)
