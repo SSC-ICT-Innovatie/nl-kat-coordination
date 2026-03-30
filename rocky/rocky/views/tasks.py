@@ -15,6 +15,8 @@ from rocky.views.scheduler import SchedulerView, UnboundSchedulerView
 
 
 class SchedulerListView(ListView):
+    object_list: Iterable[Any]
+
     def dispatch(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         try:
             return super().dispatch(request, *args, **kwargs)
