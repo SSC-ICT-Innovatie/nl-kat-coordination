@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from pydantic import ValidationError
-from tools.forms.base import BaseRockyForm, ObservedAtForm
+from tools.forms.base import BaseRockyForm
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES, ClearanceFilterForm, OOIForm, OrderByObjectTypeForm
 from tools.ooi_helpers import create_ooi
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
@@ -20,22 +20,14 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.types import get_collapsed_types, type_by_name
 from rocky.paginator import RockyPaginator
-from rocky.views.mixins import (
-    OBJECT_LIST_COLUMNS,
-    ConnectorFormMixin,
-    OctopoesView,
-    OOIList,
-    SingleOOIMixin,
-    SingleOOITreeMixin,
-)
+from rocky.views.mixins import OBJECT_LIST_COLUMNS, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
 
 
-class OOIFilterView(ConnectorFormMixin, OctopoesView):
+class OOIFilterView(OctopoesView):
     """
     Shows filter options with different filter forms and handles filter requests for OOIs.
     """
 
-    connector_form_class = ObservedAtForm
     ooi_types = get_collapsed_types().difference(
         {Finding, FindingType, BaseReport, Report, ReportRecipe, AssetReport, ReportData, HydratedReport}
     )
@@ -48,9 +40,6 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
         self.clearance_levels = request.GET.getlist("clearance_level", [])
         self.clearance_types = request.GET.getlist("clearance_type", [])
         self.search_string = request.GET.get("search", "")
-
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
 
     def get_active_filters(self) -> dict[str, str]:
         active_filters = {}
@@ -113,8 +102,6 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["observed_at"] = self.observed_at
-        context["observed_at_form"] = self.get_connector_form()
         context["order_by"] = self.order_by
         context["order_by_form"] = OrderByObjectTypeForm(self.request.GET)
 
@@ -147,9 +134,7 @@ class BaseOOIListView(OOIFilterView, ListView):
         return context
 
 
-class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin, ConnectorFormMixin):
-    connector_form_class = ObservedAtForm
-
+class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         tree = self.tree
@@ -173,9 +158,6 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin, ConnectorFormMixin
         context["ooi"] = self.ooi
         context["ooi_current"] = self.get_current_ooi()
         context["mandatory_fields"] = get_mandatory_fields(self.request)
-        context["observed_at"] = self.observed_at
-        context["observed_at_form"] = self.get_connector_form()
-
         return context
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
