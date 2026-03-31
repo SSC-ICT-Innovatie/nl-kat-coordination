@@ -52,10 +52,14 @@
                                         </td>
                                     {% endif %}
                                     <td>
+                                        <a href="{{ request.path }}?plugin_id={{ task.data.normalizer.id }}"
+                                           title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
+                                        <a href="{{ request.path }}{% querystring plugin_id=task.data.normalizer.id %}"
+                                           title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
                                         <a href="{% url "normalizer_detail" task.data.raw_data.boefje_meta.organization task.data.normalizer.id %}">{{ task.data.normalizer.id }}</a>
                                     </td>
                                     <td class="nowrap">
-                                        <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.value|capfirst }}
+                                        <i class="icon {{ task.status.value }}"></i>&nbsp;<a href="{{ request.path }}?status={{ task.status.value }}">{{ task.status.value|capfirst }}</a>
                                     </td>
                                     <td>{{ task.created_at }}</td>
                                     <td>{{ task.modified_at }}</td>
@@ -64,14 +68,26 @@
                                             {% if task.data.raw_data.boefje_meta.boefje.id == "manual" %}
                                                 <p>{% translate "Manually added" %}</p>
                                             {% else %}
+                                                <a href="{{ request.path }}?plugin_id={{ task.data.raw_data.boefje_meta.boefje.id }}"
+                                                   title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
+                                                <a href="{{ request.path }}{% querystring plugin_id=task.data.raw_data.boefje_meta.boefje.id %}"
+                                                   title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
                                                 <a href="{% url "boefje_detail" task.data.raw_data.boefje_meta.organization task.data.raw_data.boefje_meta.boefje.id %}">{{ task.data.raw_data.boefje_meta.boefje.name }}</a>
                                             {% endif %}
                                         {% else %}
+                                            <a href="{{ request.path }}?plugin_id={{ task.data.raw_data.boefje_meta.boefje.id }}"
+                                               title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
+                                            <a href="{{ request.path }}{% querystring plugin_id=task.data.raw_data.boefje_meta.boefje.id %}"
+                                               title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
                                             <a href="{% url "boefje_detail" task.data.raw_data.boefje_meta.organization task.data.raw_data.boefje_meta.boefje.id %}">{{ task.data.raw_data.boefje_meta.boefje.id }}</a>
                                         {% endif %}
                                     </td>
                                     <td>
                                         {% if task.data.raw_data.boefje_meta.input_ooi %}
+                                            <a href="{{ request.path }}?ooi_id={{ task.data.raw_data.boefje_meta.input_ooi }}"
+                                               title="{% translate "Filter on this ooi" %}"><i class="icon filter"></i></a>
+                                            <a href="{{ request.path }}{% querystring ooi_id=task.data.raw_data.boefje_meta.input_ooi %}"
+                                               title="{% translate "Add filter on this ooi" %}"><i class="icon filteradd"></i></a>
                                             <a href="{% ooi_url "ooi_detail" task.data.raw_data.boefje_meta.input_ooi task.data.raw_data.boefje_meta.organization observed_at=task.created_at|date:'c' %}">{{ task.data.raw_data.boefje_meta.input_ooi }}</a>
                                         {% endif %}
                                     </td>

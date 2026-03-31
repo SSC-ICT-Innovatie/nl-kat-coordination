@@ -50,16 +50,26 @@
                                         </td>
                                     {% endif %}
                                     <td>
+                                        <a href="{{ request.path }}?plugin_id={{ task.data.boefje.id }}"
+                                           title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
+                                        <a href="{{ request.path }}{% querystring plugin_id=task.data.boefje.id %}"
+                                           title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
                                         <a href="{% url "boefje_detail" task.data.organization task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
                                     </td>
                                     <td>
-                                        <i class="icon {{ task.status.value }}"></i>{{ task.status.value|capfirst }}
+                                        <i class="icon {{ task.status.value }}"></i>
+                                        <a href="{{ request.path }}?status={{ task.status.value }}"
+                                           title="{% translate "Filter on this status" %}">{{ task.status.value|capfirst }}</a>
+                                        <a href="{{ request.path }}{% querystring status=task.status.value %}"
+                                           title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
                                     </td>
-                                    <td>
-                                        <i class="icon {{ task.status.value }}"></i>{{ task.created_at }}
-                                    </td>
+                                    <td>{{ task.created_at }}</td>
                                     <td>{{ task.modified_at }}</td>
                                     <td>
+                                        <a href="{{ request.path }}?ooi_id={{ task.data.input_ooi }}"
+                                           title="{% translate "Filter on this ooi" %}"><i class="icon filter"></i></a>
+                                        <a href="{{ request.path }}{% querystring ooi_id=task.data.input_ooi %}"
+                                           title="{% translate "Add filter on this ooi" %}"><i class="icon filteradd"></i></a>
                                         <a href="{% ooi_url "ooi_detail" task.data.input_ooi task.data.organization observed_at=task.created_at|date:'c' %}">{{ task.data.input_ooi }}</a>
                                     </td>
                                     <td class="actions sticky-cell">
