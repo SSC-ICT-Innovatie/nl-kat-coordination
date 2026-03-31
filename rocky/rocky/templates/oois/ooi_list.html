@@ -110,35 +110,35 @@
                             <tbody>
                                 {% for object in ooi_list %}
                                     {% if  object.ooi_type == "OOIValidationError" %}
-                                    <tr class="error">
-                                        <td></td>
-                                        <td colspan="4">{{ object.message }}</td>
-                                    </tr>
+                                        <tr class="error">
+                                            <td></td>
+                                            <td colspan="4">{{ object.message }}</td>
+                                        </tr>
                                     {% else %}
-                                    <tr>
-                                        <td>
-                                            <input type="checkbox" name="ooi" value="{{ object.primary_key }}">
-                                        </td>
-                                        <td>
-                                            {% if historic_view %}
-                                                <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
-                                            {% else %}
-                                                <a href="{% ooi_url "ooi_detail" object.primary_key organization.code %}">{{ object.human_readable }}</a>
-                                            {% endif %}
-                                        </td>
-                                        <td>
-                                            <a href="{{ request.path }}?{% if historic_view %}observed_at={{ observed_at|date:"Y-m-d" }}&amp;{% endif %}ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
-                                        </td>
-                                        <td>
-                                            {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
+                                        <tr>
+                                            <td>
+                                                <input type="checkbox" name="ooi" value="{{ object.primary_key }}">
+                                            </td>
+                                            <td>
+                                                {% if historic_view %}
+                                                    <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
+                                                {% else %}
+                                                    <a href="{% ooi_url "ooi_detail" object.primary_key organization.code %}">{{ object.human_readable }}</a>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <a href="{{ request.path }}?{% if historic_view %}observed_at={{ observed_at|date:"Y-m-d" }}&amp;{% endif %}ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
+                                            </td>
+                                            <td>
+                                                {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
 
-                                        </td>
-                                        <td>
-                                            {% if object.scan_profile %}
-                                                <a href="{% ooi_url 'scan_profile_detail' object.primary_key organization.code %}?{% if historic_view %}observed_at={{ observed_at|date:"Y-m-d" }}&amp;{% endif %}ooi_id={{ object.primary_key }}">{{ object.scan_profile.scan_profile_type|title }}</a>
-                                            {% endif %}
-                                        </td>
-                                    </tr>
+                                            </td>
+                                            <td>
+                                                {% if object.scan_profile %}
+                                                    <a href="{% ooi_url 'scan_profile_detail' object.primary_key organization.code %}?{% if historic_view %}observed_at={{ observed_at|date:"Y-m-d" }}&amp;{% endif %}ooi_id={{ object.primary_key }}">{{ object.scan_profile.scan_profile_type|title }}</a>
+                                                {% endif %}
+                                            </td>
+                                        </tr>
                                     {% endif %}
                                 {% endfor %}
                             </tbody>

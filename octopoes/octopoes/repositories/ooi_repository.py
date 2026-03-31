@@ -81,14 +81,18 @@ class OOIRepository(Repository):
     ) -> list[TransactionRecord]:
         raise NotImplementedError
 
-    def load_bulk(self, references: set[Reference], valid_time: datetime) -> dict[str, OOI]:
+    def load_bulk(
+        self, references: set[Reference], valid_time: datetime, skip_errors: bool = False
+    ) -> dict[str, OOI]:
         raise NotImplementedError
 
-    def load_bulk_as_list(self, references: set[Reference], valid_time: datetime) -> list[OOI]:
+    def load_bulk_as_list(
+        self, references: set[Reference], valid_time: datetime, skip_errors: bool = False
+    ) -> list[OOI]:
         raise NotImplementedError
 
     def get_neighbours(
-        self, reference: Reference, valid_time: datetime, paths: set[Path] | None = None
+        self, reference: Reference, valid_time: datetime, paths: set[Path] | None = None, skip_errors: bool = False
     ) -> dict[Path, list[OOI]]:
         raise NotImplementedError
 
@@ -107,7 +111,9 @@ class OOIRepository(Repository):
     ) -> Paginated[OOI]:
         raise NotImplementedError
 
-    def list_oois_by_object_types(self, types: set[type[OOI]], valid_time: datetime) -> list[OOI]:
+    def list_oois_by_object_types(
+        self, types: set[type[OOI]], valid_time: datetime, skip_errors: bool = False
+    ) -> list[OOI]:
         raise NotImplementedError
 
     def list_random(
@@ -151,11 +157,18 @@ class OOIRepository(Repository):
         search_string: str | None = None,
         order_by: Literal["score", "finding_type"] = "score",
         asc_desc: Literal["asc", "desc"] = "desc",
+        skip_errors: bool = False,
     ) -> Paginated[Finding]:
         raise NotImplementedError
 
     def list_reports(
-        self, valid_time: datetime, offset: int, limit: int, recipe_id: UUID | None = None, ignore_count: bool = False
+        self,
+        valid_time: datetime,
+        offset: int,
+        limit: int,
+        recipe_id: UUID | None = None,
+        ignore_count: bool = False,
+        skip_errors: bool = False,
     ) -> Paginated[HydratedReport]:
         raise NotImplementedError
 
@@ -165,11 +178,11 @@ class OOIRepository(Repository):
     def get_bit_configs(self, source: OOI, bit_definition: BitDefinition, valid_time: datetime) -> list[Config]:
         raise NotImplementedError
 
-    def list_related(self, ooi: OOI, path: Path, valid_time: datetime) -> list[OOI]:
+    def list_related(self, ooi: OOI, path: Path, valid_time: datetime, skip_errors: bool = False) -> list[OOI]:
         raise NotImplementedError
 
     def query(
-        self, query: str | Query, valid_time: datetime, to_type: type[OOI] | None = None
+        self, query: str | Query, valid_time: datetime, to_type: type[OOI] | None = None, skip_errors: bool = False
     ) -> list[OOI | tuple | dict[Any, Any]]:
         raise NotImplementedError
 
@@ -280,7 +293,7 @@ class XTDBOOIRepository(OOIRepository):
                     tools/xtdb-cli.py --url $yourxdb --node $yourorga evict-ooi "%s"
                     """,
                     stripped["primary_key"],
-                    stripped["primary_key"]
+                    stripped["primary_key"],
                 )
                 error_data = {
                     "source": stripped["primary_key"],
@@ -329,11 +342,15 @@ class XTDBOOIRepository(OOIRepository):
 
             raise
 
-    def load_bulk(self, references: set[Reference], valid_time: datetime) -> dict[str, OOI]:
-        oois = self.load_bulk_as_list(references, valid_time)
+    def load_bulk(
+        self, references: set[Reference], valid_time: datetime, skip_errors: bool = False
+    ) -> dict[str, OOI]:
+        oois = self.load_bulk_as_list(references, valid_time, skip_errors=skip_errors)
         return {ooi.primary_key: ooi for ooi in oois}
 
-    def load_bulk_as_list(self, references: set[Reference], valid_time: datetime) -> list[OOI]:
+    def load_bulk_as_list(
+        self, references: set[Reference], valid_time: datetime, skip_errors: bool = False
+    ) -> list[OOI]:
         if not references:
             return []
 
@@ -341,7 +358,7 @@ class XTDBOOIRepository(OOIRepository):
         return [
             deserialized
             for x in self.session.client.query(query, valid_time)
-            if (deserialized := self.deserialize(data=x[0], skip_errors=True)) is not False
+            if (deserialized := self.deserialize(data=x[0], skip_errors=skip_errors)) is not False
         ]
 
     def list_oois(
@@ -423,7 +440,9 @@ class XTDBOOIRepository(OOIRepository):
         oois = [deserialized for x in res if (deserialized := self.deserialize(data=x[0], skip_errors=skip_errors))]
         return Paginated(count=count, items=oois)
 
-    def list_oois_by_object_types(self, types: set[type[OOI]], valid_time: datetime) -> list[OOI]:
+    def list_oois_by_object_types(
+        self, types: set[type[OOI]], valid_time: datetime, skip_errors: bool=True
+    ) -> list[OOI]:
         types = to_concrete(types)
         data_query = """
                 {{
@@ -468,7 +487,12 @@ class XTDBOOIRepository(OOIRepository):
         return list(self.load_bulk(references, valid_time).values())
 
     def get_tree(
-        self, reference: Reference, valid_time: datetime, search_types: set[type[OOI]] | None = None, depth: int = 1
+        self,
+        reference: Reference,
+        valid_time: datetime,
+        search_types: set[type[OOI]] | None = None,
+        depth: int = 1,
+        skip_errors: bool = False,
     ) -> ReferenceTree:
         if search_types is None:
             search_types = {OOI}
@@ -486,7 +510,9 @@ class XTDBOOIRepository(OOIRepository):
         store = self.load_bulk(reference_node.collect_references(), valid_time)
         return ReferenceTree(root=reference_node, store=store)
 
-    def _get_related_objects(self, references: set[Reference], valid_time: datetime | None) -> list[ReferenceNode]:
+    def _get_related_objects(
+        self, references: set[Reference], valid_time: datetime | None, skip_errors: bool = False
+    ) -> list[ReferenceNode]:
         """
         Returns a Reference node for each reference, containing the 1-depth related objects
         """
@@ -506,6 +532,7 @@ class XTDBOOIRepository(OOIRepository):
         depth: int = 1,
         exclude: set[Reference] | None = None,
         valid_time: datetime | None = None,
+        skip_errors: bool = False,
     ) -> list[ReferenceNode]:
         if depth == 0 or not references:
             return []
@@ -514,7 +541,7 @@ class XTDBOOIRepository(OOIRepository):
             exclude = set()
 
         # Query 1-depth related objects
-        reference_nodes = self._get_related_objects(references, valid_time=valid_time)
+        reference_nodes = self._get_related_objects(references, valid_time=valid_time, skip_errors=skip_errors)
 
         # Filter exclusions from results
         for reference_node in reference_nodes:
@@ -532,7 +559,13 @@ class XTDBOOIRepository(OOIRepository):
 
         # Query next level
         exclude.update(references)
-        deeper_result = self._get_tree_level(deeper_references, depth=depth - 1, exclude=exclude, valid_time=valid_time)
+        deeper_result = self._get_tree_level(
+            deeper_references,
+            depth=depth - 1,
+            exclude=exclude,
+            valid_time=valid_time,
+            skip_errors=skip_errors
+        )
 
         # Replace flat results with recursed results
         deeper_lookup = {node.reference: node for node in deeper_result}
@@ -606,7 +639,7 @@ class XTDBOOIRepository(OOIRepository):
         return query
 
     def get_neighbours(
-        self, reference: Reference, valid_time: datetime, paths: set[Path] | None = None
+        self, reference: Reference, valid_time: datetime, paths: set[Path] | None = None, skip_errors: bool = False
     ) -> dict[Path, list[OOI]]:
         query = self.construct_neighbour_query(reference, paths)
 
@@ -623,9 +656,9 @@ class XTDBOOIRepository(OOIRepository):
                 continue
             path = Path([self.decode_segment(key)])
             if isinstance(value, list):
-                ret[path] = [self.deserialize(serialized) for serialized in value]
+                ret[path] = [self.deserialize(serialized, skip_errors=skip_errors) for serialized in value]
             else:
-                ret[path] = [self.deserialize(value)]
+                ret[path] = [self.deserialize(value, skip_errors=skip_errors)]
 
         return ret
 
@@ -735,7 +768,9 @@ class XTDBOOIRepository(OOIRepository):
             severity_counts.update([severity] * finding_count)
         return severity_counts
 
-    def get_bit_configs(self, source: OOI, bit_definition: BitDefinition, valid_time: datetime) -> list[Config]:
+    def get_bit_configs(
+        self, source: OOI, bit_definition: BitDefinition, valid_time: datetime, skip_errors: bool = False
+    ) -> list[Config]:
         path = Path.parse(f"{bit_definition.config_ooi_relation_path}.<ooi [is Config]")
 
         query = (
@@ -744,16 +779,16 @@ class XTDBOOIRepository(OOIRepository):
             .where(Config, bit_id=bit_definition.id)
         )
 
-        configs = self.query(query, valid_time)
+        configs = self.query(query, valid_time, skip_errors=skip_errors)
 
         return [config for config in configs if isinstance(config, Config)]
 
-    def list_related(self, ooi: OOI, path: Path, valid_time: datetime) -> list[OOI]:
+    def list_related(self, ooi: OOI, path: Path, valid_time: datetime, skip_errors: bool = False) -> list[OOI]:
         path_start_alias = path.segments[0].source_type
         query = Query.from_path(path).where(path_start_alias, primary_key=ooi.primary_key)
 
         # query() can return different types depending on the query
-        return self.query(query, valid_time)  # type: ignore[return-value]
+        return self.query(query, valid_time, skip_errors=skip_errors)  # type: ignore[return-value]
 
     def list_findings(
         self,
@@ -766,6 +801,7 @@ class XTDBOOIRepository(OOIRepository):
         search_string: str | None = None,
         order_by: Literal["score", "finding_type"] = "score",
         asc_desc: Literal["asc", "desc"] = "desc",
+        skip_errors: bool = False,
     ) -> Paginated[Finding]:
         # clause to find risk_severity
         concrete_finding_types = to_concrete({FindingType})
@@ -840,7 +876,7 @@ class XTDBOOIRepository(OOIRepository):
             }}
         """
 
-        return Paginated(count=count, items=[x[0] for x in self.query(finding_query, valid_time)])
+        return Paginated(count=count, items=[x[0] for x in self.query(finding_query, valid_time, skip_errors=skip_errors)])
 
     def simplify_keys(self, data: dict[str, Any]) -> dict[str, Any]:
         new_data: dict[str, Any] = {}
@@ -857,7 +893,13 @@ class XTDBOOIRepository(OOIRepository):
         return new_data
 
     def list_reports(
-        self, valid_time: datetime, offset: int, limit: int, recipe_id: UUID | None = None, ignore_count: bool = False
+        self,
+        valid_time: datetime,
+        offset: int,
+        limit: int,
+        recipe_id: UUID | None = None,
+        ignore_count: bool = False,
+        skip_errors: bool = False,
     ) -> Paginated[HydratedReport]:
         date = Aliased(Report, field="date_generated")
         query = Query(Report).where(Report, date_generated=date)
@@ -879,7 +921,7 @@ class XTDBOOIRepository(OOIRepository):
 
         # XTDB requires the field ordered on to be returned in a find statement, see e.g. the discussion here:
         # https://github.com/xtdb/xtdb/issues/418
-        results = self.query(query.find(date).limit(limit).offset(offset), valid_time, HydratedReport)
+        results = self.query(query.find(date).limit(limit).offset(offset), valid_time, HydratedReport, skip_errors)
 
         # Remove the date from the results
         return Paginated(count=count, items=[results[0] for results in results])
@@ -902,7 +944,7 @@ class XTDBOOIRepository(OOIRepository):
         return result
 
     def query(
-        self, query: str | Query, valid_time: datetime, to_type: type[OOI] | None = None
+        self, query: str | Query, valid_time: datetime, to_type: type[OOI] | None = None, skip_errors: bool = False
     ) -> list[OOI | tuple | dict[Any, Any]]:
         """
         Performs the given query and returns the query results at the provided valid_time.
@@ -921,7 +963,7 @@ class XTDBOOIRepository(OOIRepository):
             for item in result:
                 if isinstance(item, dict):
                     try:
-                        parsed_result.append(self.deserialize(item, to_type))
+                        parsed_result.append(self.deserialize(item, to_type, skip_errors=skip_errors))
                     except (ValueError, TypeError):
                         parsed_result.append(item)  # type: ignore
                 else:
