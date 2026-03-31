@@ -16,6 +16,7 @@ dependencies = [
     "autodoc-pydantic>=2.2.0,<3",
     "croniter>=6.0.0,<7",
     "jsonschema>=4.17.0,<5",
+    "pygments>=2.20.0",
 ]
 
 [tool.uv]
