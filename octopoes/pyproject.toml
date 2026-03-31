@@ -1,7 +1,7 @@
 [project]
 name = "octopoes"
 version = "0.0.1.dev1"
-description = "KAT's knowledge graph engine"
+description = "OpenKAT's knowledge graph engine"
 authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
 requires-python = ">=3.10"
 license = { text = "EUPL-1.2" }
@@ -61,7 +61,7 @@ relative_files = true
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report xml --cov-branch --cov-report=term-missing:skip-covered"
 env = [
-    "D:XTDB_URI=http://testxtdb:3000",
+    "D:XTDB_URI=http://xtdb:3000",
     "D:QUEUE_URI=amqp://placeholder",
     "D:KATALOGUS_API=http://placeholder:8000",
 ]

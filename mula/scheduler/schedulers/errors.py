@@ -19,7 +19,7 @@ def exception_handler(func):
             self.logger.debug(exc)
             return None
         except Exception as exc:
-            self.logger.exception(exc=exc)
+            self.logger.exception("An exception occurred", exc=exc)
             raise exc
 
     return inner_function

@@ -86,7 +86,7 @@ class NormalizersTaskListView(TaskListView):
             for task in task_list
             if task.data.raw_data.boefje_meta.boefje.id != "manual"
         }
-        plugins = self.get_katalogus().get_plugins(ids=list(ids))
+        plugins = self.katalogus_client.get_plugins(ids=list(ids))
         plugin_dict = {p.id: p.name for p in plugins}
 
         for task in task_list:

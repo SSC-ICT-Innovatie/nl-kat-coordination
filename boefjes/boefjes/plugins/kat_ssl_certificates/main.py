@@ -9,7 +9,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     port = input_["ip_service"]["ip_port"]["port"]
 
     if scheme != "https":
-        return [({"info/boefje"}, "Skipping check due to non-TLS scheme")]
+        return [({"openkat/deschedule"}, "Skipping check due to non-TLS scheme")]
 
     cmd = (
         ["/usr/bin/openssl"]

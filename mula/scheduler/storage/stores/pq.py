@@ -234,6 +234,22 @@ class PriorityQueueStore:
 
     @retry()
     @exception_handler
+    def get_active_task_by_schedule(self, schedule_id: str) -> models.Task | None:
+        with self.dbconn.session.begin() as session:
+            item_orm = (
+                session.query(models.TaskDB)
+                .filter(models.TaskDB.schedule_id == schedule_id)
+                .filter(models.TaskDB.status.in_(models.ACTIVE_TASK_STATUSES))
+                .one_or_none()
+            )
+
+            if item_orm is None:
+                return None
+
+            return models.Task.model_validate(item_orm)
+
+    @retry()
+    @exception_handler
     def clear(self, scheduler_id: str) -> None:
         with self.dbconn.session.begin() as session:
             (

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import quote
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from scheduler import config, models, server, storage, utils
@@ -206,12 +207,12 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update the item
         updated_item = schemas.TaskPush(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.data["name"] = "updated-name"
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", data=updated_item.model_dump_json()
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(mode="json")
         )
 
         # The queue should still have one item
@@ -231,12 +232,12 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update the item
         updated_item = schemas.TaskPush(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.data["name"] = "updated-name"
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", data=updated_item.model_dump_json()
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(mode="json")
         )
         self.assertEqual(response.status_code, 201)
 
@@ -319,12 +320,13 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update priority of the item
         updated_item = schemas.Task(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.priority = 2
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(exclude_none=True)
+            f"/schedulers/{self.scheduler.scheduler_id}/push",
+            json=updated_item.model_dump(mode="json", exclude_none=True),
         )
         self.assertEqual(response.status_code, 201)
 

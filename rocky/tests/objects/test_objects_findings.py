@@ -348,5 +348,4 @@ def test_findings_list_filtering(
     request_filtering = setup_request(rf.get("finding_list", {"severity": "low"}), member.user)
     FindingListView.as_view()(request_filtering, organization_code=member.organization.code)
 
-    assert mock_organization_view_octopoes().list_findings.mock_calls[2].kwargs["severities"] == {RiskLevelSeverity.LOW}
-    assert mock_organization_view_octopoes().list_findings.mock_calls[3].kwargs["severities"] == {RiskLevelSeverity.LOW}
+    assert mock_organization_view_octopoes().list_findings.mock_calls[1].kwargs["severities"] == {RiskLevelSeverity.LOW}

@@ -3,6 +3,7 @@ import random
 import threading
 import time
 from collections.abc import Callable
+from concurrent import futures
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
@@ -93,6 +94,11 @@ class Scheduler(abc.ABC):
     @abc.abstractmethod
     def run(self) -> None:
         raise NotImplementedError
+
+    def log_future_exceptions(self, fut: futures.Future):
+        exc = fut.exception()
+        if exc:
+            self.logger.exception("%s task crashed in ThreadPoolExecutor", self.ITEM_TYPE, exc_info=exc)
 
     def run_in_thread(
         self, name: str, target: Callable[[], Any], interval: float = 0.01, daemon: bool = False, loop: bool = True
@@ -422,10 +428,7 @@ class Scheduler(abc.ABC):
         Returns:
             True if there is space on the queue, False otherwise.
         """
-        if self.queue.maxsize == 0:
-            return True
-
-        if self.queue.maxsize <= self.queue.qsize():
+        if self.queue.maxsize != 0 and (self.queue.maxsize - self.queue.qsize()) <= 0:
             return False
 
         return True

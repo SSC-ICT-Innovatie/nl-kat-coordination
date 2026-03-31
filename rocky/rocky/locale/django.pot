@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-03-28 14:22+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4691,10 +4691,6 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr ""
-
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
 msgstr ""
@@ -4966,6 +4962,10 @@ msgstr ""
 
 #: tools/forms/scheduler.py
 msgid "Search by object name"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "The selected date is in the future. Please select a different date."
 msgstr ""
 
 #: tools/forms/settings.py
@@ -5578,7 +5578,7 @@ msgid "Add finding"
 msgstr ""
 
 #: rocky/templates/findings/finding_list.html
-msgid "Findings @ "
+msgid "Findings "
 msgstr ""
 
 #: rocky/templates/findings/finding_list.html
@@ -6403,7 +6403,19 @@ msgid "OOI"
 msgstr ""
 
 #: rocky/templates/partials/explanations.html
+msgid "This OOI"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "declared"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
 msgstr ""
 
 #: rocky/templates/partials/explanations.html
@@ -6509,6 +6521,10 @@ msgid "Page"
 msgstr ""
 
 #: rocky/templates/partials/list_paginator.html
+msgid "Current"
+msgstr ""
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr ""
 
@@ -6550,11 +6566,11 @@ msgid "Edit %(display_type)s"
 msgstr ""
 
 #: rocky/templates/partials/ooi_head.html
-#, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
+msgstr ""
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
 msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
@@ -7156,6 +7172,20 @@ msgstr ""
 
 #: rocky/views/mixins.py
 msgid "Can not parse date, falling back to show current date."
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
 msgstr ""
 
 #: rocky/views/mixins.py

@@ -39,7 +39,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     # if the address is private, we do not need a ROA
     if not ip_address(ip).is_global:
-        return [(set(), json.dumps("IP address is private, no need for RPKI validation"))]
+        return [({"openkat/deschedule"}, "IP address is private, no need for RPKI validation")]
 
     # RPKI cache check and refresh
     if not RPKI_PATH.exists() or not RPKI_META_PATH.exists() or cache_out_of_date(RPKI_META_PATH):

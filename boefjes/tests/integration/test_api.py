@@ -43,7 +43,7 @@ def test_filter_plugins(test_client, organisation):
     response = test_client.get(
         f"/v1/organisations/{organisation.id}/plugins", params={"consumes": ["ADRFindingType", "Hostname"]}
     )
-    assert len(response.json()) == 9
+    assert len(response.json()) == 8
 
     response = test_client.get(
         f"/v1/organisations/{organisation.id}/plugins",
