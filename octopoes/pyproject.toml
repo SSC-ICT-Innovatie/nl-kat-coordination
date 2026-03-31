@@ -38,6 +38,7 @@ dependencies = [
     "asgiref>=3.8.1,<4",
     "setuptools>80,<82",
     "requests>=2.33.0,<3",
+    "pygments>=2.20.0",
 ]
 
 [dependency-groups]
