@@ -4,8 +4,8 @@
   "properties": {
     "RPKI_CACHE_TIMEOUT": {
       "title": "Max age in seconds of the RPKI Cached data file",
-      "min": 60,
-      "max": 604800,
+      "minimum": 60,
+      "maximum": 604800,
       "default": 1800,
       "type": "integer",
       "description": "How long should the cache file of RPKI information remain valid? After this timeout a newer version will be downloaded. Setting the cache high might result in False positives, but improves performance."

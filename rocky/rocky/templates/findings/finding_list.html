@@ -12,7 +12,14 @@
             <div>
                 <div class="introduction">
                     <div>
-                        <h1>{% translate "Findings @ " %}{{ observed_at|date }}</h1>
+                        <h1>
+                            {% translate "Findings " %}
+                            {% if historic_view %}
+                                @ {{ observed_at|date:'DATE_FORMAT' }}
+                            {% else %}
+                                @ now ({{ observed_at|date:'DATE_FORMAT' }})
+                            {% endif %}
+                        </h1>
                         <p>
                             {% blocktranslate trimmed with organization.name as organization_name %}
                                 An overview of all findings OpenKAT found for organization <strong>{{ organization_name }}</strong>.

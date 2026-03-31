@@ -151,7 +151,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             except Exception:
                 context["current_config"] = None
 
-        context["ooi_past_due"] = context["observed_at"].date() < datetime.utcnow().date()
         context["related"] = self.get_related_objects(context["observed_at"])
 
         context["count_findings_per_severity"] = dict(self.count_findings_per_severity())

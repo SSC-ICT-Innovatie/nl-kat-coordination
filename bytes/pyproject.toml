@@ -9,7 +9,7 @@ dependencies = [
     "alembic>=1.8.1,<2",
     "cachetools>6",
     "passlib[bcrypt]>=1.7.4,<2",
-    "pika>=1.3.1,<2",
+    "aio-pika>=9.5,<10",
     "prometheus-client>=0.16.0,<0.17",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.7.1,<3",
