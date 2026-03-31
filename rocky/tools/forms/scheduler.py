@@ -53,7 +53,7 @@ class TaskFilterForm(forms.Form):
         min_created_at = cleaned_data.get("min_created_at")
         max_created_at = cleaned_data.get("max_created_at")
 
-        date_message = _("The selected date is in the future. Please select a different date.")
+        date_message = _("The selected date (%s) is in the future. Please select a different date.")
 
         now = datetime.now(tz=timezone.utc)
 

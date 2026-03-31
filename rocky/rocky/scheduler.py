@@ -440,18 +440,6 @@ class SchedulerClient:
         """Return merged stats for a set of organization ids."""
         return self._get_task_stats(scheduler_id, organization_ids)
 
-    @staticmethod
-    def _merge_stat_dicts(dicts: list[dict]) -> dict:
-        """Merge multiple stats dicts."""
-        stat_sum: dict[str, collections.Counter] = collections.defaultdict(collections.Counter)
-        for dct in dicts:
-            for timeslot, counts in dct.items():
-                stat_sum[timeslot].update(counts)
-        return dict(stat_sum)
-
-    def get_task_stats_for_all_organizations(self, scheduler_id: str) -> dict:
-        return self._get_task_stats(scheduler_id)
-
     def _get(self, path: str, params: dict | None = None, return_type: str = "json") -> dict | bytes:
         """Helper to do a get request and raise warning for path."""
         try:

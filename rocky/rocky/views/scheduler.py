@@ -106,15 +106,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
         form.is_valid()
         return {k: v for k, v in form.cleaned_data.items() if v}
 
-    def get_task_filters(self) -> dict[str, Any]:
-        formdata = self.get_task_filter_form_data()
-
-        filters: dict[str, Any] = {"filters": {"and": []}}
-        organizations = formdata.get("organizations", None)
-        if organizations and organizations != [""]:
-            filters = {"filters": {"and": [self.get_organization_specific_tasks(organizations)]}}
-            del formdata["organizations"]
-
+    def _build_task_filters(self, formdata: dict[str, Any], filters: dict[str, Any]) -> dict[str, Any]:
         plugin_id = formdata.get("plugin_id", self.plugin.id if hasattr(self, "plugin") else None)
         if plugin_id:
             if formdata.get("plugin_id", False):
@@ -122,7 +114,9 @@ class UnboundSchedulerView(UnboundOrganizationView):
             if self.task_type == "normalizer":
                 filters["filters"]["or"] = self.get_plugin_specific_tasks_for_normalizers(plugin_id)
             elif self.task_type == "boefje":
-                filters["filters"]["and"].append(self.get_plugin_specific_tasks_for_boefjes(plugin_id))
+                filters["filters"]["and"].append(
+                    self.get_plugin_specific_tasks_for_boefjes(plugin_id)
+                )
 
         ooi_id = formdata.get("ooi_id", None)
         if ooi_id:
@@ -139,7 +133,34 @@ class UnboundSchedulerView(UnboundOrganizationView):
             del formdata["task_id"]
             filters["filters"]["and"].append(self.get_specific_tasks_by_id(task_id))
 
-        return {"scheduler_id": self.scheduler_id, "task_type": self.task_type, "filters": filters, **formdata}
+        return filters
+
+    def _init_filters(self, formdata: dict[str, Any]) -> dict[str, Any]:
+        filters: dict[str, Any] = {"filters": {"and": []}}
+
+        organizations = formdata.get("organizations", None)
+        if organizations and organizations != [""]:
+            filters = {
+                "filters": {
+                    "and": [self.get_organization_specific_tasks(organizations)]
+                }
+            }
+            del formdata["organizations"]
+
+        return filters
+
+    def get_task_filters(self) -> dict[str, Any]:
+        formdata = self.get_task_filter_form_data()
+
+        filters = self._init_filters(formdata)
+        filters = self._build_task_filters(formdata, filters)
+
+        return {
+            "scheduler_id": self.scheduler_id,
+            "task_type": self.task_type,
+            "filters": filters,
+            **formdata,
+        }
 
     def count_active_task_filters(self, subtract=None):
         if not subtract:
@@ -150,7 +171,6 @@ class UnboundSchedulerView(UnboundOrganizationView):
         for task_filter in form_data:
             if task_filter in subtract:
                 count -= 1
-
         return count
 
     def get_organization_specific_tasks(self, organizations: list[str] | None = None) -> dict[str, str | list[str]]:
@@ -193,12 +213,11 @@ class UnboundSchedulerView(UnboundOrganizationView):
             raise Http404()
 
     def get_task_statistics(self) -> dict[Any, Any]:
-        stats = {}
         try:
-            stats = self.scheduler_client.get_task_stats(self.task_type)
+            return self.scheduler_client.get_task_stats(self.task_type)
         except SchedulerError as error:
             messages.error(self.request, error.message)
-        return stats
+        return {}
 
     def get_output_oois(self, task):
         try:
@@ -209,12 +228,8 @@ class UnboundSchedulerView(UnboundOrganizationView):
             for origin in origins:
                 for ooi in origin.result:
                     yield str(ooi)
-
-        except IndexError:
-            return []
         except SchedulerError as error:
             messages.error(self.request, error.message)
-            return []
 
     def get_json_task_details(self) -> JsonResponse:
         try:
@@ -241,11 +256,9 @@ class UnboundSchedulerView(UnboundOrganizationView):
             schedule = self.scheduler_client.post_schedule_search(filters)
             if schedule.results:
                 return schedule.results[0]
-            else:
-                return None
         except SchedulerError as error:
             messages.error(self.request, error.message)
-            return None
+        return None
 
     def schedule_task(self, task: TaskPush) -> None:
         if not self.indemnification_present:
@@ -333,36 +346,8 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
             self._form_instance = self.task_filter_form(self.request.GET)
         return self._form_instance
 
-    def get_task_filters(self) -> dict[str, Any]:
-        formdata = self.get_task_filter_form_data()
-
-        filters: dict[str, Any] = {"filters": {"and": [self.get_organization_specific_tasks()]}}
-
-        plugin_id = formdata.get("plugin_id", self.plugin.id if hasattr(self, "plugin") else None)
-        if plugin_id:
-            if formdata.get("plugin_id", False):
-                del formdata["plugin_id"]
-            if self.task_type == "normalizer":
-                filters["filters"]["or"] = self.get_plugin_specific_tasks_for_normalizers(plugin_id)
-            elif self.task_type == "boefje":
-                filters["filters"]["and"].append(self.get_plugin_specific_tasks_for_boefjes(plugin_id))
-
-        ooi_id = formdata.get("ooi_id", None)
-        if ooi_id:
-            del formdata["ooi_id"]
-            filters["filters"]["and"].append(self.get_ooi_specific_tasks(ooi_id))
-
-        ooi_search = formdata.get("ooi_search", None)
-        if ooi_search:
-            del formdata["ooi_search"]
-            filters["filters"]["and"].append(self.get_ooi_search_specific_tasks(ooi_search))
-
-        task_id = formdata.get("task_id", None)
-        if task_id:
-            del formdata["task_id"]
-            filters["filters"]["and"].append(self.get_specific_tasks_by_id(task_id))
-
-        return {"scheduler_id": self.scheduler_id, "task_type": self.task_type, "filters": filters, **formdata}
+    def _init_filters(self, formdata: dict[str, Any]) -> dict[str, Any]:
+        return {"filters": {"and": [self.get_organization_specific_tasks()]}}
 
     def create_report_schedule(self, report_recipe: ReportRecipe, deadline_at: datetime) -> ScheduleResponse | None:
         try:
