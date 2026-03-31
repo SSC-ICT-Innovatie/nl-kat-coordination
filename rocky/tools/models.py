@@ -14,7 +14,7 @@ from django.utils.translation import gettext_lazy as _
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from rocky.bytes_client import BytesClient, get_bytes_client
 from rocky.scheduler import SchedulerClient, scheduler_client
-from katalogus.client import KATalogus, get_katalogus
+from katalogus.client import get_katalogus
 
 from tools.add_ooi_information import SEPARATOR, InformationUpdateError, get_info
 from tools.enums import MAX_SCAN_LEVEL
