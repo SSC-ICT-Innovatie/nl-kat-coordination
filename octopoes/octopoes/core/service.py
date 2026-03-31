@@ -141,8 +141,8 @@ class OctopoesService:
         valid_time: datetime,
         offset: int = DEFAULT_OFFSET,
         limit: int = DEFAULT_LIMIT,
-        scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER,
-        scan_profile_types: set[ScanProfileType] = DEFAULT_SCAN_PROFILE_TYPE_FILTER,
+        scan_levels: set[ScanLevel] | None = None,
+        scan_profile_types: set[ScanProfileType] | None = None,
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
@@ -154,10 +154,14 @@ class OctopoesService:
         return paginated
 
     def get_ooi_tree(
-        self, reference: Reference, valid_time: datetime, search_types: set[type[OOI]] | None = None, depth: int = 1
+        self,
+        reference: Reference,
+        valid_time: datetime,
+        search_types: set[type[OOI]] | None = None,
+        depth: int = 1,
+        with_scan_profiles: bool | None = False,
     ) -> ReferenceTree:
-        tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth)
-        self._populate_scan_profiles(tree.store.values(), valid_time)
+        tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth, with_scan_profiles)
         return tree
 
     def _delete_ooi(self, reference: Reference, valid_time: datetime) -> None:
@@ -173,7 +177,7 @@ class OctopoesService:
             self.ooi_repository.delete_if_exists(reference, valid_time)
 
     def save_origin(
-        self, origin: Origin, oois: list[OOI], valid_time: datetime, end_valid_time: datetime | None = None
+        self, origin: Origin, oois: list[OOI] | set[OOI], valid_time: datetime, end_valid_time: datetime | None = None
     ) -> None:
         origin.result = [ooi.reference for ooi in oois]
 
@@ -207,7 +211,8 @@ class OctopoesService:
             self.ooi_repository.save(ooi, valid_time=valid_time, end_valid_time=end_valid_time)
         self.origin_repository.save(origin, valid_time=valid_time)
 
-        # Origins that are stale need to be deleted. #3561
+        # Origins that are stale, eg have no results and are not inferenced 
+        # need to be deleted. #3561
         if not origin.result and origin.origin_type != OriginType.INFERENCE:
             self.origin_repository.delete(origin, valid_time=valid_time)
 
@@ -573,7 +578,7 @@ class OctopoesService:
             neighbour
             for neighbours in neighbour_cache.values()
             for neighbour in neighbours
-            if neighbour.reference not in visited
+            if neighbour.reference not in visited # dont walk back over the path we came from
         ]
         self._populate_scan_profiles(neighbours_, valid_time)
 

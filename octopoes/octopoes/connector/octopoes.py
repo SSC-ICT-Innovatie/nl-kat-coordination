@@ -21,7 +21,7 @@ from octopoes.models.origin import Origin, OriginParameter, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
-from octopoes.models.types import OOIType, concrete_type_by_name
+from octopoes.models.types import OOIType, type_by_name
 from octopoes.types import AFFIRMATION_CREATED, DECLARATION_CREATED, OBJECT_DELETED, OBSERVATION_CREATED, ORIGIN_DELETED
 
 QueryTypeAdapter = TypeAdapter(OOIType | str)
@@ -66,7 +66,7 @@ class OctopoesAPIConnector:
                 data = response.json()
                 raise ObjectNotFoundException(data["detail"]) from error
             if 500 <= response.status_code < 600:
-                data = response.text
+                data = response.content # handles unicode issues
                 raise RemoteException(value=data) from error
             raise
         except json.decoder.JSONDecodeError as error:
@@ -132,7 +132,7 @@ class OctopoesAPIConnector:
                 raise ValidationError(
                     f"JSON from Octopoes for `{reference}`@{valid_time}  did not contain 'object_type' property."
                 )
-            objecttype: type[OOI] = concrete_type_by_name(objecttypename)
+            objecttype: type[OOI] = type_by_name(objecttypename)
             instance: OOIType = objecttype.model_validate(objectjson)
             return instance
         except ValidationError as error:
@@ -170,12 +170,18 @@ class OctopoesAPIConnector:
         return TransactionRecordTypeAdapter.validate_json(res.content)
 
     def get_tree(
-        self, reference: Reference, valid_time: datetime, types: set[type[OOI]] | set[str] | None = None, depth: int = 1
+        self, 
+        reference: Reference,
+        valid_time: datetime,
+        types: set[type[OOI]] | set[str] | None = None,
+        depth: int = 1,
+        with_scan_profiles: bool = True,
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
             "depth": depth,
             "valid_time": str(valid_time),
+            "with_scan_profiles": with_scan_profiles,
         }
         if types:
             params["types"] = [t.__name__ if hasattr(t, "__name__") else t for t in types if t]

@@ -9,6 +9,7 @@ from typing import Any, Literal
 import structlog
 from asgiref.sync import sync_to_async
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
+from httpx import HTTPError
 from pydantic import AwareDatetime
 
 from octopoes.api.models import ServiceHealth, ValidatedAffirmation, ValidatedDeclaration, ValidatedObservation
@@ -16,7 +17,6 @@ from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
     DEFAULT_SCAN_LEVEL_FILTER,
-    DEFAULT_SCAN_PROFILE_TYPE_FILTER,
     DEFAULT_SEVERITY_FILTER,
     Settings,
 )
@@ -97,8 +97,8 @@ def list_objects(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     types: set[type[OOI]] = Depends(extract_types),
-    scan_level: set[ScanLevel] = Query(DEFAULT_SCAN_LEVEL_FILTER),
-    scan_profile_type: set[ScanProfileType] = Query(DEFAULT_SCAN_PROFILE_TYPE_FILTER),
+    scan_level: set[ScanLevel] | None = Query(None),
+    scan_profile_type: set[ScanProfileType] | None = Query(None),
     offset: int = 0,
     limit: int = 20,
     search_string: str | None = None,
@@ -276,8 +276,9 @@ def get_tree(
     types: set[type[OOI]] = Depends(extract_types),
     reference: Reference = Depends(extract_reference),
     depth: int = 1,
+    with_scan_profiles: bool = False,
 ) -> ReferenceTree:
-    return octopoes.get_ooi_tree(reference, valid_time, types, depth)
+    return octopoes.get_ooi_tree(reference, valid_time, types, depth, with_scan_profiles)
 
 
 @router.get("/origins", tags=["Origins"])
