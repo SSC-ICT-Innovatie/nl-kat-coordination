@@ -114,21 +114,19 @@ class UnboundSchedulerView(UnboundOrganizationView):
             if self.task_type == "normalizer":
                 filters["filters"]["or"] = self.get_plugin_specific_tasks_for_normalizers(plugin_id)
             elif self.task_type == "boefje":
-                filters["filters"]["and"].append(
-                    self.get_plugin_specific_tasks_for_boefjes(plugin_id)
-                )
+                filters["filters"]["and"].append(self.get_plugin_specific_tasks_for_boefjes(plugin_id))
 
-        ooi_id = formdata.get("ooi_id", None)
+        ooi_id = formdata.get("ooi_id")
         if ooi_id:
             del formdata["ooi_id"]
             filters["filters"]["and"].append(self.get_ooi_specific_tasks(ooi_id))
 
-        ooi_search = formdata.get("ooi_search", None)
+        ooi_search = formdata.get("ooi_search")
         if ooi_search:
             del formdata["ooi_search"]
             filters["filters"]["and"].append(self.get_ooi_search_specific_tasks(ooi_search))
 
-        task_id = formdata.get("task_id", None)
+        task_id = formdata.get("task_id")
         if task_id:
             del formdata["task_id"]
             filters["filters"]["and"].append(self.get_specific_tasks_by_id(task_id))
@@ -138,13 +136,9 @@ class UnboundSchedulerView(UnboundOrganizationView):
     def _init_filters(self, formdata: dict[str, Any]) -> dict[str, Any]:
         filters: dict[str, Any] = {"filters": {"and": []}}
 
-        organizations = formdata.get("organizations", None)
+        organizations = formdata.get("organizations")
         if organizations and organizations != [""]:
-            filters = {
-                "filters": {
-                    "and": [self.get_organization_specific_tasks(organizations)]
-                }
-            }
+            filters = {"filters": {"and": [self.get_organization_specific_tasks(organizations)]}}
             del formdata["organizations"]
 
         return filters
@@ -155,12 +149,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
         filters = self._init_filters(formdata)
         filters = self._build_task_filters(formdata, filters)
 
-        return {
-            "scheduler_id": self.scheduler_id,
-            "task_type": self.task_type,
-            "filters": filters,
-            **formdata,
-        }
+        return {"scheduler_id": self.scheduler_id, "task_type": self.task_type, "filters": filters, **formdata}
 
     def count_active_task_filters(self, subtract=None):
         if not subtract:

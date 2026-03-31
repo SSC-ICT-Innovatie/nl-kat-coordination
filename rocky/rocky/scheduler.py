@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import collections
 import datetime
 import uuid
 from enum import Enum
