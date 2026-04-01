@@ -9,7 +9,6 @@ from typing import Any, Literal
 import structlog
 from asgiref.sync import sync_to_async
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
-from httpx import HTTPError
 from pydantic import AwareDatetime
 
 from octopoes.api.models import ServiceHealth, ValidatedAffirmation, ValidatedDeclaration, ValidatedObservation

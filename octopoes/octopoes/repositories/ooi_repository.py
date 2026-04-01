@@ -3,8 +3,9 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
++from collections.abc import Generator
 from datetime import datetime
-from typing import Annotated, Any, Literal, cast, Generator
+from typing import Annotated, Any, Literal, cast
 from uuid import UUID
 
 import structlog
@@ -81,7 +82,7 @@ class OOIRepository(Repository):
 
     def load_bulk_as_list(
         self, references: set[Reference], valid_time: datetime, include_scan_levels: bool = False
-    ) -> Generator[OOI, None, None]:
+    ) -> Generator[OOI]:
         raise NotImplementedError
 
     def get_neighbours(
@@ -332,37 +333,34 @@ class XTDBOOIRepository(OOIRepository):
         valid_time: datetime,
         include_scan_levels: bool = False,
         include_results: bool = False,
-    ) -> Generator[OOI, None, None]:
+    ) -> Generator[OOI]:
         if not references:
             return
 
         if not any([include_scan_levels, include_results]):
             query = Query().where_in(OOI, id=references).pull(OOI, fields="[*]")
-            yield from (
-                self.deserialize(x[0])
-                for x in self.session.client.query(query, valid_time)
-            )
+            yield from (self.deserialize(x[0]) for x in self.session.client.query(query, valid_time))
             return
 
         pull_fields = ["*"]
         where_clause = ["[?e :xt/id ?ids]"]
 
         if include_results:
-            pull_fields.append(
-                "{:_source [:xt/id :type :origin_type :method :source_method :task_id :result]}"
-            )
+            pull_fields.append("{:_source [:xt/id :type :origin_type :method :source_method :task_id :result]}")
 
         fields = [f"(pull ?e [{' '.join(pull_fields)}])"]
 
         if include_scan_levels:
             fields.append("_scan_profile_type")
             fields.append("_scan_level")
-            where_clause.extend([
-                    "[?scan_profile :type \"ScanProfile\"]",
+            where_clause.extend(
+                [
+                    '[?scan_profile :type "ScanProfile"]',
                     "[?scan_profile :reference ?e]",
                     "[?scan_profile :level _scan_level]",
                     "[?scan_profile :scan_profile_type _scan_profile_type]",
-            ])
+                ]
+            )
 
         data_query = f"""
         {{
@@ -392,12 +390,7 @@ class XTDBOOIRepository(OOIRepository):
                 originating = x[0].pop("_source", None)
             except Exception as error:
                 raise Exception(error, x, type(x))
-            yield self.deserialize(
-                    x[0],
-                    None,
-                    scan_profile,
-                    originating
-            )
+            yield self.deserialize(x[0], None, scan_profile, originating)
 
     def list_oois(
         self,
@@ -505,9 +498,7 @@ class XTDBOOIRepository(OOIRepository):
         res = self.session.client.query(data_query, valid_time)
 
         if limit == -1:
-            return [
-                self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res
-            ]
+            return [self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res]
 
         # if the resultset is smaller than the requested limit, we know the count
         if len(res) < limit:
@@ -515,9 +506,7 @@ class XTDBOOIRepository(OOIRepository):
         else:  # if the resultset is the same size as the requested limit, lets ask the db for the total count
             res_count = self.session.client.query(count_query, valid_time)
             count = res_count[0][0] if res_count else 0
-        items = [
-            self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res
-        ]
+        items = [self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res]
         return Paginated(count=count, items=items)
 
     def list_oois_by_object_types(
@@ -568,7 +557,7 @@ class XTDBOOIRepository(OOIRepository):
         valid_time: datetime,
         search_types: set[type[OOI]] | None = None,
         depth: int = 1,
-        include_scan_levels: bool = True
+        include_scan_levels: bool = True,
     ) -> ReferenceTree:
         if search_types:
             search_types = to_concrete(search_types)
@@ -582,10 +571,7 @@ class XTDBOOIRepository(OOIRepository):
         return ReferenceTree(root=reference_node, store=store)
 
     def _get_related_objects(
-        self,
-        references: set[Reference],
-        valid_time: datetime | None,
-        search_types: set[type[OOI]] | None = None
+        self, references: set[Reference], valid_time: datetime | None, search_types: set[type[OOI]] | None = None
     ) -> list[ReferenceNode]:
         """
         Returns a Reference node for each reference, containing the 1-depth related objects
@@ -633,7 +619,9 @@ class XTDBOOIRepository(OOIRepository):
 
         # Query next level
         exclude.update(references)
-        deeper_result = self._get_tree_level(deeper_references, search_types=search_types, depth=depth - 1, exclude=exclude, valid_time=valid_time)
+        deeper_result = self._get_tree_level(
+            deeper_references, search_types=search_types, depth=depth - 1, exclude=exclude, valid_time=valid_time
+        )
 
         # Replace flat results with recursed results
         deeper_lookup = {node.reference: node for node in deeper_result}

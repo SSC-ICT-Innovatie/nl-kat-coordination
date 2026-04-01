@@ -66,7 +66,7 @@ class OctopoesAPIConnector:
                 data = response.json()
                 raise ObjectNotFoundException(data["detail"]) from error
             if 500 <= response.status_code < 600:
-                data = response.content # handles unicode issues
+                data = response.content  # handles unicode issues
                 raise RemoteException(value=data) from error
             raise
         except json.decoder.JSONDecodeError as error:
@@ -170,7 +170,7 @@ class OctopoesAPIConnector:
         return TransactionRecordTypeAdapter.validate_json(res.content)
 
     def get_tree(
-        self, 
+        self,
         reference: Reference,
         valid_time: datetime,
         types: set[type[OOI]] | set[str] | None = None,

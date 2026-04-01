@@ -13,13 +13,7 @@ from httpx import HTTPError
 from pydantic import TypeAdapter
 
 from octopoes.api.models import ServiceHealth
-from octopoes.config.settings import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    DEFAULT_SCAN_LEVEL_FILTER,
-    DEFAULT_SCAN_PROFILE_TYPE_FILTER,
-    Settings,
-)
+from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER, Settings
 from octopoes.events.events import DBEvent, OOIDBEvent, OriginDBEvent, OriginParameterDBEvent, ScanProfileDBEvent
 from octopoes.events.manager import EventManager
 from octopoes.models import (
@@ -211,7 +205,7 @@ class OctopoesService:
             self.ooi_repository.save(ooi, valid_time=valid_time, end_valid_time=end_valid_time)
         self.origin_repository.save(origin, valid_time=valid_time)
 
-        # Origins that are stale, eg have no results and are not inferenced 
+        # Origins that are stale, eg have no results and are not inferenced
         # need to be deleted. #3561
         if not origin.result and origin.origin_type != OriginType.INFERENCE:
             self.origin_repository.delete(origin, valid_time=valid_time)
@@ -578,7 +572,7 @@ class OctopoesService:
             neighbour
             for neighbours in neighbour_cache.values()
             for neighbour in neighbours
-            if neighbour.reference not in visited # dont walk back over the path we came from
+            if neighbour.reference not in visited  # dont walk back over the path we came from
         ]
         self._populate_scan_profiles(neighbours_, valid_time)
 
