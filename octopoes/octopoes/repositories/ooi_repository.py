@@ -339,7 +339,7 @@ class XTDBOOIRepository(OOIRepository):
         if not any([include_scan_levels, include_results]):
             query = Query().where_in(OOI, id=references).pull(OOI, fields="[*]")
             yield from (
-                self.deserialize(x[0], skip_errors=True)
+                self.deserialize(x[0])
                 for x in self.session.client.query(query, valid_time)
             )
 
@@ -392,8 +392,7 @@ class XTDBOOIRepository(OOIRepository):
                     x[0],
                     None,
                     scan_profile,
-                    originating,
-                    skip_errors=True,
+                    originating
             )
 
     def list_oois(
@@ -503,7 +502,7 @@ class XTDBOOIRepository(OOIRepository):
 
         if limit == -1:
             return [
-                self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}, skip_errors=skip_errors) for x in res
+                self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res
             ]
 
         # if the resultset is smaller than the requested limit, we know the count
