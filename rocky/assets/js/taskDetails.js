@@ -88,7 +88,7 @@ task_buttons.forEach((button) => {
         let error_text_element = document.createElement("p");
 
         error_text_element.innerText =
-          "Retrieving yielded raw files resulted in a Sever Error: Status code ";
+          "Retrieving yielded raw files resulted in a Server Error: Status code ";
         error_element.appendChild(error_text_element);
         error_element.classList.add("error");
 
@@ -166,7 +166,7 @@ task_buttons.forEach((button) => {
             let rawdata = atob(rawfile["raw_file"]);
             let rawfile_container = document.createElement("div");
             let signed = rawfile["signing_provider_url"]
-              ? `, signed by <a href="${rawfile["signing_provider_url"]}">${rawfile["signing_provider_url"]}</a>`
+              ? `, signed by <a href="${escapeHTMLEntities(rawfile["signing_provider_url"])}">${escapeHTMLEntities(rawfile["signing_provider_url"])}</a>`
               : "";
             if (rawfile["raw_file"].length > 0) {
               rawfile_container.innerHTML = `<h3 id="raw-file-${rawfile["id"]}">File id: ${rawfile["id"]} (${rawfile["raw_file"].length} bytes)</h3>
@@ -340,7 +340,8 @@ function renderHexTable(hex_table, bytes) {
 }
 
 function escapeHTMLEntities(input) {
-  var output = input.replace(/'/g, "&apos;");
+  var output = input.replace(/&/g, "&amp;");
+  output = output.replace(/'/g, "&apos;");
   output = output.replace(/"/g, "&quot;");
   output = output.replace(/</g, "&lt;");
   return output.replace(/>/g, "&gt;");

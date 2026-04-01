@@ -26,7 +26,7 @@ class BytesRawView(OrganizationView):
             raw_metas = self.bytes_client.get_raw_metas(boefje_meta_id, self.organization.code)
             is_json_format = request.GET.get("format") == "json"
             if is_json_format:
-                size_limit = request.GET.get("size_limit", RAW_FILE_LIMIT)
+                size_limit = int(request.GET.get("size_limit", RAW_FILE_LIMIT))
                 for raw_meta in raw_metas:
                     raw_meta["raw_file"] = base64.b64encode(
                         self.bytes_client.get_raw(raw_meta["id"])[:size_limit]
