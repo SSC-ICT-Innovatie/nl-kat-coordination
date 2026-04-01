@@ -26,7 +26,7 @@ class BytesRawView(OrganizationView):
             raw_metas = self.bytes_client.get_raw_metas(boefje_meta_id, self.organization.code)
             is_json_format = request.GET.get("format") == "json"
             if is_json_format:
-                size_limit = int(request.GET.get("size_limit", RAW_FILE_LIMIT))
+                size_limit = request.GET.get("size_limit", RAW_FILE_LIMIT)
                 for raw_meta in raw_metas:
                     raw_meta["raw_file"] = base64.b64encode(
                         self.bytes_client.get_raw(raw_meta["id"])[:size_limit]
@@ -49,6 +49,17 @@ class BytesRawView(OrganizationView):
             logger.exception("Getting raw data failed")
             messages.add_message(request, messages.ERROR, msg)
             return redirect(reverse("task_list", kwargs={"organization_code": self.organization.code}))
+
+        if not raw_metas:
+            msg = _("The task does not have any raw data.")
+            messages.add_message(request, messages.ERROR, msg)
+            return redirect(reverse("task_list", kwargs={"organization_code": self.organization.code}))
+
+        raws = {raw_meta["id"]: self.bytes_client.get_raw(raw_meta["id"]) for raw_meta in raw_metas}
+        response = FileResponse(zip_data(raws, raw_metas), filename=f"{boefje_meta_id}.zip")
+        logger.info("Raw files have been downloaded", boefje_meta_id=boefje_meta_id, event_code="700001")
+
+        return response
 
 
 def zip_data(raws: dict[str, bytes], raw_metas: list[dict]) -> BytesIO:
