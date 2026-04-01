@@ -267,7 +267,7 @@ class XTDBOOIRepository(OOIRepository):
         stripped["user_id"] = data.get("user_id")
 
         if scan_profile:
-            scan_profile["reference"] = reference = Reference.from_str(stripped["primary_key"])
+            scan_profile["reference"] = Reference.from_str(stripped["primary_key"])
             scan_profile["level"] = ScanLevel(scan_profile["level"])
             scan_profile = TypeAdapter(
                 Annotated[ScanProfile, Field(discriminator="scan_profile_type")]
