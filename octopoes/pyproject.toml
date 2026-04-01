@@ -1,7 +1,7 @@
 [project]
 name = "octopoes"
 version = "0.0.1.dev1"
-description = "KAT's knowledge graph engine"
+description = "OpenKAT's knowledge graph engine"
 authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
 requires-python = ">=3.10"
 license = { text = "EUPL-1.2" }
@@ -37,6 +37,8 @@ dependencies = [
     "structlog>=25.2.0,<26",
     "asgiref>=3.8.1,<4",
     "setuptools>80,<82",
+    "requests>=2.33.0,<3",
+    "pygments>=2.20.0",
 ]
 
 [dependency-groups]
@@ -44,12 +46,12 @@ dev = [
     "robotframework>=7.2.2,<8",
     "robotframework-requests>=0.9.7,<0.10",
     "robotframework-httplibrary>=0.4.2,<0.5",
-    "pytest>=8.3.5,<9",
+    "pytest>=9.0.2,<10",
     "pytest-cov>=7",
     "pytest-mock>=3.14.0,<4",
     "pytest-env>=1.1.5,<2",
     "pytest-timeout>=2.4.0,<3",
-    "pytest-httpx>=0.35.0,<0.36",
+    "pytest-httpx>=0.35.0",
 ]
 
 [tool.uv]
@@ -61,7 +63,7 @@ relative_files = true
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report xml --cov-branch --cov-report=term-missing:skip-covered"
 env = [
-    "D:XTDB_URI=http://testxtdb:3000",
+    "D:XTDB_URI=http://xtdb:3000",
     "D:QUEUE_URI=amqp://placeholder",
     "D:KATALOGUS_API=http://placeholder:8000",
 ]

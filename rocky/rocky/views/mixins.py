@@ -17,7 +17,9 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic import ListView
+from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from httpx import HTTPError
 from katalogus.client import Boefje
@@ -35,9 +37,9 @@ from octopoes.models.explanation import InheritanceSection
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
 from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report
 from octopoes.models.origin import Origin, OriginType
+from octopoes.models.pagination import Paginated
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import get_relations
-from rocky.bytes_client import get_bytes_client
 
 logger = structlog.get_logger(__name__)
 
@@ -98,31 +100,55 @@ class OOIAttributeError(AttributeError):
     pass
 
 
-class ObservedAtMixin:
-    request: HttpRequest
+class ObservedAtMixin(ContextMixin, View):
+    connector_form_class: type[ObservedAtForm] = ObservedAtForm
+
+    @cached_property
+    def is_historic_view(self) -> bool:
+        return bool(self.request.GET.get("observed_at", False) or self.request.POST.get("observed_at", False))
 
     @cached_property
     def observed_at(self) -> datetime:
-        observed_at = self.request.GET.get("observed_at", None)
-        if not observed_at:
-            return datetime.now(timezone.utc)
-
-        try:
-            datetime_format = "%Y-%m-%d"
-            date_time = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
-            if date_time.date() > datetime.now(timezone.utc).date():
-                messages.warning(self.request, _("The selected date is in the future."))
-            return date_time
-        except ValueError:
+        observed_at = self.request.GET.get("observed_at", self.request.POST.get("observed_at", None))
+        # handle empty input
+        if observed_at:
+            # handle date only input
             try:
-                ret = datetime.fromisoformat(observed_at)
-                if not ret.tzinfo:
-                    ret = ret.replace(tzinfo=timezone.utc)
-
-                return ret
+                datetime_format = "%Y-%m-%d"
+                observed_at = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
+                if observed_at.date() > datetime.now(timezone.utc).date():
+                    messages.warning(self.request, _("The selected date is in the future."))
+                return observed_at
             except ValueError:
-                messages.error(self.request, _("Can not parse date, falling back to show current date."))
-                return datetime.now(timezone.utc)
+                # handle iso format input
+                try:
+                    observed_at = datetime.fromisoformat(observed_at)
+                    if not observed_at.tzinfo:
+                        observed_at = observed_at.replace(tzinfo=timezone.utc)
+
+                    return observed_at
+                except ValueError:
+                    messages.error(self.request, _("Can not parse date, falling back to show current date."))
+        return datetime.now(timezone.utc)
+
+    def get_connector_form_kwargs(self) -> dict:
+        if self.is_historic_view:
+            return {"data": self.request.GET}
+        else:
+            return {}
+
+    def get_connector_form(self) -> ObservedAtForm:
+        return self.connector_form_class(**self.get_connector_form_kwargs())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["observed_at_form"] = self.get_connector_form()
+        context["observed_at"] = self.observed_at
+        context["historic_view"] = self.is_historic_view
+        return context
+
+    def count_observed_at_filter(self) -> int:
+        return int(self.is_historic_view)
 
 
 class OctopoesView(ObservedAtMixin, OrganizationView):
@@ -139,7 +165,7 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
             self.handle_connector_exception(e)
             raise
 
-    def get_origins(self, reference: Reference, organization: Organization) -> Origins:
+    def get_origins(self, reference: Reference) -> Origins:
         declarations: list[OriginData] = []
         observations: list[OriginData] = []
         inferences: list[OriginData] = []
@@ -149,17 +175,12 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
             origins = self.octopoes_api_connector.list_origins(self.observed_at, result=reference)
         except Exception as e:
             logger.error("Could not load origins for OOI: %s from octopoes, error: %s", reference, e)
+            messages.error(self.request, _("Could not load origins for OOI: %s from octopoes") % reference)
             return results
 
-        try:
-            bytes_client = get_bytes_client(organization.code)
-            bytes_client.login()
-        except HTTPError as e:
-            logger.error(e)
-            return results
-
-        katalogus = self.get_katalogus()
-
+        plugins = {}
+        normalizer_datas = {}
+        bytes_origins = []
         for origin in origins:
             origin = OriginData(origin=origin)
             if origin.origin.origin_type != OriginType.OBSERVATION or not origin.origin.task_id:
@@ -168,26 +189,37 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
                 elif origin.origin.origin_type == OriginType.INFERENCE:
                     inferences.append(origin)
                 continue
+            bytes_origins.append(origin.origin.task_id)
+            observations.append(origin)
 
+        if bytes_origins:
             try:
-                normalizer_data = bytes_client.get_normalizer_meta(origin.origin.task_id)
+                normalizer_datas = self.bytes_client.get_normalizer_metas(bytes_origins)
             except HTTPError as e:
-                logger.error("Could not load Normalizer meta for task_id: %s, error: %s", origin.origin.task_id, e)
-            else:
-                boefje_meta = normalizer_data["raw_data"]["boefje_meta"]
-                boefje_id = boefje_meta["boefje"]["id"]
-                if boefje_meta.get("ended_at"):
+                logger.error("Could not load normalizer metas from bytes: %s", e)
+                messages.error(self.request, _("Could not load normalizer metas from bytes"))
+
+        for observation in observations:
+            normalizer_data = normalizer_datas.get(str(observation.origin.task_id))
+            if not normalizer_data:
+                continue
+            boefje_meta = normalizer_data["raw_data"]["boefje_meta"]
+            boefje_id = boefje_meta["boefje"]["id"]
+            if boefje_meta.get("ended_at"):
+                try:
+                    boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
+                except ValueError:
+                    boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%SZ")
+            observation.normalizer = normalizer_data
+            if boefje_id != "manual":
+                if boefje_id not in plugins:
                     try:
-                        boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%S.%fZ")
-                    except ValueError:
-                        boefje_meta["ended_at"] = datetime.strptime(boefje_meta["ended_at"], "%Y-%m-%dT%H:%M:%SZ")
-                origin.normalizer = normalizer_data
-                if boefje_id != "manual":
-                    try:
-                        origin.boefje = katalogus.get_plugin(boefje_id)
+                        plugins[boefje_id] = self.katalogus_client.get_plugin(boefje_id)
                     except HTTPError as e:
                         logger.error("Could not load boefje %s from katalogus: %s", boefje_id, e)
-            observations.append(origin)
+                        messages.error(self.request, _("Could not load boefje %s from katalogus") % boefje_id)
+                if boefje_id in plugins:
+                    observation.boefje = plugins[boefje_id]
 
         return results
 
@@ -200,6 +232,9 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
     def get_scan_profile_inheritance(self, ooi: OOI) -> list[InheritanceSection]:
         return self.octopoes_api_connector.get_scan_profile_inheritance(ooi.reference, self.observed_at)
 
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs)
+
 
 class OOIList:
     HARD_LIMIT = 99_999_999
@@ -207,10 +242,10 @@ class OOIList:
     def __init__(
         self,
         octopoes_connector: OctopoesAPIConnector,
-        ooi_types: set[type[OOI]],
+        ooi_types: set[type[OOI]] | set[str],
         valid_time: datetime,
-        scan_level: set[ScanLevel],
-        scan_profile_type: set[ScanProfileType],
+        scan_level: set[ScanLevel] | set[int] | None = None,
+        scan_profile_type: set[ScanProfileType] | set[str] | None = None,
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
@@ -225,11 +260,14 @@ class OOIList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
+        self._results: Paginated[OOI] | None = None
 
     @cached_property
     def count(self) -> int:
         if not self.ooi_types:
             return 0
+        if self._results:
+            return self._results.count
         return self.octopoes_connector.list_objects(
             self.ooi_types,
             valid_time=self.valid_time,
@@ -251,7 +289,7 @@ class OOIList:
             if key.stop:
                 limit = key.stop - offset
 
-            return self.octopoes_connector.list_objects(
+            self._results = self.octopoes_connector.list_objects(
                 self.ooi_types,
                 valid_time=self.valid_time,
                 offset=offset,
@@ -261,9 +299,12 @@ class OOIList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
-            ).items
+            )
+            return self._results.items
 
-        elif isinstance(key, int):
+        if isinstance(key, int):
+            if key > self.count:  # lets tell upstream no more items are expected
+                raise IndexError
             return self.octopoes_connector.list_objects(
                 self.ooi_types,
                 valid_time=self.valid_time,
@@ -301,9 +342,12 @@ class FindingList:
         self.search_string = search_string
         self.order_by = order_by
         self.asc_desc = asc_desc
+        self._results: Paginated[OOI] | None = None
 
     @cached_property
     def count(self) -> int:
+        if self._results:
+            return self._results.count
         return self.octopoes_connector.list_findings(
             severities=self.severities,
             valid_time=self.valid_time,
@@ -322,7 +366,7 @@ class FindingList:
             limit = self.HARD_LIMIT
             if key.stop:
                 limit = key.stop - offset
-            findings = self.octopoes_connector.list_findings(
+            self._results = self.octopoes_connector.list_findings(
                 severities=self.severities,
                 valid_time=self.valid_time,
                 exclude_muted=self.exclude_muted,
@@ -332,7 +376,8 @@ class FindingList:
                 search_string=self.search_string,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
-            ).items
+            )
+            findings = self._results.items
             ooi_references = {finding.ooi for finding in findings}
             finding_type_references = {finding.finding_type for finding in findings}
             objects = self.octopoes_connector.load_objects_bulk(
@@ -444,20 +489,6 @@ class ReportList:
             summary[report_type] = len([report for report in reports if report.report_type == report_type])
 
         return summary
-
-
-class ConnectorFormMixin:
-    connector_form_class: type[ObservedAtForm]
-    request: HttpRequest
-
-    def get_connector_form_kwargs(self) -> dict:
-        if "observed_at" in self.request.GET:
-            return {"data": self.request.GET}
-        else:
-            return {}
-
-    def get_connector_form(self) -> ObservedAtForm:
-        return self.connector_form_class(**self.get_connector_form_kwargs())
 
 
 class SingleOOIMixin(OctopoesView):

@@ -35,19 +35,6 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     internet = Network(name="internet")
 
-    if raw.decode() == "NXDOMAIN":
-        yield NXDOMAIN(hostname=Reference.from_str(input_ooi["primary_key"]))
-        return
-
-    results = json.loads(raw)
-
-    # parse raw data into dns.response.Message
-    sections = results["dns_records"].split("\n\n")
-    responses: list[Message] = []
-    for section in sections:
-        lines = section.split("\n")
-        responses.append(from_text("\n".join(lines[1:])))
-
     zone = None
     hostname_store: dict[str, Hostname] = {}
     record_store: dict[str, DNSRecord] = {}
@@ -63,6 +50,18 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     # register argument hostname
     input_hostname = register_hostname(input_ooi["name"])
+    if raw.decode() == "NXDOMAIN":
+        yield NXDOMAIN(hostname=Reference.from_str(input_ooi["primary_key"]))
+        return
+
+    results = json.loads(raw)
+
+    # parse raw data into dns.response.Message
+    sections = results["dns_records"].split("\n\n")
+    responses: list[Message] = []
+    for section in sections:
+        lines = section.split("\n")
+        responses.append(from_text("\n".join(lines[1:])))
 
     # keep track of discovered zones
     zone_links: dict[str, DNSZone] = {}

@@ -1,4 +1,5 @@
-table td .icon {
+table td .icon,
+table th .icon {
   &::before {
     position: static;
     font-family: var(--icon-font-family);
@@ -22,6 +23,8 @@ table td .icon {
       margin-left: 0;
     }
   }
+
+  /* Icon Id's from https://tabler.io/ */
 
   &.warning {
     &::before {
@@ -111,6 +114,41 @@ table td .icon {
     &::before {
       content: "\ea6a"; // $ti-icon-alert-circle-x
       color: var(--colors-grey-900);
+    }
+  }
+
+  &.timeout {
+    &::before {
+      content: "\ea70"; // $ti-icon-clock
+      color: var(--color-alert-negative);
+    }
+  }
+
+  &.stopschedule {
+    &::before {
+      content: "\ea6a"; // $ti-icon-on-off
+      color: var(--color-alert-negative);
+    }
+  }
+
+  &.search {
+    &::before {
+      content: "\eb1c"; // $ti-icon-search
+      color: var(--color-alert-informative);
+    }
+  }
+
+  &.filter {
+    &::before {
+      content: "\eaa5"; // $ti-icon-filter
+      color: var(--color-alert-informative);
+    }
+  }
+
+  &.filteradd {
+    &::before {
+      content: "\fa02"; // $ti-icon-filter-plus
+      color: var(--color-alert-informative);
     }
   }
 }

@@ -115,6 +115,17 @@ def get_normalizer_meta_by_id(
         raise HTTPException(status_code=codes.NOT_FOUND, detail="Normalizer meta not found") from error
 
 
+@router.get("/normalizer_metas", response_model=dict[str, NormalizerMeta], tags=[NORMALIZER_META_TAG])
+def get_normalizer_metas(
+    normalizer_metas: list[UUID] = Query(...),
+    limit: int = 100,
+    offset: int = 0,
+    meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
+) -> dict[str, NormalizerMeta]:
+    query_filter = NormalizerMetaFilter(limit=limit, offset=offset)
+    return meta_repository.get_normalizer_metas(normalizer_metas, query_filter)
+
+
 @router.get("/normalizer_meta", response_model=list[NormalizerMeta], tags=[NORMALIZER_META_TAG])
 def get_normalizer_meta(
     organization: str,
@@ -150,7 +161,7 @@ def get_normalizer_meta(
 
 
 @router.post("/raw", tags=[RAW_TAG])
-def create_raw(
+async def create_raw(
     boefje_meta_id: UUID,
     boefje_output: BoefjeOutput,
     meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
@@ -194,7 +205,7 @@ def create_raw(
                 organization=meta.organization,
                 raw_data=RawDataMeta(id=raw_id, boefje_meta=raw_data.boefje_meta, mime_types=raw_data.mime_types),
             )
-            event_manager.publish(event)
+            await event_manager.publish(event)
         except Exception as error:
             logger.exception("Error saving raw data")
             raise HTTPException(status_code=codes.INTERNAL_SERVER_ERROR, detail="Could not save raw data") from error

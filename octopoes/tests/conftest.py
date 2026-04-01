@@ -202,7 +202,7 @@ def app_settings():
 
 @pytest.fixture
 def octopoes_service() -> OctopoesService:
-    return OctopoesService(Mock(), Mock(), Mock(), Mock())
+    return OctopoesService(Mock(), Mock())
 
 
 @pytest.fixture
@@ -229,7 +229,7 @@ def xtdb_session(xtdb_http_client: XTDBHTTPClient) -> Iterator[XTDBSession]:
 
 @pytest.fixture
 def octopoes_api_connector(xtdb_session: XTDBSession) -> OctopoesAPIConnector:
-    connector = OctopoesAPIConnector("http://ci_octopoes:80", xtdb_session.client.client)
+    connector = OctopoesAPIConnector("http://ci_octopoes:80", xtdb_session.client.node)
 
     return connector
 
@@ -292,15 +292,8 @@ def xtdb_scan_profile_repository(xtdb_session: XTDBSession, event_manager) -> It
 
 
 @pytest.fixture
-def xtdb_octopoes_service(
-    xtdb_ooi_repository: XTDBOOIRepository,
-    xtdb_origin_repository: XTDBOriginRepository,
-    xtdb_origin_parameter_repository: XTDBOriginParameterRepository,
-    xtdb_scan_profile_repository: XTDBScanProfileRepository,
-) -> OctopoesService:
-    return OctopoesService(
-        xtdb_ooi_repository, xtdb_origin_repository, xtdb_origin_parameter_repository, xtdb_scan_profile_repository
-    )
+def xtdb_octopoes_service(event_manager: EventManager, xtdb_session: XTDBSession) -> OctopoesService:
+    return OctopoesService(event_manager, xtdb_session)
 
 
 @pytest.fixture

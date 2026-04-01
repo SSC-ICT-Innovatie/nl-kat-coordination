@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from typing_extensions import override
 
 from scheduler import clients, context, models
+from scheduler.models import BoefjeTask
 from scheduler.schedulers import Scheduler, rankers
 from scheduler.schedulers.errors import exception_handler
 
@@ -78,12 +79,32 @@ class NormalizerScheduler(Scheduler):
             self.logger.exception("Failed to validate raw data", scheduler_id=self.scheduler_id)
             return
 
+        # check if the boefje has decided the task does not fit it's logic,
+        # eg scanning tls on a non tls port number, or doing a puclib info
+        # lookup for a local IP-address. In this case the boefje signals
+        # the mimetype for this is: openkat/deschedule
+
+        if self.has_raw_data_deschedule(latest_raw_data.raw_data):
+            task = BoefjeTask.model_validate(
+                {
+                    "boefje": latest_raw_data.raw_data.boefje_meta.boefje,
+                    "input_ooi": latest_raw_data.raw_data.boefje_meta.input_ooi,
+                    "organization": latest_raw_data.raw_data.boefje_meta.organization,
+                }
+            )
+            self.logger.debug("deschedule received for task", task=task)
+            # lets disable the schedule that was responsible for this job.
+            schedule = self.ctx.datastores.schedule_store.get_schedule_by_hash(task.hash)
+            if schedule:
+                self.ctx.datastores.schedule_store.delete_schedule(schedule.id)
+            return
+
         # Check if the raw data doesn't contain an error mime-type,
         # we don't need to create normalizers when the raw data returned
         # an error.
         if self.has_raw_data_errors(latest_raw_data.raw_data):
             self.logger.debug(
-                "Skipping raw data %s with error mime type",
+                "Skipping raw data %s with 'error' mime type",
                 latest_raw_data.raw_data.id,
                 raw_data_id=latest_raw_data.raw_data.id,
             )
@@ -135,9 +156,10 @@ class NormalizerScheduler(Scheduler):
 
         with futures.ThreadPoolExecutor(thread_name_prefix=f"TPE-{self.scheduler_id}-raw_data") as executor:
             for normalizer_task in normalizer_tasks:
-                executor.submit(
+                future = executor.submit(
                     self.push_normalizer_task, normalizer_task, latest_raw_data.organization, self.create_schedule
                 )
+                future.add_done_callback(self.log_future_exceptions)
 
     @exception_handler
     @tracer.start_as_current_span("NormalizerScheduler.push_normalizer_task")
@@ -239,6 +261,17 @@ class NormalizerScheduler(Scheduler):
             return True
 
         return False
+
+    def has_raw_data_deschedule(self, raw_data: models.RawData) -> bool:
+        """Check if the raw data contains a deschedule command.
+
+        Args:
+            raw_data: The raw data to check.
+
+        Returns:
+            True if the raw data contains the specific deschedule mimetype, False otherwise.
+        """
+        return any(mime_type.get("value", "") == "openkat/deschedule" for mime_type in raw_data.mime_types)
 
     def has_raw_data_errors(self, raw_data: models.RawData) -> bool:
         """Check if the raw data contains errors.

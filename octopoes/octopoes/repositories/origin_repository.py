@@ -52,8 +52,8 @@ class XTDBOriginRepository(OriginRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
     def serialize(cls, origin: Origin) -> dict[str, Any]:
@@ -131,7 +131,6 @@ class XTDBOriginRepository(OriginRepository):
             self.session.add((XTDBOperationType.DELETE, old_origin.id, valid_time))
 
         self.session.add((XTDBOperationType.PUT, self.serialize(origin), valid_time))
-
         if old_origin != origin:
             # Only publish an event if there is a change in data. We won't send
             # events when only the normalizer task id of an observed origin is

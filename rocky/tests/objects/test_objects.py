@@ -32,7 +32,7 @@ def test_ooi_list(rf, client_member, mock_organization_view_octopoes):
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert mock_organization_view_octopoes().list_objects.call_count == 1
     assertContains(response, "testnetwork")
 
 
@@ -53,18 +53,12 @@ def test_ooi_list_with_clearance_type_filter_and_clearance_level_filter(
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert mock_organization_view_octopoes().list_objects.call_count == 1
 
     list_call_0 = mock_organization_view_octopoes().list_objects.call_args_list[0]
-    assert list_call_0.kwargs["limit"] == 0
+    assert list_call_0.kwargs["limit"] == 150
     assert list_call_0.kwargs["scan_level"] == {ScanLevel.L0, ScanLevel.L1}
     assert list_call_0.kwargs["scan_profile_type"] == {ScanProfileType.DECLARED, ScanProfileType.INHERITED}
-
-    list_call_1 = mock_organization_view_octopoes().list_objects.call_args_list[1]
-    assert list_call_1.kwargs["limit"] == 150
-    assert list_call_1.kwargs["offset"] == 0
-    assert list_call_1.kwargs["scan_level"] == {ScanLevel.L0, ScanLevel.L1}
-    assert list_call_1.kwargs["scan_profile_type"] == {ScanProfileType.DECLARED, ScanProfileType.INHERITED}
 
     assertContains(response, "testnetwork")
     assertContains(response, "Showing 150 of 200 objects")

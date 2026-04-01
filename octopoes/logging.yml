@@ -45,3 +45,11 @@ loggers:
     level: WARNING
     handlers: [console]
     propagate: 0
+  scanprofiles:
+    level: INFO
+    handlers: [console]
+    propagate: 0
+  octopoes-core-service:
+    level: INFO
+    handlers: [console]
+    propagate: 0

@@ -187,7 +187,7 @@ def test_report_types_selection(
     Will send the selected report types to the configuration page (set plugins).
     """
 
-    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.get_katalogus")()
+    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.katalogus_client")
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records]
 
     mock_bytes_client().upload_raw.return_value = "Report|e821aaeb-a6bd-427f-b064-e46837911a5d"
@@ -226,7 +226,7 @@ def test_save_generate_report_view(
     Will send data through post to generate report.
     """
 
-    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.get_katalogus")()
+    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.katalogus_client")
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records]
 
     mock_bytes_client().upload_raw.return_value = "Report|e821aaeb-a6bd-427f-b064-e46837911a5d"
@@ -271,7 +271,7 @@ def test_save_generate_report_view_scheduled(
     Will send data through post to generate report with schedule.
     """
 
-    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.get_katalogus")()
+    katalogus_mocker = mocker.patch("account.mixins.OrganizationView.katalogus_client")
     katalogus_mocker.get_plugins.return_value = [boefje_dns_records]
 
     mock_bytes_client().upload_raw.return_value = "Report|e821aaeb-a6bd-427f-b064-e46837911a5d"

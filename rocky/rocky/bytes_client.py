@@ -1,7 +1,7 @@
 import json
 import uuid
 from base64 import b64decode, b64encode
-from collections.abc import Set
+from collections.abc import Sequence, Set
 from datetime import datetime, timezone
 from typing import Any
 
@@ -183,6 +183,18 @@ class BytesClient:
         # Note: we assume organization permissions are handled before requesting raw data.
 
         response = self.session.get(f"/bytes/normalizer_meta/{normalizer_meta_id}")
+        response.raise_for_status()
+
+        return response.json()
+
+    def get_normalizer_metas(self, normalizer_metas: Sequence[uuid.UUID | str]) -> dict:
+        # Note: we assume organization permissions are handled before requesting raw data.
+
+        params: dict[str, int | list[str]] = {
+            "limit": len(normalizer_metas),
+            "normalizer_metas": [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas],
+        }
+        response = self.session.get("/bytes/normalizer_metas", params=params)
         response.raise_for_status()
 
         return response.json()
