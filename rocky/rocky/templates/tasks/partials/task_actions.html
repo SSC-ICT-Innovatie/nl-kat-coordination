@@ -1,12 +1,22 @@
 {% load i18n %}
 
-{% if task.type == "normalizer" %}
+{% if task.status.value in "completed,failed" %}
     <section>
+        <p class="explanation">{% translate "Loading..." %}</p>
         <div id="yielded-objects-{{ task.id }}">
-            <h2>{% translate "Yielded objects" %}</h2>
+            <h2>{% translate "Normalizer task" %}: {{ task.id }}</h2>
+            {% if task.type == "normalizer" %}
+                <p>
+                    {% translate "Processing input from Boefje task" %}: <a href="{% url 'boefjes_task_list' organization_code=task.data.raw_data.boefje_meta.organization %}?task_id={{ task.data.raw_data.boefje_meta.id }}">{{ task.data.raw_data.boefje_meta.id }}</a>
+                </p>
+                <p>{% translate "Consuming Raw file" %}: {{ task.data.raw_data.id }}</p>
+                <p>{% translate "Yielded objects" %}</p>
+            {% endif %}
+        </div>
+        <div id="yielded-rawfiles-{{ task.id }}">
+            <h2>{% translate "Yielded raw files for task" %}: {{ task.id }}</h2>
         </div>
     </section>
-    <br>
 {% endif %}
 <section>
     <div class="button-container">

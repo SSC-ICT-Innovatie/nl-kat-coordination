@@ -19,7 +19,9 @@
             </thead>
             <tbody>
                 {% for task in task_list %}
-                    <tr data-task-id="{{ task.id }}">
+                    <tr data-task-id="{{ task.id }}"
+                        data-task-type="{{ task.type }}"
+                        data-task-status="{{ task.status.value }}">
                         <td class="nowrap">
                             <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.value|capfirst }}
                         </td>

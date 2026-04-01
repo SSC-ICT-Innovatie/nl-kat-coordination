@@ -45,6 +45,8 @@
                         <tbody>
                             {% for task in task_list %}
                                 <tr data-task-id="{{ task.id }}"
+                                    data-task-type="{{ task.type }}"
+                                    data-task-status="{{ task.status.value }}"
                                     {% if not organization %}data-organization-code="{{ task.data.raw_data.boefje_meta.organization }}"{% endif %}>
                                     {% if not organization %}
                                         <td>
@@ -121,5 +123,6 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    <script src="{% static "js/renderNormalizerOutputOOIs.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}
