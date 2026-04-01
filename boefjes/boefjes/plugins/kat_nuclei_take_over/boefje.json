@@ -3,8 +3,7 @@
   "name": "Nuclei takeover scan",
   "description": "Nuclei is used to send requests across targets based on a template, providing fast scanning. This will try to perform a sub sub-domain takeover.",
   "consumes": [
-    "Hostname",
-    "HostnameHTTPURL"
+    "Hostname"
   ],
   "scan_level": 3,
   "oci_image": "docker.underdark.nl/librekat/openkat-nuclei:latest",
