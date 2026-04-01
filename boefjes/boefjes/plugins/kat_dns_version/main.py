@@ -10,10 +10,10 @@ import dns.query
 
 def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
     input_ = boefje_meta["arguments"]["input"]  # input is IPService
-    ip_port = input_["ip_port"]
     if input_["service"]["name"] != "domain":
-        return [({"error/boefje"}, "Not a DNS service")]
+        return [({"openkat/deschedule"}, "Not a DNS service")]
 
+    ip_port = input_["ip_port"]
     ip = ip_port["address"]["address"]
     port = int(ip_port["port"])
     protocol = ip_port["protocol"]

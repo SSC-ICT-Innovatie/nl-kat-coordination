@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import collections
 import datetime
 import uuid
 from enum import Enum
@@ -361,15 +360,15 @@ class SchedulerClient:
             endpoint = "/tasks"
             res = self._client.post(endpoint, params=params, json=kwargs.get(filter_key))
             return PaginatedTasksResponse.model_validate_json(res.content)
-        except ValidationError:
-            raise SchedulerValidationError(extra_message=_("Task list: "))
+        except ValidationError as error:
+            raise SchedulerValidationError(extra_message=_("Task list: ")) from error
         except ConnectError:
             raise SchedulerConnectError(extra_message=_("Task list: "))
 
     def get_task_details(self, task_id: str) -> Task:
         try:
             task_id = str(uuid.UUID(task_id))
-            return Task.model_validate_json(self._get(f"/tasks/{task_id}", "content"))
+            return Task.model_validate_json(self._get(f"/tasks/{task_id}", return_type="content"))
         except ValueError:
             raise SchedulerTaskNotFound()
 
@@ -420,39 +419,30 @@ class SchedulerClient:
     def health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self._get("/health", return_type="content"))
 
-    def _get_task_stats(self, scheduler_id: str, organisation_id: str | None = None) -> dict:
+    def _get_task_stats(self, scheduler_id: str, organization_ids: list[str] | None = None) -> dict:
         """Return task stats for specific scheduler."""
-        if organisation_id is None:
-            return self._get(f"/tasks/stats?scheduler_id={scheduler_id}")  # type: ignore
 
-        return self._get(f"/tasks/stats?scheduler_id={scheduler_id}&organisation_id={organisation_id}")  # type: ignore
+        params: dict[str, object] = {"scheduler_id": scheduler_id}
+
+        if organization_ids:
+            params["organisation_id"] = organization_ids
+
+        return self._get("/tasks/stats", params=params)  # type: ignore
 
     def get_task_stats(self, task_type: str) -> dict:
         """Return task stats for specific task type."""
-        return self._get_task_stats(scheduler_id=task_type, organisation_id=self.organization_code)
+        if not self.organization_code:
+            raise ValueError("No organization_code set")
+        return self._get_task_stats(scheduler_id=task_type, organization_ids=[self.organization_code])
 
-    @staticmethod
-    def _merge_stat_dicts(dicts: list[dict]) -> dict:
-        """Merge multiple stats dicts."""
-        stat_sum: dict[str, collections.Counter] = collections.defaultdict(collections.Counter)
-        for dct in dicts:
-            for timeslot, counts in dct.items():
-                stat_sum[timeslot].update(counts)
-        return dict(stat_sum)
+    def get_combined_schedulers_stats(self, scheduler_id: str, organization_ids: list[str] | None = None) -> dict:
+        """Return merged stats for a set of organization ids."""
+        return self._get_task_stats(scheduler_id, organization_ids)
 
-    def get_task_stats_for_all_organizations(self, scheduler_id: str) -> dict:
-        return self._get_task_stats(scheduler_id)
-
-    def get_combined_schedulers_stats(self, scheduler_id: str, organization_codes: list[str]) -> dict:
-        """Return merged stats for a set of scheduler ids."""
-        return self._merge_stat_dicts(
-            dicts=[self._get_task_stats(scheduler_id, org_code) for org_code in organization_codes]
-        )
-
-    def _get(self, path: str, return_type: str = "json") -> dict | bytes:
+    def _get(self, path: str, params: dict | None = None, return_type: str = "json") -> dict | bytes:
         """Helper to do a get request and raise warning for path."""
         try:
-            res = self._client.get(path)
+            res = self._client.get(path, params=params)
             res.raise_for_status()
         except HTTPError as exc:
             raise SchedulerError(path) from exc

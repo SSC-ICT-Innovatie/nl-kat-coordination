@@ -49,6 +49,6 @@ it as static JSON files. The initial download takes some time (~300,000+ CVEs,
 ~2 GB) but subsequent runs only fetch updates. The data is stored in a persistent
 volume and updated every 24 hours.
 
-The ``BOEFJE_CVEAPI_URL`` environment variable in ``.env-defaults`` is
-preconfigured to point to this local instance. No additional configuration is
-needed.
+The ``BOEFJE_CVEAPI_URL`` environment variable defaults to the public API at
+``https://cveapi.librekat.nl/v1``. To use the local instance instead, add
+``BOEFJE_CVEAPI_URL=http://cveapi:8080/v1`` to your ``.env`` file.

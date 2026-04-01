@@ -60,7 +60,6 @@ html_static_path = ["_static"]
 html_css_files = ["openkat.css"]
 
 mermaid_use_local = "mermaid.min.js"
-mermaid_include_elk = ""
 d3_use_local = "d3.min.js"
 
 autosectionlabel_prefix_document = True

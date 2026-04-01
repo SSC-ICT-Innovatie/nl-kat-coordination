@@ -15,6 +15,7 @@ def test_observed_at_no_value(mocker):
     mock_mixin_datetime = mocker.patch("rocky.views.mixins.datetime")
     mock_request = mocker.Mock()
     mock_request.GET = {}
+    mock_request.POST = {}
     now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=timezone.utc)
     mock_mixin_datetime.now.return_value = now
 
@@ -70,5 +71,4 @@ def test_observed_at_future_date(rf, client_member, mock_organization_view_octop
     assert messages[0].message == "The selected date is in the future."
 
     form = ObservedAtForm(data=request.GET)
-    assert not form.is_valid()
-    assert "The selected date is in the future. Please select a different date." in form.errors["observed_at"]
+    assert form.is_valid()

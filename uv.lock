@@ -400,6 +400,7 @@ dependencies = [
     { name = "croniter" },
     { name = "jsonschema" },
     { name = "myst-parser" },
+    { name = "pygments" },
     { name = "settings-doc" },
     { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
@@ -414,10 +415,11 @@ requires-dist = [
     { name = "croniter", specifier = ">=6.0.0,<7" },
     { name = "jsonschema", specifier = ">=4.17.0,<5" },
     { name = "myst-parser", specifier = ">=4.0.1,<5" },
+    { name = "pygments", specifier = ">=2.20.0" },
     { name = "settings-doc", specifier = ">=4.3.2,<5" },
     { name = "sphinx", specifier = ">=8.1.3,<9" },
     { name = "sphinx-rtd-theme", specifier = ">=3.0.2,<4" },
-    { name = "sphinxcontrib-mermaid", specifier = ">=1.0.0,<2" },
+    { name = "sphinxcontrib-mermaid", specifier = ">=1.0.0,<3" },
 ]
 
 [[package]]
@@ -578,11 +580,11 @@ wheels = [
 
 [[package]]
 name = "pygments"
-version = "2.19.2"
+version = "2.20.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/b0/77/a5b8c569bf593b0140bde72ea885a803b82086995367bf2037de0159d924/pygments-2.19.2.tar.gz", hash = "sha256:636cb2477cec7f8952536970bc533bc43743542f70392ae026374600add5b887", size = 4968631 }
+sdist = { url = "https://files.pythonhosted.org/packages/c3/b2/bc9c9196916376152d655522fdcebac55e66de6603a76a02bca1b6414f6c/pygments-2.20.0.tar.gz", hash = "sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f", size = 4955991 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/21/705964c7812476f378728bdf590ca4b771ec72385c533964653c68e86bdc/pygments-2.19.2-py3-none-any.whl", hash = "sha256:86540386c03d588bb81d44bc3928634ff26449851e99741617ecb9037ee5ec0b", size = 1225217 },
+    { url = "https://files.pythonhosted.org/packages/f4/7e/a72dd26f3b0f4f2bf1dd8923c85f7ceb43172af56d63c7383eb62b332364/pygments-2.20.0-py3-none-any.whl", hash = "sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176", size = 1231151 },
 ]
 
 [[package]]
@@ -1012,16 +1014,17 @@ wheels = [
 
 [[package]]
 name = "sphinxcontrib-mermaid"
-version = "1.2.3"
+version = "2.0.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
+    { name = "jinja2" },
     { name = "pyyaml" },
     { name = "sphinx", version = "8.1.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
     { name = "sphinx", version = "8.2.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f5/49/c6ddfe709a4ab76ac6e5a00e696f73626b2c189dc1e1965a361ec102e6cc/sphinxcontrib_mermaid-1.2.3.tar.gz", hash = "sha256:358699d0ec924ef679b41873d9edd97d0773446daf9760c75e18dc0adfd91371", size = 18885 }
+sdist = { url = "https://files.pythonhosted.org/packages/96/a5/65a5c439cc14ba80483b9891e9350f11efb80cd3bdccb222f0c738068c78/sphinxcontrib_mermaid-2.0.0.tar.gz", hash = "sha256:cf4f7d453d001132eaba5d1fdf53d42049f02e913213cf8337427483bfca26f4", size = 18194 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d1/39/8b54299ffa00e597d3b0b4d042241a0a0b22cb429ad007ccfb9c1745b4d1/sphinxcontrib_mermaid-1.2.3-py3-none-any.whl", hash = "sha256:5be782b27026bef97bfb15ccb2f7868b674a1afc0982b54cb149702cfc25aa02", size = 13413 },
+    { url = "https://files.pythonhosted.org/packages/f9/de/bd96c69b62e967bffd02c6d89dfca9471b04e761c466725fc39746abf41d/sphinxcontrib_mermaid-2.0.0-py3-none-any.whl", hash = "sha256:59a73249bbee2c74b1a4db036f8e8899ade65982bdda6712cf22b4f4e9874bb5", size = 14055 },
 ]
 
 [[package]]

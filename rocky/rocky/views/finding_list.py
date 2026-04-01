@@ -1,5 +1,4 @@
 from collections.abc import Iterable
-from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Literal
 
@@ -10,7 +9,6 @@ from django.http import HttpRequest, HttpResponse
 from django.urls.base import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
-from tools.forms.base import ObservedAtForm
 from tools.forms.findings import (
     FindingSearchForm,
     FindingSeverityMultiSelectForm,
@@ -21,10 +19,10 @@ from tools.forms.findings import (
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.models.ooi.findings import RiskLevelSeverity
+from rocky.paginator import RockyPaginator
 from rocky.views.mixins import (
     FINDING_LIST_COLUMNS,
     AddDashboardItemFormMixin,
-    ConnectorFormMixin,
     FindingList,
     OctopoesView,
     SeveritiesMixin,
@@ -70,9 +68,7 @@ class PageActions(Enum):
     ADD_TO_DASHBOARD = "add_to_dashboard"
 
 
-class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListView):
-    connector_form_class = ObservedAtForm
-
+class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.severities = self.get_severities()
@@ -82,9 +78,6 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
         self.only_muted = self.muted_findings == "muted"
 
         self.search_string = request.GET.get("search", "")
-
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
 
     @property
     def count_active_filters(self):
@@ -119,8 +112,6 @@ class FindingListFilter(OctopoesView, ConnectorFormMixin, SeveritiesMixin, ListV
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["observed_at_form"] = self.get_connector_form()
-        context["observed_at"] = self.observed_at
         context["severity_filter"] = FindingSeverityMultiSelectForm(self.request.GET)
         context["muted_findings_filter"] = MutedFindingSelectionForm(self.request.GET)
         context["table_columns"] = FINDING_LIST_COLUMNS
@@ -142,6 +133,7 @@ class FindingListView(BreadcrumbsMixin, FindingListFilter, AddDashboardItemFormM
     template_name = "findings/finding_list.html"
     paginate_by = 150
     add_dashboard_item_form = AddFindingListDashboardItemForm
+    paginator_class = RockyPaginator
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
