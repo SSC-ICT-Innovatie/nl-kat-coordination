@@ -122,7 +122,7 @@ task_buttons.forEach((button) => {
         rawfiles_element.classList.add("yielded-rawfiles");
 
         if (!data) {
-          rawfiles_element.innerHTML = `<p class='explanation'>Task ${raw_task_id} could not be loaded.</p>`;
+          rawfiles_element.innerHTML = `<p class='explanation'>Task ${escapeHTMLEntities(raw_task_id)} could not be loaded.</p>`;
           return;
         }
 
@@ -148,7 +148,7 @@ task_buttons.forEach((button) => {
           });
           yielded_objects_element.innerHTML = `<ul>${object_list}</ul>`;
         } else if (task_type == "normalizer") {
-          yielded_objects_element.innerHTML = `<p class='explanation'>Task ${raw_task_id} yielded no objects.</p>`;
+          yielded_objects_element.innerHTML = `<p class='explanation'>Task ${escapeHTMLEntities(raw_task_id)} yielded no objects.</p>`;
         }
         expando_row
           .querySelector("#yielded-objects-" + raw_task_id)
@@ -317,11 +317,11 @@ function renderHexTable(hex_table, bytes) {
         let asciistring =
           event.target.parentElement.querySelector(".ascii").textContent;
         let highlightedstring =
-          asciistring.substring(0, charposition - 1) +
+          escapeHTMLEntities(asciistring.substring(0, charposition - 1)) +
           "<span class='highlight'>" +
           escapeHTMLEntities(asciistring.charAt(charposition - 1)) +
           "</span>" +
-          asciistring.substring(charposition);
+          escapeHTMLEntities(asciistring.substring(charposition));
         event.target.parentElement.querySelector(".ascii").innerHTML =
           highlightedstring;
       }
