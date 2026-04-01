@@ -13,7 +13,7 @@ from httpx import HTTPError
 from pydantic import TypeAdapter
 
 from octopoes.api.models import ServiceHealth
-from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER, Settings
+from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SCAN_LEVEL_FILTER, Settings
 from octopoes.events.events import DBEvent, OOIDBEvent, OriginDBEvent, OriginParameterDBEvent, ScanProfileDBEvent
 from octopoes.events.manager import EventManager
 from octopoes.models import (
