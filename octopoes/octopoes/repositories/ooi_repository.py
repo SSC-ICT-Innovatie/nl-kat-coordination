@@ -556,7 +556,7 @@ class XTDBOOIRepository(OOIRepository):
         if not res:
             return []
         references = {Reference.from_str(reference) for reference in res[0][0]}
-        return list(self.load_bulk(references, valid_time).values(), include_scan_levels=True)
+        return list(self.load_bulk(references, valid_time, include_scan_levels=True).values())
 
     def get_tree(
         self,
@@ -894,22 +894,23 @@ class XTDBOOIRepository(OOIRepository):
 
         severity_values = ", ".join([str_val(severity.value) for severity in severities])
 
-        if limit == 0:
-            count_query = f"""
-                {{
-                    :query {{
-                        :find [(count ?finding)]
-                        :in [[severities_ ...]]
-                        :where [[?finding :object_type "Finding"]
-                                [?finding :Finding/finding_type ?finding_type]
-                                {search_statement}
-                                [(== ?severity severities_)]
-                                {or_severities}
-                                {muted_clause}]
-                    }}
-                    :in-args [[{severity_values}]]
+        count_query = f"""
+            {{
+                :query {{
+                    :find [(count ?finding)]
+                    :in [[severities_ ...]]
+                    :where [[?finding :object_type "Finding"]
+                            [?finding :Finding/finding_type ?finding_type]
+                            {search_statement}
+                            [(== ?severity severities_)]
+                            {or_severities}
+                            {muted_clause}]
                 }}
-            """
+                :in-args [[{severity_values}]]
+            }}
+        """
+
+        if limit == 0:
             count_results = self.session.client.query(count_query, valid_time)
             count = 0
             if count_results and count_results[0]:
