@@ -37,10 +37,11 @@ dependencies = [
     "fastapi-slim>=0.115.2",
     "structlog>=25.2.0,<26",
     "cryptography>=46.0.6",
-    "boto3>=1.42.70",
+    "boto3>=1.42.70,<3",
     "bcrypt<5",
     "requests>=2.33.0,<3",
     "pygments>=2.20.0",
+    "pyasn1>=0.6.3",
 ]
 
 [tool.uv]
@@ -48,7 +49,7 @@ package = false
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.5,<9",
+    "pytest>=9.0.2,<10",
     "pytest-env>=1.1.5,<2",
     "pytest-cov>=7",
 ]
