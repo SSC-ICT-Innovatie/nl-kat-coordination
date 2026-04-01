@@ -1,0 +1,162 @@
+{
+  "search_mode": "strict",
+  "input_ooi": "Hostname|internet|example.com",
+  "results": [
+    {
+      "event_type": "service",
+      "event_source": "HttpPlugin",
+      "event_pipeline": ["tcpid", "HttpPlugin"],
+      "event_fingerprint": "aabb001122334455aabb001122334455aabb001122334455aabb001122334455",
+      "ip": "93.184.215.14",
+      "host": "example.com",
+      "reverse": "",
+      "port": "443",
+      "mac": "",
+      "vendor": "",
+      "transport": ["tcp", "https"],
+      "protocol": "https",
+      "http": {
+        "root": "",
+        "url": "",
+        "status": 200,
+        "length": 0,
+        "header": {},
+        "title": "Example Domain",
+        "favicon_hash": ""
+      },
+      "summary": "",
+      "time": "2024-01-01T00:00:00Z",
+      "ssl": {
+        "detected": true,
+        "enabled": true,
+        "jarm": "",
+        "cypher_suite": "",
+        "version": "TLSv1.3",
+        "certificate": {
+          "cn": "example.com",
+          "domain": ["example.com"],
+          "fingerprint": "",
+          "key_algo": "",
+          "key_size": 0,
+          "issuer_name": "",
+          "not_before": "0001-01-01T00:00:00Z",
+          "not_after": "0001-01-01T00:00:00Z",
+          "valid": true
+        }
+      },
+      "ssh": {"fingerprint": "", "version": 0, "banner": "", "motd": ""},
+      "service": {
+        "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+        "software": {"name": "nginx", "version": "1.24.0", "os": "", "modules": null, "fingerprint": ""}
+      },
+      "leak": {"stage": "", "type": "", "severity": "", "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null, "stage": ""}},
+      "tags": [],
+      "geoip": {"continent_name": "", "region_iso_code": "", "city_name": "", "country_iso_code": "", "country_name": "", "location": {"lat": 0, "lon": 0}},
+      "network": {"asn": 15133, "organization_name": "Edgecast Inc.", "network": "93.184.215.0/24"}
+    },
+    {
+      "event_type": "service",
+      "event_source": "HttpPlugin",
+      "event_pipeline": ["tcpid", "HttpPlugin"],
+      "event_fingerprint": "ccdd001122334455ccdd001122334455ccdd001122334455ccdd001122334455",
+      "ip": "93.184.215.14",
+      "host": "sub.example.com",
+      "reverse": "",
+      "port": "443",
+      "mac": "",
+      "vendor": "",
+      "transport": ["tcp", "https"],
+      "protocol": "https",
+      "http": {
+        "root": "",
+        "url": "",
+        "status": 200,
+        "length": 0,
+        "header": {},
+        "title": "Subdomain",
+        "favicon_hash": ""
+      },
+      "summary": "",
+      "time": "2024-01-01T00:00:00Z",
+      "ssl": {
+        "detected": true,
+        "enabled": true,
+        "jarm": "",
+        "cypher_suite": "",
+        "version": "TLSv1.3",
+        "certificate": {
+          "cn": "sub.example.com",
+          "domain": ["sub.example.com"],
+          "fingerprint": "",
+          "key_algo": "",
+          "key_size": 0,
+          "issuer_name": "",
+          "not_before": "0001-01-01T00:00:00Z",
+          "not_after": "0001-01-01T00:00:00Z",
+          "valid": true
+        }
+      },
+      "ssh": {"fingerprint": "", "version": 0, "banner": "", "motd": ""},
+      "service": {
+        "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+        "software": {"name": "nginx", "version": "1.24.0", "os": "", "modules": null, "fingerprint": ""}
+      },
+      "leak": {"stage": "", "type": "", "severity": "", "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null, "stage": ""}},
+      "tags": [],
+      "geoip": {"continent_name": "", "region_iso_code": "", "city_name": "", "country_iso_code": "", "country_name": "", "location": {"lat": 0, "lon": 0}},
+      "network": {"asn": 15133, "organization_name": "Edgecast Inc.", "network": "93.184.215.0/24"}
+    },
+    {
+      "event_type": "service",
+      "event_source": "HttpPlugin",
+      "event_pipeline": ["tcpid", "HttpPlugin"],
+      "event_fingerprint": "eeff001122334455eeff001122334455eeff001122334455eeff001122334455",
+      "ip": "93.184.215.14",
+      "host": "other.example.org",
+      "reverse": "",
+      "port": "80",
+      "mac": "",
+      "vendor": "",
+      "transport": ["tcp", "http"],
+      "protocol": "http",
+      "http": {
+        "root": "",
+        "url": "",
+        "status": 200,
+        "length": 0,
+        "header": {},
+        "title": "Other Site",
+        "favicon_hash": ""
+      },
+      "summary": "",
+      "time": "2024-01-01T00:00:00Z",
+      "ssl": {
+        "detected": false,
+        "enabled": false,
+        "jarm": "",
+        "cypher_suite": "",
+        "version": "",
+        "certificate": {
+          "cn": "",
+          "domain": null,
+          "fingerprint": "",
+          "key_algo": "",
+          "key_size": 0,
+          "issuer_name": "",
+          "not_before": "0001-01-01T00:00:00Z",
+          "not_after": "0001-01-01T00:00:00Z",
+          "valid": false
+        }
+      },
+      "ssh": {"fingerprint": "", "version": 0, "banner": "", "motd": ""},
+      "service": {
+        "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+        "software": {"name": "apache", "version": "2.4.52", "os": "", "modules": null, "fingerprint": ""}
+      },
+      "leak": {"stage": "", "type": "", "severity": "", "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null, "stage": ""}},
+      "tags": [],
+      "geoip": {"continent_name": "", "region_iso_code": "", "city_name": "", "country_iso_code": "", "country_name": "", "location": {"lat": 0, "lon": 0}},
+      "network": {"asn": 15133, "organization_name": "Edgecast Inc.", "network": "93.184.215.0/24"}
+    }
+  ]
+}

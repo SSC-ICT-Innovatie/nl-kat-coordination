@@ -1,5 +1,3 @@
-from datetime import datetime, timezone
-
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from tools.forms.ooi import OoiTreeSettingsForm
@@ -27,9 +25,6 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
     def get_filtered_tree(self, tree_dict: dict) -> dict:
         filtered_types = self.request.GET.getlist("ooi_type", [])
         return filter_ooi_tree(tree_dict, filtered_types)
-
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
 
     def count_active_filters(self):
         count_depth_filter = len(self.request.GET.getlist("depth", []))
@@ -61,7 +56,6 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
         context["tree"] = self.get_filtered_tree(self.get_tree_dict())
         context["tree_view"] = self.request.GET.get("view", "condensed")
-        context["observed_at_form"] = self.get_connector_form()
         context["active_filters_counter"] = self.count_active_filters()
         return context
 

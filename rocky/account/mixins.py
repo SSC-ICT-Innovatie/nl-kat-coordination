@@ -75,6 +75,14 @@ class OrganizationPermWrapper:
         return self[app_label][perm_name]
 
 
+class UnboundOrganizationView(ContextMixin, View):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+
+    def get_user_organizations(self) -> list[str]:
+        return [org.code for org in self.request.user.organizations]
+
+
 class OrganizationView(ContextMixin, View):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
