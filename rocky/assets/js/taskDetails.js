@@ -88,7 +88,7 @@ task_buttons.forEach((button) => {
         let error_text_element = document.createElement("p");
 
         error_text_element.innerText =
-          "Retrieving yielded raw files resulted in a Sever Error: Status code ";
+          "Retrieving yielded raw files resulted in a Server Error: Status code ";
         error_element.appendChild(error_text_element);
         error_element.classList.add("error");
 
@@ -166,56 +166,57 @@ task_buttons.forEach((button) => {
             let rawdata = atob(rawfile["raw_file"]);
             let rawfile_container = document.createElement("div");
             let signed = rawfile["signing_provider_url"]
-              ? `, signed by <a href="${rawfile["signing_provider_url"]}">${rawfile["signing_provider_url"]}</a>`
+              ? `, signed by <a href="${escapeHTMLEntities(rawfile["signing_provider_url"])}">${escapeHTMLEntities(rawfile["signing_provider_url"])}</a>`
               : "";
             if (rawfile["raw_file"].length > 0) {
-              rawfile_container.innerHTML = `<h3 id="raw-file-${rawfile["id"]}">File id: ${rawfile["id"]} (${rawfile["raw_file"].length} bytes)</h3>
+              let escapedId = escapeHTMLEntities(rawfile["id"]);
+              rawfile_container.innerHTML = `<h3 id="raw-file-${escapedId}">File id: ${escapedId} (${rawfile["raw_file"].length} bytes)</h3>
                         <div role="tablist"
-                           aria-labelledby="raw-file-${rawfile["id"]}"
+                           aria-labelledby="raw-file-${escapedId}"
                            class="manual">
                             <div class="button-container">
-                                <button id="plain-${rawfile["id"]}"
+                                <button id="plain-${escapedId}"
                                     type="button"
                                     role="tab"
                                     aria-selected="true"
-                                    aria-controls="plain-${rawfile["id"]}-panel">
+                                    aria-controls="plain-${escapedId}-panel">
                                     Plain text
                                 </button>
-                                <button id="json-${rawfile["id"]}"
+                                <button id="json-${escapedId}"
                                     type="button"
                                     role="tab"
                                     aria-selected="false"
-                                    aria-controls="json-${rawfile["id"]}-panel">
+                                    aria-controls="json-${escapedId}-panel">
                                     Json
                                 </button>
-                                <button id="hex-${rawfile["id"]}"
+                                <button id="hex-${escapedId}"
                                     type="button"
                                     role="tab"
                                     aria-selected="false"
-                                    aria-controls="hex-${rawfile["id"]}-panel">
+                                    aria-controls="hex-${escapedId}-panel">
                                     HEX view
                                 </button>
                             </div>
-                        <div id="plain-${rawfile["id"]}-panel"
+                        <div id="plain-${escapedId}-panel"
                            role="tabpanel"
-                           aria-labelledby="#plain-${rawfile["id"]}">
+                           aria-labelledby="#plain-${escapedId}">
                             <pre class="plain"><code></code></pre>
                         </div>
-                        <div id="json-${rawfile["id"]}-panel"
+                        <div id="json-${escapedId}-panel"
                            role="tabpanel"
-                           aria-labelledby="#json-${rawfile["id"]}-panel"
+                           aria-labelledby="#json-${escapedId}-panel"
                            class="hidden">
                             <pre class="json"></pre>
                         </div>
-                        <div id="hex-${rawfile["id"]}-panel"
+                        <div id="hex-${escapedId}-panel"
                            role="tabpanel"
-                           aria-labelledby="#hex-${rawfile["id"]}"
+                           aria-labelledby="#hex-${escapedId}"
                            class="hidden">
                           <table class="hex"></table>
                         </div>
                     <h5>Mimetypes:</h5>
                       <ul class="tags">${mimetypes}</ul>
-                    <p>Secure Hash: <code>${rawfile["secure_hash"]} ${signed}</code></p>`;
+                    <p>Secure Hash: <code>${escapeHTMLEntities(rawfile["secure_hash"])} ${signed}</code></p>`;
               rawfiles_list.appendChild(rawfile_container);
               // plain text view
               rawfile_container.querySelector("pre.plain code").innerText =
@@ -247,10 +248,10 @@ task_buttons.forEach((button) => {
               renderHexTable(hex_table, rawbytes.encode(rawdata));
             } else {
               // display only the meta-data for empty files.
-              rawfile_container.innerHTML = `<h3 id="raw-file-${rawfile["id"]}">File id: ${rawfile["id"]} (Empty, 0 bytes)</h3>
+              rawfile_container.innerHTML = `<h3 id="raw-file-${escapedId}">File id: ${escapedId} (Empty, 0 bytes)</h3>
                     <h5>Mimetypes:</h5>
                       <ul class="tags">${mimetypes}</ul>
-                    <p>Secure Hash: <code>${rawfile["secure_hash"]} ${signed}</code></p>`;
+                    <p>Secure Hash: <code>${escapeHTMLEntities(rawfile["secure_hash"])} ${signed}</code></p>`;
               rawfiles_list.appendChild(rawfile_container);
             }
           });
@@ -340,7 +341,8 @@ function renderHexTable(hex_table, bytes) {
 }
 
 function escapeHTMLEntities(input) {
-  var output = input.replace(/'/g, "&apos;");
+  var output = input.replace(/&/g, "&amp;");
+  output = output.replace(/'/g, "&apos;");
   output = output.replace(/"/g, "&quot;");
   output = output.replace(/</g, "&lt;");
   return output.replace(/>/g, "&gt;");
