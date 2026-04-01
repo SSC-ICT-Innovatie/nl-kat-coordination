@@ -246,12 +246,7 @@ class XTDBOOIRepository(OOIRepository):
         return export
 
     @classmethod
-    def deserialize(
-        cls,
-        data: dict[str, Any],
-        to_type: type[OOI] | None = None,
-        scan_profile: dict[str, Any] | None = None,
-    ) -> OOI:
+    def deserialize(cls, data: dict[str, Any], to_type: type[OOI] | None = None, scan_profile: dict[str, Any] | None = None) -> OOI:
         if "object_type" not in data:
             raise ValueError("Data is missing object_type")
 
@@ -835,7 +830,9 @@ class XTDBOOIRepository(OOIRepository):
 
     def list_related(self, ooi: OOI | Reference, path: Path, valid_time: datetime) -> list[OOI]:
         path_start_alias = path.segments[0].source_type
-        query = Query.from_path(path).where(path_start_alias, primary_key=ooi.primary_key if isinstance(ooi, OOI) else ooi)
+        query = Query.from_path(path).where(
+            path_start_alias, primary_key=ooi.primary_key if isinstance(ooi, OOI) else ooi
+        )
 
         # query() can return different types depending on the query
         return self.query(query, valid_time)  # type: ignore[return-value]
