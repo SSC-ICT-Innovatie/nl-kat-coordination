@@ -34,6 +34,7 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi",
     "opentelemetry-instrumentation-psycopg2",
     "opentelemetry-semantic-conventions",
+    "pygments>=2.20.0",
 ]
 
 [dependency-groups]
