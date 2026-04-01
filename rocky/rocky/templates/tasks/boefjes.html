@@ -43,7 +43,10 @@
                         </thead>
                         <tbody>
                             {% for task in task_list %}
-                                <tr data-task-id="{{ task.id }}">
+                                <tr data-task-id="{{ task.id }}"
+                                    data-task-type="{{ task.type }}"
+                                    data-task-status="{{ task.status.value }}"
+                                    {% if not organization %}data-organization-code="{{ task.data.organization }}"{% endif %}>
                                     {% if not organization.code %}
                                         <td>
                                             <a href="{% url "organization_crisis_room_landing" task.data.organization %}">{{ task.data.organization }}</a>
@@ -100,3 +103,8 @@
 
     </main>
 {% endblock content %}
+{% block html_at_end_body %}
+    {{ block.super }}
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
+{% endblock html_at_end_body %}

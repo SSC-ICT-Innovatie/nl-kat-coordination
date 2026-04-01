@@ -19,7 +19,9 @@
             </thead>
             <tbody>
                 {% for task in task_list %}
-                    <tr data-task-id="{{ task.id }}">
+                    <tr data-task-id="{{ task.id }}"
+                        data-task-type="{{ task.type }}"
+                        data-task-status="{{ task.status.value }}">
                         <td>
                             {% if task.type == "boefje" %}
                                 <a href="{% url "boefje_detail" organization.code task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
