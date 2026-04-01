@@ -342,6 +342,10 @@ class XTDBOOIRepository(OOIRepository):
                 self.deserialize(x[0])
                 for x in self.session.client.query(query, valid_time)
             )
+            return
+
+        pull_fields = ["*"]
+        where_clause = ["[?e :xt/id ?ids]"]
 
         if include_results:
             pull_fields.append(
