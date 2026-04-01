@@ -17,6 +17,7 @@ dependencies = [
     "croniter>=6.0.0,<7",
     "jsonschema>=4.17.0,<5",
     "pygments>=2.20.0",
+    "requests>=2.33.0,<3",
 ]
 
 [tool.uv]
