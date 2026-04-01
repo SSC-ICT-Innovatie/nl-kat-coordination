@@ -1,56 +1,100 @@
 {% load i18n %}
 
-<section>
-    <div>
-        <h2>{% translate "Task statistics - Last 24 hours" %}</h2>
-        {% if not stats_error %}
-            <div class="horizontal-scroll">
-                <table>
-                    <caption>{% translate "All times in UTC, blocks of 1 hour." %}</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">{% translate "Timeslot" %}</th>
-                            <th scope="col">{% translate "Pending" %}</th>
-                            <th scope="col">{% translate "Queued" %}</th>
-                            <th scope="col">{% translate "Dispatched" %}</th>
-                            <th scope="col">{% translate "Running" %}</th>
-                            <th scope="col">{% translate "Completed" %}</th>
-                            <th scope="col">{% translate "Failed" %}</th>
-                            <th scope="col">{% translate "Cancelled" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for timestamp, values in stats.items %}
+{% if stats %}
+    <section>
+        <div>
+            <h2>{% translate "Task statistics - Last 24 hours" %}</h2>
+            {% if not stats_error %}
+                <div class="horizontal-scroll">
+                    <table>
+                        <caption>{% translate "All times in UTC, blocks of 1 hour." %}</caption>
+                        <thead>
                             <tr>
-                                <th scope="row" class="nowrap">{{ timestamp }}:</th>
-                                <td>
-                                    <span class="data">{{ values.pending }}</span>
-                                </td>
-                                <td>
-                                    <span class="data">{{ values.queued }}</span>
-                                </td>
-                                <td>
-                                    <span class="data">{{ values.dispatched }}</span>
-                                </td>
-                                <td>
-                                    <span class="data">{{ values.running }}</span>
-                                </td>
-                                <td>
-                                    <span class="data">{{ values.completed }}</span>
-                                </td>
-                                <td>
-                                    <span class="data">{{ values.failed }}</span>
-                                </td>
-                                <td>
-                                    <span class="data">{{ values.cancelled }}</span>
-                                </td>
+                                <th scope="col">{% translate "Timeslot" %}</th>
+                                <th scope="col">
+                                    {% translate "Pending" %}
+                                    <a href="{{ request.path }}?status=pending"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='pending' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Queued" %}
+                                    <a href="{{ request.path }}?status=queued"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='queued' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Dispatched" %}
+                                    <a href="{{ request.path }}?status=dispatched"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='dispatched' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Running" %}
+                                    <a href="{{ request.path }}?status=running"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='running' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Completed" %}
+                                    <a href="{{ request.path }}?status=completed"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='completed' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Failed" %}
+                                    <a href="{{ request.path }}?status=failed"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='failed' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
+                                <th scope="col">
+                                    {% translate "Cancelled" %}
+                                    <a href="{{ request.path }}?status=cancelled"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='cancelled' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        {% else %}
-            <p class="error">{% translate "Could not load stats, Scheduler error." %}</p>
-        {% endif %}
-    </div>
-</section>
+                        </thead>
+                        <tbody>
+                            {% for timestamp, values in stats.items %}
+                                <tr>
+                                    <th scope="row" class="nowrap">{{ timestamp }}:</th>
+                                    <td>
+                                        <span class="data">{{ values.pending }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.queued }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.dispatched }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.running }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.completed }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.failed }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.cancelled }}</span>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p class="error">{% translate "Could not load stats, Scheduler error." %}</p>
+            {% endif %}
+        </div>
+    </section>
+{% endif %}

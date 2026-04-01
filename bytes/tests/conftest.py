@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import alembic.config
@@ -105,8 +105,9 @@ def raw_repository(tmp_path: Path) -> FileRawRepository:
 
 
 @pytest.fixture
-def event_manager(settings: Settings) -> Iterator[RabbitMQEventManager]:
+async def event_manager(settings: Settings) -> AsyncIterator[RabbitMQEventManager]:
     manager = RabbitMQEventManager(str(settings.queue_uri))
-    manager.channel.queue_delete("raw_file_received")
+    channel = await manager._get_channel()
+    await channel.queue_delete("raw_file_received")
 
     yield manager

@@ -144,4 +144,6 @@
     {{ block.super }}
     <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
     <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

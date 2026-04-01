@@ -131,7 +131,8 @@ def test_filtered_boefje_meta(bytes_api_client: BytesAPIClient) -> None:
     assert second_boefje_meta == retrieved_boefje_metas[0]
 
 
-def test_normalizer_meta(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
+@pytest.mark.anyio
+async def test_normalizer_meta(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -216,7 +217,8 @@ def test_normalizer_meta_pointing_to_raw_id(bytes_api_client: BytesAPIClient) ->
     assert normalizer_meta == retrieved_normalizer_meta
 
 
-def test_raw(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
+@pytest.mark.anyio
+async def test_raw(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -227,13 +229,18 @@ def test_raw(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManag
 
     assert retrieved_raw == raw
 
-    method, properties, body = event_manager.connection.channel().basic_get("raw_file_received")
-    event_manager.connection.channel().basic_ack(method.delivery_tag)
+    channel = await event_manager._get_channel()
+    queue = await channel.declare_queue("raw_file_received", durable=True)
+    message = await queue.get()
 
-    assert str(boefje_meta.id) in body.decode()
+    assert message is not None
+    await message.ack()
+
+    assert str(boefje_meta.id) in message.body.decode()
 
 
-def test_raw_big(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
+@pytest.mark.anyio
+async def test_raw_big(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -244,10 +251,14 @@ def test_raw_big(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventM
 
     assert retrieved_raw == raw
 
-    method, properties, body = event_manager.connection.channel().basic_get("raw_file_received")
-    event_manager.connection.channel().basic_ack(method.delivery_tag)
+    channel = await event_manager._get_channel()
+    queue = await channel.declare_queue("raw_file_received", durable=True)
+    message = await queue.get()
 
-    assert str(boefje_meta.id) in body.decode()
+    assert message is not None
+    await message.ack()
+
+    assert str(boefje_meta.id) in message.body.decode()
 
 
 def test_save_raw_with_one_mime_type(bytes_api_client: BytesAPIClient) -> None:

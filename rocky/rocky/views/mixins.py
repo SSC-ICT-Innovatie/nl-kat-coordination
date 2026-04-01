@@ -17,7 +17,9 @@ from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views import View
 from django.views.generic import ListView
+from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from httpx import HTTPError
 from katalogus.client import Boefje
@@ -98,31 +100,55 @@ class OOIAttributeError(AttributeError):
     pass
 
 
-class ObservedAtMixin:
-    request: HttpRequest
+class ObservedAtMixin(ContextMixin, View):
+    connector_form_class: type[ObservedAtForm] = ObservedAtForm
+
+    @cached_property
+    def is_historic_view(self) -> bool:
+        return bool(self.request.GET.get("observed_at", False) or self.request.POST.get("observed_at", False))
 
     @cached_property
     def observed_at(self) -> datetime:
-        observed_at = self.request.GET.get("observed_at", None)
-        if not observed_at:
-            return datetime.now(timezone.utc)
-
-        try:
-            datetime_format = "%Y-%m-%d"
-            date_time = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
-            if date_time.date() > datetime.now(timezone.utc).date():
-                messages.warning(self.request, _("The selected date is in the future."))
-            return date_time
-        except ValueError:
+        observed_at = self.request.GET.get("observed_at", self.request.POST.get("observed_at", None))
+        # handle empty input
+        if observed_at:
+            # handle date only input
             try:
-                ret = datetime.fromisoformat(observed_at)
-                if not ret.tzinfo:
-                    ret = ret.replace(tzinfo=timezone.utc)
-
-                return ret
+                datetime_format = "%Y-%m-%d"
+                observed_at = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
+                if observed_at.date() > datetime.now(timezone.utc).date():
+                    messages.warning(self.request, _("The selected date is in the future."))
+                return observed_at
             except ValueError:
-                messages.error(self.request, _("Can not parse date, falling back to show current date."))
-                return datetime.now(timezone.utc)
+                # handle iso format input
+                try:
+                    observed_at = datetime.fromisoformat(observed_at)
+                    if not observed_at.tzinfo:
+                        observed_at = observed_at.replace(tzinfo=timezone.utc)
+
+                    return observed_at
+                except ValueError:
+                    messages.error(self.request, _("Can not parse date, falling back to show current date."))
+        return datetime.now(timezone.utc)
+
+    def get_connector_form_kwargs(self) -> dict:
+        if self.is_historic_view:
+            return {"data": self.request.GET}
+        else:
+            return {}
+
+    def get_connector_form(self) -> ObservedAtForm:
+        return self.connector_form_class(**self.get_connector_form_kwargs())
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["observed_at_form"] = self.get_connector_form()
+        context["observed_at"] = self.observed_at
+        context["historic_view"] = self.is_historic_view
+        return context
+
+    def count_observed_at_filter(self) -> int:
+        return int(self.is_historic_view)
 
 
 class OctopoesView(ObservedAtMixin, OrganizationView):
@@ -205,6 +231,9 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
 
     def get_scan_profile_inheritance(self, ooi: OOI) -> list[InheritanceSection]:
         return self.octopoes_api_connector.get_scan_profile_inheritance(ooi.reference, self.observed_at)
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(**kwargs)
 
 
 class OOIList:
@@ -460,20 +489,6 @@ class ReportList:
             summary[report_type] = len([report for report in reports if report.report_type == report_type])
 
         return summary
-
-
-class ConnectorFormMixin:
-    connector_form_class: type[ObservedAtForm]
-    request: HttpRequest
-
-    def get_connector_form_kwargs(self) -> dict:
-        if "observed_at" in self.request.GET:
-            return {"data": self.request.GET}
-        else:
-            return {}
-
-    def get_connector_form(self) -> ObservedAtForm:
-        return self.connector_form_class(**self.get_connector_form_kwargs())
 
 
 class SingleOOIMixin(OctopoesView):
