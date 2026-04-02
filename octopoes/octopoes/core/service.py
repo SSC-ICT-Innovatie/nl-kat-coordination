@@ -555,9 +555,7 @@ class OctopoesService:
     def list_random_ooi(
         self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER
     ) -> list[OOI]:
-        oois = self.ooi_repository.list_random(valid_time, amount, scan_levels)
-        self._populate_scan_profiles(oois, valid_time)
-        return oois
+        return self.ooi_repository.list_random(valid_time, amount, scan_levels)
 
     def get_scan_profile_inheritance(
         self, reference: Reference, valid_time: datetime, inheritance_chain: list[InheritanceSection]
