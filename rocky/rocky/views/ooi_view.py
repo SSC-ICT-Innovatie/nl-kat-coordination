@@ -68,12 +68,12 @@ class OOIFilterView(OctopoesView):
 
     def get_ooi_scan_levels(self) -> set[int] | set:
         if not self.clearance_levels:
-            return {}
+            return set()
         return {int(cl) for cl in self.clearance_levels}
 
     def get_ooi_scan_profile_types(self) -> set[ScanProfileType] | set:
         if not self.clearance_types:
-            return {}
+            return set()
         return set(self.clearance_types)
 
     def get_ooi_types(self) -> set[type[OOI]] | set[str]:
