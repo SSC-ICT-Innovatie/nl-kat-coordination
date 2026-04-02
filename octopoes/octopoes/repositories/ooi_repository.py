@@ -246,7 +246,9 @@ class XTDBOOIRepository(OOIRepository):
         return export
 
     @classmethod
-    def deserialize(cls, data: dict[str, Any], to_type: type[OOI] | None = None, scan_profile: dict[str, Any] | None = None) -> OOI:
+    def deserialize(
+        cls, data: dict[str, Any], to_type: type[OOI] | None = None, scan_profile: dict[str, Any] | None = None
+    ) -> OOI:
         if "object_type" not in data:
             raise ValueError("Data is missing object_type")
 
@@ -486,7 +488,7 @@ class XTDBOOIRepository(OOIRepository):
         )
         res = self.session.client.query(data_query, valid_time)
 
-        if limit == -1:
+        if limit == -1: # we dont limit, and we dont paginate
             return [self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res]
 
         # if the resultset is smaller than the requested limit, we know the count
@@ -495,8 +497,9 @@ class XTDBOOIRepository(OOIRepository):
         else:  # if the resultset is the same size as the requested limit, lets ask the db for the total count
             res_count = self.session.client.query(count_query, valid_time)
             count = res_count[0][0] if res_count else 0
-        items = [self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res]
-        return Paginated(count=count, items=items)
+        return Paginated(
+            count=count, items=[self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res]
+        )
 
     def list_oois_by_object_types(
         self, types: set[type[OOI]], valid_time: datetime, min_scan_level: int | None = None

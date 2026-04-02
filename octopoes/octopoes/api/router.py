@@ -178,8 +178,9 @@ def load_objects_bulk(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     references: set[Reference] = Depends(extract_references),
+    with_scan_profiles: bool = True,
 ):
-    return octopoes.ooi_repository.load_bulk(references, valid_time)
+    return octopoes.ooi_repository.load_bulk(references, valid_time, with_scan_profiles)
 
 
 @router.get("/objects/by_reference", tags=["Objects"])
@@ -187,8 +188,9 @@ def get_objects_by_reference(
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
     references: set[Reference] = Depends(extract_references_from_query),
+    with_scan_profiles: bool = True,
 ):
-    return octopoes.ooi_repository.load_bulk(references, valid_time)
+    return octopoes.ooi_repository.load_bulk(references, valid_time, with_scan_profiles)
 
 
 @router.get("/object", tags=["Objects"])

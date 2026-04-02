@@ -15,10 +15,10 @@ from tools.ooi_helpers import create_ooi
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
 
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
-from octopoes.models import OOI, ScanLevel, ScanProfileType
+from octopoes.models import OOI, ScanProfileType
 from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
-from octopoes.models.types import get_collapsed_types, type_by_name
+from octopoes.models.types import get_collapsed_types
 from rocky.paginator import RockyPaginator
 from rocky.views.mixins import OBJECT_LIST_COLUMNS, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
 
