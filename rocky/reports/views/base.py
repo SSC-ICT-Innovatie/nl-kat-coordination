@@ -191,7 +191,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
                 valid_time=self.observed_at,
                 limit=OOIList.HARD_LIMIT,
                 scan_level=self.get_ooi_scan_levels(),
-                scan_profile_type=self.get_ooi_profile_types(),
+                scan_profile_type=self.get_ooi_scan_profile_types(),
             ).items
 
         return list(

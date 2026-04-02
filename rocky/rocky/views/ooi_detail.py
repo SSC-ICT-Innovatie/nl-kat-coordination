@@ -1,6 +1,5 @@
 import json
 from collections import defaultdict
-from datetime import datetime
 
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
@@ -70,13 +69,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         ooi_id = self.request.GET.get("ooi_id")
         ooi = self.get_single_ooi(pk=ooi_id)
         self.run_boefje(boefje, ooi)
-
-    def get_task_filters(self) -> dict[str, str | datetime | None]:
-        filters = super().get_task_filters()
-        filters["filters"]["filters"]["and"].append(
-            {"column": "data", "field": "input_ooi", "operator": "==", "value": str(self.ooi)}
-        )
-        return filters
 
     def get_boefjes_filter_form(self):
         return PossibleBoefjesFilterForm(self.request.GET)
@@ -154,7 +146,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             except Exception:
                 context["current_config"] = None
 
-        context["related"] = self.get_related_objects(context["observed_at"])
+        context["related"] = self.get_related_objects(self.observed_at)
 
         context["count_findings_per_severity"] = dict(self.count_findings_per_severity())
         context["severity_summary_totals"] = sum(context["count_findings_per_severity"].values())

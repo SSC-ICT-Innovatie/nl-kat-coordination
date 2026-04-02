@@ -379,11 +379,7 @@ class XTDBOOIRepository(OOIRepository):
 
         for x in res:
             scan_profile = {"scan_profile_type": x[1], "level": x[2]} if include_scan_levels else None
-            try:
-                originating = x[0].pop("_source", None)
-            except Exception as error:
-                raise Exception(error, x, type(x))
-            yield self.deserialize(x[0], None, scan_profile, originating)
+            yield self.deserialize(x[0], scan_profile=scan_profile)
 
     def list_oois(
         self,

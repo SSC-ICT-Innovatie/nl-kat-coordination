@@ -43,7 +43,7 @@ class OOIFilterView(OctopoesView):
 
     def get_active_filters(self) -> dict[str, str]:
         active_filters = {}
-        if self.count_observed_at_filter() > 0:
+        if self.is_historic_view:
             active_filters[_("Observed_at: ")] = self.observed_at.strftime("%Y-%m-%d")
         if self.filtered_ooi_types:
             active_filters[_("OOI types: ")] = ", ".join(self.filtered_ooi_types)
@@ -66,20 +66,20 @@ class OOIFilterView(OctopoesView):
             + (1 if self.search_string else 0)
         )
 
-    def get_ooi_scan_levels(self) -> set[ScanLevel]:
+    def get_ooi_scan_levels(self) -> set[int]:
         if not self.clearance_levels:
-            return self.scan_levels
-        return {ScanLevel(int(cl)) for cl in self.clearance_levels}
+            return {}
+        return {int(cl) for cl in self.clearance_levels}
 
-    def get_ooi_profile_types(self) -> set[ScanProfileType]:
+    def get_ooi_scan_profile_types(self) -> set[ScanProfileType]:
         if not self.clearance_types:
-            return self.scan_profile_types
-        return {ScanProfileType(ct) for ct in self.clearance_types}
+            return {}
+        return set(self.clearance_types)
 
-    def get_ooi_types(self) -> set[type[OOI]]:
+    def get_ooi_types(self) -> set[type[OOI]] | set[str]:
         if not self.filtered_ooi_types:
             return self.ooi_types
-        return {type_by_name(t) for t in self.filtered_ooi_types if t not in _EXCLUDED_OOI_TYPES}
+        return {t for t in self.filtered_ooi_types if t not in _EXCLUDED_OOI_TYPES}
 
     @property
     def order_by(self) -> Literal["object_type", "scan_level"]:
@@ -94,7 +94,7 @@ class OOIFilterView(OctopoesView):
             "valid_time": self.observed_at,
             "ooi_types": self.get_ooi_types(),
             "scan_level": self.get_ooi_scan_levels(),
-            "scan_profile_type": self.get_ooi_profile_types(),
+            "scan_profile_type": self.get_ooi_scan_profile_types(),
             "search_string": self.search_string,
             "order_by": self.order_by,
             "asc_desc": self.sorting_order,
