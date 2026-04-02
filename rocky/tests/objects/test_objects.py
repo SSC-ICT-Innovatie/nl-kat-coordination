@@ -458,7 +458,7 @@ def test_ooi_list_filtered_export_csv(rf, client_member, mock_organization_view_
 
     mock_calls = mock_organization_view_octopoes().list_objects.mock_calls
     assert list(mock_calls[0].kwargs["scan_level"])[0] == 3
-    assert mock_calls[0].args[0].pop() == Network
+    assert mock_calls[0].args[0].pop() == "Network"
     assert list(mock_calls[0].kwargs["scan_profile_type"])[0] == "inherited"
 
 

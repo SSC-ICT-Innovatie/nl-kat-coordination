@@ -175,7 +175,7 @@ class OctopoesAPIConnector:
         valid_time: datetime,
         types: set[type[OOI]] | set[str] | None = None,
         depth: int = 1,
-        with_scan_profiles: bool = True,
+        with_scan_profiles: bool | None = True,
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
@@ -420,9 +420,9 @@ class OctopoesAPIConnector:
         return HydratedReportTypeAdapter.validate_json(res.content)
 
     def load_objects_bulk(
-        self, references: set[Reference], valid_time: datetime, with_scan_profiles: bool = True
+        self, references: set[Reference], valid_time: datetime, with_scan_profiles: bool | None = True
     ) -> dict[Reference, OOIType]:
-        params = {"valid_time": str(valid_time)}
+        params = {"valid_time": str(valid_time), with_scan_profiles=with_scan_profiles}
         res = self.session.post(
             f"/{self.client}/objects/load_bulk", params=params, json=[str(ref) for ref in references]
         )
