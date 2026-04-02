@@ -422,7 +422,7 @@ class OctopoesAPIConnector:
     def load_objects_bulk(
         self, references: set[Reference], valid_time: datetime, with_scan_profiles: bool | None = True
     ) -> dict[Reference, OOIType]:
-        params = {"valid_time": str(valid_time), with_scan_profiles=with_scan_profiles}
+        params = {"valid_time": str(valid_time), "with_scan_profiles": with_scan_profiles}
         res = self.session.post(
             f"/{self.client}/objects/load_bulk", params=params, json=[str(ref) for ref in references]
         )
