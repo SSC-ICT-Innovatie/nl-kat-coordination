@@ -181,8 +181,9 @@ class OctopoesAPIConnector:
             "reference": str(reference),
             "depth": depth,
             "valid_time": str(valid_time),
-            "with_scan_profiles": "true" if with_scan_profiles else "false",
         }
+        if with_scan_profiles:
+            params["with_scan_profiles"] = "true"
         if types:
             params["types"] = [t.__name__ if hasattr(t, "__name__") else t for t in types if t]
         res = self.session.get(f"/{self.client}/tree", params=params)
@@ -422,7 +423,9 @@ class OctopoesAPIConnector:
     def load_objects_bulk(
         self, references: set[Reference], valid_time: datetime, with_scan_profiles: bool | None = True
     ) -> dict[Reference, OOIType]:
-        params = {"valid_time": str(valid_time), with_scan_profiles:"true" if with_scan_profiles else "false"}
+        params = {"valid_time": str(valid_time)}
+        if with_scan_profiles:
+            params["with_scan_profiles"] = "true"
         res = self.session.post(
             f"/{self.client}/objects/load_bulk", params=params, json=[str(ref) for ref in references]
         )
