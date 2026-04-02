@@ -488,7 +488,7 @@ class XTDBOOIRepository(OOIRepository):
         )
         res = self.session.client.query(data_query, valid_time)
 
-        if limit == -1: # we dont limit, and we dont paginate
+        if limit == -1:  # we dont limit, and we dont paginate
             return [self.deserialize(x[0], None, {"scan_profile_type": x[2], "level": x[3]}) for x in res]
 
         # if the resultset is smaller than the requested limit, we know the count
