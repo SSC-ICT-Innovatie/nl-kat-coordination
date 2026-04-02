@@ -7,7 +7,7 @@ from django.urls import resolve, reverse
 from pytest_django.asserts import assertContains, assertNotContains
 from tools.models import Indemnification
 
-from octopoes.models import ScanLevel, ScanProfileType
+from octopoes.models import ScanLevel
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
@@ -58,7 +58,7 @@ def test_ooi_list_with_clearance_type_filter_and_clearance_level_filter(
     list_call_0 = mock_organization_view_octopoes().list_objects.call_args_list[0]
     assert list_call_0.kwargs["limit"] == 150
     assert list_call_0.kwargs["scan_level"] == {ScanLevel.L0, ScanLevel.L1}
-    assert list_call_0.kwargs["scan_profile_type"] == {'declared', 'inherited'}
+    assert list_call_0.kwargs["scan_profile_type"] == {"declared", "inherited"}
 
     assertContains(response, "testnetwork")
     assertContains(response, "Showing 150 of 200 objects")
