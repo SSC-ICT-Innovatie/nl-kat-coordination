@@ -93,7 +93,7 @@ def test_bulk_operations(octopoes_api_connector: OctopoesAPIConnector, valid_tim
 
     # fetch *without* scan levels
     bulk_hostnames = octopoes_api_connector.load_objects_bulk(
-        {x.reference for x in hostnames}, valid_time, with_scan_profiles=Fase
+        {x.reference for x in hostnames}, valid_time, with_scan_profiles=False
     )
 
     assert len(bulk_hostnames) == 10
