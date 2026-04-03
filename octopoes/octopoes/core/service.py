@@ -237,7 +237,7 @@ class OctopoesService:
         source = self.ooi_repository.get(origin.source, valid_time)
 
         parameters_references = self.origin_parameter_repository.list_by_origin({origin.id}, valid_time)
-        parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time)
+        parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time, include_scan_levels=True)
 
         config = {}
         if bit_definition.config_ooi_relation_path is not None:
