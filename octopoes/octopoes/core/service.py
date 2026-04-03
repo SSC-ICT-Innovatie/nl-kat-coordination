@@ -237,7 +237,7 @@ class OctopoesService:
         source = self.ooi_repository.get(origin.source, valid_time)
 
         parameters_references = self.origin_parameter_repository.list_by_origin({origin.id}, valid_time)
-        parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time, include_scan_levels=True)
+        parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time)
 
         config = {}
         if bit_definition.config_ooi_relation_path is not None:
@@ -294,7 +294,7 @@ class OctopoesService:
             start_ooi_references = {
                 profile.reference for profile in all_declared_scan_profiles if profile.level == current_level
             } | {reference for reference, level in assigned_scan_levels.items() if level > current_level}
-            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time, include_scan_levels=True).values()}
+            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time).values()}
 
             while next_ooi_set:
                 # prepare next iteration, group oois per type
