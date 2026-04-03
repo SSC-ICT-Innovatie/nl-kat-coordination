@@ -294,7 +294,7 @@ class OctopoesService:
             start_ooi_references = {
                 profile.reference for profile in all_declared_scan_profiles if profile.level == current_level
             } | {reference for reference, level in assigned_scan_levels.items() if level > current_level}
-            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time).values(), include_scan_levels=True}
+            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time, include_scan_levels=True).values()}
 
             while next_ooi_set:
                 # prepare next iteration, group oois per type
