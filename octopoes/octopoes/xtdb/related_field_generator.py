@@ -29,7 +29,7 @@ class RelatedFieldNode:
             for foreign_key in self.data_model.entities[object_type]:
                 # Don't traverse the same relation back
                 if not self.path or foreign_key != self.path[-1]:
-                    if search_types and object_type not in search_types:
+                    if search_types and foreign_key.related_entities.isdisjoint(search_types):
                         continue
                     self.relations_out[(object_type, foreign_key.attr_name)] = RelatedFieldNode(
                         self.data_model, foreign_key.related_entities, self.path + (foreign_key,)
