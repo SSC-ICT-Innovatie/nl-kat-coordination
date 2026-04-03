@@ -553,7 +553,7 @@ class OctopoesService:
         self._run_inferences(event)
 
     def list_random_ooi(
-        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER
+        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None
     ) -> list[OOI]:
         return self.ooi_repository.list_random(valid_time, amount, scan_levels)
 
