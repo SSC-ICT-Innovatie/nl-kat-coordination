@@ -108,7 +108,7 @@ class OOIRepository(Repository):
         raise NotImplementedError
 
     def list_random(
-        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER
+        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None, include_scan_levels: bool = True
     ) -> list[OOI]:
         raise NotImplementedError
 
@@ -319,8 +319,9 @@ class XTDBOOIRepository(OOIRepository):
         include_scan_levels: bool = False,
         include_results: bool = False,
     ) -> dict[str, OOI]:
-        oois = self.load_bulk_as_list(references, valid_time, include_scan_levels, include_results)
-        return {ooi.primary_key: ooi for ooi in oois}
+        return {
+            ooi.primary_key: ooi for ooi in self.load_bulk_as_list(references, valid_time, include_scan_levels, include_results)
+        }
 
     def load_bulk_as_list(
         self,
@@ -511,14 +512,15 @@ class XTDBOOIRepository(OOIRepository):
         return self.list_oois(types=types, valid_time=valid_time, scan_levels=scan_levels, limit=-1)
 
     def list_random(
-        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None
+        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None, include_scan_levels: bool = True,
     ) -> list[OOI]:
         query_in = ""
         query_args = ""
         if scan_levels:
+            scan_levels = " ".join([str(scan_level.value) for scan_level in scan_levels])
             query_in = ":in [[_scan_level ...]]"
             query_args = f":in-args [[{scan_levels}]]".format(
-                scan_levels=" ".join([str(scan_level.value) for scan_level in scan_levels])
+                scan_levels=scan_levels
             )
         query = f"""
             {{
@@ -541,7 +543,7 @@ class XTDBOOIRepository(OOIRepository):
         if not res:
             return []
         references = {Reference.from_str(reference) for reference in res[0][0]}
-        return list(self.load_bulk(references, valid_time, include_scan_levels=True).values())
+        return list(self.load_bulk(references, valid_time, include_scan_levels=include_scan_levels).values())
 
     def get_tree(
         self,
