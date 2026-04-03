@@ -3,7 +3,6 @@ from __future__ import annotations
 import json
 import re
 from collections import Counter
-from collections.abc import Generator
 from datetime import datetime
 from typing import Annotated, Any, Literal, cast
 from uuid import UUID
