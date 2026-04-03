@@ -13,7 +13,7 @@ from bits.definitions import BitDefinition
 from httpx import HTTPStatusError, codes
 from pydantic import Field, RootModel, TypeAdapter
 
-from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, DEFAULT_SCAN_LEVEL_FILTER, Settings
+from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, Settings
 from octopoes.events.events import OOIDBEvent, OperationType
 from octopoes.events.manager import EventManager
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
