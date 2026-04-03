@@ -81,8 +81,8 @@ class OOIRepository(Repository):
         raise NotImplementedError
 
     def load_bulk_as_list(
-        self, references: set[Reference], valid_time: datetime, include_scan_levels: bool = False
-    ) -> Generator[OOI]:
+        self, references: set[Reference], valid_time: datetime, include_scan_levels: bool = False, include_results: bool = False,
+    ) -> list[OOI]:
         raise NotImplementedError
 
     def get_neighbours(
@@ -329,14 +329,13 @@ class XTDBOOIRepository(OOIRepository):
         valid_time: datetime,
         include_scan_levels: bool = False,
         include_results: bool = False,
-    ) -> Generator[OOI]:
+    ) -> list[OOI]:
         if not references:
-            return
+            return []
 
         if not any([include_scan_levels, include_results]):
             query = Query().where_in(OOI, id=references).pull(OOI, fields="[*]")
-            yield from (self.deserialize(x[0]) for x in self.session.client.query(query, valid_time))
-            return
+            return [self.deserialize(x[0]) for x in self.session.client.query(query, valid_time)]
 
         pull_fields = ["*"]
         where_clause = ["[?e :xt/id ?ids]"]
@@ -380,9 +379,7 @@ class XTDBOOIRepository(OOIRepository):
             )
             raise
 
-        for x in res:
-            scan_profile = {"scan_profile_type": x[1], "level": x[2]} if include_scan_levels else None
-            yield self.deserialize(x[0], scan_profile=scan_profile)
+        return [self.deserialize(x[0], scan_profile={"scan_profile_type": x[1], "level": x[2]} if include_scan_levels else None) for x in res]
 
     def list_oois(
         self,
