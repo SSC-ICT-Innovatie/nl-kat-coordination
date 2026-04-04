@@ -120,6 +120,10 @@ Get Valid Time Params
     ${valid_time_params}    Create Dictionary    valid_time=${VALID_TIME}
     RETURN    ${valid_time_params}
 
+Get Sync Params
+    ${sync_params}    Create Dictionary    sync=true
+    RETURN    ${sync_params}
+
 Await Tasks Done
     Wait Until Keyword Succeeds    1 min    200ms    Task Type Empty    SENT
     Wait Until Keyword Succeeds    1 min    200ms    Task Type Empty    RECEIVED

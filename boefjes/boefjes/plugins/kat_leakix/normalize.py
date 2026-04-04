@@ -36,12 +36,37 @@ SEVERITY_LEAKSTAGE_MAPPING = {
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    results = json.loads(raw)
+    data = json.loads(raw)
+
+    # Support both old format (list) and new format (dict with metadata)
+    if isinstance(data, list):
+        # Old format: raw list of events
+        results = data
+        search_mode = "permissive"
+        input_pk = input_ooi["primary_key"]
+    else:
+        # New format: dict with search_mode, input_ooi, and results
+        results = data.get("results", [])
+        search_mode = data.get("search_mode", "strict")
+        input_pk = data.get("input_ooi", input_ooi["primary_key"])
 
     pk_ooi_reference = Reference.from_str(input_ooi["primary_key"])
     network_reference = Network(name="internet").reference
 
+    # Precompute strict-mode filter check outside the loop
+    if search_mode == "strict" and input_pk and input_pk.startswith("Hostname|"):
+        input_value = input_pk.split("|")[-1]
+        strict = bool(input_value)
+    else:
+        input_value = None
+        strict = False
+
     for event in results:
+        # In strict mode, filter hostname results to exact matches only
+        if strict:
+            event_host = event.get("host", "")
+            if event_host.lower() != input_value.lower():
+                continue
         # TODO: add event["time"] to results. This is the time the event was first seen. Date of last scan is not
         #  included in the result.
         # TODO: LeakIX want to include a confidence per plugin, since some plugins have more false positives than others
@@ -49,6 +74,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
         # reset loop
         event_ooi_reference = pk_ooi_reference
+        ip_port_ooi_reference = pk_ooi_reference
 
         # Autonomous System
         as_ooi = None
@@ -119,7 +145,7 @@ def handle_ip(event, network_reference, as_ooi_reference):
 
 def handle_hostname(event, network_reference):
     try:
-        ipvx = ipaddress.ip_address(event["ip"])
+        ipvx = ipaddress.ip_address(event["host"])
         if ipvx.version == 4:
             return IPAddressV4(address=event["host"], network=network_reference)
         return IPAddressV6(address=event["host"], network=network_reference)

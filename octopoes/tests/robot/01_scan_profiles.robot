@@ -64,7 +64,9 @@ Setup Test
 
 Set Scan Profile To Empty
     [Arguments]    ${reference}
-    ${params}    Get Valid Time Params
+    ${validtime}    Get Valid Time Params
+    ${sync}      Get Sync Params
+    ${params}    Create Dictionary    &{validtime}    &{sync}
     ${data}    Create Dictionary    reference=${reference}    scan_profile_type=empty
     ${response}    Put
     ...    ${OCTOPOES_URI}/scan_profiles
@@ -87,7 +89,7 @@ Verify Scan Level
     ...    ${scan_level}
     ...    Scan Level of ${reference} should be ${scan_level} in the database
 
-Verify Scan LeveL Filter
+Verify Scan Level Filter
     [Arguments]    ${scan_level}    ${expected_count}
     ${params}    Create Dictionary
     ...    scan_level=${scan_level}

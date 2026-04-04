@@ -34,6 +34,7 @@ dependencies = [
     "opentelemetry-instrumentation-fastapi",
     "opentelemetry-instrumentation-psycopg2",
     "opentelemetry-semantic-conventions",
+    "pygments>=2.20.0",
 ]
 
 [dependency-groups]
@@ -41,7 +42,7 @@ dev = [
     "factory_boy>=3.2.1,<4",
     "click>=8.0.4,<9",
     "psutil>=7",
-    "pytest>=8.3.5,<9",
+    "pytest>=9.0.2,<10",
     "pytest-cov>=7",
 ]
 
