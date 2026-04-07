@@ -396,7 +396,10 @@ class XTDBOOIRepository(OOIRepository):
 
         return [
             self.deserialize(
-                x[0], scan_profile={"scan_profile_type": x[1], "level": x[2]} if include_scan_levels and x[1] is not None else None
+                x[0],
+                scan_profile={"scan_profile_type": x[1], "level": x[2]}
+                if include_scan_levels and x[1] is not None
+                else None
             ) for x in res
         ]
 
