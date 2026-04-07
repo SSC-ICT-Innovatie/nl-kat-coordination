@@ -399,8 +399,9 @@ class XTDBOOIRepository(OOIRepository):
                 x[0],
                 scan_profile={"scan_profile_type": x[1], "level": x[2]}
                 if include_scan_levels and x[1] is not None
-                else None
-            ) for x in res
+                else None,
+            )
+            for x in res
         ]
 
     def list_oois(
