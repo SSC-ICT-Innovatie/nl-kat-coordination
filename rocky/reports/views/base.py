@@ -171,14 +171,14 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
     def get_total_oois(self):
         return len(self.selected_oois)
 
-    def get_report_ooi_types(self):
+    def get_report_ooi_types(self) -> set[type[OOI]]:
         if self.report_type == AggregateOrganisationReport:
             return get_ooi_types_from_aggregate_report(AggregateOrganisationReport)
         if self.report_type == MultiOrganizationReport:
             return MultiOrganizationReport.input_ooi_types
         return get_ooi_types_with_report()
 
-    def get_ooi_types(self):
+    def get_ooi_types(self) -> set[type[OOI]]:
         ooi_types = self.get_report_ooi_types()
         if self.filtered_ooi_types:
             return {type_by_name(t) for t in self.filtered_ooi_types if type_by_name(t) in ooi_types}
@@ -275,7 +275,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
 
         if object_selection == "query":
             query = {
-                "ooi_types": [t.__name__ for t in self.get_ooi_types()],
+                "ooi_types": [t.__name__ if isinstance(t, OOI) else t for t in self.get_ooi_types()],
                 "scan_level": self.get_ooi_scan_levels(),
                 "scan_type": self.get_ooi_profile_types(),
                 "search_string": self.search_string,
