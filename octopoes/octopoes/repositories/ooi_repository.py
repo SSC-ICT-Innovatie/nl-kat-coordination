@@ -80,7 +80,11 @@ class OOIRepository(Repository):
         raise NotImplementedError
 
     def load_bulk_as_list(
-        self, references: set[Reference], valid_time: datetime, include_scan_levels: bool = False, include_results: bool = False,
+        self,
+        references: set[Reference],
+        valid_time: datetime,
+        include_scan_levels: bool = False,
+        include_results: bool = False,
     ) -> list[OOI]:
         raise NotImplementedError
 
@@ -107,7 +111,11 @@ class OOIRepository(Repository):
         raise NotImplementedError
 
     def list_random(
-        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None, include_scan_levels: bool = True
+        self,
+        valid_time: datetime,
+        amount: int = 1,
+        scan_levels: set[ScanLevel] | None = None,
+        include_scan_levels: bool = True,
     ) -> list[OOI]:
         raise NotImplementedError
 
@@ -319,7 +327,8 @@ class XTDBOOIRepository(OOIRepository):
         include_results: bool = False,
     ) -> dict[str, OOI]:
         return {
-            ooi.primary_key: ooi for ooi in self.load_bulk_as_list(references, valid_time, include_scan_levels, include_results)
+            ooi.primary_key: ooi
+            for ooi in self.load_bulk_as_list(references, valid_time, include_scan_levels, include_results)
         }
 
     def load_bulk_as_list(
@@ -386,7 +395,9 @@ class XTDBOOIRepository(OOIRepository):
             raise
 
         return [
-            self.deserialize(x[0], scan_profile={"scan_profile_type": x[1], "level": x[2]} if include_scan_levels and x[1] is not None else None) for x in res
+            self.deserialize(
+                x[0], scan_profile={"scan_profile_type": x[1], "level": x[2]} if include_scan_levels and x[1] is not None else None
+            ) for x in res
         ]
 
     def list_oois(
@@ -517,16 +528,18 @@ class XTDBOOIRepository(OOIRepository):
         return self.list_oois(types=types, valid_time=valid_time, scan_levels=scan_levels, limit=-1)
 
     def list_random(
-        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None, include_scan_levels: bool = True,
+        self,
+        valid_time: datetime,
+        amount: int = 1,
+        scan_levels: set[ScanLevel] | None = None,
+        include_scan_levels: bool = True,
     ) -> list[OOI]:
         query_in = ""
         query_args = ""
         if scan_levels:
             scan_levels = " ".join([str(scan_level.value) for scan_level in scan_levels])
             query_in = ":in [[_scan_level ...]]"
-            query_args = f":in-args [[{scan_levels}]]".format(
-                scan_levels=scan_levels
-            )
+            query_args = f":in-args [[{scan_levels}]]".format(scan_levels=scan_levels)
         query = f"""
             {{
                 :query {{
