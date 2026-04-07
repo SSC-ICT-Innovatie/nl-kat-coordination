@@ -344,17 +344,24 @@ class XTDBOOIRepository(OOIRepository):
 
         fields = [f"(pull ?e [{' '.join(pull_fields)}])"]
 
-        if include_scan_levels:
-            fields.append("_scan_profile_type")
-            fields.append("_scan_level")
-            where_clause.extend(
-                [
-                    '[?scan_profile :type "ScanProfile"]',
-                    "[?scan_profile :reference ?e]",
-                    "[?scan_profile :level _scan_level]",
-                    "[?scan_profile :scan_profile_type _scan_profile_type]",
-                ]
-            )
+    if include_scan_levels:
+        fields.append("_scan_profile_type")
+        fields.append("_scan_level")
+        where_clause.extend(
+            [
+                """
+                (or-join [?e _scan_level _scan_profile_type]
+                  (and
+                    [?scan_profile :type "ScanProfile"]
+                    [?scan_profile :reference ?e]
+                    [?scan_profile :level _scan_level]
+                    [?scan_profile :scan_profile_type _scan_profile_type])
+                  (and
+                    [(identity nil) _scan_level]
+                    [(identity nil) _scan_profile_type]))
+                """
+            ]
+        )
 
         data_query = f"""
         {{
@@ -378,7 +385,9 @@ class XTDBOOIRepository(OOIRepository):
             )
             raise
 
-        return [self.deserialize(x[0], scan_profile={"scan_profile_type": x[1], "level": x[2]} if include_scan_levels else None) for x in res]
+        return [
+            self.deserialize(x[0], scan_profile={"scan_profile_type": x[1], "level": x[2]} if include_scan_levels and x[1] is not None else None) for x in res
+        ]
 
     def list_oois(
         self,
