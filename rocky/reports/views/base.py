@@ -275,7 +275,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
 
         if object_selection == "query":
             query = {
-                "ooi_types": [t.__name__ if isinstance(t, OOI) else t for t in self.get_ooi_types()],
+                "ooi_types": [t.__name__ for t in self.get_ooi_types()],
                 "scan_level": self.get_ooi_scan_levels(),
                 "scan_type": self.get_ooi_scan_profile_types(),
                 "search_string": self.search_string,
