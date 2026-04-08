@@ -541,9 +541,9 @@ class XTDBOOIRepository(OOIRepository):
         query_in = ""
         query_args = ""
         if scan_levels:
-            scan_levels = " ".join([str(scan_level.value) for scan_level in scan_levels])
+            scan_levels_values = " ".join([str(scan_level.value) for scan_level in scan_levels])
             query_in = ":in [[_scan_level ...]]"
-            query_args = f":in-args [[{scan_levels}]]".format(scan_levels=scan_levels)
+            query_args = f":in-args [[{scan_levels_values}]]"
         query = f"""
             {{
                 :query {{
