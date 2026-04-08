@@ -43,15 +43,10 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
                 "UserKnownHostsFile=/dev/null",
                 "-o",
                 "BatchMode=yes",
-                "exit"
+                "exit",
             ]
             try:
-                result = subprocess.run(
-                    ssh_command,
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                )
-
+                result = subprocess.run(ssh_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 coutput = result.returncode
                 if coutput not in (0, 32512):  # 0 = it worked, 32512 = `exit` does not exists but we did connect
                     continue
