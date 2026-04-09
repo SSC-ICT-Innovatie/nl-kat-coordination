@@ -126,7 +126,7 @@ class XTDBHTTPClient:
             return [tx for i, tx in enumerate(transactions) if i in indices or i - len(transactions) in indices]
 
         if limit:
-            return transactions[offset:offset+limit]
+            return transactions[offset : offset + limit]
 
         if offset:
             return transactions[offset:]

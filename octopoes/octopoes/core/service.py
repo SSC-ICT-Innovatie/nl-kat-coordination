@@ -539,9 +539,7 @@ class OctopoesService:
 
     def _run_inferences(self, event: ScanProfileDBEvent) -> None:
         for inference_origin in self.origin_repository.list_origins(
-            event.valid_time,
-            source=event.reference,
-            origin_type=OriginType.INFERENCE
+            event.valid_time, source=event.reference, origin_type=OriginType.INFERENCE
         ):
             self._run_inference(inference_origin, event.valid_time)
 
