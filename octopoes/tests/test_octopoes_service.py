@@ -96,6 +96,9 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
             )
         ]
     )
+    octopoes_service.session.client.get_entity = MagicMock(
+        return_value=[EmptyScanProfile(reference="test|reference").model_dump()]
+    )
     octopoes_service.scan_profile_repository.get = MagicMock(return_value=Mock(level=ScanLevel.L2))
     octopoes_service.ooi_repository.get = MagicMock(return_value=Network(name="internet"))
     octopoes_service.origin_parameter_repository.list_by_origin = MagicMock(return_value={})
