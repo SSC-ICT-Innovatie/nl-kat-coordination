@@ -96,8 +96,14 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
             )
         ]
     )
-    octopoes_service.session.client.get_entity = MagicMock(
-        return_value=[EmptyScanProfile(reference="test|reference").model_dump()]
+    octopoes_service.origin_repository.get = MagicMock(
+        return_value=[
+            Origin(
+                origin_type=OriginType.INFERENCE,
+                method="check-csp-header",
+                source=Reference.from_str("Hostname|internet|example.nl"),
+            )
+        ]
     )
     octopoes_service.scan_profile_repository.get = MagicMock(return_value=Mock(level=ScanLevel.L2))
     octopoes_service.ooi_repository.get = MagicMock(return_value=Network(name="internet"))
