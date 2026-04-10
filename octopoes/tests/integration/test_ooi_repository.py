@@ -54,7 +54,18 @@ def test_load_bulk(
     )
     xtdb_scan_profile_repository.commit()
 
-    networks = xtdb_ooi_repository.load_bulk({network.reference, network2.reference, network3.reference}, valid_time)
+    networks = xtdb_ooi_repository.load_bulk(
+        {network.reference, network2.reference, network3.reference}, valid_time, include_scan_levels=False
+    )
+    assert [ooi.reference for ooi in networks.values()] == [network.reference, network2.reference, network3.reference]
+
+    assert networks[network.reference].scan_profile is None
+    assert networks[network2.reference].scan_profile is None
+    assert networks[network3.reference].scan_profile is None
+
+    networks = xtdb_ooi_repository.load_bulk(
+        {network.reference, network2.reference, network3.reference}, valid_time, include_scan_levels=True
+    )
     assert [ooi.reference for ooi in networks.values()] == [network.reference, network2.reference, network3.reference]
 
     assert networks[network.reference].scan_profile is not None

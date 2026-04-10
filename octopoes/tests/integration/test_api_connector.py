@@ -81,12 +81,25 @@ def test_bulk_operations(octopoes_api_connector: OctopoesAPIConnector, valid_tim
         == len(hostnames) + 1
     )
 
-    bulk_hostnames = octopoes_api_connector.load_objects_bulk({x.reference for x in hostnames}, valid_time)
+    # fetch *with* scan levels
+    bulk_hostnames = octopoes_api_connector.load_objects_bulk(
+        {x.reference for x in hostnames}, valid_time, with_scan_profiles=True
+    )
 
     assert len(bulk_hostnames) == 10
 
     for hostname in hostnames:
         assert bulk_hostnames[hostname.reference].scan_profile is not None
+
+    # fetch *without* scan levels
+    bulk_hostnames = octopoes_api_connector.load_objects_bulk(
+        {x.reference for x in hostnames}, valid_time, with_scan_profiles=False
+    )
+
+    assert len(bulk_hostnames) == 10
+
+    for hostname in hostnames:
+        assert bulk_hostnames[hostname.reference].scan_profile is None
 
 
 def test_bulk_reports(app_settings: Settings, octopoes_api_connector: OctopoesAPIConnector, valid_time: datetime):

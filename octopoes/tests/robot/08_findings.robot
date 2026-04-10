@@ -25,6 +25,8 @@ List Findings
 Setup Test
     robot.Setup Test
     Insert Normalizer Output
+    ${params}    Create Dictionary    valid_time=${VALID_TIME}
+    ${response}    Post    ${OCTOPOES_URI}/bits/recalculate    params=${params}
     Await Sync
 
 List Findings

@@ -18,7 +18,7 @@ class RelatedFieldNode:
 
         self.path = path
 
-    def construct_outgoing_relations(self):
+    def construct_outgoing_relations(self, search_types: set[str] | None = None):
         types = self.object_types
         if "Network" in self.object_types and len(self.path) > 0:  # Don't traverse Network if not root node. TODO: Fix
             types = types - {"Network"}
@@ -29,11 +29,13 @@ class RelatedFieldNode:
             for foreign_key in self.data_model.entities[object_type]:
                 # Don't traverse the same relation back
                 if not self.path or foreign_key != self.path[-1]:
+                    if search_types and foreign_key.related_entities.isdisjoint(search_types):
+                        continue
                     self.relations_out[(object_type, foreign_key.attr_name)] = RelatedFieldNode(
                         self.data_model, foreign_key.related_entities, self.path + (foreign_key,)
                     )
 
-    def construct_incoming_relations(self):
+    def construct_incoming_relations(self, search_types: set[str] | None = None):
         types = self.object_types
         if "Network" in self.object_types and len(self.path) > 0:  # Don't traverse Network if not root node. TODO: Fix
             types = types - {"Network"}
@@ -47,19 +49,21 @@ class RelatedFieldNode:
                 if not foreign_key.related_entities.isdisjoint(types) and (
                     not self.path or foreign_key != self.path[-1]
                 ):
+                    if search_types and foreign_key.source_entity not in search_types:
+                        continue
                     self.relations_in[(foreign_key.source_entity, foreign_key.attr_name, foreign_key.reverse_name)] = (
                         RelatedFieldNode(self.data_model, {foreign_object_type}, self.path + (foreign_key,))
                     )
 
-    def build_tree(self, depth: int) -> None:
+    def build_tree(self, depth: int, search_types: set[str] | None = None) -> None:
         if depth > 0:
-            self.construct_outgoing_relations()
+            self.construct_outgoing_relations(search_types)
             for child_node in self.relations_out.values():
                 child_node.build_tree(depth - 1)
 
-            self.construct_incoming_relations()
+            self.construct_incoming_relations(search_types)
             for child_node in self.relations_in.values():
-                child_node.build_tree(depth - 1)
+                child_node.build_tree(depth - 1, search_types)
 
     def generate_field(self, field_set: FieldSet, pk_prefix: str) -> str:
         queried_fields = pk_prefix if field_set is FieldSet.ONLY_ID else "*"
