@@ -13,6 +13,7 @@ attrs==26.1.0 \
     --hash=sha256:d03ceb89cb322a8fd706d4fb91940737b6642aa36998fe130a9bc96c985eff32
     # via
     #   jsonschema
+    #   openkat
     #   referencing
 autodoc-pydantic==2.2.0 \
     --hash=sha256:8c6a36fbf6ed2700ea9c6d21ea76ad541b621fbdf16b5a80ee04673548af4d95

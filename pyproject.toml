@@ -18,6 +18,7 @@ dependencies = [
     "jsonschema>=4.17.0,<5",
     "pygments>=2.20.0",
     "requests>=2.33.0,<3",
+    "attrs>=26.1.0",
 ]
 
 [tool.uv]

@@ -39,6 +39,8 @@ dependencies = [
     "setuptools>80,<82",
     "requests>=2.33.0,<3",
     "pygments>=2.20.0",
+    "wrapt>=2.1.2",
+    "attrs>=26.1.0",
 ]
 
 [dependency-groups]

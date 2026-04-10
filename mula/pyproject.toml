@@ -35,6 +35,7 @@ dependencies = [
     "opentelemetry-instrumentation-psycopg2",
     "opentelemetry-semantic-conventions",
     "pygments>=2.20.0",
+    "wrapt>=2.1.2",
 ]
 
 [dependency-groups]
