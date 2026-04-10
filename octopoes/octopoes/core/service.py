@@ -246,7 +246,7 @@ class OctopoesService:
                 config = configs[-1].config
 
         try:
-            if isinstance(self.session, XTDBSession):
+            if self.metrics:
                 start = perf_counter()
                 resulting_oois = BitRunner(bit_definition).run(source, parameters, config=config)
                 stop = perf_counter()
@@ -266,6 +266,7 @@ class OctopoesService:
             self.save_origin(origin, resulting_oois, valid_time)
         except Exception as e:
             logger.exception("Error running inference", exc_info=e)
+            raise e
 
     @staticmethod
     def check_path_level(path_level: int | None, current_level: int) -> bool:
@@ -402,7 +403,7 @@ class OctopoesService:
     # OOI events
     def _on_create_ooi(self, event: OOIDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Create event new_data should not be None")
+            raise ValueError("[_on_create_ooi] Create event new_data should not be None")
 
         ooi = event.new_data
 
@@ -444,7 +445,7 @@ class OctopoesService:
 
     def _on_update_ooi(self, event: OOIDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Update event new_data should not be None")
+            raise ValueError("[_on_update_ooi] Update event new_data should not be None")
 
         if isinstance(event.new_data, Config):
             relevant_bit_ids = [
@@ -465,7 +466,7 @@ class OctopoesService:
 
     def _on_delete_ooi(self, event: OOIDBEvent) -> None:
         if event.old_data is None:
-            raise ValueError("Update event old_data should not be None")
+            raise ValueError("[_on_delete_ooi] Update event old_data should not be None")
 
         reference = event.old_data.reference
 
@@ -489,14 +490,14 @@ class OctopoesService:
     # Origin events
     def _on_create_origin(self, event: OriginDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Create event new_data should not be None")
+            raise ValueError("[_on_create_origin] Create event new_data should not be None")
 
         if event.new_data.origin_type == OriginType.INFERENCE:
             self._run_inference(event.new_data, event.valid_time)
 
     def _on_update_origin(self, event: OriginDBEvent) -> None:
         if event.new_data is None or event.old_data is None:
-            raise ValueError("Update event new_data and old_data should not be None")
+            raise ValueError("[_on_update_origin] Update event new_data and old_data should not be None")
 
         dereferenced_oois = event.old_data - event.new_data
         for reference in dereferenced_oois:
@@ -504,7 +505,7 @@ class OctopoesService:
 
     def _on_delete_origin(self, event: OriginDBEvent) -> None:
         if event.old_data is None:
-            raise ValueError("Delete event old_data should not be None")
+            raise ValueError("[_on_delete_origin] Delete event old_data should not be None")
 
         for reference in event.old_data.result:
             self._delete_ooi(reference, event.valid_time)
@@ -512,7 +513,7 @@ class OctopoesService:
     # Origin parameter events
     def _on_create_origin_parameter(self, event: OriginParameterDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Create event new_data should not be None")
+            raise ValueError("[_on_create_origin_parameter] Create event new_data should not be None")
 
         # Run the bit/origin
         try:
@@ -527,7 +528,7 @@ class OctopoesService:
 
     def _on_delete_origin_parameter(self, event: OriginParameterDBEvent) -> None:
         if event.old_data is None:
-            raise ValueError("Delete event old_data should not be None")
+            raise ValueError("[_on_delete_origin_parameter] Delete event old_data should not be None")
 
         # Run the bit/origin
         try:
@@ -537,9 +538,9 @@ class OctopoesService:
             pass
 
     def _run_inferences(self, event: ScanProfileDBEvent) -> None:
-        inference_origins = self.origin_repository.list_origins(event.valid_time, source=event.reference)
-        inference_origins = [o for o in inference_origins if o.origin_type == OriginType.INFERENCE]
-        for inference_origin in inference_origins:
+        for inference_origin in self.origin_repository.list_origins(
+            event.valid_time, source=event.reference, origin_type=OriginType.INFERENCE
+        ):
             self._run_inference(inference_origin, event.valid_time)
 
     # Scan profile events

@@ -125,7 +125,13 @@ class XTDBHTTPClient:
         if indices:
             return [tx for i, tx in enumerate(transactions) if i in indices or i - len(transactions) in indices]
 
-        return transactions[offset:limit]
+        if limit:
+            return transactions[offset : offset + limit]
+
+        if offset:
+            return transactions[offset:]
+
+        return transactions
 
     def query(self, query: str | Query, valid_time: datetime | None = None) -> list[list[Any]]:
         if valid_time is None:

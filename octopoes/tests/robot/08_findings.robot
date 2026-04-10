@@ -12,6 +12,7 @@ Test Teardown       Teardown Test
 *** Test Cases ***
 List Findings
     Insert Observation    tests/fixtures/normalizer_output_nxdomain.json
+    Sleep    1s
     Declare Scan Profile    Hostname|internet|example.com    1
     Await Sync
 
