@@ -36,7 +36,7 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
                 key_file,
                 "support@" + ip,
                 "-p",
-                port,
+                str(port),
                 "-o",
                 "StrictHostKeyChecking=no",
                 "-o",
@@ -48,7 +48,7 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
             try:
                 result = subprocess.run(ssh_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 coutput = result.returncode
-                if coutput not in (0, 32512):  # 0 = it worked, 32512 = `exit` does not exists but we did connect
+                if coutput not in (0, 127):  # 0 = it worked, 127 = `exit` does not exists but we did connect
                     continue
                 return [
                     (
