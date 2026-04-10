@@ -103,6 +103,7 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
             source=Reference.from_str("Hostname|internet|example.com"),
         )
     )
+    octopoes_service.event_manager.client = "_dev"
     octopoes_service.scan_profile_repository.get = MagicMock(return_value=Mock(level=ScanLevel.L2))
     octopoes_service.ooi_repository.get = MagicMock(return_value=Network(name="internet"))
     octopoes_service.origin_parameter_repository.list_by_origin = MagicMock(return_value={})
