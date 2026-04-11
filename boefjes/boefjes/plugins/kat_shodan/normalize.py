@@ -25,7 +25,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield ip_port
 
             if "vulns" in scan:
-                for cve in scan["vulns"].values():
+                # Shodan returns `vulns` as a dict keyed by CVE id with detail
+                # dicts as values (e.g. {"CVE-2014-0226": {"summary": "..."}}).
+                # Iterate the keys so `id` receives the CVE string, not the
+                # detail dict.
+                for cve in scan["vulns"]:
                     ft = CVEFindingType(id=cve)
                     f = Finding(finding_type=ft.reference, ooi=ip_port.reference)
                     yield ft
