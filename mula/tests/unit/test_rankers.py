@@ -44,23 +44,25 @@ class BoefjeRankerTestCase(unittest.TestCase):
         self.assertGreater(score, BoefjeRanker.MAX_PRIORITY - 5)
         self.assertLessEqual(score, BoefjeRanker.MAX_PRIORITY)
 
-    # NOTE: tests for the documented behaviour below were intentionally NOT
-    # added to this PR because the current implementation is broken in three
-    # ways and a passing test would ratify the bug:
-    #
-    # 1. `time_since_grace_period < 0` (grace-period skip) is unreachable —
-    #    `.seconds` on a timedelta is always 0..86399, never negative.
-    # 2. `time_since_grace_period >= max_days_in_seconds` (the floor-of-3
-    #    return for week-old tasks) is also unreachable because `.seconds`
-    #    truncates the days component, so a 7-day-old task evaluates as 0.
-    # 3. The decay interpolation runs against the truncated `.seconds`,
-    #    so an 8-day-old task gets a HIGHER score than a 1-hour-old task
-    #    instead of decaying. This inverts the documented priority logic.
-    #
-    # Root cause: `boefje.py:37` should call `.total_seconds()`, not
-    # `.seconds`. A separate fix PR will land the one-line correction and
-    # add the three tests that currently fail (grace-period, max-days
-    # ceiling, monotonic decay).
+    def test_rank_task_older_than_max_days_returns_3(self):
+        old = datetime.now(timezone.utc) - timedelta(days=BoefjeRanker.MAX_DAYS + 1)
+        self.assertEqual(3, self.ranker.rank(self._obj_with_latest_task(old)))
+
+    def test_rank_task_within_grace_period_returns_minus_one(self):
+        # Set a grace period of 1 hour and a latest_task that ran 1 minute ago.
+        # The grace period has not elapsed, so the ranker should signal "skip".
+        self.ctx.config.pq_grace_period = 3600
+        recent = datetime.now(timezone.utc) - timedelta(minutes=1)
+        self.assertEqual(-1, self.ranker.rank(self._obj_with_latest_task(recent)))
+
+    def test_rank_decays_monotonically_over_time(self):
+        # Two tasks where one ran more recently than the other should rank the
+        # recent one higher (= larger priority number) than the older one.
+        # Catches sign flips and .seconds-truncation regressions.
+        now = datetime.now(timezone.utc)
+        recent = self.ranker.rank(self._obj_with_latest_task(now - timedelta(hours=1)))
+        older = self.ranker.rank(self._obj_with_latest_task(now - timedelta(days=3)))
+        self.assertGreater(recent, older)
 
 
 class BoefjeRankerTimeBasedTestCase(unittest.TestCase):
