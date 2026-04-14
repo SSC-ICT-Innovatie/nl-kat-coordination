@@ -4,7 +4,7 @@ from typing import Any
 
 import structlog
 from django.conf import settings
-from pydantic import RootModel
+from pydantic import ConfigDict, RootModel
 from tools.models import Organization
 from tools.ooi_helpers import create_ooi
 
