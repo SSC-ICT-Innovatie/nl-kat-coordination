@@ -239,10 +239,8 @@ def create_asset_reports(
 
 
 class ReportDataDict(RootModel):
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     root: Any
-
-    class Config:
-        arbitrary_types_allowed = True
 
 
 def aggregate_reports(
