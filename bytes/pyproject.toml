@@ -50,7 +50,7 @@ package = false
 
 [dependency-groups]
 dev = [
-    "pytest>=9.0.2,<10",
+    "pytest>=9.0.3,<10",
     "pytest-env>=1.1.5,<2",
     "pytest-cov>=7",
 ]
