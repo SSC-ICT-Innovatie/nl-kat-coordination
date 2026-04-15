@@ -325,7 +325,7 @@ def get_raw_count_per_mime_type(
 
 def ignore_arguments_key(meta_repository: MetaDataRepository, query_filter: RawDataFilter) -> str:
     """Helper to not cache based on the stateful meta_repository, but only use the query parameters as a key."""
-    return query_filter.model_dump(mode="json")
+    return query_filter.model_dump_json()
 
 
 @cached(
