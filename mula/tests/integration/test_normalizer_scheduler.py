@@ -123,7 +123,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         # Mocks
         plugin = PluginFactory(type="normalizer", consumes=["text/plain"])
@@ -151,7 +151,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         # Mocks
         self.mock_get_normalizers_for_mime_type.return_value = []
@@ -181,7 +181,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         self.mock_get_normalizers_for_mime_type.return_value = [NormalizerFactory()]
         self.mock_has_normalizer_permission_to_run.return_value = False
@@ -211,7 +211,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         self.mock_get_normalizers_for_mime_type.return_value = [NormalizerFactory()]
         self.mock_has_normalizer_permission_to_run.return_value = True
@@ -242,7 +242,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         self.mock_get_normalizers_for_mime_type.return_value = [NormalizerFactory()]
         self.mock_has_normalizer_permission_to_run.return_value = True
@@ -264,13 +264,13 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         raw_data_event2 = models.RawDataReceivedEvent(
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         # Mocks
         self.mock_get_normalizers_for_mime_type.return_value = [NormalizerFactory()]
@@ -306,7 +306,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
             raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "error/unknown"}]),
             organization=self.organisation.id,
             created_at=datetime.datetime.now(),
-        ).model_dump(mode="json")
+        ).model_dump_json()
 
         # Act
         self.scheduler.process_raw_data(raw_data_event)
@@ -333,7 +333,7 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
                 raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "text/plain"}]),
                 organization=self.organisation.id,
                 created_at=datetime.datetime.now(),
-            ).model_dump(mode="json")
+            ).model_dump_json()
 
             events.append(raw_data_event)
 
