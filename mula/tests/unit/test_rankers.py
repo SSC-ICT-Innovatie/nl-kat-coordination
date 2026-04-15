@@ -1,12 +1,11 @@
-import unittest
 from datetime import datetime, timedelta, timezone
-from unittest import mock
+from unittest import TestCase, mock
 
 from scheduler.schedulers.rankers.boefje import BoefjeRanker, BoefjeRankerTimeBased
 from scheduler.schedulers.rankers.normalizer import NormalizerRanker
 
 
-class BoefjeRankerTestCase(unittest.TestCase):
+class BoefjeRankerTestCase(TestCase):
     """Isolated unit tests for BoefjeRanker. The ranker is currently only
     exercised end-to-end via the simulation suite, which makes priority
     regressions hard to attribute. These tests pin the documented behaviour
@@ -65,7 +64,7 @@ class BoefjeRankerTestCase(unittest.TestCase):
         self.assertGreater(recent, older)
 
 
-class BoefjeRankerTimeBasedTestCase(unittest.TestCase):
+class BoefjeRankerTimeBasedTestCase(TestCase):
     def test_rank_returns_creation_epoch(self):
         ranker = BoefjeRankerTimeBased(ctx=mock.MagicMock())
         obj = mock.Mock()
@@ -73,7 +72,7 @@ class BoefjeRankerTimeBasedTestCase(unittest.TestCase):
         self.assertEqual(int(obj.created_at.timestamp()), ranker.rank(obj))
 
 
-class NormalizerRankerTestCase(unittest.TestCase):
+class NormalizerRankerTestCase(TestCase):
     """The NormalizerRanker prioritises older raw files so they get processed
     first. The score is the boefje_meta.ended_at epoch — older = lower number =
     higher priority on the min-heap PQ.
