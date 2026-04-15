@@ -19,7 +19,7 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
     call_args = mock_bytes_client().add_manual_proof.call_args[0]
 
     assert isinstance(call_args[0], uuid.UUID)
-    
+
     actual = json.loads(call_args[1])
     expected_fragment = {
         "ooi": {
