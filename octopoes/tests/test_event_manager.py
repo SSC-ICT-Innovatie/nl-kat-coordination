@@ -134,18 +134,16 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
     )
 
     assert channel_mock.basic_publish.call_count == 1
-    channel_mock.basic_publish.assert_has_calls(
-        [
-            mock.call(
-                "",
-                "scan_profile_mutations",
-                mock.ANY,
-                properties=pika.BasicProperties(
-                    delivery_mode=pika.DeliveryMode.Persistent
-                ),
-            )
-        ]
-    )
+    channel_mock.basic_publish.assert_has_calls([
+        mock.call(
+            exchange="",
+            routing_key="scan_profile_mutations",
+            body=mock.ANY,
+            properties=pika.BasicProperties(
+                delivery_mode=pika.DeliveryMode.Persistent
+            ),
+        )
+    ])
 
     actual_body = json.loads(channel_mock.basic_publish.call_args[0][2])
 
