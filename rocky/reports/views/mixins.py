@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 import json
+from datetime import datetime, timezone
 
 import structlog
 from django.contrib import messages
