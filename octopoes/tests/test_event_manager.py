@@ -204,10 +204,10 @@ def test_event_manager_delete_empty_scan_profile(mocker, empty_scan_profile):
 
     args, kwargs = channel_mock.basic_publish.call_args
 
-    assert args[0] == ""
-    assert args[1] == "scan_profile_mutations"
+    assert kwargs["exchange"] == ""
+    assert kwargs["routing_key"] == "scan_profile_mutations"
 
-    actual_body = json.loads(args[2])
+    actual_body = json.loads(kwargs["body"])
 
     assert actual_body == {
         "operation": "delete",
