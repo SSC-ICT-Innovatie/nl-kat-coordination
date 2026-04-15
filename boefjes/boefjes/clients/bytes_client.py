@@ -71,7 +71,9 @@ class BytesAPIClient(BoefjeStorageInterface):
 
     @retry_with_login
     def save_boefje_meta(self, boefje_meta: BoefjeMeta) -> None:
-        response = self._session.post("/bytes/boefje_meta", json=boefje_meta.model_dump(mode="json"), headers=self.headers)
+        response = self._session.post(
+            "/bytes/boefje_meta", json=boefje_meta.model_dump(mode="json"), headers=self.headers
+        )
 
         self._verify_response(response)
 

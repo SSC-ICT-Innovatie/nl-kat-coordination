@@ -1,8 +1,10 @@
+import json
 import uuid
 from datetime import datetime
 
-import json
 import pika
+
+from unittest import mock
 
 from octopoes.events.events import OOIDBEvent, OperationType, ScanProfileDBEvent
 from octopoes.events.manager import EventManager
@@ -86,12 +88,7 @@ def test_event_manager_create_empty_scan_profile(mocker, empty_scan_profile):
         "value": {
             "primary_key": "test|reference",
             "object_type": "test",
-            "scan_profile": {
-                "scan_profile_type": "empty",
-                "reference": "test|reference",
-                "level": 0,
-                "user_id": None,
-            },
+            "scan_profile": {"scan_profile_type": "empty", "reference": "test|reference", "level": 0, "user_id": None},
         },
         "client_id": "test",
     }
@@ -137,16 +134,18 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
     )
 
     assert channel_mock.basic_publish.call_count == 1
-    channel_mock.basic_publish.assert_has_calls([
-        mock.call(
-            "",
-            "scan_profile_mutations",
-            mock.ANY,
-            properties=pika.BasicProperties(
-                delivery_mode=pika.DeliveryMode.Persistent
-            ),
-        )
-    ])
+    channel_mock.basic_publish.assert_has_calls(
+        [
+            mock.call(
+                "",
+                "scan_profile_mutations",
+                mock.ANY,
+                properties=pika.BasicProperties(
+                    delivery_mode=pika.DeliveryMode.Persistent
+                ),
+            )
+        ]
+    )
 
     actual_body = json.loads(channel_mock.basic_publish.call_args[0][2])
 
@@ -167,6 +166,7 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
     }
 
     assert actual_body == expected_body
+
 
 def test_event_manager_delete_empty_scan_profile(mocker, empty_scan_profile):
     celery_mock = mocker.Mock()
@@ -209,13 +209,6 @@ def test_event_manager_delete_empty_scan_profile(mocker, empty_scan_profile):
 
     actual_body = json.loads(kwargs["body"])
 
-    assert actual_body == {
-        "operation": "delete",
-        "primary_key": "test|reference",
-        "value": None,
-        "client_id": "test",
-    }
+    assert actual_body == {"operation": "delete", "primary_key": "test|reference", "value": None, "client_id": "test"}
 
-    assert kwargs["properties"] == pika.BasicProperties(
-        delivery_mode=pika.DeliveryMode.Persistent
-    )
+    assert kwargs["properties"] == pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent)

@@ -1,6 +1,3 @@
-import json
-
-
 def test_list(unit_test_client):
     res = unit_test_client.get("/v1/organisations")
     assert res.status_code == 200

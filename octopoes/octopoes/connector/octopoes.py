@@ -230,11 +230,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/observations",
-            params=params,
-            json=observation.model_dump(mode="json"),
-        )
+        self.session.post(f"/{self.client}/observations", params=params, json=observation.model_dump(mode="json"))
 
         self.logger.info("Saved observation", observation=observation, event_code=OBSERVATION_CREATED, sync=sync)
 
@@ -242,11 +238,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/declarations",
-            params=params,
-            json=declaration.model_dump(mode="json"),
-        )
+        self.session.post(f"/{self.client}/declarations", params=params, json=declaration.model_dump(mode="json"))
 
         self.logger.info("Saved declaration", declaration=declaration, event_code=DECLARATION_CREATED, sync=sync)
 
@@ -279,11 +271,7 @@ class OctopoesAPIConnector:
         params = {"valid_time": str(valid_time)}
         if sync:
             params["sync"] = "true"
-        self.session.put(
-            f"/{self.client}/scan_profiles",
-            params=params,
-            json=scan_profile.model_dump(mode="json"),
-        )
+        self.session.put(f"/{self.client}/scan_profiles", params=params, json=scan_profile.model_dump(mode="json"))
 
         self.logger.info("Saved Scan profile", scan_profile=scan_profile, valid_time=valid_time, sync=sync)
 
@@ -478,6 +466,4 @@ class OctopoesAPIConnector:
         """Single-purpose method that should not be used outside the migration, hence private"""
 
         params = {"valid_time": str(valid_time)}
-        self.session.post(
-            f"/{self.client}/origins/migrate", params=params, json=[x.model_dump(mode="json") for x in origins],
-        )
+        self.session.post(f"/{self.client}/origins/migrate", params=params, json=[x.model_dump(mode="json") for x in origins])

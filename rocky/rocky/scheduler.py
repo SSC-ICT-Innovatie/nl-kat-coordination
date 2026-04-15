@@ -375,7 +375,7 @@ class SchedulerClient:
     def push_task(self, item: Task) -> None:
         try:
             res = self._client.post(
-                f"/schedulers/{item.scheduler_id}/push", json=item.model_dump(exclude_none=True, mode="json"),
+                f"/schedulers/{item.scheduler_id}/push", json=item.model_dump(exclude_none=True, mode="json")
             )
             res.raise_for_status()
         except HTTPStatusError as http_error:

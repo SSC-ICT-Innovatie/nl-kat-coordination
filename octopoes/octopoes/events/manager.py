@@ -116,9 +116,7 @@ class EventManager:
             exchange="",
             routing_key="scan_profile_mutations",
             body=payload,
-            properties=pika.BasicProperties(
-                delivery_mode=pika.DeliveryMode.Persistent
-            ),
+            properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
         )
 
         level = mutation.value.scan_profile.level if mutation.value is not None else None
