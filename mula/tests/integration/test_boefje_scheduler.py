@@ -1402,7 +1402,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
         boefje = PluginFactory(scan_level=0, consumes=[ooi.object_type])
         mutation = models.ScanProfileMutation(
             operation="create", primary_key=ooi.primary_key, value=ooi, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1427,7 +1427,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
         # Arrange
         mutation = models.ScanProfileMutation(
             operation="create", primary_key="123", value=None, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Act
         self.scheduler.process_mutations(mutation)
@@ -1442,7 +1442,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
         ooi = OOIFactory(scan_profile=scan_profile)
         mutation = models.ScanProfileMutation(
             operation="create", primary_key=ooi.primary_key, value=ooi, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = []
@@ -1461,7 +1461,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
         boefje = PluginFactory(scan_level=0, consumes=[ooi.object_type])
         mutation = models.ScanProfileMutation(
             operation="create", primary_key=ooi.primary_key, value=ooi, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1481,7 +1481,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
         boefje = PluginFactory(scan_level=0, consumes=[ooi.object_type])
         mutation = models.ScanProfileMutation(
             operation="create", primary_key=ooi.primary_key, value=ooi, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1502,10 +1502,10 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
 
         mutation1 = models.ScanProfileMutation(
             operation="create", primary_key=ooi.primary_key, value=ooi, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
         mutation2 = models.ScanProfileMutation(
             operation="create", primary_key=ooi.primary_key, value=ooi, client_id=self.organisation.id
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1537,7 +1537,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1562,7 +1562,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1583,7 +1583,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Act
         self.scheduler.process_mutations(mutation2)
@@ -1613,7 +1613,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1653,7 +1653,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1693,7 +1693,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_boefjes_for_ooi.return_value = [boefje]
@@ -1720,7 +1720,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_plugin.return_value = boefje
@@ -1763,7 +1763,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_plugin.return_value = boefje
@@ -1791,7 +1791,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_plugin.return_value = boefje
@@ -1832,7 +1832,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_plugin.return_value = boefje
@@ -1873,7 +1873,7 @@ class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
             primary_key=ooi.primary_key,
             value=ooi,
             client_id=self.organisation.id,
-        ).model_dump_json()
+        ).model_dump(mode="json")
 
         # Mocks
         self.mock_get_plugin.return_value = boefje

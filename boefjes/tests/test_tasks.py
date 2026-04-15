@@ -44,8 +44,8 @@ def test_parse_normalizer_meta_to_json():
     meta.started_at = datetime(10, 10, 10, 10, tzinfo=timezone.utc)
     meta.ended_at = datetime(10, 10, 10, 12, tzinfo=timezone.utc)
 
-    assert "0010-10-10T10:00:00Z" in meta.model_dump_json()
-    assert "0010-10-10T12:00:00Z" in meta.model_dump_json()
+    assert "0010-10-10T10:00:00Z" in meta.model_dump(mode="json")
+    assert "0010-10-10T12:00:00Z" in meta.model_dump(mode="json")
 
 
 def test_handle_boefje_with_exception(mocker):

@@ -150,7 +150,7 @@ async def test_normalizer_meta(bytes_api_client: BytesAPIClient, event_manager: 
     normalizer_meta.raw_data.mime_types = sorted(normalizer_meta.raw_data.mime_types)
     retrieved_normalizer_meta.raw_data.mime_types = sorted(retrieved_normalizer_meta.raw_data.mime_types)
 
-    assert normalizer_meta.model_dump_json() == retrieved_normalizer_meta.model_dump_json()
+    assert normalizer_meta.model_dump(mode="json") == retrieved_normalizer_meta.model_dump(mode="json")
 
 
 def test_filtered_normalizer_meta(bytes_api_client: BytesAPIClient) -> None:
