@@ -142,7 +142,7 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
         )
     ])
 
-    actual_body = json.loads(channel_mock.basic_publish.call_args[0][2])
+    actual_body = json.loads(channel_mock.basic_publish.call_args[1]["body"])
 
     expected_body = {
         "operation": "create",
