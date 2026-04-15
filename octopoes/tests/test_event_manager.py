@@ -1,10 +1,9 @@
 import json
 import uuid
 from datetime import datetime
+from unittest import mock
 
 import pika
-
-from unittest import mock
 
 from octopoes.events.events import OOIDBEvent, OperationType, ScanProfileDBEvent
 from octopoes.events.manager import EventManager
@@ -139,9 +138,7 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
             exchange="",
             routing_key="scan_profile_mutations",
             body=mock.ANY,
-            properties=pika.BasicProperties(
-                delivery_mode=pika.DeliveryMode.Persistent
-            ),
+            properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
         )
     ])
 

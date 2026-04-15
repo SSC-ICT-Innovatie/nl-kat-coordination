@@ -28,7 +28,7 @@ class RabbitMQEventManager(EventManager):
         return self._channel
 
     async def publish(self, event: Event) -> None:
-        event_data = event.model_dump_json	()
+        event_data = event.model_dump_json()
         logger.debug("Publishing event: %s", event_data)
         queue_name = self._queue_name(event)
 
