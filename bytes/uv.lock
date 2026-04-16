@@ -264,7 +264,7 @@ requires-dist = [
     { name = "pyjwt", specifier = ">=2.12.0" },
     { name = "pynacl", specifier = ">=1.5.0,<2" },
     { name = "pytest", specifier = ">=9.0.3,<10" },
-    { name = "python-multipart", specifier = ">=0.0.20" },
+    { name = "python-multipart", specifier = ">=0.0.26" },
     { name = "requests", specifier = ">=2.33.0,<3" },
     { name = "rfc3161ng", specifier = ">=2.1.3,<3" },
     { name = "sqlalchemy", specifier = ">=1.4.48,<2" },
