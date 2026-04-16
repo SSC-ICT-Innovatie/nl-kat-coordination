@@ -36,7 +36,8 @@ class OnboardingCreateObjectURLForm(forms.Form):
     """
     Custom URL field form especially for onboarding. No need of web_url and network object.
     """
-    #TODO remove once fields dont show optional and or select fields with *no* options anymore
+
+    # TODO remove once fields dont show optional and or select fields with *no* options anymore
     url = forms.URLField(
         assume_scheme="https",
         label="URL",

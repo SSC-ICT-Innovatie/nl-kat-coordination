@@ -149,7 +149,7 @@ def save_report_data(
     }
 
     raw_id = bytes_client.upload_raw(
-        raw=ReportDataDict(input_data | additional_input_data).model_dump(mode="json").encode(),
+        raw=ReportDataDict(input_data | additional_input_data).model_dump_json().encode(),
         manual_mime_types={"openkat/report"},
     )
 
@@ -212,7 +212,7 @@ def create_asset_reports(
                 }
             }
             asset_raw_id = bytes_client.upload_raw(
-                raw=ReportDataDict({"report_data": data["data"]} | asset_report_input).model_dump(mode="json").encode(),
+                raw=ReportDataDict({"report_data": data["data"]} | asset_report_input).model_dump_json().encode(),
                 manual_mime_types={"openkat/report"},
             )
 
