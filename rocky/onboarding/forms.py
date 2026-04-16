@@ -38,7 +38,7 @@ class OnboardingCreateObjectURLForm(forms.Form):
     """
     #TODO remove once fields dont show optional and or select fields with *no* options anymore
     url = forms.URLField(
-        assume_scheme="https"
+        assume_scheme="https",
         label="URL",
         label_suffix="",
         required=True,
