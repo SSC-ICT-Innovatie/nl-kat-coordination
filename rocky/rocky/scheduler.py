@@ -332,7 +332,7 @@ class SchedulerClient:
 
     def post_schedule(self, schedule: ScheduleRequest) -> ScheduleResponse:
         try:
-            res = self._client.post("/schedules", json=schedule.model_dump(exclude_none=True))
+            res = self._client.post("/schedules", json=schedule.model_dump(exclude_none=True, mode="json"))
             logger.info(res.content)
             res.raise_for_status()
             logger.info("Schedule created", event_code=800081, schedule=schedule)
@@ -375,9 +375,7 @@ class SchedulerClient:
     def push_task(self, item: Task) -> None:
         try:
             res = self._client.post(
-                f"/schedulers/{item.scheduler_id}/push",
-                content=item.model_dump_json(exclude_none=True),
-                headers={"Content-Type": "application/json"},
+                f"/schedulers/{item.scheduler_id}/push", json=item.model_dump(exclude_none=True, mode="json")
             )
             res.raise_for_status()
         except HTTPStatusError as http_error:

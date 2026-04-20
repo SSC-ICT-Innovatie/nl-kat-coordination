@@ -83,7 +83,7 @@ class EventManager:
             # schedule celery event processor
             self.celery_app.send_task(
                 "octopoes.tasks.tasks.handle_event",
-                (json.loads(event.model_dump_json()),),
+                (event.model_dump(mode="json"),),
                 queue=self.celery_queue_name,
                 task_id=str(uuid.uuid4()),
             )
@@ -110,10 +110,12 @@ class EventManager:
                 scan_profile=event.new_data,
             )
 
+        payload = json.dumps(mutation.model_dump(mode="json")).encode("utf-8")
+
         self.channel.basic_publish(
-            "",
-            "scan_profile_mutations",
-            mutation.model_dump_json().encode(),
+            exchange="",
+            routing_key="scan_profile_mutations",
+            body=payload,
             properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
         )
 

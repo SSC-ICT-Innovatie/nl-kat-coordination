@@ -49,7 +49,9 @@ class BoefjeAPIClient(SchedulerClientInterface, BoefjeStorageInterface):
         return TypeAdapter(list[Task]).validate_json(response.content)
 
     def push_item(self, p_item: Task) -> None:
-        response = self._session.post(f"/api/v0/scheduler/{p_item.scheduler_id}/push", content=p_item.model_dump_json())
+        response = self._session.post(
+            f"/api/v0/scheduler/{p_item.scheduler_id}/push", json=p_item.model_dump(mode="json")
+        )
         self._verify_response(response)
 
     def patch_task(self, task_id: uuid.UUID, status: TaskStatus) -> None:
@@ -65,7 +67,7 @@ class BoefjeAPIClient(SchedulerClientInterface, BoefjeStorageInterface):
         return task
 
     def save_output(self, boefje_meta: BoefjeMeta, boefje_output: BoefjeOutput) -> dict[str, uuid.UUID]:
-        response = self._session.post(f"/api/v0/tasks/{boefje_meta.id}", content=boefje_output.model_dump_json())
+        response = self._session.post(f"/api/v0/tasks/{boefje_meta.id}", json=boefje_output.model_dump(mode="json"))
         self._verify_response(response)
 
         return response.json()

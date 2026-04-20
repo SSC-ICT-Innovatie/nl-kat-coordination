@@ -15,17 +15,23 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
     assert response.status_code == 302
     assert response.url == "/en/test/objects/detail/?ooi_id=Network%7Ctestnetwork"
 
-    data_without_valid_time = (
-        f'[{{"ooi":{{"object_type":"Network","scan_profile":null,"user_id":{client_member.user.id},'
-        f'"primary_key":"Network|testnetwork","name":"testnetwork"}}'
-    ).encode()
     mock_bytes_client().add_manual_proof.assert_called_once()
     call_args = mock_bytes_client().add_manual_proof.call_args[0]
 
     assert isinstance(call_args[0], uuid.UUID)
-    assert data_without_valid_time in call_args[1]
-    assert json.loads(call_args[1].decode("utf-8"))
 
+    actual = json.loads(call_args[1])
+    expected_fragment = {
+        "ooi": {
+            "object_type": "Network",
+            "scan_profile": None,
+            "user_id": client_member.user.id,
+            "primary_key": "Network|testnetwork",
+            "name": "testnetwork",
+        }
+    }
+
+    assert expected_fragment.items() <= actual[0].items()
     assert mock_organization_view_octopoes().save_declaration.call_count == 1
 
 

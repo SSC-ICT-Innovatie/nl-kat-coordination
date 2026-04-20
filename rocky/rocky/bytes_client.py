@@ -33,9 +33,7 @@ class BytesClient:
 
     @staticmethod
     def raw_from_declarations(declarations: list[Declaration]) -> bytes:
-        json_string = f"[{','.join([declaration.model_dump_json() for declaration in declarations])}]"
-
-        return json_string.encode("utf-8")
+        return json.dumps([d.model_dump(mode="json") for d in declarations]).encode("utf-8")
 
     def add_manual_proof(
         self, normalizer_id: uuid.UUID, raw: bytes, manual_mime_types: Set[str] = frozenset({"manual/ooi"})
@@ -101,14 +99,14 @@ class BytesClient:
 
     def _save_boefje_meta(self, boefje_meta: BoefjeMeta) -> None:
         response = self.session.post(
-            "/bytes/boefje_meta", content=boefje_meta.model_dump_json(), headers={"content-type": "application/json"}
+            "/bytes/boefje_meta", json=boefje_meta.model_dump(mode="json"), headers={"content-type": "application/json"}
         )
         response.raise_for_status()
 
     def _save_normalizer_meta(self, normalizer_meta: NormalizerMeta) -> None:
         response = self.session.post(
             "/bytes/normalizer_meta",
-            content=normalizer_meta.model_dump_json(),
+            json=normalizer_meta.model_dump(mode="json"),
             headers={"content-type": "application/json"},
         )
 
@@ -145,7 +143,7 @@ class BytesClient:
         response = self.session.get("/bytes/raws", params=params)
         response.raise_for_status()
 
-        return [(file["name"], b64decode(file["content"])) for file in response.json().get("files", [])]
+        return [(rawfile["name"], b64decode(rawfile["content"])) for rawfile in response.json().get("files", [])]
 
     def get_raws_all(self, raw_ids: list[str]) -> dict[str, dict[str, Any]]:
         params: dict[str, str | int | list[str]] = {"limit": len(raw_ids), "raw_ids": raw_ids}
@@ -154,8 +152,8 @@ class BytesClient:
         response.raise_for_status()
         try:
             return {
-                file["name"]: json.loads(b64decode(file["content"]).decode("utf-8"))
-                for file in response.json().get("files", [])
+                rawfile["name"]: json.loads(b64decode(rawfile["content"]).decode("utf-8"))
+                for rawfile in response.json().get("files", [])
             }
         except httpx.ReadTimeout:
             return {}
