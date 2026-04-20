@@ -52,6 +52,8 @@ dependencies = [
     "weasyprint>=66",
     "requests>=2.33.0,<3",
     "attrs>=26.1.0",
+    "pillow>=12.2.0",
+    "brotlicffi>=1.2.0.1",
 ]
 
 [dependency-groups]

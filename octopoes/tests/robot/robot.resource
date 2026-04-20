@@ -34,13 +34,15 @@ Declare Scan Profile
 Insert Observation
     [Arguments]    ${origin_file}
     ${norm_output_json}    Get File    ${origin_file}
-    ${response}    Post    ${OCTOPOES_URI}/observations    ${norm_output_json}
+    ${norm_output_dict}    Evaluate    json.loads('''${norm_output_json}''')    json
+    ${response}    Post    ${OCTOPOES_URI}/observations    json=${norm_output_dict}
     Should Be Equal As Integers    ${response.status_code}    200
 
 Insert Declaration
     [Arguments]    ${origin_file}
     ${norm_output_json}    Get File    ${origin_file}
-    ${response}    Post    ${OCTOPOES_URI}/declarations    ${norm_output_json}
+    ${norm_output_dict}    Evaluate    json.loads('''${norm_output_json}''')    json
+    ${response}    Post    ${OCTOPOES_URI}/declarations    json=${norm_output_dict}
     Should Be Equal As Integers    ${response.status_code}    200
 
 Insert Normalizer Output

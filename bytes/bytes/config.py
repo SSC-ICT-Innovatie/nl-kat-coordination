@@ -84,13 +84,15 @@ class Settings(BaseSettings):
     file_permission: str = Field("640", description="Unix permission level on the raw files themselves")
 
     hashing_algorithm: HashingAlgorithm = Field(
-        HashingAlgorithm.SHA512, description="Hashing algorithm used in Bytes", possible_values=["sha512", "sha224"]
+        HashingAlgorithm.SHA512,
+        description="Hashing algorithm used in Bytes",
+        json_schema_extra={"possible_values": ["sha512", "sha224"]},
     )
 
     ext_hash_repository: HashingRepositoryReference = Field(
         HashingRepositoryReference.IN_MEMORY,
         description="Hashing repository used in Bytes (IN_MEMORY is a stub)",
-        possible_values=["IN_MEMORY", "PASTEBIN", "RFC3161"],
+        json_schema_extra={"possible_values": ["IN_MEMORY", "PASTEBIN", "RFC3161"]},
     )
     pastebin_api_dev_key: str | None = Field(
         None, description="API key for Pastebin. Required when using PASTEBIN hashing repository."
@@ -112,7 +114,7 @@ class Settings(BaseSettings):
     encryption_middleware: EncryptionMiddleware = Field(
         EncryptionMiddleware.IDENTITY,
         description="Encryption middleware used in Bytes",
-        possible_values=["IDENTITY", "NACL_SEALBOX"],
+        json_schema_extra={"possible_values": ["IDENTITY", "NACL_SEALBOX"]},
     )
     private_key_b64: str | None = Field(
         None,

@@ -1,6 +1,3 @@
-import json
-
-
 def test_list(unit_test_client):
     res = unit_test_client.get("/v1/organisations")
     assert res.status_code == 200
@@ -18,7 +15,7 @@ def test_non_existing_organisation(unit_test_client):
 
 
 def test_add_organisation(unit_test_client):
-    res = unit_test_client.post("/v1/organisations/", content=json.dumps({"id": "new", "name": "New"}))
+    res = unit_test_client.post("/v1/organisations/", json={"id": "new", "name": "New"})
     assert res.status_code == 201
 
     res = unit_test_client.get("/v1/organisations")

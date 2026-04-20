@@ -151,9 +151,7 @@ class XTDBHTTPClient:
 
     def submit_transaction(self, operations: list[Operation]) -> None:
         res = self._session.post(
-            f"{self.node_url}/submit-tx",
-            content=Transaction(operations=operations).model_dump_json(by_alias=True),
-            headers={"Content-Type": "application/json"},
+            f"{self.node_url}/submit-tx", json=Transaction(operations=operations).model_dump(by_alias=True, mode="json")
         )
 
         self._verify_response(res)
