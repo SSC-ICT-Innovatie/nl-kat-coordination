@@ -111,16 +111,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
                 localpart, domain = email.split("@", 1)
 
-                domain_ooi = Hostname(
-                    name=domain.strip(),
-                    network=network_ref,
-                )
+                domain_ooi = Hostname(name=domain.strip(), network=network_ref)
                 yield domain_ooi
-                yield EmailAddress(
-                    network=domain_ooi.network,
-                    localpart=localpart,
-                    domain=domain_ooi.reference,
-                )
+                yield EmailAddress(network=domain_ooi.network, localpart=localpart, domain=domain_ooi.reference)
 
         seen_urls = set()
 
@@ -137,4 +130,3 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     continue
 
                 yield URL(raw=value, network=network_ref)
-
