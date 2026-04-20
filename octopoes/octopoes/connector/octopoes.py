@@ -258,11 +258,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/affirmations",
-            params=params,
-            json=affirmation.model_dump(mode="json"),
-        )
+        self.session.post(f"/{self.client}/affirmations", params=params, json=affirmation.model_dump(mode="json"))
 
         self.logger.info("Saved affirmation", affirmation=affirmation, event_code=AFFIRMATION_CREATED, sync=sync)
 
