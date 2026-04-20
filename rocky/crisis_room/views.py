@@ -89,7 +89,6 @@ class DashboardService:
         """
         # When organization is None, data is fetched across all organizations.
         bytes_client = get_bytes_client(None)
-        bytes_client.login()
         try:
             return bytes_client.get_raws_all(raw_ids)
         except (HTTPStatusError, ObjectNotFoundException, ReadTimeout) as error:
