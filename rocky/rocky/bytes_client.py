@@ -24,6 +24,7 @@ class BytesClient:
         self.credentials = {"username": username, "password": password}
         self.session = httpx.Client(base_url=base_url, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT)
         self.organization = organization
+        self.login()
 
     def health(self) -> ServiceHealth:
         response = self.session.get("/health")
@@ -39,8 +40,6 @@ class BytesClient:
         self, normalizer_id: uuid.UUID, raw: bytes, manual_mime_types: Set[str] = frozenset({"manual/ooi"})
     ) -> None:
         """Per convention for a generic normalizer, we add a raw list of declarations, not a single declaration"""
-
-        self.login()
 
         boefje_meta = BoefjeMeta(
             id=uuid.uuid4(),
@@ -78,7 +77,6 @@ class BytesClient:
         input_dict: dict | None = None,
         valid_time: datetime | None = None,
     ) -> str:
-        self.login()
 
         boefje_meta = BoefjeMeta(
             id=uuid.uuid4(),

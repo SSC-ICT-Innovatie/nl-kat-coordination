@@ -20,7 +20,6 @@ RAW_FILE_LIMIT = 1024 * 1024
 
 class BytesRawView(OrganizationView):
     def get(self, request, **kwargs):
-        self.bytes_client.login()
         boefje_meta_id = kwargs["boefje_meta_id"]
         try:
             raw_metas = self.bytes_client.get_raw_metas(boefje_meta_id, self.organization.code)

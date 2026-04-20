@@ -655,8 +655,6 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
         return report_types
 
     def get_report_data_from_bytes(self, reports: list[ReportOOI]) -> list[tuple[str, dict[str, Any]]]:
-        self.bytes_client.login()
-
         bytes_datas = self.bytes_client.get_raws(
             self.organization.code, raw_ids=[report.data_raw_id for report in reports]
         )
