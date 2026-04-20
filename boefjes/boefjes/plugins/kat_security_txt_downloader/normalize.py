@@ -67,9 +67,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield hostname
             addr = ipaddress.ip_address(details["ip"])
             if addr.version == 6:
-                ip_address = IPAddressV6(address=details["ip"], network_ref)
+                ip_address = IPAddressV6(address=details["ip"], network=network_ref)
             else:
-                ip_address = IPAddressV4(address=details["ip"], network_ref)
+                ip_address = IPAddressV4(address=details["ip"], network=network_ref)
             yield ip_address
             # check scheme for service and ipport
             if url_parts.scheme == "https":
