@@ -28,6 +28,7 @@ from octopoes.models.ooi.dns.records import (
     DNSTXTRecord,
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname, ResolvedHostname
+from octopoes.models.ooi.email import EmailAddress
 from octopoes.models.ooi.email_security import (
     DKIMExists,
     DKIMKey,
@@ -170,6 +171,7 @@ ConcreteOOIType = (
     | AssetReport
     | GeographicPoint
     | ReportRecipe
+    | EmailAddress
 )
 
 OOIType = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType

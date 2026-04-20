@@ -32,6 +32,16 @@ from octopoes.models.ooi.email_security import DKIMExists, DMARCTXTRecord
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 
 
+def soa_rname_to_email(rname: str) -> str:
+    parts = rname.lower().rstrip(".").split(".")
+    if len(parts) < 2:
+        return ""
+
+    localpart = parts[0]
+    domain = ".".join(parts[1:])
+    return f"{localpart}@{domain}"
+
+
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     internet = Network(name="internet")
 
@@ -77,6 +87,24 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     zone = DNSZone(hostname=record_hostname.reference)
                     zone_links[record_hostname.name] = zone
                     zone_links[input_hostname.name] = zone
+
+                    # extract email from SOA rname
+                    email = soa_rname_to_email(str(rr.rname))
+
+                    if email and "@" in email:
+                        try:
+                            localpart, domain = email.split("@", 1)
+
+                            domain_ooi = Hostname(network=internet.reference, name=domain)
+                            yield domain_ooi
+
+                            yield EmailAddress(
+                                network=internet.reference,
+                                localpart=localpart,
+                                domain=domain_ooi.reference,
+                            )
+                        except ValueError:
+                            pass
 
                     soa = DNSSOARecord(
                         serial=rr.serial,
