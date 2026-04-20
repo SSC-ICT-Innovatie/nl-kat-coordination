@@ -23,6 +23,7 @@ from octopoes.models.ooi.dns.records import (
     DNSTXTRecord,
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname
+from octopoes.models.ooi.email import EmailAddress
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 from tests.loading import get_dummy_data
 
