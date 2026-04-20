@@ -17,5 +17,5 @@ class EmailAddress(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         t = reference.tokenized
-        username = t.username
+        localpart = t.localpart
         return f"{localpart}@{t.domain.name} on {t.domain.network.name}"

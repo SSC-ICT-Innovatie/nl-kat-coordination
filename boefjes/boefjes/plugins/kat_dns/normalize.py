@@ -99,7 +99,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                             domain_ooi = Hostname(network=internet.reference, name=domain)
                             yield domain_ooi
 
-                            yield EmailAddress(network=internet.reference, localpart=localpart, domain=domain_ooi.reference)
+                            yield EmailAddress(
+                                network=internet.reference, localpart=localpart, domain=domain_ooi.reference
+                            )
                         except ValueError:
                             pass
 

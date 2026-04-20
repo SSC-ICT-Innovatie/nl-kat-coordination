@@ -97,6 +97,9 @@ def test_dns_normalizer(normalizer_runner):
         minimum=86400,
     )
 
+    soa_maildomain = Hostname(name="sidn.nl", network=internet.reference)
+    emailaddress = EmailAddress(localpart="hostmaster", domain=soa_maildomain.reference, network=internet.reference)
+
     # noinspection PyTypeChecker
     expected = (
         [zone_hostname, zone]
@@ -108,7 +111,9 @@ def test_dns_normalizer(normalizer_runner):
         + mx_hostnames
         + dns_mx_records
         + ns_hostnames
-        + ns_records
+        + ns_records,
+        + soa_maildomain,
+        + emailaddress,
         + [soa_record]
     )
 
@@ -144,6 +149,9 @@ def test_dns_normalizer_cname(normalizer_runner):
         minimum=86400,
     )
 
+    soa_maildomain = Hostname(name="sidn.nl", network=internet.reference)
+    emailaddress = EmailAddress(localpart="hostmaster", domain=soa_maildomain.reference, network=internet.reference)
+
     cname_record = DNSCNAMERecord(
         hostname=input_hostname.reference,
         value=cname_target.name + ".",
@@ -166,6 +174,8 @@ def test_dns_normalizer_cname(normalizer_runner):
         ip_address,
         dns_a_record,
         input_hostname,
+        soa_maildomain,
+        emailaddress,
     ]
 
     meta = NormalizerMeta(
@@ -266,6 +276,8 @@ def test_parse_cname_soa(normalizer_runner):
         expire=1209600,
         minimum=3600,
     )
+    soa_maildomain = Hostname(name="dns.icann.org", network=internet.reference)
+    emailaddress = EmailAddress(localpart="noc", domain=soa_maildomain.reference, network=internet.reference)
     txt_record = DNSTXTRecord(hostname=zone_hostname.reference, value="v=spf1 -all", ttl=60)
     mx_record = DNSMXRecord(
         hostname=zone_hostname.reference,
@@ -305,6 +317,8 @@ def test_parse_cname_soa(normalizer_runner):
             mx_record,
             input_hostname,
             soa_hostname,
+            soa_maildomain,
+            soa_maildomain,
         ]
         + ns_hostnames
         + ns_records
@@ -338,6 +352,9 @@ def test_find_parent_dns_zone(normalizer_runner):
         minimum=86400,
     )
 
+    soa_maildomain = Hostname(name="sidn.nl", network=internet.reference)
+    emailaddress = EmailAddress(localpart="hostmaster", domain=soa_maildomain.reference, network=internet.reference)
+
     input_ = DNSZone(
         hostname=Hostname(network=Reference.from_str("Network|internet"), name="sub.example.nl").reference
     ).serialize()
@@ -360,7 +377,15 @@ def test_find_parent_dns_zone(normalizer_runner):
 
     results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-zone-result-sub.example.nl.txt"))
 
-    expected = [requested_zone, parent_zone, parent_zone_hostname, name_server_hostname, soa_record]
+    expected = [
+        requested_zone,
+        parent_zone,
+        parent_zone_hostname,
+        name_server_hostname,
+        soa_record,
+        soa_maildomain,
+        emailaddress,
+    ]
     assert len(list(map(BaseModel.model_dump, expected))) == len(
         list(map(BaseModel.model_dump, results.observations[0].results))
     )
