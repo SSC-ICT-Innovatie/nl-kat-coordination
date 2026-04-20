@@ -25,7 +25,7 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
         "ooi": {
             "object_type": "Network",
             "scan_profile": None,
-            "user_id": 309,
+            "user_id": client_member.user.id,
             "primary_key": "Network|testnetwork",
             "name": "testnetwork",
         }

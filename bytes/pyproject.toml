@@ -43,7 +43,6 @@ dependencies = [
     "pygments>=2.20.0",
     "pyasn1>=0.6.3",
     "wrapt>=2.1.2",
-    "pytest>=9.0.3,<10",
 ]
 
 [tool.uv]

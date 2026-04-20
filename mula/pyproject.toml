@@ -36,7 +36,6 @@ dependencies = [
     "opentelemetry-semantic-conventions",
     "pygments>=2.20.0",
     "wrapt>=2.1.2",
-    "pytest>=9.0.3,<10",
 ]
 
 [dependency-groups]

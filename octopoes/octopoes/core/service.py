@@ -255,7 +255,7 @@ class OctopoesService:
                     "config": json.dumps(config),
                     "elapsed": str(stop - start),
                     "parameters": TypeAdapter(list[OOI]).dump_json(parameters).decode(),
-                    "source": source.model_dump(mode="json"),
+                    "source": source.model_dump_json(),
                     "xt/id": "BIT_METRIC",
                     "yield": TypeAdapter(list[OOI]).dump_json(resulting_oois).decode(),
                 }

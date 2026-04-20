@@ -260,7 +260,6 @@ class OctopoesAPIConnector:
             params["sync"] = "true"
         self.session.post(
             f"/{self.client}/affirmations",
-            headers={"Content-Type": "application/json"},
             params=params,
             json=affirmation.model_dump(mode="json"),
         )
