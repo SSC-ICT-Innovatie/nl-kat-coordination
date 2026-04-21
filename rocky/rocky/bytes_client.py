@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 import structlog
 from django.conf import settings
+from typing import Generator
 
 from octopoes.api.models import Declaration
 from rocky.health import ServiceHealth
@@ -16,15 +17,37 @@ from rocky.scheduler import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawD
 logger = structlog.get_logger("bytes_client")
 
 
+class TokenAuth(httpx.Auth):
+    def __init__(self, client: "BytesClient"):
+        self.client = client
+
+    def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        # Attach token
+        request.headers["Authorization"] = f"Bearer {self.client.token}"
+
+        response = yield request
+
+        # If unauthorized, refresh token and retry once
+        if response.status_code == 403:
+            logger.info("Bytes token expired, refreshing and retrying request")
+            self.client._invalidate_token()
+
+            # Try to get a new token (may raise)
+            request.headers["Authorization"] = f"Bearer {self.client.token}"
+
+            yield request  # retry once
+
+
 class BytesClient:
     # More than 100 raw files per Boefje run is very unlikely at this stage, but eventually we can start paginating
     RAW_FILES_LIMIT = 100
 
     def __init__(self, base_url: str, username: str, password: str, organization: str | None):
         self.credentials = {"username": username, "password": password}
-        self.session = httpx.Client(base_url=base_url, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT)
+        self.session = httpx.Client(
+            base_url=base_url, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT, auth=TokenAuth(self)
+        )
         self.organization = organization
-        self.login()
 
     def health(self) -> ServiceHealth:
         response = self.session.get("/health")
@@ -77,7 +100,6 @@ class BytesClient:
         input_dict: dict | None = None,
         valid_time: datetime | None = None,
     ) -> str:
-
         boefje_meta = BoefjeMeta(
             id=uuid.uuid4(),
             boefje=Boefje(id="manual"),
@@ -195,6 +217,14 @@ class BytesClient:
 
         return response.json()
 
+    @cached_property
+    def token(self) -> str:
+        return self._get_token()
+
+    def _invalidate_token(self):
+        if "token" in self.__dict__:
+            del self.__dict__["token"]
+
     def login(self):
         self.session.headers.update(self._authorization_header())
 
@@ -202,10 +232,11 @@ class BytesClient:
         return {"Authorization": f"bearer {self._get_token()}"}
 
     def _get_token(self) -> str:
+        # this request should not try to use the auth provider, as that would cause a loop
         response = self.session.post(
-            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}
+            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=None,
         )
-
+        response.raise_for_status()  # fail loudly on bad login
         return response.json()["access_token"]
 
 
