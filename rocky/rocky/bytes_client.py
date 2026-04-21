@@ -17,6 +17,11 @@ from rocky.scheduler import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawD
 logger = structlog.get_logger("bytes_client")
 
 
+class NoAuth(httpx.Auth):
+    def auth_flow(self, request):
+        yield request
+
+
 class TokenAuth(httpx.Auth):
     def __init__(self, client: "BytesClient"):
         self.client = client
@@ -234,7 +239,7 @@ class BytesClient:
     def _get_token(self) -> str:
         # this request should not try to use the auth provider, as that would cause a loop
         response = self.session.post(
-            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=None
+            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=NoAuth
         )
         response.raise_for_status()  # fail loudly on bad login
         return response.json()["access_token"]
