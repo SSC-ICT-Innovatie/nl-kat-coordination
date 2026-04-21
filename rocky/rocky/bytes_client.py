@@ -28,17 +28,17 @@ class TokenAuth(httpx.Auth):
 
     def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
         # Attach token
-        request.headers["Authorization"] = f"Bearer {self.client.token}"
+        request.headers["Authorization"] = f"bearer {self.client.token}"
 
         response = yield request
 
         # If unauthorized, refresh token and retry once
-        if response.status_code == 403:
-            logger.info("Bytes token expired, refreshing and retrying request")
+        if response.status_code in (401, 403):
+            logger.info("Bytes token expired or invalid, refreshing and retrying request")
             self.client._invalidate_token()
 
             # Try to get a new token (may raise)
-            request.headers["Authorization"] = f"Bearer {self.client.token}"
+            request.headers["Authorization"] = f"bearer {self.client.token}"
 
             yield request  # retry once
 
@@ -229,12 +229,6 @@ class BytesClient:
     def _invalidate_token(self):
         if "token" in self.__dict__:
             del self.__dict__["token"]
-
-    def login(self):
-        self.session.headers.update(self._authorization_header())
-
-    def _authorization_header(self) -> dict[str, str]:
-        return {"Authorization": f"bearer {self._get_token()}"}
 
     def _get_token(self) -> str:
         # this request should not try to use the auth provider, as that would cause a loop
