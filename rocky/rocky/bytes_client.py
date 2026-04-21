@@ -1,14 +1,14 @@
 import json
 import uuid
 from base64 import b64decode, b64encode
-from collections.abc import Sequence, Set
+from collections.abc import Generator, Sequence, Set
 from datetime import datetime, timezone
 from typing import Any
 
 import httpx
 import structlog
 from django.conf import settings
-from typing import Generator
+from functools import cached_property
 
 from octopoes.api.models import Declaration
 from rocky.health import ServiceHealth
@@ -234,7 +234,7 @@ class BytesClient:
     def _get_token(self) -> str:
         # this request should not try to use the auth provider, as that would cause a loop
         response = self.session.post(
-            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=None,
+            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=None
         )
         response.raise_for_status()  # fail loudly on bad login
         return response.json()["access_token"]
