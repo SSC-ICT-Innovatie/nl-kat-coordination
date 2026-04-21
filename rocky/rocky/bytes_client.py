@@ -3,12 +3,12 @@ import uuid
 from base64 import b64decode, b64encode
 from collections.abc import Generator, Sequence, Set
 from datetime import datetime, timezone
+from functools import cached_property
 from typing import Any
 
 import httpx
 import structlog
 from django.conf import settings
-from functools import cached_property
 
 from octopoes.api.models import Declaration
 from rocky.health import ServiceHealth
