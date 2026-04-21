@@ -239,7 +239,7 @@ class BytesClient:
     def _get_token(self) -> str:
         # this request should not try to use the auth provider, as that would cause a loop
         response = self.session.post(
-            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=NoAuth
+            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}, auth=NoAuth()
         )
         response.raise_for_status()  # fail loudly on bad login
         return response.json()["access_token"]
