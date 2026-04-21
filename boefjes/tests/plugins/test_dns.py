@@ -112,9 +112,9 @@ def test_dns_normalizer(normalizer_runner):
         + mx_hostnames
         + dns_mx_records
         + ns_hostnames
-        + ns_records,
-        + soa_maildomain,
-        + emailaddress,
+        + ns_records
+        + soa_maildomain
+        + emailaddress
         + [soa_record]
     )
 
@@ -319,7 +319,7 @@ def test_parse_cname_soa(normalizer_runner):
             input_hostname,
             soa_hostname,
             soa_maildomain,
-            soa_maildomain,
+            emailaddress,
         ]
         + ns_hostnames
         + ns_records
