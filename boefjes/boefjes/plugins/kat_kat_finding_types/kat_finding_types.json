@@ -613,5 +613,45 @@
     "risk": "recommendation",
     "impact": "Depending on what software is outdated this can be critical.",
     "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
+  },
+  "KAT-MISSING-HEADER": {
+    "name":"Missing security header",
+    "description": "A recommended HTTP security header is not present on the response. The exact header was either not recognised by the parser or not specifically mapped to a dedicated finding type.",
+    "source": "https://owasp.org/www-project-secure-headers/",
+    "risk": "recommendation",
+    "impact": "Missing security headers may weaken the browser-side defences of the site against common web attacks such as XSS, clickjacking, or MIME-sniffing.",
+    "recommendation": "Configure the web server or application to emit the missing security header(s) with appropriate values per the OWASP Secure Headers project."
+  },
+  "KAT-NIKTO-FINDING": {
+    "name":"Nikto finding",
+    "description": "Nikto reported an issue that does not yet have a dedicated OpenKAT finding type. The raw message from Nikto is attached to the finding description.",
+    "source": "https://github.com/sullo/nikto",
+    "risk": "recommendation",
+    "impact": "Depends on the specific Nikto finding. Consult the finding description to assess impact.",
+    "recommendation": "Review the finding description and consult the Nikto documentation or your web server vendor for remediation guidance."
+  },
+  "KAT-HTTP-TRACE-METHOD": {
+    "name":"HTTP TRACE method is enabled",
+    "description": "The HTTP TRACE method is enabled on the web server. TRACE can be abused in cross-site tracing (XST) attacks to read security-sensitive headers such as cookies when combined with other client-side vulnerabilities.",
+    "source": "https://owasp.org/www-community/attacks/Cross_Site_Tracing",
+    "risk": "medium",
+    "impact": "An attacker who also exploits a client-side vulnerability (e.g. XSS) can use TRACE to read otherwise HttpOnly cookies or authorization headers.",
+    "recommendation": "Disable the TRACE method on the web server. For Apache: TraceEnable off. For Nginx: do not forward TRACE. For IIS: disable the verb in request filtering."
+  },
+  "KAT-WILDCARD-CERTIFICATE": {
+    "name":"Wildcard TLS certificate in use",
+    "description": "The server presents a wildcard TLS certificate. Wildcard certificates simplify operations but increase blast radius on compromise because the same private key authenticates every subdomain.",
+    "source": "https://en.wikipedia.org/wiki/Wildcard_certificate",
+    "risk": "recommendation",
+    "impact": "Compromise of the wildcard certificate private key allows an attacker to impersonate every matching subdomain.",
+    "recommendation": "Prefer per-host certificates when operationally feasible; automate issuance via ACME. Keep wildcards only where a single key/cert must cover many ephemeral subdomains and protect the key accordingly."
+  },
+  "KAT-EXPOSED-DEFAULT-FILE": {
+    "name":"Default file exposed",
+    "description": "A default file or directory shipped with the web server software is exposed and reachable. These files often disclose software versions or provide an information foothold for attackers.",
+    "source": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/",
+    "risk": "low",
+    "impact": "Information disclosure about the underlying software stack, assisting reconnaissance.",
+    "recommendation": "Remove default files from production deployments or deny-list them at the web server level."
   }
 }
