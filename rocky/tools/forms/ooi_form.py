@@ -157,7 +157,8 @@ def generate_url_field(field: FieldInfo) -> forms.fields.Field:
     default_attrs = default_field_options("", field)
     if default_attrs.get("label") == "raw":
         default_attrs.update({"label": "URL"})
-    field = forms.URLField(**default_attrs)
+    attrs = {"assume_scheme": "https", **default_attrs}
+    field = forms.URLField(**attrs)
     field.widget.attrs.update({"placeholder": "https://example.org"})
     return field
 

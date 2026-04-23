@@ -214,10 +214,11 @@ class OOI(BaseModel):
 
     def serialize(self) -> SerializedOOI:
         serialized_oois = {}
+        model_fields = self.__class__.model_fields
         for key, value in self:
-            if key not in self.model_fields:
+            if key not in model_fields:
                 continue
-            serialized_oois[key] = self._serialize_value(value, self.model_fields[key].is_required())
+            serialized_oois[key] = self._serialize_value(value, model_fields[key].is_required())
         return serialized_oois
 
     def _serialize_value(self, value: Any, required: bool) -> SerializedOOIValue:

@@ -57,7 +57,9 @@ def test_report_overview_rename_reports(
     assertContains(response, new_name)
 
 
-def test_report_overview_rename_non_existant_report(rf, client_member, mock_organization_view_octopoes, report_list):
+def test_report_overview_rename_non_existant_report(
+    rf, client_member, mock_organization_view_octopoes, report_list, mock_bytes_client
+):
     """
     Renames a report
     """

@@ -276,8 +276,7 @@ class KATalogusClient:
             logger.info("Creating boefje", event_code=800025, boefje=plugin)
             response = self.session.post(
                 f"/v1/organisations/{quote(organization_code)}/plugins",
-                headers={"Content-Type": "application/json"},
-                content=plugin.model_dump_json(exclude_none=True),
+                json=plugin.model_dump(exclude_none=True, mode="json"),
             )
             if response.status_code == codes.CREATED:
                 logger.info("Plugin %s created", plugin.name)
@@ -291,7 +290,7 @@ class KATalogusClient:
         try:
             logger.info("Editing boefje", event_code=800026, boefje=plugin.id)
             response = self.session.patch(
-                f"/v1/organisations/{quote(organization_code)}/boefjes/{plugin.id}", content=plugin.model_dump_json()
+                f"/v1/organisations/{quote(organization_code)}/boefjes/{plugin.id}", json=plugin.model_dump(mode="json")
             )
             if response.status_code == codes.NO_CONTENT:
                 logger.info("Plugin %s updated", plugin.name)

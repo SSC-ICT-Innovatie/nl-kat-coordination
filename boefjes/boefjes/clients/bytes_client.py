@@ -71,7 +71,9 @@ class BytesAPIClient(BoefjeStorageInterface):
 
     @retry_with_login
     def save_boefje_meta(self, boefje_meta: BoefjeMeta) -> None:
-        response = self._session.post("/bytes/boefje_meta", content=boefje_meta.model_dump_json(), headers=self.headers)
+        response = self._session.post(
+            "/bytes/boefje_meta", json=boefje_meta.model_dump(mode="json"), headers=self.headers
+        )
 
         self._verify_response(response)
 
@@ -85,7 +87,7 @@ class BytesAPIClient(BoefjeStorageInterface):
     @retry_with_login
     def save_normalizer_meta(self, normalizer_meta: NormalizerMeta) -> None:
         response = self._session.post(
-            "/bytes/normalizer_meta", content=normalizer_meta.model_dump_json(), headers=self.headers
+            "/bytes/normalizer_meta", json=normalizer_meta.model_dump(mode="json"), headers=self.headers
         )
 
         self._verify_response(response)
@@ -110,7 +112,7 @@ class BytesAPIClient(BoefjeStorageInterface):
     def save_raws(self, boefje_meta_id: uuid.UUID, boefje_output: BoefjeOutput) -> dict[str, uuid.UUID]:
         response = self._session.post(
             "/bytes/raw",
-            content=boefje_output.model_dump_json(),
+            json=boefje_output.model_dump(mode="json"),
             headers=self.headers,
             params={"boefje_meta_id": str(boefje_meta_id)},
         )

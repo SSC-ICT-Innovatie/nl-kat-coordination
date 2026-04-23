@@ -230,12 +230,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/observations",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            content=observation.model_dump_json(),
-        )
+        self.session.post(f"/{self.client}/observations", params=params, json=observation.model_dump(mode="json"))
 
         self.logger.info("Saved observation", observation=observation, event_code=OBSERVATION_CREATED, sync=sync)
 
@@ -243,12 +238,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/declarations",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            content=declaration.model_dump_json(),
-        )
+        self.session.post(f"/{self.client}/declarations", params=params, json=declaration.model_dump(mode="json"))
 
         self.logger.info("Saved declaration", declaration=declaration, event_code=DECLARATION_CREATED, sync=sync)
 
@@ -258,9 +248,8 @@ class OctopoesAPIConnector:
             params["sync"] = "true"
         self.session.post(
             f"/{self.client}/declarations/save_many",
-            headers={"Content-Type": "application/json"},
             params=params,
-            content=DeclarationsTypeAdapter.dump_json(declarations),
+            json=DeclarationsTypeAdapter.dump_python(declarations, mode="json"),
         )
 
         self.logger.info("Saved %s declarations", len(declarations), event_code=DECLARATION_CREATED, sync=sync)
@@ -269,12 +258,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/affirmations",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            content=affirmation.model_dump_json(),
-        )
+        self.session.post(f"/{self.client}/affirmations", params=params, json=affirmation.model_dump(mode="json"))
 
         self.logger.info("Saved affirmation", affirmation=affirmation, event_code=AFFIRMATION_CREATED, sync=sync)
 
@@ -282,12 +266,7 @@ class OctopoesAPIConnector:
         params = {"valid_time": str(valid_time)}
         if sync:
             params["sync"] = "true"
-        self.session.put(
-            f"/{self.client}/scan_profiles",
-            params=params,
-            headers={"Content-Type": "application/json"},
-            content=scan_profile.model_dump_json(),
-        )
+        self.session.put(f"/{self.client}/scan_profiles", params=params, json=scan_profile.model_dump(mode="json"))
 
         self.logger.info("Saved Scan profile", scan_profile=scan_profile, valid_time=valid_time, sync=sync)
 
@@ -300,7 +279,7 @@ class OctopoesAPIConnector:
         self.session.post(
             f"/{self.client}/scan_profiles/save_many",
             params=params,
-            json=[json.loads(scan_profile.model_dump_json()) for scan_profile in scan_profiles],
+            json=[scan_profile.model_dump(mode="json") for scan_profile in scan_profiles],
         )
 
     def delete(self, reference: Reference, valid_time: datetime, sync: bool = False) -> None:
@@ -483,5 +462,5 @@ class OctopoesAPIConnector:
 
         params = {"valid_time": str(valid_time)}
         self.session.post(
-            f"/{self.client}/origins/migrate", params=params, json=[json.loads(x.model_dump_json()) for x in origins]
+            f"/{self.client}/origins/migrate", params=params, json=[x.model_dump(mode="json") for x in origins]
         )

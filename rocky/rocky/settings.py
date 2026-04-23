@@ -495,8 +495,6 @@ WEASYPRINT_BASEURL = env("WEASYPRINT_BASEURL", default="http://127.0.0.1:8000/")
 
 KNOX_TOKEN_MODEL = "account.AuthToken"
 
-FORMS_URLFIELD_ASSUME_HTTPS = True
-
 
 # Number of workers to run for the report queue
 POOL_SIZE = env.int("POOL_SIZE", default=2)
