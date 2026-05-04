@@ -75,7 +75,7 @@ jobs:
           driver-opts: network=host
 
       - name: Build the boefje base image for ${{ matrix.image }}
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           context: ./boefjes
           file: boefjes/images/base.Dockerfile
@@ -106,7 +106,7 @@ jobs:
           password: ${{ secrets.librekat_password }}
 
       - name: Build container image for ${{ matrix.image }}
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7.0.0
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7.1.0
         with:
           # We don't use git context because that doesn't process .dockerignore
           # https://github.com/docker/cli/issues/2827
