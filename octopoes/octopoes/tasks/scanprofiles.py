@@ -9,8 +9,8 @@ import yaml
 from httpx import HTTPError
 
 from octopoes.config.settings import Settings
-from octopoes.connector.katalogus import KATalogusClient
 from octopoes.core.app import get_octopoes
+from octopoes.xtdb.client import XTDBHTTPClient
 
 settings = Settings()
 logger = structlog.get_logger(__name__)
@@ -43,11 +43,11 @@ structlog.configure(
 )
 
 
-def scan_profile_recalculations(katalogusclient: KATalogusClient, octopii: dict) -> None:
+def scan_profile_recalculations(xtdbclient: XTDBHTTPClient, octopii: dict) -> None:
     try:
-        orgs = katalogusclient.get_organisations()
+        orgs = xtdbclient.list_nodes()
     except HTTPError:
-        logger.exception("Failed getting organizations from KATalogus")
+        logger.exception("Failed getting organizations from XTDB")
         raise
     for org in orgs:
         if org not in octopii:
@@ -99,10 +99,9 @@ def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
                 duration,
             )
             return max_id["txId"]
-        else:
-            # last_transaction should always increment,
-            # but None is technically a possible return value
-            return 0
+        # last_transaction should always increment,
+        # but None is technically a possible return value
+        return 0
     except Exception:
         logger.exception(
             "Failed recalculating scan profiles [org=%s] [dur=%.2fs]", recalc_org["org"], timeit.default_timer() - timer
@@ -112,10 +111,11 @@ def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
 
 def main():
     logger.info("Scan profile recalculation process started.")
-    katalogusclient = KATalogusClient(str(settings.katalogus_api))
     octopii: dict[str, dict] = {}
+    base_uri = str(settings.xtdb_uri).rstrip("/")
+    xtdb_client = XTDBHTTPClient(f"{base_uri}/_xtdb")
     while True:
-        scan_profile_recalculations(katalogusclient, octopii)
+        scan_profile_recalculations(xtdb_client, octopii)
         time.sleep(settings.scan_level_recalculation_interval)
 
 
