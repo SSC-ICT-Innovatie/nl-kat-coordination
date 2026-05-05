@@ -28,40 +28,8 @@ from octopoes.models.ooi.dns.records import (
     DNSTXTRecord,
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname
-from octopoes.models.ooi.email import EmailAddress
 from octopoes.models.ooi.email_security import DKIMExists, DMARCTXTRecord
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
-
-
-def _split_soa_rname(rname: str) -> list[str]:
-    parts = []
-    buf = []
-    escaped = False
-
-    for ch in rname.rstrip("."):
-        if escaped:
-            buf.append(ch)
-            escaped = False
-        elif ch == "\\":
-            escaped = True
-        elif ch == ".":
-            parts.append("".join(buf))
-            buf = []
-        else:
-            buf.append(ch)
-
-    parts.append("".join(buf))
-    return parts
-
-
-def soa_rname_to_email(rname: str) -> str:
-    parts = _split_soa_rname(rname.lower())
-    if len(parts) < 2:
-        return ""
-
-    localpart = parts[0]
-    domain = ".".join(parts[1:])
-    return f"{localpart}@{domain}"
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
@@ -109,17 +77,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     zone = DNSZone(hostname=record_hostname.reference)
                     zone_links[record_hostname.name] = zone
                     zone_links[input_hostname.name] = zone
-
-                    # extract email from SOA rname
-                    email = soa_rname_to_email(str(rr.rname))
-
-                    if email and "@" in email:
-                        localpart, domain = email.split("@", 1)
-
-                        domain_ooi = Hostname(network=internet.reference, name=domain)
-                        yield domain_ooi
-
-                        yield EmailAddress(network=internet.reference, localpart=localpart, domain=domain_ooi.reference)
 
                     soa = DNSSOARecord(
                         serial=rr.serial,

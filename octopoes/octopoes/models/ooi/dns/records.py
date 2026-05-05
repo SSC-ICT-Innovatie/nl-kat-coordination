@@ -4,6 +4,7 @@ from typing import Literal
 
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
+from octopoes.models.ooi.email import EmailAddress
 from octopoes.models.ooi.network import IPAddress, IPAddressV4, IPAddressV6
 from octopoes.models.persistence import ReferenceField
 
@@ -133,6 +134,8 @@ class DNSSOARecord(DNSRecord):
     dns_record_type: Literal["SOA"] = "SOA"
 
     soa_hostname: Reference = ReferenceField(Hostname)
+    rname: str | None
+    email: Reference | None = ReferenceField(EmailAddress, default=None, max_inherit_scan_level=4)
     serial: int | None = None
     retry: int | None = None
     refresh: int | None = None

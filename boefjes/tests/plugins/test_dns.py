@@ -113,8 +113,7 @@ def test_dns_normalizer(normalizer_runner):
         + dns_mx_records
         + ns_hostnames
         + ns_records
-        + soa_maildomain
-        + emailaddress
+        + [soa_maildomain, emailaddress]
         + [soa_record]
     )
 
