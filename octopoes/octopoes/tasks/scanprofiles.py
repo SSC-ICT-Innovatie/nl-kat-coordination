@@ -49,6 +49,9 @@ def scan_profile_recalculations(xtdbclient: XTDBHTTPClient, octopii: dict) -> No
     except HTTPError:
         logger.exception("Failed getting organizations from XTDB")
         raise
+    if not orgs:
+        logger.debug("No organizations known in XTDB")
+        return
     for org in orgs:
         if org not in octopii:
             octopii[org] = {"octopoes": get_octopoes(org), "last_transaction": 0, "org": org}
