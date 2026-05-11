@@ -351,15 +351,12 @@ class Scheduler(abc.ABC):
                 scheduler_id=self.scheduler_id,
             )
 
-            self.post_pop(items)
+            self.post_pop()
 
         return items
 
-    def post_pop(self, items: list[models.Task]) -> None:
-        """After an item is popped from the queue, we execute this function
-        Args:
-            item: An item from the queue
-        """
+    def post_pop(self) -> None:
+        """After an item is popped from the queue, we execute this function"""
         self.last_activity = datetime.now(timezone.utc)
 
     def calculate_deadline(self, schedule: models.Schedule) -> models.Schedule:
