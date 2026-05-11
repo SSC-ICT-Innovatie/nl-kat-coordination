@@ -75,6 +75,9 @@ class OctopoesAPIConnector:
     def root_health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self.session.get("/health").content)
 
+    def organizations_health(self) -> ServiceHealth:
+        return ServiceHealth.model_validate_json(self.session.get("/health/organizations").content)
+
     def health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self.session.get(f"/{self.client}/health").content)
 

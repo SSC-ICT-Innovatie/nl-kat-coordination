@@ -115,8 +115,7 @@ def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
 def main():
     logger.info("Scan profile recalculation process started.")
     octopii: dict[str, dict] = {}
-    base_uri = str(settings.xtdb_uri).rstrip("/")
-    xtdb_client = XTDBHTTPClient(f"{base_uri}/_xtdb")
+    xtdb_client = XTDBHTTPClient(str(settings.xtdb_uri))
     while True:
         scan_profile_recalculations(xtdb_client, octopii)
         time.sleep(settings.scan_level_recalculation_interval)

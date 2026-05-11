@@ -58,7 +58,7 @@ def _get_xtdb_http_session(base_url: str) -> httpx.Client:
 class XTDBHTTPClient:
     def __init__(self, base_url: str, node: str | None = None):
         self.node = node
-        self._session = _get_xtdb_http_session(base_url)
+        self._session = _get_xtdb_http_session(f"{base_url.rstrip('/')}/_xtdb")
 
     @staticmethod
     def _verify_response(response: Response) -> None:
