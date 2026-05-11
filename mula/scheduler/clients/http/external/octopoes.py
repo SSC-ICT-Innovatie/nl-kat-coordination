@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from scheduler.clients.errors import exception_handler
 from scheduler.clients.http import HTTPService
-from scheduler.models import OOI, Organisation
+from scheduler.models import OOI
 
 
 class ListObjectsResponse(BaseModel):
@@ -20,7 +20,7 @@ class Octopoes(HTTPService):
     name = "octopoes"
     health_endpoint = None
 
-    def __init__(self, host: str, source: str, orgs: list[Organisation], pool_connections: int, timeout: int = 10):
+    def __init__(self, host: str, source: str, pool_connections: int, timeout: int = 10):
         super().__init__(host, source, timeout, pool_connections)
 
     @exception_handler
