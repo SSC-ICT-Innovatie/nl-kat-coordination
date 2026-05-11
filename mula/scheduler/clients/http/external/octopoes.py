@@ -21,7 +21,6 @@ class Octopoes(HTTPService):
     health_endpoint = None
 
     def __init__(self, host: str, source: str, orgs: list[Organisation], pool_connections: int, timeout: int = 10):
-        self.orgs: list[Organisation] = orgs
         super().__init__(host, source, timeout, pool_connections)
 
     @exception_handler
@@ -118,9 +117,4 @@ class Octopoes(HTTPService):
             raise
 
     def is_healthy(self) -> bool:
-        healthy = True
-        for org in self.orgs:
-            if not self.is_host_healthy(self.host, f"{org.id}/health"):
-                return False
-
-        return healthy
+        return self.is_host_healthy(self.host, "/health/organizations")
