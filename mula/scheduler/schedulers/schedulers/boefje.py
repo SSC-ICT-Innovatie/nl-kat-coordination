@@ -755,7 +755,7 @@ class BoefjeScheduler(Scheduler):
         yield from self.ctx.services.octopoes.get_objects_by_object_types(
             organisation,
             boefje.consumes,
-            list(range(boefje.scan_level, 5)),  # type: ignore
+            None if boefje.scan_level == 0 else list(range(boefje.scan_level, 5)), # no need to filter if boefje accepts everything
         )
 
     @exception_handler
