@@ -25,22 +25,15 @@ class Octopoes(HTTPService):
 
     @exception_handler
     def get_objects_by_object_types(
-        self, organisation_id: str, object_types: list[str], scan_level: list[int]
+        self, organisation_id: str, object_types: list[str], scan_level: list[int] | None = None
     ) -> Iterator[OOI]:
         """Get all oois from octopoes"""
-        if scan_level is None:
-            scan_level = []
-
         url = f"{self.host}/{organisation_id}/objects"
 
         pagesize = 1000
-        params = {
-            "types": object_types,
-            "scan_level": [s for s in scan_level],
-            "offset": 0,
-            "limit": pagesize,
-            "valid_time": datetime.now(timezone.utc),
-        }
+        params = {"types": object_types, "offset": 0, "limit": pagesize, "valid_time": datetime.now(timezone.utc)}
+        if scan_level:
+            params["scan_level"] = [s for s in scan_level]
 
         count = pagesize
         processed = 0
