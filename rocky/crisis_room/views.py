@@ -107,7 +107,7 @@ class DashboardService:
         # First collect al data, if recipe id is found then fetch recipe ids to get reports later.
         for dashboard_item in dashboard_items:
             # Dashboard.organization uses on_delete=SET_NULL, so a deleted
-            # organization leaves orphan dashboards/items. Skip them — every
+            # organization leaves orphan dashboards/items. Skip them, every
             # downstream branch needs `dashboard.organization.code`, and
             # without this guard the crisis room 500s on the next visit
             # after any organization deletion (#5140).
