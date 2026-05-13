@@ -54,6 +54,7 @@ dependencies = [
     "attrs>=26.1.0",
     "pillow>=12.2.0",
     "brotlicffi>=1.2.0.1",
+    "urllib3>=2.7.0",
 ]
 
 [dependency-groups]

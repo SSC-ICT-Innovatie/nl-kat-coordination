@@ -55,6 +55,7 @@ dependencies = [
     "wrapt>=2.1.2",
     "attrs>=26.1.0",
     "mako>=1.3.12",
+    "urllib3>=2.7.0",
 ]
 
 [dependency-groups]

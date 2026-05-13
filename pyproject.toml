@@ -20,6 +20,7 @@ dependencies = [
     "requests>=2.33.0,<3",
     "attrs>=26.1.0",
     "python-dotenv>=1.2.2",
+    "urllib3>=2.7.0",
 ]
 
 [tool.uv]
