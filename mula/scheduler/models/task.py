@@ -84,6 +84,7 @@ class TaskDB(Base):
 
 Index("ix_tasks_status_queued", TaskDB.scheduler_id, TaskDB.status, postgresql_where=TaskDB.status == TaskStatus.QUEUED)
 Index("ix_tasks_organisation", TaskDB.organisation)
+Index("ix_tasks_org_type_created", TaskDB.organisation, TaskDB.type, TaskDB.created_at.desc())
 Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
 Index("ix_tasks_status", TaskDB.status)
 Index("ix_tasks_type", TaskDB.type)
