@@ -1,13 +1,15 @@
 from collections.abc import Iterable
 from datetime import datetime, timezone
 
-from sqlalchemy import exc, not_, select
+from sqlalchemy import exc, func, literal, not_, select
 
 from scheduler import models
 from scheduler.storage import DBConn
 from scheduler.storage.errors import StorageError, exception_handler
 from scheduler.storage.filters import FilterRequest, apply_filter
 from scheduler.storage.utils import retry
+
+MAX_LIMIT = 500
 
 
 class ScheduleStore:
@@ -31,7 +33,11 @@ class ScheduleStore:
         offset: int = 0,
         limit: int = 100,
         filters: FilterRequest | None = None,
-    ) -> tuple[list[models.Schedule], int]:
+        max_pages: int = 6,
+        allow_partial_count: bool = False,
+    ) -> tuple[list[models.Task], int, bool]:
+        offset = max(offset, 0)
+        limit = min(max(limit, 1), MAX_LIMIT)
         with self.dbconn.session.begin() as session:
             query = session.query(models.ScheduleDB)
 
@@ -63,14 +69,30 @@ class ScheduleStore:
                 query = apply_filter(models.ScheduleDB, query, filters)
 
             try:
-                count = query.count()
+                if allow_partial_count:
+                    max_pages = min(max(max_pages, 1), 20)
+                    max_count = offset + (max_pages * limit) + 1
+
+                    bounded_query = query.order_by(None).with_entities(literal(1)).limit(max_count)
+                    count = session.query(func.count()).select_from(bounded_query.subquery()).scalar()
+                    # When is_partial_count=True, count represents
+                    # a lower bound sufficient for pagination UI generation,
+                    # not the exact total number of matching records.
+                    is_partial_count = count == max_count
+                else:
+                    is_partial_count = False
+                    count = query.count()
+            except exc.ProgrammingError as e:
+                raise StorageError(f"Could not produce count over query: {e}") from e
+
+            try:
                 schedules_orm = query.order_by(models.ScheduleDB.created_at.desc()).offset(offset).limit(limit).all()
             except exc.ProgrammingError as e:
                 raise StorageError(f"Invalid filter: {e}") from e
 
             schedules = [models.Schedule.model_validate(schedule_orm) for schedule_orm in schedules_orm]
 
-            return schedules, count
+            return schedules, count, is_partial_count
 
     @retry()
     @exception_handler
