@@ -104,6 +104,7 @@ class ScheduleAPI:
             max_created_at=max_created_at,
             offset=offset,
             limit=limit,
+            max_pages=max_pages,
             allow_partial_count=allow_partial_count,
         )
 

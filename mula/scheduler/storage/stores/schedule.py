@@ -35,7 +35,7 @@ class ScheduleStore:
         filters: FilterRequest | None = None,
         max_pages: int = 6,
         allow_partial_count: bool = False,
-    ) -> tuple[list[models.Task], int, bool]:
+    ) -> tuple[list[models.Schedule], int, bool]:
         offset = max(offset, 0)
         limit = min(max(limit, 1), MAX_LIMIT)
         with self.dbconn.session.begin() as session:
