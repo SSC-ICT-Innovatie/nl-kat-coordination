@@ -41,7 +41,7 @@ class DNSARecord(DNSRecord):
     object_type: Literal["DNSARecord"] = "DNSARecord"
     dns_record_type: Literal["A"] = "A"
 
-    address: Reference = ReferenceField(IPAddressV4)
+    address: Reference = ReferenceField(IPAddressV4, max_issue_scan_level=2, max_inherit_scan_level=2)
 
     _reverse_relation_names = {"hostname": "dns_a_records", "address": "dns_a_records"}
 
@@ -57,7 +57,7 @@ class DNSAAAARecord(DNSRecord):
     object_type: Literal["DNSAAAARecord"] = "DNSAAAARecord"
     dns_record_type: Literal["AAAA"] = "AAAA"
 
-    address: Reference = ReferenceField(IPAddressV6)
+    address: Reference = ReferenceField(IPAddressV6, max_issue_scan_level=2, max_inherit_scan_level=2)
 
     _reverse_relation_names = {"hostname": "dns_aaaa_records", "address": "dns_aaaa_records"}
 
@@ -116,7 +116,7 @@ class DNSCNAMERecord(DNSRecord):
     object_type: Literal["DNSCNAMERecord"] = "DNSCNAMERecord"
     dns_record_type: Literal["CNAME"] = "CNAME"
 
-    target_hostname: Reference = ReferenceField(Hostname)
+    target_hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=2, max_inherit_scan_level=1)
 
     _reverse_relation_names = {"hostname": "dns_cname_records", "target_hostname": "cname_target_of"}
 
