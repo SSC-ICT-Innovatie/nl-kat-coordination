@@ -11,8 +11,8 @@ from octopoes.models.ooi.network import Network
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     name = input_ooi["hostname"]["name"] if "hostname" in input_ooi else input_ooi["name"]
-    networkname = input_ooi["hostname"]["network"] if "hostname" in input_ooi else input_ooi["network"]
-    network = Network(**networkname)
+    networkname = input_ooi["hostname"]["network"]["name"] if "hostname" in input_ooi else input_ooi["network"]["name"]
+    network = Network(name=networkname)
 
     # parse raw data into dns.message.Message
     section = raw.decode()
