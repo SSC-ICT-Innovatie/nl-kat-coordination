@@ -61,7 +61,7 @@ class StoreTestCase(unittest.TestCase):
             self.mock_ctx.datastores.task_store.create_task(task)
 
         # Act
-        tasks, count = self.mock_ctx.datastores.task_store.get_tasks(
+        tasks, count, _ = self.mock_ctx.datastores.task_store.get_tasks(
             scheduler_id=self.organisation.id, task_type=functions.TestModel.type
         )
 

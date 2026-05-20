@@ -99,14 +99,18 @@ class ScheduleStoreTestCase(unittest.TestCase):
             )
             self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
-        schedules_scheduler_one, schedules_scheduler_one_count = self.mock_ctx.datastores.schedule_store.get_schedules(
-            filters=storage.filters.FilterRequest(
-                filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_one)]}
+        schedules_scheduler_one, schedules_scheduler_one_count, _ = (
+            self.mock_ctx.datastores.schedule_store.get_schedules(
+                filters=storage.filters.FilterRequest(
+                    filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_one)]}
+                )
             )
         )
-        schedules_scheduler_two, schedules_scheduler_two_count = self.mock_ctx.datastores.schedule_store.get_schedules(
-            filters=storage.filters.FilterRequest(
-                filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_two)]}
+        schedules_scheduler_two, schedules_scheduler_two_count, _ = (
+            self.mock_ctx.datastores.schedule_store.get_schedules(
+                filters=storage.filters.FilterRequest(
+                    filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_two)]}
+                )
             )
         )
 
@@ -252,7 +256,7 @@ class ScheduleStoreTestCase(unittest.TestCase):
             filters={"and": [filters.Filter(column="id", operator="eq", value=created_task.id.hex)]}
         )
 
-        tasks, count = self.mock_ctx.datastores.task_store.get_tasks(filters=f_req)
+        tasks, count, _ = self.mock_ctx.datastores.task_store.get_tasks(filters=f_req)
         self.assertEqual(count, 1)
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0].schedule_id, schedule_db.id)
