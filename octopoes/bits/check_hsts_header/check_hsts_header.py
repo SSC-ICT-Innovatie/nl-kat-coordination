@@ -3,6 +3,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from octopoes.models import OOI, Reference
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import HTTPHeader
 
@@ -10,7 +11,7 @@ from octopoes.models.ooi.web import HTTPHeader
 def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
     header = input_ooi
     if header.key.lower() != "strict-transport-security":
-        return
+        raise BitNoOperation("Not a hsts header.")
 
     one_year = datetime.timedelta(days=365).total_seconds()
 

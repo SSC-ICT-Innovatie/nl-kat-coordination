@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.dns.zone import ResolvedHostname
 from octopoes.models.ooi.network import IPAddressV4
 from octopoes.models.ooi.service import IPService
@@ -20,6 +21,9 @@ def run(
     http_services = filter(is_service_http, services)
 
     # website is cartesian product of hostname and http services
+    if not http_services:
+        raise BitNoOperation("No related http/https services found.")
+
     for http_service in http_services:
         for hostname in hostnames:
             yield Website(hostname=hostname, ip_service=http_service.reference)

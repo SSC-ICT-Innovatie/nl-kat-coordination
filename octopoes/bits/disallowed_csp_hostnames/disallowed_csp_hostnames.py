@@ -4,6 +4,7 @@ from typing import Any
 from link_shorteners import link_shorteners_list
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import HTTPHeaderHostname
 
@@ -22,7 +23,7 @@ def run(input_ooi: HTTPHeaderHostname, additional_oois: list, config: dict[str, 
     header = header_hostname.header
 
     if header.tokenized.key.lower() != "content-security-policy":
-        return
+        raise BitNoOperation("NOT a CSP header.")
 
     disallow_url_shorteners = config.get("disallow_url_shorteners", True) if config else True
 

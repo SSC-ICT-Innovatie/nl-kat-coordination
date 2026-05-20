@@ -4,6 +4,7 @@ from typing import Any
 import tldextract
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.dns.records import NXDOMAIN, DNSCAARecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType
@@ -14,8 +15,9 @@ def run(input_ooi: Hostname, additional_oois: list[DNSCAARecord | NXDOMAIN], con
     nxdomains = (ooi for ooi in additional_oois if isinstance(ooi, NXDOMAIN))
 
     if any(nxdomains):
-        return
+        raise BitNoOperation("We have NXDomains, as such we do not have CAA.")
     # only report finding when there is no CAA record
+    # only add fiding for rhe domain itself, not its subdomains, although they might cary their own CAA records
     if (
         not tldextract.extract(input_ooi.name).subdomain
         and tldextract.extract(input_ooi.name).domain
@@ -24,5 +26,5 @@ def run(input_ooi: Hostname, additional_oois: list[DNSCAARecord | NXDOMAIN], con
         ft = KATFindingType(id="KAT-NO-CAA")
         yield ft
         yield Finding(
-            ooi=input_ooi.reference, finding_type=ft.reference, description="This hostname does not have a CAA record"
+            ooi=input_ooi.reference, finding_type=ft.reference, description="This domain does not have a CAA record"
         )

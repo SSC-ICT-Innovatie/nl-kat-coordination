@@ -4,6 +4,7 @@ from typing import Any
 import tldextract
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.dns.records import NXDOMAIN
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.email_security import DMARCTXTRecord
@@ -15,7 +16,7 @@ def run(input_ooi: Hostname, additional_oois: list[DMARCTXTRecord | NXDOMAIN], c
     nxdomains = (ooi for ooi in additional_oois if isinstance(ooi, NXDOMAIN))
 
     if any(nxdomains):
-        return
+        raise BitNoOperation("Related NXDomain found.")
 
     # only report finding when there is no DMARC record
     if (

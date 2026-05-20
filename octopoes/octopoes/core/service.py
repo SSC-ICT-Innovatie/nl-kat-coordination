@@ -210,12 +210,26 @@ class OctopoesService:
         if not origin.result and origin.origin_type != OriginType.INFERENCE:
             self.origin_repository.delete(origin, valid_time=valid_time)
 
-    def _run_inference(self, origin: Origin, valid_time: datetime) -> None:
+    def save_origin_as_noop(self, origin: Origin, valid_time: datetime):
+        # delete the origin for now, as noop should be determinisic for the given input
+        # we can be sure no ooi's have or will ever be sourced from this origin
+        # as an origin is a set of ooi+adjacent ooi's
+        # meaning we dont need to cleanup, or trigger events.
+        self.origin_repository.delete(origin, valid_time=valid_time)
+
+    def _run_inference(
+        self,
+        origin: Origin,
+        valid_time: datetime,
+        source: OOI | None = None,
+        parameters: list[OOI] | None = None,
+        level: int | None = None,
+    ) -> bool:
         bit_definition = get_bit_definitions().get(origin.method, None)
 
         if bit_definition is None:
             self.save_origin(origin, [], valid_time)
-            return
+            return False
 
         is_disabled = bit_definition.id in settings.bits_disabled or (
             not bit_definition.default_enabled and bit_definition.id not in settings.bits_enabled
@@ -223,21 +237,31 @@ class OctopoesService:
 
         if is_disabled:
             self.save_origin(origin, [], valid_time)
-            return
+            return False
 
-        try:
-            level = self.scan_profile_repository.get(origin.source, valid_time).level.value
-        except ObjectNotFoundException:
-            level = 0
+        if not level:
+            if "scan_profile" in origin.source:
+                level = int(origin.source["scan_profile"]["level"])
+            else:
+                try:
+                    level = self.scan_profile_repository.get(origin.source, valid_time).level.value
+                except ObjectNotFoundException:
+                    level = 0
 
         if level < bit_definition.min_scan_level:
             self.save_origin(origin, [], valid_time)
-            return
+            return False
 
-        source = self.ooi_repository.get(origin.source, valid_time)
+        if not source:
+            source = self.ooi_repository.get(origin.source, valid_time)
 
-        parameters_references = self.origin_parameter_repository.list_by_origin({origin.id}, valid_time)
-        parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time)
+        if not parameters:
+            parameters_references = self.origin_parameter_repository.list_by_origin({origin.id}, valid_time)
+            parameters = list(
+                self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time)
+                if parameters_references
+                else []
+            )
 
         config = {}
         if bit_definition.config_ooi_relation_path is not None:
@@ -264,6 +288,7 @@ class OctopoesService:
             else:
                 resulting_oois = BitRunner(bit_definition).run(source, parameters, config=config)
             self.save_origin(origin, resulting_oois, valid_time)
+            return True
         except Exception as e:
             logger.exception("Error running inference", exc_info=e)
             raise e
