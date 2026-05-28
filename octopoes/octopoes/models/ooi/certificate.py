@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-
 from enum import Enum
 from typing import Literal
 
@@ -52,6 +51,10 @@ class X509Certificate(OOI):
     @property
     def expired(self):
         valid_until = datetime.fromisoformat(self.valid_until.replace("Z", "+00:00"))
+
+        # Treat naive timestamps as UTC
+        if valid_until.tzinfo is None:
+            valid_until = valid_until.replace(tzinfo=timezone.utc)
 
         return datetime.now(timezone.utc) > valid_until
 
