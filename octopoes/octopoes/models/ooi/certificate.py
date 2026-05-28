@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Literal
 
@@ -50,10 +50,8 @@ class X509Certificate(OOI):
 
     @property
     def expired(self):
-        valid_until = datetime.fromisoformat(
-            self.valid_until.replace("Z", "+00:00")
-        )
-    
+        valid_until = datetime.fromisoformat(self.valid_until.replace("Z", "+00:00"))
+
         return datetime.now(UTC) > valid_until
 
     _reverse_relation_names = {"signed_by": "signed_certificates"}
