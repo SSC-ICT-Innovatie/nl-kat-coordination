@@ -425,7 +425,7 @@ class SchedulerClient:
         params: dict[str, object] = {"scheduler_id": scheduler_id}
 
         if organization_ids:
-            params["organisation_id"] = organization_ids
+            params["organisation_ids"] = organization_ids
 
         return self._get("/tasks/stats", params=params)  # type: ignore
 
