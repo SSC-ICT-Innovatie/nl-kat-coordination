@@ -148,7 +148,7 @@ class TaskStore:
                 session.query(
                     func.DATE_TRUNC("hour", models.TaskDB.modified_at).label("hour"),
                     models.TaskDB.status,
-                    func.count(models.TaskDB.id).label("count"),
+                    func.count().label("count"),
                 )
                 .filter(models.TaskDB.modified_at >= datetime.now(timezone.utc) - timedelta(hours=24))
                 .group_by("hour", models.TaskDB.status)

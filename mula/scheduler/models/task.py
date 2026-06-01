@@ -81,6 +81,7 @@ class TaskDB(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     modified_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
+
 Index(
     "ix_tasks_queue_polling",
     TaskDB.scheduler_id,
@@ -104,6 +105,14 @@ Index(
     TaskDB.schedule_id,
     unique=True,
     postgresql_where=TaskDB.status.in_(ACTIVE_TASK_STATUSES),
+)
+Index("ix_tasks_scheduler_modified_status", TaskDB.scheduler_id, TaskDB.modified_at.desc(), TaskDB.status)
+Index(
+    "ix_tasks_org_scheduler_modified_status",
+    TaskDB.organisation,
+    TaskDB.scheduler_id,
+    TaskDB.modified_at.desc(),
+    TaskDB.status,
 )
 
 
