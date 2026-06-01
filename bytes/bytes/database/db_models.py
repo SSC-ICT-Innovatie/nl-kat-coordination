@@ -30,6 +30,7 @@ Index(
     BoefjeMetaInDB.started_at.desc(),
 )
 
+
 class SigningProviderInDB(SQL_BASE):
     __tablename__ = "signing_provider"
 
