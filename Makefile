@@ -6,7 +6,7 @@ SHELL := bash
 HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs upgraderequirements requirements
+.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs upgrade requirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -137,11 +137,12 @@ upgraderequirements:
 	done
 
 requirements:
-	@echo "Generating requirements.txt files for all projects using uv..."
+	@echo "Generating requirements.txt files for all projects and uv lock based on pyproject.toml"
 	files=$$(find . -name pyproject.toml -maxdepth 2); \
 	for path in $$files; do \
 		project_dir=$$(dirname $$path); \
 		echo "Processing $$path..."; \
+                uv sync --project $$project_dir; \
 		uv lock --project $$project_dir --check; \
 		echo "Exporting main dependencies..."; \
 		uv export --project $$project_dir --no-default-groups --format requirements-txt -o $$project_dir/requirements.txt; \
