@@ -44,6 +44,7 @@ def test_expiring_cert_simple_expires_soon():
 
     assert len(results) == 2
 
+
 def test_expiring_cert_handles_utc_suffix():
     cert = X509Certificate(
         subject="example.com",
