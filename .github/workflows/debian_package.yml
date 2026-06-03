@@ -54,8 +54,9 @@ jobs:
         # On main, release branches and tags we always want to build all the packages
         package: ${{ github.event_name == 'push' && fromJSON('["boefjes", "bytes", "cveapi", "mula", "octopoes", "rocky"]') || fromJSON(needs.changes.outputs.packages) }}
         exclude:
-          - package: cveapi
-            dist: [debian13, ubuntu22.04, ubuntu24.04]
+          - { package: cveapi, dist: debian13 }
+          - { package: cveapi, dist: ubuntu22.04 }
+          - { package: cveapi, dist: ubuntu24.04 }
     runs-on: ubuntu-24.04
     env:
       PKG_NAME: kat-${{ matrix.package }}
