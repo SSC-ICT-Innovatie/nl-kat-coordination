@@ -145,11 +145,12 @@ upgraderequirements:
 	done
 
 requirements:
-	@echo "Generating requirements.txt files for all projects using uv..."
+	@echo "Generating requirements.txt files for all projects and uv lock based on pyproject.toml"
 	files=$$(find . -name pyproject.toml -maxdepth 2); \
 	for path in $$files; do \
 		project_dir=$$(dirname $$path); \
 		echo "Processing $$path..."; \
+                uv sync --project $$project_dir; \
 		uv lock --project $$project_dir --check; \
 		echo "Exporting main dependencies..."; \
 		uv export --project $$project_dir --no-default-groups --format requirements-txt -o $$project_dir/requirements.txt; \
