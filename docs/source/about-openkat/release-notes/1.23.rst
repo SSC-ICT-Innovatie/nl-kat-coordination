@@ -60,7 +60,7 @@ Debian-host installations should follow the updated
 
     # 2. Wait for queues to drain (all "messages" columns should reach 0
     #    before stopping the broker, otherwise persistent messages can be lost)
-    until [ "$(sudo rabbitmqctl list_queues --no-table-headers -p kat messages | awk '{ s += $1 } END { print s }')" = "0" ]; do
+    until [ "$(sudo rabbitmqctl list_queues --no-table-headers -p kat messages | awk '{ s += $1 } END { print s+0 }')" = "0" ]; do
         echo "Queues still draining..."
         sleep 5
     done
