@@ -2,7 +2,7 @@
 name = "rocky"
 version = "0.0.1.dev1"
 description = "KAT's Django front-end"
-authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
+authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
 requires-python = ">=3.10"
 license = "EUPL-1.2"
 dependencies = [
@@ -30,7 +30,7 @@ dependencies = [
     "whitenoise[brotli]>=6.5.0,<7",
     "opentelemetry-instrumentation",
     "opentelemetry-instrumentation-fastapi",
-    "granian>=2.5",
+    "granian>=2.7.4",
     "django-components>=0.88,<0.89",
     "pyparsing>=3.1.1,<4",
     "pydantic-settings>=2.0.3,<3",
@@ -54,6 +54,8 @@ dependencies = [
     "attrs>=26.1.0",
     "pillow>=12.2.0",
     "brotlicffi>=1.2.0.1",
+    "urllib3>=2.7.0",
+    "idna>=3.15",
 ]
 
 [dependency-groups]
