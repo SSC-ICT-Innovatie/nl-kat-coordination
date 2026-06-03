@@ -47,7 +47,7 @@ services:
       - .ci/.env.test
 
   ci_rabbitmq:
-    image: "docker.io/library/rabbitmq:3.12-management"
+    image: "docker.io/library/rabbitmq:3.13-management"
     volumes:
       - ./.ci/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     healthcheck:

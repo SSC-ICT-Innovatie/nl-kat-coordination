@@ -1,0 +1,110 @@
+============================================
+OpenKAT 1.23
+============================================
+
+This release begins the staged upgrade of RabbitMQ from 3.12 (end-of-life since
+June 2025) to 4.3. The full migration is staged across three releases because
+RabbitMQ does not support a direct 3.12 → 4.3 hop on a persistent volume:
+
+* **1.23** (this release): RabbitMQ ``3.12`` → ``3.13``
+* **1.24**: RabbitMQ ``3.13`` → ``4.2``
+* **1.25**: RabbitMQ ``4.2`` → ``4.3``
+
+Tracking issue: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/5151
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+RabbitMQ post-upgrade step (required)
+-------------------------------------
+
+After pulling 1.23 and starting the stack, enable all stable feature flags so
+the broker is ready for the 1.24 upgrade later:
+
+For Docker / Compose deployments:
+
+.. code-block:: sh
+
+    docker compose exec rabbitmq rabbitmqctl enable_feature_flag all
+
+For Debian-host deployments:
+
+.. code-block:: sh
+
+    sudo rabbitmqctl enable_feature_flag all
+
+.. warning::
+
+   Do **not** enable the ``khepri_db`` feature flag on 3.13. Khepri in 3.13 is
+   experimental and enabling it will silently break the 1.24 upgrade path.
+   ``khepri_db`` should only be enabled while running 4.2 (during 1.24), as
+   preparation for 1.25.
+
+Debian-host installations: switch to Team RabbitMQ apt repos
+------------------------------------------------------------
+
+The version of RabbitMQ shipped in the Debian and Ubuntu archives is too old
+for the 1.24/1.25 upgrade path (Debian 12 ships 3.10, Ubuntu 22.04 ships 3.9).
+1.23 documents the supported Team RabbitMQ Cloudsmith apt repositories. New
+Debian-host installations should follow the updated
+:ref:`debian-install` guide. Existing operators on the distro-shipped
+``rabbitmq-server`` package should:
+
+.. code-block:: sh
+
+    # 1. Stop OpenKAT services that publish to rabbitmq
+    sudo systemctl stop kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
+
+    # 2. Wait for queues to drain (all "messages" columns should reach 0
+    #    before stopping the broker, otherwise persistent messages can be lost)
+    until [ "$(sudo rabbitmqctl list_queues --no-table-headers -p kat messages | awk '{ s += $1 } END { print s }')" = "0" ]; do
+        echo "Queues still draining..."
+        sleep 5
+    done
+
+    # 3. Take a definitions backup (vhosts, users, permissions, queues, bindings)
+    sudo rabbitmqctl export_definitions /var/backups/rabbitmq-definitions-pre-1.23.json
+
+    # 4. Stop and uninstall the stock package (preserves /var/lib/rabbitmq)
+    sudo systemctl stop rabbitmq-server
+    sudo apt-get remove rabbitmq-server
+
+    # 5. Follow the updated debian-install guide to add the Team RabbitMQ
+    #    apt repos and install rabbitmq-server pinned to 3.13.x, then enable
+    #    feature flags as described above.
+
+    # 6. Health-check after restart
+    sudo rabbitmq-diagnostics check_running
+    sudo rabbitmq-diagnostics check_local_alarms
+
+Docker compose: new ``rabbitmq-data`` named volume
+--------------------------------------------------
+
+``docker-compose.yml`` and ``docker-compose.release-example.yml`` now mount
+a named volume (``rabbitmq-data``) at ``/var/lib/rabbitmq``. Previously the
+broker state lived inside the container filesystem, which meant every
+container recreate (including an image tag bump) wiped the queues and any
+in-flight messages. With a named volume in place, queue state survives the
+3.13 → 4.2 → 4.3 upgrades and feature-flag transitions described above.
+
+Existing operators upgrading to 1.23 will get a fresh empty volume on the
+first pull (their previous queue state lived in the container fs and is not
+recoverable, but in practice for stock-compose deployments the persistent
+queues are redeclared by the OpenKAT services on startup; only in-flight
+messages at the moment of upgrade are lost).
+
+Rollback
+--------
+
+Reverting 1.23 → 1.22 (3.13 → 3.12) is safe: 3.12 reads 3.13's feature-flag
+set without issue. Once you have moved to 1.24 (4.2.x), rolling back to 1.23
+(3.13.x) requires a volume snapshot — classic-queue v2 metadata written by 4.x
+cannot be read by 3.13.
+
+Full Changelog
+==============
+
+https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/compare/v1.22.0...v1.23.0

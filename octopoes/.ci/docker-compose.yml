@@ -1,7 +1,7 @@
 services:
   rabbitmq:
     restart: on-failure
-    image: "docker.io/library/rabbitmq:3.12-management"
+    image: "docker.io/library/rabbitmq:3.13-management"
     ports:
       - "127.0.0.1:29003:15672"
       - "127.0.0.1:29004:5672"

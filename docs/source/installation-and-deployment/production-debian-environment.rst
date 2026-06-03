@@ -53,11 +53,60 @@ Installation
 
 Use the following steps to set up RabbitMQ and allow kat to use it.
 
-Start by installing RabbitMQ:
+OpenKAT requires a modern RabbitMQ release; the version shipped in the
+distro archives is too old (Debian 12 ships 3.10, Ubuntu 22.04 ships 3.9).
+We install from the official Team RabbitMQ Cloudsmith apt repositories so
+that the same major version is available across all supported distros and so
+that the broker can follow the staged 3.13 → 4.2 → 4.3 upgrade path
+documented in the release notes for OpenKAT 1.23, 1.24 and 1.25.
+
+Install the prerequisites and the Team RabbitMQ signing key:
 
 .. code-block:: sh
 
-    sudo apt install rabbitmq-server
+    sudo apt-get install -y curl gnupg apt-transport-https
+
+    # Team RabbitMQ signing key (single key for both erlang and server repos)
+    curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" \
+        | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
+
+Add the apt sources for your distribution. The ``$distro`` and ``$codename``
+placeholders below should be replaced with the matching values for your
+system (``ubuntu`` / ``jammy`` for Ubuntu 22.04, ``ubuntu`` / ``noble`` for
+Ubuntu 24.04, ``debian`` / ``bookworm`` for Debian 12, ``debian`` /
+``trixie`` for Debian 13). Two mirrors (``deb1`` and ``deb2``) are listed
+so apt automatically falls back if one is unreachable:
+
+.. code-block:: sh
+
+    sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
+    deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-erlang/$distro/$codename $codename main
+    deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-erlang/$distro/$codename $codename main
+    deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-server/$distro/$codename $codename main
+    deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-server/$distro/$codename $codename main
+    EOF
+
+.. note::
+
+   On Debian 13 (Trixie) the ``rabbitmq-erlang`` sources are not needed; the
+   distro already ships a sufficiently recent Erlang. List only the
+   ``rabbitmq-server`` sources for that release.
+
+Then install Erlang and RabbitMQ, pinning the RabbitMQ major version that
+matches the OpenKAT release you are deploying (3.13 for OpenKAT 1.23):
+
+.. code-block:: sh
+
+    sudo apt-get update -y
+    sudo apt-get install -y --no-install-recommends \
+        erlang-base erlang-asn1 erlang-crypto erlang-eldap erlang-ftp \
+        erlang-inets erlang-mnesia erlang-os-mon erlang-parsetools \
+        erlang-public-key erlang-runtime-tools erlang-snmp erlang-ssl \
+        erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
+    sudo apt-get install -y rabbitmq-server=3.13.*
+
+For the official, full set of supported distributions and authoritative
+instructions, see https://www.rabbitmq.com/docs/install-debian.
 
 By default RabbitMQ will listen on all interfaces. For a single node setup this is not what we want.
 To prevent RabbitMQ from being accessed from the internet add the following lines to ``/etc/rabbitmq/rabbitmq-env.conf``:

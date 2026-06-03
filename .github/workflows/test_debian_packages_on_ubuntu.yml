@@ -85,8 +85,31 @@ jobs:
       - name: Set distro name (match build matrix.dist)
         run: echo "DIST_NAME=${{ matrix.os }}" | sed 's/-//' >> $GITHUB_ENV
 
-      - name: Install dependencies Docker and rabbitmq
-        run: sudo apt-get update && sudo apt-get install -y docker.io containerd runc rabbitmq-server postgresql
+      - name: Install dependencies Docker and PostgreSQL
+        run: sudo apt-get update && sudo apt-get install -y docker.io containerd runc postgresql curl gnupg apt-transport-https
+
+      - name: Install RabbitMQ from Team RabbitMQ apt repos
+        # The Ubuntu 22.04 archive ships RabbitMQ 3.9 which cannot follow the
+        # 3.13 -> 4.2 -> 4.3 upgrade path documented for OpenKAT 1.23-1.25.
+        # We install from the official Team RabbitMQ apt repos (deb1/deb2)
+        # pinned to the major version that matches the docker compose tag for
+        # this release. See docs/source/installation-and-deployment/production-debian-environment.rst.
+        run: |
+          curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" \
+            | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
+          sudo tee /etc/apt/sources.list.d/rabbitmq.list <<'EOF'
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/jammy jammy main
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-erlang/ubuntu/jammy jammy main
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
+          EOF
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends \
+            erlang-base erlang-asn1 erlang-crypto erlang-eldap erlang-ftp \
+            erlang-inets erlang-mnesia erlang-os-mon erlang-parsetools \
+            erlang-public-key erlang-runtime-tools erlang-snmp erlang-ssl \
+            erlang-syntax-tools erlang-tftp erlang-tools erlang-xmerl
+          sudo apt-get install -y rabbitmq-server=3.13.*
 
       - name: Start postgresql
         run: |
