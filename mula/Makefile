@@ -167,7 +167,7 @@ ubuntu24.04:
 	docker run --rm \
 	--env PKG_NAME=kat-mula \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordinationset \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
