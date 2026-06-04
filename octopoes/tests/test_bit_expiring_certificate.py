@@ -43,3 +43,13 @@ def test_expiring_cert_simple_expires_soon():
     results = list(run(certificate, [], {}))
 
     assert len(results) == 2
+
+
+def test_expiring_cert_handles_utc_suffix():
+    cert = X509Certificate(
+        subject="example.com",
+        valid_from="2022-11-15T08:52:57",
+        valid_until="2022-11-15T08:52:57Z",  # the format that breaks on main
+        serial_number="abc123",
+    )
+    assert cert.expired is True
