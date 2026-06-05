@@ -19,7 +19,7 @@ class ScheduleAPI:
 
         self.api.add_api_route(
             path="/schedules",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET"],
             response_model=utils.PaginatedResponse,
             status_code=200,
@@ -71,7 +71,7 @@ class ScheduleAPI:
             description="Search schedules",
         )
 
-    def list(
+    def get_paged(
         self,
         request: fastapi.Request,
         scheduler_id: str | None = None,
