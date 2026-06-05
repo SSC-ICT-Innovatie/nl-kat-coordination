@@ -18,7 +18,7 @@ class TaskAPI:
 
         self.api.add_api_route(
             path="/tasks",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET", "POST"],
             response_model=utils.PaginatedResponse,
             status_code=status.HTTP_200_OK,
@@ -52,7 +52,7 @@ class TaskAPI:
             description="Update a task",
         )
 
-    def list(
+    def get_paged(
         self,
         request: fastapi.Request,
         scheduler_id: str | None = None,
