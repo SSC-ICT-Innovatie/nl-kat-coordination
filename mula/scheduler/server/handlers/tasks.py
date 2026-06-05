@@ -109,6 +109,6 @@ class TaskAPI:
         return updated_task
 
     def stats(
-        self, scheduler_id: str | None = None, organisation_id: str | None = None
+        self, scheduler_id: str | None = None, organisation_ids: list[str] | None = None
     ) -> dict[str, dict[str, int]] | None:
-        return self.ctx.datastores.task_store.get_status_count_per_hour(scheduler_id, organisation_id)
+        return self.ctx.datastores.task_store.get_status_count_per_hour(scheduler_id, organisation_ids)
