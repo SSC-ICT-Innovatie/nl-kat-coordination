@@ -96,8 +96,8 @@ Index("ix_tasks_org_type_created", TaskDB.organisation, TaskDB.type, TaskDB.crea
 Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
 Index("ix_tasks_status", TaskDB.status)
 Index("ix_tasks_schedule_status", TaskDB.schedule_id, TaskDB.status)
-Index("ix_tasks_type", TaskDB.type)
-Index("ix_tasks_hash_created", TaskDB.hash, TaskDB.created_at.desc())
+Index("ix_tasks_type", TaskDB.type, TaskDB.created_at.desc())
+Index("ix_tasks_hash_created", TaskDB.hash, TaskDB.created_at.deesc())
 # only have one 'active or to be active task on the queue per schedule_id'
 Index(
     "ix_tasks_active_per_schedule",
