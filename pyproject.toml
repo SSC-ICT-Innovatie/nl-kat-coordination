@@ -58,7 +58,7 @@ write_to = "_version.py"
 
 [tool.vulture]
 min_confidence = 90
-exclude = ["/tests/", "*venv*", "rocky/tools/migrations"]
+exclude = ["/tests/", "*venv*", "rocky/tools/migrations", "rocky/crisis_room/migrations"]
 paths = ["."]
 
 [tool.ruff]
