@@ -17,7 +17,7 @@ logger = structlog.get_logger(__name__)
 
 class Dashboard(models.Model):
     name = models.CharField(blank=False, max_length=126)
-    organization = models.ForeignKey(Organization, on_delete=models.SET_NULL, null=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
