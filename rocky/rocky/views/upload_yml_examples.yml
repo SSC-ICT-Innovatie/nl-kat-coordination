@@ -1,0 +1,1176 @@
+# # # OOI examples file to show example oois on ooi yaml upload/import page
+# ! # ! #   Same ooi types have to be placed sequentially   # ! # ! #
+
+oois:
+- !Network
+    name: new__internet
+
+- !Network
+    object_type: Network
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'Network|internet'
+        level: '0'
+        user_id: 2
+    user_id: 2
+    primary_key: Network|internet
+    name: internet
+
+# ! Base class
+- !IPAddress
+    address: 127.0.0.49
+    network: !Reference 'Network|internet'
+
+- !IPAddress
+    address: 2001:db8:3333:4444:5555:6666:7777:8888
+    network: !Reference 'Network|internet'
+
+- !IPAddressV4
+    address: 127.0.0.1
+    network: !Reference 'Network|internet'
+
+- !IPAddressV4
+    object_type: IPAddressV4
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPAddressV4|internet|127.0.0.1'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: IPAddressV4|internet|127.0.0.1
+    address: 127.0.0.1
+    network: !Reference 'Network|internet'
+    netblock: IPV4NetBlock|internet|internet|127.0.0.1|16
+
+- !IPAddressV6
+    address: 2001:db8:3333:4444:5555:6666:7777:8888
+    network: !Reference 'Network|internet'
+
+- !IPAddressV6
+    object_type: IPAddressV6
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'IPAddressV6|internet|2001:db8:3333:4444:5555:6666:7777:8888'
+        level: '0'
+        user_id: null
+    user_id: 1
+    primary_key: IPAddressV6|internet|2001:db8:3333:4444:5555:6666:7777:8888
+    address: 2001:db8:3333:4444:5555:6666:7777:8888
+    network: !Reference 'Network|internet'
+    netblock: IPV6NetBlock|internet|internet|2001:db8:3333:4444:5555:6666:7777:8888|16
+
+- !IPPort
+    address: !Reference 'IPAddressV6|internet|2001:db8:3333:4444:5555:6666:7777:8888'
+    protocol: tcp
+    port: 80
+
+- !IPPort
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+    protocol: tcp
+    port: 80
+
+- !IPPort
+    object_type: IPPort
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPPort|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: IPPort|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80
+    address: !Reference 'IPAddressV6|internet|2001:db8:3333:4444:5555:6666:7777:8888'
+    protocol: tcp
+    port: 80
+    state: filtered
+
+# ! Base class
+- !NetBlock
+    network: !Reference 'Network|internet'
+    start_ip: !Reference 'IPAddressV4|internet|127.0.0.1'
+    mask: 16
+
+- !NetBlock
+    network: !Reference 'Network|internet'
+    start_ip: !Reference 'IPAddressV6|internet|2001:db8:3333:4444:5555:6666:7777:8888'
+    mask: 16
+
+- !IPV4NetBlock
+    network: !Reference 'Network|internet'
+    start_ip: !Reference 'IPAddressV4|internet|127.0.0.1'
+    mask: 16
+
+- !IPV4NetBlock
+    object_type: IPV4NetBlock
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'IPV4NetBlock|internet|internet|127.0.0.1|16'
+        level: '0'
+        user_id: null
+    user_id: 1
+    primary_key: IPV4NetBlock|internet|internet|127.0.0.1|16
+    name: name_of_IPV4NetBlock
+    description: desc-of-IPV4NetBlock
+    network: !Reference 'Network|internet'
+    announced_by: !Reference 'AutonomousSystem|1234'
+    parent: !Reference 'IPV4NetBlock|another_internet|internet|127.0.0.1|16'
+    start_ip: !Reference 'IPAddressV4|internet|127.0.0.1'
+    mask: 16
+
+- !IPV6NetBlock
+    network: !Reference 'Network|internet'
+    start_ip: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+    mask: 16
+
+- !IPV6NetBlock
+    object_type: IPV6NetBlock
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPV6NetBlock|internet|internet|fe80::c9e8:da3f:6fc7:8a32|16'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: IPV6NetBlock|internet|internet|fe80::c9e8:da3f:6fc7:8a32|16
+    name: name_of_IPV6NetBlock__optional
+    description: desc-of-IPV6NetBlock
+    network: !Reference 'Network|internet'
+    announced_by: 'AutonomousSystem|1234'
+    parent: IPV6NetBlock|another_internet|internet|fe80::c9e8:da3f:6fc7:8a32|16
+    start_ip: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+    mask: 16
+
+- !Hostname
+    network: !Reference 'Network|internet'
+    name: a-hostname
+
+- !Hostname
+    object_type: Hostname
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'Hostname|internet|a-hostname'
+        level: '0'
+        user_id: null
+    user_id: 1
+    primary_key: Hostname|internet|a-hostname
+    network: !Reference 'Network|internet'
+    name: a-hostname
+    dns_zone: !Reference 'DNSZone|internet|internet'
+    registered_domain: !Reference 'Hostname|internet|another-hostname'
+
+- !Service
+    name: name_of_Service
+
+- !Service
+    object_type: Service
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'Service|name_of_Service'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: Service|name_of_Service
+    name: name_of_Service
+
+- !IPService
+    ip_port: !Reference 'IPPort|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80'
+    service: !Reference 'Service|name_of_Service'
+
+- !IPService
+    object_type: IPService
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPService|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: IPService|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service
+    ip_port: !Reference 'IPPort|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80'
+    service: !Reference 'Service|name_of_Service'
+
+- !Website
+    ip_service: !Reference 'IPService|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !Website
+    object_type: Website
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet
+    ip_service: !Reference 'IPService|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+
+# ! Base class WebUrl
+- !WebURL
+    network: !Reference 'Network|internet'
+    scheme: https
+    port: 443
+    path: /
+    netloc: !Reference 'Hostname|internet|example.com'
+
+- !WebURL
+    network: !Reference 'Network|internet'
+    scheme: https
+    port: 443
+    path: /
+    netloc: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !WebURL
+    network: !Reference 'Network|internet'
+    scheme: https
+    port: 443
+    path: /
+    netloc: !Reference 'IPAddressV6|internet|2001:db8:3333:4444:5555:6666:7777:8888'
+
+- !HostnameHTTPURL
+    network: !Reference 'Network|internet'
+    scheme: https
+    port: 443
+    path: /
+    netloc: !Reference 'Hostname|internet|example.com'
+
+- !HostnameHTTPURL
+    object_type: HostnameHTTPURL
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'HostnameHTTPURL|https|internet|example.com|443|/'
+        level: '0'
+        user_id: null
+    user_id: 1
+    primary_key: HostnameHTTPURL|https|internet|example.com|443|/
+    network: !Reference 'Network|internet'
+    scheme: https
+    port: 443
+    path: /
+    netloc: !Reference 'Hostname|internet|example.com'
+
+- !IPAddressHTTPURL
+    network: !Reference 'Network|internet'
+    scheme: http
+    port: 80
+    path: /
+    netloc: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !IPAddressHTTPURL
+    object_type: IPAddressHTTPURL
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPAddressHTTPURL|http|internet|127.0.0.1|80|/'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: IPAddressHTTPURL|http|internet|127.0.0.1|80|/
+    network: !Reference 'Network|internet'
+    scheme: http
+    port: 80
+    path: /
+    netloc: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !HTTPResource
+    website: !Reference 'Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet'
+    web_url: !Reference 'HostnameHTTPURL|http|internet|internet|80|/'
+
+- !HTTPResource
+    website: !Reference 'Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet'
+    web_url: !Reference 'IPAddressHTTPURL|http|internet|127.0.0.1|80|/'
+    redirects_to: !Reference 'HostnameHTTPURL|http|internet|internet|80|/'
+
+- !HTTPResource
+    object_type: HTTPResource
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'HTTPResource|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: HTTPResource|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/
+    website: !Reference 'Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet'
+    web_url: !Reference 'HostnameHTTPURL|http|internet|internet|80|/'
+    redirects_to: !Reference 'IPAddressHTTPURL|http|internet|127.0.0.1|80|/'
+
+- !HTTPHeader
+    resource: !Reference 'HTTPResource|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/'
+    key: key_at_HTTPHeader
+    value: value_at_HTTPHeader
+
+- !HTTPHeader
+    object_type: HTTPHeader
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'HTTPHeader|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: HTTPHeader|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader
+    resource: !Reference 'HTTPResource|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/'
+    key: key_at_HTTPHeader
+    value: value_at_HTTPHeader
+
+- !URL
+    network: !Reference 'Network|internet'
+    raw: https://example.com/
+
+- !URL
+    object_type: URL
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'URL|internet|https://example.com/'
+        level: '0'
+        user_id: null
+    user_id: 1
+    primary_key: URL|internet|https://example.com/
+    network: !Reference 'Network|internet'
+    raw: https://example.com/
+    web_url: !Reference 'HostnameHTTPURL|https|internet|example.com|443|/'
+
+- !RESTAPI
+    api_url: !Reference 'IPAddressHTTPURL|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL'
+
+- !RESTAPI
+    api_url: !Reference 'HostnameHTTPURL|https|internet|example.com|443|/'
+
+- !RESTAPI
+    object_type: RESTAPI
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'RESTAPI|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: RESTAPI|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL
+    api_url: !Reference 'IPAddressHTTPURL|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL'
+
+- !APIDesignRule
+    name: name_of_APIDesignRule
+
+- !APIDesignRule
+    object_type: APIDesignRule
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'APIDesignRule|name_of_APIDesignRule'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: APIDesignRule|name_of_APIDesignRule
+    name: name_of_APIDesignRule
+
+- !Software
+    name: name_of_Software
+
+- !Software
+    object_type: Software
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'Software|name_of_Software|version_of_Software__optional_field|'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: Software|name_of_Software|version_of_Software__optional_field|
+    name: name_of_Software
+    version: version_of_software__optional_field
+    cpe: cpe_of_software__optional_field
+
+- !Application
+    name: name_of_Application
+
+- !Application
+    object_type: Application
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'Application|name_of_Application'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: Application|name_of_Application
+    name: name_of_Application
+
+# ! base class
+- !DNSRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSTXTRecord
+    dns_record_type: TXT
+
+- !DNSTXTRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSTXTRecord
+    dns_record_type: TXT
+
+- !DNSTXTRecord
+    object_type: DNSTXTRecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSTXTRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSTXTRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSTXTRecord
+    ttl: 16
+    dns_record_type: TXT
+
+- !DNSSPFRecord
+    value: value_at_DNSSPFRecord
+    dns_txt_record: !Reference 'DNSTXTRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c'
+
+- !DNSSPFRecord
+    object_type: DNSSPFRecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf
+    value: value_at_DNSSPFRecord
+    ttl: 16
+    all: 'all'
+    exp: 'exp'
+    dns_txt_record: !Reference 'DNSTXTRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c'
+
+- !DNSCAARecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSCAARecord
+    dns_record_type: CAA
+    tag: iodef
+
+- !DNSCAARecord
+    object_type: DNSCAARecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSCAARecord|internet|internet||iodef|value_at_DNSCAARecord'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSCAARecord|internet|internet||iodef|value_at_DNSCAARecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSCAARecord
+    ttl: 16
+    dns_record_type: CAA
+    flags: 64
+    tag: iodef
+
+- !DNSCNAMERecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSCNAMERecord
+    dns_record_type: CNAME
+    target_hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DNSCNAMERecord
+    object_type: DNSCNAMERecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSCNAMERecord|internet|internet|value_at_DNSCNAMERecord'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSCNAMERecord|internet|internet|value_at_DNSCNAMERecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSCNAMERecord
+    ttl: 16
+    dns_record_type: CNAME
+    target_hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DNSMXRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSMXRecord
+    dns_record_type: MX
+
+- !DNSMXRecord
+    object_type: DNSMXRecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSMXRecord|internet|internet|value_at_DNSMXRecord'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSMXRecord|internet|internet|value_at_DNSMXRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSMXRecord
+    ttl: 16
+    dns_record_type: MX
+    mail_hostname: !Reference 'Hostname|internet|example.com'
+    preference: 8
+
+- !DNSNSRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSNSRecord
+    dns_record_type: NS
+    name_server_hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DNSNSRecord
+    object_type: DNSNSRecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSNSRecord|internet|internet|value_at_DNSNSRecord'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSNSRecord|internet|internet|value_at_DNSNSRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSNSRecord
+    ttl: 16
+    dns_record_type: NS
+    name_server_hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DNSPTRRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSPTRRecord
+    dns_record_type: PTR
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !DNSPTRRecord
+    object_type: DNSPTRRecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSPTRRecord|internet|internet|internet|127.0.0.1'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSPTRRecord|internet|internet|internet|127.0.0.1
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSPTRRecord
+    ttl: 16
+    dns_record_type: PTR
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !DNSSOARecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSSOARecord
+    dns_record_type: SOA
+    soa_hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DNSSOARecord
+    object_type: DNSSOARecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSSOARecord|internet|internet|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSSOARecord|internet|internet|internet|internet
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSSOARecord
+    ttl: 16
+    dns_record_type: SOA
+    soa_hostname: !Reference 'Hostname|internet|a-hostname'
+    serial: 1
+    retry: 2
+    refresh: 3
+    expire: 4
+    minimum: 5
+
+- !DNSAAAARecord
+    primary_key: DNSAAAARecord|internet|internet|value_at_DNSAAAARecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSAAAARecord
+    dns_record_type: AAAA
+    address: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+
+- !DNSAAAARecord
+    object_type: DNSAAAARecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSAAAARecord|internet|internet|value_at_DNSAAAARecord'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSAAAARecord|internet|internet|value_at_DNSAAAARecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    value: value_at_DNSAAAARecord
+    ttl: 16
+    dns_record_type: AAAA
+    address: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+
+- !DNSARecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    dns_record_type: A
+    value: strval
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !DNSARecord
+    object_type: DNSARecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSARecord|internet|internet|strval'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSARecord|internet|internet|strval
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    dns_record_type: A
+    value: strval
+    ttl: 16
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !DKIMSelector
+    selector: selector_at_DKIMSelector
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DKIMSelector
+    object_type: DKIMSelector
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DKIMSelector|selector_at_DKIMSelector|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DKIMSelector|selector_at_DKIMSelector|internet|internet
+    selector: selector_at_DKIMSelector
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !X509Certificate
+    issuer: issuer_at_X509Certificate__optional
+    valid_from: valid_from_at_X509Certificate
+    valid_until: valid_until_at_X509Certificate
+    serial_number: serial_number_at_X509Certificate
+
+- !X509Certificate
+    object_type: X509Certificate
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate
+    subject: subject
+    issuer: issuer_at_X509Certificate__optional
+    valid_from: valid_from_at_X509Certificate
+    valid_until: valid_until_at_X509Certificate
+    pk_algorithm: pk_algorithm
+    pk_size: 64
+    pk_number: '32'
+    signed_by: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    serial_number: serial_number_at_X509Certificate
+    expires_in: !Timedelta
+        days: 30
+        seconds: 123456
+        microseconds: 123456
+
+# ! base class
+- !SubjectAlternativeName
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !SubjectAlternativeName
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    address: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+
+- !SubjectAlternativeName
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    name: name_of_SubjectAlternativeName_will_be_SubjectAlternativeNameQualifier
+
+- !SubjectAlternativeNameHostname
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !SubjectAlternativeNameHostname
+    object_type: SubjectAlternativeNameHostname
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'SubjectAlternativeNameHostname|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate|internet|internet'
+        level: '0'
+        user_id: null
+    user_id: null
+    primary_key: SubjectAlternativeNameHostname|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate|internet|internet
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !SubjectAlternativeNameIP
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    address: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+
+- !SubjectAlternativeNameIP
+    object_type: SubjectAlternativeNameIP
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'SubjectAlternativeNameIP|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate|internet|fe80::c9e8:da3f:6fc7:8a32'
+        level: '0'
+        user_id: null
+    user_id: null
+    primary_key: SubjectAlternativeNameIP|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate|internet|fe80::c9e8:da3f:6fc7:8a32
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    address: !Reference 'IPAddressV6|internet|fe80::c9e8:da3f:6fc7:8a32'
+
+- !SubjectAlternativeNameQualifier
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    name: name_of_SubjectAlternativeNameQualifier
+
+- !SubjectAlternativeNameQualifier
+    object_type: SubjectAlternativeNameQualifier
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'SubjectAlternativeNameQualifier|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate|name_of_SubjectAlternativeNameQualifier'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: SubjectAlternativeNameQualifier|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate|name_of_SubjectAlternativeNameQualifier
+    certificate: !Reference 'X509Certificate|issuer_at_X509Certificate__optional|serial_number_at_X509Certificate'
+    name: name_of_SubjectAlternativeNameQualifier
+
+- !AutonomousSystem
+    number: '1234'
+    name: name_of_AutonomousSystem
+
+- !AutonomousSystem
+    object_type: AutonomousSystem
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'AutonomousSystem|1234'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: AutonomousSystem|1234
+    number: '1234'
+    name: name_of_AutonomousSystem
+
+- !DNSZone
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    parent: null
+
+- !DNSZone
+    object_type: DNSZone
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSZone|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSZone|internet|internet
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    parent: !Reference 'DNSZone|internet|another-internet'
+
+- !ResolvedHostname
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !ResolvedHostname
+    object_type: ResolvedHostname
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'ResolvedHostname|internet|a-hostname|internet|127.0.0.1'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: ResolvedHostname|internet|a-hostname|internet|127.0.0.1
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    address: !Reference 'IPAddressV4|internet|127.0.0.1'
+
+- !TLSCipher
+    ip_service: !Reference 'IPService|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service'
+    suites:
+        key: this_is_a_random_dict_value_for_TLSCipher
+
+- !TLSCipher
+    object_type: TLSCipher
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'TLSCipher|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: TLSCipher|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service
+    ip_service: !Reference 'IPService|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service'
+    suites:
+        key: this_is_a_random_dict_value_for_TLSCipher
+
+- !HTTPHeaderURL
+    header: !Reference 'HTTPHeader|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader'
+    url: !Reference 'URL|internet|https://example.com/'
+
+- !HTTPHeaderURL
+    object_type: HTTPHeaderURL
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'HTTPHeaderURL|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader|internet|https://example.com/'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: HTTPHeaderURL|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader|internet|https://example.com/
+    header: !Reference 'HTTPHeader|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader'
+    url: !Reference 'URL|internet|https://example.com/'
+
+- !HTTPHeaderHostname
+    header: !Reference 'HTTPHeader|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !HTTPHeaderHostname
+    object_type: HTTPHeaderHostname
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'HTTPHeaderHostname|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: HTTPHeaderHostname|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader|internet|internet
+    header: !Reference 'HTTPHeader|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/|key_at_HTTPHeader'
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !ImageMetadata
+    resource: !Reference 'HTTPResource|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/'
+    image_info: {}
+
+- !ImageMetadata
+    object_type: ImageMetadata
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'ImageMetadata|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: ImageMetadata|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/
+    resource: !Reference 'HTTPResource|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|http|internet|internet|80|/'
+    image_info:
+        key: this_is_a_random_dict_value_for_ImageMetadata
+
+- !APIDesignRuleResult
+    rest_api: !Reference 'RESTAPI|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL'
+    rule: !Reference 'APIDesignRule|name_of_APIDesignRule'
+    passed: true
+    message: test_message_from_APIDesignRuleResult
+
+- !APIDesignRuleResult
+    object_type: APIDesignRuleResult
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'APIDesignRuleResult|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL|name_of_APIDesignRule'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: APIDesignRuleResult|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL|name_of_APIDesignRule
+    rest_api: !Reference 'RESTAPI|http|internet|127.0.0.1|80|/path_at_IPAddressHTTPURL'
+    rule: !Reference 'APIDesignRule|name_of_APIDesignRule'
+    passed: true
+    message: test_message_from_APIDesignRuleResult
+
+- !SecurityTXT
+    website: !Reference 'Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet'
+    url: !Reference 'URL|internet|https://example.com/'
+
+
+- !SecurityTXT
+    object_type: SecurityTXT
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'SecurityTXT|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|internet|https://example.com/'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: SecurityTXT|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|internet|https://example.com/
+    website: !Reference 'Website|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet'
+    url: !Reference 'URL|internet|https://example.com/'
+    redirects_to: !Reference 'SecurityTXT|internet|2001:db8:3333:4444:5555:6666:7777:8888|tcp|80|name_of_Service|internet|internet|internet|another'
+    security_txt: security_txt
+
+- !SoftwareInstance
+    ooi: !Reference 'Network|ANY-OOI'
+    software: !Reference 'Software|name_of_Software|version_of_Software__optional_field|'
+
+- !SoftwareInstance
+    object_type: SoftwareInstance
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'SoftwareInstance|Network|internet|Software|name_of_Software|version_of_Software__optional_field|'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: SoftwareInstance|Network|internet|Software|name_of_Software|version_of_Software__optional_field|
+    ooi: !Reference 'Network|internet'
+    software: !Reference 'Software|name_of_Software|version_of_Software__optional_field|'
+
+- !ExternalScan
+    name: name_of_ExternalScan
+
+- !ExternalScan
+    object_type: ExternalScan
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'ExternalScan|name_of_ExternalScan'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: ExternalScan|name_of_ExternalScan
+    name: name_of_ExternalScan
+
+- !Question
+    ooi: !Reference 'Network|ANY-OOI'
+    schema_id: /bit/disallowed-csp-hostnames
+    json_schema: '{"$schema": "https://json-schema.org/draft/2019-09/schema", "$id":
+        "/bit/disallowed-csp-hostnames", "type": "object", "default": {}, "required":
+        [], "properties": {"disallowed_hostnames": {"description": "Comma separated list
+        of disallowed hostnames in CSP headers", "type": "string", "pattern": "^(\\s*(,*)[^,]+,?\\s*)*$",
+        "default": "githubpages.com,github.io,jsdelivr.com,cdn.skypack.dev,unpkg.com"},
+        "disallow_url_shorteners": {"description": "Do you want to disallow url shorteners
+        in csp headers?", "type": "boolean", "default": true}}}'
+
+- !Question
+    object_type: Question
+    scan_profile: !ScanProfile
+        scan_profile_type: empty
+        reference: !Reference 'Question|/bit/disallowed-csp-hostnames|internet'
+        level: '0'
+        user_id: null
+    user_id: null
+    primary_key: Question|/bit/disallowed-csp-hostnames|internet
+    ooi: !Reference 'Network|ANY-OOI'
+    schema_id: /bit/disallowed-csp-hostnames
+    json_schema: '{"$schema": "https://json-schema.org/draft/2019-09/schema", "$id":
+        "/bit/disallowed-csp-hostnames", "type": "object", "default": {}, "required":
+        [], "properties": {"disallowed_hostnames": {"description": "Comma separated list
+        of disallowed hostnames in CSP headers", "type": "string", "pattern": "^(\\s*(,*)[^,]+,?\\s*)*$",
+        "default": "githubpages.com,github.io,jsdelivr.com,cdn.skypack.dev,unpkg.com"},
+        "disallow_url_shorteners": {"description": "Do you want to disallow url shorteners
+        in csp headers?", "type": "boolean", "default": true}}}'
+
+- !Incident
+    application: !Reference 'Application|name_of_Application'
+    event_id: event_id_at_Incident
+    event_type: event_type_at_Incident
+    event_title: event_title_at_Incident
+    severity: severity_at_Incident
+    meta_data:
+        arbitrary_field: 99
+
+- !Incident
+    object_type: Incident
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'Incident|name_of_Application|event_id_at_Incident'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: Incident|name_of_Application|event_id_at_Incident
+    application: !Reference 'Application|name_of_Application'
+    event_id: event_id_at_Incident
+    event_type: event_type_at_Incident
+    event_title: event_title_at_Incident
+    severity: severity_at_Incident
+    meta_data:
+        arbitrary_field: random
+        arbitrary_field2: ['values']
+        arbitrary_field3: { are: "parseable to json" }
+
+- !GeographicPoint
+    ooi: !Reference 'Network|ANY-OOI'
+    longitude: 10.0
+    latitude: 10.0
+
+- !GeographicPoint
+    object_type: GeographicPoint
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'GeographicPoint|Network|ANY-OOI|10.0|10.0'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: GeographicPoint|Network|ANY-OOI|10.0|10.0
+    ooi: !Reference 'Network|ANY-OOI'
+    longitude: 10.0
+    latitude: 10.0
+
+- !MutedFinding
+    finding: !Reference 'Finding|Network|internet|id_of_CWEFindingType'
+
+- !MutedFinding
+    object_type: MutedFinding
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'MutedFinding|Network|internet|id_of_CWEFindingType'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: MutedFinding|Network|internet|id_of_CWEFindingType
+    finding: !Reference 'Finding|Network|internet|id_of_CWEFindingType'
+    reason: reason_at_MutedFinding__optional
+
+- !NXDOMAIN
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !NXDOMAIN
+    object_type: NXDOMAIN
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'NXDOMAIN|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: NXDOMAIN|internet|internet
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DNSSPFMechanismIP
+    spf_record: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+    mechanism: mechanism_at_DNSSPFMechanism
+    ip: !Reference 'IPAddressV4|internet|127.0.0.1'
+    qualifier: +
+
+- !DNSSPFMechanismIP
+    object_type: DNSSPFMechanismIP
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSSPFMechanismIP|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf|mechanism_at_DNSSPFMechanism|internet|127.0.0.1|+'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSSPFMechanismIP|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf|mechanism_at_DNSSPFMechanism|internet|127.0.0.1|+
+    spf_record: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+    mechanism: mechanism_at_DNSSPFMechanismIP
+    ip: !Reference 'IPAddressV4|internet|127.0.0.1'
+    qualifier: +
+
+- !DNSSPFMechanismHostname
+    spf_record: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+    mechanism: mechanism_at_DNSSPFMechanismHostname
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    qualifier: +
+
+- !DNSSPFMechanismHostname
+    object_type: DNSSPFMechanismHostname
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSSPFMechanismHostname|internet|a-hostname|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf|mechanism_at_DNSSPFMechanism|internet|internet|+'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: DNSSPFMechanismHostname|internet|a-hostname|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf|mechanism_at_DNSSPFMechanism|internet|internet|+
+    spf_record: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+    mechanism: DNSSPFMechanismHostname
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    qualifier: +
+
+- !DNSSPFMechanismNetBlock
+    spf_record: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+    mechanism: mechanism_at_DNSSPFMechanismNetBlock
+    netblock: !Reference 'IPV4NetBlock|internet|internet|127.0.0.1|16'
+    qualifier: +
+
+- !DNSSPFMechanismNetBlock
+    object_type: DNSSPFMechanismNetBlock
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DNSSPFMechanismNetBlock|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf|mechanism_at_DNSSPFMechanism|internet|internet|127.0.0.1|16|+'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DNSSPFMechanismNetBlock|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf|mechanism_at_DNSSPFMechanism|internet|internet|127.0.0.1|16|+
+    spf_record: !Reference 'DNSSPFRecord|internet|internet|06bb8e8af77482ec387f5a85a6c9f7fcf00f766c|79e7d4cbcf2f68c1ecc149b683718dcbaa2e8fbf'
+    mechanism: mechanism_at_DNSSPFMechanismNetBlock
+    netblock: !Reference 'IPV4NetBlock|internet|internet|127.0.0.1|16'
+    qualifier: +
+
+- !DMARCTXTRecord
+    value: value_at_DMARCTXTRecord
+    hostname: !Reference 'Hostname|internet|a-hostname'
+    ttl: 16
+
+- !DMARCTXTRecord
+    object_type: DMARCTXTRecord
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DMARCTXTRecord|value_at_DMARCTXTRecord|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DMARCTXTRecord|value_at_DMARCTXTRecord|internet|internet
+    value: value_at_DMARCTXTRecord
+    ttl: 16
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DKIMExists
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !DKIMExists
+    object_type: DKIMExists
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DKIMExists|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DKIMExists|internet|internet
+    hostname: !Reference 'Hostname|internet|a-hostname'
+
+- !Config
+    ooi: !Reference 'Network|ANY-OOI'
+    bit_id: bit_id_at_Config
+    config: {}
+
+- !Config
+    object_type: Config
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'Config|ANY-OOI|bit_id_at_Config'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: Config|ANY-OOI|bit_id_at_Config
+    ooi: !Reference 'Network|ANY-OOI'
+    bit_id: bit_id_at_Config
+    config: 
+        arbitrary_field: random
+        arbitrary_field2: ['values']
+        arbitrary_field3: { are: "parseable to json" }
+
+- !DKIMKey
+    key: key_at_DKIMKey
+    dkim_selector: !Reference 'DKIMSelector|selector_at_DKIMSelector|internet|internet'
+
+- !DKIMKey
+    object_type: DKIMKey
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'DKIMKey|key_at_DKIMKey|selector_at_DKIMSelector|internet|internet'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: DKIMKey|key_at_DKIMKey|selector_at_DKIMSelector|internet|internet
+    key: key_at_DKIMKey
+    dkim_selector: !Reference 'DKIMSelector|selector_at_DKIMSelector|internet|internet'
+
+- !ReportRecipe
+    recipe_id: 49178944-599d-42af-883f-3d2072ad2ac6
+    report_name_format: "Report Name Here"
+    input_recipe: {'query': {'search_string': '', 'asc_desc': 'desc', 'ooi_types': ['IPAddressV6', 'Hostname', 'IPAddressV4', 'URL'], 'order_by': 'object_type', 'scan_level': [1, 2, 3, 4], 'scan_type': ['declared']}}
+    report_type: "aggregate-organisation-report"
+    asset_report_types: ['systems-report', 'findings-report']
+  
+
+- !ReportRecipe
+    object_type: ReportRecipe
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'ReportRecipe|49178944-599d-42af-883f-3d2072ad2ac6'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: ReportRecipe|49178944-599d-42af-883f-3d2072ad2ac6
+    recipe_id: 49178944-599d-42af-883f-3d2072ad2ac6
+    report_name_format: "Report Name Here"
+    input_recipe: {'query': {'search_string': '', 'asc_desc': 'desc', 'ooi_types': ['IPAddressV6', 'Hostname', 'IPAddressV4', 'URL'], 'order_by': 'object_type', 'scan_level': [1, 2, 3, 4], 'scan_type': ['declared']}}
+    report_type: "aggregate-organisation-report"
+    asset_report_types: ['systems-report', 'findings-report']
+    cron_expression: 0 * * * *
+
+- !ADRFindingType
+    id: adr_fintingtype
+
+- !ADRFindingType
+    object_type: ADRFindingType
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'ADRFindingType|adr_fintingtype'
+        level: '2'
+        user_id: 1
+    user_id: 1
+    primary_key: ADRFindingType|adr_fintingtype
+    id: adr_fintingtype
+    name: data.name
+    description: data.description
+    source: https://example.com
+    impact: data.impact
+    recommendation: data.recommendation
+    risk_score: 4.3
+    risk_severity: low

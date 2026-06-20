@@ -1,6 +1,10 @@
+from __future__ import annotations
+
 import hashlib
 from enum import Enum
 from typing import Literal
+
+import yaml
 
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
@@ -29,6 +33,31 @@ class DNSRecord(OOI):
         dns_record_type = cls._get_record_type()
         return f"{reference.tokenized.hostname.name} {dns_record_type} {reference.tokenized.value}"
 
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        """it should be overrice again in child classes"""
+        values: dict = loader.construct_mapping(node)
+        if values.get("dns_record_type") == "A":
+            return DNSARecord(**values)
+        if values.get("dns_record_type") == "AAAA":
+            return DNSAAAARecord(**values)
+        if values.get("dns_record_type") == "CAA":
+            return DNSCAARecord(**values)
+        if values.get("dns_record_type") == "CNAME":
+            return DNSCNAMERecord(**values)
+        if values.get("dns_record_type") == "MX":
+            return DNSMXRecord(**values)
+        if values.get("dns_record_type") == "NS":
+            return DNSNSRecord(**values)
+        if values.get("dns_record_type") == "PTR":
+            return DNSPTRRecord(**values)
+        if values.get("dns_record_type") == "SOA":
+            return DNSSOARecord(**values)
+        # if values.get('dns_record_type') == "SRV":
+        #     return DNSARecord(**values)
+        if values.get("dns_record_type") == "TXT":
+            return DNSTXTRecord(**values)
+
 
 class DNSARecord(DNSRecord):
     """Represents the DNS A record.
@@ -44,6 +73,25 @@ class DNSARecord(DNSRecord):
     address: Reference = ReferenceField(IPAddressV4)
 
     _reverse_relation_names = {"hostname": "dns_a_records", "address": "dns_a_records"}
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSARecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSARecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "dns_record_type": data.dns_record_type,
+                "value": data.value,
+                "ttl": data.ttl,
+                "address": data.address,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
 
 
 class DNSAAAARecord(DNSRecord):
@@ -61,6 +109,25 @@ class DNSAAAARecord(DNSRecord):
 
     _reverse_relation_names = {"hostname": "dns_aaaa_records", "address": "dns_aaaa_records"}
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSAAAARecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSAAAARecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "address": data.address,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
+
 
 class DNSMXRecord(DNSRecord):
     """Represents the DNS MX record."""
@@ -72,6 +139,26 @@ class DNSMXRecord(DNSRecord):
     preference: int | None = None
 
     _reverse_relation_names = {"hostname": "dns_mx_records", "mail_hostname": "mail_server_of"}
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSMXRecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSMXRecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "mail_hostname": data.mail_hostname,
+                "preference": data.preference,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
 
 
 class DNSTXTRecord(DNSRecord):
@@ -93,6 +180,24 @@ class DNSTXTRecord(DNSRecord):
 
     _reverse_relation_names = {"hostname": "dns_txt_records"}
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSTXTRecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSTXTRecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
+
 
 class DNSNSRecord(DNSRecord):
     """Represents the DNS NS record.
@@ -109,6 +214,25 @@ class DNSNSRecord(DNSRecord):
 
     _reverse_relation_names = {"hostname": "dns_ns_records", "name_server_hostname": "ns_record_targets"}
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSNSRecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSNSRecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "name_server_hostname": data.name_server_hostname,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
+
 
 class DNSCNAMERecord(DNSRecord):
     """Represents the DNS CNAME record."""
@@ -119,6 +243,25 @@ class DNSCNAMERecord(DNSRecord):
     target_hostname: Reference = ReferenceField(Hostname)
 
     _reverse_relation_names = {"hostname": "dns_cname_records", "target_hostname": "cname_target_of"}
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSCNAMERecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSCNAMERecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "target_hostname": data.target_hostname,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
 
 
 class DNSSOARecord(DNSRecord):
@@ -148,6 +291,30 @@ class DNSSOARecord(DNSRecord):
         dns_record_type = cls._get_record_type()
         return f"{reference.tokenized.hostname.name} {dns_record_type} {reference.tokenized.soa_hostname.name}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSSOARecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSSOARecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "soa_hostname": data.soa_hostname,
+                "serial": data.serial,
+                "retry": data.retry,
+                "refresh": data.refresh,
+                "expire": data.expire,
+                "minimum": data.minimum,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
+
 
 class NXDOMAIN(OOI):
     """Represents non-existing domains."""
@@ -162,6 +329,10 @@ class NXDOMAIN(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return f"NXDOMAIN response on {reference.tokenized.hostname.name}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: NXDOMAIN) -> yaml.Node:
+        return dumper.represent_mapping("!NXDOMAIN", {**cls.get_ooi_yml_repr_dict(data), "hostname": data.hostname})
 
 
 class DNSPTRRecord(DNSRecord):
@@ -178,6 +349,25 @@ class DNSPTRRecord(DNSRecord):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return f"{reference.tokenized.address.address} -> {reference.tokenized.hostname.name}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSPTRRecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSPTRRecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "address": data.address,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
 
 
 class CAATAGS(Enum):
@@ -222,3 +412,23 @@ class DNSCAARecord(DNSRecord):
     # without interior spaces or (2) a quoted string.
     value: str
     _natural_key_attrs = ["hostname", "flags", "tag", "value"]
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: DNSCAARecord) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!DNSCAARecord",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "hostname": data.hostname,
+                "value": data.value,
+                "ttl": data.ttl,
+                "dns_record_type": data.dns_record_type,
+                "flags": data.flags,
+                "tag": data.tag.value,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)

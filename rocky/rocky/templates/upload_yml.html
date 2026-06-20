@@ -1,0 +1,92 @@
+{% extends "layouts/base.html" %}
+
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div class="layout-form">
+                <h1>{% translate "Upload YML" %}</h1>
+                <p class="emphasized">{% translate "Automate the creation of multiple objects by uploading a YAML file." %}</p>
+                <p>{% translate "These are the criteria for YAML upload:" %}</p>
+                <ul>
+                    {% for criterion in criteria %}<li>{{ criterion }}</li>{% endfor %}
+                </ul>
+                <details>
+                    <summary>See available object types with their variants</summary>
+                    <div class="padded">
+                        {% for ooi_type in ooi_types %}
+                            <details class="expandable-code">
+                                <summary>{{ ooi_type }}</summary>
+                                {% with yaml_examples=examples|get_item:ooi_type %}
+                                    {% if yaml_examples %}
+                                        {% for example in yaml_examples %}
+                                            <div class="code-block-container" data-expandable-code-block>
+                                                <span data-code-copy-btn>copy</span>
+                                                <pre><code>{{ example }}</code></pre>
+                                            </div>
+                                        {% endfor %}
+                                    {% endif %}
+                                {% endwith %}
+                            </details>
+                        {% endfor %}
+                    </div>
+                </details>
+                <details class="expandable-code">
+                    <summary>About the YAML file</summary>
+                    <div class="code-block-container" data-expandable-code-block>
+                        <span code-block-header>example.yml</span>
+                        <span data-code-copy-btn>copy</span>
+                        <pre><code>
+oois:
+- !WebUrl
+    object_type: IPAddressHTTPURL
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPAddressHTTPURL|http|localhost|127.0.0.1|80|/path_at_IPAddressHTTPURL'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: IPAddressHTTPURL|http|localhost|127.0.0.1|80|/path_at_IPAddressHTTPURL
+    scheme: http
+    port: 80
+    path: /path_at_IPAddressHTTPURL
+    netloc: !Reference 'IPAddressV4|localhost|127.0.0.1'
+
+- !IPAddressV4
+    object_type: IPAddressV4
+    scan_profile: !ScanProfile
+        scan_profile_type: declared
+        reference: !Reference 'IPAddressV4|localhost|127.0.0.1'
+        level: '2'
+        user_id: 1
+    user_id: null
+    primary_key: IPAddressV4|localhost|127.0.0.1
+    address: 127.0.0.1
+    network: !Reference 'Network|localhost'
+    netblock: null
+                        </code></pre>
+                    </div>
+                </details>
+                <details>
+                    <summary>See base object type details</summary>
+                    <ul>
+                        {% for info in base_ooi_types %}
+                            <li>{{ info }}</li>
+                        {% endfor %}
+                    </ul>
+                </details>
+                <form novalidate method="post" enctype="multipart/form-data" class="help">
+                    {% csrf_token %}
+                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                    <button type="submit">{% translate "Upload YML" %}</button>
+                </form>
+            </div>
+        </section>
+        <script src="{% static "js/expandableCodeBlock.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+    </main>
+{% endblock content %}

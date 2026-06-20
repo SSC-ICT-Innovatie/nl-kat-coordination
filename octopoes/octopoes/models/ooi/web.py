@@ -1,6 +1,9 @@
+from __future__ import annotations
+
 from enum import Enum
 from typing import Literal
 
+import yaml
 from pydantic import AnyUrl
 
 from octopoes.models import OOI, PrimaryKeyToken, Reference
@@ -40,6 +43,18 @@ class Website(OOI):
         port = t.ip_service.ip_port.port
         return f"{service}://{t.hostname.name}:{port} @ {address}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: Website) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!Website",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "ip_service": data.ip_service,
+                "hostname": data.hostname,
+                "certificate": data.certificate,
+            },
+        )
+
 
 class WebScheme(Enum):
     HTTP = "http"
@@ -52,6 +67,14 @@ class WebURL(OOI):
     scheme: WebScheme
     port: int
     path: str
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        name: Reference = values["netloc"]
+        if name.class_ == "HostnameHTTPURL":
+            return HostnameHTTPURL(**values)
+        return IPAddressHTTPURL(**values)
 
 
 class HostnameHTTPURL(WebURL):
@@ -68,6 +91,25 @@ class HostnameHTTPURL(WebURL):
         port = f":{tokenized.port}" if tokenized.port else ""
         return f"{tokenized.scheme}://{tokenized.netloc.name}{port}{tokenized.path}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: HostnameHTTPURL) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!HostnameHTTPURL",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "network": data.network,
+                "scheme": data.scheme.value,
+                "port": data.port,
+                "path": data.path,
+                "netloc": data.netloc,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
+
 
 class IPAddressHTTPURL(WebURL):
     object_type: Literal["IPAddressHTTPURL"] = "IPAddressHTTPURL"
@@ -82,6 +124,25 @@ class IPAddressHTTPURL(WebURL):
         tokenized = reference.tokenized
         port = f":{tokenized.port}" if tokenized.port else ""
         return f"{tokenized.scheme}://{tokenized.netloc.address}{port}{tokenized.path}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: IPAddressHTTPURL) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!IPAddressHTTPURL",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "network": data.network,
+                "scheme": data.scheme.value,
+                "port": data.port,
+                "path": data.path,
+                "netloc": data.netloc,
+            },
+        )
+
+    @classmethod
+    def yml_constructor(cls, loader: yaml.SafeLoader, node):
+        values: dict = loader.construct_mapping(node)
+        return cls(**values)
 
 
 class HTTPResource(OOI):
@@ -108,6 +169,18 @@ class HTTPResource(OOI):
         address = t.website.ip_service.ip_port.address.address
 
         return f"{web_url} @ {address}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: HTTPResource) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!HTTPResource",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "website": data.website,
+                "web_url": data.web_url,
+                "redirects_to": data.redirects_to,
+            },
+        )
 
 
 class HTTPHeader(OOI):
@@ -136,6 +209,13 @@ class HTTPHeader(OOI):
 
         return f"{reference.tokenized.key} @ {web_url} @ {address}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: HTTPHeader) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!HTTPHeader",
+            {**cls.get_ooi_yml_repr_dict(data), "resource": data.resource, "key": data.key, "value": data.value},
+        )
+
 
 class URL(OOI):
     object_type: Literal["URL"] = "URL"
@@ -152,6 +232,13 @@ class URL(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return f"{reference.tokenized.raw} @{reference.tokenized.network.name}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: URL) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!URL",
+            {**cls.get_ooi_yml_repr_dict(data), "network": data.network, "raw": str(data.raw), "web_url": data.web_url},
+        )
 
 
 class HTTPHeaderURL(OOI):
@@ -178,6 +265,12 @@ class HTTPHeaderURL(OOI):
 
         return f"{t.key} @ {web_url} @ {address} contains {str(reference.tokenized.url.raw)}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: HTTPHeaderURL) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!HTTPHeaderURL", {**cls.get_ooi_yml_repr_dict(data), "header": data.header, "url": data.url}
+        )
+
 
 class HTTPHeaderHostname(OOI):
     object_type: Literal["HTTPHeaderHostname"] = "HTTPHeaderHostname"
@@ -202,6 +295,12 @@ class HTTPHeaderHostname(OOI):
         address = t.resource.website.ip_service.ip_port.address.address
 
         return f"{t.key} @ {web_url} @ {address} contains {str(reference.tokenized.hostname.name)}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: HTTPHeaderHostname) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!HTTPHeaderHostname", {**cls.get_ooi_yml_repr_dict(data), "header": data.header, "hostname": data.hostname}
+        )
 
 
 class ImageMetadata(OOI):
@@ -234,6 +333,13 @@ class ImageMetadata(OOI):
             port = f":{tokenized.port}" if tokenized.port else ""
             return f"{tokenized.scheme}://{tokenized.netloc.name}{port}{tokenized.path}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: ImageMetadata) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!ImageMetadata",
+            {**cls.get_ooi_yml_repr_dict(data), "resource": data.resource, "image_info": data.image_info},
+        )
+
 
 class RESTAPI(OOI):
     object_type: Literal["RESTAPI"] = "RESTAPI"
@@ -246,6 +352,10 @@ class RESTAPI(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return format_web_url_token(reference.tokenized.api_url)
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: RESTAPI) -> yaml.Node:
+        return dumper.represent_mapping("!RESTAPI", {**cls.get_ooi_yml_repr_dict(data), "api_url": data.api_url})
 
 
 class APIDesignRule(OOI):
@@ -260,6 +370,10 @@ class APIDesignRule(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return reference.tokenized.name
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: APIDesignRule) -> yaml.Node:
+        return dumper.represent_mapping("!APIDesignRule", {**cls.get_ooi_yml_repr_dict(data), "name": data.name})
 
 
 class APIDesignRuleResult(OOI):
@@ -282,6 +396,19 @@ class APIDesignRuleResult(OOI):
 
         return f"{rule} @ {api_url}"
 
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: APIDesignRuleResult) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!APIDesignRuleResult",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "rest_api": data.rest_api,
+                "rule": data.rule,
+                "passed": data.passed,
+                "message": data.message,
+            },
+        )
+
 
 class SecurityTXT(OOI):
     object_type: Literal["SecurityTXT"] = "SecurityTXT"
@@ -300,3 +427,16 @@ class SecurityTXT(OOI):
         "url": "security_txt",
         "redirects_to": "is_being_redirected_to_by",
     }
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: SecurityTXT) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!SecurityTXT",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "website": data.website,
+                "url": data.url,
+                "redirects_to": data.redirects_to,
+                "security_txt": data.security_txt,
+            },
+        )

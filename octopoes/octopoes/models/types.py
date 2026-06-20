@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from functools import cache
 from typing import TypeVar
 
+import yaml
 from pydantic.fields import FieldInfo
 
 from octopoes.models import OOI, Reference
@@ -297,3 +298,10 @@ def _cached_relation(cls_name: str, property_name: str) -> type[OOI]:
 
 # FIXME: legacy imports
 OOI_TYPES = {ooi_type.get_object_type(): ooi_type for ooi_type in get_concrete_types()}
+
+# yaml.representer.SafeRepresenter.ignore_aliases = lambda *data : True
+
+for ooi_cls in ALL_TYPES:
+    if hasattr(ooi_cls, "yml_representer"):
+        yaml.SafeDumper.add_representer(ooi_cls, ooi_cls.yml_representer)
+    yaml.SafeLoader.add_constructor("!" + ooi_cls.__name__, ooi_cls.yml_constructor)

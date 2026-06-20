@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
+import yaml
 from crisis_room.forms import AddObjectListDashboardItemForm
 from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse
@@ -208,27 +209,30 @@ class OOIListExportView(BaseOOIListView):
 
         queryset = self.get_queryset()
         ooi_list = queryset[: OOIList.HARD_LIMIT]
-
-        exports = [{"observed_at": str(self.observed_at), "filters": str(filters)}]
-
-        for ooi in ooi_list:
-            exports.append({"key": ooi.primary_key, "name": ooi.human_readable, "ooi_type": ooi.ooi_type})
+        exports = {"stats": [{"observed_at": str(self.observed_at), "filters": str(filters)}], "oois": []}
 
         if file_type == "json":
+            for ooi in ooi_list:
+                exports["oois"].append(ooi.model_dump())
             response = HttpResponse(
                 json.dumps(exports),
                 content_type="application/json",
                 headers={"Content-Disposition": "attachment; filename=ooi_list_" + str(self.observed_at) + ".json"},
             )
-
             return response
-
+        elif file_type == "yml":
+            exports["oois"] = ooi_list
+            response = HttpResponse(
+                yaml.safe_dump(exports, sort_keys=False, indent=4),
+                content_type="application/yaml",
+                headers={"Content-Disposition": "attachment; filename=ooi_list_" + str(self.observed_at) + ".yml"},
+            )
+            return response
         elif file_type == "csv":
             response = HttpResponse(
                 content_type="text/csv",
                 headers={"Content-Disposition": "attachment; filename=ooi_list_" + str(self.observed_at) + ".csv"},
             )
-
             writer = csv.writer(response)
             writer.writerow(["observed_at", "filters"])
             writer.writerow([str(self.observed_at), str(filters)])

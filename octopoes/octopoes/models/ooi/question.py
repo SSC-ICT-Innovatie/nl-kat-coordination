@@ -1,7 +1,10 @@
+from __future__ import annotations
+
 import json
 from json import JSONDecodeError
 from typing import Literal
 
+import yaml
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import Draft202012Validator
 from pydantic import field_validator
@@ -38,3 +41,15 @@ class Question(OOI):
     def config_pk(self) -> str:
         config_id = self.schema_id.split("/")[-1]
         return f"Config|{self.ooi.tokenized.name}|{config_id}"
+
+    @classmethod
+    def yml_representer(cls, dumper: yaml.SafeDumper, data: Question) -> yaml.Node:
+        return dumper.represent_mapping(
+            "!Question",
+            {
+                **cls.get_ooi_yml_repr_dict(data),
+                "ooi": data.ooi,
+                "schema_id": data.schema_id,
+                "json_schema": data.json_schema,
+            },
+        )

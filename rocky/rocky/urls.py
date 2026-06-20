@@ -49,6 +49,7 @@ from rocky.views.tasks import (
 )
 from rocky.views.upload_csv import UploadCSV
 from rocky.views.upload_raw import UploadRaw
+from rocky.views.upload_yml import UploadYML
 
 handler404 = "rocky.views.handler404.handler404"
 handler403 = "rocky.views.handler403.handler403"
@@ -129,6 +130,7 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),
     path("<organization_code>/objects/upload/raw/", UploadRaw.as_view(), name="upload_raw"),
     path("<organization_code>/objects/upload/raw/<mime_type>", UploadRaw.as_view(), name="upload_raw_typed"),
+    path("<organization_code>/objects/upload/yml/", UploadYML.as_view(), name="upload_yml"),
     path("<organization_code>/tasks/", BoefjesTaskListView.as_view(), name="task_list"),
     path("<organization_code>/tasks/boefjes", BoefjesTaskListView.as_view(), name="boefjes_task_list"),
     path("<organization_code>/tasks/boefjes/<task_id>", BoefjeTaskDetailView.as_view(), name="boefje_task_view"),
