@@ -87,7 +87,7 @@ Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
 Index("ix_tasks_status", TaskDB.status)
 Index("ix_tasks_schedule_status", TaskDB.schedule_id, TaskDB.status)
 Index("ix_tasks_type", TaskDB.type, TaskDB.created_at.desc())
-Index("ix_tasks_hash_created", TaskDB.hash, TaskDB.created_at.deesc())
+Index("ix_tasks_hash_created", TaskDB.hash, TaskDB.created_at.desc())
 
 # used by the scheduler to find queued items
 Index(
