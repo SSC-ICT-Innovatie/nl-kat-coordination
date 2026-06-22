@@ -103,6 +103,15 @@ jobs:
           deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
           deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
           EOF
+          # RabbitMQ 3.13 requires Erlang < 27 (erlang-base < 1:27.0), but the
+          # rabbitmq-erlang repo also ships Erlang 27.x, which apt would pick by
+          # default and which rabbitmq-server=3.13.* refuses. Pin erlang* to the
+          # 26 series so a compatible runtime is installed.
+          sudo tee /etc/apt/preferences.d/erlang <<'EOF'
+          Package: erlang*
+          Pin: version 1:26.*
+          Pin-Priority: 1000
+          EOF
           sudo apt-get update -y
           sudo apt-get install -y --no-install-recommends \
             erlang-base erlang-asn1 erlang-crypto erlang-eldap erlang-ftp \

@@ -97,6 +97,15 @@ matches the OpenKAT release you are deploying (3.13 for OpenKAT 1.23):
 
 .. code-block:: sh
 
+    # RabbitMQ 3.13 requires Erlang < 27. The rabbitmq-erlang repo also serves
+    # Erlang 27.x, which apt would select by default and which rabbitmq-server
+    # 3.13 refuses. Pin erlang to the 26 series so a compatible runtime is used.
+    sudo tee /etc/apt/preferences.d/erlang <<EOF
+    Package: erlang*
+    Pin: version 1:26.*
+    Pin-Priority: 1000
+    EOF
+
     sudo apt-get update -y
     sudo apt-get install -y --no-install-recommends \
         erlang-base erlang-asn1 erlang-crypto erlang-eldap erlang-ftp \
