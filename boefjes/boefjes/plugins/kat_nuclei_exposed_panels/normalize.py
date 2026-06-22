@@ -25,7 +25,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             logger.warning("Skipping non-JSON line in nuclei output")
             continue
 
-        kft = KATFindingType(id="EXPOSED-PANELS")
+        kft = KATFindingType(id="EXPOSED-ADMIN-PANELS")
         yield kft
 
         yield Finding(
