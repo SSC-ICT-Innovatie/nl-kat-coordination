@@ -12,7 +12,7 @@ from octopoes.core.app import get_xtdb_client
 from octopoes.models import OOI, DeclaredScanProfile, EmptyScanProfile, Reference, ScanLevel
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.dns.records import DNSAAAARecord, DNSARecord, DNSMXRecord, DNSNSRecord
-from octopoes.models.ooi.dns.zone import Hostname
+from octopoes.models.ooi.dns.zone import Hostname, ResolvedHostname
 from octopoes.models.ooi.findings import Finding, KATFindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
 from octopoes.models.ooi.reports import Report, ReportRecipe
@@ -402,3 +402,36 @@ def test_no_disappearing_ports(octopoes_api_connector: OctopoesAPIConnector):
             ooi=tcp_port.reference,
         )
     ]
+
+
+def test_list_findings_by_ooi(octopoes_api_connector: OctopoesAPIConnector, valid_time: datetime):
+    """End-to-end (#5202 part C): the connector returns findings on descendant OOIs, not only those
+    attached directly to the input OOI - the regression #5088 introduced for get_tree(types=Finding)."""
+    network = Network(name="test")
+    root = Hostname(network=network.reference, name="root.example.com")
+    address = IPAddressV4(network=network.reference, address=ip_address("192.0.2.10"))
+    resolved = ResolvedHostname(hostname=root.reference, address=address.reference)
+    finding_type = KATFindingType(id="KAT-DEEP")
+    deep_finding = Finding(ooi=address.reference, finding_type=finding_type.reference)  # 3 hops from root
+    direct_finding = Finding(ooi=root.reference, finding_type=finding_type.reference)  # directly on root
+
+    oois: list[OOI] = [network, root, address, resolved, finding_type, deep_finding, direct_finding]
+    octopoes_api_connector.save_observation(
+        Observation(
+            method="normalizer_id",
+            source=root.reference,
+            source_method="manual",
+            task_id=uuid.uuid4(),
+            valid_time=valid_time,
+            result=oois,
+        )
+    )
+
+    result = octopoes_api_connector.list_findings_by_ooi(root.reference, valid_time, depth=9)
+    found = {finding.reference for finding in result.findings}
+
+    assert direct_finding.reference in found
+    assert deep_finding.reference in found
+    assert all(isinstance(finding, Finding) for finding in result.findings)
+    # The associated finding types are bundled in the response so the caller need not re-query them.
+    assert finding_type.reference in {ft.reference for ft in result.finding_types}

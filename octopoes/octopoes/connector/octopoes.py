@@ -9,7 +9,7 @@ import structlog
 from httpx import HTTPError, Response
 from pydantic import Field, TypeAdapter, ValidationError
 
-from octopoes.api.models import Affirmation, Declaration, Observation, ServiceHealth
+from octopoes.api.models import Affirmation, Declaration, FindingsByOOIResponse, Observation, ServiceHealth
 from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET
 from octopoes.connector import DecodeException, RemoteException
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
@@ -189,6 +189,11 @@ class OctopoesAPIConnector:
             params["types"] = [t.__name__ if hasattr(t, "__name__") else t for t in types if t]
         res = self.session.get(f"/{self.client}/tree", params=params)
         return ReferenceTree.model_validate_json(res.content)
+
+    def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> FindingsByOOIResponse:
+        params: dict[str, str | int] = {"reference": str(reference), "depth": depth, "valid_time": str(valid_time)}
+        res = self.session.get(f"/{self.client}/findings_by_ooi", params=params)
+        return FindingsByOOIResponse.model_validate_json(res.content)
 
     def list_origins(
         self,

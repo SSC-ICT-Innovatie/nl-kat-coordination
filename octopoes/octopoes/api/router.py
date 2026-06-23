@@ -11,7 +11,13 @@ from asgiref.sync import sync_to_async
 from fastapi import APIRouter, Body, Depends, HTTPException, Path, Query, Request, status
 from pydantic import AwareDatetime
 
-from octopoes.api.models import ServiceHealth, ValidatedAffirmation, ValidatedDeclaration, ValidatedObservation
+from octopoes.api.models import (
+    FindingsByOOIResponse,
+    ServiceHealth,
+    ValidatedAffirmation,
+    ValidatedDeclaration,
+    ValidatedObservation,
+)
 from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -280,6 +286,16 @@ def get_tree(
     with_scan_profiles: bool = False,
 ) -> ReferenceTree:
     return octopoes.get_ooi_tree(reference, valid_time, types, depth, with_scan_profiles)
+
+
+@router.get("/findings_by_ooi", tags=["Objects", "Findings"])
+def list_findings_by_ooi(
+    octopoes: OctopoesService = Depends(octopoes_service),
+    valid_time: datetime = Depends(extract_valid_time),
+    reference: Reference = Depends(extract_reference),
+    depth: int = 9,
+) -> FindingsByOOIResponse:
+    return octopoes.list_findings_by_ooi(reference, valid_time, depth)
 
 
 @router.get("/origins", tags=["Origins"])

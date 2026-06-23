@@ -5,7 +5,16 @@ from typing import Annotated, Any
 from pydantic import AwareDatetime, BaseModel, Field
 
 from octopoes.models import Reference
-from octopoes.models.types import ConcreteOOIType, OOIType
+from octopoes.models.ooi.findings import Finding
+from octopoes.models.types import ConcreteFindingTypeType, ConcreteOOIType, OOIType
+
+
+class FindingsByOOIResponse(BaseModel):
+    """Findings reachable from an OOI, with their associated finding types bundled in so the caller
+    does not have to look them up separately."""
+
+    findings: list[Finding]
+    finding_types: list[Annotated[ConcreteFindingTypeType, Field(discriminator="object_type")]]
 
 
 class ServiceHealth(BaseModel):

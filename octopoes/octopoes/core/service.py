@@ -12,7 +12,7 @@ from bits.runner import BitRunner
 from httpx import HTTPError
 from pydantic import TypeAdapter
 
-from octopoes.api.models import ServiceHealth
+from octopoes.api.models import FindingsByOOIResponse, ServiceHealth
 from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, Settings
 from octopoes.events.events import DBEvent, OOIDBEvent, OriginDBEvent, OriginParameterDBEvent, ScanProfileDBEvent
 from octopoes.events.manager import EventManager
@@ -29,6 +29,7 @@ from octopoes.models import (
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.explanation import InheritanceSection
 from octopoes.models.ooi.config import Config
+from octopoes.models.ooi.findings import FindingType
 from octopoes.models.origin import Origin, OriginParameter, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.path import (
@@ -157,6 +158,12 @@ class OctopoesService:
     ) -> ReferenceTree:
         tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth, with_scan_profiles)
         return tree
+
+    def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> FindingsByOOIResponse:
+        findings = self.ooi_repository.list_findings_by_ooi(reference, valid_time, depth)
+        finding_type_store = self.ooi_repository.load_bulk({finding.finding_type for finding in findings}, valid_time)
+        finding_types = [ooi for ooi in finding_type_store.values() if isinstance(ooi, FindingType)]
+        return FindingsByOOIResponse(findings=findings, finding_types=finding_types)
 
     def _delete_ooi(self, reference: Reference, valid_time: datetime) -> None:
         referencing_origins = self.origin_repository.list_origins(valid_time, result=reference)
