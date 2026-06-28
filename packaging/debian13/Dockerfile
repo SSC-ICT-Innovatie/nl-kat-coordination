@@ -1,4 +1,4 @@
-FROM debian:bookworm
+FROM debian:trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -14,7 +14,7 @@ RUN apt-get update && apt-get -y upgrade && \
     gettext devscripts debhelper equivs \
     python3-setuptools python3-pip python3-dev \
     dh-sequence-python3 pybuild-plugin-pyproject python3-poetry \
-    libssl-dev dh-virtualenv libpq-dev \
+    dh-virtualenv libpq-dev libssl-dev \
     build-essential nodejs git openssh-client \
     libfreetype-dev zlib1g-dev libjpeg-dev libffi-dev
 RUN corepack enable
