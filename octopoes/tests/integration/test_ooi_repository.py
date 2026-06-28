@@ -4,8 +4,9 @@ from datetime import datetime
 import pytest
 
 from octopoes.models import DeclaredScanProfile, ScanLevel
-from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.network import Network
+from octopoes.models.ooi.dns.zone import Hostname, ResolvedHostname
+from octopoes.models.ooi.findings import Finding, KATFindingType
+from octopoes.models.ooi.network import IPAddressV4, Network
 from octopoes.models.pagination import Paginated
 from octopoes.models.path import Path
 from octopoes.repositories.ooi_repository import XTDBOOIRepository
@@ -71,6 +72,34 @@ def test_load_bulk(
     assert networks[network.reference].scan_profile is not None
     assert networks[network2.reference].scan_profile is not None
     assert networks[network3.reference].scan_profile is not None
+
+
+def test_get_tree_search_types_returns_descendant_findings(
+    xtdb_ooi_repository: XTDBOOIRepository, valid_time: datetime
+):
+    """Regression test for #5202: get_tree(search_types={Finding}) must return findings attached to
+    descendant OOIs, not only findings directly on the root. #5088 pruned the traversal by the leaf
+    type, which destroyed the path to deep findings (e.g. a CVE on an HTTPHeader several hops down)."""
+    network = Network(name="test")
+    hostname = Hostname(network=network.reference, name="example.com")
+    address = IPAddressV4(network=network.reference, address="192.0.2.1")
+    # Hostname <- ResolvedHostname -> IPAddressV4, so the address is two hops from the hostname.
+    resolved = ResolvedHostname(hostname=hostname.reference, address=address.reference)
+    finding_type = KATFindingType(id="KAT-DEEP-FINDING")
+    # A finding three hops down from the hostname (Hostname <- ResolvedHostname -> IPAddressV4 <- Finding)
+    deep_finding = Finding(ooi=address.reference, finding_type=finding_type.reference)
+    # And a finding directly on the hostname, to confirm direct findings still come through.
+    direct_finding = Finding(ooi=hostname.reference, finding_type=finding_type.reference)
+
+    for ooi in [network, hostname, address, resolved, finding_type, deep_finding, direct_finding]:
+        xtdb_ooi_repository.save(ooi, valid_time)
+    xtdb_ooi_repository.session.commit()
+
+    tree = xtdb_ooi_repository.get_tree(hostname.reference, valid_time, search_types={Finding}, depth=5)
+
+    finding_references = {ref for ref, ooi in tree.store.items() if ooi.ooi_type == "Finding"}
+    assert str(direct_finding.reference) in finding_references
+    assert str(deep_finding.reference) in finding_references
 
 
 def test_complex_query(xtdb_ooi_repository: XTDBOOIRepository, valid_time: datetime):

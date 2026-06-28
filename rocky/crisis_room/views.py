@@ -106,6 +106,12 @@ class DashboardService:
 
         # First collect al data, if recipe id is found then fetch recipe ids to get reports later.
         for dashboard_item in dashboard_items:
+            # Dashboard.organization is nullable. Organization deletion now
+            # cascades (migration 0008), but a dashboard without organization
+            # would crash every downstream branch on
+            # `dashboard.organization.code`, so skip them defensively (#5140).
+            if dashboard_item.dashboard.organization is None:
+                continue
             if not dashboard_item.recipe and dashboard_item.source == "object_list":
                 item_data = DashboardItemView(dashboard_item, self.get_ooi_list(dashboard_item))
                 dashboard_items_with_data.append(item_data)
