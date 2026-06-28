@@ -6,7 +6,7 @@ SHELL := bash
 HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs upgrade requirements requirements
+.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian12-build-image debian13-build-image ubuntu22.04-build-image ubuntu24.04-build-image docs upgraderequirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -26,7 +26,7 @@ endef
 # Build and bring up all containers (default target)
 kat: env-if-empty build up
 	@echo
-	@echo "The KAT frontend is running at http://localhost:8000,"
+	@echo "The OpenKAT frontend is running at http://localhost:8000,"
 	@echo "An initial superuser has been created"
 	@echo "The username is stored in DJANGO_SUPERUSER_EMAIL in the .env-default file."
 	@echo "run 'grep 'DJANGO_SUPERUSER_EMAIL' .env-defaults' to find it."
@@ -101,13 +101,21 @@ endif
 	make -C rocky build
 	make -C boefjes build
 
-# Build Debian 11 build image
+# Build Debian 12 build image
 debian12-build-image:
 	docker build -t kat-debian12-build-image packaging/debian12
 
 # Build Ubuntu 22.04 build image
 ubuntu22.04-build-image:
 	docker build -t kat-ubuntu22.04-build-image packaging/ubuntu22.04
+
+# Build Debian 13 build image
+debian13-build-image:
+	docker build -t kat-debian13-build-image packaging/debian13
+
+# Build Ubuntu 24.04 build image
+ubuntu24.04-build-image:
+	docker build -t kat-ubuntu24.04-build-image packaging/ubuntu24.04
 
 CHECKSUM_CMD = $(if $(filter $(UNAME), Darwin), shasum -a 256, sha256sum --quiet)
 
