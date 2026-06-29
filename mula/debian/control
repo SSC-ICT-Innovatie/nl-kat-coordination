@@ -9,4 +9,4 @@ Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python}, ${misc:Depends}
 Description: mula
-    Scheduler for KAT
+    Scheduler for OpenKAT
