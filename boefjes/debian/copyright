@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: kat-boefjes
-Upstream-Contact: info@openkat.nl
+Upstream-Contact: maintainer@librekat.nl
 Source: __URL__
 
 Files: *

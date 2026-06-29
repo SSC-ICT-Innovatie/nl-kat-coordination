@@ -1,8 +1,8 @@
 [project]
 name = "boefjes"
 version = "0.0.1.dev1"
-description = "KAT's pentest tool runtime"
-authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
+description = "OpenKAT's pentest tool runtime"
+authors = [{ name = "Stichting Librekat", email = "maintainer@librekat.nl" }]
 requires-python = ">=3.10"
 license = "EUPL-1.2"
 dependencies = [
