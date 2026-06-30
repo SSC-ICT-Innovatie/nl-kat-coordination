@@ -81,6 +81,7 @@ class TaskDB(Base):
     created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
     modified_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
+
 Index("ix_tasks_organisation", TaskDB.organisation)
 Index("ix_tasks_org_type_created", TaskDB.organisation, TaskDB.type, TaskDB.created_at.desc())
 Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
@@ -110,12 +111,7 @@ Index(
 )
 
 # used by the superadmin task list stats
-Index(
-    "ix_tasks_scheduler_modified_status",
-    TaskDB.scheduler_id,
-    TaskDB.modified_at.desc(),
-    TaskDB.status,
-)
+Index("ix_tasks_scheduler_modified_status", TaskDB.scheduler_id, TaskDB.modified_at.desc(), TaskDB.status)
 # used by the regular user task list stats
 Index(
     "ix_tasks_org_scheduler_modified_status",
