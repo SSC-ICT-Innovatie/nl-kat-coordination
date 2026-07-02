@@ -504,12 +504,12 @@
     "recommendation": "To prevent subdomain takeover, organizations should regularly monitor their DNS records to identify and remove any unused subdomains. Additionally, they should ensure that all subdomains are properly configured and point to valid services that you control."
   },
   "EXPOSED-ADMIN-PANELS": {
-    "name":"Administrative login interface reachable",
-    "description": "Exposed login panels for services can pose security risks as they can be targeted by malicious actors for brute-force attacks, phishing attempts, and other forms of unauthorized access.",
-    "source": "https://resources.infosecinstitute.com/topics/application-security/dangers-web-management/",
-    "risk": "recommendation",
-    "impact": "Administrative interfaces may be easy ways for an attacker to gain access to your network.",
-    "recommendation": "Ideally to minimize the attack surface as much as possible these panels should not be directly exposed to the internet."
+    "name": "Exposed administrative panel",
+    "description": "An administrative login panel or management interface was found exposed on this host. Such panels are intended for internal use and should not be reachable from the internet, as they widen the attack surface for brute-force and known-vulnerability attacks.",
+    "source": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "risk": "low",
+    "impact": "An exposed administrative interface lets an attacker attempt credential brute-forcing, exploit known vulnerabilities in the management software, and use it as an entry point into the environment.",
+    "recommendation": "Restrict access to administrative panels to trusted networks or a VPN, place them behind authentication, and do not expose them directly to the internet."
   },
   "KAT-CRITICAL-BAD-CIPHER": {
     "name":" Insecure SSL/TLS cipher(s) detected",

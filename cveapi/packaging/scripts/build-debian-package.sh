@@ -8,7 +8,7 @@ cat > debian/changelog << EOF
 ${PKG_NAME} (${RELEASE_VERSION}) unstable; urgency=low
   * view changes: https://github.com/${REPOSITORY}/releases/tag/${RELEASE_TAG}
 
- -- OpenKAT <maintainer@openkat.nl>  $(LANG=C date -R)
+ -- OpenKAT <maintainer@librekat.nl>  $(LANG=C date -R)
 
 EOF
 

@@ -13,7 +13,7 @@ RUN apt-get update && apt-get -y upgrade && \
     apt-get install -y --no-install-recommends \
     gettext devscripts debhelper equivs \
     python3-setuptools python3-pip python3-dev \
-    libssl-dev dh-virtualenv libpq-dev libssl-dev \
+    libssl-dev dh-virtualenv libpq-dev \
     build-essential nodejs git openssh-client \
     libfreetype-dev zlib1g-dev libjpeg-dev libffi-dev
 RUN corepack enable
