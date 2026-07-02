@@ -160,7 +160,7 @@ class XTDBHTTPClient:
     def list_nodes(self) -> list[str]:
         res = self._session.get("/list-nodes")
         self._verify_response(res)
-        return res.json()["nodes"]
+        return res.json().get("nodes") or []
 
     def create_node(self) -> None:
         try:
