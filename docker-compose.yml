@@ -100,7 +100,7 @@ services:
       - .env
     depends_on:
       - octopoes_api
-      - katalogus
+      - crux
     volumes:
       - ./octopoes:/app/octopoes
 
