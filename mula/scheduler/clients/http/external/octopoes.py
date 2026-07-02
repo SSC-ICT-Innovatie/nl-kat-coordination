@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from scheduler.clients.errors import exception_handler
 from scheduler.clients.http import HTTPService
-from scheduler.models import OOI, Organisation
+from scheduler.models import OOI
 
 
 class ListObjectsResponse(BaseModel):
@@ -20,28 +20,20 @@ class Octopoes(HTTPService):
     name = "octopoes"
     health_endpoint = None
 
-    def __init__(self, host: str, source: str, orgs: list[Organisation], pool_connections: int, timeout: int = 10):
-        self.orgs: list[Organisation] = orgs
+    def __init__(self, host: str, source: str, pool_connections: int, timeout: int = 10):
         super().__init__(host, source, timeout, pool_connections)
 
     @exception_handler
     def get_objects_by_object_types(
-        self, organisation_id: str, object_types: list[str], scan_level: list[int]
+        self, organisation_id: str, object_types: list[str], scan_level: list[int] | None = None
     ) -> Iterator[OOI]:
         """Get all oois from octopoes"""
-        if scan_level is None:
-            scan_level = []
-
         url = f"{self.host}/{organisation_id}/objects"
 
         pagesize = 1000
-        params = {
-            "types": object_types,
-            "scan_level": [s for s in scan_level],
-            "offset": 0,
-            "limit": pagesize,
-            "valid_time": datetime.now(timezone.utc),
-        }
+        params = {"types": object_types, "offset": 0, "limit": pagesize, "valid_time": datetime.now(timezone.utc)}
+        if scan_level:
+            params["scan_level"] = [s for s in scan_level]
 
         count = pagesize
         processed = 0
@@ -118,9 +110,4 @@ class Octopoes(HTTPService):
             raise
 
     def is_healthy(self) -> bool:
-        healthy = True
-        for org in self.orgs:
-            if not self.is_host_healthy(self.host, f"{org.id}/health"):
-                return False
-
-        return healthy
+        return self.is_host_healthy(self.host, "/health/organizations")
