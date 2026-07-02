@@ -11,6 +11,6 @@ clean:
 distclean: clean
 
 uninstall:
-	-rm -rf $(DESTDIR)/usr/share/kat-octopoes
+	-rm -rf $(DESTDIR)/usr/share/kat-mula
 
 .PHONY: all install clean distclean uninstall

@@ -27,7 +27,7 @@ class ServiceHealth(BaseModel):
     results: list["ServiceHealth"] = Field(default_factory=list)
 
 
-ServiceHealth.update_forward_refs()
+ServiceHealth.model_rebuild()
 
 
 def validation_exception_handler(_: Request, exc: RequestValidationError | ValidationError) -> JSONResponse:

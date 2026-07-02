@@ -30,7 +30,7 @@ class SQLOrganisationStorage(SessionMixin, OrganisationStorage):
         return {organisation.id: self.to_organisation(organisation) for organisation in query.all()}
 
     def create(self, organisation: Organisation) -> None:
-        logger.info("Saving organisation: %s", organisation.model_dump_json())
+        logger.info("Saving organisation: %s", organisation.model_dump(mode="json"))
 
         organisation_in_db = self.to_organisation_in_db(organisation)
         self.session.add(organisation_in_db)

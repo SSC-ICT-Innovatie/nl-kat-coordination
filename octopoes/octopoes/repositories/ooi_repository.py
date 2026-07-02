@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import re
 from collections import Counter
 from datetime import datetime
@@ -239,7 +238,7 @@ class XTDBOOIRepository(OOIRepository):
     @classmethod
     def serialize(cls, ooi: OOI) -> dict[str, Any]:
         # export model with pydantic serializers
-        export = json.loads(ooi.model_dump_json())
+        export = ooi.model_dump(mode="json")
 
         # prefix fields, but not object_type
         export.pop("object_type")
@@ -583,6 +582,15 @@ class XTDBOOIRepository(OOIRepository):
             reference_node = results[0]
         except IndexError:
             raise ObjectNotFoundException(str(reference))
+
+        # _get_tree_level keeps intermediate levels unfiltered to preserve the path to
+        # descendant matches. Re-apply a path-preserving filter here so a branch survives only
+        # if it (or one of its descendants) is of a requested type - restoring the pre-#5088
+        # filter_children semantics for both the OOI-detail tree view and findings collection.
+        if search_types:
+            search_type_names = {search_type.__name__ for search_type in search_types}
+            reference_node.filter_children(lambda node: node.reference.class_ in search_type_names)
+
         store = self.load_bulk(reference_node.collect_references(), valid_time, include_scan_levels=include_scan_levels)
         return ReferenceTree(root=reference_node, store=store)
 
@@ -616,8 +624,16 @@ class XTDBOOIRepository(OOIRepository):
         if exclude is None:
             exclude = set()
 
+        # Only prune the traversal by search_types on the deepest level (the largest fan-out).
+        # search_types prunes incoming/outgoing relations *during* construction, so applying it on
+        # intermediate levels destroys the path to findings attached to descendant OOIs (e.g.
+        # Hostname -> Website -> HTTPResource -> HTTPHeader -> Finding), the regression from #5088.
+        # Keeping intermediate levels unfiltered preserves the path; get_tree() then re-applies a
+        # path-preserving filter so branches that never reach a search_type are dropped.
+        level_search_types = search_types if depth == 1 else None
+
         # Query 1-depth related objects
-        reference_nodes = self._get_related_objects(references, valid_time=valid_time, search_types=search_types)
+        reference_nodes = self._get_related_objects(references, valid_time=valid_time, search_types=level_search_types)
 
         # Filter exclusions from results
         for reference_node in reference_nodes:

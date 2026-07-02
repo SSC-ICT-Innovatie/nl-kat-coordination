@@ -27,6 +27,7 @@ from octopoes.core.app import close_rabbit_channel
 from octopoes.events.manager import get_rabbit_channel
 from octopoes.models.exception import ObjectNotFoundException, TypeNotFound
 from octopoes.version import __version__
+from octopoes.xtdb.client import XTDBHTTPClient
 from octopoes.xtdb.exceptions import NodeNotFound
 from octopoes.xtdb.query import InvalidField, InvalidPath
 
@@ -149,6 +150,26 @@ def uncaught_exception_handler(_: Request, exc: Exception) -> None:
 @app.get("/health")
 def root_health() -> ServiceHealth:
     return ServiceHealth(service="octopoes", healthy=True, version=__version__)
+
+
+@app.get("/health/organizations")
+def organizations_health() -> ServiceHealth:
+    xtdb_client = XTDBHTTPClient(str(settings.xtdb_uri))
+    orga_results = []
+    overall_healthy = True
+    for orga in xtdb_client.list_nodes():
+        xtdb_client.node = orga
+        try:
+            xtdbstatus = xtdb_client.status()
+            healthy = True
+        except Exception:
+            overall_healthy = False
+            healthy = False
+            xtdbstatus = None
+        orga_results.append(
+            ServiceHealth(service=f"xtdb for {orga}", healthy=healthy, version=__version__, additional=xtdbstatus)
+        )
+    return ServiceHealth(service="octopoes", healthy=overall_healthy, version=__version__, results=orga_results)
 
 
 app.include_router(router)
