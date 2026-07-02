@@ -757,7 +757,7 @@ class BoefjeScheduler(Scheduler):
             boefje.consumes,
             None  # no need to filter if boefje accepts everything
             if boefje.scan_level == 0 or boefje.scan_level is None
-            else list(range(boefje.scan_level, 5)),  # type: ignore
+            else list(range(boefje.scan_level, 5)),
         )
 
     @exception_handler
