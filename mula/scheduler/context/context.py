@@ -144,7 +144,6 @@ class AppContext:
             source=f"scheduler/{scheduler.__version__}",
             timeout=self.config.octopoes_request_timeout,
             pool_connections=self.config.octopoes_pool_connections,
-            orgs=katalogus_service.get_organisations(),
         )
 
         # Register external services, SimpleNamespace allows us to use dot
