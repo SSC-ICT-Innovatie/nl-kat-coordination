@@ -69,7 +69,7 @@ services:
     restart: on-failure
     depends_on:
       - octopoes_api
-      - katalogus
+      - crux
     image: "docker.underdark.nl/librekat/openkat-octopoes:${KAT_VERSION}"
     command: scanprofiles
     env_file:
