@@ -50,7 +50,7 @@ class OctopoesAPIConnector:
 
     def __init__(self, base_uri: str, client: str, timeout: int = 30):
         self.base_uri = base_uri
-        self.client = client
+        self.client = client  # commonly referred to as 'organization' within OpenKAT
         self.session = httpx.Client(
             base_url=base_uri, timeout=timeout, event_hooks={"response": [self._verify_response]}
         )
@@ -74,6 +74,9 @@ class OctopoesAPIConnector:
 
     def root_health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self.session.get("/health").content)
+
+    def organizations_health(self) -> ServiceHealth:
+        return ServiceHealth.model_validate_json(self.session.get("/health/organizations").content)
 
     def health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self.session.get(f"/{self.client}/health").content)
