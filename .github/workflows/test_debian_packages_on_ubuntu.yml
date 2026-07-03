@@ -64,6 +64,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-22.04, ubuntu-24.04]
 
@@ -85,6 +86,18 @@ jobs:
       - name: Set distro name (match build matrix.dist)
         run: echo "DIST_NAME=${{ matrix.os }}" | sed 's/-//' >> $GITHUB_ENV
 
+      - name: Set RabbitMQ apt codename (match runner)
+        # The Team RabbitMQ apt repos are published per distro codename. Since
+        # #5179 added ubuntu-24.04 to the matrix, the runner is no longer always
+        # jammy, so install the debs built for the codename we actually run on
+        # (installing jammy debs on noble leaves rabbitmq-server unable to start).
+        run: |
+          case "${{ matrix.os }}" in
+            ubuntu-22.04) echo "RMQ_CODENAME=jammy" >> "$GITHUB_ENV" ;;
+            ubuntu-24.04) echo "RMQ_CODENAME=noble" >> "$GITHUB_ENV" ;;
+            *) echo "Unsupported runner ${{ matrix.os }} for RabbitMQ apt repos" >&2; exit 1 ;;
+          esac
+
       - name: Install dependencies Docker and PostgreSQL
         run: sudo apt-get update && sudo apt-get install -y docker.io containerd runc postgresql curl gnupg apt-transport-https
 
@@ -97,11 +110,11 @@ jobs:
         run: |
           curl -1sLf "https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA" \
             | sudo gpg --dearmor | sudo tee /usr/share/keyrings/com.rabbitmq.team.gpg > /dev/null
-          sudo tee /etc/apt/sources.list.d/rabbitmq.list <<'EOF'
-          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/jammy jammy main
-          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-erlang/ubuntu/jammy jammy main
-          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
-          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-server/ubuntu/jammy jammy main
+          sudo tee /etc/apt/sources.list.d/rabbitmq.list <<EOF
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-erlang/ubuntu/${RMQ_CODENAME} ${RMQ_CODENAME} main
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-erlang/ubuntu/${RMQ_CODENAME} ${RMQ_CODENAME} main
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb1.rabbitmq.com/rabbitmq-server/ubuntu/${RMQ_CODENAME} ${RMQ_CODENAME} main
+          deb [arch=amd64 signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://deb2.rabbitmq.com/rabbitmq-server/ubuntu/${RMQ_CODENAME} ${RMQ_CODENAME} main
           EOF
           # RabbitMQ 3.13 requires Erlang < 27 (erlang-base < 1:27.0), but the
           # rabbitmq-erlang repo also ships Erlang 27.x, which apt would pick by
@@ -129,7 +142,9 @@ jobs:
           echo "export ERL_EPMD_ADDRESS=127.0.0.1" | sudo tee -a /etc/rabbitmq/rabbitmq-env.conf
           echo "export NODENAME=rabbit@localhost" | sudo tee -a /etc/rabbitmq/rabbitmq-env.conf
           sudo systemctl stop rabbitmq-server
-          sudo epmd -kill
+          # epmd may not be running yet (nothing to kill); the goal is only to
+          # ensure it restarts bound to ERL_EPMD_ADDRESS, so do not fail here.
+          sudo epmd -kill || true
           echo "listeners.tcp.local = 127.0.0.1:5672" | sudo tee -a /etc/rabbitmq/rabbitmq.conf
           echo "[{kernel,[ {inet_dist_use_interface,{127,0,0,1}}]}]." | sudo tee -a /etc/rabbitmq/advanced.config
 
