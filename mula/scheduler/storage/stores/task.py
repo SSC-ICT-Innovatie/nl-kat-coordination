@@ -34,7 +34,9 @@ class TaskStore:
         allow_partial_count: bool = False,
     ) -> tuple[list[models.Task], int, bool]:
         offset = max(offset, 0)
-        limit = min(max(limit, 1), MAX_LIMIT)
+        limit = min(max(limit, 0), MAX_LIMIT)
+        is_partial_count = False
+
         with self.dbconn.session.begin() as session:
             query = session.query(models.TaskDB)
 
@@ -58,20 +60,23 @@ class TaskStore:
 
             if filters is not None:
                 query = apply_filter(models.TaskDB, query, filters)
+           
+            try:                
+                # if limit == 0, we dont know the page size, and thus cannot perform a bounded query
+                if limit == 0:
+                    return [], query.count(), False
 
-            try:
                 if allow_partial_count:
                     max_pages = min(max(max_pages, 1), 20)
                     max_count = offset + (max_pages * limit) + 1
 
-                    bounded_query = query.order_by(None).with_entities(literal(1)).limit(max_count)
+                    bounded_query = query.order_by(None).with_entities(models.TaskDB.id).limit(max_count)
                     count = session.query(func.count()).select_from(bounded_query.subquery()).scalar()
                     # When is_partial_count=True, count represents
                     # a lower bound sufficient for pagination UI generation,
                     # not the exact total number of matching records.
                     is_partial_count = count == max_count
                 else:
-                    is_partial_count = False
                     count = query.count()
             except exc.ProgrammingError as e:
                 raise StorageError(f"Could not produce count over query: {e}") from e
@@ -82,7 +87,6 @@ class TaskStore:
                 raise StorageError(f"Invalid filter: {e}") from e
 
             tasks = [models.Task.model_validate(task_orm) for task_orm in tasks_orm]
-
             return tasks, count, is_partial_count
 
     @retry()
