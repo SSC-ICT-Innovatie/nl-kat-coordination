@@ -3,8 +3,7 @@
   "name": "Nuclei exposed admin panels",
   "description": "Parses Nuclei of exposed panels into findings.",
   "consumes": [
-    "boefje/nuclei-exposed-panels",
-    "openkat/nuclei-output"
+    "boefje/nuclei-exposed-panels"
   ],
   "produces": [
     "Finding",

@@ -111,9 +111,9 @@ def test_save_raw(meta_repository: SQLMetaDataRepository) -> None:
     first_updated_raw = meta_repository.get_raw(query_filter).pop()
 
     assert first_updated_raw.signing_provider_url in ["https://test", "https://freetsa.org/tsr"]  # Depends on CI env
-    assert "hash_retrieval_link" in first_updated_raw.json()
-    assert "secure_hash" in first_updated_raw.json()
-    assert "signing_provider" in first_updated_raw.json()
+    assert "hash_retrieval_link" in first_updated_raw.model_dump_json()
+    assert "secure_hash" in first_updated_raw.model_dump_json()
+    assert "signing_provider" in first_updated_raw.model_dump_json()
 
     query_filter = RawDataFilter(
         organization=[raw.boefje_meta.organization],
@@ -121,9 +121,9 @@ def test_save_raw(meta_repository: SQLMetaDataRepository) -> None:
         mime_types=[MimeType(value="text/plain")],
     )
     first_updated_raw = meta_repository.get_raw(query_filter).pop()
-    assert "hash_retrieval_link" in first_updated_raw.json()
-    assert "secure_hash" in first_updated_raw.json()
-    assert "signing_provider" in first_updated_raw.json()
+    assert "hash_retrieval_link" in first_updated_raw.model_dump_json()
+    assert "secure_hash" in first_updated_raw.model_dump_json()
+    assert "signing_provider" in first_updated_raw.model_dump_json()
 
     query_filter = RawDataFilter(
         organization=[raw.boefje_meta.organization],

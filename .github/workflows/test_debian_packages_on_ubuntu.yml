@@ -19,12 +19,12 @@ jobs:
       contents: read
     strategy:
       matrix:
-        dist: [ubuntu22.04]
+        dist: [ubuntu22.04, ubuntu24.04]
         package: [bytes, boefjes, rocky, octopoes, mula]
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get version from release tag or generate one
         run: |
@@ -52,7 +52,7 @@ jobs:
             --workdir /app
 
       - name: Upload .deb to artifacts
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
           path: ${{ matrix.package }}/build/kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_amd64.deb
@@ -65,13 +65,13 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
 
     env:
       PGPASSWORD: postgres # No password prompt
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Get version from release tag or generate one
         run: |
@@ -148,27 +148,27 @@ jobs:
           sudo rabbitmqctl set_permissions -p "kat" "kat" ".*" ".*" ".*"
 
       - name: Download Bytes artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: kat-bytes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Boefjes artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: kat-boefjes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Rocky artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: kat-rocky_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Mula artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: kat-mula_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Octopoes artifact
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: kat-octopoes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
@@ -251,7 +251,7 @@ jobs:
           if [ $s != 0 ]; then echo $(curl -v http://localhost:8001/_dev/health) || true && journalctl --no-pager -u kat-octopoes.service && exit $s ; fi
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
         with:
           python-version: "3.13"
           cache: pip
@@ -266,7 +266,7 @@ jobs:
         run: robot -d rocky/tests/robot/results-ci -v headless:true rocky/tests/robot/ci
 
       - name: Upload Robot Framework reports
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: rf-results-ci

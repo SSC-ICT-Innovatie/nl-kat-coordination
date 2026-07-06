@@ -1,5 +1,5 @@
-FROM golang:1.24-alpine AS build
-ARG NUCLEI_VERSION=v3.2.4
+FROM golang:1.25-alpine AS build
+ARG NUCLEI_VERSION=v3.9.0
 
 RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@${NUCLEI_VERSION}
 

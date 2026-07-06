@@ -17,7 +17,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     for _, subdomain in results["subdomains"].items():
         hostname = subdomain["url"].rstrip(".")
-        registered_domain = tldextract.extract(hostname).registered_domain
+        registered_domain = tldextract.extract(hostname).top_domain_under_public_suffix
 
         registered_domain_ooi = Hostname(name=registered_domain, network=internet.reference)
         yield registered_domain_ooi

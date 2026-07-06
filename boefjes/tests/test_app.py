@@ -157,7 +157,7 @@ def test_two_processes_cleanup_unfinished_tasks(
     # Tasks (one with the same id) was still unhandled the queue and pushed back to the scheduler by the main process
     assert manager.scheduler_client._pushed_items["70da7d4f-f41f-4940-901b-d98a92e9014b"][0].scheduler_id == "boefje"
     assert (
-        json.loads(manager.scheduler_client._pushed_items["70da7d4f-f41f-4940-901b-d98a92e9014b"][0].model_dump_json())
+        manager.scheduler_client._pushed_items["70da7d4f-f41f-4940-901b-d98a92e9014b"][0].model_dump(mode="json")
         == json.loads(get_dummy_data("scheduler/pop_response_boefje.json")).get("results")[0]
     )
 
