@@ -27,6 +27,7 @@ from reports.report_types.findings_report.report import FindingsReport
 from tools.enums import SCAN_LEVEL
 from tools.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Indemnification, Organization, OrganizationMember
 
+from octopoes.api.models import FindingsByOOIResponse
 from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -35,7 +36,7 @@ from octopoes.config.settings import (
 )
 from octopoes.models import OOI, DeclaredScanProfile, EmptyScanProfile, Reference, ScanLevel, ScanProfileType
 from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType, RiskLevelSeverity
+from octopoes.models.ooi.findings import CVEFindingType, Finding, FindingType, KATFindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, Protocol
 from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.ooi.service import IPService, Service, TLSCipher
@@ -1348,6 +1349,12 @@ class MockOctopoesAPIConnector:
         self, reference: Reference, valid_time: datetime, types: set = frozenset(), depth: int = 1
     ) -> ReferenceTree:
         return self.tree[reference]
+
+    def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> FindingsByOOIResponse:
+        store = self.tree[reference].store
+        findings = [ooi for ooi in store.values() if isinstance(ooi, Finding)]
+        finding_types = [ooi for ooi in getattr(self, "oois", {}).values() if isinstance(ooi, FindingType)]
+        return FindingsByOOIResponse(findings=findings, finding_types=finding_types)
 
     def query(
         self, path: str, valid_time: datetime, source: Reference | str | None = None, offset: int = 0, limit: int = 50
