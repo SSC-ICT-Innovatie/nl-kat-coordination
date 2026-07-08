@@ -59,7 +59,7 @@ class RelatedFieldNode:
         if depth > 0:
             self.construct_outgoing_relations(search_types)
             for child_node in self.relations_out.values():
-                child_node.build_tree(depth - 1)
+                child_node.build_tree(depth - 1, search_types)
 
             self.construct_incoming_relations(search_types)
             for child_node in self.relations_in.values():

@@ -278,8 +278,6 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
             )
 
     def get_input_data(self, report_ooi: Report) -> dict[str, Any]:
-        self.bytes_client.login()
-
         report_data = TypeAdapter(Any, config={"arbitrary_types_allowed": True}).validate_json(
             self.bytes_client.get_raw(raw_id=report_ooi.data_raw_id)
         )
