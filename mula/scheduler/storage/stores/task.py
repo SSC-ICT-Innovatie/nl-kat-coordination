@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import desc, exc, func, literal
+from sqlalchemy import desc, exc, func
 
 from scheduler import models
 from scheduler.storage import DBConn
@@ -60,8 +60,8 @@ class TaskStore:
 
             if filters is not None:
                 query = apply_filter(models.TaskDB, query, filters)
-           
-            try:                
+
+            try:
                 # if limit == 0, we dont know the page size, and thus cannot perform a bounded query
                 if limit == 0:
                     return [], query.count(), False
