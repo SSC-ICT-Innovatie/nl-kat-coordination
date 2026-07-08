@@ -17,7 +17,7 @@ class SchedulerAPI:
 
         self.api.add_api_route(
             path="/schedulers",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET"],
             response_model=list[schemas.Scheduler],
             status_code=status.HTTP_200_OK,
@@ -51,7 +51,7 @@ class SchedulerAPI:
             description="Pop a task from a scheduler",
         )
 
-    def list(self) -> list[schemas.Scheduler]:
+    def get_paged(self) -> list[schemas.Scheduler]:
         return [schemas.Scheduler(**s.dict()) for s in self.schedulers.values()]
 
     def get(self, scheduler_id: str) -> schemas.Scheduler:

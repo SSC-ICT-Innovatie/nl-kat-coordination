@@ -149,7 +149,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
         filters = self._init_filters(formdata)
         filters = self._build_task_filters(formdata, filters)
 
-        return {"scheduler_id": self.scheduler_id, "task_type": self.task_type, "filters": filters, **formdata}
+        return {"scheduler_id": self.scheduler_id, "filters": filters, **formdata}
 
     def count_active_task_filters(self, subtract=None):
         if not subtract:
@@ -203,7 +203,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
 
     def get_task_statistics(self) -> dict[Any, Any]:
         try:
-            return self.scheduler_client.get_task_stats(self.task_type)
+            return self.scheduler_client.get_task_stats(self.scheduler_id)
         except SchedulerError as error:
             messages.error(self.request, error.message)
         return {}
@@ -377,7 +377,7 @@ class SchedulerView(UnboundSchedulerView, OctopoesView):
     def get_task_statistics(self) -> dict[Any, Any]:
         stats = {}
         try:
-            stats = self.scheduler_client.get_task_stats(self.task_type)
+            stats = self.scheduler_client.get_task_stats(self.scheduler_id)
         except SchedulerError as error:
             messages.error(self.request, error.message)
         return stats
