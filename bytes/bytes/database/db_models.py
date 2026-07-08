@@ -22,6 +22,13 @@ class BoefjeMetaInDB(SQL_BASE):
 
 
 Index("ix_boefje_meta_organization_boefje_id", BoefjeMetaInDB.organization, BoefjeMetaInDB.boefje_id)
+Index(
+    "ix_boefje_meta_lookup",
+    BoefjeMetaInDB.organization,
+    BoefjeMetaInDB.boefje_id,
+    BoefjeMetaInDB.input_ooi,
+    BoefjeMetaInDB.started_at.desc(),
+)
 
 
 class SigningProviderInDB(SQL_BASE):
