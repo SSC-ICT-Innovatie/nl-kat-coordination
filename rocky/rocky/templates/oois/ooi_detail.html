@@ -58,7 +58,7 @@
                         </form>
                     </div>
                 </div>
-                {% if not organization_indemnification %}
+                {% if not indemnification_present %}
                     <p class="warning"
                        role="group"
                        aria-label="{% translate "indemnification warning" %}">
@@ -117,7 +117,7 @@
 
                                         </td>
                                         <td class="nowrap">
-                                            {% if not organization_indemnification or not perms.tools.can_scan_organization or member.max_clearance_level < ooi.scan_profile.level %}
+                                            {% if not indemnification_present or not perms.tools.can_scan_organization or member.max_clearance_level < ooi.scan_profile.level %}
                                                 {% translate "Unable to start scan. See the warning for more details." %}
                                             {% elif ooi.scan_profile.level < boefje.scan_level.value %}
                                                 <button type="button" class="disabled">{% translate "Start scan" %}</button>
