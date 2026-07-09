@@ -9,7 +9,7 @@
 
     <main id="main-content">
         <section>
-            {% if ooi_past_due %}
+            {% if historic_view %}
                 {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
 
             {% endif %}
