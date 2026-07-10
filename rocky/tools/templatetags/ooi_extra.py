@@ -46,7 +46,6 @@ def parse_observed_at(observed_at):
         return observed_at
     except TypeError:
         return observed_at
-    return datetime.now(timezone.utc)
 
 
 @register.filter
