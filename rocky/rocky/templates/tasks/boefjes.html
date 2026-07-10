@@ -57,7 +57,7 @@
                                            title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
                                         <a href="{{ request.path }}{% querystring plugin_id=task.data.boefje.id %}"
                                            title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
-                                        <a href="{% url "boefje_detail" task.data.organization task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
+                                        <a href="{% app_url "boefje_detail" plugin_id=task.data.boefje.id temporal_context=task.created_at %}">{{ task.data.boefje.name }}</a>
                                     </td>
                                     <td>
                                         <i class="icon {{ task.status.value }}"></i>
@@ -73,7 +73,7 @@
                                            title="{% translate "Filter on this ooi" %}"><i class="icon filter"></i></a>
                                         <a href="{{ request.path }}{% querystring ooi_id=task.data.input_ooi %}"
                                            title="{% translate "Add filter on this ooi" %}"><i class="icon filteradd"></i></a>
-                                        <a href="{% ooi_url "ooi_detail" task.data.input_ooi task.data.organization observed_at=task.created_at|date:'c' %}">{{ task.data.input_ooi }}</a>
+                                        <a href="{% app_url "ooi_detail" ooi=task.data.input_ooi organization_code=task.data.organization temporal_context=task.created_at %}">{{ task.data.input_ooi }}</a>
                                     </td>
                                     <td class="actions sticky-cell">
                                         <button type="button"

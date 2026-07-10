@@ -1,10 +1,12 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
+from urllib.parse import quote
 
 from account.models import KATUser
 from django import template
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import OOI, Reference, ScanLevel
@@ -12,6 +14,39 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from tools.view_helpers import get_ooi_url
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def app_url(context, viewname, *args, **kwargs):
+    organization = context.get("organization")
+    temporal_context = context.get("temporal_context")
+
+    if organization is not None:
+        kwargs.setdefault("organization_code", organization.code)
+
+    if "temporal_context" in kwargs:
+        urldate = parse_observed_at(kwargs["temporal_context"]).strftime("%Y-%m-%d %H:%M:%S.%f")
+        kwargs["temporal_context"] = f"at-{urldate}"
+
+    if temporal_context is not None:
+        kwargs.setdefault("temporal_context", temporal_context)
+
+    if "ooi" in kwargs:
+        kwargs["ooi"] = quote(str(kwargs["ooi"]), safe="")
+
+    return reverse(viewname, args=args, kwargs=kwargs)
+
+
+def parse_observed_at(observed_at):
+    try:
+        observed_at = datetime.fromisoformat(observed_at)
+        if not observed_at.tzinfo:
+            observed_at = observed_at.replace(tzinfo=timezone.utc)
+
+        return observed_at
+    except TypeError:
+        return observed_at
+    return datetime.now(timezone.utc)
 
 
 @register.filter

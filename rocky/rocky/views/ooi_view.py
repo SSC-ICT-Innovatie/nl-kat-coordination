@@ -148,7 +148,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         if self.observed_at.date() == now.date():
             return self.ooi
         try:
-            return self.get_ooi_tree(self.get_ooi_id(), observed_at=now).store[self.get_ooi_id()]
+            return self.get_ooi_tree(self.ooi_id, observed_at=now).store[self.ooi_id]
         except Http404:
             return None
 
@@ -164,18 +164,31 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         start: Breadcrumb
         if isinstance(self.ooi, Finding):
             start = {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Findings"),
             }
         else:
             start = {
-                "url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Objects"),
             }
         return [
             start,
             {
-                "url": get_ooi_url("ooi_detail", self.ooi.primary_key, self.organization.code),
+                "url": reverse(
+                    "ooi_detail",
+                    kwargs={
+                        "ooi": self.ooi.primary_key,
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                    },
+                ),
                 "text": self.ooi.human_readable,
             },
         ]

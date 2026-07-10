@@ -151,12 +151,20 @@ class BoefjeDetailView(PluginDetailView):
 
         context["breadcrumbs"] = [
             {
-                "url": reverse("katalogus", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "katalogus",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("KAT-alogus"),
             },
             {
                 "url": reverse(
-                    "boefje_detail", kwargs={"organization_code": self.organization.code, "plugin_id": self.plugin.id}
+                    "boefje_detail",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "plugin_id": self.plugin.id,
+                    },
                 ),
                 "text": self.plugin.name,
             },

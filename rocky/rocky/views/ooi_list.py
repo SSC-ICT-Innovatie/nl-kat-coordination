@@ -52,7 +52,13 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
         context["organization_indemnification"] = self.get_organization_indemnification
         context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")}
+            {
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": _("Objects"),
+            }
         ]
 
         return context
