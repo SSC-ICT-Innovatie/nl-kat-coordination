@@ -110,7 +110,9 @@ class ObservedAtMixin(ContextMixin, View):
         temporal_context = kwargs.get("temporal_context", "now")
         self.raw_temporal_context: str | None = None
         if temporal_context != "now":
-            self.raw_temporal_context = temporal_context[3:]  # strips 'at-'
+            self.raw_temporal_context = (
+                temporal_context.removeprefix("at-") if temporal_context.startswith("at-") else temporal_context
+            )
 
     @cached_property
     def is_historic_view(self) -> bool:
