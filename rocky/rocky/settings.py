@@ -336,12 +336,22 @@ LOCALE_PATHS = (BASE_DIR / "rocky/locale",)
 EXTRA_LANG_INFO = {
     "pap": {"bidi": False, "code": "pap", "name": "Papiamentu", "name_local": "Papiamentu"},
     "en@pirate": {"bidi": False, "code": "en@pirate", "name": "English (Pirate)", "name_local": "English (Pirate)"},
+    "la": {"bidi": False, "code": "la", "name": "Latin", "name_local": "Latina"},
 }
 LANG_INFO = locale.LANG_INFO.copy()
 LANG_INFO.update(EXTRA_LANG_INFO)
 locale.LANG_INFO = LANG_INFO
 
-LANGUAGES = [("en", "en"), ("nl", "nl"), ("pap", "pap"), ("it", "it"), ("fy", "fy")]
+LANGUAGES = [
+    ("en", "en"),
+    ("nl", "nl"),
+    ("pap", "pap"),
+    ("it", "it"),
+    ("fy", "fy"),
+    ("pl", "pl"),
+    ("id", "id"),
+    ("la", "la"),
+]
 
 if env.bool("PIRATE", False):
     LANGUAGE_CODE = "en@pirate"
