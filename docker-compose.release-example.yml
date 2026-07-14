@@ -65,6 +65,17 @@ services:
         soft: 262144
         hard: 262144
 
+  octopoes_api_scanprofiles:
+    restart: on-failure
+    depends_on:
+      - octopoes_api
+      - katalogus
+    image: "docker.underdark.nl/librekat/openkat-octopoes:${KAT_VERSION}"
+    command: scanprofiles
+    env_file:
+      - .env-prod
+      - .env
+
   boefje:
     restart: on-failure
     depends_on:
