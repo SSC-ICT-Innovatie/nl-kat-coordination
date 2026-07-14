@@ -68,3 +68,9 @@ Index("ix_schedules_enabled", ScheduleDB.enabled)
 Index("ix_schedules_hash", ScheduleDB.hash)
 Index("ix_schedules_organisation", ScheduleDB.organisation)
 Index("ix_schedules_scheduler_id", ScheduleDB.scheduler_id)
+Index(
+    "ix_schedules_deadline",
+    ScheduleDB.scheduler_id,
+    ScheduleDB.deadline_at,
+    postgresql_where=ScheduleDB.enabled.is_(True),
+)
