@@ -3,8 +3,8 @@ name = "bytes"
 version = "0.0.1.dev1"
 description = "OpenKAT's forensic data store"
 authors = [{ name = "Stichting Librekat", email = "maintainer@librekat.nl" }]
+license = { text = "EUPL-1.2" }
 requires-python = ">=3.10"
-license = "EUPL-1.2"
 dependencies = [
     "alembic>=1.8.1,<2",
     "cachetools>6",
