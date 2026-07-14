@@ -82,17 +82,52 @@ class TaskDB(Base):
     modified_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
 
-Index("ix_tasks_status_queued", TaskDB.scheduler_id, TaskDB.status, postgresql_where=TaskDB.status == TaskStatus.QUEUED)
 Index("ix_tasks_organisation", TaskDB.organisation)
+Index("ix_tasks_org_type_created", TaskDB.organisation, TaskDB.type, TaskDB.created_at.desc())
 Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
 Index("ix_tasks_status", TaskDB.status)
-Index("ix_tasks_type", TaskDB.type)
+Index("ix_tasks_schedule_status", TaskDB.schedule_id, TaskDB.status)
+Index("ix_tasks_type", TaskDB.type, TaskDB.created_at.desc())
+Index("ix_tasks_hash_created", TaskDB.hash, TaskDB.created_at.desc())
+
+# used by the scheduler to find queued items
+Index(
+    "ix_tasks_queue_polling",
+    TaskDB.scheduler_id,
+    TaskDB.status,
+    TaskDB.priority,
+    TaskDB.created_at,
+    postgresql_where=TaskDB.status == TaskStatus.QUEUED,
+)
+Index("ix_tasks_status_queued", TaskDB.scheduler_id, TaskDB.status, postgresql_where=TaskDB.status == TaskStatus.QUEUED)
+
 # only have one 'active or to be active task on the queue per schedule_id'
+# used by the scheduler's job rescheduler
 Index(
     "ix_tasks_active_per_schedule",
     TaskDB.schedule_id,
     unique=True,
     postgresql_where=TaskDB.status.in_(ACTIVE_TASK_STATUSES),
+)
+
+# used by the superadmin task list stats
+Index("ix_tasks_scheduler_modified_status", TaskDB.scheduler_id, TaskDB.modified_at.desc(), TaskDB.status)
+# used by the regular user task list stats
+Index(
+    "ix_tasks_org_scheduler_modified_status",
+    TaskDB.organisation,
+    TaskDB.scheduler_id,
+    TaskDB.modified_at.desc(),
+    TaskDB.status,
+)
+
+# used by the object detail page's task list
+Index(
+    "ix_tasks_sched_org_input_ooi_created",
+    TaskDB.organisation,
+    TaskDB.scheduler_id,
+    TaskDB.data["input_ooi"].astext,
+    TaskDB.created_at.desc(),
 )
 
 
