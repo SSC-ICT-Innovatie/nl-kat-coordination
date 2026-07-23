@@ -1,10 +1,5 @@
 from dataclasses import asdict
 
-from octopoes.api.models import Declaration
-from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import Reference
-from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType, RiskLevelSeverity
-from octopoes.models.ooi.reports import ReportData
 from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
 from reports.report_types.definitions import MultiReport, Report
 from reports.report_types.multi_organization_report.report import MultiOrganizationReport, collect_report_data
@@ -13,6 +8,11 @@ from reports.report_types.vulnerability_report.report import VulnerabilityReport
 from reports.report_types.web_system_report.report import WebSystemReport
 from reports.runner.report_runner import aggregate_reports
 
+from octopoes.api.models import Declaration
+from octopoes.connector.octopoes import OctopoesAPIConnector
+from octopoes.models import Reference
+from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType, RiskLevelSeverity
+from octopoes.models.ooi.reports import ReportData
 from tests.integration.conftest import seed_system
 
 
@@ -92,9 +92,7 @@ def test_system_report(octopoes_api_connector: OctopoesAPIConnector, valid_time)
     }
 
 
-def test_vulnerability_report_includes_http_header_finding_only_under_observed_ip(
-    octopoes_api_connector: OctopoesAPIConnector, valid_time
-):
+def test_http_header_cve(octopoes_api_connector: OctopoesAPIConnector, valid_time):
     system = seed_system(octopoes_api_connector, valid_time)
     finding_type = CVEFindingType(
         id="CVE-2021-41773",
