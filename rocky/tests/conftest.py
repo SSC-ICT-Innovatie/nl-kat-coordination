@@ -1396,6 +1396,11 @@ class MockOctopoesAPIConnector:
     ) -> Paginated[OOIType]:
         return Paginated[OOIType](items=list(self.oois.values()), count=len(self.oois))
 
+    def load_objects_bulk(
+        self, references: set[Reference], valid_time: datetime, with_scan_profiles: bool = True
+    ) -> dict[Reference, OOIType]:
+        return {reference: self.oois[reference] for reference in references if reference in self.oois}
+
 
 @pytest.fixture
 def mock_octopoes_api_connector(valid_time):
