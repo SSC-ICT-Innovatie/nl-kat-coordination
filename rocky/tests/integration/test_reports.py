@@ -1,17 +1,18 @@
 from dataclasses import asdict
 
+from octopoes.api.models import Declaration
+from octopoes.connector.octopoes import OctopoesAPIConnector
+from octopoes.models import Reference
+from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType, RiskLevelSeverity
+from octopoes.models.ooi.reports import ReportData
 from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
 from reports.report_types.definitions import MultiReport, Report
 from reports.report_types.multi_organization_report.report import MultiOrganizationReport, collect_report_data
 from reports.report_types.systems_report.report import SystemReport, SystemType
+from reports.report_types.vulnerability_report.report import VulnerabilityReport
 from reports.report_types.web_system_report.report import WebSystemReport
 from reports.runner.report_runner import aggregate_reports
 
-from octopoes.api.models import Declaration
-from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import Reference
-from octopoes.models.ooi.findings import Finding, KATFindingType, RiskLevelSeverity
-from octopoes.models.ooi.reports import ReportData
 from tests.integration.conftest import seed_system
 
 
@@ -91,6 +92,34 @@ def test_system_report(octopoes_api_connector: OctopoesAPIConnector, valid_time)
     }
 
 
+def test_vulnerability_report_includes_http_header_finding_only_under_observed_ip(
+    octopoes_api_connector: OctopoesAPIConnector, valid_time
+):
+    system = seed_system(octopoes_api_connector, valid_time)
+    finding_type = CVEFindingType(
+        id="CVE-2021-41773",
+        risk_score=9.8,
+        risk_severity=RiskLevelSeverity.CRITICAL,
+        description="Apache path traversal and file disclosure",
+    )
+    finding = Finding(finding_type=finding_type.reference, ooi=system["headers"][0].reference)
+    octopoes_api_connector.save_declaration(Declaration(ooi=finding_type, valid_time=valid_time))
+    octopoes_api_connector.save_declaration(Declaration(ooi=finding, valid_time=valid_time))
+
+    input_ooi = Reference.from_str("Hostname|test|example.com")
+    data = VulnerabilityReport(octopoes_api_connector).collect_data([input_ooi], valid_time)[input_ooi]
+    ipv4 = "IPAddressV4|test|192.0.2.3"
+    ipv6 = "IPAddressV6|test|3e4d:64a2:cb49:bd48:a1ba:def3:d15d:9230"
+
+    assert data[ipv4]["vulnerabilities"]["CVE-2021-41773"]["cvss"] == {
+        "class": "critical",
+        "score": 9.8,
+        "severity": "Critical",
+    }
+    assert data[ipv4]["vulnerabilities"]["CVE-2021-41773"]["occurrences"] == 1
+    assert "CVE-2021-41773" not in data[ipv6]["vulnerabilities"]
+
+
 def test_aggregate_report(octopoes_api_connector: OctopoesAPIConnector, valid_time, hostname_oois, organization):
     seed_system(octopoes_api_connector, valid_time)
 
@@ -149,7 +178,7 @@ def test_aggregate_report(octopoes_api_connector: OctopoesAPIConnector, valid_ti
     }
     assert data["ipv6"] == {"example.com": {"enabled": True, "systems": ["Dicom", "Mail", "Other", "Web"]}}
     assert data["vulnerabilities"]["IPAddressV4|test|192.0.2.3"]["summary"] == {
-        "total_findings": 6,
+        "total_findings": 3,
         "total_criticals": 0,
         "terms": ["CVE-2018-20677", "CVE-2019-8331", "RetireJS-jquerymigrate-f3a3"],
         "recommendations": [],
@@ -157,22 +186,22 @@ def test_aggregate_report(octopoes_api_connector: OctopoesAPIConnector, valid_ti
 
     v4_vulnerabilities = data["vulnerabilities"]["IPAddressV4|test|192.0.2.3"]
     assert v4_vulnerabilities["title"] == "192.0.2.3"
-    assert v4_vulnerabilities["vulnerabilities"]["CVE-2018-20677"]["occurrences"] == 2
-    assert v4_vulnerabilities["vulnerabilities"]["RetireJS-jquerymigrate-f3a3"]["occurrences"] == 2
-    assert v4_vulnerabilities["vulnerabilities"]["CVE-2019-8331"]["occurrences"] == 2
+    assert v4_vulnerabilities["vulnerabilities"]["CVE-2018-20677"]["occurrences"] == 1
+    assert v4_vulnerabilities["vulnerabilities"]["RetireJS-jquerymigrate-f3a3"]["occurrences"] == 1
+    assert v4_vulnerabilities["vulnerabilities"]["CVE-2019-8331"]["occurrences"] == 1
 
     v6_vulnerabilities = data["vulnerabilities"]["IPAddressV6|test|3e4d:64a2:cb49:bd48:a1ba:def3:d15d:9230"]
     assert v6_vulnerabilities["title"] == "3e4d:64a2:cb49:bd48:a1ba:def3:d15d:9230"
     assert v6_vulnerabilities["summary"] == {
-        "total_findings": 6,
+        "total_findings": 3,
         "total_criticals": 0,
         "terms": ["CVE-2018-20677", "CVE-2019-8331", "RetireJS-jquerymigrate-f3a3"],
         "recommendations": [],
     }
     assert v6_vulnerabilities["title"] == "3e4d:64a2:cb49:bd48:a1ba:def3:d15d:9230"
-    assert v6_vulnerabilities["vulnerabilities"]["CVE-2018-20677"]["occurrences"] == 2
-    assert v6_vulnerabilities["vulnerabilities"]["RetireJS-jquerymigrate-f3a3"]["occurrences"] == 2
-    assert v6_vulnerabilities["vulnerabilities"]["CVE-2019-8331"]["occurrences"] == 2
+    assert v6_vulnerabilities["vulnerabilities"]["CVE-2018-20677"]["occurrences"] == 1
+    assert v6_vulnerabilities["vulnerabilities"]["RetireJS-jquerymigrate-f3a3"]["occurrences"] == 1
+    assert v6_vulnerabilities["vulnerabilities"]["CVE-2019-8331"]["occurrences"] == 1
 
     assert data["basic_security"]["summary"]["Dicom"] == {
         "rpki": {"number_of_compliant": 1, "total": 1},
