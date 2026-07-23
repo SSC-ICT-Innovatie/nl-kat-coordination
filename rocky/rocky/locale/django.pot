@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-28 14:22+0000\n"
+"POT-Creation-Date: 2026-07-23 13:04+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1662,7 +1662,7 @@ msgstr ""
 msgid "Latest plugin settings"
 msgstr ""
 
-#: katalogus/templates/katalogus_settings.html
+#: katalogus/templates/katalogus_settings.html tools/forms/scheduler.py
 #: rocky/templates/tasks/ooi_detail_task_list.html
 msgid "Plugin"
 msgstr ""
@@ -4868,7 +4868,7 @@ msgstr ""
 msgid "Filter by muted findings"
 msgstr ""
 
-#: tools/forms/findings.py tools/forms/ooi_form.py tools/forms/scheduler.py
+#: tools/forms/findings.py tools/forms/ooi_form.py
 msgid "Search"
 msgstr ""
 
@@ -4961,11 +4961,45 @@ msgid "Running"
 msgstr ""
 
 #: tools/forms/scheduler.py
+msgid "Search (in OOI)"
+msgstr ""
+
+#: tools/forms/scheduler.py
 msgid "Search by object name"
 msgstr ""
 
 #: tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
+msgid "Input OOI"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Select specific object"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by plugin"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Task id"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by task ID"
+msgstr ""
+
+#: tools/forms/scheduler.py
+#, python-format
+msgid ""
+"The selected date (%s) is in the future. Please select a different date."
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'from'"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'to'"
 msgstr ""
 
 #: tools/forms/settings.py
@@ -6808,6 +6842,30 @@ msgstr ""
 msgid "Modified date"
 msgstr ""
 
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Filter on this plugin"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this plugin"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Add filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Filter on this ooi"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this ooi"
+msgstr ""
+
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
 msgstr ""
@@ -6853,15 +6911,39 @@ msgid "Loading..."
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
+msgid "Normalizer task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Processing input from Boefje task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
 msgid "Yielded objects"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded raw files"
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Related Normalizer tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
@@ -7152,6 +7234,10 @@ msgstr ""
 
 #: rocky/templates/upload_raw.html rocky/views/upload_raw.py
 msgid "Upload raw"
+msgstr ""
+
+#: rocky/views/bytes_raw.py
+msgid "Getting raw data failed, No such meta."
 msgstr ""
 
 #: rocky/views/bytes_raw.py
@@ -7451,14 +7537,14 @@ msgid "Scans"
 msgstr ""
 
 #: rocky/views/scheduler.py
-msgid "Your report has been scheduled."
-msgstr ""
-
-#: rocky/views/scheduler.py
 msgid ""
 "Your task is scheduled and will soon be started in the background. Results "
 "will be added to the object list when they are in. It may take some time, a "
 "refresh of the page may be needed to show the results."
+msgstr ""
+
+#: rocky/views/scheduler.py
+msgid "Your report has been scheduled."
 msgstr ""
 
 #: rocky/views/tasks.py
