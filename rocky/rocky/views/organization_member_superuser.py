@@ -64,9 +64,7 @@ class GrantSuperuserAccessView(UserPassesTestMixin, OrganizationView, TemplateVi
     def post(self, request, *args, **kwargs):
         with transaction.atomic():
             target_member = get_object_or_404(
-                OrganizationMember.objects.select_for_update(),
-                pk=kwargs["pk"],
-                organization=self.organization,
+                OrganizationMember.objects.select_for_update(), pk=kwargs["pk"], organization=self.organization
             )
             target_user = User.objects.select_for_update().get(pk=target_member.user_id)
             previous_is_superuser = target_user.is_superuser
