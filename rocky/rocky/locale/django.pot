@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 11:17+0000\n"
+"POT-Creation-Date: 2026-07-24 20:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -589,6 +589,7 @@ msgstr ""
 #: rocky/templates/oois/ooi_mute_finding.html
 #: rocky/templates/organizations/organization_edit.html
 #: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_grant_superuser.html
 #: rocky/templates/partials/delete_ooi_modal.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 #: rocky/templates/partials/mute_findings_modal.html
@@ -930,7 +931,6 @@ msgstr ""
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
-#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -946,7 +946,6 @@ msgstr ""
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
-#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -5223,6 +5222,7 @@ msgstr ""
 #: tools/view_helpers.py rocky/templates/header.html
 #: rocky/templates/organizations/organization_member_list.html
 #: rocky/views/organization_member_edit.py
+#: rocky/views/organization_member_superuser.py
 msgid "Members"
 msgstr ""
 
@@ -6058,47 +6058,6 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Loading..."
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Normalizer task"
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Consuming Raw file"
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded raw files for task"
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Origin boefje task"
-msgstr ""
-
-#: rocky/templates/oois/ooi_detail_origins_observations.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "See all similar tasks"
-msgstr ""
-
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6153,13 +6112,21 @@ msgid "List of views for OOI"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "You are looking at a historic view of this object."
+msgid "This object is past due"
+msgstr ""
+
+#: rocky/templates/oois/ooi_past_due_warning.html
+msgid "This object is past due and has been deleted"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"You are looking at a historic view of this object which has been deleted in "
-"the current timeline"
+"This object is past due. You are viewing the object state in a past state."
+msgstr ""
+
+#: rocky/templates/oois/ooi_past_due_warning.html
+msgid ""
+"You will not be able to add Findings or other OOI's to past due objects."
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
@@ -6278,11 +6245,57 @@ msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
 #: rocky/views/organization_member_edit.py
+#: rocky/views/organization_member_superuser.py
 msgid "Edit member"
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
 msgid "Save member"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+msgid "Global account access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+msgid ""
+"Superuser access applies to every organization and all administrative "
+"functionality in this OpenKAT installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#: rocky/views/organization_member_superuser.py
+msgid "Grant superuser access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#, python-format
+msgid ""
+"You are about to grant <strong>%(email)s</strong> unrestricted access to "
+"every organization and all administrative functionality in this OpenKAT "
+"installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid "This is a global account permission, not an organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid ""
+"Rocky cannot revoke this permission. To revoke it, open this account under "
+"Accounts > Users in Django administration, clear both Superuser status and "
+"Staff status, and save."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid "Open this account in Django administration"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid ""
+"Only continue when this person is authorized to administer the entire "
+"installation."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
@@ -6842,6 +6855,11 @@ msgid ""
 msgstr ""
 
 #: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr ""
+
+#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr ""
 
@@ -6937,7 +6955,35 @@ msgid "List of tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Normalizer task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
 msgid "Processing input from Boefje task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
@@ -7293,10 +7339,6 @@ msgid "Dashboard item has been added."
 msgstr ""
 
 #: rocky/views/ooi_add.py
-msgid "Type select"
-msgstr ""
-
-#: rocky/views/ooi_add.py
 #, python-format
 msgid "Add %(ooi_type)s"
 msgstr ""
@@ -7522,6 +7564,21 @@ msgstr ""
 #: rocky/views/organization_member_list.py
 #, python-format
 msgid "Unblocked member %s successfully."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s is inactive and cannot be granted superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s already has superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "Superuser access granted to %(email)s."
 msgstr ""
 
 #: rocky/views/organization_settings.py
