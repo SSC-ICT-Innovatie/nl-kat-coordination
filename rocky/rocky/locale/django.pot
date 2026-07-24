@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-28 14:22+0000\n"
+"POT-Creation-Date: 2026-07-24 20:14+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -589,6 +589,7 @@ msgstr ""
 #: rocky/templates/oois/ooi_mute_finding.html
 #: rocky/templates/organizations/organization_edit.html
 #: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_grant_superuser.html
 #: rocky/templates/partials/delete_ooi_modal.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 #: rocky/templates/partials/mute_findings_modal.html
@@ -1662,7 +1663,7 @@ msgstr ""
 msgid "Latest plugin settings"
 msgstr ""
 
-#: katalogus/templates/katalogus_settings.html
+#: katalogus/templates/katalogus_settings.html tools/forms/scheduler.py
 #: rocky/templates/tasks/ooi_detail_task_list.html
 msgid "Plugin"
 msgstr ""
@@ -4868,7 +4869,7 @@ msgstr ""
 msgid "Filter by muted findings"
 msgstr ""
 
-#: tools/forms/findings.py tools/forms/ooi_form.py tools/forms/scheduler.py
+#: tools/forms/findings.py tools/forms/ooi_form.py
 msgid "Search"
 msgstr ""
 
@@ -4961,11 +4962,45 @@ msgid "Running"
 msgstr ""
 
 #: tools/forms/scheduler.py
+msgid "Search (in OOI)"
+msgstr ""
+
+#: tools/forms/scheduler.py
 msgid "Search by object name"
 msgstr ""
 
 #: tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
+msgid "Input OOI"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Select specific object"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by plugin"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Task id"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by task ID"
+msgstr ""
+
+#: tools/forms/scheduler.py
+#, python-format
+msgid ""
+"The selected date (%s) is in the future. Please select a different date."
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'from'"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'to'"
 msgstr ""
 
 #: tools/forms/settings.py
@@ -5187,6 +5222,7 @@ msgstr ""
 #: tools/view_helpers.py rocky/templates/header.html
 #: rocky/templates/organizations/organization_member_list.html
 #: rocky/views/organization_member_edit.py
+#: rocky/views/organization_member_superuser.py
 msgid "Members"
 msgstr ""
 
@@ -6209,11 +6245,57 @@ msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
 #: rocky/views/organization_member_edit.py
+#: rocky/views/organization_member_superuser.py
 msgid "Edit member"
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
 msgid "Save member"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+msgid "Global account access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+msgid ""
+"Superuser access applies to every organization and all administrative "
+"functionality in this OpenKAT installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#: rocky/views/organization_member_superuser.py
+msgid "Grant superuser access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#, python-format
+msgid ""
+"You are about to grant <strong>%(email)s</strong> unrestricted access to "
+"every organization and all administrative functionality in this OpenKAT "
+"installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid "This is a global account permission, not an organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid ""
+"Rocky cannot revoke this permission. To revoke it, open this account under "
+"Accounts > Users in Django administration, clear both Superuser status and "
+"Staff status, and save."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid "Open this account in Django administration"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid ""
+"Only continue when this person is authorized to administer the entire "
+"installation."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
@@ -6808,6 +6890,30 @@ msgstr ""
 msgid "Modified date"
 msgstr ""
 
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Filter on this plugin"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this plugin"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Add filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Filter on this ooi"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this ooi"
+msgstr ""
+
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
 msgstr ""
@@ -6853,15 +6959,39 @@ msgid "Loading..."
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
+msgid "Normalizer task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Processing input from Boefje task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
 msgid "Yielded objects"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded raw files"
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Related Normalizer tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
@@ -7155,6 +7285,10 @@ msgid "Upload raw"
 msgstr ""
 
 #: rocky/views/bytes_raw.py
+msgid "Getting raw data failed, No such meta."
+msgstr ""
+
+#: rocky/views/bytes_raw.py
 msgid "Getting raw data failed."
 msgstr ""
 
@@ -7432,6 +7566,21 @@ msgstr ""
 msgid "Unblocked member %s successfully."
 msgstr ""
 
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s is inactive and cannot be granted superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s already has superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "Superuser access granted to %(email)s."
+msgstr ""
+
 #: rocky/views/organization_settings.py
 #, python-brace-format
 msgid "Recalculated {number_of_bits} bits. Duration: {duration}"
@@ -7451,14 +7600,14 @@ msgid "Scans"
 msgstr ""
 
 #: rocky/views/scheduler.py
-msgid "Your report has been scheduled."
-msgstr ""
-
-#: rocky/views/scheduler.py
 msgid ""
 "Your task is scheduled and will soon be started in the background. Results "
 "will be added to the object list when they are in. It may take some time, a "
 "refresh of the page may be needed to show the results."
+msgstr ""
+
+#: rocky/views/scheduler.py
+msgid "Your report has been scheduled."
 msgstr ""
 
 #: rocky/views/tasks.py
