@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div>
+                <h1>{% translate "Grant superuser access" %}</h1>
+                <div class="warning" role="alert">
+                    <p>
+                        {% blocktranslate with email=member.user.email trimmed %}
+                            You are about to grant <strong>{{ email }}</strong> unrestricted access to every organization and all administrative functionality in this OpenKAT installation.
+                        {% endblocktranslate %}
+                    </p>
+                    <p>
+                        {% translate "This is a global account permission, not an organization role." %}
+                        {% translate "Rocky cannot revoke this permission. To revoke it, open this account under Accounts > Users in Django administration, clear both Superuser status and Staff status, and save." %}
+                    </p>
+                    <a href="{% url 'admin:account_katuser_change' member.user.id %}">{% translate "Open this account in Django administration" %}</a>
+                </div>
+                <p>{% translate "Only continue when this person is authorized to administer the entire installation." %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="button-container">
+                        <button type="submit" class="destructive">{% translate "Grant superuser access" %}</button>
+                        <a class="button ghost"
+                           href="{% url 'organization_member_edit' organization.code member.id %}">{% translate "Cancel" %}</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

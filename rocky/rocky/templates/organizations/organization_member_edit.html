@@ -22,6 +22,18 @@
                 </form>
             </div>
         </section>
+        {% if request.user.is_superuser and object.user.is_active and not object.user.is_superuser %}
+            <section>
+                <div>
+                    <h2>{% translate "Global account access" %}</h2>
+                    <p>
+                        {% translate "Superuser access applies to every organization and all administrative functionality in this OpenKAT installation." %}
+                    </p>
+                    <a class="button ghost destructive"
+                       href="{% url 'organization_member_grant_superuser' organization.code object.id %}">{% translate "Grant superuser access" %}</a>
+                </div>
+            </section>
+        {% endif %}
     </main>
 {% endblock content %}
 {% block html_at_end_body %}

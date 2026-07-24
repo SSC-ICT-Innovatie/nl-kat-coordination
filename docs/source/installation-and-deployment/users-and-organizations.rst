@@ -17,6 +17,10 @@ Users
 
 OpenKAT knows four types of users: the client, the red team user, the admin and the superuser. In OpenKAT, permissions utilise a stacked model. This means that a higher permission level includes all lower permissions of the lower levels. The client is a 'read only' type of user, the red teamer is a researcher who can start scans. The admin is an administrative user who can do user management etc, the superuser has the ability to do everything.
 
+Superuser access is global and applies to every organization in an OpenKAT installation. An existing superuser can grant this access to another active account by opening the organization's member overview, editing the member, and selecting ``Grant superuser access`` under ``Global account access``. Rocky shows the installation-wide impact for confirmation before applying the change. Organization admins and other account types cannot grant superuser access.
+
+Rocky cannot revoke superuser access. To revoke it, open the account under :guilabel:`Accounts` > :guilabel:`Users` in Django administration, clear both :guilabel:`Superuser status` and :guilabel:`Staff status`, and save the account.
+
 Rights and functions per user type
 ----------------------------------
 
