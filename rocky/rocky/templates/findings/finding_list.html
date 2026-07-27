@@ -49,7 +49,7 @@
                     <form method="post"
                           id="finding-list-form"
                           class="inline layout-wide"
-                          action="{% url 'finding_mute_bulk' organization.code %}">
+                          action="{% app_url 'finding_mute_bulk' %}">
                         {% csrf_token %}
                     {% endif %}
                     <div class="fifty-fifty">
@@ -125,26 +125,26 @@
                                         </td>
                                         <td>
                                             {% if hydrated_finding.finding_type.name %}
-                                                <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
+                                                <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}"
                                                    title="{% blocktranslate trimmed with finding=hydrated_finding.finding_type.name %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding_type.name }}</a>
                                             {% else %}
-                                                <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
+                                                <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}"
                                                    title="{% blocktranslate trimmed with finding=hydrated_finding.finding.finding_type %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding.finding_type.human_readable }}</a>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding.ooi organization.code query=mandatory_fields observed_at=observed_at %}"
+                                            <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.ooi temporal_context=observed_at %}"
                                                title="{% blocktranslate trimmed with finding=hydrated_finding.finding.primary_key %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding.ooi.human_readable }}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to tree view of {{ hydrated_finding.finding.human_readable }}"
                                                class="icon ti-subtask button"
-                                               href="{% ooi_url 'ooi_tree' hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
+                                               href="{% app_url 'ooi_tree' ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}">{% translate "Tree" %}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to graph view of {{ hydrated_finding.finding.human_readable }}"
                                                class="icon ti-affiliate button"
-                                               href="{% ooi_url 'ooi_graph' hydrated_finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
+                                               href="{% app_url 'ooi_graph' ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}">{% translate "Graph" %}</a>
                                         </td>
                                         <td class="actions sticky-cell">
                                             <button type="button"
@@ -163,14 +163,14 @@
                                                     <div>
                                                         <dt>{% translate "Finding type" %}</dt>
                                                         <dd>
-                                                            <a href="{% ooi_url "ooi_detail" hydrated_finding.finding_type organization.code query=mandatory_fields observed_at=observed_at %}"
+                                                            <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding_type temporal_context=observed_at %}"
                                                                title="{% blocktranslate trimmed with finding_type=hydrated_finding.finding_type.human_readable %} Show details for {{ finding_type }} {% endblocktranslate %}">{{ hydrated_finding.finding_type.human_readable }}</a>
                                                         </dd>
                                                     </div>
                                                     <div>
                                                         <dt>{% translate "OOI type" %}</dt>
                                                         <dd>
-                                                            <a href="{% url "ooi_list" organization_code=organization.code %}?observed_at={{ observed_at }}&ooi_type={{ hydrated_finding.ooi.object_type }}"
+                                                            <a href="{% app_url "ooi_list" temporal_context=observed_at %}?ooi_type={{ hydrated_finding.ooi.object_type }}"
                                                                title="{% blocktranslate trimmed with ooi_type=hydrated_finding.ooi.object_type %} Show {{ ooi_type }} objects {% endblocktranslate %}">{{ hydrated_finding.ooi.object_type }}</a>
                                                         </dd>
                                                     </div>

@@ -24,9 +24,9 @@
                         data-task-status="{{ task.status.value }}">
                         <td>
                             {% if task.type == "boefje" %}
-                                <a href="{% app_url "boefje_detail" plugin_id=task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
+                                <a href="{% app_url "boefje_detail" plugin_id=task.data.boefje.id temporal_context=None %}">{{ task.data.boefje.name }}</a>
                             {% elif task.type == "normalizer" %}
-                                <a href="{% app_url "normalizer_detail" plugin_id=task.data.normalizer.id %}">{{ task.data.normalizer.id }}</a>
+                                <a href="{% app_url "normalizer_detail" plugin_id=task.data.normalizer.id temporal_context=None %}">{{ task.data.normalizer.id }}</a>
                             {% else %}
                                 {{ task.id }}
                             {% endif %}

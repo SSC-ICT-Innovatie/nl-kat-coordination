@@ -46,7 +46,7 @@
                         {% endif %}
                         {% if organization.code and not view_type == "onboarding" %}
                             <li>
-                                {% app_url "katalogus" as index_url %}
+                                {% app_url "katalogus" temporal_context=None as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "KAT-alogus" %}</a>
                             </li>
@@ -66,7 +66,7 @@
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Objects" %}</a>
                             </li>
                             <li>
-                                {% url "task_list" organization.code as index_url %}
+                                {% app_url "task_list" temporal_context=None as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Tasks" %}</a>
                             </li>

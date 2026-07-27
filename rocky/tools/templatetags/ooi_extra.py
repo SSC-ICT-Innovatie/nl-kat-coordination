@@ -18,17 +18,28 @@ register = template.Library()
 
 @register.simple_tag(takes_context=True)
 def app_url(context, viewname, *args, **kwargs):
-    organization = context.get("organization")
-    temporal_context = context.get("temporal_context")
+    """Automatically adds the organization and temporal_context from the current
+    session to the url reversing.
 
-    if organization is not None:
-        kwargs.setdefault("organization_code", organization.code)
+    Both can be nulled by setting them to None, or overwritten by setting them
+    to any other value."""
+    if "organization" in kwargs and kwargs["organization"] is None:
+        # specified to be uset by None
+        del kwargs["organization"]
+    else:
+        organization = context.get("organization")
+        if organization is not None:
+            kwargs.setdefault("organization_code", str(organization))
 
+    temporal_context = context.get("temporal_context", "now")
     if "temporal_context" in kwargs:
-        urldate = parse_observed_at(kwargs["temporal_context"]).strftime("%Y-%m-%d %H:%M:%S.%f")
-        kwargs["temporal_context"] = f"at-{urldate}"
-
-    if temporal_context is not None:
+        if kwargs["temporal_context"] is None:
+            del kwargs["temporal_context"]
+        elif kwargs["temporal_context"] != "now":
+            # prefix the given date with 'at-'
+            urldate = parse_observed_at(kwargs["temporal_context"]).strftime("%Y-%m-%d %H:%M:%S.%f")
+            kwargs["temporal_context"] = f"at-{urldate}"
+    elif temporal_context is not None:
         kwargs.setdefault("temporal_context", temporal_context)
 
     if "ooi" in kwargs:

@@ -57,7 +57,7 @@
                                            title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
                                         <a href="{{ request.path }}{% querystring plugin_id=task.data.boefje.id %}"
                                            title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
-                                        <a href="{% app_url "boefje_detail" plugin_id=task.data.boefje.id temporal_context=task.created_at %}">{{ task.data.boefje.name }}</a>
+                                        <a href="{% app_url "boefje_detail" plugin_id=task.data.boefje.id temporal_context=None %}">{{ task.data.boefje.name }}</a>
                                     </td>
                                     <td>
                                         <i class="icon {{ task.status.value }}"></i>

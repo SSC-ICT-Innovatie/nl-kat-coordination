@@ -120,7 +120,8 @@ class CheckboxTable(Widget):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-
+        if "attrs" in context["widget"] and "organization_code" in context["widget"]["attrs"]:
+            context["organization"] = context["widget"]["attrs"].get("organization_code")
         context["widget"]["options"] = []
         for index, (choice_value, choice_label) in enumerate(self.choices):
             selected = str(choice_value) in value if value is not None else False

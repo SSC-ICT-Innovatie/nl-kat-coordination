@@ -16,7 +16,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import ListView
@@ -166,7 +166,16 @@ class ObservedAtMixin(ContextMixin, View):
     def temporal_navigation(self):
         ages = (1, 3, 7, 14, 30)
         urls = []
-        urls.append({"label": _("Now"), "url": self.get_temporal_url(None)})
+        try:
+            urls.append({"label": _("Now"), "url": self.get_temporal_url(None)})
+        except NoReverseMatch:
+            kwargs = self.request.resolver_match.kwargs.copy()
+            if "temporal_context" in kwargs:
+                del kwargs["temporal_context"]
+            url = reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+            urls.append({"label": _("Now"), "url": url})
+            return urls
+
         for age in ages:
             timestamp = self.observed_at - timedelta(days=age)
             urls.append({"timestamp": timestamp, "url": self.get_temporal_url(timestamp)})

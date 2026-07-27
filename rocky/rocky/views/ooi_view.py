@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Literal
+from urllib.parse import quote
 
 from django.forms import Form
 from django.http import Http404
@@ -184,7 +185,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
                 "url": reverse(
                     "ooi_detail",
                     kwargs={
-                        "ooi": self.ooi.primary_key,
+                        "ooi": quote(self.ooi.primary_key, safe=""),
                         "organization_code": self.organization.code,
                         "temporal_context": self.temporal_context,
                     },

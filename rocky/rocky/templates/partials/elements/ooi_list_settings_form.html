@@ -1,7 +1,7 @@
 {% load i18n %}
 
 <form id="ooi_list_settings"
-      action="{% if organization.code %}{% app_url request.resolver_match.url_name %}{% else %}{% url request.resolver_match.url_name %}{% endif %}"
+      action="{% app_url request.resolver_match.url_name ooi=ooi_id %}"
       method="get"
       class="help">
     {% if ooi_id %}<input type="hidden" name="ooi_id" value="{{ ooi_id }}" />{% endif %}
