@@ -22,7 +22,7 @@
                         <tr {% if observation.is_old %}class="warning"{% endif %}>
                             <td>
                                 {% if observation.boefje.id %}
-                                    <a href="{% app_url 'boefje_detail' plugin_id=observation.boefje.id %}"
+                                    <a href="{% app_url 'boefje_detail' plugin_id=observation.boefje.id temporal_context=None %}"
                                        title="{{ observation.boefje.id }}">{{ observation.boefje.name }}</a>
                                 {% else %}
                                     {% if observation.normalizer.raw_data.boefje_meta.boefje.id == "manual" %}
@@ -50,7 +50,7 @@
                             </td>
                             <td>
                                 {% if observation.normalizer.normalizer.id %}
-                                    <a href="{% app_url 'normalizer_detail' plugin_id=observation.normalizer.normalizer.id %}"
+                                    <a href="{% app_url 'normalizer_detail' plugin_id=observation.normalizer.normalizer.id temporal_context=None %}"
                                        title="{{ observation.normalizer.normalizer.id }}">{{ observation.normalizer.normalizer.id }}</a>
                                 {% endif %}
                             </td>

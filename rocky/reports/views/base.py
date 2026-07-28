@@ -741,12 +741,20 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
         context["report_types"] = self.report_types
         context["plugins"] = self.plugins
         context["report_download_json_url"] = url_with_querystring(
-            reverse("view_report", kwargs={"organization_code": self.organization.code}),
+            reverse(
+                "view_report",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.observed_at},
+            ),
             True,
             **dict(json="true", **self.request.GET),
         )
         context["report_download_pdf_url"] = url_with_querystring(
-            reverse("view_report_pdf", kwargs={"organization_code": self.organization.code}), True, **self.request.GET
+            reverse(
+                "view_report_pdf",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.observed_at},
+            ),
+            True,
+            **self.request.GET,
         )
 
         return context
