@@ -1,8 +1,9 @@
 from datetime import datetime, timezone
 from enum import Enum
+from urllib.parse import quote
 
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from tools.view_helpers import get_ooi_url
 
 from rocky.views.ooi_view import BaseOOIFormView
 from rocky.views.scheduler import SchedulerView
@@ -64,7 +65,17 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
         # Construct breadcrumbs
         breadcrumb_list = self.get_breadcrumb_list()
         breadcrumb_list.append(
-            {"url": get_ooi_url("ooi_edit", self.ooi.primary_key, self.organization.code), "text": _("Edit")}
+            {
+                "url": reverse_lazy(
+                    "ooi_edit",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": quote(self.ooi.primary_key, safe=""),
+                    },
+                ),
+                "text": _("Edit"),
+            }
         )
 
         context["type"] = self.ooi_class.get_ooi_type()
