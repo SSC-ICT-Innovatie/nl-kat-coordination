@@ -43,10 +43,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
             uri = urlunsplit([url_parts.scheme, url_parts.netloc, url_parts.path, url_parts.query, url_parts.fragment])
 
     body_mimetypes = {"openkat-http/body"}
-    try:
-        response = do_request(hostname, session, uri, useragent)
-    except requests.exceptions.RequestException as request_error:
-        return [({"openkat-http/error"}, str(request_error))]
+    response = do_request(hostname, session, uri, useragent)
 
     if "content-type" in response.headers:
         content_type = response.headers["content-type"]
