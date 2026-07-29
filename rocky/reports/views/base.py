@@ -56,7 +56,7 @@ def get_selection(request: HttpRequest, pre_selection: Mapping[str, str | Sequen
 logger = structlog.get_logger(__name__)
 
 
-class ReportBreadcrumbs(OrganizationView, BreadcrumbsMixin):
+class ReportBreadcrumbs(ObservedAtMixin, OrganizationView, BreadcrumbsMixin):
     breadcrumbs_step: int = 1
 
     def setup(self, request, *args, **kwargs):
@@ -64,14 +64,14 @@ class ReportBreadcrumbs(OrganizationView, BreadcrumbsMixin):
         self.breadcrumbs = self.build_breadcrumbs()
 
     def get_kwargs(self):
-        return {"organization_code": self.organization.code}
+        return {"organization_code": self.organization.code, "temporal_context": self.temporal_context}
 
     def is_valid_breadcrumbs(self):
         return self.breadcrumbs_step < len(self.breadcrumbs)
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
-        kwargs = self.get_kwargs()
         selection = get_selection(self.request)
+        kwargs = self.get_kwargs()
 
         return [{"url": reverse("reports", kwargs=kwargs) + selection, "text": _("Reports")}]
 
