@@ -27,7 +27,7 @@
             </ul>
         </div>
     {% endif %}
-    {% if not ooi_past_due %}
+    {% if not historic_view %}
         {% if ooi|is_finding and perms.tools.can_mute_findings %}
             <a href="{% app_url 'finding_mute' ooi=ooi_id %}"
                class="button ghost nowrap">{% translate "Mute finding" %}</a>

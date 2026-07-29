@@ -7,13 +7,12 @@
     {% translate type as display_type %}
     {% include "header.html" %}
 
-    {% if not ooi_past_due and ooi_types %}
+    {% if not historic_view and ooi_types %}
         <main id="main-content">
             <section>
                 <div>
                     <h3>{% translate "Add related object" %}</h3>
                     <form method="get" class="help">
-                        {% if ooi_id %}<input type="hidden" name="ooi_id" value="{{ ooi_id }}" />{% endif %}
                         <fieldset>
                             <legend>{% translate "Object details" %}</legend>
                             <div class="required">
