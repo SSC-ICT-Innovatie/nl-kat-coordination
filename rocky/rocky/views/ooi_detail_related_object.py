@@ -1,4 +1,5 @@
 from collections import Counter
+from urllib.parse import quote
 
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -30,20 +31,25 @@ class OOIRelatedObjectManager(SingleOOITreeMixin):
                     related.append(rel)
         return related
 
-    def ooi_add_url(self, ooi: OOI, ooi_type: str, ooi_relation: str = "ooi_id") -> str:
+    def ooi_add_url(self, ooi_type: str, ooi_relation: str = "ooi_id") -> str:
         """
         When a user wants to add an OOI TYPE to another OOI TYPE object, it will
         return the URL to the corresponding add object form with corresponding get parameters
         """
 
-        path = reverse("ooi_add", kwargs={"organization_code": self.organization.code, "ooi_type": ooi_type})
-        query_params = {ooi_relation: ooi.primary_key}
+        path = reverse(
+            "ooi_add",
+            kwargs={
+                "organization_code": self.organization.code,
+                "temporal_context": self.temporal_context,
+                "ooi": quote(self.ooi.primary_key, safe=""),
+                "ooi_type": ooi_type,
+            },
+        )
+        query_params = {ooi_relation: self.ooi.primary_key}
 
         if ooi_type == "Finding":
             path = reverse("finding_add")
-
-        if not ooi_relation:
-            query_params = {"ooi_id": ooi.primary_key}
 
         return url_with_querystring(path, **query_params)
 
@@ -131,9 +137,9 @@ class OOIRelatedObjectAddView(OOIRelatedObjectManager, TemplateView):
 
             if existing_ooi_type(ooi_type):
                 if ooi_relation:
-                    return redirect(self.ooi_add_url(self.ooi_id, ooi_type, ooi_relation))
+                    return redirect(self.ooi_add_url(ooi_type, ooi_relation))
                 else:
-                    return redirect(self.ooi_add_url(self.ooi_id, ooi_type))
+                    return redirect(self.ooi_add_url(ooi_type))
 
         if "status_code" in kwargs:
             response = super().get(request, *args, **kwargs)
