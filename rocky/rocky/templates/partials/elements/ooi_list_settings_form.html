@@ -1,12 +1,10 @@
 {% load i18n %}
 
 <form id="ooi_list_settings"
-      action="{% app_url request.resolver_match.url_name ooi=ooi_id %}"
+      {% if ooi_id %} action="{% app_url request.resolver_match.url_name ooi=ooi_id %}" {% else %} action="{% app_url request.resolver_match.url_name %}" {% endif %}
       method="get"
       class="help">
-    {% if ooi_id %}<input type="hidden" name="ooi_id" value="{{ ooi_id }}" />{% endif %}
     {% include "partials/form/field_hidden_from_list.html" with list=mandatory_fields form=observed_at_form %}
-    {% include "partials/form/fieldset.html" with fields=observed_at_form %}
     {% include "partials/form/fieldset.html" with fields=ooi_type_form custom_class="column-4 checkbox-list" %}
 
     {% if ooi_type_form.fields.ooi_type.choices|length > 4 %}
@@ -24,7 +22,6 @@
     <div class="button-container">
         <input type="submit"
                value="{% if submit_text %}{{ submit_text }}{% else %}{% translate "Set filters" %}{% endif %}" />
-        <a href="{{ request.path }}{% if request.GET.ooi_id %}?ooi_id={{ request.GET.ooi_id|urlencode }}{% endif %}"
-           class="button ghost">{% translate "Clear filters" %}</a>
+        <a href="{{ request.path }}" class="button ghost">{% translate "Clear filters" %}</a>
     </div>
 </form>
