@@ -1,5 +1,4 @@
 import uuid
-from datetime import date, datetime, timezone
 from typing import Any, TypedDict
 from urllib.parse import urlencode, urlparse, urlunparse
 
@@ -11,11 +10,6 @@ from django.utils.translation import gettext_lazy as _
 
 from octopoes.models.types import OOI_TYPES
 from tools.models import Organization
-
-
-def convert_date_to_datetime(d: date) -> datetime:
-    # returning 23:59 of date_object in UTC timezone
-    return datetime.combine(d, datetime.max.time(), tzinfo=timezone.utc)
 
 
 def get_mandatory_fields(request: HttpRequest, params: list[str] | None = None) -> list:

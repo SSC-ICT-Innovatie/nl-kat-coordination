@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from operator import attrgetter
 from typing import Literal, TypedDict, cast
+from urllib.parse import quote
 
 import structlog
 from account.mixins import OrganizationView
@@ -29,7 +30,6 @@ from tools.forms.base import ObservedAtForm
 from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
 from tools.models import Organization, OrganizationMember
 from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
-from tools.view_helpers import convert_date_to_datetime, get_ooi_url
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfileType
@@ -125,7 +125,10 @@ class ObservedAtMixin(ContextMixin, View):
         if observed_at is not None:
             # handle date only input
             try:
-                return convert_date_to_datetime(datetime.strptime(observed_at, "%Y-%m-%d"))
+                # returning 23:59 of date_object in UTC timezone
+                return datetime.combine(
+                    datetime.strptime(observed_at, "%Y-%m-%d"), datetime.max.time(), tzinfo=timezone.utc
+                )
             except ValueError:
                 pass
             # handle iso format input
@@ -559,17 +562,34 @@ class SingleOOIMixin(OctopoesView):
         return self.get_single_ooi(pk)
 
     def get_breadcrumb_list(self):
-        start = {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": "Objects"}
         if isinstance(self.ooi, Finding):
             start = {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": "Findings",
+            }
+        else:
+            start = {
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": "Objects",
             }
 
         return [
             start,
             {
-                "url": get_ooi_url("ooi_detail", self.ooi.primary_key, self.organization.code),
+                "url": reverse(
+                    "ooi_detail",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": quote(self.ooi.primary_key, safe=""),
+                    },
+                ),
                 "text": self.ooi.human_readable,
             },
         ]
