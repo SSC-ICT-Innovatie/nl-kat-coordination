@@ -16,8 +16,8 @@ Supported distributions
 
 We provide Debian packages for Debian and Ubuntu. We support only Debian stable
 and Ubuntu LTS releases and stop supporting the previous version 6 months after
-the release. Currently this means we support 12 (bookworm), 13 (trixie) and
-Ubuntu 22.04 and Ubuntu 24.04.
+the release. Currently this means we support Debian 12 (bookworm), 13 (trixie) and
+Ubuntu 22.04 and 24.04.
 
 Prerequisites
 =============
