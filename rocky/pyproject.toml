@@ -77,7 +77,7 @@ dev = [
     "robotframework-debuglibrary>=2.5.0,<3",
     "robotframework-otp>=1.1.0,<2",
     "robotframework-postgresqldb>=2.0.0,<3",
-    "setuptools>=81,<82",
+    "setuptools>=83.0.0,<84",
 ]
 
 [tool.uv]
