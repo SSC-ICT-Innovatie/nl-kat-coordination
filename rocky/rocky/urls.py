@@ -78,9 +78,7 @@ urlpatterns += i18n_patterns(
     path("tasks/normalizers", AllNormalizersTaskListView.as_view(), name="all_normalizers_task_list"),
     path("tasks/reports", AllReportsTaskListView.as_view(), name="all_reports_task_list"),
     path(
-        "<organization_code>/<temporal_context>/settings/indemnifications/",
-        IndemnificationAddView.as_view(),
-        name="indemnification_add",
+        "<organization_code>/settings/indemnifications/", IndemnificationAddView.as_view(), name="indemnification_add"
     ),
     path("<organization_code>/<temporal_context>/findings", FindingListView.as_view(), name="finding_list"),
     path("<organization_code>/<temporal_context>/findings/<ooi>", FindingListView.as_view(), name="finding_list"),
