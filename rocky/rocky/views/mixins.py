@@ -116,10 +116,12 @@ class ObservedAtMixin(ContextMixin, View):
 
     @cached_property
     def is_historic_view(self) -> bool:
+        """Are we dealing with a historic view? or are we looking at the 'now'"""
         return self.raw_temporal_context is not None
 
     @cached_property
     def observed_at(self) -> datetime:
+        """Property that holds the datetime, useful when constrcuting queries"""
         observed_at = self.raw_temporal_context
         # handle empty input
         if observed_at is not None:
@@ -143,6 +145,7 @@ class ObservedAtMixin(ContextMixin, View):
 
     @cached_property
     def temporal_context(self) -> str:
+        """Property that holds the temporal context as used in urls / routes"""
         if self.is_historic_view:
             return f"at-{self.observed_at.strftime('%Y-%m-%d %H:%M:%S.%f')}"
         return "now"
@@ -203,6 +206,7 @@ class ObservedAtMixin(ContextMixin, View):
         return context
 
     def count_observed_at_filter(self) -> int:
+        """Count the temporal filter when dealing with forms, only counts if not 'now'"""
         return int(self.is_historic_view)
 
 
@@ -286,9 +290,6 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
 
     def get_scan_profile_inheritance(self, ooi: OOI) -> list[InheritanceSection]:
         return self.octopoes_api_connector.get_scan_profile_inheritance(ooi.reference, self.observed_at)
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs)
 
 
 class OOIList:
@@ -547,13 +548,16 @@ class ReportList:
 
 
 class SingleOOIMixin(OctopoesView):
-    ooi: OOI
     ooi_id: str
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
 
         self.ooi_id = urllib.parse.unquote(kwargs["ooi"])
+
+    @cached_property
+    def ooi(self):
+        return self.get_single_ooi(self.ooi_id)
 
     def get_ooi(self, pk: str | None = None) -> OOI:
         if pk is None:
@@ -615,6 +619,12 @@ class SingleOOIMixin(OctopoesView):
             props.pop("user_id")
 
         return props
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["ooi_id"] = self.ooi_id
+        context["ooi"] = self.ooi
+        return context
 
 
 class SingleOOITreeMixin(SingleOOIMixin):

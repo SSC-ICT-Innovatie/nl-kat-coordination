@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
 from tools.ooi_helpers import format_attr_name
-from tools.view_helpers import existing_ooi_type, get_mandatory_fields, url_with_querystring
+from tools.view_helpers import existing_ooi_type, url_with_querystring
 
 from octopoes.models import OOI
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
@@ -15,7 +15,7 @@ from rocky.views.mixins import SingleOOITreeMixin
 
 
 class OOIRelatedObjectManager(SingleOOITreeMixin):
-    def get_related_objects(self, observed_at):
+    def get_related_objects(self):
         related = []
         for relation_name, children in self.tree.root.children.items():
             for child in children:
@@ -23,11 +23,7 @@ class OOIRelatedObjectManager(SingleOOITreeMixin):
                     continue
                 rel_name = format_attr_name(relation_name)
                 if rel_name.lower() != "findings":
-                    rel = {
-                        "name": rel_name,
-                        "reference": child.reference,
-                        "mandatory_fields": get_mandatory_fields(self.request, params=["observed_at"]),
-                    }
+                    rel = {"name": rel_name, "reference": child.reference}
                     related.append(rel)
         return related
 
@@ -49,7 +45,14 @@ class OOIRelatedObjectManager(SingleOOITreeMixin):
         query_params = {ooi_relation: self.ooi.primary_key}
 
         if ooi_type == "Finding":
-            path = reverse("finding_add")
+            path = reverse(
+                "finding_add",
+                kwargs={
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                    "ooi": quote(self.ooi.primary_key, safe=""),
+                },
+            )
 
         return url_with_querystring(path, **query_params)
 
@@ -77,7 +80,6 @@ class OOIRelatedObjectManager(SingleOOITreeMixin):
             return []
 
         foreign_relations = self.get_foreign_relations(ooi.__class__)
-
         input_values = []
         for ooi_type, relation in foreign_relations:
             if ooi_type == "Finding":
@@ -125,9 +127,6 @@ class OOIRelatedObjectAddView(OOIRelatedObjectManager, TemplateView):
     template_name = "oois/ooi_detail_add_related_object.html"
 
     def get(self, request, *args, **kwargs):
-        if "ooi_id" in request.GET:
-            self.ooi_id = self.get_ooi(pk=request.GET["ooi_id"])
-
         if "add_ooi_type" in request.GET:
             if "|" in request.GET["add_ooi_type"]:
                 ooi_type, ooi_relation = request.GET["add_ooi_type"].split("|", 1)
@@ -150,6 +149,5 @@ class OOIRelatedObjectAddView(OOIRelatedObjectManager, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["ooi_id"] = self.ooi_id
-        context["ooi_types"] = self.get_ooi_types_input_values(self.ooi_id)
+        context["ooi_types"] = self.get_ooi_types_input_values(self.ooi)
         return context
