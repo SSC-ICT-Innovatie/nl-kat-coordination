@@ -134,7 +134,7 @@ def generate_select_ooi_field(
             widget=forms.SelectMultiple(), choices=select_options, initial=initial, **default_attrs
         )
 
-    return forms.ChoiceField(choices=select_options, initial=initial, **default_attrs)
+    return forms.CharField(widget=forms.Select(choices=select_options), initial=initial, **default_attrs)
 
 
 def generate_select_ooi_type(name: str, enumeration: type[Enum], field: FieldInfo) -> forms.fields.Field:
