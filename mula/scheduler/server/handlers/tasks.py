@@ -18,7 +18,7 @@ class TaskAPI:
 
         self.api.add_api_route(
             path="/tasks",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET", "POST"],
             response_model=utils.PaginatedResponse,
             status_code=status.HTTP_200_OK,
@@ -52,7 +52,7 @@ class TaskAPI:
             description="Update a task",
         )
 
-    def list(
+    def get_paged(
         self,
         request: fastapi.Request,
         scheduler_id: str | None = None,
@@ -61,6 +61,8 @@ class TaskAPI:
         status: str | None = None,
         offset: int = 0,
         limit: int = 10,
+        max_pages: int = 6,
+        allow_partial_count: bool = False,
         min_created_at: datetime.datetime | None = None,
         max_created_at: datetime.datetime | None = None,
         filters: storage.filters.FilterRequest | None = None,
@@ -68,7 +70,7 @@ class TaskAPI:
         if (min_created_at is not None and max_created_at is not None) and min_created_at > max_created_at:
             raise BadRequestError("min_created_at must be less than max_created_at")
 
-        results, count = self.ctx.datastores.task_store.get_tasks(
+        results, count, is_partial_count = self.ctx.datastores.task_store.get_tasks(
             scheduler_id=scheduler_id,
             organisation=organisation,
             task_type=task_type,
@@ -78,9 +80,11 @@ class TaskAPI:
             min_created_at=min_created_at,
             max_created_at=max_created_at,
             filters=filters,
+            max_pages=max_pages,
+            allow_partial_count=allow_partial_count,
         )
 
-        return utils.paginate(request, results, count, offset, limit)
+        return utils.paginate(request, results, count, offset, limit, is_partial_count)
 
     def get(self, task_id: uuid.UUID) -> schemas.Task:
         task = self.ctx.datastores.task_store.get_task(task_id)
@@ -105,6 +109,6 @@ class TaskAPI:
         return updated_task
 
     def stats(
-        self, scheduler_id: str | None = None, organisation_id: str | None = None
+        self, scheduler_id: str | None = None, organisation_ids: list[str] | None = fastapi.Query(None)
     ) -> dict[str, dict[str, int]] | None:
-        return self.ctx.datastores.task_store.get_status_count_per_hour(scheduler_id, organisation_id)
+        return self.ctx.datastores.task_store.get_status_count_per_hour(scheduler_id, organisation_ids)
