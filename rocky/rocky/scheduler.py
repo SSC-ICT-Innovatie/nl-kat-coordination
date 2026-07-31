@@ -297,6 +297,7 @@ class SchedulerClient:
     def list_schedules(self, **kwargs) -> PaginatedSchedulesResponse:
         try:
             kwargs = {k: v for k, v in kwargs.items() if v is not None}  # filter Nones from kwargs
+            kwargs["allow_partial_count"] = True
             res = self._client.get("/schedules", params=kwargs)
             res.raise_for_status()
             return PaginatedSchedulesResponse.model_validate_json(res.content)
@@ -357,6 +358,7 @@ class SchedulerClient:
         try:
             filter_key = "filters"
             params = {k: v for k, v in kwargs.items() if v is not None if k != filter_key}  # filter Nones from kwargs
+            params["allow_partial_count"] = True
             endpoint = "/tasks"
             res = self._client.post(endpoint, params=params, json=kwargs.get(filter_key))
             return PaginatedTasksResponse.model_validate_json(res.content)
@@ -423,7 +425,7 @@ class SchedulerClient:
         params: dict[str, object] = {"scheduler_id": scheduler_id}
 
         if organization_ids:
-            params["organisation_id"] = organization_ids
+            params["organisation_ids"] = organization_ids
 
         return self._get("/tasks/stats", params=params)  # type: ignore
 
