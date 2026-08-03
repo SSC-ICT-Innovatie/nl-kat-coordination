@@ -34,7 +34,7 @@ from rocky.views.organization_member_add import (
 )
 from rocky.views.organization_member_edit import OrganizationMemberEditView
 from rocky.views.organization_member_list import OrganizationMemberListView
-from rocky.views.organization_member_superuser import GrantSuperuserAccessView
+from rocky.views.organization_member_superuser import GrantSuperuserAccessView, RevokeSuperuserAccessView
 from rocky.views.organization_settings import OrganizationSettingsView
 from rocky.views.privacy_statement import PrivacyStatementView
 from rocky.views.scan_profile import ScanProfileDetailView
@@ -121,6 +121,11 @@ urlpatterns += i18n_patterns(
         "<organization_code>/members/<int:pk>/grant-superuser/",
         GrantSuperuserAccessView.as_view(),
         name="organization_member_grant_superuser",
+    ),
+    path(
+        "<organization_code>/members/<int:pk>/revoke-superuser/",
+        RevokeSuperuserAccessView.as_view(),
+        name="organization_member_revoke_superuser",
     ),
     path("<organization_code>/health/v1/", HealthChecks.as_view(), name="health_beautified"),
     path("<organization_code>/objects/", OOIListView.as_view(), name="ooi_list"),

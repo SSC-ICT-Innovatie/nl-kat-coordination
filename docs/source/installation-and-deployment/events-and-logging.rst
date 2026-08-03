@@ -61,6 +61,7 @@ Event code Model              Routing key            Description                
 900111     TOTPDevice         account_change         2FA is removed.                             D
 900112     TOTPDevice         account_change         2FA is updated.                             U
 900113     KATUser            account_change         Superuser access is granted.                U
+900114     KATUser            account_change         Superuser access is revoked.                U
 900201     Organization       organization_change    A new organization is created.              C
 900202     Organization       organization_change    Organization information changed.           U
 900203     Organization       organization_change    Organization is removed.                    D

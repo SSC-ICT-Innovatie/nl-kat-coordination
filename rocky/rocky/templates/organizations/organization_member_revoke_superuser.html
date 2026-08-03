@@ -8,24 +8,24 @@
     <main id="main-content">
         <section>
             <div>
-                <h1>{% translate "Grant superuser access" %}</h1>
+                <h1>{% translate "Revoke superuser access" %}</h1>
                 <div class="warning" role="alert">
                     <p>
                         {% blocktranslate with email=member.user.email trimmed %}
-                            You are about to grant <strong>{{ email }}</strong> unrestricted access to every organization and all administrative functionality in this OpenKAT installation.
+                            You are about to revoke <strong>{{ email }}</strong>'s unrestricted access to every
+                            organization and all administrative functionality in this OpenKAT installation.
                         {% endblocktranslate %}
                     </p>
                     <p>
-                        {% translate "This is a global account permission, not an organization role." %}
-                        {% translate "Superuser access can be revoked again from the same member edit page, or via Django administration." %}
+                        {% translate "This removes a global account permission, not an organization role." %}
+                        {% translate "The account will keep its organization membership and organization role." %}
                     </p>
-                    <a href="{% url 'admin:account_katuser_change' member.user.id %}">{% translate "Open this account in Django administration" %}</a>
                 </div>
-                <p>{% translate "Only continue when this person is authorized to administer the entire installation." %}</p>
+                <p>{% translate "Only continue when this person should no longer administer the entire installation." %}</p>
                 <form method="post">
                     {% csrf_token %}
                     <div class="button-container">
-                        <button type="submit" class="destructive">{% translate "Grant superuser access" %}</button>
+                        <button type="submit" class="destructive">{% translate "Revoke superuser access" %}</button>
                         <a class="button ghost"
                            href="{% url 'organization_member_edit' organization.code member.id %}">{% translate "Cancel" %}</a>
                     </div>

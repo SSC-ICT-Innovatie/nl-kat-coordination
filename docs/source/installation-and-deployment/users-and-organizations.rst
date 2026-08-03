@@ -19,7 +19,7 @@ OpenKAT knows four types of users: the client, the red team user, the admin and 
 
 Superuser access is global and applies to every organization in an OpenKAT installation. An existing superuser can grant this access to another active account by opening the organization's member overview, editing the member, and selecting ``Grant superuser access`` under ``Global account access``. Rocky shows the installation-wide impact for confirmation before applying the change. Organization admins and other account types cannot grant superuser access.
 
-Rocky cannot revoke superuser access. To revoke it, open the account under :guilabel:`Accounts` > :guilabel:`Users` in Django administration, clear both :guilabel:`Superuser status` and :guilabel:`Staff status`, and save the account.
+An existing superuser can revoke this access again from the same member edit page by selecting ``Revoke superuser access``. Rocky refuses to revoke the last active superuser in an installation to prevent lockout; promote another account first, or revoke via Django administration. To revoke superuser access outside Rocky, open the account under :guilabel:`Accounts` > :guilabel:`Users` in Django administration, clear both :guilabel:`Superuser status` and :guilabel:`Staff status`, and save the account.
 
 Rights and functions per user type
 ----------------------------------

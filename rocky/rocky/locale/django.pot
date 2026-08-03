@@ -6283,9 +6283,8 @@ msgstr ""
 
 #: rocky/templates/organizations/organization_member_grant_superuser.html
 msgid ""
-"Rocky cannot revoke this permission. To revoke it, open this account under "
-"Accounts > Users in Django administration, clear both Superuser status and "
-"Staff status, and save."
+"Superuser access can be revoked again from the same member edit page, or via "
+"Django administration."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_grant_superuser.html
@@ -6296,6 +6295,52 @@ msgstr ""
 msgid ""
 "Only continue when this person is authorized to administer the entire "
 "installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+#: rocky/views/organization_member_superuser.py
+msgid "Revoke superuser access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+#, python-format
+msgid ""
+"You are about to revoke <strong>%(email)s</strong>'s unrestricted access to "
+"every organization and all administrative functionality in this OpenKAT "
+"installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid "This removes a global account permission, not an organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid "The account will keep its organization membership and organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid ""
+"Only continue when this person should no longer administer the entire "
+"installation."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s does not have superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid ""
+"Revoking superuser access from %(email)s would leave this installation "
+"without any active superuser. Promote another account first, or revoke it "
+"via Django administration."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "Superuser access revoked from %(email)s."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
