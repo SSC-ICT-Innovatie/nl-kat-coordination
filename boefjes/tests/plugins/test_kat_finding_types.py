@@ -13,9 +13,7 @@ def test_kat_finding_types_unknown_id_does_not_crash():
 
     assert oois == [
         NormalizerAffirmation(
-            ooi=KATFindingType(
-                id="KAT-HTTPS-NOT-AVAILABLE", risk_severity=RiskLevelSeverity.UNKNOWN, risk_score=None
-            )
+            ooi=KATFindingType(id="KAT-HTTPS-NOT-AVAILABLE", risk_severity=RiskLevelSeverity.UNKNOWN, risk_score=None)
         )
     ]
 
