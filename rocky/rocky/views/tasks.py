@@ -46,16 +46,13 @@ class TaskListView(SchedulerView, SchedulerListView, PageActionsView):
         context = super().get_context_data(**kwargs)
         context["task_filter_form"] = self.get_task_filter_form()
         context["active_filters_counter"] = self.count_active_task_filters()
-        first_page = True
 
         page_obj = context.get("page_obj")
 
-        if page_obj:
-            # Explicitly check if this is the first page
-            first_page = page_obj.number == 1
-
-        if context["active_filters_counter"] == 0 and first_page:
+        # Explicitly check if this is the first page and no filters where set
+        if context["active_filters_counter"] == 0 and page_obj and page_obj.number == 1:
             context["stats"] = self.get_task_statistics()
+
         context["breadcrumbs"] = [
             {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")}
         ]
@@ -72,13 +69,12 @@ class BoefjesTaskListView(TaskListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["breadcrumbs"] = [
-            {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")},
+        context["breadcrumbs"].append(
             {
                 "url": reverse("boefjes_task_list", kwargs={"organization_code": self.organization.code}),
                 "text": _("Boefjes"),
-            },
-        ]
+            }
+        )
         return context
 
 
@@ -88,13 +84,12 @@ class NormalizersTaskListView(TaskListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["breadcrumbs"] = [
-            {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")},
+        context["breadcrumbs"].append(
             {
                 "url": reverse("normalizers_task_list", kwargs={"organization_code": self.organization.code}),
                 "text": _("Normalizers"),
-            },
-        ]
+            }
+        )
 
         # Search for the corresponding Normalizer names and add those to the task_list
         task_list = context.get("task_list", [])
@@ -119,13 +114,12 @@ class ReportsTaskListView(TaskListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["breadcrumbs"] = [
-            {"url": reverse("task_list", kwargs={"organization_code": self.organization.code}), "text": _("Tasks")},
+        context["breadcrumbs"].append(
             {
                 "url": reverse("reports_task_list", kwargs={"organization_code": self.organization.code}),
                 "text": _("Reports"),
-            },
-        ]
+            }
+        )
         return context
 
 

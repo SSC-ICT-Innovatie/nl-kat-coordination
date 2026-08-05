@@ -2,7 +2,7 @@
 
 <div class="horizontal-scroll">
     <h2>{% translate "Tasks" %}</h2>
-    {% ooi_url 'ooi_detail' ooi.primary_key organization.code query=mandatory_fields as this_url %}
+    {% app_url 'ooi_detail' ooi=ooi.primary_key as this_url %}
     {% if not task_list %}
         <p>{% translate "There have been no tasks." %}</p>
     {% else %}
@@ -24,9 +24,9 @@
                         data-task-status="{{ task.status.value }}">
                         <td>
                             {% if task.type == "boefje" %}
-                                <a href="{% url "boefje_detail" organization.code task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
+                                <a href="{% app_url "boefje_detail" plugin_id=task.data.boefje.id temporal_context=None %}">{{ task.data.boefje.name }}</a>
                             {% elif task.type == "normalizer" %}
-                                <a href="{% url "normalizer_detail" organization.code task.data.normalizer.id %}">{{ task.data.normalizer.id }}</a>
+                                <a href="{% app_url "normalizer_detail" plugin_id=task.data.normalizer.id temporal_context=None %}">{{ task.data.normalizer.id }}</a>
                             {% else %}
                                 {{ task.id }}
                             {% endif %}

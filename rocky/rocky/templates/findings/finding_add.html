@@ -10,9 +10,7 @@
         <article>
             <div class="layout-form">
                 <h1>{% translate "Add finding" %}</h1>
-                <form action="{% url "finding_add" organization.code %}"
-                      method="post"
-                      class="help">
+                <form action="{% app_url "finding_add" %}" method="post" class="help">
                     {% csrf_token %}
                     {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
 

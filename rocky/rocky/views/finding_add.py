@@ -50,15 +50,32 @@ class FindingAddView(BaseOOIFormView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.initial = {"ooi_id": request.GET.get("ooi_id")}
+        self.initial = {"ooi_id": kwargs["ooi"]}
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["breadcrumbs"] = [
-            {"url": reverse("finding_list", kwargs={"organization_code": self.organization.code}), "text": "Findings"},
             {
-                "url": reverse("finding_add", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": self.initial.get("ooi_id"),
+                    },
+                ),
+                "text": "Findings",
+            },
+            {
+                "url": reverse(
+                    "finding_add",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": self.initial.get("ooi_id"),
+                    },
+                ),
                 "text": _("Add finding"),
             },
         ]
@@ -66,11 +83,17 @@ class FindingAddView(BaseOOIFormView):
         return context
 
     def get_form_kwargs(self):
-        kwargs = {"connector": self.octopoes_api_connector, "ooi_list": self.get_ooi_options()}
+        kwargs = {
+            "connector": self.octopoes_api_connector,
+            "ooi_list": self.get_ooi_options(),
+            "date": self.temporal_context,
+        }
         kwargs.update(super().get_form_kwargs())
 
         if "ooi_class" in kwargs:
             del kwargs["ooi_class"]
+        if "date" in kwargs:
+            del kwargs["date"]
 
         return kwargs
 

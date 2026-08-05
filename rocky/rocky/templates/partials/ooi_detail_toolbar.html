@@ -15,7 +15,7 @@
                 {% for report in possible_reports %}
                     <li>
                         <form method="post"
-                              action="{% url 'generate_report_setup_scan' organization.code %}"
+                              action="{% app_url 'generate_report_setup_scan' %}"
                               class="inline">
                             {% csrf_token %}
                             <input type="hidden" name="ooi" value="{{ ooi_id }}">
@@ -29,15 +29,15 @@
     {% endif %}
     {% if not historic_view %}
         {% if ooi|is_finding and perms.tools.can_mute_findings %}
-            <a href="{% ooi_url 'finding_mute' ooi_id organization.code %}"
+            <a href="{% app_url 'finding_mute' ooi=ooi_id %}"
                class="button ghost nowrap">{% translate "Mute finding" %}</a>
         {% endif %}
         {% if not ooi|is_finding and not ooi|is_finding_type %}
-            <a href="{% ooi_url 'ooi_edit' ooi_id organization.code %}"
+            <a href="{% app_url 'ooi_edit' ooi=ooi_id %}"
                class="button ghost nowrap">{% blocktranslate %}Edit {{ display_type }}{% endblocktranslate %}</a>
         {% endif %}
         {% if not ooi|is_finding_type and perms.tools.can_delete_oois %}
-            <a href="{% ooi_url 'ooi_delete' ooi_id organization.code %}"
+            <a href="{% app_url 'ooi_delete' ooi=ooi_id %}"
                class="button ghost destructive nowrap">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</a>
         {% endif %}
     {% endif %}

@@ -22,11 +22,11 @@
                             </label>
                             <nav>
                                 {% translate "go to:" %}
-                                <a href="{% ooi_url "ooi_detail" list.id organization.code %}"
+                                <a href="{% app_url "ooi_detail" ooi=list.id %}"
                                    title="{% translate "Go to detailpage" %}">{% translate "detail" %}</a>
-                                <a href="{% ooi_url "ooi_tree" list.id organization.code %}"
+                                <a href="{% app_url "ooi_tree" ooi=list.id %}"
                                    title="{% translate "Go to tree view" %}">{% translate "tree" %}</a>
-                                <a href="{% ooi_url "ooi_graph" list.id organization.code %}"
+                                <a href="{% app_url "ooi_graph" ooi=list.id %}"
                                    title="{% translate "Go to graph view" %}">{% translate "graph" %}</a>
                             </nav>
                         </div>

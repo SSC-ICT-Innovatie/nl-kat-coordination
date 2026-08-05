@@ -11,11 +11,12 @@ from httpx import HTTPError, HTTPStatusError
 from rest_framework.status import HTTP_404_NOT_FOUND
 
 from katalogus.client import Boefje, KATalogus, Plugin
+from rocky.views.mixins import ObservedAtMixin
 
 logger = structlog.get_logger(__name__)
 
 
-class SinglePluginView(OrganizationView):
+class SinglePluginView(ObservedAtMixin, OrganizationView):
     katalogus_client: KATalogus
     plugin: Plugin
 

@@ -13,6 +13,13 @@
                 <h1>{% blocktranslate with primary_key=ooi.primary_key %}Delete {{ primary_key }}{% endblocktranslate %}</h1>
                 <p>{% translate "Are you sure?" %}</p>
                 <p>{% blocktranslate %}Here you can delete the {{ display_type }}.{% endblocktranslate %}</p>
+                {% if historic_view %}
+                    <p class="info">
+                        {% blocktranslate %}
+                        Deletion will take place at the current timestamp ({{ observed_at}}). If the object has been observed at a later date, it will still exists from that point on.
+                    {% endblocktranslate %}
+                    </p>
+                {% endif %}
                 <div class="horizontal-scroll">
                     <table>
                         <caption class="visually-hidden">{% translate "To be deleted object(s)" %}</caption>
@@ -37,14 +44,14 @@
                         {% csrf_token %}
                         <div class="button-container">
                             <button type="submit" class="destructive">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</button>
-                            <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code %}"
+                            <a href="{% app_url 'ooi_detail' ooi=ooi.primary_key %}"
                                class="button ghost">{% translate "Cancel" %}</a>
                         </div>
                     </form>
                 {% else %}
                     <p>{% translate "Deletion not possible for types: KATFindingType and CVEFindingType" %}</p>
                     <div class="button-container">
-                        <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code %}"
+                        <a href="{% app_url 'ooi_detail' ooi=ooi.primary_key %}"
                            class="button ghost">{% translate "Cancel" %}</a>
                     </div>
                 {% endif %}

@@ -1,9 +1,11 @@
+import urllib.parse
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from operator import attrgetter
 from typing import Literal, TypedDict, cast
+from urllib.parse import quote
 
 import structlog
 from account.mixins import OrganizationView
@@ -15,7 +17,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import ListView
@@ -28,7 +30,6 @@ from tools.forms.base import ObservedAtForm
 from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
 from tools.models import Organization, OrganizationMember
 from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
-from tools.view_helpers import convert_date_to_datetime, get_ooi_url
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfileType
@@ -103,33 +104,88 @@ class OOIAttributeError(AttributeError):
 class ObservedAtMixin(ContextMixin, View):
     connector_form_class: type[ObservedAtForm] = ObservedAtForm
 
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+
+        temporal_context = kwargs.get("temporal_context", "now")
+        self.raw_temporal_context: str | None = None
+        if temporal_context != "now":
+            self.raw_temporal_context = (
+                temporal_context.removeprefix("at-") if temporal_context.startswith("at-") else temporal_context
+            )
+
     @cached_property
     def is_historic_view(self) -> bool:
-        return bool(self.request.GET.get("observed_at", False) or self.request.POST.get("observed_at", False))
+        """Are we dealing with a historic view? or are we looking at the 'now'"""
+        return self.raw_temporal_context is not None
 
     @cached_property
     def observed_at(self) -> datetime:
-        observed_at = self.request.GET.get("observed_at", self.request.POST.get("observed_at", None))
+        """Property that holds the datetime, useful when constrcuting queries"""
+        observed_at = self.raw_temporal_context
         # handle empty input
-        if observed_at:
+        if observed_at is not None:
             # handle date only input
             try:
-                datetime_format = "%Y-%m-%d"
-                observed_at = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
-                if observed_at.date() > datetime.now(timezone.utc).date():
-                    messages.warning(self.request, _("The selected date is in the future."))
-                return observed_at
+                # returning 23:59 of date_object in UTC timezone
+                return datetime.combine(
+                    datetime.strptime(observed_at, "%Y-%m-%d"), datetime.max.time(), tzinfo=timezone.utc
+                )
             except ValueError:
-                # handle iso format input
-                try:
-                    observed_at = datetime.fromisoformat(observed_at)
-                    if not observed_at.tzinfo:
-                        observed_at = observed_at.replace(tzinfo=timezone.utc)
-
-                    return observed_at
-                except ValueError:
-                    messages.error(self.request, _("Can not parse date, falling back to show current date."))
+                pass
+            # handle iso format input
+            try:
+                parsed = datetime.fromisoformat(observed_at)
+                if parsed.tzinfo is None:
+                    parsed = parsed.replace(tzinfo=timezone.utc)
+                return parsed
+            except ValueError:
+                messages.error(self.request, _("Can not parse date, falling back to show current date."))
         return datetime.now(timezone.utc)
+
+    @cached_property
+    def temporal_context(self) -> str:
+        """Property that holds the temporal context as used in urls / routes"""
+        if self.is_historic_view:
+            return f"at-{self.observed_at.strftime('%Y-%m-%d %H:%M:%S.%f')}"
+        return "now"
+
+    @cached_property
+    def now_url(self) -> str:
+        """The current url, but with any temporal context reset to now"""
+        kwargs = self.request.resolver_match.kwargs.copy()
+        kwargs["temporal_context"] = "now"
+
+        return reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+
+    def get_temporal_url(self, observed_at: datetime | None) -> str:
+        kwargs = self.request.resolver_match.kwargs.copy()
+
+        if observed_at is None:
+            kwargs["temporal_context"] = "now"
+        else:
+            kwargs["temporal_context"] = f"at-{observed_at.strftime('%Y-%m-%d %H:%M:%S.%f')}"
+
+        return reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+
+    @cached_property
+    def temporal_navigation(self):
+        ages = (1, 3, 7, 14, 30)
+        urls = []
+        try:
+            urls.append({"label": _("Now"), "url": self.get_temporal_url(None)})
+        except NoReverseMatch:
+            kwargs = self.request.resolver_match.kwargs.copy()
+            if "temporal_context" in kwargs:
+                del kwargs["temporal_context"]
+            url = reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+            urls.append({"label": _("Now"), "url": url})
+            return urls
+
+        for age in ages:
+            timestamp = self.observed_at - timedelta(days=age)
+            urls.append({"timestamp": timestamp, "url": self.get_temporal_url(timestamp)})
+        return urls
 
     def get_connector_form_kwargs(self) -> dict:
         if self.is_historic_view:
@@ -144,10 +200,13 @@ class ObservedAtMixin(ContextMixin, View):
         context = super().get_context_data(**kwargs)
         context["observed_at_form"] = self.get_connector_form()
         context["observed_at"] = self.observed_at
+        context["temporal_context"] = self.temporal_context
         context["historic_view"] = self.is_historic_view
+        context["temporal_navigation"] = self.temporal_navigation
         return context
 
     def count_observed_at_filter(self) -> int:
+        """Count the temporal filter when dealing with forms, only counts if not 'now'"""
         return int(self.is_historic_view)
 
 
@@ -231,9 +290,6 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
 
     def get_scan_profile_inheritance(self, ooi: OOI) -> list[InheritanceSection]:
         return self.octopoes_api_connector.get_scan_profile_inheritance(ooi.reference, self.observed_at)
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs)
 
 
 class OOIList:
@@ -492,32 +548,52 @@ class ReportList:
 
 
 class SingleOOIMixin(OctopoesView):
-    ooi: OOI
+    ooi_id: str
 
-    def get_ooi_id(self) -> str:
-        if "ooi_id" not in self.request.GET:
-            raise OOIAttributeError("OOI primary key missing")
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
 
-        return self.request.GET["ooi_id"]
+        self.ooi_id = urllib.parse.unquote(kwargs["ooi"])
+
+    @cached_property
+    def ooi(self):
+        return self.get_single_ooi(self.ooi_id)
 
     def get_ooi(self, pk: str | None = None) -> OOI:
         if pk is None:
-            pk = self.get_ooi_id()
+            pk = self.ooi_id
 
         return self.get_single_ooi(pk)
 
     def get_breadcrumb_list(self):
-        start = {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": "Objects"}
         if isinstance(self.ooi, Finding):
             start = {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": "Findings",
+            }
+        else:
+            start = {
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": "Objects",
             }
 
         return [
             start,
             {
-                "url": get_ooi_url("ooi_detail", self.ooi.primary_key, self.organization.code),
+                "url": reverse(
+                    "ooi_detail",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": quote(self.ooi.primary_key, safe=""),
+                    },
+                ),
                 "text": self.ooi.human_readable,
             },
         ]
@@ -544,6 +620,12 @@ class SingleOOIMixin(OctopoesView):
 
         return props
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["ooi_id"] = self.ooi_id
+        context["ooi"] = self.ooi
+        return context
+
 
 class SingleOOITreeMixin(SingleOOIMixin):
     @cached_property
@@ -565,7 +647,7 @@ class SingleOOITreeMixin(SingleOOIMixin):
         types: list[str] | None = None,
     ) -> OOI:
         if pk is None:
-            pk = self.get_ooi_id()
+            pk = self.ooi_id
 
         if observed_at is None:
             observed_at = self.observed_at

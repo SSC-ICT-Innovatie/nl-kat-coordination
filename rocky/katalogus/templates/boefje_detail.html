@@ -25,7 +25,7 @@
                 <div class="image-square">
                     <div class="image-container">
                         <img loading="lazy"
-                             src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
+                             src="{% app_url "plugin_cover" plugin_id=plugin.id temporal_context=None %}"
                              alt="boefje placeholder image" />
                     </div>
                 </div>
@@ -54,7 +54,7 @@
                     </p>
                     <p>
                         {% for ooi_type in plugin.consumes %}
-                            <a href="{% url "ooi_add" organization_code=organization.code ooi_type=ooi_type %}">{{ ooi_type }}</a>
+                            <a href="{% app_url "ooi_add" ooi_type=ooi_type %}">{{ ooi_type }}</a>
                             {% if not forloop.last %}-{% endif %}
                         {% endfor %}
                     </p>

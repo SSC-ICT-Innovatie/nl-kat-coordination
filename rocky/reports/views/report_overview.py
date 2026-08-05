@@ -181,7 +181,12 @@ class ScheduledReportsEnableDisableView(
                     ),
                 )
 
-        return redirect(reverse("scheduled_reports", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "scheduled_reports",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
 
 class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesView, ListView):

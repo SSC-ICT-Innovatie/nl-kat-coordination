@@ -1,11 +1,11 @@
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 from account.mixins import OrganizationPermissionRequiredMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
-from tools.view_helpers import get_ooi_url
 
 from rocky.views.mixins import SingleOOIMixin
 
@@ -27,7 +27,9 @@ class OOIDeleteView(OrganizationPermissionRequiredMixin, SingleOOIMixin, Templat
         return self.delete(request)
 
     def get_success_url(self):
-        return reverse_lazy("ooi_list", kwargs={"organization_code": self.organization.code})
+        return reverse_lazy(
+            "ooi_list", kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context}
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -36,7 +38,14 @@ class OOIDeleteView(OrganizationPermissionRequiredMixin, SingleOOIMixin, Templat
         breadcrumb_list = self.get_breadcrumb_list()
         breadcrumb_list.append(
             {
-                "url": get_ooi_url("ooi_delete", self.ooi.primary_key, organization_code=self.organization.code),
+                "url": reverse_lazy(
+                    "ooi_delete",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": quote(self.ooi.primary_key, safe=""),
+                    },
+                ),
                 "text": _("Delete"),
             }
         )

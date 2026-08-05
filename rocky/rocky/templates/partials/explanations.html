@@ -25,7 +25,7 @@
                                 <td>Object</td>
                             {% endif %}
                             <td>
-                                <a href="{% ooi_url 'ooi_detail' section.primary_key organization.code %}">{{ section.human_readable }}</a>
+                                <a href="{% app_url 'ooi_detail' ooi=section.primary_key %}">{{ section.human_readable }}</a>
                             </td>
                             <td>
                                 L{{ section.level }}
@@ -41,7 +41,7 @@
                 </tbody>
             </table>
         {% else %}
-            <a href="{% ooi_url 'scan_profile_detail' ooi_id=ooi organization_code=organization.code show_clearance_level_inheritance=True %}#clearance_level_inheritance">{% translate "Show clearance level inheritance" %}</a>
+            <a href="?show_clearance_level_inheritance=true#clearance_level_inheritance">{% translate "Show clearance level inheritance" %}</a>
         {% endif %}
     </div>
 {% endspaceless %}

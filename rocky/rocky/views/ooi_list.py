@@ -49,7 +49,13 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         context["mandatory_fields"] = get_mandatory_fields(self.request, params=["observed_at"])
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
         context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")}
+            {
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": _("Objects"),
+            }
         ]
 
         return context
@@ -144,7 +150,12 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             messages.SUCCESS,
             _("Successfully set scan profile to %s for %d OOIs.") % (level.name, len(selected_oois)),
         )
-        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "ooi_list",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
     def _set_oois_to_inherit(
         self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any
@@ -169,7 +180,12 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         messages.add_message(
             request, messages.SUCCESS, _("Successfully set %d OOI(s) clearance level to inherit.") % len(selected_oois)
         )
-        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "ooi_list",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
     def _delete_oois(self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         connector = self.octopoes_api_connector
@@ -192,7 +208,12 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             _("Successfully deleted %d ooi(s). Note: Bits can recreate objects automatically.") % len(selected_oois),
         )
 
-        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "ooi_list",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
 
 class OOIListExportView(BaseOOIListView):

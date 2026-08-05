@@ -52,7 +52,7 @@
                                                 <i class="icon {{ report_task.status.value }}"></i>{{ report_task.status.value|capfirst }}
                                             </td>
                                             <td>
-                                                <a href="{% ooi_url "ooi_detail" recipe_pk report_task.data.organisation_id query=ooi.mandatory_fields observed_at=report_task.created_at|date:'c' %}">{{ report_task.data.report_recipe_id }}</a>
+                                                <a href="{% app_url "ooi_detail" ooi=recipe_pk organization_code=report_task.data.organisation_id query=ooi.mandatory_fields temporal_context=report_task.created_at %}">{{ report_task.data.report_recipe_id }}</a>
                                             </td>
                                             <td>{{ report_task.created_at }}</td>
                                             <td>{{ report_task.modified_at }}</td>

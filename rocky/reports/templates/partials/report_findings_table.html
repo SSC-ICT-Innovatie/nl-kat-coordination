@@ -41,7 +41,7 @@
                         <td>{{ info.occurrences|get_first_seen }}</td>
                         {% if is_crisis_room %}
                             <td class="number">
-                                <a href="{% url "view_report" dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
+                                <a href="{% app_url "view_report" organization_code=dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
                             </td>
                         {% else %}
                             <td class="actions sticky-cell">
@@ -61,7 +61,9 @@
                                 <p>{{ info.finding_type.description }}</p>
                                 <h5>{% translate "Source" %}</h5>
                                 {% if info.finding_type.source %}
-                                    <a class="nowrap" href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
+                                    <a class="nowrap"
+                                       rel="noopener noreferer"
+                                       href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
                                 {% else %}
                                     <p>{{ info.finding_type.source }}</p>
                                 {% endif %}
@@ -84,9 +86,13 @@
                                         {% for occurrence in info.occurrences %}
                                             <tr>
                                                 <td>
-                                                    <a href="{% ooi_url 'ooi_detail' occurrence.finding.ooi organization.code %}">{{ occurrence.finding.ooi|human_readable }}</a>
+                                                    <a href="{% app_url 'ooi_detail' ooi=occurrence.finding.ooi organization_code=organization.code temporal_context=report_ooi.observed_at %}">{{ occurrence.finding.ooi|human_readable }}</a>
                                                 </td>
-                                                <td title="{{ occurrence.first_seen }} UTC">{{ occurrence.first_seen|get_datetime|naturaltime }}</td>
+                                                <td title="{{ occurrence.first_seen }} UTC">
+                                                    <a href="{% app_url 'ooi_detail' ooi=occurrence.finding.ooi organization_code=organization.code temporal_context=occurrence.first_seen %}">
+                                                        {{ occurrence.first_seen|get_datetime|naturaltime }}
+                                                    </a>
+                                                </td>
                                             </tr>
                                         {% endfor %}
                                     </tbody>

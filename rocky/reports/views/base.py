@@ -56,7 +56,7 @@ def get_selection(request: HttpRequest, pre_selection: Mapping[str, str | Sequen
 logger = structlog.get_logger(__name__)
 
 
-class ReportBreadcrumbs(OrganizationView, BreadcrumbsMixin):
+class ReportBreadcrumbs(ObservedAtMixin, OrganizationView, BreadcrumbsMixin):
     breadcrumbs_step: int = 1
 
     def setup(self, request, *args, **kwargs):
@@ -64,14 +64,14 @@ class ReportBreadcrumbs(OrganizationView, BreadcrumbsMixin):
         self.breadcrumbs = self.build_breadcrumbs()
 
     def get_kwargs(self):
-        return {"organization_code": self.organization.code}
+        return {"organization_code": self.organization.code, "temporal_context": self.temporal_context}
 
     def is_valid_breadcrumbs(self):
         return self.breadcrumbs_step < len(self.breadcrumbs)
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
-        kwargs = self.get_kwargs()
         selection = get_selection(self.request)
+        kwargs = self.get_kwargs()
 
         return [{"url": reverse("reports", kwargs=kwargs) + selection, "text": _("Reports")}]
 
@@ -741,12 +741,20 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
         context["report_types"] = self.report_types
         context["plugins"] = self.plugins
         context["report_download_json_url"] = url_with_querystring(
-            reverse("view_report", kwargs={"organization_code": self.organization.code}),
+            reverse(
+                "view_report",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.observed_at},
+            ),
             True,
             **dict(json="true", **self.request.GET),
         )
         context["report_download_pdf_url"] = url_with_querystring(
-            reverse("view_report_pdf", kwargs={"organization_code": self.organization.code}), True, **self.request.GET
+            reverse(
+                "view_report_pdf",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.observed_at},
+            ),
+            True,
+            **self.request.GET,
         )
 
         return context

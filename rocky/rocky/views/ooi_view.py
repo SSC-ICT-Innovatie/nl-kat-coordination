@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Literal
+from urllib.parse import quote
 
 from django.forms import Form
 from django.http import Http404
@@ -12,7 +13,7 @@ from pydantic import ValidationError
 from tools.forms.base import BaseRockyForm
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES, ClearanceFilterForm, OOIForm, OrderByObjectTypeForm
 from tools.ooi_helpers import create_ooi
-from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
 from octopoes.models import OOI, ScanProfileType
@@ -128,7 +129,6 @@ class BaseOOIListView(OOIFilterView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["mandatory_fields"] = get_mandatory_fields(self.request)
         context["total_oois"] = len(self.object_list)
         context["table_columns"] = OBJECT_LIST_COLUMNS
         return context
@@ -141,15 +141,14 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         self.ooi = tree.store[tree.root.reference]
 
     @property
-    def get_current_ooi(self) -> OOI | None:
+    def get_now_ooi(self) -> OOI | None:
         """
         Some OOIs have an old valid time, this will fetch the latest OOI for today.
         """
-        now = datetime.now(timezone.utc)
         if not self.is_historic_view:
             return self.ooi
         try:
-            return self.get_single_ooi(self.get_ooi_id(), observed_at=now)
+            return self.get_single_ooi(self.ooi_id, observed_at=datetime.now(timezone.utc))
         except Http404:
             return None
 
@@ -157,26 +156,38 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         context = super().get_context_data(**kwargs)
 
         context["ooi"] = self.ooi
-        context["ooi_current"] = self.get_current_ooi
-        context["mandatory_fields"] = get_mandatory_fields(self.request)
+        context["ooi_current"] = self.get_now_ooi
         return context
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         start: Breadcrumb
         if isinstance(self.ooi, Finding):
             start = {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Findings"),
             }
         else:
             start = {
-                "url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Objects"),
             }
         return [
             start,
             {
-                "url": get_ooi_url("ooi_detail", self.ooi.primary_key, self.organization.code),
+                "url": reverse(
+                    "ooi_detail",
+                    kwargs={
+                        "ooi": quote(self.ooi.primary_key, safe=""),
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                    },
+                ),
                 "text": self.ooi.human_readable,
             },
         ]
@@ -225,7 +236,14 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             return self.form_invalid(form)
 
     def get_ooi_success_url(self, ooi: OOI) -> str:
-        return get_ooi_url("ooi_detail", ooi.primary_key, self.organization.code)
+        return reverse(
+            "ooi_detail",
+            kwargs={
+                "ooi": quote(ooi.primary_key, safe=""),
+                "organization_code": self.organization.code,
+                "temporal_context": self.temporal_context,
+            },
+        )
 
     def get_readonly_fields(self) -> list:
         if not hasattr(self, "ooi"):

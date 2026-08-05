@@ -12,7 +12,7 @@
             {% if not historic_view %}
                 {% if not ooi|is_finding and not ooi|is_finding_type %}
                     <div class="horizontal-view {% if related %}toolbar{% endif %}">
-                        <a href="{% ooi_url "ooi_add_related" ooi.primary_key organization.code %}"
+                        <a href="{% app_url "ooi_add_related" ooi=ooi.primary_key %}"
                            class="button ghost"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add related object" %}</a>
                     </div>
                 {% endif %}
@@ -32,10 +32,10 @@
                 {% for related_ooi in related %}
                     <tr>
                         <td>
-                            <a href="{% ooi_url "ooi_detail" related_ooi.reference organization.code query=related_ooi.mandatory_fields %}">{{ related_ooi.reference.human_readable }}</a>
+                            <a href="{% app_url "ooi_detail" ooi=related_ooi.reference %}">{{ related_ooi.reference.human_readable }}</a>
                         </td>
                         <td>
-                            <a href="{% url "ooi_list" organization.code %}?ooi_type={{ related_ooi.reference.class_ }}">{{ related_ooi.reference.class_ }}</a>
+                            <a href="{% app_url "ooi_list" %}?ooi_type={{ related_ooi.reference.class_ }}">{{ related_ooi.reference.class_ }}</a>
                         </td>
                     </tr>
                 {% endfor %}
