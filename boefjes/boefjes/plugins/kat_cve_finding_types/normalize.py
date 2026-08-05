@@ -40,24 +40,24 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         # The old code fell through to metrics["cvssMetricV2"], raising KeyError
         # in that case, which aborts the normalizer and drops the finding type.
         # Prefer the known metric versions and fall back to UNKNOWN instead.
+        # v4.0 deliberately comes after v3.x: the severity bands in
+        # get_risk_level were drawn for v3.x scores, so preferring v3.x keeps
+        # scores comparable with historical data. Empty metric lists are
+        # skipped so a populated later version wins over an empty earlier one.
         for metric in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV40", "cvssMetricV2"):
-            if metric in metrics:
+            if metrics.get(metric):
                 cvss = metrics[metric]
                 break
         else:
             cvss = None
 
-        if cvss is None:
+        if not cvss:
             risk_severity = RiskLevelSeverity.UNKNOWN
             risk_score = None
         else:
-            for item in cvss:
-                if item["type"] == "Primary":
-                    risk_score = item["cvssData"]["baseScore"]
-                    break
-            else:
-                risk_score = cvss[0]["cvssData"]["baseScore"]
-            risk_severity = get_risk_level(risk_score)
+            primary = next((item for item in cvss if item["type"] == "Primary"), cvss[0])
+            risk_score = primary.get("cvssData", {}).get("baseScore")
+            risk_severity = get_risk_level(risk_score) if risk_score is not None else RiskLevelSeverity.UNKNOWN
 
     yield NormalizerAffirmation(
         ooi=CVEFindingType(
