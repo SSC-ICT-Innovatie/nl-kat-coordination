@@ -32,11 +32,9 @@ def test_crt_sh_normalizer_wildcard_and_email_identities_do_not_crash():
     oois = list(run(input_ooi, raw))
 
     hostname_names = {o.name for o in oois if isinstance(o, Hostname)}
-    # Wildcard is stripped to the bare domain, the plain names survive...
-    assert "example.com" in hostname_names
-    assert "www.example.com" in hostname_names
-    # ...and no invalid identity leaks through.
-    assert not any("*" in name or "@" in name for name in hostname_names)
+    # Wildcard is stripped to the bare domain, the plain names survive, and no
+    # invalid identity (containing '*' or '@') leaks through.
+    assert hostname_names == {"example.com", "www.example.com"}
     # The certificate itself is still yielded.
     assert any(isinstance(o, X509Certificate) for o in oois)
 
