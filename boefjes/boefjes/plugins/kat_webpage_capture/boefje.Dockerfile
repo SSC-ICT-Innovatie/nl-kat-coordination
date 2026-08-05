@@ -25,7 +25,7 @@ COPY ./boefjes/logging.json logging.json
 ENTRYPOINT ["/usr/bin/python3.13", "-m", "worker"]
 CMD []
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/webpage-capture:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-webpage-capture:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
 
