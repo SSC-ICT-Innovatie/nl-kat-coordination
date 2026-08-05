@@ -13,13 +13,7 @@ from httpx import HTTPError
 from pydantic import TypeAdapter
 
 from octopoes.api.models import ServiceHealth
-from octopoes.config.settings import (
-    DEFAULT_LIMIT,
-    DEFAULT_OFFSET,
-    DEFAULT_SCAN_LEVEL_FILTER,
-    DEFAULT_SCAN_PROFILE_TYPE_FILTER,
-    Settings,
-)
+from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET, Settings
 from octopoes.events.events import DBEvent, OOIDBEvent, OriginDBEvent, OriginParameterDBEvent, ScanProfileDBEvent
 from octopoes.events.manager import EventManager
 from octopoes.models import (
@@ -141,8 +135,8 @@ class OctopoesService:
         valid_time: datetime,
         offset: int = DEFAULT_OFFSET,
         limit: int = DEFAULT_LIMIT,
-        scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER,
-        scan_profile_types: set[ScanProfileType] = DEFAULT_SCAN_PROFILE_TYPE_FILTER,
+        scan_levels: set[ScanLevel] | None = None,
+        scan_profile_types: set[ScanProfileType] | None = None,
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
@@ -154,10 +148,14 @@ class OctopoesService:
         return paginated
 
     def get_ooi_tree(
-        self, reference: Reference, valid_time: datetime, search_types: set[type[OOI]] | None = None, depth: int = 1
+        self,
+        reference: Reference,
+        valid_time: datetime,
+        search_types: set[type[OOI]] | None = None,
+        depth: int = 1,
+        with_scan_profiles: bool | None = False,
     ) -> ReferenceTree:
-        tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth)
-        self._populate_scan_profiles(tree.store.values(), valid_time)
+        tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth, with_scan_profiles)
         return tree
 
     def _delete_ooi(self, reference: Reference, valid_time: datetime) -> None:
@@ -173,7 +171,7 @@ class OctopoesService:
             self.ooi_repository.delete_if_exists(reference, valid_time)
 
     def save_origin(
-        self, origin: Origin, oois: list[OOI], valid_time: datetime, end_valid_time: datetime | None = None
+        self, origin: Origin, oois: list[OOI] | set[OOI], valid_time: datetime, end_valid_time: datetime | None = None
     ) -> None:
         origin.result = [ooi.reference for ooi in oois]
 
@@ -207,7 +205,8 @@ class OctopoesService:
             self.ooi_repository.save(ooi, valid_time=valid_time, end_valid_time=end_valid_time)
         self.origin_repository.save(origin, valid_time=valid_time)
 
-        # Origins that are stale need to be deleted. #3561
+        # Origins that are stale, eg have no results and are not inferenced
+        # need to be deleted. #3561
         if not origin.result and origin.origin_type != OriginType.INFERENCE:
             self.origin_repository.delete(origin, valid_time=valid_time)
 
@@ -247,7 +246,7 @@ class OctopoesService:
                 config = configs[-1].config
 
         try:
-            if isinstance(self.session, XTDBSession):
+            if self.metrics:
                 start = perf_counter()
                 resulting_oois = BitRunner(bit_definition).run(source, parameters, config=config)
                 stop = perf_counter()
@@ -267,6 +266,7 @@ class OctopoesService:
             self.save_origin(origin, resulting_oois, valid_time)
         except Exception as e:
             logger.exception("Error running inference", exc_info=e)
+            raise e
 
     @staticmethod
     def check_path_level(path_level: int | None, current_level: int) -> bool:
@@ -403,7 +403,7 @@ class OctopoesService:
     # OOI events
     def _on_create_ooi(self, event: OOIDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Create event new_data should not be None")
+            raise ValueError("[_on_create_ooi] Create event new_data should not be None")
 
         ooi = event.new_data
 
@@ -445,7 +445,7 @@ class OctopoesService:
 
     def _on_update_ooi(self, event: OOIDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Update event new_data should not be None")
+            raise ValueError("[_on_update_ooi] Update event new_data should not be None")
 
         if isinstance(event.new_data, Config):
             relevant_bit_ids = [
@@ -466,7 +466,7 @@ class OctopoesService:
 
     def _on_delete_ooi(self, event: OOIDBEvent) -> None:
         if event.old_data is None:
-            raise ValueError("Update event old_data should not be None")
+            raise ValueError("[_on_delete_ooi] Update event old_data should not be None")
 
         reference = event.old_data.reference
 
@@ -490,14 +490,14 @@ class OctopoesService:
     # Origin events
     def _on_create_origin(self, event: OriginDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Create event new_data should not be None")
+            raise ValueError("[_on_create_origin] Create event new_data should not be None")
 
         if event.new_data.origin_type == OriginType.INFERENCE:
             self._run_inference(event.new_data, event.valid_time)
 
     def _on_update_origin(self, event: OriginDBEvent) -> None:
         if event.new_data is None or event.old_data is None:
-            raise ValueError("Update event new_data and old_data should not be None")
+            raise ValueError("[_on_update_origin] Update event new_data and old_data should not be None")
 
         dereferenced_oois = event.old_data - event.new_data
         for reference in dereferenced_oois:
@@ -505,7 +505,7 @@ class OctopoesService:
 
     def _on_delete_origin(self, event: OriginDBEvent) -> None:
         if event.old_data is None:
-            raise ValueError("Delete event old_data should not be None")
+            raise ValueError("[_on_delete_origin] Delete event old_data should not be None")
 
         for reference in event.old_data.result:
             self._delete_ooi(reference, event.valid_time)
@@ -513,7 +513,7 @@ class OctopoesService:
     # Origin parameter events
     def _on_create_origin_parameter(self, event: OriginParameterDBEvent) -> None:
         if event.new_data is None:
-            raise ValueError("Create event new_data should not be None")
+            raise ValueError("[_on_create_origin_parameter] Create event new_data should not be None")
 
         # Run the bit/origin
         try:
@@ -528,7 +528,7 @@ class OctopoesService:
 
     def _on_delete_origin_parameter(self, event: OriginParameterDBEvent) -> None:
         if event.old_data is None:
-            raise ValueError("Delete event old_data should not be None")
+            raise ValueError("[_on_delete_origin_parameter] Delete event old_data should not be None")
 
         # Run the bit/origin
         try:
@@ -538,9 +538,9 @@ class OctopoesService:
             pass
 
     def _run_inferences(self, event: ScanProfileDBEvent) -> None:
-        inference_origins = self.origin_repository.list_origins(event.valid_time, source=event.reference)
-        inference_origins = [o for o in inference_origins if o.origin_type == OriginType.INFERENCE]
-        for inference_origin in inference_origins:
+        for inference_origin in self.origin_repository.list_origins(
+            event.valid_time, source=event.reference, origin_type=OriginType.INFERENCE
+        ):
             self._run_inference(inference_origin, event.valid_time)
 
     # Scan profile events
@@ -554,11 +554,9 @@ class OctopoesService:
         self._run_inferences(event)
 
     def list_random_ooi(
-        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER
+        self, valid_time: datetime, amount: int = 1, scan_levels: set[ScanLevel] | None = None
     ) -> list[OOI]:
-        oois = self.ooi_repository.list_random(valid_time, amount, scan_levels)
-        self._populate_scan_profiles(oois, valid_time)
-        return oois
+        return self.ooi_repository.list_random(valid_time, amount, scan_levels)
 
     def get_scan_profile_inheritance(
         self, reference: Reference, valid_time: datetime, inheritance_chain: list[InheritanceSection]
@@ -573,7 +571,7 @@ class OctopoesService:
             neighbour
             for neighbours in neighbour_cache.values()
             for neighbour in neighbours
-            if neighbour.reference not in visited
+            if neighbour.reference not in visited  # dont walk back over the path we came from
         ]
         self._populate_scan_profiles(neighbours_, valid_time)
 

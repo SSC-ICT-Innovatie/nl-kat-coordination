@@ -17,7 +17,7 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
     def get_tree_dict(self):
         if self._tree_dict is None:
-            tree = self.get_ooi_tree()
+            tree = self.get_ooi_tree(with_scan_profiles=False, types=self.request.GET.getlist("ooi_type", None))
             self._tree_dict = create_object_tree_item_from_ref(tree.root, tree.store)
 
         return self._tree_dict
@@ -54,7 +54,7 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        context["tree"] = self.get_filtered_tree(self.get_tree_dict())
+        context["tree"] = self.get_tree_dict()
         context["tree_view"] = self.request.GET.get("view", "condensed")
         context["active_filters_counter"] = self.count_active_filters()
         return context

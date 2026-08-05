@@ -15,10 +15,10 @@ from tools.ooi_helpers import create_ooi
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
 
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
-from octopoes.models import OOI, ScanLevel, ScanProfileType
+from octopoes.models import OOI, ScanProfileType
 from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
-from octopoes.models.types import get_collapsed_types, type_by_name
+from octopoes.models.types import get_collapsed_types
 from rocky.paginator import RockyPaginator
 from rocky.views.mixins import OBJECT_LIST_COLUMNS, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
 
@@ -43,7 +43,7 @@ class OOIFilterView(OctopoesView):
 
     def get_active_filters(self) -> dict[str, str]:
         active_filters = {}
-        if self.count_observed_at_filter() > 0:
+        if self.is_historic_view:
             active_filters[_("Observed_at: ")] = self.observed_at.strftime("%Y-%m-%d")
         if self.filtered_ooi_types:
             active_filters[_("OOI types: ")] = ", ".join(self.filtered_ooi_types)
@@ -66,20 +66,20 @@ class OOIFilterView(OctopoesView):
             + (1 if self.search_string else 0)
         )
 
-    def get_ooi_scan_levels(self) -> set[ScanLevel]:
+    def get_ooi_scan_levels(self) -> set[int] | set:
         if not self.clearance_levels:
-            return self.scan_levels
-        return {ScanLevel(int(cl)) for cl in self.clearance_levels}
+            return set()
+        return {int(cl) for cl in self.clearance_levels}
 
-    def get_ooi_profile_types(self) -> set[ScanProfileType]:
+    def get_ooi_scan_profile_types(self) -> set[ScanProfileType] | set:
         if not self.clearance_types:
-            return self.scan_profile_types
-        return {ScanProfileType(ct) for ct in self.clearance_types}
+            return set()
+        return set(self.clearance_types)
 
-    def get_ooi_types(self) -> set[type[OOI]]:
+    def get_ooi_types(self) -> set[type[OOI]] | set[str]:
         if not self.filtered_ooi_types:
             return self.ooi_types
-        return {type_by_name(t) for t in self.filtered_ooi_types if t not in _EXCLUDED_OOI_TYPES}
+        return {t for t in self.filtered_ooi_types if t not in _EXCLUDED_OOI_TYPES}
 
     @property
     def order_by(self) -> Literal["object_type", "scan_level"]:
@@ -94,7 +94,7 @@ class OOIFilterView(OctopoesView):
             "valid_time": self.observed_at,
             "ooi_types": self.get_ooi_types(),
             "scan_level": self.get_ooi_scan_levels(),
-            "scan_profile_type": self.get_ooi_profile_types(),
+            "scan_profile_type": self.get_ooi_scan_profile_types(),
             "search_string": self.search_string,
             "order_by": self.order_by,
             "asc_desc": self.sorting_order,
@@ -140,15 +140,16 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         tree = self.tree
         self.ooi = tree.store[tree.root.reference]
 
+    @property
     def get_current_ooi(self) -> OOI | None:
         """
         Some OOIs have an old valid time, this will fetch the latest OOI for today.
         """
         now = datetime.now(timezone.utc)
-        if self.observed_at.date() == now.date():
+        if not self.is_historic_view:
             return self.ooi
         try:
-            return self.get_ooi_tree(self.get_ooi_id(), observed_at=now).store[self.get_ooi_id()]
+            return self.get_single_ooi(self.get_ooi_id(), observed_at=now)
         except Http404:
             return None
 
@@ -156,7 +157,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         context = super().get_context_data(**kwargs)
 
         context["ooi"] = self.ooi
-        context["ooi_current"] = self.get_current_ooi()
+        context["ooi_current"] = self.get_current_ooi
         context["mandatory_fields"] = get_mandatory_fields(self.request)
         return context
 

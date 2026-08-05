@@ -12,7 +12,8 @@ function get_config_content(scheme) {
 
   // Setup config file
   try {
-    let config_contents = `PROMPTS=no\nUPDATES=no\nCLIOPTS=-404code=301,302,307,308 -Tuning ${TUNING} -maxtime ${MAX_TIME} -o ./output.json`;
+    // Nikto 2.6 appends ".json" to the -o path, so pass base name + explicit -Format json.
+    let config_contents = `PROMPTS=no\nUPDATES=no\nCLIOPTS=-404code=301,302,307,308 -Tuning ${TUNING} -maxtime ${MAX_TIME} -o ./output -Format json`;
 
     if (scheme == "https") config_contents += " -ssl";
     if (IS_USING_PROXY) config_contents += " -useproxy";

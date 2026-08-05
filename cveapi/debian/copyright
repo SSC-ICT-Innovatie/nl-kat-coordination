@@ -1,10 +1,10 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: kat-cveapi
-Upstream-Contact: info@openkat.nl
-Source: https://github.com/minvws/nl-kat-coordination
+Upstream-Contact: maintainer@librekat.nl
+Source: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination
 
 Files: *
-Copyright: Ministry of Health, Welfare and Sport
+Copyright: 2022 OpenKAT
 License: EUPL
 
 License: EUPL

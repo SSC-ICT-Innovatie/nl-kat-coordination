@@ -90,7 +90,7 @@ class SchedulerAPIClient(SchedulerClientInterface):
         if p_item.scheduler_id not in ["boefje", "normalizer"]:
             raise ValueError("Invalid scheduler id")
 
-        response = self._session.post(f"/schedulers/{p_item.scheduler_id}/push", content=p_item.model_dump_json())
+        response = self._session.post(f"/schedulers/{p_item.scheduler_id}/push", json=p_item.model_dump(mode="json"))
         self._verify_response(response)
 
     def patch_task(self, task_id: uuid.UUID, status: TaskStatus) -> None:
