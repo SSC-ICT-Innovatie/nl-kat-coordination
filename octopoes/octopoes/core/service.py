@@ -562,12 +562,22 @@ class OctopoesService:
     def get_scan_profile_inheritance(
         self, reference: Reference, valid_time: datetime, inheritance_chain: list[InheritanceSection]
     ) -> list[InheritanceSection]:
+        if not inheritance_chain:
+            raise ValueError("inheritance_chain must contain the starting object")
+
         required_level = inheritance_chain[-1].level
         visited = {inheritance.reference for inheritance in inheritance_chain}
 
         neighbour_paths = get_paths_to_neighbours(reference.class_type)
 
-        eligible_paths = {path for path in neighbour_paths if path._path_can_inherit_level(required_level)}
+        eligible_paths = {
+            path
+            for path in neighbour_paths
+            if (
+                (max_level := get_max_scan_level_inheritance(path.segments[0])) is not None
+                and max_level >= required_level
+            )
+        }
 
         if not eligible_paths:
             return inheritance_chain
@@ -580,8 +590,8 @@ class OctopoesService:
             segment = path.segments[0]
             max_inheritance_level = get_max_scan_level_inheritance(segment)
 
-            # This should already be guaranteed by eligible_paths, but retaining
-            # the check makes this function robust against repository surprises.
+            # Should already be guaranteed by eligible_paths, but keep this
+            # defensive check in case the repository returns unexpected paths.
             if max_inheritance_level is None or max_inheritance_level < required_level:
                 continue
 
@@ -591,6 +601,11 @@ class OctopoesService:
 
                 eligible_edges.append((segment, neighbour, max_inheritance_level))
 
+        if not eligible_edges:
+            return inheritance_chain
+
+        # The same neighbour may have been deserialized separately for different
+        # paths. Canonicalize those instances before populating scan profiles.
         neighbours_by_reference = {neighbour.reference: neighbour for _, neighbour, _ in eligible_edges}
 
         self._populate_scan_profiles(list(neighbours_by_reference.values()), valid_time)
@@ -598,42 +613,77 @@ class OctopoesService:
         inheritances: list[InheritanceSection] = []
 
         for segment, neighbour, max_inheritance_level in eligible_edges:
+            # Use the canonical instance whose scan profile was populated.
+            neighbour = neighbours_by_reference[neighbour.reference]
+
             if neighbour.scan_profile is None:
-                raise ValueError("neighbour scan_profile is None")
+                raise ValueError(f"Neighbour {neighbour.reference} has no scan profile")
 
             inherited_level = min(max_inheritance_level, neighbour.scan_profile.level)
 
+            # A lower transferable level cannot explain the current object.
             if inherited_level < required_level:
+                continue
+
+            # A higher transferable level should already have caused the current
+            # object to converge to that higher level. It is therefore not a valid
+            # explanation for the current state.
+            if inherited_level > required_level:
                 continue
 
             inheritances.append(
                 InheritanceSection(
                     segment=str(segment),
                     reference=neighbour.reference,
-                    level=inherited_level,
+                    level=neighbour.scan_profile.level,
+                    inherited_level=inherited_level,
                     scan_profile_type=neighbour.scan_profile.scan_profile_type,
                 )
             )
 
-        inheritances.sort(key=lambda inheritance: inheritance.level)
+        if not inheritances:
+            return inheritance_chain
 
-        declared_inheritances = [
-            inheritance for inheritance in inheritances if inheritance.scan_profile_type == ScanProfileType.DECLARED
-        ]
+        # Prefer deterministic ordering:
+        # - higher neighbour level first;
+        # - then reference and segment for stable tie-breaking.
+        inheritances.sort(key=lambda inheritance: (-inheritance.level, str(inheritance.reference), inheritance.segment))
 
-        if declared_inheritances:
-            return inheritance_chain + [declared_inheritances[-1]]
+        # A directly adjacent declared object is the shortest valid explanation.
+        declared_inheritance = next(
+            (inheritance for inheritance in inheritances if inheritance.scan_profile_type == ScanProfileType.DECLARED),
+            None,
+        )
 
-        highest_inheritance_per_neighbour = {inheritance.reference: inheritance for inheritance in inheritances}
+        if declared_inheritance is not None:
+            return inheritance_chain + [declared_inheritance]
+
+        # The same neighbour may be reachable over multiple relations. Keep the
+        # strongest deterministic candidate for each neighbour.
+        best_inheritance_per_neighbour: dict[Reference, InheritanceSection] = {}
+
+        for inheritance in inheritances:
+            current = best_inheritance_per_neighbour.get(inheritance.reference)
+
+            if current is None or (inheritance.level, inheritance.inherited_level, inheritance.segment) > (
+                current.level,
+                current.inherited_level,
+                current.segment,
+            ):
+                best_inheritance_per_neighbour[inheritance.reference] = inheritance
 
         for inheritance in sorted(
-            highest_inheritance_per_neighbour.values(), key=lambda inheritance: inheritance.level, reverse=True
+            best_inheritance_per_neighbour.values(),
+            key=lambda inheritance: (-inheritance.level, str(inheritance.reference), inheritance.segment),
         ):
             explanation = self.get_scan_profile_inheritance(
                 inheritance.reference, valid_time, inheritance_chain + [inheritance]
             )
 
-            if explanation[-1].scan_profile_type == ScanProfileType.DECLARED:
+            if (
+                len(explanation) > len(inheritance_chain)
+                and explanation[-1].scan_profile_type == ScanProfileType.DECLARED
+            ):
                 return explanation
 
         return inheritance_chain

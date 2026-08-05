@@ -24,13 +24,17 @@ def format_web_url_token(token: PrimaryKeyToken) -> str:
 class Website(OOI):
     object_type: Literal["Website"] = "Website"
 
-    ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
-    hostname: Reference = ReferenceField(Hostname, max_inherit_scan_level=4)
+    ip_service: Reference = ReferenceField(
+        IPService, max_issue_scan_level=0, max_inherit_scan_level=1
+    )  # this means any co-hosted websites on a given IP are included
+    hostname: Reference = ReferenceField(
+        Hostname, max_inherit_scan_level=4
+    )  # any website using the same hostname is included and allowed.
     certificate: Reference | None = ReferenceField(X509Certificate, default=None, max_issue_scan_level=1)
 
     _natural_key_attrs = ["ip_service", "hostname"]
 
-    _reverse_relation_names = {"ip_service": "websites", "hostname": "websites"}
+    _reverse_relation_names: dict[str, str] = {"ip_service": "websites", "hostname": "websites"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -60,7 +64,7 @@ class HostnameHTTPURL(WebURL):
     netloc: Reference = ReferenceField(Hostname, max_issue_scan_level=2, max_inherit_scan_level=4)
 
     _natural_key_attrs = ["scheme", "netloc", "port", "path"]
-    _reverse_relation_names = {"netloc": "urls"}
+    _reverse_relation_names: dict[str, str] = {"netloc": "urls"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -75,7 +79,7 @@ class IPAddressHTTPURL(WebURL):
     netloc: Reference = ReferenceField(IPAddress, max_issue_scan_level=1, max_inherit_scan_level=4)
 
     _natural_key_attrs = ["scheme", "netloc", "port", "path"]
-    _reverse_relation_names = {"netloc": "urls"}
+    _reverse_relation_names: dict[str, str] = {"netloc": "urls"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -93,7 +97,7 @@ class HTTPResource(OOI):
 
     _natural_key_attrs = ["website", "web_url"]
 
-    _reverse_relation_names = {"website": "resources", "web_url": "resources"}
+    _reverse_relation_names: dict[str, str] = {"website": "resources", "web_url": "resources"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -119,7 +123,7 @@ class HTTPHeader(OOI):
 
     _natural_key_attrs = ["resource", "key"]
     _information_value = ["key"]
-    _reverse_relation_names = {"url": "http_headers"}
+    _reverse_relation_names: dict[str, str] = {"url": "http_headers"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -147,7 +151,7 @@ class URL(OOI):
 
     _natural_key_attrs = ["network", "raw"]
 
-    _reverse_relation_names = {"network": "urls"}
+    _reverse_relation_names: dict[str, str] = {"network": "urls"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -161,7 +165,7 @@ class HTTPHeaderURL(OOI):
     url: Reference = ReferenceField(URL, max_issue_scan_level=1, max_inherit_scan_level=0)
 
     _natural_key_attrs = ["header", "url"]
-    _reverse_relation_names = {"header": "urls", "url": "headers_containing_url"}
+    _reverse_relation_names: dict[str, str] = {"header": "urls", "url": "headers_containing_url"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -186,7 +190,7 @@ class HTTPHeaderHostname(OOI):
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=1, max_inherit_scan_level=0)
 
     _natural_key_attrs = ["header", "hostname"]
-    _reverse_relation_names = {"header": "hostnames", "hostname": "headers_containing_hostname"}
+    _reverse_relation_names: dict[str, str] = {"header": "hostnames", "hostname": "headers_containing_hostname"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -211,7 +215,7 @@ class ImageMetadata(OOI):
     image_info: dict
 
     _natural_key_attrs = ["resource"]
-    _reverse_relation_names = {"resource": "ImageMetaData"}
+    _reverse_relation_names: dict[str, str] = {"resource": "ImageMetaData"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -241,7 +245,7 @@ class RESTAPI(OOI):
     api_url: Reference = ReferenceField(WebURL)
 
     _natural_key_attrs = ["api_url"]
-    _reverse_relation_names = {"api_url": "api_url_of"}
+    _reverse_relation_names: dict[str, str] = {"api_url": "api_url_of"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -254,7 +258,7 @@ class APIDesignRule(OOI):
     name: str
 
     _natural_key_attrs = ["name"]
-    _reverse_relation_names = {}
+    _reverse_relation_names: dict[str, str] = {}
     _traversable = False
 
     @classmethod
@@ -271,7 +275,7 @@ class APIDesignRuleResult(OOI):
     message: str
 
     _natural_key_attrs = ["rest_api", "rule"]
-    _reverse_relation_names = {"rest_api": "api_design_rule_results", "rule": "results"}
+    _reverse_relation_names: dict[str, str] = {"rest_api": "api_design_rule_results", "rule": "results"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -295,7 +299,7 @@ class SecurityTXT(OOI):
     security_txt: str | None = None
 
     _natural_key_attrs = ["website", "url"]
-    _reverse_relation_names = {
+    _reverse_relation_names: dict[str, str] = {
         "website": "security_txt_of",
         "url": "security_txt",
         "redirects_to": "is_being_redirected_to_by",
