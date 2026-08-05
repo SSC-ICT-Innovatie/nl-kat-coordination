@@ -40,27 +40,29 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield service
 
         if "tls" in scan:
-            certificate = scan["tls"]["certificates"]
-            if "subject_dn" in certificate["leaf_data"]:
-                cert_subject = certificate["leaf_data"]["subject_dn"]
-            elif "subject" in certificate["leaf_data"]:
-                so = certificate["leaf_data"]["subject_dn"]
-                cert_subject = "C={}, ST={}, O={}, OU={}, CN={}".format(
-                    so["country"], so["province"], so["organization"], so["organizational_unit"], so["common_name"]
+            leaf_data = scan["tls"]["certificates"]["leaf_data"]
+
+            # X509Certificate requires valid_from/valid_until as (ISO) strings.
+            # The previous code passed 0 (an int) into these fields, which raises
+            # a ValidationError that aborts the whole normalizer and discards
+            # every OOI already yielded for this host (ports, software, headers).
+            # Only emit the certificate when Censys actually supplied validity
+            # timestamps; never fabricate a placeholder, which would additionally
+            # break X509Certificate.expired downstream.
+            valid_from = leaf_data.get("not_before")
+            valid_until = leaf_data.get("not_after")
+            if valid_from and valid_until:
+                # todo: link certificate properly. Currently there is no website, because it will be returned for an ip
+                yield X509Certificate(
+                    subject=leaf_data.get("subject_dn"),
+                    issuer=leaf_data.get("issuer_dn"),
+                    valid_from=valid_from,
+                    valid_until=valid_until,
+                    pk_algorithm=leaf_data.get("pubkey_algorithm"),
+                    pk_size=leaf_data.get("pubkey_bit_size"),
+                    serial_number=leaf_data["fingerprint"],
+                    signed_by=None,
                 )
-            else:
-                cert_subject = "n/a"
-            # todo: link certificate properly. Currently there is no website, because it will be returned for an ip
-            yield X509Certificate(
-                subject=cert_subject,
-                issuer=certificate["leaf_data"]["issuer_dn"],
-                valid_from=0,
-                valid_until=0,
-                pk_algorithm=certificate["leaf_data"]["pubkey_algorithm"],
-                pk_size=certificate["leaf_data"]["pubkey_bit_size"],
-                serial_number=certificate["leaf_data"]["fingerprint"],
-                signed_by=None,
-            )
 
         if "software" in scan:
             for sw in scan["software"]:
