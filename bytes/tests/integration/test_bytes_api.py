@@ -201,8 +201,7 @@ def test_filtered_normalizer_meta(bytes_api_client: BytesAPIClient) -> None:
 
 def test_get_normalizer_metas_by_uuid_list(bytes_api_client: BytesAPIClient) -> None:
     # The /bytes/normalizer_metas endpoint (plural) takes a list of UUIDs and
-    # returns a dict {uuid: NormalizerMeta}. It has no method on BytesAPIClient
-    # and was the one normalizer-meta route without integration coverage.
+    # returns a dict {uuid: NormalizerMeta}.
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -221,20 +220,17 @@ def test_get_normalizer_metas_by_uuid_list(bytes_api_client: BytesAPIClient) -> 
     third.id = uuid.uuid4()
     bytes_api_client.save_normalizer_meta(third)
 
-    response = bytes_api_client.client.get(
-        "/bytes/normalizer_metas", params=[("normalizer_metas", str(first.id)), ("normalizer_metas", str(second.id))]
-    )
-    response.raise_for_status()
-    body = response.json()
+    normalizer_metas = bytes_api_client.get_normalizer_metas([first.id, second.id])
 
-    assert set(body.keys()) == {str(first.id), str(second.id)}
-    assert str(third.id) not in body
+    assert set(normalizer_metas.keys()) == {str(first.id), str(second.id)}
+    assert str(third.id) not in normalizer_metas
+    assert normalizer_metas[str(first.id)].id == first.id
+    assert normalizer_metas[str(second.id)].id == second.id
+    assert normalizer_metas[str(first.id)].normalizer.id == first.normalizer.id
 
 
 def test_get_normalizer_metas_unknown_uuid_returns_empty(bytes_api_client: BytesAPIClient) -> None:
-    response = bytes_api_client.client.get("/bytes/normalizer_metas", params=[("normalizer_metas", str(uuid.uuid4()))])
-    response.raise_for_status()
-    assert response.json() == {}
+    assert bytes_api_client.get_normalizer_metas([uuid.uuid4()]) == {}
 
 
 def test_normalizer_meta_pointing_to_raw_id(bytes_api_client: BytesAPIClient) -> None:
