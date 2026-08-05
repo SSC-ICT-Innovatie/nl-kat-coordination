@@ -622,6 +622,13 @@
     "impact": "Depending on what software is outdated this can be critical.",
     "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
   },
+  "KAT-VULNERABLE-SOFTWARE-VERSION": {
+    "name": "Vulnerable software version identified",
+    "description": "The installed version of this software has a publicly known vulnerability.",
+    "risk": "medium",
+    "impact": "A known vulnerability in installed software can be exploited by an attacker; the concrete impact depends on the vulnerability.",
+    "recommendation": "Update the affected software to a patched version and review the referenced advisory."
+  },
   "KAT-MISSING-HEADER": {
     "name":"Missing security header",
     "description": "A recommended HTTP security header is not present on the response. The exact header was either not recognised by the parser or not specifically mapped to a dedicated finding type.",
