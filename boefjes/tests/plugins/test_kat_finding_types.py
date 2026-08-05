@@ -1,4 +1,5 @@
 import json
+import logging
 
 from boefjes.normalizer_models import NormalizerAffirmation
 from boefjes.plugins.kat_kat_finding_types.normalize import run
@@ -39,3 +40,15 @@ def test_kat_finding_types_missing_risk_key_does_not_crash():
     assert len(oois) == 1
     assert oois[0].ooi.risk_severity == RiskLevelSeverity.UNKNOWN
     assert oois[0].ooi.risk_score is None
+
+
+def test_kat_finding_types_unrecognised_risk_falls_back_to_unknown(caplog):
+    raw = json.dumps({"KAT-EXAMPLE": {"risk": "bogus", "name": "Example"}}).encode()
+
+    with caplog.at_level(logging.WARNING):
+        oois = list(run({"id": "KAT-EXAMPLE"}, raw))
+
+    assert len(oois) == 1
+    assert oois[0].ooi.risk_severity == RiskLevelSeverity.UNKNOWN
+    assert oois[0].ooi.risk_score is None
+    assert any("Unknown risk level" in record.message for record in caplog.records)
