@@ -48,6 +48,28 @@ def test_cve_with_cvss2():
     assert expected == oois
 
 
+def test_cve_with_only_cvss_v4():
+    # NVD may score a CVE only with CVSS v4.0. The old code fell through to
+    # metrics["cvssMetricV2"] and raised KeyError, aborting the normalizer.
+    input_ooi = {"id": "CVE-2024-12345"}
+
+    oois = list(run(input_ooi, get_dummy_data("inputs/cve-result-with-cvss4.json")))
+
+    expected = [
+        NormalizerAffirmation(
+            ooi=CVEFindingType(
+                id="CVE-2024-12345",
+                description="An example vulnerability scored only with CVSS v4.0.",
+                source="https://cve.circl.lu/cve/CVE-2024-12345",
+                risk_severity=RiskLevelSeverity.CRITICAL,
+                risk_score=9.3,
+            )
+        )
+    ]
+
+    assert expected == oois
+
+
 def test_cve_without_cvss():
     input_ooi = {"id": "CVE-2021-46882"}
 

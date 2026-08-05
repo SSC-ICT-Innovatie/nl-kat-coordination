@@ -36,20 +36,28 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         risk_score = None
     else:
         metrics = data["cve"]["metrics"]
-        if "cvssMetricV31" in metrics:
-            cvss = metrics["cvssMetricV31"]
-        elif "cvssMetricV30" in metrics:
-            cvss = metrics["cvssMetricV30"]
-        else:
-            cvss = metrics["cvssMetricV2"]
-
-        for item in cvss:
-            if item["type"] == "Primary":
-                risk_score = item["cvssData"]["baseScore"]
+        # NVD may return only a CVSS v4.0 metric (or a version we do not parse).
+        # The old code fell through to metrics["cvssMetricV2"], raising KeyError
+        # in that case, which aborts the normalizer and drops the finding type.
+        # Prefer the known metric versions and fall back to UNKNOWN instead.
+        for metric in ("cvssMetricV31", "cvssMetricV30", "cvssMetricV40", "cvssMetricV2"):
+            if metric in metrics:
+                cvss = metrics[metric]
                 break
         else:
-            risk_score = cvss[0]["cvssData"]["baseScore"]
-        risk_severity = get_risk_level(risk_score)
+            cvss = None
+
+        if cvss is None:
+            risk_severity = RiskLevelSeverity.UNKNOWN
+            risk_score = None
+        else:
+            for item in cvss:
+                if item["type"] == "Primary":
+                    risk_score = item["cvssData"]["baseScore"]
+                    break
+            else:
+                risk_score = cvss[0]["cvssData"]["baseScore"]
+            risk_severity = get_risk_level(risk_score)
 
     yield NormalizerAffirmation(
         ooi=CVEFindingType(
