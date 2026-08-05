@@ -15,7 +15,7 @@ RUN git clone --depth 1 --branch ${NUCLEI_TEMPLATES_VERSION} \
 
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/nuclei:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-nuclei:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 USER root
