@@ -5,7 +5,7 @@ RUN go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@${NUCLEI_VERS
 
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/nuclei:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-nuclei:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 USER root
