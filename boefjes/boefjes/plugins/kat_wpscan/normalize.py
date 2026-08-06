@@ -8,15 +8,24 @@ from octopoes.models.ooi.software import Software, SoftwareInstance
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    url_reference = Reference.from_str(input_ooi["primary_key"])
+    # The boefje consumes SoftwareInstance, so the input OOI is the
+    # SoftwareInstance that triggered the scan — its `ooi` field is the scanned
+    # URL. Resolve the URL so we don't nest a SoftwareInstance inside the very
+    # SoftwareInstance that triggered the scan.
+    if input_ooi.get("object_type") == "SoftwareInstance":
+        url_reference = Reference.from_str(input_ooi["ooi"]["primary_key"])
+    else:
+        url_reference = Reference.from_str(input_ooi["primary_key"])
     if not raw:
         return
 
     data = json.loads(raw.decode())
 
-    # WordPress core.
+    # WordPress core. Core reports staleness through `status` ("insecure"/
+    # "outdated"), not the `outdated` boolean that plugins/themes use.
     core = data.get("version") or {}
-    yield from _handle_component("WordPress", core.get("number"), core.get("vulnerabilities"), False, url_reference)
+    core_outdated = (core.get("status") or "") in ("insecure", "outdated")
+    yield from _handle_component("WordPress", core.get("number"), core.get("vulnerabilities"), core_outdated, url_reference)
 
     # Themes and plugins. wpscan keys these by slug; each carries its own
     # version, outdated flag and vulnerabilities.
@@ -64,6 +73,11 @@ def _handle_component(
                 description=f"{name} {version_number} is outdated.",
             )
 
+    # CVEs are distinct finding types, so they yield one Finding each. Non-CVE
+    # vulnerabilities share KAT-VULNERABLE-SOFTWARE-VERSION, whose natural key
+    # is `ooi|finding_type` — emitting N would collapse to one in Octopoes.
+    # Aggregate them into a single finding that carries the count and all titles.
+    non_cve_titles: list[str] = []
     for vulnerability in vulnerabilities or []:
         title = vulnerability.get("title")
         cves = (vulnerability.get("references") or {}).get("cve") or []
@@ -75,9 +89,16 @@ def _handle_component(
                 cve_type = CVEFindingType(id=cve_id)
                 yield cve_type
                 yield Finding(finding_type=cve_type.reference, ooi=finding_ooi, description=title)
-        else:
-            # WPScan/WPVulnDB vulnerabilities frequently have no CVE; surface
-            # them instead of dropping them.
-            vuln_type = KATFindingType(id="KAT-VULNERABLE-SOFTWARE-VERSION")
-            yield vuln_type
-            yield Finding(finding_type=vuln_type.reference, ooi=finding_ooi, description=title)
+        elif title:
+            non_cve_titles.append(title)
+
+    if non_cve_titles:
+        vuln_type = KATFindingType(id="KAT-VULNERABLE-SOFTWARE-VERSION")
+        yield vuln_type
+        count = len(non_cve_titles)
+        plural = "y" if count == 1 else "ies"
+        yield Finding(
+            finding_type=vuln_type.reference,
+            ooi=finding_ooi,
+            description=f"{count} known vulnerabilit{plural} without CVE: " + "; ".join(non_cve_titles),
+        )
