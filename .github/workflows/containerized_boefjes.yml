@@ -18,6 +18,9 @@ on:
       - boefjes/boefjes/plugins/kat_dnssec/**
       - boefjes/boefjes/plugins/kat_nikto/**
       - boefjes/boefjes/plugins/kat_export_http/**
+      - boefjes/boefjes/plugins/kat_nuclei_cve/**
+      - boefjes/boefjes/plugins/kat_nuclei_exposed_panels/**
+      - boefjes/boefjes/plugins/kat_nuclei_take_over/**
       - boefjes/images/**
       - .github/workflows/containerized_boefjes.yml
 
