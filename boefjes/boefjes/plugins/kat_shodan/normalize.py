@@ -6,6 +6,7 @@ from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 from octopoes.models.ooi.network import IPPort, PortState, Protocol
+from octopoes.models.ooi.software import Software, SoftwareInstance
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
@@ -34,3 +35,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     f = Finding(finding_type=ft.reference, ooi=ip_port.reference)
                     yield ft
                     yield f
+
+            # Shodan reports the detected product/version per banner. It was
+            # dropped entirely, so no Software was recorded and CVEs could not
+            # be bound to the software on a port.
+            product = scan.get("product")
+            if product:
+                cpe23 = scan.get("cpe23") or []
+                software = Software(name=product, version=scan.get("version"), cpe=cpe23[0] if cpe23 else None)
+                yield software
+                yield SoftwareInstance(ooi=ip_port.reference, software=software.reference)
