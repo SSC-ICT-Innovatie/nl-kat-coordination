@@ -4,6 +4,7 @@ from boefjes.plugins.kat_shodan.normalize import run
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 from octopoes.models.ooi.network import IPPort, PortState, Protocol
+from octopoes.models.ooi.software import Software, SoftwareInstance
 
 input_ooi = {"primary_key": "IPAddressV4|internet|1.2.3.4", "network": {"name": "internet"}}
 
@@ -75,3 +76,39 @@ def test_shodan_normalizer_empty_vulns_dict_emits_no_findings():
 
     assert [r for r in results if isinstance(r, Finding)] == []
     assert [r for r in results if isinstance(r, CVEFindingType)] == []
+
+
+def test_shodan_normalizer_extracts_software():
+    raw = json.dumps(
+        {
+            "data": [
+                {
+                    "port": 22,
+                    "transport": "tcp",
+                    "product": "OpenSSH",
+                    "version": "8.4p1",
+                    "cpe23": ["cpe:2.3:a:openbsd:openssh:8.4p1:*:*:*:*:*:*:*"],
+                }
+            ]
+        }
+    ).encode()
+
+    results = list(run(input_ooi, raw))
+
+    software = [r for r in results if isinstance(r, Software)]
+    instances = [r for r in results if isinstance(r, SoftwareInstance)]
+    ip_ports = [r for r in results if isinstance(r, IPPort)]
+    assert len(software) == 1
+    assert software[0].name == "OpenSSH"
+    assert software[0].version == "8.4p1"
+    assert software[0].cpe == "cpe:2.3:a:openbsd:openssh:8.4p1:*:*:*:*:*:*:*"
+    assert len(instances) == 1
+    assert instances[0].ooi == ip_ports[0].reference
+
+
+def test_shodan_normalizer_no_software_without_product():
+    raw = json.dumps({"data": [{"port": 80, "transport": "tcp"}]}).encode()
+
+    results = list(run(input_ooi, raw))
+
+    assert [r for r in results if isinstance(r, Software)] == []
