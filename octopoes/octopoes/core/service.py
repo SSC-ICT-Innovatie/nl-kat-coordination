@@ -607,8 +607,11 @@ class OctopoesService:
         # The same neighbour may have been deserialized separately for different
         # paths. Canonicalize those instances before populating scan profiles.
         neighbours_by_reference = {neighbour.reference: neighbour for _, neighbour, _ in eligible_edges}
-
         self._populate_scan_profiles(list(neighbours_by_reference.values()), valid_time)
+        eligible_edges = [
+            (segment, neighbours_by_reference[neighbour.reference], level)
+            for segment, neighbour, level in eligible_edges
+        ]
 
         inheritances: list[InheritanceSection] = []
 
