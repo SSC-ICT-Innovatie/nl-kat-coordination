@@ -8,6 +8,8 @@ Test Teardown       Teardown Test
 *** Test Cases ***
 Simple Scan Profile Inheritance
     Declare Scan Profile    ${REF_HOSTNAME}    ${4}
+    # wait for propagation
+    Sleep    1s
     ${response_data}    Get Scan Profile Inheritance    ${REF_IPADDR}
     Length Should Be    ${response_data}    3
     Should Be Equal As Strings    ${response_data[1]["reference"]}    ${REF_RESOLVEDHOSTNAME}
