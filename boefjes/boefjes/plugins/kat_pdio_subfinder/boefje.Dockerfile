@@ -5,7 +5,7 @@ RUN go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@${SUBFI
 
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/pdio-subfinder:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-pdio-subfinder:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 COPY --from=build /go/bin/subfinder /usr/local/bin/

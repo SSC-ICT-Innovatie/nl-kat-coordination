@@ -115,6 +115,7 @@ jobs:
           sudo -u postgres createuser rocky
           sudo -u postgres psql -c "GRANT ALL ON DATABASE rocky_db TO rocky;"
           sudo -u postgres psql -c "ALTER USER rocky WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d rocky_db -c "GRANT ALL ON SCHEMA public TO rocky;"
 
       - name: Prepare postgres service Katalogus
         run: |
@@ -122,6 +123,7 @@ jobs:
           sudo -u postgres createuser katalogus
           sudo -u postgres psql -c "GRANT ALL ON DATABASE katalogus_db TO katalogus;"
           sudo -u postgres psql -c "ALTER USER katalogus WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d katalogus_db -c "GRANT ALL ON SCHEMA public TO katalogus;"
 
       - name: Prepare postgres service Bytes
         run: |
@@ -129,6 +131,7 @@ jobs:
           sudo -u postgres createuser bytes
           sudo -u postgres psql -c "GRANT ALL ON DATABASE bytes_db TO bytes;"
           sudo -u postgres psql -c "ALTER USER bytes WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d bytes_db -c "GRANT ALL ON SCHEMA public TO bytes;"
 
       - name: Prepare postgres service Mula
         run: |
@@ -136,6 +139,7 @@ jobs:
           sudo -u postgres createuser mula
           sudo -u postgres psql -c "GRANT ALL ON DATABASE mula_db TO mula;"
           sudo -u postgres psql -c "ALTER USER mula WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d mula_db -c "GRANT ALL ON SCHEMA public TO mula;"
 
       - name: Wait until rabbitmq is healthy
         run: |

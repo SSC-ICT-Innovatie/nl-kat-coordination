@@ -34,6 +34,17 @@ SEVERITY_LEAKSTAGE_MAPPING = {
     "exfiltrate": "KAT-LEAKIX-CRITICAL",
 }
 
+# LeakIX event summaries can be large (e.g. a full Apache server-status dump);
+# keep the evidence bounded when storing it as Finding.proof.
+MAX_PROOF_LENGTH = 2048
+
+
+def truncate_proof(value: str | None) -> str | None:
+    if not value:
+        return None
+    value = value.strip()
+    return value if len(value) <= MAX_PROOF_LENGTH else value[:MAX_PROOF_LENGTH] + "…"
+
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     data = json.loads(raw)
@@ -176,11 +187,12 @@ def handle_software(event, event_ooi_reference):
 
 def handle_leak(event, event_ooi_reference, software_ooi):
     leak_severity = event.get("leak", {}).get("severity")
-    leak_stage = event.get("leak", {}).get("dataset", {}).get("stage")
+    dataset = event.get("leak", {}).get("dataset", {})
+    leak_stage = dataset.get("stage")
     if leak_severity or leak_stage:
         #  Got the different severities from: https://pkg.go.dev/github.com/LeakIX/l9format#pkg-constants
-        leak_infected = event.get("leak", {}).get("dataset", {}).get("infected")
-        leak_ransomnote = event.get("leak", {}).get("dataset", {}).get("ransom_notes")
+        leak_infected = dataset.get("infected")
+        leak_ransomnote = dataset.get("ransom_notes")
 
         # new stage or severity, default to low
         kat_finding = "KAT-LEAKIX-LOW"
@@ -195,10 +207,14 @@ def handle_leak(event, event_ooi_reference, software_ooi):
         yield finding_type
 
         kat_info = []
+        # event_source is the LeakIX plugin that made the detection, i.e. what
+        # kind of leak this is. The old code labelled this "Plugin" but
+        # interpolated the OOI reference instead of the plugin name.
+        event_source = event.get("event_source")
         if software_ooi:
             kat_info.append(f'Software = "{software_ooi.name}".')
-        else:
-            kat_info.append(f'Plugin = "{event_ooi_reference}".')
+        elif event_source:
+            kat_info.append(f'Plugin = "{event_source}".')
 
         if leak_infected:
             kat_info.append("Found evidence of external activity.")
@@ -207,10 +223,21 @@ def handle_leak(event, event_ooi_reference, software_ooi):
         if leak_stage:
             kat_info.append(f"Stage of the leak is: {leak_stage}.")
 
+        # Scale of the exposure.
+        for field in ("rows", "files", "size", "collections"):
+            value = dataset.get(field)
+            if value:
+                kat_info.append(f"{field.capitalize()}: {value}.")
+
+        # An unauthenticated service exposing data is worth calling out explicitly.
+        if event.get("service", {}).get("credentials", {}).get("noauth"):
+            kat_info.append("No authentication required.")
+
         yield Finding(
             finding_type=finding_type.reference,
             ooi=software_ooi.reference if software_ooi else event_ooi_reference,
             description=", ".join(kat_info),
+            proof=truncate_proof(event.get("summary")),
         )
 
 
