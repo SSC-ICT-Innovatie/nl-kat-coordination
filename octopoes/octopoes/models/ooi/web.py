@@ -299,4 +299,8 @@ class SecurityTXT(OOI):
     security_txt: str | None = None
 
     _natural_key_attrs = ["website", "url"]
-    _reverse_relation_names = {"website": "security_txt_of", "url": "security_txt", "redirects_to": "is_being_redirected_to_by"}
+    _reverse_relation_names = {
+        "website": "security_txt_of",
+        "url": "security_txt",
+        "redirects_to": "is_being_redirected_to_by",
+    }
