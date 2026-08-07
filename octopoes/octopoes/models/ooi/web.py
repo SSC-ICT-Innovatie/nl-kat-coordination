@@ -258,7 +258,7 @@ class APIDesignRule(OOI):
     name: str
 
     _natural_key_attrs = ["name"]
-    _reverse_relation_names: dict[str, str] = {}
+    _reverse_relation_names = {}
     _traversable = False
 
     @classmethod
@@ -275,7 +275,7 @@ class APIDesignRuleResult(OOI):
     message: str
 
     _natural_key_attrs = ["rest_api", "rule"]
-    _reverse_relation_names: dict[str, str] = {"rest_api": "api_design_rule_results", "rule": "results"}
+    _reverse_relation_names = {"rest_api": "api_design_rule_results", "rule": "results"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -299,8 +299,4 @@ class SecurityTXT(OOI):
     security_txt: str | None = None
 
     _natural_key_attrs = ["website", "url"]
-    _reverse_relation_names: dict[str, str] = {
-        "website": "security_txt_of",
-        "url": "security_txt",
-        "redirects_to": "is_being_redirected_to_by",
-    }
+    _reverse_relation_names = {"website": "security_txt_of", "url": "security_txt", "redirects_to": "is_being_redirected_to_by"}
