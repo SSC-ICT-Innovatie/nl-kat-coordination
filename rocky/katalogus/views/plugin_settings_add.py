@@ -1,5 +1,8 @@
+from typing import Any
+
 import structlog
 from account.mixins import OrganizationPermissionRequiredMixin
+from crisis_room.models import AuditLog
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -48,6 +51,7 @@ class PluginSettingsAddView(OrganizationPermissionRequiredMixin, SinglePluginVie
 
         try:
             self.katalogus_client.upsert_plugin_settings(self.plugin.id, form.cleaned_data)
+            self.record_action(AuditLog.Action.PLUGIN_SETTINGS_CHANGED)
             messages.add_message(self.request, messages.SUCCESS, _("Added settings for '{}'").format(self.plugin.name))
         except HTTPError:
             messages.add_message(self.request, messages.ERROR, _("Failed adding settings"))
@@ -56,6 +60,7 @@ class PluginSettingsAddView(OrganizationPermissionRequiredMixin, SinglePluginVie
         if "add-enable" in self.request.POST:
             try:
                 self.katalogus_client.enable_plugin(self.plugin)
+                self.record_action(AuditLog.Action.PLUGIN_ENABLED)
             except HTTPError:
                 messages.add_message(self.request, messages.ERROR, _("Enabling {} failed").format(self.plugin.name))
                 return redirect(self.get_success_url())
@@ -101,3 +106,13 @@ class PluginSettingsAddView(OrganizationPermissionRequiredMixin, SinglePluginVie
 
     def add_error_notification(self, message):
         messages.add_message(self.request, messages.ERROR, message)
+
+    def record_action(self, action: Any) -> None:
+        AuditLog.record(
+            user=self.request.user,
+            organization=self.organization,
+            action=action,
+            object_type=self.plugin.type.title(),
+            object_label=self.plugin.name,
+            object_url=self.get_success_url(),
+        )

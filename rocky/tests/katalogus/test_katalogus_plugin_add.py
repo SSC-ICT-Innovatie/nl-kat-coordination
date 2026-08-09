@@ -1,3 +1,4 @@
+from crisis_room.models import AuditLog
 from django.urls import reverse
 from katalogus.views.plugin_settings_add import PluginSettingsAddView
 from pytest_django.asserts import assertContains, assertNotContains
@@ -51,6 +52,9 @@ def test_plugin_settings_add(rf, superuser_member, mock_mixins_katalogus, plugin
 
     assert response.status_code == 302
     assert list(request._messages).pop().message == "Added settings for 'TestBoefje'"
+    audit_log = AuditLog.objects.get()
+    assert audit_log.action == AuditLog.Action.PLUGIN_SETTINGS_CHANGED
+    assert audit_log.object_label == "TestBoefje"
 
 
 def test_plugin_settings_add_no_required(
