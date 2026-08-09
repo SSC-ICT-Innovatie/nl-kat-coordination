@@ -144,6 +144,8 @@ class BoefjeIn(BaseModel):
     boefje_schema: dict | None = None
     cron: str | None = None
     interval: int | None = None
+    rate_limit_interval: float | None = Field(default=None, gt=0)
+    rate_limit_group: str | None = None
     run_on: list[RunOn] | None = None
     oci_image: str | None = None
     oci_arguments: list[str] = Field(default_factory=list)
