@@ -1151,6 +1151,35 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         popped_items = self.scheduler.pop_item_from_queue()
         self.assertEqual(1, len(popped_items))
 
+    @mock.patch("scheduler.schedulers.schedulers.boefje.monotonic", side_effect=[0, 0.5, 1.1])
+    def test_pop_respects_rate_limit_across_organisations(self, _mock_monotonic):
+        group = "api.example.com"
+        self.mock_get_plugin.return_value = PluginFactory()
+        boefjes = [
+            BoefjeFactory(id="limited-1", rate_limit_interval=1, rate_limit_group=group),
+            BoefjeFactory(id="limited-2", rate_limit_interval=1, rate_limit_group=group),
+            BoefjeFactory(id="unlimited"),
+        ]
+
+        for index, boefje in enumerate(boefjes):
+            boefje_task = models.BoefjeTask(
+                boefje=boefje, input_ooi=f"IPAddressV4|internet|192.0.2.{index}", organization=OrganisationFactory().id
+            )
+            self.scheduler.push_item_to_queue(
+                models.Task(
+                    scheduler_id=self.scheduler.scheduler_id,
+                    organisation=boefje_task.organization,
+                    priority=1,
+                    type=models.BoefjeTask.type,
+                    hash=boefje_task.hash,
+                    data=boefje_task.model_dump(),
+                )
+            )
+
+        self.assertEqual("limited-1", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        self.assertEqual("unlimited", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        self.assertEqual("limited-2", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+
     def test_pop_deduplication(self):
         # Arrange
         scan_profile = ScanProfileFactory(level=0)

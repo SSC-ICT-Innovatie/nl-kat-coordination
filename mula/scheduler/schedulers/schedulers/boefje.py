@@ -2,6 +2,7 @@ import uuid
 from collections.abc import Iterator
 from concurrent import futures
 from datetime import datetime, timedelta, timezone
+from time import monotonic
 from typing import Any, Literal
 
 from httpx import HTTPStatusError, ReadTimeout
@@ -29,13 +30,27 @@ class BoefjePQ(queue.PriorityQueue):
     their environment hash.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.rate_limit_deadlines: dict[str, float] = {}
+
     @queue.pq.with_lock
     def pop(self, limit: int | None = None, filters: filters.FilterRequest | None = None) -> list[models.Task]:
-        items = self.pq_store.pop_boefje(self.pq_id, limit=limit, filters=filters)
+        now = monotonic()
+        self.rate_limit_deadlines = {
+            group: deadline for group, deadline in self.rate_limit_deadlines.items() if deadline > now
+        }
+        items = self.pq_store.pop_boefje(
+            self.pq_id, limit=limit, filters=filters, excluded_rate_limit_groups=set(self.rate_limit_deadlines)
+        )
         if not items:
             return []
 
         self.pq_store.bulk_update_status(self.pq_id, [item.id for item in items], models.TaskStatus.DISPATCHED)
+
+        boefje = items[0].data["boefje"]
+        if interval := boefje.get("rate_limit_interval"):
+            self.rate_limit_deadlines[boefje["rate_limit_group"]] = now + interval
 
         return items
 

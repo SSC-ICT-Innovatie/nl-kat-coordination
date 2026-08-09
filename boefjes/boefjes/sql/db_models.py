@@ -106,6 +106,8 @@ class BoefjeInDB(SQL_BASE):
     schema = Column(types.JSON(), nullable=True)
     cron = Column(types.String(length=128), nullable=True)
     interval = Column(types.Integer, nullable=True)
+    rate_limit_interval = Column(types.Float, nullable=True)
+    rate_limit_group = Column(types.String(length=128), nullable=True)
     run_on = Column(types.Enum(*[x.value for x in RunOnDB], name="run_on"), nullable=True)
 
     # Image specifications
