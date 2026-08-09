@@ -21,6 +21,8 @@ class Plugin(BaseModel):
     produces: list[str]
     cron: str | None = None
     interval: int | None = None
+    rate_limit_interval: float | None = None
+    rate_limit_group: str | None = None
     run_on: list[RunOn] | None = None
     oci_image: str | None = None
     oci_arguments: list[str] | None = None

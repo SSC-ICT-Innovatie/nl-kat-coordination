@@ -190,7 +190,14 @@ def test_delete_normalizer(test_client, organisation):
 
 def test_update_plugins(test_client, organisation, second_organisation):
     normalizer = Normalizer(id="norm_id", name="My test normalizer")
-    boefje = Boefje(id="test_plugin", name="My test boefje", description="123", interval=20)
+    boefje = Boefje(
+        id="test_plugin",
+        name="My test boefje",
+        description="123",
+        interval=20,
+        rate_limit_interval=1,
+        rate_limit_group="api.example.com",
+    )
 
     test_client.post(f"/v1/organisations/{organisation.id}/plugins", json=boefje.model_dump(mode="json"))
     test_client.patch(f"/v1/organisations/{organisation.id}/plugins/{boefje.id}", json={"enabled": True})
@@ -204,6 +211,8 @@ def test_update_plugins(test_client, organisation, second_organisation):
     assert response.json()["enabled"] is True
     assert response.json()["scan_level"] == 3
     assert response.json()["interval"] == 20
+    assert response.json()["rate_limit_interval"] == 1
+    assert response.json()["rate_limit_group"] == "api.example.com"
     assert response.json()["cron"] == "5 0 * 8 *"
 
     test_client.post(f"/v1/organisations/{organisation.id}/plugins", json=normalizer.model_dump(mode="json"))
