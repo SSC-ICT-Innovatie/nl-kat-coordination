@@ -6,6 +6,9 @@
             <li {% if active == "findings" %}aria-current="page"{% endif %}>
                 <a href="{% url 'crisis_room' %}">{% translate "Findings" %}</a>
             </li>
+            <li {% if active == "activity" %}aria-current="page"{% endif %}>
+                <a href="{% url 'crisis_room_audit_log' %}">{% translate "Activity log" %}</a>
+            </li>
         </ul>
     </nav>
 </div>

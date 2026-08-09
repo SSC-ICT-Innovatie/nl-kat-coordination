@@ -2,6 +2,7 @@ import json
 import uuid
 from unittest.mock import Mock
 
+from crisis_room.models import AuditLog
 from django import forms
 from pytest_django.asserts import assertContains
 from tools.forms.ooi_form import generate_select_ooi_field
@@ -36,6 +37,10 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
 
     assert expected_fragment.items() <= actual[0].items()
     assert mock_organization_view_octopoes().save_declaration.call_count == 1
+    audit_log = AuditLog.objects.get()
+    assert audit_log.actor == client_member.user
+    assert audit_log.action == AuditLog.Action.OBJECT_ADDED
+    assert audit_log.object_label == "testnetwork"
 
 
 def test_add_bad_schema(rf, client_member):
