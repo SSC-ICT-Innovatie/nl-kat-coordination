@@ -1,5 +1,6 @@
 from account.forms import IndemnificationAddForm
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
+from crisis_room.models import AuditLog
 from django.contrib import messages
 from django.urls import reverse_lazy
 from django.urls.base import reverse
@@ -14,7 +15,15 @@ class IndemnificationAddView(OrganizationPermissionRequiredMixin, OrganizationVi
     permission_required = "tools.add_indemnification"
 
     def post(self, request, *args, **kwargs):
-        Indemnification.objects.get_or_create(user=self.request.user, organization=self.organization)
+        _, created = Indemnification.objects.get_or_create(user=self.request.user, organization=self.organization)
+        if created:
+            AuditLog.record(
+                user=self.request.user,
+                organization=self.organization,
+                action=AuditLog.Action.INDEMNIFICATION_SET,
+                object_type="Indemnification",
+                object_label=str(_("Scanning indemnification")),
+            )
         self.add_success_notification()
         return super().post(request, *args, **kwargs)
 

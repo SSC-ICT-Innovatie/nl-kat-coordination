@@ -3,6 +3,7 @@ from typing import Any, Literal, TypedDict
 from urllib.parse import urlencode
 
 import structlog
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
@@ -13,6 +14,53 @@ from django.utils.translation import gettext_lazy as _
 from tools.models import Organization
 
 logger = structlog.get_logger(__name__)
+
+
+class AuditLog(models.Model):
+    class Action(models.TextChoices):
+        INDEMNIFICATION_SET = "indemnification_set", _("Set indemnification")
+        OBJECT_ADDED = "object_added", _("Added object")
+        OBJECT_UPDATED = "object_updated", _("Updated object")
+        OBJECT_DELETED = "object_deleted", _("Deleted object")
+        CLEARANCE_LEVEL_CHANGED = "clearance_level_changed", _("Changed clearance level")
+        PLUGIN_ENABLED = "plugin_enabled", _("Enabled plugin")
+        PLUGIN_DISABLED = "plugin_disabled", _("Disabled plugin")
+        PLUGIN_SETTINGS_CHANGED = "plugin_settings_changed", _("Changed plugin settings")
+        PLUGIN_SETTINGS_DELETED = "plugin_settings_deleted", _("Deleted plugin settings")
+
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="audit_logs")
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
+    actor_label = models.CharField(max_length=254)
+    action = models.CharField(max_length=32, choices=Action.choices)
+    object_type = models.CharField(blank=True, max_length=64)
+    object_label = models.CharField(blank=True, max_length=512)
+    object_url = models.CharField(blank=True, max_length=2048)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [models.Index(fields=["organization", "-created_at"], name="crisis_room_organiz_875530_idx")]
+
+    @classmethod
+    def record(
+        cls,
+        *,
+        user,
+        organization: Organization,
+        action: Any,
+        object_type: str = "",
+        object_label: str = "",
+        object_url: str = "",
+    ) -> "AuditLog":
+        return cls.objects.create(
+            organization=organization,
+            actor=user if user.is_authenticated else None,
+            actor_label=user.get_username() if user.is_authenticated else str(_("System")),
+            action=action,
+            object_type=object_type,
+            object_label=object_label,
+            object_url=object_url,
+        )
 
 
 class Dashboard(models.Model):
