@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Literal
 
+from crisis_room.models import AuditLog
 from django.forms import Form
 from django.http import Http404
 from django.shortcuts import redirect
@@ -214,6 +215,14 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             new_ooi = self.ooi_class.model_validate(form.cleaned_data)
             create_ooi(
                 self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
+            )
+            AuditLog.record(
+                user=self.request.user,
+                organization=self.organization,
+                action=(AuditLog.Action.OBJECT_UPDATED if hasattr(self, "ooi") else AuditLog.Action.OBJECT_ADDED),
+                object_type=new_ooi.get_ooi_type(),
+                object_label=new_ooi.human_readable,
+                object_url=get_ooi_url("ooi_detail", new_ooi.primary_key, self.organization.code),
             )
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:

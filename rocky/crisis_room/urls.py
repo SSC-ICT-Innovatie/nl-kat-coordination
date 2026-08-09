@@ -5,6 +5,10 @@ from . import views
 # Crisis room overview urls
 urlpatterns = [
     path("", views.CrisisRoomView.as_view(), name="crisis_room"),
+    path("logs/", views.AuditLogView.as_view(), name="crisis_room_audit_log"),
+    path(
+        "<organization_code>/logs/", views.OrganizationAuditLogView.as_view(), name="organization_crisis_room_audit_log"
+    ),
     path("<organization_code>/<int:id>/", views.OrganizationsCrisisRoomView.as_view(), name="organization_crisis_room"),
     path(
         "<organization_code>/",

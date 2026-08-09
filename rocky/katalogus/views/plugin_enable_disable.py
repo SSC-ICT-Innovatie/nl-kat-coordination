@@ -1,4 +1,7 @@
+from typing import Any
+
 import structlog
+from crisis_room.models import AuditLog
 from django.contrib import messages
 from django.http import HttpResponseForbidden, HttpResponseRedirect
 from django.shortcuts import redirect
@@ -17,6 +20,7 @@ class PluginEnableDisableView(SinglePluginView):
 
         if plugin_state == "True":
             self.katalogus_client.disable_plugin(self.plugin)
+            self.record_action(AuditLog.Action.PLUGIN_DISABLED)
             messages.add_message(
                 self.request,
                 messages.WARNING,
@@ -29,6 +33,7 @@ class PluginEnableDisableView(SinglePluginView):
 
         if self.plugin.can_scan(self.organization_member):
             self.katalogus_client.enable_plugin(self.plugin)
+            self.record_action(AuditLog.Action.PLUGIN_ENABLED)
             messages.add_message(
                 self.request, messages.SUCCESS, _("{} '{}' enabled.").format(self.plugin.type.title(), self.plugin.name)
             )
@@ -62,3 +67,16 @@ class PluginEnableDisableView(SinglePluginView):
             )
 
         return redirect(reverse("katalogus", kwargs={"organization_code": self.organization.code}))
+
+    def record_action(self, action: Any) -> None:
+        AuditLog.record(
+            user=self.request.user,
+            organization=self.organization,
+            action=action,
+            object_type=self.plugin.type.title(),
+            object_label=self.plugin.name,
+            object_url=reverse(
+                "boefje_detail" if self.plugin.type == "boefje" else "normalizer_detail",
+                kwargs={"organization_code": self.organization.code, "plugin_id": self.plugin.id},
+            ),
+        )

@@ -1,6 +1,7 @@
 import json
 import uuid
 
+from crisis_room.models import AuditLog
 from pytest_django.asserts import assertContains
 
 from rocky.views.ooi_add import OOIAddView
@@ -33,6 +34,10 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
 
     assert expected_fragment.items() <= actual[0].items()
     assert mock_organization_view_octopoes().save_declaration.call_count == 1
+    audit_log = AuditLog.objects.get()
+    assert audit_log.actor == client_member.user
+    assert audit_log.action == AuditLog.Action.OBJECT_ADDED
+    assert audit_log.object_label == "testnetwork"
 
 
 def test_add_bad_schema(rf, client_member):
