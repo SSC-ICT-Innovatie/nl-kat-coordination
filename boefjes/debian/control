@@ -1,6 +1,6 @@
 Source: kat-boefjes
 Build-Depends: python3, dh-virtualenv, python3-setuptools, python3-pip, debhelper-compat (= 12)
-Maintainer: OpenKAT <maintainer@openkat.nl>
+Maintainer: OpenKAT <maintainer@librekat.nl>
 
 Package: kat-boefjes
 Section: python
@@ -8,5 +8,5 @@ Priority: optional
 Architecture: any
 Pre-Depends: ${misc:Pre-Depends}
 Depends: ${python}, docker.io | docker-ce, ${misc:Depends}
-Description: Boefjes component of KAT
+Description: Boefjes component of OpenKAT
   This component runs external tools like scanners.
