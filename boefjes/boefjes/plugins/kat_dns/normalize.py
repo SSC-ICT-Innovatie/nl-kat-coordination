@@ -60,8 +60,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     sections = results["dns_records"].split("\n\n")
     responses: list[Message] = []
     for section in sections:
-        lines = section.split("\n")
-        responses.append(from_text("\n".join(lines[1:])))
+        lines = section.splitlines()
+        if ";QUESTION" not in lines:
+            continue  # nothing parseable in this block
+        start = lines.index(";QUESTION")  # skip everything before the question block
+        responses.append(from_text("\n".join(lines[start:])))
 
     # keep track of discovered zones
     zone_links: dict[str, DNSZone] = {}
