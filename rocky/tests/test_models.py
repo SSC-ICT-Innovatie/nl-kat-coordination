@@ -49,3 +49,96 @@ def test_organizationmember_permissions_superuser(superuser_member, django_asser
         assert superuser_member.has_perm("tools.view_organization")
         assert superuser_member.has_perm("tools.can_scan_organization")
         assert superuser_member.has_perm("tools.can_enable_disable_boefje")
+
+
+def test_user_two_organization(client_user_two_organizations, organization, organization_b):
+    # Organisations are sorted by name in the model results
+    assert client_user_two_organizations.organizations == [organization_b, organization]
+    assert client_user_two_organizations.organizations_including_blocked == [organization_b, organization]
+
+
+def test_user_one_organization(client_member, organization_b):
+    assert client_member.user.organizations == [client_member.organization]
+
+
+def test_user_organization_blocked(blocked_member, organization_b):
+    assert blocked_member.user.organizations == []
+
+
+def test_superuser_organizations(superuser, organization, organization_b):
+    assert superuser.organizations == [organization_b, organization]
+
+
+def test_can_access_all_organizations(client_member, organization_b):
+    content_type = ContentType.objects.get_for_model(Organization)
+    can_access_all_organizations = Permission.objects.get(
+        codename="can_access_all_organizations", content_type=content_type
+    )
+
+    client_member.user.user_permissions.add(can_access_all_organizations)
+
+    assert client_member.user.organizations == [organization_b, client_member.organization]
+
+
+def test_max_clearance_level(client_member):
+    client_member.user.clearance_level = -1
+    client_member.trusted_clearance_level = -1
+    client_member.acknowledged_clearance_level = -1
+
+    assert client_member.max_clearance_level == -1
+
+    client_member.user.clearance_level = 4
+    client_member.trusted_clearance_level = -1
+    client_member.acknowledged_clearance_level = -1
+
+    assert client_member.max_clearance_level == 4
+
+    client_member.user.clearance_level = -1
+    client_member.trusted_clearance_level = 4
+    client_member.acknowledged_clearance_level = 4
+
+    assert client_member.max_clearance_level == 4
+
+    client_member.user.clearance_level = 4
+    client_member.trusted_clearance_level = 2
+    client_member.acknowledged_clearance_level = 2
+
+    assert client_member.max_clearance_level == 2
+
+    client_member.user.clearance_level = 2
+    client_member.trusted_clearance_level = 4
+    client_member.acknowledged_clearance_level = 4
+
+    assert client_member.max_clearance_level == 4
+
+
+def test_max_clearance_level_not_acknowledged(client_member):
+    client_member.user.clearance_level = 2
+    client_member.trusted_clearance_level = 1
+    client_member.acknowledged_clearance_level = -1
+
+    assert client_member.max_clearance_level == -1
+
+    client_member.user.clearance_level = 2
+    client_member.trusted_clearance_level = -1
+    client_member.acknowledged_clearance_level = 1
+
+    assert client_member.max_clearance_level == -1
+
+    client_member.user.clearance_level = -1
+    client_member.trusted_clearance_level = -1
+    client_member.acknowledged_clearance_level = 1
+
+    assert client_member.max_clearance_level == -1
+
+    client_member.user.clearance_level = -1
+    client_member.trusted_clearance_level = 2
+    client_member.acknowledged_clearance_level = -1
+
+    assert client_member.max_clearance_level == -1
+
+    client_member.user.clearance_level = -1
+    client_member.trusted_clearance_level = 2
+    client_member.acknowledged_clearance_level = 1
+
+    assert client_member.max_clearance_level == 1

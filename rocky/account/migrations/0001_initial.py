@@ -11,9 +11,7 @@ import account.models
 class Migration(migrations.Migration):
     initial = True
 
-    dependencies = [
-        ("auth", "0012_alter_user_first_name_max_length"),
-    ]
+    dependencies = [("auth", "0012_alter_user_first_name_max_length")]
 
     operations = [
         migrations.CreateModel(
@@ -29,14 +27,8 @@ class Migration(migrations.Migration):
                         verbose_name="superuser status",
                     ),
                 ),
-                (
-                    "first_name",
-                    models.CharField(blank=True, max_length=150, verbose_name="first name"),
-                ),
-                (
-                    "last_name",
-                    models.CharField(blank=True, max_length=150, verbose_name="last name"),
-                ),
+                ("first_name", models.CharField(blank=True, max_length=150, verbose_name="first name")),
+                ("last_name", models.CharField(blank=True, max_length=150, verbose_name="last name")),
                 ("id", models.AutoField(primary_key=True, serialize=False, verbose_name="ID")),
                 ("full_name", models.CharField(max_length=150, verbose_name="full name", blank=True)),
                 ("email", account.models.LowercaseEmailField(max_length=254, unique=True, verbose_name="email")),
@@ -80,8 +72,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "abstract": False,
-            },
-        ),
+            options={"abstract": False},
+        )
     ]

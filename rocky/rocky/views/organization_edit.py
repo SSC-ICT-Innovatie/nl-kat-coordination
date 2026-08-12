@@ -18,9 +18,7 @@ class OrganizationEditView(OrganizationPermissionRequiredMixin, OrganizationView
 
     def get_success_url(self):
         messages.add_message(
-            self.request,
-            messages.SUCCESS,
-            _("Organization %s successfully updated.") % (self.object.name),
+            self.request, messages.SUCCESS, _("Organization %s successfully updated.") % (self.object.name)
         )
         return reverse("organization_settings", kwargs={"organization_code": self.object.code})
 
@@ -33,10 +31,7 @@ class OrganizationEditView(OrganizationPermissionRequiredMixin, OrganizationView
                 "url": reverse("organization_settings", kwargs={"organization_code": self.object.code}),
                 "text": self.object.name,
             },
-            {
-                "url": reverse("organization_edit", kwargs={"organization_code": self.object.code}),
-                "text": _("Edit"),
-            },
+            {"url": reverse("organization_edit", kwargs={"organization_code": self.object.code}), "text": _("Edit")},
         ]
 
         return context

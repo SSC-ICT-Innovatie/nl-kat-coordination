@@ -3,13 +3,14 @@ from collections import Counter
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+from django.views.generic.base import TemplateView
 from tools.ooi_helpers import format_attr_name
 from tools.view_helpers import existing_ooi_type, get_mandatory_fields, url_with_querystring
 
 from octopoes.models import OOI
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
 from octopoes.models.types import OOI_TYPES, get_relations, to_concrete
-from rocky.views.ooi_view import SingleOOITreeMixin
+from rocky.views.mixins import SingleOOITreeMixin
 
 
 class OOIRelatedObjectManager(SingleOOITreeMixin):
@@ -28,62 +29,6 @@ class OOIRelatedObjectManager(SingleOOITreeMixin):
                     }
                     related.append(rel)
         return related
-
-
-class OOIFindingManager(SingleOOITreeMixin):
-    def get_findings(self) -> list[Finding]:
-        findings = []
-        for relation in self.tree.root.children.values():
-            for child in relation:
-                ooi = self.tree.store[str(child.reference)]
-                if isinstance(ooi, Finding) and ooi.reference != self.tree.root.reference:
-                    findings.append(ooi)
-        return findings
-
-    def count_findings_per_severity(self) -> Counter:
-        counter = Counter({severity: 0 for severity in RiskLevelSeverity})
-        for finding in self.get_findings():
-            finding_type: FindingType | None = self.tree.store.get(str(finding.finding_type), None)
-            if finding_type is not None and finding_type.risk_severity is not None:
-                counter.update([finding_type.risk_severity])
-            else:
-                counter.update([RiskLevelSeverity.UNKNOWN])
-        return counter
-
-    def get_finding_details_sorted_by_score_desc(self) -> list[tuple[Finding, FindingType]]:
-        finding_details = self.get_finding_details()
-        return list(sorted(finding_details, key=lambda x: x[1].risk_score or 0, reverse=True))
-
-    def get_finding_details(self) -> list[tuple[Finding, FindingType]]:
-        return [(finding, self.tree.store[str(finding.finding_type)]) for finding in self.get_findings()]
-
-
-class OOIRelatedObjectAddView(OOIRelatedObjectManager):
-    template_name = "oois/ooi_detail_add_related_object.html"
-
-    def get(self, request, *args, **kwargs):
-        if "ooi_id" in request.GET:
-            self.ooi_id = self.get_ooi(pk=request.GET.get("ooi_id"))
-
-        if "add_ooi_type" in request.GET:
-            ooi_type_choice = self.split_ooi_type_choice(request.GET["add_ooi_type"])
-            if existing_ooi_type(ooi_type_choice["ooi_type"]):
-                return redirect(self.ooi_add_url(self.ooi_id, **ooi_type_choice))
-
-        if "status_code" in kwargs:
-            response = super().get(request, *args, **kwargs)
-            response.status_code = kwargs["status_code"]
-            return response
-
-        return super().get(request, *args, **kwargs)
-
-    def split_ooi_type_choice(self, ooi_type_choice) -> dict[str, str]:
-        ooi_type = ooi_type_choice.split("|", 1)
-
-        return {
-            "ooi_type": ooi_type[0],
-            "ooi_relation": ooi_type[1] if len(ooi_type) > 1 else None,
-        }
 
     def ooi_add_url(self, ooi: OOI, ooi_type: str, ooi_relation: str = "ooi_id") -> str:
         """
@@ -137,14 +82,65 @@ class OOIRelatedObjectAddView(OOIRelatedObjectManager):
             if relation == "ooi":
                 text = ooi_type
 
-            input_values.append(
-                {
-                    "text": text,
-                    "value": value,
-                }
-            )
+            input_values.append({"text": text, "value": value})
 
         return input_values
+
+
+class OOIFindingManager(SingleOOITreeMixin):
+    def get_findings(self) -> list[Finding]:
+        findings = []
+        for relation in self.tree.root.children.values():
+            for child in relation:
+                ooi = self.tree.store[str(child.reference)]
+                if isinstance(ooi, Finding) and ooi.reference != self.tree.root.reference:
+                    findings.append(ooi)
+        return findings
+
+    def count_findings_per_severity(self) -> Counter:
+        counter = Counter({severity: 0 for severity in RiskLevelSeverity})
+        for finding in self.get_findings():
+            finding_type: FindingType | None = self.tree.store.get(str(finding.finding_type), None)
+            if finding_type is not None and finding_type.risk_severity is not None:
+                counter.update([finding_type.risk_severity])
+            else:
+                counter.update([RiskLevelSeverity.UNKNOWN])
+        return counter
+
+    def get_finding_details_sorted_by_score_desc(self) -> list[tuple[Finding, FindingType]]:
+        finding_details = self.get_finding_details()
+        return list(sorted(finding_details, key=lambda x: x[1].risk_score or 0, reverse=True))
+
+    def get_finding_details(self) -> list[tuple[Finding, FindingType]]:
+        return [(finding, self.tree.store[str(finding.finding_type)]) for finding in self.get_findings()]
+
+
+class OOIRelatedObjectAddView(OOIRelatedObjectManager, TemplateView):
+    template_name = "oois/ooi_detail_add_related_object.html"
+
+    def get(self, request, *args, **kwargs):
+        if "ooi_id" in request.GET:
+            self.ooi_id = self.get_ooi(pk=request.GET["ooi_id"])
+
+        if "add_ooi_type" in request.GET:
+            if "|" in request.GET["add_ooi_type"]:
+                ooi_type, ooi_relation = request.GET["add_ooi_type"].split("|", 1)
+            else:
+                ooi_type = request.GET["add_ooi_type"]
+                ooi_relation = None
+
+            if existing_ooi_type(ooi_type):
+                if ooi_relation:
+                    return redirect(self.ooi_add_url(self.ooi_id, ooi_type, ooi_relation))
+                else:
+                    return redirect(self.ooi_add_url(self.ooi_id, ooi_type))
+
+        if "status_code" in kwargs:
+            response = super().get(request, *args, **kwargs)
+            response.status_code = kwargs["status_code"]
+            return response
+
+        return super().get(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

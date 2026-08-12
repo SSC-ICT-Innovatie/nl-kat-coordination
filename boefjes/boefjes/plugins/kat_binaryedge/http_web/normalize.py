@@ -2,8 +2,8 @@ import ipaddress
 import json
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
-from boefjes.plugins.kat_binaryedge.services.normalize import get_name_from_cpe
+from boefjes.normalizer_models import NormalizerOutput
+from boefjes.plugins.helpers import cpe_to_name_version
 from octopoes.models import Reference
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
 from octopoes.models.ooi.software import Software, SoftwareInstance
@@ -15,10 +15,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     network = Network(name="internet").reference
 
     # Structure based on https://docs.binaryedge.io/modules/<accepted_modules_name>/
-    accepted_modules = (
-        "webv2",
-        " web-enrich",
-    )  # http/https: deprecated, so not implemented.
+    accepted_modules = ("webv2", " web-enrich")  # http/https: deprecated, so not implemented.
     for scan in results["results"]:
         module = scan["origin"]["type"]
         if module not in accepted_modules:
@@ -33,24 +30,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         else:
             ipvx = ipaddress.ip_address(ip)
             if ipvx.version == 4:
-                ip_ooi = IPAddressV4(
-                    address=ip,
-                    network=network,
-                )
+                ip_ooi = IPAddressV4(address=ip, network=network)
             else:
-                ip_ooi = IPAddressV6(
-                    address=ip,
-                    network=network,
-                )
+                ip_ooi = IPAddressV6(address=ip, network=network)
             yield ip_ooi
             ip_ref = ip_ooi.reference
 
-        ip_port_ooi = IPPort(
-            address=ip_ref,
-            protocol=Protocol(protocol),
-            port=port_nr,
-            state=PortState("open"),
-        )
+        ip_port_ooi = IPPort(address=ip_ref, protocol=Protocol(protocol), port=port_nr, state=PortState("open"))
         yield ip_port_ooi
 
         if module == "webv2":
@@ -64,7 +50,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
             for app in response.get("apps", {}):
                 if "cpe" in app:
-                    software_ooi = Software(name=get_name_from_cpe(app["cpe"]), cpe=app["cpe"])
+                    name, version = cpe_to_name_version(cpe=app["cpe"])
+                    software_ooi = Software(name=name, version=version, cpe=app["cpe"])
                     yield software_ooi
                     yield SoftwareInstance(ooi=ip_port_ooi.reference, software=software_ooi.reference)
                 else:
@@ -72,17 +59,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     if "version" in app:
                         software_ooi = Software(name=software_name, version=app["version"])
                         yield software_ooi
-                        yield SoftwareInstance(
-                            ooi=ip_port_ooi.reference,
-                            software=software_ooi.reference,
-                        )
+                        yield SoftwareInstance(ooi=ip_port_ooi.reference, software=software_ooi.reference)
                     else:
                         software_ooi = Software(name=software_name)
                         yield software_ooi
-                        yield SoftwareInstance(
-                            ooi=ip_port_ooi.reference,
-                            software=software_ooi.reference,
-                        )
+                        yield SoftwareInstance(ooi=ip_port_ooi.reference, software=software_ooi.reference)
         elif module == "web-enrich":
             # (potential) TODO:
             # * http_version [string]
@@ -94,9 +75,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             for potential_software in data:
                 # Check all values for 'cpe'
                 if isinstance(potential_software, dict) and "cpe" in potential_software:
-                    software_ooi = Software(
-                        name=get_name_from_cpe(potential_software["cpe"]), cpe=potential_software["cpe"]
-                    )
+                    name, version = cpe_to_name_version(cpe=potential_software["cpe"])
+                    software_ooi = Software(name=name, version=version, cpe=potential_software["cpe"])
                     yield software_ooi
                     yield SoftwareInstance(ooi=ip_port_ooi.reference, software=software_ooi.reference)
 

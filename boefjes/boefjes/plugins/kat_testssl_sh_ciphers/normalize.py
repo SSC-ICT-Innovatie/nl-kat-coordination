@@ -2,7 +2,7 @@ import json
 from collections.abc import Iterable
 from typing import Any
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.service import TLSCipher
 
@@ -31,11 +31,7 @@ def parse_cipher(cipher: dict) -> dict[str, Any] | None:
             )
         else:
             cipher_dict[parts[0]].update(
-                {
-                    "encryption_algorithm": parts[4],
-                    "bits": int(parts[5]),
-                    "cipher_suite_alias": parts[6],
-                }
+                {"encryption_algorithm": parts[4], "bits": int(parts[5]), "cipher_suite_alias": parts[6]}
             )
 
         return cipher_dict

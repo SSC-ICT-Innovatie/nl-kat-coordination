@@ -8,10 +8,11 @@
         </a>
     </div>
     <div>
-        <h1>{% translate "Subreports" %}</h1>
-        <p class="emphasized">
-            {% translate "An overview of all underlying reports of" %} "<a href="{% url "view_report" organization.code %}?report_id={{ parent_report_id }}"
-   title="{% translate "Shows report details" %}">{{ parent_report_id }}</a>".
+        <h1>{% translate "Asset reports" %}</h1>
+        <p>
+            {% translate "An overview of all underlying reports of" %}
+            <a href="{% url "view_report" organization.code %}?report_id={{ report_ooi }}&amp;observed_at={{ report_ooi.observed_at|date:"Y-m-d H:i:s:u" }}"
+               title="{% translate "Shows report details" %}">{{ report_ooi.name }}</a>
         </p>
     </div>
 </div>

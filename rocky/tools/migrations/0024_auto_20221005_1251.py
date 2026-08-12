@@ -5,9 +5,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0023_delete_scanprofile"),
-    ]
+    dependencies = [("tools", "0023_delete_scanprofile")]
 
     operations = [
         migrations.AddField(

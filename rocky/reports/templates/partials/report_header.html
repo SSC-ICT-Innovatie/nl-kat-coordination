@@ -1,20 +1,31 @@
 {% load i18n %}
+{% load ooi_extra %}
 
-<section class="introduction" id="introduction">
+<section class="appendix" id="introduction">
     <div>
         <div class="horizontal-view toolbar">
-            <h1>{{ report_name }}</h1>
+            <h1>{{ report_ooi.name }}</h1>
             <div class="dropdown">
-                <button aria-controls="export-add" class="dropdown-button ghost">
-                    {% translate "Export" %}<span aria-hidden="true" class="icon ti-chevron-down"></span>
+                <button aria-controls="download-report"
+                        aria-expanded="false"
+                        class="dropdown-button ghost">
+                    {% translate "Actions" %}<span aria-hidden="true" class="icon ti-chevron-down"></span>
                 </button>
-                <div id="export-add" aria-expanded="false" class="dropdown-list">
+                <div id="download-report" class="dropdown-list">
                     <ul>
                         <li>
-                            <a href="{{ report_download_pdf_url }}"
-                               target="_blank"
-                               rel="noopener noreferrer"><span class="icon ti-download" aria-hidden="true"></span>{% translate "Download report" %}</a>
+                            <a href="{{ report_download_pdf_url }}" target="_blank"><span class="icon ti-download" aria-hidden="true"></span>{% translate "Download as PDF" %}</a>
                         </li>
+                        {% if report_ooi.report_type != "multi-organization-report" %}
+                            <li>
+                                <a href="{{ report_download_json_url }}" target="_blank"><span class="icon ti-download" aria-hidden="true"></span>{% translate "Download as JSON" %}</a>
+                            </li>
+                        {% endif %}
+                        {% if report_ooi.total_asset_reports >= 1 %}
+                            <li>
+                                <a href="{% url "subreports" organization.code %}?report_id={{ report_ooi }}"><span class="icon ti-external-link" aria-hidden="true"></span>{% translate "Open asset reports" %}</a>
+                            </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -22,17 +33,49 @@
         <div>
             <p>
                 {% translate "This is the OpenKAT report for organization" %} {{ organization.name }}.
-                {% translate "All selected report types for the selected objects are displayed one below the other." %}
+                {% if report_ooi.report_type == "concatenated-report" %}
+                    {% translate "All selected report types for the selected objects are displayed one below the other." %}
+                {% endif %}
             </p>
             <p>
-                {% translate "Created with data from:" %} <strong>{{ observed_at }} {{ TIME_ZONE }}</strong>
+                {% translate "Created with data from:" %} <strong>{{ report_ooi.observed_at|date }}</strong>
             </p>
             <p>
-                {% translate "Created on:" %} <strong>{{ created_at }}</strong>
+                {% translate "Created on:" %} <strong>{{ report_ooi.date_generated|date }}</strong>
             </p>
-            <p>
-                {% translate "Created by:" %} <strong>{{ organization_member.user.full_name }}</strong>
-            </p>
+            {% if report_ooi.report_type != "multi-organization-report" %}
+                <p>
+                    {% translate "Created from recipe:" %} <a href="{% ooi_url "ooi_detail" recipe_ooi.primary_key organization.code observed_at=report_ooi.observed_at %}">{{ recipe_ooi.primary_key }}</a>
+                </p>
+                <p>
+                    {% translate "Recipe created by:" %} <strong>{{ recipe_ooi|get_user_full_name }}</strong>
+                </p>
+            {% endif %}
         </div>
+        {% if report_ooi.report_type == "multi-organization-report" %}
+            <p>
+                {% blocktranslate with length=report_data.organizations|length trimmed %}
+                    This sector contains {{ length }} scanned organizations.
+                {% endblocktranslate %}
+                {% if report_data.tags %}
+                    {% translate "Of these organizations" %}
+                    {% for tag, organizations in report_data.tags.items %}
+                        {% if not forloop.last %}
+                            <i>{{ organizations|length }}</i>
+                            {% translate "organizations have tag" %}
+                            <i>{{ tag }}</i>,
+                        {% else %}
+                            and <i>{{ organizations|length }}</i>
+                            {% translate "organizations have tag" %}
+                            <i>{{ tag }}</i>.
+                        {% endif %}
+                    {% endfor %}
+                {% endif %}
+                {% translate "The basic security scores are around " %}{{ report_data.basic_security_score }}%.
+                {% blocktranslate with total=report_data.total_critical_vulnerabilities trimmed %}
+                    A total of {{ total }} critical vulnerabilities have been identified.
+                {% endblocktranslate %}
+            </p>
+        {% endif %}
     </div>
 </section>

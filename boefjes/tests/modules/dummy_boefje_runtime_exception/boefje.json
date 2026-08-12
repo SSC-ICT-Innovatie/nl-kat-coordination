@@ -3,6 +3,5 @@
   "name": "dummy",
   "description": "",
   "consumes": [],
-  "produces": [],
-  "environment_keys": []
+  "produces": []
 }

@@ -4,7 +4,7 @@ from urllib.parse import urljoin
 import validators
 from bs4 import BeautifulSoup
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import URL
 
@@ -23,7 +23,4 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         if not validators.url(img):
             img = urljoin(url, img)
 
-        yield URL(
-            network=Network(name=network_name).reference,
-            raw=img,
-        )
+        yield URL(network=Network(name=network_name).reference, raw=img)

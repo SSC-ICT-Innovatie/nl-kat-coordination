@@ -1,4 +1,3 @@
-import logging
 from collections.abc import Iterator
 from typing import Any
 
@@ -9,8 +8,6 @@ from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import HTTPHeaderHostname
 
 LINK_SHORTENERS = link_shorteners_list()
-
-logger = logging.getLogger(__name__)
 
 
 def get_disallowed_hostnames_from_config(config, config_key, default):
@@ -34,12 +31,13 @@ def run(input_ooi: HTTPHeaderHostname, additional_oois: list, config: dict[str, 
     disallowed_hostnames_from_config = get_disallowed_hostnames_from_config(config, "disallowed_hostnames", [])
 
     disallowed_domains.extend(disallowed_hostnames_from_config)
+    hostnameparts = hostname.lower().split(".")
 
-    if hostname.lower() in disallowed_domains:
-        ft = KATFindingType(id="KAT-DISALLOWED-DOMAIN-IN-CSP")
-        f = Finding(
-            ooi=input_ooi.reference,
-            finding_type=ft.reference,
-        )
-        yield ft
-        yield f
+    # For e.g. ["www", "example", "com"], check "www.example.com", "example.com" and "com"
+    for i in range(len(hostnameparts)):
+        if ".".join(hostnameparts[i:]) in disallowed_domains:
+            ft = KATFindingType(id="KAT-DISALLOWED-DOMAIN-IN-CSP")
+            f = Finding(ooi=input_ooi.reference, finding_type=ft.reference)
+            yield ft
+            yield f
+            break

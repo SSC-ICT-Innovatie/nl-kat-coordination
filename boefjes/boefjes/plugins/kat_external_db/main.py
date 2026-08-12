@@ -4,10 +4,8 @@ from os import getenv
 
 import requests
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     """Fetch external database response."""
     api_format = getenv(
         "DB_ENDPOINT_FORMAT",
@@ -17,7 +15,7 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
 
     get_request = api_format.format(
         DB_URL=getenv("DB_URL"),
-        DB_ORGANIZATION_IDENTIFIER=getenv("DB_ORGANIZATION_IDENTIFIER", boefje_meta.organization),
+        DB_ORGANIZATION_IDENTIFIER=getenv("DB_ORGANIZATION_IDENTIFIER", boefje_meta["organization"]),
         DB_ACCESS_TOKEN=getenv("DB_ACCESS_TOKEN", ""),
     )
     response = requests.get(get_request, timeout=request_timeout)

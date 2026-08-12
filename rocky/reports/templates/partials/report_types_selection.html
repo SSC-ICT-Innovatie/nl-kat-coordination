@@ -13,65 +13,78 @@
                 improvements are needed.
             {% endblocktranslate %}
         </p>
-        {% if not selected_oois %}
-            {% include "partials/return_button.html" with btn_text="Go back" %}
-
-        {% else %}
-            <h2>
-                {% blocktranslate trimmed count counter=oois|length %}
-                    Selected object ({{ total_oois }})
-                {% plural %}
-                    Selected objects ({{ total_oois }})
+        <h2>
+            {% blocktranslate trimmed count counter=oois|length %}
+                Selected object ({{ total_oois }})
+            {% plural %}
+                Selected objects ({{ total_oois }})
+            {% endblocktranslate %}
+        </h2>
+        <p>
+            {% if object_selection == "query" %}
+                {% blocktranslate trimmed %}
+                    You have selected a live set in the previous step. Based on the current
+                    dataset, this live set results in {{ total_oois }} objects.
                 {% endblocktranslate %}
-            </h2>
-            <p>
-                {% blocktranslate trimmed count counter=oois|length %}
-                    You have selected {{ total_oois }} object in previous step.
-                {% plural %}
-                    You have selected {{ total_oois }} objects in previous step.
-                {% endblocktranslate %}
-            </p>
-            {% if not "all" in selected_oois %}
-                {% include "summary/ooi_selection.html" %}
-
-            {% endif %}
-            <form novalidate
-                  method="post"
-                  action="{{ previous }}"
-                  class="inline layout-wide">
-                {% csrf_token %}
-                {% include "forms/report_form_fields.html" %}
-
-                <button type="submit" class="button ghost">
-                    <span class="icon ti-chevron-left"></span>{% translate "Change selection" %}
-                </button>
-            </form>
-            {% if available_report_types_aggregate %}
-                <h2>{% translate "Available report types" %} ({{ count_available_report_types_aggregate }})</h2>
-            {% else %}
-                <h2>{% translate "Available report types" %} ({{ available_report_types|length }})</h2>
-            {% endif %}
-            <p>{% translate "All report types that are available for your selection." %}</p>
-            <a class="toggle-all" data-toggle-target="report_type">{% translate "Toggle all report types" %}</a>
-            <form class="inline layout-wide checkboxes_required"
-                  method="post"
-                  action="{{ next }}">
-                {% csrf_token %}
-                {% include "forms/report_form_fields.html" %}
-
-                <div class="column-4 tiles">
-                    {% if available_report_types_aggregate %}
-                        {% include "partials/report_types_tiles_required_optional.html" with report_types=available_report_types_aggregate %}
-
-                    {% else %}
-                        {% include "partials/report_types_tiles.html" with report_types=available_report_types %}
-
-                    {% endif %}
+                <div>
+                    <strong>{% translate "Applied filters:" %}</strong>
+                    <ul>
+                        {% if active_filters %}
+                            {% for filter, value in active_filters.items %}
+                                <li>
+                                    <strong>{{ filter }}</strong> {{ value }}
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li>{% translate "No filters applied" %}</li>
+                        {% endif %}
+                    </ul>
                 </div>
-                <button type="submit">
-                    {% translate "Continue with selection" %}<span class="icon ti-chevron-right"></span>
-                </button>
-            </form>
+            {% else %}
+                {% blocktranslate trimmed count counter=oois|length %}
+                    You have selected {{ total_oois }} object in the previous step.
+                {% plural %}
+                    You have selected {{ total_oois }} objects in the previous step.
+                {% endblocktranslate %}
+            {% endif %}
+        </p>
+        {% if not all_oois_selected %}
+            {% include "summary/ooi_selection.html" %}
+
         {% endif %}
+        <form novalidate
+              method="post"
+              action="{{ previous }}"
+              class="inline layout-wide">
+            {% csrf_token %}
+            {% include "forms/report_form_fields.html" with selected_report_types=None %}
+
+            <button type="submit" class="button ghost">
+                <span class="icon ti-chevron-left"></span>{% translate "Change selection" %}
+            </button>
+        </form>
+        <h2>{% translate "Available report types" %} ({{ count_available_report_types }})</h2>
+        <p>{% translate "All report types that are available for your selection." %}</p>
+        <a class="toggle-all {% if all_report_types_checked %}toggle-on{% endif %}"
+           data-toggle-target="report_type">{% translate "Toggle all report types" %}</a>
+        <form class="inline layout-wide checkboxes_required"
+              method="post"
+              action="{{ next }}">
+            {% csrf_token %}
+            {% include "forms/report_form_fields.html" with disable_report_type_fields=True %}
+
+            <div class="column-4 tiles">
+                {% if "required" in available_report_types %}
+                    {% include "partials/report_types_tiles_required_optional.html" with report_types=available_report_types %}
+
+                {% else %}
+                    {% include "partials/report_types_tiles.html" with report_types=available_report_types %}
+
+                {% endif %}
+            </div>
+            <button type="submit">
+                {% translate "Continue with selection" %}<span class="icon ti-chevron-right"></span>
+            </button>
+        </form>
     </div>
 </section>

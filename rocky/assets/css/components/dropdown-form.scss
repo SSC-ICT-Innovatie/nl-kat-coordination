@@ -1,0 +1,72 @@
+@use "destructive";
+
+.dropdown {
+  form {
+    $form-padding-sides: 1rem;
+
+    background-color: transparent;
+    padding: 0.75rem $form-padding-sides 0 $form-padding-sides;
+
+    .toolbar {
+      justify-content: space-between;
+
+      a {
+        font-weight: bold;
+        text-decoration: none;
+
+        @include destructive.destructive-text-element;
+      }
+
+      button,
+      a.button,
+      input[type="button"],
+      input[type="submit"],
+      input[type="reset"] {
+        background-color: transparent;
+        color: var(--link-text-color);
+        border: 0;
+        padding: 0;
+        min-width: 0;
+        margin: 0;
+        min-height: 0;
+        border-radius: 0;
+
+        &:hover {
+          color: var(--colors-blue-700);
+        }
+
+        @include destructive.destructive-button;
+
+        &.destructive {
+          color: var(--color-alert-negative);
+          background-color: transparent;
+
+          &:hover {
+            color: var(--color-alert-negative-darker);
+            background-color: transparent;
+          }
+        }
+      }
+    }
+
+    ul {
+      padding-left: 0;
+
+      /* Negative margin added to allow li background color to full width of the form */
+      margin-left: calc($form-padding-sides * -1);
+      margin-right: calc($form-padding-sides * -1);
+
+      li {
+        min-height: var(--collapsing-element-list-item-min-height);
+        display: flex;
+        align-items: center;
+        padding-left: $form-padding-sides;
+        padding-right: $form-padding-sides;
+
+        &:hover {
+          background-color: var(--colors-black-05);
+        }
+      }
+    }
+  }
+}

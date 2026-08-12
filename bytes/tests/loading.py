@@ -57,8 +57,4 @@ def get_raw_data() -> RawData:
 def get_raw_data_meta(raw_file_id: UUID = UUID("2c9f47db-dfca-4928-b29f-368e64b3c779")) -> RawDataMeta:
     raw_data = get_raw_data()
 
-    return RawDataMeta(
-        id=raw_file_id,
-        boefje_meta=raw_data.boefje_meta,
-        mime_types=raw_data.mime_types,
-    )
+    return RawDataMeta(id=raw_file_id, boefje_meta=raw_data.boefje_meta, mime_types=raw_data.mime_types)

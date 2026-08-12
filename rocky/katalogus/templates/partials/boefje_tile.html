@@ -12,7 +12,8 @@
 
     {% endif %}
     {% if widget %}<span class="tile-label">{{ item|get_type_name }}</span>{% endif %}
-    <img src="{% url "plugin_cover" organization_code=organization.code plugin_id=item.id %}"
+    <img loading="lazy"
+         src="{% url "plugin_cover" organization_code=organization.code plugin_id=item.id %}"
          alt="placeholder image for Boefje {{ item.name }}">
     {% with scan_level=item.scan_level.value %}
         <div class="horizontal-view scan-intensity">

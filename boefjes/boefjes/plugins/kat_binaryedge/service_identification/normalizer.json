@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_service_identification",
+  "name": "BinaryEdge service identification",
+  "description": "Parses BinaryEdge data to check if Software is present that is known for malware.",
   "consumes": [
     "boefje/binaryedge"
   ],

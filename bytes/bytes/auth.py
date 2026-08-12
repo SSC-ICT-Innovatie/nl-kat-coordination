@@ -65,10 +65,7 @@ def _create_access_token(
     form_data: OAuth2PasswordRequestForm, secret: str, access_token_expire_minutes: float
 ) -> tuple[str, datetime]:
     expire_time = _get_expire_time(access_token_expire_minutes)
-    data = {
-        "sub": form_data.username,
-        "exp": expire_time,
-    }
+    data = {"sub": form_data.username, "exp": expire_time}
 
     access_token = jwt.encode(data.copy(), secret, algorithm=ALGORITHM)
 

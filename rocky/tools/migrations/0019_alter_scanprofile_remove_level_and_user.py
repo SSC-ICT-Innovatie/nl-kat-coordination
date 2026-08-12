@@ -4,21 +4,10 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0018_alter_boefjeconfig_options"),
-    ]
+    dependencies = [("tools", "0018_alter_boefjeconfig_options")]
 
     operations = [
-        migrations.RemoveField(
-            model_name="job",
-            name="user",
-        ),
-        migrations.RemoveField(
-            model_name="scanprofile",
-            name="level",
-        ),
-        migrations.RemoveField(
-            model_name="scanprofile",
-            name="user",
-        ),
+        migrations.RemoveField(model_name="job", name="user"),
+        migrations.RemoveField(model_name="scanprofile", name="level"),
+        migrations.RemoveField(model_name="scanprofile", name="user"),
     ]

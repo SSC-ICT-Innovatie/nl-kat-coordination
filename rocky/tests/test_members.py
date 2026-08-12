@@ -121,11 +121,7 @@ def test_edit_admins_from_different_organizations(rf, admin_member, admin_member
 
 def test_admin_edits_client_different_orgs(rf, admin_member, client_member_b):
     request = setup_request(
-        rf.post(
-            "organization_member_edit",
-            {"status": "blocked", "trusted_clearance_level": 4},
-        ),
-        admin_member.user,
+        rf.post("organization_member_edit", {"status": "blocked", "trusted_clearance_level": 4}), admin_member.user
     )
     with pytest.raises(Http404):
         OrganizationMemberEditView.as_view()(
@@ -135,11 +131,7 @@ def test_admin_edits_client_different_orgs(rf, admin_member, client_member_b):
 
 def test_admin_edits_redteamer(rf, admin_member, redteam_member, log_output):
     request = setup_request(
-        rf.post(
-            "organization_member_edit",
-            {"status": "active", "trusted_clearance_level": 4},
-        ),
-        admin_member.user,
+        rf.post("organization_member_edit", {"status": "active", "trusted_clearance_level": 4}), admin_member.user
     )
     OrganizationMemberEditView.as_view()(
         request, organization_code=redteam_member.organization.code, pk=redteam_member.id
@@ -157,11 +149,7 @@ def test_admin_edits_redteamer(rf, admin_member, redteam_member, log_output):
 
 def test_admin_edits_redteamer_to_block(rf, admin_member, redteam_member):
     request = setup_request(
-        rf.post(
-            "organization_member_edit",
-            {"blocked": True, "trusted_clearance_level": 4},
-        ),
-        admin_member.user,
+        rf.post("organization_member_edit", {"blocked": True, "trusted_clearance_level": 4}), admin_member.user
     )
     OrganizationMemberEditView.as_view()(
         request, organization_code=redteam_member.organization.code, pk=redteam_member.id
@@ -188,17 +176,19 @@ def test_check_add_redteamer_form(rf, admin_member):
     )
 
     assert response.status_code == 200
-    assertContains(response, "Redteam member")
+    assertContains(response, "Redteam account setup")
 
     # Check first and last radio input of trusted clearance level form input
     assertContains(
         response,
-        '<input type="radio" name="trusted_clearance_level" value="-1" id="id_trusted_clearance_level_0" checked="">',
+        '<input type="radio" name="trusted_clearance_level" value="-1" radio_paws="True" '
+        'id="id_trusted_clearance_level_0" required="True" checked="True" checked="True">',
         html=True,
     )
     assertContains(
         response,
-        '<input type="radio" name="trusted_clearance_level" value="4" id="id_trusted_clearance_level_5">',
+        '<input type="radio" name="trusted_clearance_level" value="4" radio_paws="True" '
+        'id="id_trusted_clearance_level_5" required="True">',
         html=True,
     )
 
@@ -212,7 +202,7 @@ def test_check_add_admin_client_form(rf, admin_member, account_type):
     )
 
     assert response.status_code == 200
-    assertContains(response, account_type.capitalize() + " member")
+    assertContains(response, account_type.capitalize() + " account setup")
 
     # Check first and last radio input of trusted clearance level form input
     assertNotContains(

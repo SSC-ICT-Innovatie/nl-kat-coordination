@@ -1,54 +1,62 @@
 {
   "KAT-NO-HSTS": {
+    "name":"Missing HTTP Strict Transport Security (HSTS) header",
     "description": "The website does not use HTTP Strict Transport Security (HSTS). HSTS ensures that browsers can only access the website using encryption (HTTPS).",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
     "risk": "medium",
-    "impact": "Absence of the HSTS header allows clients to connect insecurely to the website. This may result in eavesdropping of (sensitive) data by an attacker. Enabling the HSTS header forces the web browser to choose HTTPS instead of HTTP",
+    "impact": "Absence of the HSTS header allows clients to connect insecurely to the website. This may result in eavesdropping of (sensitive) data by an attacker. Enabling the HSTS header forces the web browser to choose HTTPS instead of HTTP.",
     "recommendation": "Configure the Strict-Transport-Security HTTP header for all websites."
   },
   "KAT-NO-CSP": {
-    "description": "The website does not use a Content Security Policy (CSP) configuration. CSP is used to mitigate certain attacks, including loading malicious code (JavaScript) inside the users browser (XSS)",
+    "name":"Missing Content Security Policy (CSP) header",
+    "description": "The website does not use a Content Security Policy (CSP) configuration. CSP is used to mitigate certain attacks, including loading malicious code (JavaScript) inside the users browser (XSS).",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
     "risk": "medium",
     "impact": "The usage possibility of JavaScript is not limited by the website. If the website contains a cross-site scripting vulnerability, then JavaScript code can be injected into the web page. This code is then executed by the browser of the victim. If a well-established Content Security Policy is active, the attacker can inject JavaScript code into the browser of the victim, but then the code will not get executed by the browser. A good configured Content Security Policy is a strong protection against cross-site scripting vulnerabilities.",
-    "recommendation": "1. Set the Content-Security-Policy HTTP header in all HTTP answers. 2. Make sure that when the Content Security Policy is violated by a browser, that this violation is logged and monitored. Point the content security violation variable report-uri to a server-side log script. 3. Implement a process that periodically analyses these logs for programming errors and hack attacks."
+    "recommendation": "Set the Content-Security-Policy HTTP header in all HTTP answers. Make sure that when the Content Security Policy is violated by a browser, that this violation is logged and monitored. Point the content security violation variable report-uri to a server-side log script. Implement a process that periodically analyses these logs for programming errors and hack attacks."
   },
-  "KAT-NO-X-PERMITTED-CROSS-DOMAIN-POLICIES": {
-    "description": "The HTTP header X-Permitted-Cross-Domain- Policies is missing in HTTP responses. This header is not officially supported by Mozilla MDN.",
+  "KAT-X-PERMITTED-CROSS-DOMAIN-POLICIES": {
+    "name":"Non-standard X-Permitted-Cross-Domain-Policies header detected",
+    "description": "The HTTP header X-Permitted-Cross-Domain-Policies is missing in HTTP responses. This header is not officially supported by Mozilla MDN.",
     "source": "https://owasp.org/www-project-secure-headers/#div-headers",
     "risk": "recommendation",
     "impact": "When the value of this header is not set to master- only, Adobe Flash or Adobe Acrobat (and possibly other software) can also look at cross-domain configuration files hosted at the web server.",
-    "recommendation": "This header is not supported by default by Mozilla. If this header is required for your environment: Set the HTTP header X-Permitted-Cross- Domain-Policies: none in all HTTP responses. Use value master-only if a Flash or Acrobat cross- domain configuration file is used that is placed in the root of the web server"
+    "recommendation": "This header is not supported by default by Mozilla. If this header is required for your environment: Set the HTTP header X-Permitted-Cross- Domain-Policies: none in all HTTP responses. Use value master-only if a Flash or Acrobat cross- domain configuration file is used that is placed in the root of the web server."
   },
-  "KAT-NO-EXPLICIT-XSS-PROTECTION": {
-    "description": "This is a deprecated header previously used to prevent against Cross-Site-Scripting attacks. Support in modern browsers could introduce XSS attacks again.",
+  "KAT-EXPLICIT-XSS-PROTECTION": {
+    "name":"Deprecated X-XSS-Protection header detected",
+    "description": "The 'X-XSS-Protection' header is a deprecated header previously used to prevent against Cross-Site-Scripting attacks. Support in modern browsers could introduce XSS attacks again.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection",
     "risk": "recommendation",
     "impact": "Reflected cross-site scripting attacks may not be blocked.",
-    "recommendation": "This header is deprecated and should not be used."
+    "recommendation": "Remove the deprecated header to reduce the chance of XSS attacks."
   },
   "KAT-NO-X-FRAME-OPTIONS": {
-    "description": "HTTP header 'X-Frame-Options' is missing. It is possible that the website can be loaded via an <iframe>.",
+    "name":"Missing No-X-Frame-Options header",
+    "description": "The HTTP header 'X-Frame-Options' is missing. It is possible that the website can be loaded via an <iframe>.",
     "source": "https://owasp.org/www-project-secure-headers/#div-headers",
     "risk": "recommendation",
     "impact": "There is a change that clickjacking is possible. This is an attack technique in which the website is invisibly loaded. On top of the original website, another malicious website is loaded that contains specially placed buttons or links. When the victim clicks on those buttons or links, the mouse click and thus its corresponding action is performed on the original website (which is made invisible). If the victim is logged in, then this click can perform an unauthorized action.",
     "recommendation": "1. Set the HTTP header <c>X-Frame- Options</c> with value deny (safest) or sameorigin in every HTTP answer for older browsers. 2. Set the frame-ancestors variable in the Content-Security-Policy header for modern browsers. 3. Add JavaScript code to all pages to ensure that these web pages may not be loaded within an <iframe>. In this manner also very old browsers are protected that do not support the HTTP header X-Frame-Options."
   },
-  "KAT-NO-X-DNS-PREFETCH-CONTROL": {
-    "description": "This is a non-standard header. The HTTP header X-DNS-Prefetch-Control is missing. The X-DNS-Prefetch-Control HTTP response header controls DNS prefetching, a feature by which browsers proactively perform domain name resolution on both links that the user may choose to follow as well as URLs for items referenced by the document.",
+  "KAT-X-DNS-PREFETCH-CONTROL": {
+    "name":"Non-standard X-DNS-Prefetch-Control header detected",
+    "description": "This is a non-standard header. The X-DNS-Prefetch-Control HTTP response header controls DNS prefetching, a feature by which browsers proactively perform domain name resolution on both links that the user may choose to follow as well as URLs for items referenced by the document.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-DNS-Prefetch-Control",
     "risk": "recommendation",
     "impact": "This header not production ready and thus not officially supported by Mozilla MDN.",
-    "recommendation": "If support is required: Set HTTP header X-DNS-Prefetch-Control: off in all HTTP answers."
+    "recommendation": "If support is required: Set the HTTP header to: `X-DNS-Prefetch-Control: off` in all HTTP answers."
   },
-  "KAT-NO-EXCPECT-CT": {
-    "description": "HTTP header 'Expect-CT' is missing. The Expect-CT header allows sites to opt in to reporting and/or enforcement of Certificate Transparency requirements.",
+  "KAT-EXCPECT-CT": {
+    "name":"Deprecated Expect-CT header detected",
+    "description": "The 'Expect-CT' header is deprecated. The Expect-CT header allowed sites to opt in to reporting and/or enforcement of Certificate Transparency requirements. This header is not supported by common browsers, as certificate transparency is now a standard functionality.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expect-CT",
     "risk": "recommendation",
     "impact": "The Expect-CT header prevents the use of misissued certificates for the website from going unnoticed. This header is currently deprecated thus browsers support is limited.",
     "recommendation": "This header is deprecated and should not be used. Set HTTP header Expect-CT in all HTTP answers and configure the report-uri variable."
   },
   "KAT-NO-PERMISSIONS-POLICY": {
+    "name":"Missing No-Permissions-Policy header",
     "description": "The HTTP header Permissions-Policy is missing. Via this header a website can set limits on what kind of capabilities a web pages is allowed to access in browsers that render them. For example, the header can prohibit the web page from addressing the microphone, camera, location or phone sensors.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy",
     "risk": "recommendation",
@@ -56,34 +64,39 @@
     "recommendation": "Set the Permissions-Policy HTTP header in all HTTP answers."
   },
   "KAT-NO-REFERRER-POLICY": {
+    "name":"Missing Referrer-Policy header",
     "description": "The HTTP header Referrer-Policy is missing in HTTP responses.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy",
     "risk": "recommendation",
     "impact": "When a website visitor clicks on a link to another website, the browser sends the Referer HTTP header (a part of the URL) to the other website. This is a privacy leak for the website visitor. In some cases, sensitive information such as session tokens may leak to websites that are linked to.",
-    "recommendation": "Set the header Referrer-Policy: no- referrer in every HTTP answer."
+    "recommendation": "Set the header to 'Referrer-Policy: no-referrer' in every HTTP answer."
   },
   "KAT-NO-X-CONTENT-TYPE-OPTIONS": {
-    "description": "The HTTP header <c>X-Content-Type- Options</c> is not set. Internet Explorer and Chrome apply MIME type sniffing in order to guess the content type of a document served and ignore the file extension.",
+    "name":"Missing X-Content-Type-Options header",
+    "description": "The HTTP header 'X-Content-Type-Options' is not set. Internet Explorer and Chrome apply MIME type sniffing in order to guess the content type of a document served and ignore the file extension.",
     "source": "http://www.owasp.org/index.php/Cross-site_Scripting_(XSS)",
     "risk": "recommendation",
-    "impact": "A malicious user of the system could upload a legitimate file containing HTML code to the website (if such functionality exists) with a file extension such as <c>.jpg</c> or <c>.png</c>. If the victim uses Internet Explorer or Chrome and downloads the malicious file, the uploaded HTML code will be executed, even though the file contains an image extension and the server would return an image header such as <c>Content-Type: image/jpeg</c>. This may include a <i>cross-site scripting</i> vulnerability.",
-    "recommendation": "Set the HTTP header <c>X-Content-Type- Options: nosniff</c> in at least all web pages that contain user input (and uploads)."
+    "impact": "A malicious user of the system could upload a legitimate file containing HTML code to the website (if such functionality exists) with a file extension such as '.jpg' or '.png'. If the victim uses Internet Explorer or Chrome and downloads the malicious file, the uploaded HTML code will be executed, even though the file contains an image extension and the server would return an image header such as 'Content-Type: image/jpeg'. This may include a cross-site scripting vulnerability.",
+    "recommendation": "Set the HTTP header 'X-Content-Type- Options: nosniff' in at least all web pages that contain user input (and uploads)."
   },
   "KAT-SSL-2-SUPPORT": {
+    "name":"SSL version 2 protocol detected",
     "description": "The server supports SSL version 2. This is a protocol that encrypts data traffic by using a legacy protocol and encryption ciphers which contains various security vulnerabilities.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
-    "risk": "medium",
+    "risk": "high",
     "impact": "Attackers, who can perform a man-in-the-middle attack, can decrypt traffic. Thus no integrity or confidentiality is offered to between the client and server.",
     "recommendation": "Disable support for SSL version 2."
   },
   "KAT-SSL-3-SUPPORT": {
+    "name":"SSL version 3 protocol detected",
     "description": "The server supports SSL version 3. This is a protocol that encrypts data traffic by using a legacy protocol and encryption ciphers which contains various security vulnerabilities.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
-    "risk": "medium",
+    "risk": "high",
     "impact": "Attackers, who can perform a man-in-the-middle attack, can decrypt traffic. Thus no integrity or confidentiality is offered to between the client and server.",
     "recommendation": "Disable support for SSL version 3."
   },
   "KAT-TLS-1.0-SUPPORT": {
+    "name":"TLS version 1.0 protocol detected",
     "description": "The server supports TLS version 1.0. This is a protocol that encrypts data traffic by using a legacy protocol and encryption ciphers which contains various security vulnerabilities.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
     "risk": "medium",
@@ -91,6 +104,7 @@
     "recommendation": "Disable support for TLS version 1.1, unless it is required for backwards compatibility of devices. To reduce the attack surface ensure that only secure ciphers are used."
   },
   "KAT-TLS-1.1-SUPPORT": {
+    "name":"TLS version 1.1 protocol detected",
     "description": "The server supports TLS version 1.1. This is a protocol that encrypts data traffic by using a legacy protocol and encryption ciphers which contains various security vulnerabilities.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
     "risk": "medium",
@@ -98,6 +112,7 @@
     "recommendation": "Disable support for TLS version 1.1, unless it is required for backwards compatibility of devices. To reduce the attack surface ensure that only secure ciphers are used."
   },
   "KAT-TLS-1.0-AND-1.1-SUPPORT": {
+    "name":"TLS version 1.0 and version 1.1 protocol detected",
     "description": "The server supports TLS version 1.0 and 1,1.This is a protocol that encrypts data traffic by using a legacy protocol and encryption ciphers which contains various security vulnerabilities.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
     "risk": "medium",
@@ -105,13 +120,15 @@
     "recommendation": "Disable support for TLS version 1.0 and 1.1, unless it is required for backwards compatibility of devices. To reduce the attack surface ensure that only secure ciphers are used."
   },
   "KAT-NO-TLS-1.2": {
+    "name":"TLS version 1.2 is not supported",
     "description": "TLS version 1.2 is not supported. This is a current and recommended protocol that securely encrypts data traffic.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
-    "risk": "low",
+    "risk": "medium",
     "impact": "Lack of support for TLS 1.2 could impact backwards compatibility for older devices. Ensure that only safe ciphers are used for encryption.",
     "recommendation": "Enable support for TLS version 1.2."
   },
   "KAT-NO-TLS-1.3": {
+    "name":"TLS version 1.3 is not supported",
     "description": "TLS version 1.3 is not supported. This is a current and recommended protocol that securely encrypts data traffic.",
     "source": "https://github.com/ssllabs/research/wiki/SSL-and-TLS-Deployment-Best-Practices#22-use-secure-protocols",
     "risk": "medium",
@@ -119,41 +136,55 @@
     "recommendation": "Enable support for TLS version 1.3."
   },
   "KAT-NO-TLS-FALLBACK-SCSV": {
+    "name":"No TLS downgrade attack protection (Fallback SCSV)",
     "description": "The encrypted connection provides no protection against downgrade attacks.",
     "source": "https://www.rfc-editor.org/rfc/rfc7507",
     "risk": "low",
-    "impact": "An attacker, who can perform a man-in-the-middle attack, can weaken the session between the client and server. This could result in loss of confidentiality and integrity of data. ",
+    "impact": "An attacker, who can perform a man-in-the-middle attack, can weaken the session between the client and server. This could result in loss of confidentiality and integrity of data.",
     "recommendation": "Implement TLS_FALLBACK_SCSV."
   },
   "KAT-OPEN-SYSADMIN-PORT": {
+    "name":"Open system administrator port(s) detected",
     "description": "A known system administration port is open.",
     "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
     "risk": "medium",
-    "impact": "System administrator ports should only be reachable from safe and known locations to reduce attack surface.",
-    "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary."
+    "impact": "System administrator port(s) should only be reachable from safe and known locations to reduce attack surface.",
+    "recommendation": "Determine if the open system administrator port(s) should be reachable from the identified location. Limit access to reduce the attack surface if necessary."
+  },
+  "KAT-REMOTE-DESKTOP-PORT": {
+    "name":"Open Remote Desktop port(s) (RDP) detected",
+    "description": "An open Microsoft Remote Desktop Protocol (RDP) port was detected.",
+    "source": "https://www.cloudflare.com/en-gb/learning/access-management/rdp-security-risks/",
+    "risk": "medium",
+    "impact": "Remote desktop port(s) are often the root cause in ransomware attacks, due to weak password usage, outdated software or insecure configurations.",
+    "recommendation": "Disable the Microsoft RDP service on port 3389 if this is publicly reachable. Add additional security layers, such as VPN access if these ports do require to be enabled to limit the attack surface."
   },
   "KAT-OPEN-DATABASE-PORT": {
+    "name":"Open database port(s) detected",
     "description": "A database port is open.",
     "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
     "risk": "high",
     "impact": "Databases should never be reachable from the internet, but only from secured internal networks. This will reduce unauthorized access.",
-    "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. "
+    "recommendation": "Determine if the open database port(s) should be reachable from the identified location. Limit access to reduce the attack surface if necessary."
   },
   "KAT-UNCOMMON-OPEN-PORT": {
-    "description": "The firewall may be configured in a riskful manner.",
+    "name":"Uncommon open port(s) detected",
+    "description": "An uncommon open port was identified. This could introduce security risks.",
     "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
     "risk": "medium",
     "impact": "Uncommon ports are sometimes overlooked and may become unwanted entry points for attackers into an organisations network.",
-    "recommendation": "Manually validate whether this port should be open."
+    "recommendation": "Manually validate whether the port(s) should be open."
   },
   "KAT-OPEN-COMMON-PORT": {
+    "name":"Open common port detected",
     "description": "A port commonly used was found to be open.",
     "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
     "risk": "recommendation",
-    "impact": "Depending on the port there may or may not be impact. ",
-    "recommendation": "Manually validate whether this port should be open."
+    "impact": "Depending on the port there may or may not be impact.",
+    "recommendation": "Manually validate whether the port(s) should be open."
   },
   "KAT-WEBSERVER-NO-IPV6": {
+    "name":"Web server without IPv6 connectivity",
     "description": "For this website there is no web server with an IPv6 address available.",
     "source": "https://www.internetsociety.org/deploy360/ipv6/",
     "risk": "low",
@@ -161,6 +192,7 @@
     "recommendation": "Add an IPv6 address for at least one web server that has no IPv6 address yet."
   },
   "KAT-NAMESERVER-IPV6-NOT-REACHABLE": {
+    "name":"Name server without IPv6 connectivity",
     "description": "One or more name servers is not reachable on an IPv6 address.",
     "source": "https://www.internetsociety.org/deploy360/ipv6/",
     "risk": "low",
@@ -168,13 +200,15 @@
     "recommendation": "Check IPv6 addresses for all name servers."
   },
   "KAT-WEBSERVER-IPV6-NOT-REACHABLE": {
+    "name":"Web server lacks IPv6 AAAA records",
     "description": "OpenKAT checks if all web server that have an AAAA record with IPv6 address are reachable over IPv6. In this case the web server(s) is/are not reachable via IPv6.",
     "source": "https://www.internetsociety.org/deploy360/ipv6/",
     "risk": "low",
     "impact": "Users that only have IPv6 support cannot access your server.",
-    "recommendation": "Configure IPv6 addresses for the web servers"
+    "recommendation": "Configure IPv6 addresses for the web servers."
   },
   "KAT-NOT-ENOUGH-IPV6-NAMESERVERS": {
+    "name":"Name servers without IPv6 connectivity",
     "description": "OpenKAT tests all IPv6 addresses received from your name servers. For this website there are not enough name servers accessible via IPv6.",
     "source": "https://www.internetsociety.org/deploy360/ipv6/",
     "risk": "medium",
@@ -182,6 +216,7 @@
     "recommendation": "Add an IPv6 address for at least two name servers that have no IPv6 address yet."
   },
   "KAT-NO-DNSSEC": {
+    "name":"DNSSEC not enabled",
     "description": "The provided domain does not have DNSSEC enabled.",
     "source": "https://www.dns-school.org/Documentation/dnssec_howto.pdf",
     "risk": "medium",
@@ -189,6 +224,7 @@
     "recommendation": "Enable DNSSEC on your name servers."
   },
   "KAT-INVALID-DNSSEC": {
+    "name":"DNSSEC config is invalid",
     "description": "The provided domain is DNSSEC signed, but the DNSSEC config is invalid.",
     "source": "https://www.dns-school.org/Documentation/dnssec_howto.pdf",
     "risk": "medium",
@@ -196,6 +232,7 @@
     "recommendation": "Reconfigure DNSSEC on your name servers."
   },
   "KAT-HSTS-VULNERABILITIES": {
+    "name":"HTTP Strict Transport Security vulnerabilities found",
     "description": "List of vulnerabilities found in the HTTP strict transport security (HSTS) settings of the http header.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security",
     "risk": "medium",
@@ -203,6 +240,7 @@
     "recommendation": "Adjust the HSTS header to make it as strict as possible in order to reduce the attack surface."
   },
   "KAT-CSP-VULNERABILITIES": {
+    "name":"Content Security Policy header vulnerabilities",
     "description": "List of vulnerabilities found in the content security policy (CSP) settings of the http header.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
     "risk": "medium",
@@ -210,6 +248,7 @@
     "recommendation": "Adjust the CSP header to make it as strict as possible in order to reduce the attack surface."
   },
   "KAT-POTENTIAL-MALWARE": {
+    "name":"Software identified with potential malware",
     "description": "This software is known to be used as malware.",
     "source": "https://learn.microsoft.com/en-us/microsoft-365/security/defender/criteria?view=o365-worldwide",
     "risk": "high",
@@ -217,13 +256,15 @@
     "recommendation": "Alert your CERT to verify if your systems are compromised."
   },
   "KAT-EXPOSED-SOFTWARE": {
+    "name":"Administrative software identified",
     "description": "This software is often used for administrative purposes and should not be exposed to the Internet. This could be an easy entry point into your organisations environment.",
     "source": "Check your OpenKAT install on what software was identified.",
     "risk": "critical",
     "impact": "Impact depends on the identified software.",
-    "recommendation": "Move the software to a more secure location and/or make it only accessible through a VPN. "
+    "recommendation": "Move the software to a more secure location and/or make it only accessible through a VPN."
   },
   "KAT-VERIFIED-VULNERABILITY": {
+    "name":"BinaryEdge verified vulnerability",
     "description": "A verified vulnerability is found by BinaryEdge.",
     "source": "Check your OpenKAT install on what software was identified.",
     "risk": "critical",
@@ -231,20 +272,23 @@
     "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
   },
   "KAT-DICOM-EXPOSED": {
+    "name":"DICOM server identified",
     "description": "A Dicom server is exposed.",
     "source": "https://en.wikipedia.org/wiki/DICOM",
     "risk": "critical",
     "impact": "Impact depends on segmentation and where the server is reachable from.",
-    "recommendation": "Validate whether this server should actually be exposed."
+    "recommendation": "Validate whether servers should actually be exposed."
   },
   "KAT-10-OR-MORE-NEW-PORTS-OPEN": {
+    "name":"10 or more new open ports identified",
     "description": "A lot of ports are open which were not open a week ago.",
     "source": "Check your OpenKAT install on which ports are identified.",
     "risk": "critical",
-    "impact": "Impact depends on what was identified.",
-    "recommendation": "Validate if the firewall config is correct."
+    "impact": "Impact depends on the services reachable through these open ports.",
+    "recommendation": "Validate the presence of all identified open ports. Close ports if they are not required."
   },
   "KAT-LEAKIX-CRITICAL": {
+    "name":"LeakIX Critical vulnerability found",
     "description": "A leak with severity critical has been found.",
     "source": "https://leakix.net/",
     "risk": "critical",
@@ -252,6 +296,7 @@
     "recommendation": "Validate if this service is configured correctly, up-to-date and exposed on the correct port."
   },
   "KAT-LEAKIX-HIGH": {
+    "name":"LeakIX High vulnerability found",
     "description": "A leak with severity high has been found.",
     "source": "https://leakix.net/",
     "risk": "high",
@@ -259,6 +304,7 @@
     "recommendation": "Validate if this service is configured correctly, up-to-date and exposed on the correct port."
   },
   "KAT-LEAKIX-MEDIUM": {
+    "name":"LeakIX Medium vulnerability found",
     "description": "A leak with severity medium has been found.",
     "source": "https://leakix.net/",
     "risk": "medium",
@@ -266,6 +312,7 @@
     "recommendation": "Validate if this service is configured correctly, up-to-date and exposed on the correct port."
   },
   "KAT-LEAKIX-LOW": {
+    "name":"LeakIX Low vulnerability found",
     "description": "A leak with severity low has been found.",
     "source": "https://leakix.net/",
     "risk": "low",
@@ -273,6 +320,7 @@
     "recommendation": "Validate if this service is configured correctly, up-to-date and exposed on the correct port."
   },
   "KAT-LEAKIX-RECOMMENDATION": {
+    "name":"LeakIX Recommendation vulnerability found",
     "description": "A leak with severity information has been found.",
     "source": "https://leakix.net/",
     "risk": "recommendation",
@@ -280,6 +328,7 @@
     "recommendation": "Validate if this service is configured correctly, up-to-date and exposed on the correct port."
   },
   "KAT-SOFTWARE-UPDATE-AVAILABLE": {
+    "name":"Outdate software identified",
     "description": "There is a newer version for this software.",
     "source": "Check your OpenKAT install on what software was identified.",
     "risk": "recommendation",
@@ -287,6 +336,7 @@
     "recommendation": "Install the updates for the software to reduce potential attack vectors."
   },
   "KAT-NO-GREEN-HOSTING": {
+    "name":"Website not hosted in a 'green' way",
     "description": "According to the Green Web Foundation, this website is not hosted in a 'green' way.",
     "source": "https://www.thegreenwebfoundation.org/",
     "risk": "recommendation",
@@ -294,20 +344,23 @@
     "recommendation": "Change hosting providers if you wish to host 'green'."
   },
   "KAT-NXDOMAIN": {
+    "name":"Non-existent domain identified",
     "description": "The domain name does not exist.",
     "source": "https://datatracker.ietf.org/doc/html/rfc8020",
     "risk": "medium",
-    "impact": "If this is a critical service, it stopped working. Fix it now. :).",
+    "impact": "If this is a service you rely on, have in your allow lists or redirect to, it stopped working. Fix it now. In addition someone might register this hostname and use it for nefarious reasons. :).",
     "recommendation": "Try again later, or verify if the host should be reachable."
   },
   "KAT-NXDOMAIN-HEADER": {
+    "name":"Non-existent domain identified in HTTP header",
     "description": "The hostname in this header does not exist.",
     "source": "https://datatracker.ietf.org/doc/html/rfc8020",
     "risk": "critical",
-    "impact": "If this is a critical service, it stopped working. Fix it now. :).",
+    "impact": "If this is a service you rely on, have in your allow lists or redirect to, it stopped working. Fix it now. In addition someone might register this hostname and use it for nefarious reasons. :).",
     "recommendation": "Check if the hostname in the header is correct and update accordingly."
   },
   "KAT-NAMESERVER-NO-TWO-IPV6": {
+    "name":"Name server doesn't have 2 IPv6 addresses",
     "description": "This webserver does not have at least two nameservers with an IPv6 address.",
     "source": "https://www.rfc-editor.org/rfc/rfc3901.txt",
     "risk": "low",
@@ -315,6 +368,7 @@
     "recommendation": "Ensure that both nameservers have an reachable IPv6 address for higher availability."
   },
   "KAT-NAMESERVER-NO-IPV6": {
+    "name":"Name server without IPv6 address",
     "description": "This nameserver does not have an IPv6 address.",
     "source": "https://www.rfc-editor.org/rfc/rfc3901.txt",
     "risk": "recommendation",
@@ -322,6 +376,7 @@
     "recommendation": "Ensure that the nameserver has an IPv6 address that can be reached."
   },
   "KAT-INTERNETNL": {
+    "name":"Non-compliant with InternetNL standards",
     "description": "This website does not comply to the internet.nl standards. Currently, we check the following standards: IPv6 on webservers and nameservers, DNSSEC, missing and mis-configured headers.",
     "source": "https://internet.nl/faqs/",
     "risk": "medium",
@@ -329,20 +384,23 @@
     "recommendation": "Make changes to your web server in order to comply with the Internet.nl standards."
   },
   "KAT-NO-CERTIFICATE": {
-    "description": "This website does not have an SSL certificate.",
+    "name":"No Certificate was found.",
+    "description": "This website does not have an TLS certificate, this might indicate no encryption is being used or OpenKAT has not found the seen the certificate just yet.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280",
-    "risk": "medium",
-    "impact": "Attackers, who can perform a man-in-the-middle attack, can read all your traffic.",
-    "recommendation": "Generate an SSL certificate for this web server to offer confidentiality and integrity to users."
+    "risk": "high",
+    "impact": "If no encryption is being used, attackers with the ability to do a man-in-the-middle attack, can read all your traffic. Modern clients also refuse to connect to sites without encryption.",
+    "recommendation": "Generate TLS certificates for web servers that do not use secure connections to offer confidentiality and integrity to users and data."
   },
   "KAT-SSL-CERT-HOSTNAME-MISMATCH": {
-    "description": "The alternative name of the certificate does not match with the hostname of the website",
+    "name":"SSL/TLS certificate name mismatch",
+    "description": "The alternative name of the certificate does not match with the hostname of the website. Modern clients also refuse to connect to sites using invalid certificates.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.6",
     "risk": "high",
     "impact": "A properly configured client cannot connect to your server.",
     "recommendation": "Update your certificates such that the alternative names include this hostname."
   },
   "KAT-NO-HTTPS-REDIRECT": {
+    "name":"HTTP to HTTPS redirect missing",
     "description": "This HTTP URL may not redirect to HTTPS; 'Location' was not found in HTTPHeader.",
     "source": "https://datatracker.ietf.org/doc/html/rfc7231#section-6.4",
     "risk": "low",
@@ -350,34 +408,39 @@
     "recommendation": "Check if redirection is setup properly."
   },
   "KAT-CERTIFICATE-EXPIRING-SOON": {
-    "description": "TLS certificate is expiring soon",
+    "name":"SSL/TLS certificate expiring soon",
+    "description": "TLS certificate is expiring soon.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
     "risk": "medium",
     "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
     "recommendation": "Update the certificate to expire on a date further in the future."
   },
   "KAT-CERTIFICATE-EXPIRED": {
+    "name":"SSL/TLS Certificate expired",
     "description": "TLS certificate has expired",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
     "risk": "critical",
-    "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
+    "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service. Modern clients also refuse to connect to sites using expired certificates.",
     "recommendation": "Replace the certificate with a valid one."
   },
   "KAT-NO-DMARC": {
+    "name":"No DMARC records found",
     "description": "This hostname does not have a DMARC record.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-dmarc-record/",
     "risk": "medium",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
+    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF. Not having DMARC setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
     "recommendation": "Set a DMARC record to protect your domain."
   },
   "KAT-NO-DKIM": {
+    "name":"No DKIM records found",
     "description": "This hostname does not support a DKIM record.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-dkim-record/",
     "risk": "medium",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
-    "recommendation": "Set a DKIM record to protect your domain."
+    "impact": "E-mail from this domain can potentially be spoofed if DKIM is not (properly) implemented in combination with DMARC and SPF.  Not having DKIM setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
+    "recommendation": "Set a DKIM record to protect your domain, and Sign outgoing mails accordingly."
   },
   "KAT-NO-SECURITY-TXT": {
+    "name":"Security.txt file missing",
     "description": "This hostname does not have a Security.txt file.",
     "source": "https://securitytxt.org/",
     "risk": "recommendation",
@@ -385,6 +448,7 @@
     "recommendation": "Make sure there is a security.txt available."
   },
   "KAT-INVALID-SECURITY-TXT": {
+    "name":"Security.txt file is incomplete",
     "description": "Required elements of the security.txt are missing.",
     "source": "https://securitytxt.org/",
     "risk": "recommendation",
@@ -392,82 +456,111 @@
     "recommendation": "Make sure the security.txt is in line with the requirements."
   },
   "KAT-BAD-FORMAT-SECURITY-TXT": {
-    "description": "There are flaws in the format of the security.txt.",
+    "name":"Security.txt file contains bad format",
+    "description": "There are formatting mistakes in the security.txt file.",
     "source": "https://www.rfc-editor.org/rfc/rfc9116.html#section-4",
     "risk": "recommendation",
     "impact": "Security researchers and/or bounty hunter may not be able to properly disclose vulnerabilities for your website.",
     "recommendation": "Make sure the security.txt is correctly formatted."
   },
   "KAT-NO-SPF": {
+    "name":"No SPF records found",
     "description": "This hostname does not have an SPF record.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-spf-record/",
     "risk": "medium",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
+    "impact": "E-mail from this domain can potentially be spoofed if SPF is not (properly) implemented in combination with DKIM and DMARC. Not having SPF setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
     "recommendation": "Set an SPF record to protect your domain."
   },
   "KAT-INVALID-SPF": {
+    "name":"Invalid SPF records found",
     "description": "This SPF record could not be parsed by the internet.nl SPF parser and is therefore deemed invalid.",
     "source": "https://www.cloudflare.com/en-gb/learning/dns/dns-records/dns-spf-record/",
     "risk": "low",
-    "impact": "E-mail from this domain can potentially be spoofed if DMARC is not (properly) implemented in combination with DKIM and SPF.",
+    "impact": "E-mail from this domain can potentially be spoofed if SPF is not (properly) implemented in combination with DKIM and DMARC. Not having SPF setup will also limit this domains ability to deliver mail to various popular mail recipient domains.",
     "recommendation": "Fix the syntax of the SPF record."
   },
+  "KAT-EXPENSIVE-SPF": {
+    "name":"SPF record contains expensive construction",
+    "description": "This SPF record contains an expensive SPF construction.",
+    "source": "https://www.rfc-editor.org/rfc/rfc7208#section-4.6.4",
+    "risk": "low",
+    "impact": "Various recipient mailservers might not perform all requested lookups and bounce email because of missed allowed addresses, or bounce mail entirely due to too many dns lookups.",
+    "recommendation": "Consolidate the SPF record, remove unneeded lookups and mechanisms."
+  },
+  "KAT-DEPRECATED-SPF-MECHANISM": {
+    "name":"SPF record contains deprecated mechanism",
+    "description": "This SPF record contains a deprecated SPF mechanism.",
+    "source": "https://www.rfc-editor.org/rfc/rfc7208#section-5.5",
+    "risk": "low",
+    "impact": "Deprecated mechanism is used. It should not be used.",
+    "recommendation": "Fix the SPF record, remove deprecated mechanisms."
+  },
   "SUB-DOMAIN-TAKEOVER": {
+    "name":"Possible sub-domain takeover",
     "description": "Subdomain takeover is when an attacker takes control of an unused or improperly configured subdomain, potentially accessing sensitive information or conducting phishing attacks.",
     "source": "https://developer.mozilla.org/en-US/docs/Web/Security/Subdomain_takeovers",
     "risk": "high",
-    "impact": "An attacker using your hosting provider may setup a virtual host for your domain and thus intercept and trick users.",
-    "recommendation": "To prevent subdomain takeover, organizations should regularly monitor their DNS records to identify and remove any unused subdomains. Additionally, they should ensure that all subdomains are properly configured and point to valid services."
+    "impact": "An attacker using your hosting provider may setup a virtual host for your domain and thus intercept and trick users. Since they control content available under your (sub-domain) they could reach user cookies/sessions and perform various other attacks without breaking the browsers same-site principles.",
+    "recommendation": "To prevent subdomain takeover, organizations should regularly monitor their DNS records to identify and remove any unused subdomains. Additionally, they should ensure that all subdomains are properly configured and point to valid services that you control."
   },
-  "EXPOSED-PANELS": {
-    "description": "Exposed login panels for services can pose security risks as they can be targeted by malicious actors for brute-force attacks, phishing attempts, and other forms of unauthorized access.",
-    "source": "https://resources.infosecinstitute.com/topics/application-security/dangers-web-management/",
-    "risk": "recommendation",
-    "impact": "Administrative interfaces may be easy ways for an attacker to gain access to your network.",
-    "recommendation": "Ideally to minimize the attack surface as much as possible these panels should not be directly exposed to the internet."
+  "EXPOSED-ADMIN-PANELS": {
+    "name": "Exposed administrative panel",
+    "description": "An administrative login panel or management interface was found exposed on this host. Such panels are intended for internal use and should not be reachable from the internet, as they widen the attack surface for brute-force and known-vulnerability attacks.",
+    "source": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/05-Enumerate_Infrastructure_and_Application_Admin_Interfaces",
+    "risk": "low",
+    "impact": "An exposed administrative interface lets an attacker attempt credential brute-forcing, exploit known vulnerabilities in the management software, and use it as an entry point into the environment.",
+    "recommendation": "Restrict access to administrative panels to trusted networks or a VPN, place them behind authentication, and do not expose them directly to the internet."
   },
   "KAT-CRITICAL-BAD-CIPHER": {
-    "description": "Ciphers are used that are labeled as bad. These should not be used anymore",
-    "source": "https://wiki.mozilla.org/Security/Server_Side_TLS",
+    "name":" Insecure SSL/TLS cipher(s) detected",
+    "description": "Cryptographic algorithms (ciphers) are used that are labeled as insecure by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm. These should not be used anymore",
+    "source": "https://english.ncsc.nl/binaries/ncsc-en/documenten/publications/2021/january/19/it-security-guidelines-for-transport-layer-security-2.1/IT+Security+Guidelines+for+Transport+Layer+Security+v2.1.pdf",
     "risk": "critical",
-    "impact": "Weak or insecure ciphers may result in loss of confidentiality and integrity of data through decryption.",
-    "recommendation": "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers."
+    "impact": "Insecure ciphers may result in loss of confidentiality and integrity of data through decryption attacks",
+    "recommendation": "Disable insecure ciphers as much as possible. Enable ciphers that are labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers. If this is not possible make sure that systems using these ciphers are segmented and additionally secured."
   },
   "KAT-MEDIUM-BAD-CIPHER": {
-    "description": "Ciphers are used that are labeled as bad. These should not be used anymore",
-    "source": "https://wiki.mozilla.org/Security/Server_Side_TLS",
+    "name":"Phase out SSL/TLS cipher(s) detected",
+    "description": "Cryptographic algorithms (ciphers) are used that are labeled as 'phase out' by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm.",
+    "source": "https://english.ncsc.nl/binaries/ncsc-en/documenten/publications/2021/january/19/it-security-guidelines-for-transport-layer-security-2.1/IT+Security+Guidelines+for+Transport+Layer+Security+v2.1.pdf",
     "risk": "medium",
-    "impact": "Weak or insecure ciphers may result in loss of confidentiality and integrity of data through decryption.",
-    "recommendation": "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers."
+    "impact": "Weak ciphers may result in loss of confidentiality and integrity of data through decryption attacks.",
+    "recommendation": "Disable phase out ciphers as much as possible. Enable ciphers that are labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers."
   },
   "KAT-RECOMMENDATION-BAD-CIPHER": {
-    "description": "Ciphers are used that are labeled as bad. These should not be used anymore",
-    "source": "https://wiki.mozilla.org/Security/Server_Side_TLS",
+    "name":"Sufficient SSL/TLS cipher(s) detected",
+    "description": "Cryptographic algorithms (ciphers) are used that are labeled as 'sufficient' by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm.",
+    "source": "https://english.ncsc.nl/binaries/ncsc-en/documenten/publications/2021/january/19/it-security-guidelines-for-transport-layer-security-2.1/IT+Security+Guidelines+for+Transport+Layer+Security+v2.1.pdf",
     "risk": "recommendation",
-    "impact": "Weak or insecure ciphers may result in loss of confidentiality and integrity of data through decryption.",
-    "recommendation": "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers."
+    "impact": "Sufficient ciphers may result in a loss of confidentiality of data. While there is currently no direct impact, the data may be decrypted in the future with enough computing power and resources or new attacks.",
+    "recommendation": "Disable 'sufficient' ciphers and enable ciphers labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers."
   },
   "KAT-NO-RPKI": {
-    "description": "The IP address does not have a route announcement that is matched by the published Route Policy and Authorization (RPKI)",
+    "name":"No matching RPKI route announcement",
+    "description": "The IP address does not have a route announcement that is matched by the published Route Policy and Authorization (RPKI).",
     "source": "https://blog.cloudflare.com/rpki/",
     "risk": "low",
     "impact": "Without RPKI validation, your servers might be more vulnerable to unintended or malicious routing configuration errors, potentially leading to inaccessibility of your servers or interception of internet traffic directed to them.",
     "recommendation": "Work on implementing RPKI for your IP addresses. This may involve creating Route Origin Authorizations (ROAs) that specify which Autonomous Systems (AS) are authorized to announce your IP addresses."
   },
   "KAT-EXPIRED-RPKI": {
-    "description": "The route announcement that is matched by the published Route Policy and Authorization (RPKI) is expired",
+    "name":"Expired RPKI route announcement",
+    "description": "The route announcement that is matched by the published Route Policy and Authorization (RPKI) is expired.",
     "source": "https://blog.cloudflare.com/rpki/",
     "risk": "low",
     "impact": "Without RPKI validation, your servers might be more vulnerable to unintended or malicious routing configuration errors, potentially leading to inaccessibility of your servers or interception of internet traffic directed to them.",
     "recommendation": "Make sure that the Route Origin Authorizations (ROAs) that specify which Autonomous Systems (AS) are authorized to announce your IP addresses are valid and not expired."
   },
   "KAT-INVALID-RPKI": {
-    "description": "A route announcement that is matched by the published Route Policy and Authorization (RPKI) is invalid",
+    "name":"Invalid RPKI route announcement",
+    "description": "A route announcement that is matched by the published Route Policy and Authorization (RPKI) is invalid.",
+    "source": "https://blog.cloudflare.com/rpki/",
     "risk": "medium",
     "impact": "Without RPKI validation, your servers might be more vulnerable to unintended or malicious routing configuration errors, potentially leading to inaccessibility of your servers or interception of internet traffic directed to them.",
     "recommendation": "Make sure that the Route Origin Authorizations (ROAs) that specify which Autonomous Systems (AS) are authorized to announce your IP addresses are valid and not expired."
   },
   "KAT-NO-CAA": {
+    "name":"Missing CAA record",
     "description": "This zone does not carry at least one CAA record.",
     "source": "https://letsencrypt.org/docs/caa/",
     "risk": "low",
@@ -475,16 +568,90 @@
     "recommendation": "Set a CAA record to limit which CA's are allowed to issue certs."
   },
   "KAT-DISALLOWED-DOMAIN-IN-CSP": {
+    "name":"Disallowed domain(s) in CSP header",
     "description": "This CSP header contains domains that are not allowed, If the website contains a cross-site scripting vulnerability, then JavaScript code can be injected into the web page hosted on these domains which can host files for anyone.",
+    "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
     "risk": "medium",
     "impact": "Disallowed domains are domains that are for example 'world writable', this opens up the possibility for an atacker to host malicious files on a csp whitelisted domain.",
     "recommendation": "Remove the offending hostname from the CSP header."
   },
   "KAT-NONSTANDARD-HEADERS": {
+    "name":"Non-standard HTTP headers detected",
     "description": "Headers are used that are nonstandard and should not be used anymore.",
     "risk": "low",
     "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers",
     "impact": "Nonstandard headers may not be supported by all browsers and may not provide the security that is expected.",
     "recommendation": "Remove the nonstandard headers from the response."
+  },
+  "KAT-DOMAIN-OWNERSHIP-PENDING": {
+    "name":"Domain ownership is pending",
+    "description": "The domain requires Ownership verification. An email has been sent to the registered owner by the registrar. The domain is currently offline.",
+    "risk": "high",
+    "source": "https://www.icann.org/resources/pages/contact-verification-2013-05-03-en",
+    "impact": "Domain points to placeholder DNS-Servers, and is offline for regular use.",
+    "recommendation": "Verify ownership by following the emailed link."
+  },
+  "KAT-SOFTWARE-VERSION-NOT-FOUND": {
+    "name":"Software version not found",
+    "description": "The version of the software is not found.",
+    "risk": "recommendation",
+    "source": "Check the version of the host manually.",
+    "impact": "Unknown. The server may or may not be vulnerable. OpenKAT is not able to determine the version.",
+    "recommendation": "Verify manually if the software is up to date as OpenKAT is not able to determine the software version ."
+  },
+  "KAT-LAME-DELEGATION": {
+    "name":"Name servers unreachable or non-existent",
+    "description": "The nameservers for this object are configured but cannot be reached or are non existent.",
+    "risk": "recommendation",
+    "source": "Check the nameservers of the host or iprange manually.",
+    "impact": "No resolving can be done for this IP or host. This might cause problems for mailservers or slow down connections.",
+    "recommendation": "Verify that the listed nameservers are reachable and have valid hostnames."
+  },
+  "KAT-OUTDATED-SOFTWARE": {
+    "name":"Outdated software identified",
+    "description": "A newer version of existing software has been found.",
+    "risk": "recommendation",
+    "impact": "Depending on what software is outdated this can be critical.",
+    "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
+  },
+  "KAT-MISSING-HEADER": {
+    "name":"Missing security header",
+    "description": "A recommended HTTP security header is not present on the response. The exact header was either not recognised by the parser or not specifically mapped to a dedicated finding type.",
+    "source": "https://owasp.org/www-project-secure-headers/",
+    "risk": "recommendation",
+    "impact": "Missing security headers may weaken the browser-side defences of the site against common web attacks such as XSS, clickjacking, or MIME-sniffing.",
+    "recommendation": "Configure the web server or application to emit the missing security header(s) with appropriate values per the OWASP Secure Headers project."
+  },
+  "KAT-NIKTO-FINDING": {
+    "name":"Nikto finding",
+    "description": "Nikto reported an issue that does not yet have a dedicated OpenKAT finding type. The raw message from Nikto is attached to the finding description.",
+    "source": "https://github.com/sullo/nikto",
+    "risk": "recommendation",
+    "impact": "Depends on the specific Nikto finding. Consult the finding description to assess impact.",
+    "recommendation": "Review the finding description and consult the Nikto documentation or your web server vendor for remediation guidance."
+  },
+  "KAT-HTTP-TRACE-METHOD": {
+    "name":"HTTP TRACE method is enabled",
+    "description": "The HTTP TRACE method is enabled on the web server. TRACE can be abused in cross-site tracing (XST) attacks to read security-sensitive headers such as cookies when combined with other client-side vulnerabilities.",
+    "source": "https://owasp.org/www-community/attacks/Cross_Site_Tracing",
+    "risk": "medium",
+    "impact": "An attacker who also exploits a client-side vulnerability (e.g. XSS) can use TRACE to read otherwise HttpOnly cookies or authorization headers.",
+    "recommendation": "Disable the TRACE method on the web server. For Apache: TraceEnable off. For Nginx: do not forward TRACE. For IIS: disable the verb in request filtering."
+  },
+  "KAT-WILDCARD-CERTIFICATE": {
+    "name":"Wildcard TLS certificate in use",
+    "description": "The server presents a wildcard TLS certificate. Wildcard certificates simplify operations but increase blast radius on compromise because the same private key authenticates every subdomain.",
+    "source": "https://en.wikipedia.org/wiki/Wildcard_certificate",
+    "risk": "recommendation",
+    "impact": "Compromise of the wildcard certificate private key allows an attacker to impersonate every matching subdomain.",
+    "recommendation": "Prefer per-host certificates when operationally feasible; automate issuance via ACME. Keep wildcards only where a single key/cert must cover many ephemeral subdomains and protect the key accordingly."
+  },
+  "KAT-EXPOSED-DEFAULT-FILE": {
+    "name":"Default file exposed",
+    "description": "A default file or directory shipped with the web server software is exposed and reachable. These files often disclose software versions or provide an information foothold for attackers.",
+    "source": "https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/01-Information_Gathering/",
+    "risk": "low",
+    "impact": "Information disclosure about the underlying software stack, assisting reconnaissance.",
+    "recommendation": "Remove default files from production deployments or deny-list them at the web server level."
   }
 }

@@ -1,68 +1,100 @@
 {
-    "response": {
-        "url": "https://mispo.es/",
-        "status_code": 200,
-        "headers": {
-            "Server": "nginx/1.18.0",
-            "Date": "Tue, 26 Mar 2024 13:59:01 GMT",
-            "Content-Type": "text/html",
-            "Last-Modified": "Fri, 18 Feb 2022 09:21:01 GMT",
-            "Transfer-Encoding": "chunked",
-            "Connection": "keep-alive",
-            "ETag": "W/\"620f64fd-72f\"",
-            "Content-Security-Policy": "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';",
-            "Content-Encoding": "gzip"
+    "log": {
+        "version": "1.2",
+        "creator": {
+            "name": "kat_webpage_analysis",
+            "version": "0.1"
         },
-        "cookies": {},
-        "is_redirect": false
-    },
-    "request": {
-        "url": "https://mispo.es/",
-        "method": "GET",
-        "headers": {
-            "User-Agent": "OpenKAT",
-            "Accept-Encoding": "gzip, deflate",
-            "Accept": "*/*",
-            "Connection": "keep-alive"
-        }
+        "browser": {
+            "name": "requests",
+            "version": "2.32.3"
+        },
+        "entries": [
+            {
+                "startedDateTime": "2024-11-19T14:32:21.701024+00:00",
+                "time": 0,
+                "request": {
+                    "method": "GET",
+                    "url": "http://134.209.85.72/",
+                    "httpVersion": "HTTP/1.1",
+                    "cookies": [],
+                    "queryString": [],
+                    "headers": [
+                        {
+                            "name": "User-Agent",
+                            "value": "OpenKAT"
+                        },
+                        {
+                            "name": "Accept-Encoding",
+                            "value": "gzip, deflate"
+                        },
+                        {
+                            "name": "Accept",
+                            "value": "*/*"
+                        },
+                        {
+                            "name": "Connection",
+                            "value": "keep-alive"
+                        },
+                        {
+                            "name": "Host",
+                            "value": "mispo.es:80"
+                        }
+                    ],
+                    "headersSize": -1,
+                    "bodySize": -1
+                },
+                "response": {
+                    "status": 301,
+                    "statusText": "Moved Permanently",
+                    "httpVersion": "HTTP/1.1",
+                    "cookies": [],
+                    "headers": [
+                        {
+                            "name": "Server",
+                            "value": "nginx/1.18.0"
+                        },
+                        {
+                            "name": "Date",
+                            "value": "Tue, 19 Nov 2024 14:32:21 GMT"
+                        },
+                        {
+                            "name": "Content-Type",
+                            "value": "text/html"
+                        },
+                        {
+                            "name": "Content-Length",
+                            "value": "169"
+                        },
+                        {
+                            "name": "Connection",
+                            "value": "keep-alive"
+                        },
+                        {
+                            "name": "Location",
+                            "value": "https://mispo.es/"
+                        },
+                        {
+                            "name": "Content-Security-Policy",
+                            "value": "default-src 'self'; frame-src 'self'; frame-ancestors 'self' *.asfsdgswrgew223424.com"
+                        }
+                    ],
+                    "content": {
+                        "size": 169,
+                        "mimeType": "text/html",
+                        "text": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Mispoes!</title>\n  <!-- Latest compiled and minified CSS -->\n  <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\" integrity=\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\" crossorigin=\"anonymous\">\n  <!-- Optional theme -->\n  <link rel=\"stylesheet\" href=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css\" integrity=\"sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp\" crossorigin=\"anonymous\">\n  <style>\n\tmain {\n\t  text-align: center;\n\t}\n  </style>\n</head>\n<body>\n  <main class=\"container\">\n    <h1>Mispoes!</h1>\n    <article>\n      <p>\n        Miauw miauw miauw\n      </p>\n      <img src=\"http://placekitten.com/600/600.webp\">\n      <img src=\"http://placekitten.com/600/600\">\n      <img src=\"/600/600.webp\">\n      <img src=\"/600/600\">\n    </article>\n  </main>\n  <!-- jQuery :( -->\n  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js\" integrity=\"sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==\" crossorigin=\"anonymous\" referrerpolicy=\"no-referrer\"></script>\n  <!-- Latest compiled and minified JavaScript -->\n  <script src=\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js\" integrity=\"sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa\" crossorigin=\"anonymous\"></script>\n  <!-- jQuery Migrate :((((( -->\n  <script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.0.0/jquery-migrate-1.0.0.js\" integrity=\"sha512-mEpPobji5tfGgUvzPA6NhRm+p7vssPId8odkvjDq3yjlamhNBMbEKZEIJBISY+8rGfYe4D2Wx/bj83noBmDtiw==\" crossorigin=\"anonymous\" referrerpolicy=\"no-referrer\"></script>\n</body>\n</html>"
+                    },
+                    "redirectURL": "http://134.209.85.72/",
+                    "headersSize": -1,
+                    "bodySize": 0
+                },
+                "cache": {},
+                "timings": {
+                    "send": 0,
+                    "wait": 0,
+                    "receive": 0
+                }
+            }
+        ]
     }
 }
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mispoes!</title>
-  <!-- Latest compiled and minified CSS -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-  <!-- Optional theme -->
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp" crossorigin="anonymous">
-  <style>
-	main {
-	  text-align: center;
-	}
-  </style>
-</head>
-<body>
-  <main class="container">
-    <h1>Mispoes!</h1>
-    <article>
-      <p>
-        Miauw miauw miauw
-      </p>
-      <img src="http://placekitten.com/600/600.webp">
-      <img src="http://placekitten.com/600/600">
-      <img src="/600/600.webp">
-      <img src="/600/600">
-    </article>
-  </main>
-  <!-- jQuery :( -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" integrity="sha512-894YE6QWD5I59HgZOGReFYm4dnWc1Qt5NtvYSaNcOP+u1T9qYdvdihz0PPSiiqn/+/3e7Jo4EaG7TubfWGUrMQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-  <!-- Latest compiled and minified JavaScript -->
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
-  <!-- jQuery Migrate :((((( -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-migrate/1.0.0/jquery-migrate-1.0.0.js" integrity="sha512-mEpPobji5tfGgUvzPA6NhRm+p7vssPId8odkvjDq3yjlamhNBMbEKZEIJBISY+8rGfYe4D2Wx/bj83noBmDtiw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-</body>
-</html>

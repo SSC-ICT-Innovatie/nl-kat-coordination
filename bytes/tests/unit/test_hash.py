@@ -32,14 +32,8 @@ class HashTests(TestCase):
 
         secure_hash = hash_data(data=get_raw_data(), datetime=dt, hash_algo=HashingAlgorithm.SHA224)
 
-        self.assertEqual(
-            "sha224:27154a1b6301ba1bde0b78cc28590e19b8f15c660f13885765cc3d44",
-            secure_hash,
-        )
+        self.assertEqual("sha224:27154a1b6301ba1bde0b78cc28590e19b8f15c660f13885765cc3d44", secure_hash)
 
         secure_hash = hash_data(data=get_raw_data(), datetime=dt, hash_algo=HashingAlgorithm.SHA224)
 
-        self.assertEqual(
-            "sha224:27154a1b6301ba1bde0b78cc28590e19b8f15c660f13885765cc3d44",
-            secure_hash,
-        )
+        self.assertEqual("sha224:27154a1b6301ba1bde0b78cc28590e19b8f15c660f13885765cc3d44", secure_hash)

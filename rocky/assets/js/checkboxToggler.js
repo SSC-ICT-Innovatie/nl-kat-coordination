@@ -8,7 +8,18 @@ for (var i = 0; i < toggle_all_btn.length; i++) {
 }
 
 function toggleCheckboxes(name, value) {
-  var checkboxes = document.getElementsByName(name);
+  // can start with a underscore or Aa-Zz, followed by other numbers, letters, dashes or underscores
+  const namepattern = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+  let checkboxes = false;
+  if (!namepattern.test(name)) {
+    // is our 'name' a css query?
+    checkboxes = document.querySelectorAll(name);
+  } else {
+    checkboxes = document.getElementsByName(name);
+  }
+  if (!checkboxes) {
+    return false;
+  }
   for (var i = 0; i < checkboxes.length; i++) {
     if (checkboxes[i].tagName == "INPUT" && checkboxes[i].type == "checkbox") {
       checkboxes[i].checked = value;

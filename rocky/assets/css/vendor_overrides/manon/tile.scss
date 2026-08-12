@@ -61,8 +61,8 @@ ul.tiles {
 }
 
 .label-plugin-type {
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: var(--spacing-grid-050) var(--spacing-grid-100);
+  border-radius: var(--border-radius-s);
 
   &.boefje {
     background-color: $boefje-plugin-type-label-background;

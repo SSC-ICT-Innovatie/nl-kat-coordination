@@ -70,7 +70,7 @@ def check_version(version1: str, version2: str) -> VersionCheck:
         return check_version(version1_split[1], version2_split[1])
 
 
-def check_version_agains_versionlist(my_version: str, all_versions: list[str]):
+def check_version_agains_versionlist(my_version: str, all_versions: list[str]) -> tuple[bool, list[str] | None]:
     lowerbound = all_versions.pop(0).strip()
     upperbound = None
 
@@ -164,10 +164,12 @@ def check_version_agains_versionlist(my_version: str, all_versions: list[str]):
     return True, all_versions
 
 
-def check_version_in(version: str, versions: str):
+def check_version_in(version: str, versions: str) -> bool:
     if not version:
         return False
-    all_versions = versions.split(",")  # Example: https://snyk.io/vuln/composer%3Awoocommerce%2Fwoocommerce-blocks
+    all_versions: list[str] | None = versions.split(
+        ","
+    )  # Example: https://snyk.io/vuln/composer%3Awoocommerce%2Fwoocommerce-blocks
     in_range = False
     while not in_range and all_versions:
         in_range, all_versions = check_version_agains_versionlist(version, all_versions)

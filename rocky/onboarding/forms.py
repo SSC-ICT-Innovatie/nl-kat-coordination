@@ -22,18 +22,12 @@ class OnboardingSetClearanceLevelForm(forms.Form):
     level = forms.IntegerField(
         label=_("Clearance level"),
         help_text=_(
-            "Boefjes that has a scan level below or equal to the clearance level, is permitted to scan an object."
+            "The clearance level determines how aggressive the object can be "
+            "scanned by plugins. A higher clearance level means more aggressive scans are allowed."
         ),
-        error_messages={
-            "level": {
-                "required": _("Please select a clearance level to proceed."),
-            },
-        },
+        error_messages={"level": {"required": _("Please select a clearance level to proceed.")}},
         widget=ClearanceLevelSelect(
-            choices=SCAN_LEVEL_CHOICES,
-            attrs={
-                "aria-describedby": _("explanation-clearance-level"),
-            },
+            choices=SCAN_LEVEL_CHOICES, attrs={"aria-describedby": _("explanation-clearance-level")}
         ),
     )
 
@@ -43,10 +37,12 @@ class OnboardingCreateObjectURLForm(forms.Form):
     Custom URL field form especially for onboarding. No need of web_url and network object.
     """
 
+    # TODO remove once fields dont show optional and or select fields with *no* options anymore
     url = forms.URLField(
+        assume_scheme="https",
         label="URL",
         label_suffix="",
         required=True,
         help_text=_("Please enter a valid URL starting with 'http://' or 'https://'."),
-        widget=forms.URLInput({"placeholder": "Enter URL here (e.g., https://www.example.com)"}),
+        widget=forms.URLInput({"placeholder": "Enter your URL (e.g., https://example.com)"}),
     )

@@ -1,5 +1,7 @@
 {
   "id": "kat_answer_parser",
+  "name": "Answer Parser",
+  "description": "Parses the answers from 'Config' objects. Config OOIs are used when your policies and objects need different treatment from the usual setup.",
   "consumes": [
     "answer"
   ],

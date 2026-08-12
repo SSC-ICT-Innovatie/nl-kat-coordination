@@ -1,12 +1,15 @@
-{% extends "partials/list_filters.html" %}
-
 {% load i18n %}
 
-{% block title %}
-    {% if count %}<span>{{ count }}</span>{% endif %}
-    {{ title }}
-{% endblock title %}
-{% block filter_form %}
-    {% include "partials/elements/ooi_list_settings_form.html" with clearance_level_filter_form=clearance_level_filter_form %}
+<div class="filter">
+    <div>
+        <button aria-expanded="false"
+                data-hide-filters-label='{% translate "Hide filters" %}'>
+            {% translate "Show filters" %}
+            {% if active_filters_counter > 0 %}
+                ({{ active_filters_counter }} {% translate "applied" %})
+            {% endif %}
+        </button>
+    </div>
+    {% include "partials/elements/ooi_list_settings_form.html" %}
 
-{% endblock filter_form %}
+</div>

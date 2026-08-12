@@ -1,0 +1,19 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content" class="crisisroom">
+        <section>
+            <div>
+                <h1>{% translate "Crisis room" %}</h1>
+                <p>{% translate "Crisis room overview for all organizations." %}</p>
+            </div>
+            {% include "crisis_room_findings.html" %}
+
+        </section>
+    </main>
+{% endblock content %}

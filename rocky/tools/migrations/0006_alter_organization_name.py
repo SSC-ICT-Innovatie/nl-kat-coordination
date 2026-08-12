@@ -4,14 +4,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0005_scanprofile"),
-    ]
+    dependencies = [("tools", "0005_scanprofile")]
 
     operations = [
         migrations.AlterField(
-            model_name="organization",
-            name="name",
-            field=models.CharField(max_length=126, unique=True),
-        ),
+            model_name="organization", name="name", field=models.CharField(max_length=126, unique=True)
+        )
     ]

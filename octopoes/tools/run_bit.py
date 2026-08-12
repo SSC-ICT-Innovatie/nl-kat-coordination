@@ -44,11 +44,7 @@ def run_bit(start_pdb, organization_code, bit_id, ooi):
 
     bit_definition = get_bit_definitions()[bit_id]
 
-    bit_instance = Origin(
-        origin_type=OriginType.INFERENCE,
-        method=bit_id,
-        source=ooi.reference,
-    )
+    bit_instance = Origin(origin_type=OriginType.INFERENCE, method=bit_id, source=ooi.reference)
 
     try:
         try:

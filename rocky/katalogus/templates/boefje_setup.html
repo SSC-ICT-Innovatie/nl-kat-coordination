@@ -1,0 +1,52 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div class="layout-form">
+                {% if boefje_variant %}
+                    <h1>{% translate "Boefje variant setup" %}</h1>
+                {% elif edit_boefje_name %}
+                    <h1>{% translate "Edit" %} "{{ edit_boefje_name }}"</h1>
+                {% else %}
+                    <h1>{% translate "Boefje setup" %}</h1>
+                {% endif %}
+                <p>
+                    {% blocktranslate trimmed %}
+                        You can create a new Boefje. If you want more information on this,
+                        you can check out the <a href="https://docs.openkat.nl/developer_documentation/development_tutorial/creating_a_boefje.html">documentation</a>.
+                    {% endblocktranslate %}
+                </p>
+                <form action="" method="post" class="help">
+                    {% csrf_token %}
+                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                    <div class="button-container">
+                        {% if edit_boefje_name %}
+                            <button type="submit">{% translate "Save changes" %}</button>
+                            <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=return_to_plugin_id %}"
+                               class="button ghost">{% translate "Discard changes" %}</a>
+                        {% elif boefje_variant %}
+                            <button type="submit">{% translate "Create variant" %}</button>
+                            <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=return_to_plugin_id %}"
+                               class="button ghost">{% translate "Discard variant" %}</a>
+                        {% else %}
+                            <button type="submit">{% translate "Create new Boefje" %}</button>
+                            <a href="{% url "katalogus" organization_code=organization.code %}"
+                               class="button ghost">{% translate "Discard new Boefje" %}</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}
+{% block html_at_end_body %}
+    {{ block.super }}
+    <script src="{% static "js/choiceToggle.js" %}" nonce="{{ request.csp_nonce }}"></script>
+{% endblock html_at_end_body %}

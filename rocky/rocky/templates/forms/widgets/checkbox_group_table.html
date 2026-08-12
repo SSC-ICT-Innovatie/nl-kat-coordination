@@ -21,7 +21,7 @@
                             {% include option.template_name with widget=option %}
 
                             {% if option.attrs.required %}
-                                <span class="nota-bene">{% translate "this field is required" %}</span>
+                                <span class="nota-bene">({% translate "Required" %})</span>
                             {% endif %}
                         </td>
                         {% for cell in option.label %}

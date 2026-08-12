@@ -1,6 +1,6 @@
 {% load i18n %}
 
-<fieldset>
+<fieldset class="{{ fieldset_parent_class }}">
     {% if legend %}<legend>{{ legend }}</legend>{% endif %}
     {% for field in fields %}
         {% if not fieldset or field.name in fieldset.split %}

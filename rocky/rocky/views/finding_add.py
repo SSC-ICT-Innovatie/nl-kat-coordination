@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from uuid import uuid4
 
+from django.forms import Form
 from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
@@ -20,7 +21,7 @@ from octopoes.models.ooi.findings import (
     SnykFindingType,
 )
 from octopoes.models.types import OOI_TYPES
-from rocky.bytes_client import BytesClient, get_bytes_client
+from rocky.bytes_client import BytesClient
 from rocky.views.ooi_view import BaseOOIFormView
 
 FINDING_TYPES_PREFIXES = {
@@ -33,9 +34,7 @@ FINDING_TYPES_PREFIXES = {
 }
 
 
-def get_finding_type_from_id(
-    finding_type_id: str,
-) -> FindingType:
+def get_finding_type_from_id(finding_type_id: str) -> FindingType:
     finding_type_id = finding_type_id.upper()
 
     prefix = finding_type_id.upper().split("-")[0]
@@ -60,17 +59,14 @@ class FindingAddView(BaseOOIFormView):
             {"url": reverse("finding_list", kwargs={"organization_code": self.organization.code}), "text": "Findings"},
             {
                 "url": reverse("finding_add", kwargs={"organization_code": self.organization.code}),
-                "text": _("Add Finding"),
+                "text": _("Add finding"),
             },
         ]
 
         return context
 
     def get_form_kwargs(self):
-        kwargs = {
-            "connector": self.octopoes_api_connector,
-            "ooi_list": self.get_ooi_options(),
-        }
+        kwargs = {"connector": self.octopoes_api_connector, "ooi_list": self.get_ooi_options()}
         kwargs.update(super().get_form_kwargs())
 
         if "ooi_class" in kwargs:
@@ -78,7 +74,7 @@ class FindingAddView(BaseOOIFormView):
 
         return kwargs
 
-    def get_form(self, form_class=None) -> FindingAddForm:
+    def get_form(self, form_class: type[Form] | None = None) -> FindingAddForm:
         if form_class is None:
             form_class = self.get_form_class()
 
@@ -117,10 +113,9 @@ class FindingAddView(BaseOOIFormView):
             proof.append(Declaration(ooi=finding, valid_time=observed_at, task_id=str(task_id)))
             proof.append(Declaration(ooi=finding_type, valid_time=observed_at, task_id=str(task_id)))
 
-        get_bytes_client(self.organization.code).add_manual_proof(task_id, BytesClient.raw_from_declarations(proof))
+        self.bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations(proof))
 
-        for declaration in proof:
-            self.octopoes_api_connector.save_declaration(declaration)
+        self.octopoes_api_connector.save_many_declarations(proof, sync=True)
 
         return redirect(get_ooi_url("ooi_detail", ooi_id, self.organization.code))
 

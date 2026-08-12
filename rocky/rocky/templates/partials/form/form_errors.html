@@ -1,8 +1,19 @@
 {% load i18n %}
 
-{% if form.errors and form.errors|get_item:'__all__' %}
-    <p class="error" role="group" aria-label="{% translate "error" %}">
-        <span>{% translate "Error:" %}</span>
-        {% for error in form.errors|get_item:'__all__' %}{{ error }}{% endfor %}
-    </p>
+{% if form.non_field_errors %}
+    <div class="non-field-errors" role="alert" aria-live="assertive">
+        <p class="error">
+            <span class="visually-hidden"><strong>{% translate "Error:" %}</strong></span>
+        </p>
+        <ul>
+            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+    </div>
 {% endif %}
+{% for hidden in form.hidden_fields %}
+    {% for error in hidden.errors %}
+        <div class="error" role="alert" aria-live="polite">
+            <span class="visually-hidden">{% translate "Error:" %}</span> {{ hidden }}{{ error }}
+        </div>
+    {% endfor %}
+{% endfor %}

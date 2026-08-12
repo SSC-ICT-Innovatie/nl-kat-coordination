@@ -1,5 +1,7 @@
 {
   "id": "kat_snyk_finding_types_normalize",
+  "name": "Snyk.io finding types",
+  "description": "Parses Snyk.io data into Finding Types. Required for the Snyk Normalizer.",
   "consumes": [
     "boefje/snyk-finding-types"
   ],

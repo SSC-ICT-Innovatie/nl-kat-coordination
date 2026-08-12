@@ -15,13 +15,7 @@ class RecoverEmailView(TemplateView):
         context = super().get_context_data(**kwargs)
         context["help_desk_email"] = settings.HELP_DESK_EMAIL
         context["breadcrumbs"] = [
-            {
-                "url": reverse("login"),
-                "text": _("Login"),
-            },
-            {
-                "url": reverse("recover_email"),
-                "text": _("Recover email address"),
-            },
+            {"url": reverse("login"), "text": _("Login")},
+            {"url": reverse("recover_email"), "text": _("Recover email address")},
         ]
         return context

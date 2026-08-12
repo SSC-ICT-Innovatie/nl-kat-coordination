@@ -2,11 +2,11 @@
 
 <h1>{% translate "Indemnification" %}</h1>
 <div class="explanation">
-    <p>{% translate "Indemnification on the organization present. You may now add objects and start scans." %}</p>
-    <p>
-        {% translate "Go to" %} <a href="{% url 'ooi_list' organization.code %}">{% translate "Objects" %}</a>
-    </p>
-    <p>
-        {% translate "Go to" %} <a href="{% url "katalogus" organization.code %}">KAT-alogus</a>
-    </p>
+    <div>
+        <p>{% translate "Indemnification on the organization present. You may now add objects and start scans." %}</p>
+        <div class="horizontal-view">
+            <a href="{% url 'ooi_list' organization.code %}" class="button ghost">{% translate "Go to Objects" %}</a>
+            <a href="{% url "katalogus" organization.code %}" class="button ghost">{% translate "Go to" %} KAT-alogus</a>
+        </div>
+    </div>
 </div>

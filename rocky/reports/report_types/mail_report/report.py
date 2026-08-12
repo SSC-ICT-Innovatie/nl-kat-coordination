@@ -4,6 +4,7 @@ from typing import Any
 
 from django.utils.translation import gettext_lazy as _
 
+from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from reports.report_types.definitions import Report
@@ -15,12 +16,12 @@ class MailReport(Report):
     id = "mail-report"
     name = _("Mail Report")
     description = _("System specific Mail Report that focusses on IP addresses and hostnames.")
-    plugins = {"required": ["dns-records"], "optional": []}
+    plugins = {"required": {"dns-records"}, "optional": set()}
     input_ooi_types = {Hostname, IPAddressV4, IPAddressV6}
     template_path = "mail_report/report.html"
     label_style = "2-light"
 
-    def collect_data(self, input_oois: Iterable[str], valid_time: datetime) -> dict[str, dict[str, Any]]:
+    def collect_data(self, input_oois: Iterable[Reference], valid_time: datetime) -> dict[Reference, dict[str, Any]]:
         hostnames_by_input_ooi = self.to_hostnames(input_oois, valid_time)
         all_hostnames = list({h for key, hostnames in hostnames_by_input_ooi.items() for h in hostnames})
 

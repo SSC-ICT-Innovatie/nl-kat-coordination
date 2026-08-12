@@ -1,0 +1,19 @@
+{% load i18n %}
+{% load static %}
+
+{% if not perms.tools.can_enable_disable_boefje %}
+    <div class="message">
+        <div class="explanation"
+             role="group"
+             aria-label="{% translate "explanation" %}">
+            <div>
+                <span>{% translate "No permission to enable/disable plugins" %}</span>
+                <p>
+                    {% blocktranslate trimmed %}
+                        Contact your administrator to request permission.
+                    {% endblocktranslate %}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endif %}

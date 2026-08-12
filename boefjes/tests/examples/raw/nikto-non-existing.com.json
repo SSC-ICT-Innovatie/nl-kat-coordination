@@ -1,0 +1,16 @@
+[
+  {
+    "host": "non-existing.com",
+    "ip": "2.1.3.5",
+    "port": "6667",
+    "banner": "",
+    "vulnerabilities": [
+      {
+        "id": "0",
+        "method": "GET",
+        "url": "/",
+        "msg": "Unable to connect to non-existing.com."
+      }
+    ]
+  }
+]

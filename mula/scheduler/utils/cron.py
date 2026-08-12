@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from croniter import croniter  # type: ignore
+from croniter import croniter
 
 
 def next_run(expression: str, start_time: datetime | None = None) -> datetime:

@@ -11,7 +11,9 @@
             <div>
                 <h1>{% translate "Delete settings" %}</h1>
                 <p>
-                    {% blocktranslate %}Are you sure you want to delete all settings for the plugin {{ plugin_name }}?{% endblocktranslate %}
+                    {% blocktranslate trimmed %}
+                        Are you sure you want to delete all settings for the plugin {{ plugin_name }}?
+                    {% endblocktranslate %}
                 </p>
                 <form class="inline" method="post">
                     {% csrf_token %}

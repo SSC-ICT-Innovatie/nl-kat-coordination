@@ -46,10 +46,7 @@ html_theme = "sphinx_rtd_theme"
 html_logo = "_static/keiko-hero.jpg"
 html_favicon = "_static/favicon.svg"
 
-html_theme_options = {
-    "collapse_navigation": False,
-    "style_nav_header_background": "#ca005d",
-}
+html_theme_options = {"collapse_navigation": False, "style_nav_header_background": "#ca005d"}
 
 html_context = {
     "display_github": True,
@@ -60,11 +57,14 @@ html_context = {
 }
 
 html_static_path = ["_static"]
-html_css_files = [
-    "openkat.css",
-]
+html_css_files = ["openkat.css"]
 
-mermaid_version = ""  # Do not fetch from the CDN
-html_js_files = [
-    "mermaid-9.4.3.min.js",
-]
+mermaid_use_local = "mermaid.min.js"
+d3_use_local = "d3.min.js"
+
+autosectionlabel_prefix_document = True
+
+suppress_warnings = [
+    f"autosectionlabel.installation-and-deployment/environment-settings/{document}"
+    for document in ("boefjes", "bytes", "mula", "octopoes")
+] + ["autosectionlabel.developer-documentation/octopoes-models"]

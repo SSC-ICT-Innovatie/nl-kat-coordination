@@ -3,20 +3,6 @@
 <section id="recommendations">
     <div>
         <h2>{% translate "Recommendations" %}</h2>
-        {% if total_findings %}
-            <p>
-                {% blocktranslate count total_findings as count trimmed %}
-                    There is <i>{{ total_findings }}</i> vulnerability
-                {% plural %}
-                    There are <i>{{ total_findings }}</i> vulnerabilities
-                {% endblocktranslate %}
-                {% blocktranslate count total_systems as count trimmed %}
-                    found on <i>{{ total_systems }}</i> system.
-                {% plural %}
-                    found on <i>{{ total_systems }}</i> systems.
-                {% endblocktranslate %}
-            </p>
-        {% endif %}
         {% if report_data.recommendation_counts %}
             <div class="horizontal-scroll">
                 <table>

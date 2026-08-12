@@ -22,20 +22,16 @@ class RPKIReport(Report):
         "Shows whether the IP is covered by a valid RPKI ROA. For a hostname it shows "
         "the IP addresses and whether they are covered by a valid RPKI ROA."
     )
-    plugins = {"required": ["dns-records", "rpki"], "optional": []}
+    plugins = {"required": {"dns-records", "rpki"}, "optional": set()}
     input_ooi_types = {Hostname, IPAddressV4, IPAddressV6}
     template_path = "rpki_report/report.html"
     label_style = "4-light"
 
-    def collect_data(self, input_oois: Iterable[str], valid_time: datetime) -> dict[str, dict[str, Any]]:
+    def collect_data(self, input_oois: Iterable[Reference], valid_time: datetime) -> dict[Reference, dict[str, Any]]:
         ips_by_input_ooi = self.to_ips(input_oois, valid_time)
         all_ips = list({ip for key, ips in ips_by_input_ooi.items() for ip in ips})
         finding_types_by_source = self.group_finding_types_by_source(
-            self.octopoes_api_connector.query_many(
-                "IPAddress.<ooi[is Finding].finding_type",
-                valid_time,
-                all_ips,
-            )
+            self.octopoes_api_connector.query_many("IPAddress.<ooi[is Finding].finding_type", valid_time, all_ips)
         )
 
         result = {}

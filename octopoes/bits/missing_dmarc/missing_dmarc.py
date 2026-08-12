@@ -26,7 +26,5 @@ def run(input_ooi: Hostname, additional_oois: list[DMARCTXTRecord | NXDOMAIN], c
         ft = KATFindingType(id="KAT-NO-DMARC")
         yield ft
         yield Finding(
-            ooi=input_ooi.reference,
-            finding_type=ft.reference,
-            description="This hostname does not have a DMARC record",
+            ooi=input_ooi.reference, finding_type=ft.reference, description="This hostname does not have a DMARC record"
         )

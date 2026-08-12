@@ -7,7 +7,7 @@
     {% csrf_token %}
     {% include "forms/report_form_fields.html" %}
 
-    <button type="submit" class="button ghost">
+    <button name="return" type="submit" class="button ghost">
         <span class="icon ti-chevron-left"></span>
         {% blocktranslate %}{{ btn_text }}{% endblocktranslate %}
     </button>

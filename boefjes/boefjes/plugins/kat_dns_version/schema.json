@@ -1,0 +1,13 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "TIMEOUT": {
+      "title": "TIMEOUT",
+      "type": "integer",
+      "description": "Timeout for requests to the targeted dns servers",
+      "default": 30,
+      "minimum": 0
+    }
+  }
+}

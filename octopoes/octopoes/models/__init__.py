@@ -11,8 +11,8 @@ from pydantic_core.core_schema import ValidationInfo
 class Reference(str):
     @classmethod
     def parse(cls, ref_str: str) -> tuple[str, str]:
-        object_type, *natural_key_parts = ref_str.split("|")
-        return object_type, "|".join(natural_key_parts)
+        object_type, natural_key_parts = ref_str.split("|", 1)
+        return object_type, natural_key_parts
 
     @property
     def class_(self) -> str:
@@ -26,9 +26,8 @@ class Reference(str):
     def class_type(self) -> type[OOI]:
         from octopoes.models.types import type_by_name
 
-        object_type, natural_key = self.parse(self)
-        ooi_class = type_by_name(object_type)
-        return ooi_class
+        object_type, _ = self.parse(self)
+        return type_by_name(object_type)
 
     @property
     def tokenized(self) -> PrimaryKeyToken:
@@ -43,12 +42,12 @@ class Reference(str):
         return core_schema.with_info_after_validator_function(cls.validate, core_schema.str_schema())
 
     @classmethod
-    def validate(cls, v, info: ValidationInfo):
+    def validate(cls, v: str, info: ValidationInfo) -> Any:
         if not isinstance(v, str):
             raise TypeError("string required")
         return cls(str(v))
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Reference({super().__repr__()})"
 
     @classmethod
@@ -124,7 +123,7 @@ class OOI(BaseModel):
     def model_post_init(self, __context: Any) -> None:  # noqa: F841
         self.primary_key = self.primary_key or f"{self.get_object_type()}|{self.natural_key}"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.primary_key
 
     @classmethod
@@ -191,19 +190,19 @@ class OOI(BaseModel):
         return cls._reverse_relation_names.get(attr, f"{cls.get_object_type()}_{attr}")
 
     @classmethod
-    def get_tokenized_primary_key(cls, natural_key: str):
+    def get_tokenized_primary_key(cls, natural_key: str) -> PrimaryKeyToken:
         token_tree = build_token_tree(cls)
         natural_key_parts = natural_key.split("|")
 
-        def hydrate(node) -> dict | str:
+        def hydrate(node: dict[str, dict | str]) -> dict | str:
             for key, value in node.items():
                 if isinstance(value, dict):
                     node[key] = hydrate(value)
                 else:
-                    node[key] = natural_key_parts.pop(0)
+                    node[key] = natural_key_parts.pop(0) if natural_key_parts else value
             return node
 
-        return PrimaryKeyToken.parse_obj(hydrate(token_tree))
+        return PrimaryKeyToken.model_validate(hydrate(token_tree))
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -215,10 +214,11 @@ class OOI(BaseModel):
 
     def serialize(self) -> SerializedOOI:
         serialized_oois = {}
+        model_fields = self.__class__.model_fields
         for key, value in self:
-            if key not in self.model_fields:
+            if key not in model_fields:
                 continue
-            serialized_oois[key] = self._serialize_value(value, self.model_fields[key].is_required())
+            serialized_oois[key] = self._serialize_value(value, model_fields[key].is_required())
         return serialized_oois
 
     def _serialize_value(self, value: Any, required: bool) -> SerializedOOIValue:
@@ -236,10 +236,9 @@ class OOI(BaseModel):
             return value.value
         if isinstance(value, int | float):
             return value
-        else:
-            return str(value)
+        return str(value)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.primary_key)
 
 
@@ -256,10 +255,10 @@ def format_id_short(id_: str) -> str:
 class PrimaryKeyToken(RootModel):
     root: dict[str, str | PrimaryKeyToken]
 
-    def __getattr__(self, item) -> Any:
+    def __getattr__(self, item: str) -> Any:
         return self.root[item]
 
-    def __getitem__(self, item) -> Any:
+    def __getitem__(self, item: str) -> Any:
         return self.root[item]
 
 
@@ -288,7 +287,7 @@ def build_token_tree(ooi_class: type[OOI]) -> dict[str, dict | str]:
             # combine trees
             tokens[attribute] = {key: value_ for tree in trees for key, value_ in tree.items()}
         else:
-            tokens[attribute] = ""
+            tokens[attribute] = field.default
     return tokens
 
 

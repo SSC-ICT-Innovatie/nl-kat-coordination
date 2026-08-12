@@ -1,0 +1,98 @@
+============================================
+OpenKAT 1.16
+============================================
+
+This release adds saving of reports. When completing the reporting workflow the
+report will be saved and can be viewed later. This is a big step towards being
+able to schedule automatically generated reports. The reporting also has had a
+lot of improvements and fixes.
+
+Support for running custom OCI images using only a boefje definition
+(boefje.json) has been added. This has been applied to nmap and dnssec boefjes.
+The boefje.json still needs live in the OpenKAT code directory in this release,
+but this is a big step towards being able to add custom boefjes.
+
+New Features
+============
+
+* Add xtdb-cli tool to Octopoes. This can be used to easily interact with XTDB
+  and doing importing/exporting.
+* The onboarding workflow uses the new reporting system.
+* Add a warning to the CSP validator for 'self' on script-src directives. Ignore
+  missing CSP if the page is not XSS capable.
+* Add bit that checks for disallowed domains in the CSP header.
+* Update several plugins: Wappalizer, dns-records, ssl-certificates, pdio_subfinder, nuclei
+* The many-ports-open boefje/normalizer has been removed.
+* Backup scripts to backup container data when using the development setup. Thanks to @TobiasBDO for contributing the scripts.
+* More Octopoes Query support for complex path queries
+* Optimize queries executed when running bits
+* Introduce support for running custom built OCI images using only a boefje definition (boefje.json), applied to nmap.
+* Improvements of several reports in terms of performance, styling, OOI selection and configuration.
+* Improved documentation about reports, the new OCI image functionality and architecture, IPv6 support in Docker and Octopoes models.
+* Added documentation on how to make a boefje, normalizer, model, bit and report with examples. Thanks to @Souf149 for contributing some of these improvements.
+* Frysk has been added to the selectable list of languages. Over 30% of OpenKAT has been translated due to the amazing and hard work of `Wim Benes <https://www.linkedin.com/in/wimbenes/>`_. Tige tank!
+
+Bug fixes
+=========
+
+* Fix OOI add/edit form
+* Fix version handling when no version is present in wappalyzer normalizer.
+* Error handling has been improved in a lot of places.
+* Fixed schema errors when plugin schema is empty or missing.
+* Fix and improve manually running a boefjes/normalizer.
+* The KATalogus plugin API doesn't have a hardcoded limit anymore.
+* Missing titles in FastAPI API's have been added.
+* Added workaround for broken links to OOIs in the normalizer task list.
+* Fix Snyk boefje creating empty CVE ids.
+
+Upgrading
+=========
+
+It is no longer needed to seed the KATalogus database using `python -m
+boefjes.seed` on installation or upgrades. This is because v1.16.0 phases out
+the `repository` database model in the KATalogus. The migration could
+potentially not be backward compatible for each install, so please read the
+following carefully before triggering an upgrade.
+
+All bits all need to be rerun because of model changes. This can be done on the
+organization settings page.
+
+Checking the KATalogus Migration
+================================
+
+If you are using OpenKAT as a regular user and never called APIs or tweaked the database manually,
+you can move forward with the normal instructions of upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>`.
+
+If there is a chance you added entries to the seeded model,
+or you notice the KATalogus being down after the upgrade,
+please check your `katalogus` database to see if any records are returned for the following query:
+
+.. code-block:: sql
+
+  SELECT * from plugin_state join repository r on repository_pk = r.pk where r.id != 'LOCAL'
+
+If this raises an exception saying the `repository` table does not exist,
+the migration was applied successfully and this is not the issue.
+If this returns no records but the logs say:
+"Cannot perform migration: remove plugin_states that refer to nonlocal repositories first.",
+please contact us.
+
+If this returns one or more records, either delete these if these were not created intentionally,
+or contact us if you were in fact using a custom plugin repository.
+We will help migrating your setup towards the new custom built OCI image solution,
+after which the custom plugin repository is no longer needed.
+
+Alternatively, to check if there are repositories other than the 'LOCAL' repository,
+look at the result of the following KATalogus endpoint for your organisations:
+`/v1/organisations/{your_organisation_id}/repositories`.
+Then follow the steps above using the HTTP endpoints to delete the other entries if needed, or contact us.
+
+After these steps, again the normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/minvws/nl-kat-coordination/releases/tag/v1.16.0>`_.

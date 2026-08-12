@@ -50,7 +50,7 @@
   a:visited,
   a:focus,
   a:hover {
-    color: var(--colors-black);
+    color: var(--application-base-text-color);
     text-decoration: none;
   }
 }
@@ -79,15 +79,19 @@ table {
   }
 }
 
-/* Setting the width of table cells with an action button to the possible minimum width */
 table.action-buttons .actions {
-  width: 1px;
-
   a,
   a.button,
   button {
     &.icon::before {
       font-weight: normal;
     }
+
+    margin: 0 auto;
   }
+}
+
+table .actions {
+  padding: 0;
+  text-align: center;
 }

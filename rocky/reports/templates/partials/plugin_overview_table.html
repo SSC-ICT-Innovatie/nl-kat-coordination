@@ -18,22 +18,20 @@
                     <td>{{ report_type }}</td>
                     <td>
                         {% if data.number_of_enabled_required != data.number_of_available_required %}
-                            <span class="icon warning"></span>{% translate "Action required" %}
+                            <span class="icon warning" aria-hidden="true"></span>{% translate "Action required" %}
                         {% else %}
-                            <span class="icon positive"></span>{% translate "Ready" %}
+                            <span class="icon confirmation"></span>{% translate "Ready" %}
                         {% endif %}
                     </td>
                     <td>
                         {% if data.number_of_available_required > 0 and data.number_of_enabled_required != data.number_of_available_required %}
                             <span class="icon warning"></span>
                         {% else %}
-                            <span class="icon positive"></span>
+                            <span class="icon confirmation"></span>
                         {% endif %}
                         {{ data.number_of_enabled_required }}/{{ data.number_of_available_required }}
                     </td>
-                    <td>
-                        <span class="icon positive"></span>{{ data.number_of_enabled_optional }}/{{ data.number_of_available_optional }}
-                    </td>
+                    <td>{{ data.number_of_enabled_optional }}/{{ data.number_of_available_optional }}</td>
                 </tr>
             {% endfor %}
             <tfoot>
@@ -43,20 +41,18 @@
                         {% if plugin_data.total_enabled_plugins.required != plugin_data.total_available_plugins.required %}
                             <span class="icon warning"></span>{% translate "Action required" %}
                         {% else %}
-                            <span class="icon positive"></span>{% translate "Ready" %}
+                            <span class="icon confirmation"></span>{% translate "Ready" %}
                         {% endif %}
                     </td>
                     <td>
                         {% if plugin_data.total_available_plugins.required > 0 and plugin_data.total_enabled_plugins.required != plugin_data.total_available_plugins.required %}
                             <span class="icon warning"></span>
                         {% else %}
-                            <span class="icon positive"></span>
+                            <span class="icon confirmation"></span>
                         {% endif %}
                         {{ plugin_data.total_enabled_plugins.required }}/{{ plugin_data.total_available_plugins.required }}
                     </td>
-                    <td>
-                        <span class="icon positive"></span>{{ plugin_data.total_enabled_plugins.optional }}/{{ plugin_data.total_available_plugins.optional }}
-                    </td>
+                    <td>{{ plugin_data.total_enabled_plugins.optional }}/{{ plugin_data.total_available_plugins.optional }}</td>
                 </tr>
             </tfoot>
         </tbody>

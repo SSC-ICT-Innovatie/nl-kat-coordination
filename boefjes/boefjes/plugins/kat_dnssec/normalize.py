@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 
@@ -10,11 +10,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     ooi_ref = Reference.from_str(input_ooi["primary_key"])
 
-    # We are looking for the last line that isn't a comment (doesn't start with
-    # ";"), so we reverse the output lines before looping over them.
+    # Find the last status line (not just the last non-comment line)
     for result_line in reversed(result.splitlines()):
-        if not result_line.startswith(";"):
+        if result_line.startswith(("[U]", "[S]", "[B]", "[T]")):
             break
+    else:
+        raise ValueError("No status line found in drill output")
 
     # [S] self sig OK; [B] bogus; [T] trusted; [U] unsigned
     if result_line.startswith("[U]"):
@@ -35,5 +36,3 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         )
         yield ft
         yield finding
-    elif not result_line.startswith("[T]"):
-        raise ValueError(f"Could not parse drill output: {result_line}")

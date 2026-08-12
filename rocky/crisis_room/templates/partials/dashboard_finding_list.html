@@ -1,0 +1,21 @@
+{% load i18n %}
+{% load static %}
+
+<div class="horizontal-scroll">
+    <p class="de-emphasized">
+        {% blocktranslate with length=data.finding_list|length trimmed %}
+            Showing {{ length }} findings
+        {% endblocktranslate %}
+    </p>
+    {% include "partials/dashboard_finding_list_table.html" %}
+
+</div>
+<div class="toolbar">
+    {% with params=dashboard_item.get_query_url %}
+        <a class="button ghost"
+           href="{% url "finding_list" organization_code=organization.code %}?{{ params }}">
+            {% translate "Go to findings" %}
+            <span class="icon ti-chevron-right" aria-hidden="true"></span>
+        </a>
+    {% endwith %}
+</div>

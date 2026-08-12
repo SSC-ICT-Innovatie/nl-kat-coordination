@@ -11,15 +11,7 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name="FailureMode",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("failure_mode", models.CharField(max_length=256)),
                 (
                     "severity_level",
@@ -39,14 +31,8 @@ class Migration(migrations.Migration):
                     models.PositiveSmallIntegerField(
                         choices=[
                             ("", "--- Select an option ----"),
-                            (
-                                1,
-                                "1. Very Rare. Incident (almost) never occurs, almost unthinkable.",
-                            ),
-                            (
-                                2,
-                                "2. Rare. Incidents occur less than once a year (3-5).",
-                            ),
+                            (1, "1. Very Rare. Incident (almost) never occurs, almost unthinkable."),
+                            (2, "2. Rare. Incidents occur less than once a year (3-5)."),
                             (3, "3. Occurs. Incidents occur several times a year."),
                             (4, "4. Regularly. Incidents occur weekly."),
                             (5, "5. Frequent. Incidents occur daily."),
@@ -58,22 +44,10 @@ class Migration(migrations.Migration):
                     models.PositiveSmallIntegerField(
                         choices=[
                             ("", "--- Select an option ----"),
-                            (
-                                1,
-                                "1. Always Detectable. Incident (almost) never occurs, almost unthinkable.",
-                            ),
-                            (
-                                2,
-                                "2. Usually Detectable. Incidents occur less than once a year (3-5).",
-                            ),
-                            (
-                                3,
-                                "3. Detectable. Failure mode is detectable with effort.",
-                            ),
-                            (
-                                4,
-                                "4. Poorly Detectable. Detecting the failure mode is difficult.",
-                            ),
+                            (1, "1. Always Detectable. Incident (almost) never occurs, almost unthinkable."),
+                            (2, "2. Usually Detectable. Incidents occur less than once a year (3-5)."),
+                            (3, "3. Detectable. Failure mode is detectable with effort."),
+                            (4, "4. Poorly Detectable. Detecting the failure mode is difficult."),
                             (
                                 5,
                                 "5. Almost Undetectable. "
@@ -86,22 +60,12 @@ class Migration(migrations.Migration):
                 ("effect", models.CharField(blank=True, max_length=256)),
                 ("description", models.CharField(blank=True, max_length=256)),
             ],
-            options={
-                "verbose_name_plural": "Failure modes",
-            },
+            options={"verbose_name_plural": "Failure modes"},
         ),
         migrations.CreateModel(
             name="FailureModeDepartment",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 (
                     "affected_department",
                     models.PositiveSmallIntegerField(
@@ -118,15 +82,9 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "failure_mode",
-                    models.ForeignKey(
-                        null=True,
-                        on_delete=django.db.models.deletion.CASCADE,
-                        to="fmea.failuremode",
-                    ),
+                    models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="fmea.failuremode"),
                 ),
             ],
-            options={
-                "verbose_name_plural": "Failure Mode Departments",
-            },
+            options={"verbose_name_plural": "Failure Mode Departments"},
         ),
     ]

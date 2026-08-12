@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_containers",
+  "name": "BinaryEdge containers",
+  "description": "Parse BinaryEdge data to check if Kubernetes hosts have any vulnerabilities. Creates 'VERIFIED-VULNERABILITY' findings.",
   "consumes": [
     "boefje/binaryedge"
   ],

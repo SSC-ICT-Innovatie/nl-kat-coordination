@@ -13,6 +13,13 @@ VALID_HOSTNAME_CHARACTERS = string.ascii_letters + string.digits + "-."
 
 
 class DNSZone(OOI):
+    """Represents the DNS zone.
+
+    Example value
+    -------------
+    mispo.es
+    """
+
     object_type: Literal["DNSZone"] = "DNSZone"
 
     hostname: Reference = ReferenceField("Hostname", max_issue_scan_level=2, max_inherit_scan_level=1)
@@ -28,6 +35,13 @@ class DNSZone(OOI):
 
 
 class Hostname(OOI):
+    """Represents the Hostname object.
+
+    Example value
+    -------------
+    mispo.es
+    """
+
     object_type: Literal["Hostname"] = "Hostname"
 
     network: Reference = ReferenceField(Network)
@@ -41,11 +55,7 @@ class Hostname(OOI):
 
     _natural_key_attrs = ["network", "name"]
 
-    _reverse_relation_names = {
-        "network": "hostnames",
-        "dns_zone": "hostnames",
-        "registered_domain": "subdomains",
-    }
+    _reverse_relation_names = {"network": "hostnames", "dns_zone": "hostnames", "registered_domain": "subdomains"}
 
     @field_validator("name")
     @classmethod
@@ -67,6 +77,13 @@ class Hostname(OOI):
 
 
 class ResolvedHostname(OOI):
+    """Represents resolved hostnames.
+
+    Example value
+    -------------
+    ns1.domaindiscount24.net -> 193.227.117.34
+    """
+
     object_type: Literal["ResolvedHostname"] = "ResolvedHostname"
 
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)

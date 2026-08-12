@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load static %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -11,9 +10,7 @@
         <section>
             <div>
                 {% include "partials/ooi_head.html" with ooi=ooi view="ooi_tree" %}
-
-                {% translate "Object tree" as filter_title %}
-                {% include "partials/ooi_list_filters.html" with title=filter_title ooi_id=ooi.primary_key %}
+                {% include "partials/ooi_list_filters.html" with ooi_id=ooi.primary_key %}
 
                 {% if tree_view == "table" %}
                     {% include "partials/elements/ooi_tree_table.html" with list=tree ooi_id=ooi.primary_key %}
@@ -30,7 +27,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

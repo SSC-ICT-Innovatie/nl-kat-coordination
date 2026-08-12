@@ -1,35 +1,31 @@
 import { onDomReady } from "../js/imports/utils.js";
 
-onDomReady(initConfirmButtons);
+onDomReady(initRenameReports);
 
-export function initConfirmButtons(element) {
-  let root = element || document;
-  let confirm_buttons = root.querySelectorAll(".confirm-button");
+function initRenameReports() {
+  const table = document.getElementById("report-name-table");
+  if (!table) return;
 
-  confirm_buttons.forEach((button) => initClickHandlers(button));
-}
-
-function initClickHandlers(button) {
-  button.addEventListener("click", function (event) {
-    const target = event.target.closest("dialog");
-
-    editReportName(target);
+  table.addEventListener("click", function (event) {
+    if (!event.target.matches(".reset-button")) return;
+    event.stopPropagation();
+    const button = event.target;
+    const input = button.closest("tr")?.querySelector(".name-input");
+    if (!input) return;
+    input.value = input.defaultValue;
+    button.classList.add("hidden");
   });
-}
 
-function editReportName(target) {
-  const old_name_id = target.querySelector(".old-report-name").value;
-  const reference_date = target.querySelector(".reference-date").value;
-  const update_target_input = document.getElementById(old_name_id);
-  const update_target_text = document.getElementById("text-" + old_name_id);
-
-  let new_name = target.querySelector(".new-report-name").value;
-
-  if (new_name) {
-    if (reference_date) {
-      new_name += " (" + reference_date + ")";
+  table.addEventListener("change", function (event) {
+    if (!event.target.matches(".name-input")) return;
+    event.stopPropagation();
+    const input = event.target;
+    const button = input.closest("tr")?.querySelector(".reset-button");
+    if (!button) return;
+    if (input.defaultValue === input.value) {
+      button.classList.add("hidden");
+    } else {
+      button.classList.remove("hidden");
     }
-    update_target_input.setAttribute("value", new_name);
-    update_target_text.textContent = new_name;
-  }
+  });
 }

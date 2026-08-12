@@ -1,10 +1,14 @@
 {
   "id": "adr-finding-types",
   "name": "ADR Finding Types",
-  "description": "Hydrate information of ADR finding types",
+  "description": "Hydrate information on API Design Rules (ADR) finding types for common design mistakes.",
   "consumes": [
     "ADRFindingType"
   ],
   "scan_level": 0,
-  "enabled": true
+  "enabled": true,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_adr_finding_types.main"
+  ]
 }

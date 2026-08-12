@@ -3,6 +3,7 @@ from uuid import UUID
 
 import pytest
 
+from octopoes.models import OOI
 from octopoes.models.ooi.dns.records import DNSAAAARecord, DNSNSRecord
 from octopoes.models.ooi.dns.zone import Hostname, ResolvedHostname
 from octopoes.models.ooi.findings import Finding, FindingType
@@ -386,3 +387,21 @@ def test_parse_path_concrete_fields_or_abstract_types():
     assert segments[2].source_type == Hostname
     assert segments[2].target_type is None
     assert segments[2].property_name == "name"
+
+
+def test_generic_OOI_query(mocker):
+    mocker.patch("uuid.uuid4", return_value=UUID("311d6399-4bb4-4830-b077-661cc3f4f2c1"))
+
+    query = Query().where(OOI, id="test")
+    assert str(query) == '{:query {:find [(pull OOI [*])] :where [ [ OOI :xt/id "test" ]]}}'
+
+    query = Query().where_in(OOI, id=["test", "test2"])
+    assert (
+        str(query) == '{:query {:find [(pull OOI [*])] :where [ (or [ OOI :xt/id "test" ] [ OOI :xt/id "test2" ] )]}}'
+    )
+
+    query.pull(OOI, fields="[* {:_reference [*]}]")
+    assert (
+        str(query) == "{:query {:find [(pull OOI [* {:_reference [*]}])] "
+        ':where [ (or [ OOI :xt/id "test" ] [ OOI :xt/id "test2" ] )]}}'
+    )

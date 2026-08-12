@@ -4,17 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("account", "0001_initial"),
-    ]
+    dependencies = [("account", "0001_initial")]
 
     operations = [
-        migrations.RemoveField(
-            model_name="katuser",
-            name="first_name",
-        ),
-        migrations.RemoveField(
-            model_name="katuser",
-            name="last_name",
-        ),
+        migrations.RemoveField(model_name="katuser", name="first_name"),
+        migrations.RemoveField(model_name="katuser", name="last_name"),
     ]

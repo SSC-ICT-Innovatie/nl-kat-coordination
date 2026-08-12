@@ -15,13 +15,7 @@ DEPRECATED_HEADER = {
     "warning",
 }
 
-XSS_CAPABLE_TYPES = [
-    "text/html",
-    "application/xhtml+xml",
-    "application/xml",
-    "text/xml",
-    "image/svg+xml",
-]
+XSS_CAPABLE_TYPES = ["text/html", "application/xhtml+xml", "application/xml", "text/xml", "image/svg+xml"]
 
 
 def is_xss_capable(content_type: str) -> bool:

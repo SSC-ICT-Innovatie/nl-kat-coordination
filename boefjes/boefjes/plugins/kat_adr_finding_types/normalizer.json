@@ -1,5 +1,7 @@
 {
   "id": "kat_adr_finding_types_normalize",
+  "name": "API Design Rules (ADR) Finding Types",
+  "description": "Parse API Design Rules (ADR) finding types.",
   "consumes": [
     "boefje/adr-finding-types"
   ],

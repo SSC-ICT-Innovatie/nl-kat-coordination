@@ -4,7 +4,9 @@
     <div>
         <h2>{% translate "Findings" %}</h2>
         <h3>
-            {% blocktranslate with name=ooi.human_readable total=findings_list.meta.total %}{{ total }} findings on {{ name }}{% endblocktranslate %}
+            {% blocktranslate with name=ooi.human_readable total=findings_list.meta.total trimmed %}
+                {{ total }} findings on {{ name }}
+            {% endblocktranslate %}
         </h3>
         {% if findings_list.meta.total %}
             {% include "partials/ooi_report_findings_block_table.html" %}

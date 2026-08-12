@@ -1,10 +1,14 @@
 {
   "id": "dicom",
   "name": "DICOM",
-  "description": "Find exposed DICOM servers.",
+  "description": "Find exposed DICOM servers. DICOM servers are used to process medical imaging information.",
   "consumes": [
     "IPAddressV4",
     "IPAddressV6"
   ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_dicom.main"
+  ]
 }

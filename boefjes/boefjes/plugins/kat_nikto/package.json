@@ -1,0 +1,10 @@
+{
+  "name": "kat-nikto",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "oci_adapter.js",
+  "author": "cynalytics",
+  "dependencies": {
+    "@types/node": "^22.1.0"
+  }
+}

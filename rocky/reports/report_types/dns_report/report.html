@@ -2,7 +2,7 @@
 
 <h3>{% translate "Records found" %}</h3>
 {% if data.records %}
-    <p>
+    <p class="toggle-item" data-show="off">
         {% blocktranslate trimmed %}
             The DNS report gives an overview of the DNS records that were found
             for the DNSZone. Additionally the security measures table shows whether
@@ -12,15 +12,15 @@
     <div class="horizontal-scroll">
         <table>
             <caption class="visually-hidden">{% translate "Records found" %}</caption>
-            <p>
-                {% blocktranslate %}
+            <p class="toggle-item" data-show="off">
+                {% blocktranslate trimmed %}
                     <strong>Disclaimer:</strong>
                     Not all DNSRecords are parsed in OpenKAT.
                     DNS record types that are parsed and could be displayed in the table are:
                 {% endblocktranslate %}
                 A, AAAA, CAA, CNAME, NS, MX, PTR, SOA, SRV, TXT.
             </p>
-            <div class="nota-bene">
+            <div class="nota-bene toggle-item" data-show="off">
                 <span>{% translate "All existing DNS record types can be found here:" %}
                     <a class="nota-bene"
                        href="https://en.wikipedia.org/wiki/List_of_DNS_record_types"
@@ -52,7 +52,7 @@
     <p>{% translate "No records have been found." %}</p>
 {% endif %}
 <h3>{% translate "Security measures" %}</h3>
-<p>
+<p class="toggle-item" data-show="off">
     {% blocktranslate trimmed %}
         The security measures table below shows which DNS relating security
         measures are enabled based on the contents of the DNS records.
@@ -125,14 +125,14 @@
 </div>
 {% if data.finding_types %}
     <h3>{% translate "Other findings found" %}</h3>
-    <div class="horizontal-scroll">
-        <table>
+    <div class="horizontal-scroll sticky-column">
+        <table class="nowrap">
             <caption class="visually-hidden">{% translate "Other findings found" %}</caption>
             <thead>
                 <tr>
                     <th scope="col">{% translate "Severity" %}</th>
                     <th scope="col">{% translate "Finding" %}</th>
-                    <th scope="col">{% translate "Details" %}</th>
+                    <th scope="col" class="actions">{% translate "Details" %}</th>
                 </tr>
             </thead>
             <tbody>
@@ -141,8 +141,8 @@
                         <td>
                             <span class="{{ info.finding_type.risk_severity }}">{{ info.finding_type.risk_severity|capfirst }}</span>
                         </td>
-                        <td>{{ info.finding_type }}</td>
-                        <td class="actions">
+                        <td>{{ info.finding_type.id }}</td>
+                        <td class="actions sticky-cell">
                             <button class="expando-button"
                                     data-icon-open-class="icon ti-chevron-down"
                                     data-icon-close-class="icon ti-chevron-up"
@@ -153,13 +153,12 @@
                     </tr>
                     <tr class="expando-row">
                         <td colspan="5">
-                            <h3>{{ info.finding_type }}</h3>
                             <h4>{% translate "Findings information" %}</h4>
                             <dl>
                                 <div>
                                     <dt>{% translate "Finding" %}</dt>
                                     <dd>
-                                        {{ info.finding_type.id }}
+                                        {{ info.finding_type.primary_key }}
                                     </dd>
                                 </div>
                                 <div>
@@ -172,7 +171,7 @@
                             <h4>{% translate "Occurrences" %}</h4>
                             {% for occurrence in info.occurrences %}
                                 <div>
-                                    <strong>{{ occurrence.ooi.human_readable }}</strong>
+                                    <strong>{{ occurrence.ooi|human_readable }}</strong>
                                     <p>{{ occurrence.description }}</p>
                                 </div>
                             {% endfor %}

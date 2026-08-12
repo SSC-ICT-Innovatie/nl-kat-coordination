@@ -8,6 +8,7 @@ from pydantic import Field
 
 from octopoes.models import OOI, Reference
 from octopoes.models.persistence import ReferenceField
+from octopoes.models.types import get_all_types
 
 
 class MockNetwork(OOI):
@@ -21,27 +22,21 @@ class MockIPAddress(OOI):
     network: Reference = ReferenceField(MockNetwork)
 
     _natural_key_attrs = ["network", "address"]
-    _reverse_relation_names = {
-        "network": "ip_addresses",
-    }
+    _reverse_relation_names = {"network": "ip_addresses"}
 
 
 class MockIPAddressV4(MockIPAddress):
     object_type: Literal["MockIPAddressV4"] = "MockIPAddressV4"
     address: IPv4Address
 
-    _reverse_relation_names = {
-        "network": "ip_v4_addresses",
-    }
+    _reverse_relation_names = {"network": "ip_v4_addresses"}
 
 
 class MockIPAddressV6(MockIPAddress):
     object_type: Literal["MockIPAddressV6"] = "MockIPAddressV6"
     address: IPv6Address
 
-    _reverse_relation_names = {
-        "network": "ip_v6_addresses",
-    }
+    _reverse_relation_names = {"network": "ip_v6_addresses"}
 
 
 class MockProtocol(Enum):
@@ -59,9 +54,7 @@ class MockDNSZone(OOI):
     hostname: Reference = ReferenceField("MockHostname", max_inherit_scan_level=2)
 
     _natural_key_attrs = ["hostname"]
-    _reverse_relation_names = {
-        "hostname": "dns_zone",
-    }
+    _reverse_relation_names = {"hostname": "dns_zone"}
 
 
 class MockIPPort(OOI):
@@ -73,9 +66,7 @@ class MockIPPort(OOI):
     state: MockPortState | None
 
     _natural_key_attrs = ["address", "protocol", "port"]
-    _reverse_relation_names = {
-        "address": "ports",
-    }
+    _reverse_relation_names = {"address": "ports"}
 
 
 class MockIPService(OOI):
@@ -85,9 +76,7 @@ class MockIPService(OOI):
     service: str
 
     _natural_key_attrs = ["ip_port", "service"]
-    _reverse_relation_names = {
-        "ip_port": "ip_services",
-    }
+    _reverse_relation_names = {"ip_port": "ip_services"}
 
 
 class MockHostname(OOI):
@@ -99,11 +88,7 @@ class MockHostname(OOI):
     fqdn: Reference | None = ReferenceField("MockHostname", default=None)
 
     _natural_key_attrs = ["network", "name"]
-    _reverse_relation_names = {
-        "network": "hostnames",
-        "dns_zone": "hostnames",
-        "fqdn": "fqdn_of",
-    }
+    _reverse_relation_names = {"network": "hostnames", "dns_zone": "hostnames", "fqdn": "fqdn_of"}
 
 
 class MockResolvedHostname(OOI):
@@ -115,10 +100,7 @@ class MockResolvedHostname(OOI):
     address: Reference = ReferenceField(MockIPAddress, max_issue_scan_level=4, max_inherit_scan_level=0)
 
     _natural_key_attrs = ["hostname", "address"]
-    _reverse_relation_names = {
-        "hostname": "resolved_hostnames",
-        "address": "resolved_hostnames",
-    }
+    _reverse_relation_names = {"hostname": "resolved_hostnames", "address": "resolved_hostnames"}
 
 
 class MockDNSCNAMERecord(OOI):
@@ -129,10 +111,7 @@ class MockDNSCNAMERecord(OOI):
     target_hostname: Reference = ReferenceField(MockHostname)
 
     _natural_key_attrs = ["hostname", "value"]
-    _reverse_relation_names = {
-        "hostname": "dns_cname_records",
-        "target_hostname": "dns_cname_record_targets",
-    }
+    _reverse_relation_names = {"hostname": "dns_cname_records", "target_hostname": "dns_cname_record_targets"}
 
 
 class MockLabel(OOI):
@@ -146,9 +125,7 @@ class MockLabel(OOI):
     def natural_key(self) -> str:
         return f"{self.ooi}|{self.label_id}"
 
-    _reverse_relation_names = {
-        "ooi": "labels",
-    }
+    _reverse_relation_names = {"ooi": "labels"}
 
 
 ALL_OOI_TYPES = {
@@ -177,6 +154,18 @@ MockOOIType = (
     | MockLabel
 )
 
+all_dynamic_types = set(get_all_types(OOI))
+combined_types = all_dynamic_types.union(ALL_OOI_TYPES)
+
+OOITYPE_BY_NAME: dict[str, type[OOI]] = {t.__name__: t for t in combined_types}
+
+
+def get_concrete_types() -> set[type[OOI]]:
+    concrete_types: set[type[OOI]] = {t for t in ALL_OOI_TYPES if not t.strict_subclasses()}
+    return concrete_types
+
+
+CONCRETE_OOITYPE_BY_NAME = {t.__name__: t for t in get_concrete_types()}
 
 for ooi_type in ALL_OOI_TYPES:
     ooi_type.model_rebuild()

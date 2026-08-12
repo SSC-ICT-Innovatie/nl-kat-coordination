@@ -1,19 +1,15 @@
-from typing import Any
-
 import fastapi
 import structlog
 from fastapi import status
 
-from scheduler import context, models, schedulers
+from scheduler import context, models, schedulers, storage
+from scheduler.schedulers.queue import NotAllowedError, QueueFullError
+from scheduler.server import schemas
+from scheduler.server.errors import BadRequestError, ConflictError, NotFoundError, TooManyRequestsError
 
 
 class SchedulerAPI:
-    def __init__(
-        self,
-        api: fastapi.FastAPI,
-        ctx: context.AppContext,
-        s: dict[str, schedulers.Scheduler],
-    ) -> None:
+    def __init__(self, api: fastapi.FastAPI, ctx: context.AppContext, s: dict[str, schedulers.Scheduler]):
         self.logger: structlog.BoundLogger = structlog.getLogger(__name__)
         self.api: fastapi.FastAPI = api
         self.ctx: context.AppContext = ctx
@@ -21,9 +17,9 @@ class SchedulerAPI:
 
         self.api.add_api_route(
             path="/schedulers",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET"],
-            response_model=list[models.Scheduler],
+            response_model=list[schemas.Scheduler],
             status_code=status.HTTP_200_OK,
             description="List all schedulers",
         )
@@ -32,66 +28,76 @@ class SchedulerAPI:
             path="/schedulers/{scheduler_id}",
             endpoint=self.get,
             methods=["GET"],
-            response_model=models.Scheduler,
+            response_model=schemas.Scheduler,
             status_code=status.HTTP_200_OK,
             description="Get a scheduler",
         )
 
         self.api.add_api_route(
-            path="/schedulers/{scheduler_id}",
-            endpoint=self.patch,
-            methods=["PATCH"],
-            response_model=models.Scheduler,
-            status_code=status.HTTP_200_OK,
-            description="Update a scheduler",
+            path="/schedulers/{scheduler_id}/push",
+            endpoint=self.push,
+            methods=["POST"],
+            response_model=schemas.Task,
+            status_code=status.HTTP_201_CREATED,
+            description="Push a task to a scheduler",
         )
 
-    def list(self) -> Any:
-        return [models.Scheduler(**s.dict()) for s in self.schedulers.values()]
+        self.api.add_api_route(
+            path="/schedulers/{scheduler_id}/pop",
+            endpoint=self.pop,
+            methods=["POST"],
+            response_model=schemas.TaskPop,
+            status_code=status.HTTP_200_OK,
+            description="Pop a task from a scheduler",
+        )
 
-    def get(self, scheduler_id: str) -> Any:
+    def get_paged(self) -> list[schemas.Scheduler]:
+        return [schemas.Scheduler(**s.dict()) for s in self.schedulers.values()]
+
+    def get(self, scheduler_id: str) -> schemas.Scheduler:
         s = self.schedulers.get(scheduler_id)
         if s is None:
-            raise fastapi.HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="scheduler not found",
-            )
+            raise NotFoundError(f"Scheduler {scheduler_id} not found")
 
-        return models.Scheduler(**s.dict())
+        return schemas.Scheduler(**s.dict())
 
-    def patch(self, scheduler_id: str, item: models.Scheduler) -> Any:
+    def pop(
+        self,
+        request: fastapi.Request,
+        scheduler_id: str,
+        limit: int | None = None,
+        filters: storage.filters.FilterRequest | None = None,
+    ) -> schemas.TaskPop:
         s = self.schedulers.get(scheduler_id)
         if s is None:
-            raise fastapi.HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="scheduler not found",
-            )
+            raise NotFoundError(f"Scheduler {scheduler_id} not found")
 
-        stored_scheduler_model = models.Scheduler(**s.dict())
-        patch_data = item.model_dump(exclude_unset=True)
-        if len(patch_data) == 0:
-            raise fastapi.HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="no data to patch",
-            )
+        results = s.pop_item_from_queue(limit=limit, filters=filters)
 
-        updated_scheduler = stored_scheduler_model.model_copy(update=patch_data)
+        return schemas.TaskPop(results=[schemas.Task(**item.model_dump()) for item in results])
 
-        # We update the patched attributes, since the schedulers are kept
-        # in memory.
-        for attr, value in patch_data.items():
-            try:
-                setattr(s, attr, value)
-            except AttributeError as exc:
-                raise fastapi.HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="attribute not found",
-                ) from exc
+    def push(self, scheduler_id: str, item: schemas.TaskPush) -> schemas.Task:
+        s = self.schedulers.get(scheduler_id)
+        if s is None:
+            raise NotFoundError(f"Scheduler {scheduler_id} not found")
 
-        # Enable or disable the scheduler if needed.
-        if updated_scheduler.enabled:
-            s.enable()
-        elif not updated_scheduler.enabled:
-            s.disable()
+        if item.scheduler_id is not None and item.scheduler_id != scheduler_id:
+            raise BadRequestError("scheduler_id in item does not match the scheduler_id in the path")
 
-        return updated_scheduler
+        # Set scheduler_id if not set
+        if item.scheduler_id is None:
+            item.scheduler_id = scheduler_id
+
+        # Load default values
+        new_item = models.Task(**item.model_dump(exclude_unset=True))
+
+        try:
+            pushed_item = s.push_item_to_queue(new_item)
+        except ValueError:
+            raise BadRequestError("malformed item")
+        except QueueFullError:
+            raise TooManyRequestsError("queue is full")
+        except NotAllowedError:
+            raise ConflictError("queue is not allowed to push items")
+
+        return pushed_item

@@ -1,7 +1,9 @@
 /* Notification block - Variables */
 
 :root {
-  --notification-block-element-padding-right: 0.5rem;
-  --notification-block-element-padding-left: 0.5rem;
+  --notification-block-element-padding-top: var(--spacing-grid-300);
+  --notification-block-element-padding-right: var(--spacing-grid-200);
+  --notification-block-element-padding-left: var(--spacing-grid-200);
+  --notification-block-element-padding-bottom: var(--spacing-grid-300);
   --notification-block-element-gap: 0.5rem;
 }

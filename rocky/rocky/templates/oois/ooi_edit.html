@@ -11,11 +11,10 @@
             <div class="layout-form">
                 <h1>{% blocktranslate %}Edit {{ type }}: {{ ooi_human_readable }}{% endblocktranslate %}</h1>
                 <p>{% blocktranslate %}Primary key fields cannot be edited.{% endblocktranslate %}</p>
-                <form method="post" class="horizontal-view">
+                <form method="post">
                     {% csrf_token %}
                     {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
                     <fieldset>
-                        <legend>{% translate type %}</legend>
                         <div>
                             <label for="ooi_type">Type</label>
                             <input id="ooi_type" type="text" name="ooi_type" value="{{ type }}" readonly>

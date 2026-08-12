@@ -9,7 +9,7 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
 from dateutil.parser import parse
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
     AlgorithmType,
@@ -73,7 +73,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         )
 
         # update website
-        yield website
+        yield NormalizerAffirmation(ooi=website)
 
     # chain certificates together
     last_certificate = None
@@ -99,9 +99,7 @@ def read_certificates(
     certificate_subject_alternative_names = []
     hostnames = []
     for m in re.finditer(
-        r"(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)",
-        contents,
-        flags=re.DOTALL,
+        r"(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)", contents, flags=re.DOTALL
     ):
         pem_contents = f"-----BEGIN CERTIFICATE-----{m.group()}-----END CERTIFICATE-----"
 
@@ -117,14 +115,11 @@ def read_certificates(
             ]
         except x509.ExtensionNotFound:
             subject_alternative_names = []
-        valid_from = cert.not_valid_before.isoformat()
-        valid_until = cert.not_valid_after.isoformat()
+        valid_from = cert.not_valid_before_utc.isoformat()
+        valid_until = cert.not_valid_after_utc.isoformat()
         pk_size = cert.public_key().key_size
         logging.info("Parsing certificate of type %s", type(cert.public_key()))
-        if isinstance(
-            cert.public_key(),
-            rsa.RSAPublicKey,
-        ):
+        if isinstance(cert.public_key(), rsa.RSAPublicKey):
             pk_algorithm = str(AlgorithmType.RSA)
             pk_number = cert.public_key().public_numbers().n.to_bytes(pk_size // 8, "big").hex()
         elif isinstance(cert.public_key(), ec.EllipticCurvePublicKey):

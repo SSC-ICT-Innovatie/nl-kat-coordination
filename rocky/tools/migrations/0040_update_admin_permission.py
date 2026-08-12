@@ -23,11 +23,6 @@ def add_admin_permission(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0039_update_permissions"),
-    ]
+    dependencies = [("tools", "0039_update_permissions")]
 
-    operations = [
-        migrations.RunPython(migrate_permissions),
-        migrations.RunPython(add_admin_permission),
-    ]
+    operations = [migrations.RunPython(migrate_permissions), migrations.RunPython(add_admin_permission)]

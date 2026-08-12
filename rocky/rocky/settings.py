@@ -10,14 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import json
+import logging.config
 import re
 from pathlib import Path
 
 import environ
 import structlog
+from csp.constants import NONE, SELF
 from django.conf import locale
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
+from django.views.debug import SafeExceptionReporterFilter
 
 from rocky.otel import OpenTelemetryHelper
 
@@ -44,11 +48,19 @@ BYTES_API = env.url("BYTES_API").geturl()
 BYTES_USERNAME = env("BYTES_USERNAME")
 BYTES_PASSWORD = env("BYTES_PASSWORD")
 
-KEIKO_API = env.url("KEIKO_API").geturl()
-# Report generation timeout in seconds
-KEIKO_REPORT_TIMEOUT = env.int("KEIKO_REPORT_TIMEOUT", 60)
+# See these Django release notes: https://docs.djangoproject.com/en/dev/releases/3.1/#error-reporting
+HIDDEN_DEFAULT = "API|TOKEN|KEY|SECRET|PASS|SIGNATURE|HTTP_COOKIE"
+HIDDEN_ADDITIONAL = "ROCKY|BOEFJES|BYTES|MULA|SCHEDULER|OCTOPOES|RABBITMQ_|_URI"
+
+
+class SaferExceptionReporterFilter(SafeExceptionReporterFilter):
+    hidden_settings = re.compile(f"{HIDDEN_DEFAULT}|{HIDDEN_ADDITIONAL}", flags=re.I)
+
+
+DEFAULT_EXCEPTION_REPORTER_FILTER = "rocky.settings.SaferExceptionReporterFilter"
+
+
 ROCKY_REPORT_PERMALINKS = env.bool("ROCKY_REPORT_PERMALINKS", True)
-FEATURE_REPORTS = env.bool("FEATURE_REPORTS", False)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env.bool("DEBUG", False)
@@ -59,29 +71,45 @@ LOGGING_FORMAT = env("LOGGING_FORMAT", default="text")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "json_formatter": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.processors.JSONRenderer(),
-        },
-        "plain_console": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(colors=True, pad_level=False),
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "json_formatter" if LOGGING_FORMAT == "json" else "plain_console",
-        },
-    },
-    "loggers": {
-        "root": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-    },
+    "formatters": {"default": {"format": "%(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
+    "loggers": {"root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO").upper()}},
 }
+
+
+def configure_logging(logging_settings):
+    log_cfg = env("ROCKY_LOG_CFG", default="")
+    if log_cfg:
+        with Path(log_cfg).open() as f:
+            logging.config.dictConfig(json.load(f))
+    else:
+        logging.config.dictConfig(logging_settings)
+
+
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper("iso", utc=False),
+        (
+            structlog.dev.ConsoleRenderer(
+                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
+            )
+            if LOGGING_FORMAT == "text"
+            else structlog.processors.JSONRenderer()
+        ),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+
+LOGGING_CONFIG = "rocky.settings.configure_logging"
 
 # Make sure this header can never be set by an attacker, see also the security
 # warning at https://docs.djangoproject.com/en/4.2/howto/auth-remote-user/
@@ -92,13 +120,9 @@ if REMOTE_USER_HEADER:
     # Optional list of default organizations to add remote users to,
     # format: space separated list of ORGANIZATION_CODE:GROUP_NAME, e.g. `test:admin test2:redteam`
     REMOTE_USER_DEFAULT_ORGANIZATIONS = env.list("REMOTE_USER_DEFAULT_ORGANIZATIONS", default=[])
-    AUTHENTICATION_BACKENDS = [
-        "rocky.auth.remote_user.RemoteUserBackend",
-    ]
+    AUTHENTICATION_BACKENDS = ["rocky.auth.remote_user.RemoteUserBackend"]
     if REMOTE_USER_FALLBACK:
-        AUTHENTICATION_BACKENDS += [
-            "django.contrib.auth.backends.ModelBackend",
-        ]
+        AUTHENTICATION_BACKENDS += ["django.contrib.auth.backends.ModelBackend"]
 
 # SECURITY WARNING: enable two factor authentication in production!
 TWOFACTOR_ENABLED = env.bool("TWOFACTOR_ENABLED", not REMOTE_USER_HEADER)
@@ -170,7 +194,6 @@ INSTALLED_APPS = [
     "django_password_validators.password_history",
     "rest_framework",
     "tagulous",
-    "compressor",
     "reports",
     "knox",
     # "drf_standardized_errors",
@@ -184,7 +207,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "rocky.middleware.auth_token.AuthTokenMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
 ]
 
@@ -219,10 +241,7 @@ TEMPLATES = [
                 "tools.context_processors.organizations_including_blocked",
                 "tools.context_processors.rocky_version",
             ],
-            "builtins": [
-                "django_components.templatetags.component_tags",
-                "tools.templatetags.ooi_extra",
-            ],
+            "builtins": ["django_components.templatetags.component_tags", "tools.templatetags.ooi_extra"],
             "loaders": [
                 (
                     "django.template.loaders.cached.Loader",
@@ -234,7 +253,7 @@ TEMPLATES = [
                 )
             ],
         },
-    },
+    }
 ]
 
 FORM_RENDERER = "django.forms.renderers.TemplatesSetting"
@@ -261,36 +280,41 @@ except ImproperlyConfigured:
 DATABASES = {"default": POSTGRES_DB}
 
 if env.bool("POSTGRES_SSL_ENABLED", False):
-    DATABASES["default"]["OPTIONS"] = {
-        "sslmode": env("POSTGRES_SSL_MODE"),
-        "sslrootcert": env.path("POSTGRES_SSL_ROOTCERT"),
-        "sslcert": env.path("POSTGRES_SSL_CERT"),
-        "sslkey": env.path("POSTGRES_SSL_KEY"),
-    }
+    DATABASES["default"]["OPTIONS"] = {"sslmode": env("POSTGRES_SSL_MODE", default="require")}
+
+    POSTGRES_SSL_CERT = env.path("POSTGRES_SSL_CERT", default="")
+    POSTGRES_SSL_KEY = env.path("POSTGRES_SSL_KEY", default="")
+
+    if POSTGRES_SSL_CERT and POSTGRES_SSL_KEY:
+        DATABASES["default"]["OPTIONS"]["sslcert"] = POSTGRES_SSL_CERT
+        DATABASES["default"]["OPTIONS"]["sslkey"] = POSTGRES_SSL_KEY
+
+    POSTGRES_SSL_ROOTCERT = env.path("POSTGRES_SSL_ROOTCERT", default="")
+    if POSTGRES_SSL_ROOTCERT:
+        DATABASES["default"]["OPTIONS"]["sslrootcert"] = POSTGRES_SSL_ROOTCERT
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
-
+# Although no longer encouraged, it is possible to add more requirements by adding:
+# {  # noqa: ERA001
+#         "NAME": "django_password_validators.password_character_requirements"
+#         ".password_validation.PasswordCharacterValidator",
+#         "OPTIONS": {  # noqa: ERA001
+#             "min_length_digit": env.int("PASSWORD_MIN_DIGIT", 2),  # noqa: ERA001
+#             "min_length_alpha": env.int("PASSWORD_MIN_ALPHA", 2),  # noqa: ERA001
+#             "min_length_special": env.int("PASSWORD_MIN_SPECIAL", 2),  # noqa: ERA001
+#             "min_length_lower": env.int("PASSWORD_MIN_LOWER", 2),  # noqa: ERA001
+#             "min_length_upper": env.int("PASSWORD_MIN_UPPER", 2),  # noqa: ERA001
+#             "special_characters": " ~!@#$%^&*()_+{}\":;'[]",  # noqa: ERA001
+#         },
+#     },
 
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
-        "OPTIONS": {
-            "min_length": env.int("PASSWORD_MIN_LENGTH", 12),
-        },
-    },
-    {
-        "NAME": "django_password_validators.password_character_requirements"
-        ".password_validation.PasswordCharacterValidator",
-        "OPTIONS": {
-            "min_length_digit": env.int("PASSWORD_MIN_DIGIT", 2),
-            "min_length_alpha": env.int("PASSWORD_MIN_ALPHA", 2),
-            "min_length_special": env.int("PASSWORD_MIN_SPECIAL", 2),
-            "min_length_lower": env.int("PASSWORD_MIN_LOWER", 2),
-            "min_length_upper": env.int("PASSWORD_MIN_UPPER", 2),
-            "special_characters": " ~!@#$%^&*()_+{}\":;'[]",
-        },
-    },
+        "OPTIONS": {"min_length": env.int("PASSWORD_MIN_LENGTH", 12)},
+    }
 ]
 
 # Internationalization
@@ -310,36 +334,18 @@ LOCALE_PATHS = (BASE_DIR / "rocky/locale",)
 
 # Add custom languages not provided by Django
 EXTRA_LANG_INFO = {
-    "pap": {
-        "bidi": False,
-        "code": "pap",
-        "name": "Papiamentu",
-        "name_local": "Papiamentu",
-    },
-    "en@pirate": {
-        "bidi": False,
-        "code": "en@pirate",
-        "name": "English (Pirate)",
-        "name_local": "English (Pirate)",
-    },
+    "pap": {"bidi": False, "code": "pap", "name": "Papiamentu", "name_local": "Papiamentu"},
+    "en@pirate": {"bidi": False, "code": "en@pirate", "name": "English (Pirate)", "name_local": "English (Pirate)"},
 }
 LANG_INFO = locale.LANG_INFO.copy()
 LANG_INFO.update(EXTRA_LANG_INFO)
 locale.LANG_INFO = LANG_INFO
 
-LANGUAGES = [
-    ("en", "en"),
-    ("nl", "nl"),
-    ("pap", "pap"),
-    ("it", "it"),
-    ("fy", "fy"),
-]
+LANGUAGES = [("en", "en"), ("nl", "nl"), ("pap", "pap"), ("it", "it"), ("fy", "fy")]
 
 if env.bool("PIRATE", False):
     LANGUAGE_CODE = "en@pirate"
-    LANGUAGES += [
-        ("en@pirate", "en@pirate"),
-    ]
+    LANGUAGES += [("en@pirate", "en@pirate")]
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
@@ -350,30 +356,7 @@ STATICFILES_DIRS = (BASE_DIR / "assets", BASE_DIR / "components")
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "compressor.finders.CompressorFinder",
 ]
-COMPRESS_ENABLED = env.bool("COMPRESS_ENABLED", True)
-COMPRESS_OFFLINE = True
-COMPRESS_STORAGE = "compressor.storage.BrotliCompressorFileStorage"
-
-STORAGES = {
-    "staticfiles": {
-        "BACKEND": "rocky.storage.RockyStaticFilesStorage",
-    },
-}
-
-_IMMUTABLE_FILE_TEST_PATTERN = re.compile(r"^.+\.[0-9a-f]{12}\..+$")
-
-
-def immutable_file_test(path, url):
-    # Match filename with 12 hex digits before the extension e.g.
-    # app.db8f2edc0c8a.js. Configuring this is necessary because whitenoise
-    # doesn't automatically detect the django-compressor files as immutable.
-    return _IMMUTABLE_FILE_TEST_PATTERN.match(url)
-
-
-WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
-WHITENOISE_KEEP_ONLY_HASHED_FILES = True
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "crisis_room"
@@ -438,17 +421,19 @@ if CSP_HEADER:
     MIDDLEWARE += ["csp.middleware.CSPMiddleware"]
     INSTALLED_APPS += ["csp"]
 
-CSP_DEFAULT_SRC = ["'none'"]
-CSP_IMG_SRC = ["'self'"]
-CSP_FONT_SRC = ["'self'"]
-CSP_STYLE_SRC = ["'self'"]
-CSP_FRAME_ANCESTORS = ["'none'"]
-CSP_BASE_URI = ["'none'"]
-CSP_FORM_ACTION = ["'self'"]
-CSP_INCLUDE_NONCE_IN = ["script-src"]
-CSP_CONNECT_SRC = ["'self'"]
-
-CSP_BLOCK_ALL_MIXED_CONTENT = True
+    CONTENT_SECURITY_POLICY = {
+        "DIRECTIVES": {
+            "default-src": [NONE],
+            "img-src": [SELF],
+            "font-src": [SELF],
+            "style-src": [SELF],
+            "frame-ancestors": [NONE],
+            "base-uri": [NONE],
+            "form-action": [SELF],
+            "connect-src": [SELF],
+            "script-src": [SELF],
+        }
+    }
 
 # Turn on the browsable API by default if DEBUG is True, but disable by default in production
 BROWSABLE_API = env.bool("BROWSABLE_API", DEBUG)
@@ -468,12 +453,10 @@ else:
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": DEFAULT_AUTHENTICATION_CLASSES,
-    "DEFAULT_PERMISSION_CLASSES": [
-        # For now this will provide a safe default, but non-admin users will
-        # need to be able to use the API in the future..
-        "rest_framework.permissions.IsAdminUser",
-    ],
+    "DEFAULT_PERMISSION_CLASSES": ["rocky.permissions.KATModelPermissions"],
     "DEFAULT_RENDERER_CLASSES": DEFAULT_RENDERER_CLASSES,
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 100,
     "EXCEPTION_HANDLER": "drf_standardized_errors.handler.exception_handler",
 }
 
@@ -506,35 +489,27 @@ TAG_COLORS = [
     ("color-6-dark", _("Violet dark")),
 ]
 
-TAG_BORDER_TYPES = [
-    ("plain", _("Plain")),
-    ("solid", _("Solid")),
-    ("dashed", _("Dashed")),
-    ("dotted", _("Dotted")),
-]
+TAG_BORDER_TYPES = [("plain", _("Plain")), ("solid", _("Solid")), ("dashed", _("Dashed")), ("dotted", _("Dotted"))]
 
 WEASYPRINT_BASEURL = env("WEASYPRINT_BASEURL", default="http://127.0.0.1:8000/")
 
 KNOX_TOKEN_MODEL = "account.AuthToken"
 
-FORMS_URLFIELD_ASSUME_HTTPS = True
 
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper("iso", utc=False),
-        (
-            structlog.processors.JSONRenderer()
-            if LOGGING_FORMAT == "json"
-            else structlog.dev.ConsoleRenderer(colors=True, pad_level=False)
-        ),
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
+# Number of workers to run for the report queue
+POOL_SIZE = env.int("POOL_SIZE", default=2)
+# Time to wait before polling for tasks when the queue is empty
+POLL_INTERVAL = env.int("POLL_INTERVAL", default=10)
+# Seconds to wait before checking the workers when queues are full
+WORKER_HEARTBEAT = env.int("WORKER_HEARTBEAT", default=5)
+
+# In production deployments the staticfiles are coming from the collected static
+# files in the static directory. We should not ship all those files also in
+# their original location, but Django will complain if a directory in
+# STATICFILES_DIRS does not exist. We silence the warning here to prevent the
+# warning from confusing users.
+SILENCED_SYSTEM_CHECKS = ["staticfiles.W004"]
+
+ROCKY_OUTGOING_REQUEST_TIMEOUT = env.int("ROCKY_OUTGOING_REQUEST_TIMEOUT", default=30)
+
+ASSET_REPORTS = env.bool("ASSET_REPORTS", default=True)

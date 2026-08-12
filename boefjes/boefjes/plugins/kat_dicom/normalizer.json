@@ -1,5 +1,7 @@
 {
   "id": "kat_dicom_normalize",
+  "name": "DICOM servers",
+  "description": "Parses medical imaging data (DICOM) into findings and identified software.",
   "consumes": [
     "boefje/dicom"
   ],

@@ -1,0 +1,47 @@
+{% load i18n %}
+
+{% component "modal" size="dialog-large" modal_id="rename-modal" %}
+{% fill "header" %}
+{% translate "Rename the following report(s):" %}
+{% endfill %}
+{% fill "content" %}
+<form id="rename-form" class="inline layout-wide" method="post">
+    {% csrf_token %}
+    <table id="report-name-table">
+        <thead>
+            <tr>
+                <th>{% translate "Report type" %}</th>
+                <th colspan="2">{% translate "Name" %}</th>
+                {% comment %} <th>{% translate "Reference date" %}</th> {% endcomment %}
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="rename-table-row">
+                <td class="type">
+                    <ul class="tags horizontal-view">
+                    </ul>
+                </td>
+                <td class="name">
+                    <input type="text" name="report_name" class="report-name-input name-input">
+                    <input type="hidden" name="report_reference" class="report-reference-input">
+                </td>
+                <td>
+                    <button type="button"
+                            class="icon ti-arrow-back-up action-button reset-button hidden"
+                            aria-label="{% translate "Reset" %}"></button>
+                </td>
+                {% comment %} <td class="date"></td> {% endcomment %}
+            </tr>
+        </tbody>
+    </table>
+</form>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button type="submit"
+        form="rename-form"
+        class="submit"
+        name="action"
+        value="rename">{% translate "Rename" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

@@ -4,12 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0037_alter_organization_options"),
-    ]
+    dependencies = [("tools", "0037_alter_organization_options")]
 
-    operations = [
-        migrations.DeleteModel(
-            name="Job",
-        ),
-    ]
+    operations = [migrations.DeleteModel(name="Job")]

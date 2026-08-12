@@ -6,10 +6,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("tools", "0031_merge_20230301_2012"),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL), ("tools", "0031_merge_20230301_2012")]
 
     operations = [
         migrations.AlterField(
@@ -18,5 +15,5 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(
                 on_delete=django.db.models.deletion.PROTECT, related_name="members", to=settings.AUTH_USER_MODEL
             ),
-        ),
+        )
     ]

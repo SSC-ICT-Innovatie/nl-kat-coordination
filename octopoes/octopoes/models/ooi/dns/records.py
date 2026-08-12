@@ -9,15 +9,15 @@ from octopoes.models.persistence import ReferenceField
 
 
 class DNSRecord(OOI):
+    """Represents the DNS record"""
+
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=2)
     dns_record_type: Literal["A", "AAAA", "CAA", "CNAME", "MX", "NS", "PTR", "SOA", "SRV", "TXT", "LOC", "GPOS"]
     value: str
     ttl: int | None = None  # todo: validation
 
     _natural_key_attrs = ["hostname", "value"]
-    _reverse_relation_names = {
-        "hostname": "dns_records",
-    }
+    _reverse_relation_names = {"hostname": "dns_records"}
 
     @classmethod
     def _get_record_type(cls) -> str:
@@ -31,6 +31,13 @@ class DNSRecord(OOI):
 
 
 class DNSARecord(DNSRecord):
+    """Represents the DNS A record.
+
+    Example value
+    -------------
+    134.209.85.72
+    """
+
     object_type: Literal["DNSARecord"] = "DNSARecord"
     dns_record_type: Literal["A"] = "A"
 
@@ -40,31 +47,41 @@ class DNSARecord(DNSRecord):
 
 
 class DNSAAAARecord(DNSRecord):
+    """Represents the DNS AAAA record.
+
+    Example value
+    -------------
+    2001:0002:6c::430
+    """
+
     object_type: Literal["DNSAAAARecord"] = "DNSAAAARecord"
     dns_record_type: Literal["AAAA"] = "AAAA"
 
     address: Reference = ReferenceField(IPAddressV6)
 
-    _reverse_relation_names = {
-        "hostname": "dns_aaaa_records",
-        "address": "dns_aaaa_records",
-    }
+    _reverse_relation_names = {"hostname": "dns_aaaa_records", "address": "dns_aaaa_records"}
 
 
 class DNSMXRecord(DNSRecord):
+    """Represents the DNS MX record."""
+
     object_type: Literal["DNSMXRecord"] = "DNSMXRecord"
     dns_record_type: Literal["MX"] = "MX"
 
-    mail_hostname: Reference | None = ReferenceField(Hostname, default=None)
+    mail_hostname: Reference | None = ReferenceField(Hostname, default=None, max_inherit_scan_level=1)
     preference: int | None = None
 
-    _reverse_relation_names = {
-        "hostname": "dns_mx_records",
-        "mail_hostname": "mail_server_of",
-    }
+    _reverse_relation_names = {"hostname": "dns_mx_records", "mail_hostname": "mail_server_of"}
 
 
 class DNSTXTRecord(DNSRecord):
+    """Represents the DNS TXT riecord.
+
+    Example value
+    -------------
+    v=DMARC1;p=none;rua=dmarc@mispo.es;ruf=dmarc@mispo.es
+    """
+
     object_type: Literal["DNSTXTRecord"] = "DNSTXTRecord"
     dns_record_type: Literal["TXT"] = "TXT"
 
@@ -78,30 +95,40 @@ class DNSTXTRecord(DNSRecord):
 
 
 class DNSNSRecord(DNSRecord):
+    """Represents the DNS NS record.
+
+    Example value
+    -------------
+    ns0.transip.net
+    """
+
     object_type: Literal["DNSNSRecord"] = "DNSNSRecord"
     dns_record_type: Literal["NS"] = "NS"
 
     name_server_hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=1, max_inherit_scan_level=0)
 
-    _reverse_relation_names = {
-        "hostname": "dns_ns_records",
-        "name_server_hostname": "ns_record_targets",
-    }
+    _reverse_relation_names = {"hostname": "dns_ns_records", "name_server_hostname": "ns_record_targets"}
 
 
 class DNSCNAMERecord(DNSRecord):
+    """Represents the DNS CNAME record."""
+
     object_type: Literal["DNSCNAMERecord"] = "DNSCNAMERecord"
     dns_record_type: Literal["CNAME"] = "CNAME"
 
     target_hostname: Reference = ReferenceField(Hostname)
 
-    _reverse_relation_names = {
-        "hostname": "dns_cname_records",
-        "target_hostname": "cname_target_of",
-    }
+    _reverse_relation_names = {"hostname": "dns_cname_records", "target_hostname": "cname_target_of"}
 
 
 class DNSSOARecord(DNSRecord):
+    """Represents the DNS SOA record.
+
+    Example value
+    -------------
+    ns1.domaindiscount24.net. tech.key-systems.net. 2023012324 10800 3600 604800 3600
+    """
+
     object_type: Literal["DNSSOARecord"] = "DNSSOARecord"
     dns_record_type: Literal["SOA"] = "SOA"
 
@@ -112,10 +139,7 @@ class DNSSOARecord(DNSRecord):
     expire: int | None = None
     minimum: int | None = None
 
-    _reverse_relation_names = {
-        "hostname": "dns_soa_records",
-        "soa_hostname": "subject_of_dns_soa_records",
-    }
+    _reverse_relation_names = {"hostname": "dns_soa_records", "soa_hostname": "subject_of_dns_soa_records"}
 
     _natural_key_attrs = ["hostname", "soa_hostname"]
 
@@ -126,14 +150,14 @@ class DNSSOARecord(DNSRecord):
 
 
 class NXDOMAIN(OOI):
+    """Represents non-existing domains."""
+
     object_type: Literal["NXDOMAIN"] = "NXDOMAIN"
 
     hostname: Reference = ReferenceField(Hostname)
 
     _natural_key_attrs = ["hostname"]
-    _reverse_relation_names = {
-        "hostname": "nxdomain_hostname",
-    }
+    _reverse_relation_names = {"hostname": "nxdomain_hostname"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -141,16 +165,15 @@ class NXDOMAIN(OOI):
 
 
 class DNSPTRRecord(DNSRecord):
+    """Represents DNS PTR records."""
+
     object_type: Literal["DNSPTRRecord"] = "DNSPTRRecord"
     dns_record_type: Literal["PTR"] = "PTR"
     address: Reference | None = ReferenceField(IPAddress)
 
     _natural_key_attrs = ["hostname", "address"]
 
-    _reverse_relation_names = {
-        "hostname": "dns_ptr_records",
-        "address": "ptr_record_ip",
-    }
+    _reverse_relation_names = {"hostname": "dns_ptr_records", "address": "ptr_record_ip"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -158,6 +181,13 @@ class DNSPTRRecord(DNSRecord):
 
 
 class CAATAGS(Enum):
+    """Represents CAA tags.
+
+    Possible values
+    ---------------
+    issue, issuewild, iodef, contactemail, contactphone, issuevmc, issuemail
+    """
+
     ISSUE = "issue"
     ISSUEWILD = "issuewild"
     IODEF = "iodef"
@@ -166,11 +196,18 @@ class CAATAGS(Enum):
     ISSUEVMC = "issuevmc"
     ISSUEMAIL = "issuemail"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.value
 
 
 class DNSCAARecord(DNSRecord):
+    """Represents the DNS CAA record.
+
+    Example value
+    -------------
+    "letsencrypt.org"
+    """
+
     object_type: Literal["DNSCAARecord"] = "DNSCAARecord"
     dns_record_type: Literal["CAA"] = "CAA"
 

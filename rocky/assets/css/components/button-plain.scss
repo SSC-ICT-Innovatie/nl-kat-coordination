@@ -1,0 +1,22 @@
+button,
+a.button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  &.plain {
+    background-color: transparent;
+    border: 0;
+    color: var(--colors-blue-600);
+    padding: 0;
+
+    &:hover {
+      color: var(--colors-blue-700);
+    }
+
+    .icon {
+      &:hover {
+        color: var(--colors-blue-700);
+      }
+    }
+  }
+}

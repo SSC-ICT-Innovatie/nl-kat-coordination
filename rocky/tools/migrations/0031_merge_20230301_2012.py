@@ -4,9 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0029_alter_organizationtag_color"),
-        ("tools", "0030_auto_20230227_1458"),
-    ]
+    dependencies = [("tools", "0029_alter_organizationtag_color"), ("tools", "0030_auto_20230227_1458")]
 
     operations: list = []

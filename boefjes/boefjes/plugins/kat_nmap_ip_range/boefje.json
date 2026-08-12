@@ -1,16 +1,20 @@
 {
   "id": "nmap-ip-range",
   "name": "Nmap IP range",
-  "description": "Scan an IP range and store found IPs. Defaults to top-250 TCP and top-10 UDP on ranges with 1024 addresses or less. Larger ranges are skipped by default.",
+  "description": "Scan an IP range and store found IPs. Defaults to top-250 TCP and top-10 UDP on ranges with 1024 addresses or less (max is a /22). Larger ranges are skipped by default.",
   "consumes": [
     "IPV6NetBlock",
     "IPV4NetBlock"
   ],
-  "environment_keys": [
-    "TOP_PORTS_TCP",
-    "TOP_PORTS_UDP",
-    "MIN_VLSM_IPV4",
-    "MIN_VLSM_IPV6"
-  ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-nmap:latest",
+  "oci_arguments": [
+    "--open",
+    "-T4",
+    "-Pn",
+    "-r",
+    "-v10",
+    "-sV",
+    "-sS"
+  ]
 }

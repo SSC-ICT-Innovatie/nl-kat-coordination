@@ -1,0 +1,141 @@
+{
+  "organization_code": "test",
+  "organization_name": "Test Organization",
+  "organization_tags": [],
+  "data": {
+    "systems": {
+      "services": {
+        "IPAddressV4|internet|134.209.85.72": {
+          "hostnames": [
+            "Hostname|internet|mispo.es"
+          ],
+          "services": []
+        }
+      }
+    },
+    "services": {},
+    "recommendations": [],
+    "recommendation_counts": {},
+    "open_ports": {
+      "134.209.85.72": {
+        "ports": {},
+        "hostnames": [
+          "mispo.es"
+        ],
+        "services": {}
+      }
+    },
+    "ipv6": {
+      "mispo.es": {
+        "enabled": false,
+        "systems": []
+      }
+    },
+    "vulnerabilities": {
+      "IPAddressV4|internet|134.209.85.72": {
+        "hostnames": "(mispo.es)",
+        "vulnerabilities": {},
+        "summary": {
+          "total_findings": 0,
+          "total_criticals": 0,
+          "terms": [],
+          "recommendations": []
+        },
+        "title": "134.209.85.72"
+      }
+    },
+    "basic_security": {
+      "rpki": {},
+      "system_specific": {
+        "Mail": [],
+        "Web": [],
+        "DNS": []
+      },
+      "safe_connections": {},
+      "summary": {}
+    },
+    "summary": {
+      "critical_vulnerabilities": 0,
+      "ips_scanned": 1,
+      "hostnames_scanned": 1,
+      "terms_in_report": ""
+    },
+    "total_findings": 0,
+    "total_systems": 1,
+    "total_hostnames": 1,
+    "total_systems_basic_security": 0,
+    "health": [
+      {
+        "service": "rocky",
+        "healthy": true,
+        "version": "0.0.1.dev1",
+        "additional": null,
+        "results": []
+      },
+      {
+        "service": "octopoes",
+        "healthy": true,
+        "version": "0.0.1.dev1",
+        "additional": null,
+        "results": []
+      },
+      {
+        "service": "xtdb",
+        "healthy": true,
+        "version": "1.24.1",
+        "additional": {
+          "version": "1.24.1",
+          "revision": "1164f9a3c7e36edbc026867945765fd4366c1731",
+          "indexVersion": 22,
+          "consumerState": null,
+          "kvStore": "xtdb.rocksdb.RocksKv",
+          "estimateNumKeys": 36846,
+          "size": 33301692
+        },
+        "results": []
+      },
+      {
+        "service": "katalogus",
+        "healthy": true,
+        "version": "0.0.1-development",
+        "additional": null,
+        "results": []
+      },
+      {
+        "service": "scheduler",
+        "healthy": true,
+        "version": "0.0.1.dev1",
+        "additional": null,
+        "results": []
+      },
+      {
+        "service": "bytes",
+        "healthy": true,
+        "version": "0.0.1.dev1",
+        "additional": null,
+        "results": []
+      }
+    ],
+    "config_oois": [],
+    "input_data": {
+      "input_oois": [
+        "Hostname|internet|mispo.es"
+      ],
+      "report_types": [
+        "ipv6-report",
+        "mail-report",
+        "name-server-report",
+        "open-ports-report",
+        "rpki-report",
+        "safe-connections-report",
+        "systems-report",
+        "vulnerability-report",
+        "web-system-report"
+      ],
+      "plugins": {
+        "required": [],
+        "optional": []
+      }
+    }
+  }
+}

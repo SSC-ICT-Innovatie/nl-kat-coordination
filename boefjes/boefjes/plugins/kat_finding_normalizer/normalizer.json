@@ -1,0 +1,12 @@
+{
+  "id": "kat_generic_finding_normalize",
+  "name": "Finding types",
+  "description": "Parses data to create (CVE) Findings.",
+  "consumes": [
+    "openkat/finding"
+  ],
+  "produces": [
+    "Finding",
+    "CVEFindingType"
+  ]
+}

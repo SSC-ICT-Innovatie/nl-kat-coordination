@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.13
 FROM python:$PYTHON_VERSION AS dev
 
 ARG USER_UID=1000
@@ -20,11 +20,9 @@ RUN --mount=type=cache,target=/root/.cache \
     pip install --upgrade pip \
     && if [ "$ENVIRONMENT" = "dev" ]; \
     then \
-    grep -v git+https:// requirements-dev.txt | pip install -r /dev/stdin && \
-    grep git+https:// requirements-dev.txt | pip install -r /dev/stdin ; \
+    pip install -r requirements-dev.txt; \
     else \
-    grep -v git+https:// requirements.txt | pip install -r /dev/stdin && \
-    grep git+https:// requirements.txt | pip install -r /dev/stdin ; \
+    pip install -r requirements.txt; \
     fi
 
 FROM dev

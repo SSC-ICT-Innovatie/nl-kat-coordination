@@ -5,9 +5,6 @@
     "version": null,
     "created": null,
     "description": "Use BinaryEdge to find open ports with vulnerabilities that are found on that port",
-    "environment_keys": [
-      "BINARYEDGE_API"
-    ],
     "enabled": true,
     "type": "boefje",
     "scan_level": 2,
@@ -33,7 +30,6 @@
     "version": null,
     "created": null,
     "description": "Scan SSL certificates of websites",
-    "environment_keys": [],
     "enabled": false,
     "type": "boefje",
     "scan_level": 1,
@@ -51,7 +47,6 @@
     "version": null,
     "created": null,
     "description": "Scan SSL/TLS versions of websites",
-    "environment_keys": [],
     "enabled": false,
     "type": "boefje",
     "scan_level": 2,
@@ -70,9 +65,6 @@
     "version": null,
     "created": null,
     "description": "Scan wordpress sites",
-    "environment_keys": [
-      "WP_SCAN_API"
-    ],
     "enabled": false,
     "type": "boefje",
     "scan_level": 2,
@@ -84,19 +76,5 @@
       "Finding",
       "CVEFindingType"
     ]
-  },
-  {
-    "id": "kat_binaryedge_containers",
-    "name": "test_binary_edge_normalizer",
-    "version": null,
-    "created": null,
-    "description": null,
-    "environment_keys": [],
-    "enabled": true,
-    "type": "normalizer",
-    "consumes": [
-      "binaryedge"
-    ],
-    "produces": []
   }
 ]

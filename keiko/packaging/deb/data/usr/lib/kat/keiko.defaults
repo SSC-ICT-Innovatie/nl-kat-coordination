@@ -1,5 +1,0 @@
-KEIKO_ASSETS_FOLDER=/etc/kat/keiko/assets
-KEIKO_GLOSSARIES_FOLDER=/etc/kat/keiko/glossaries
-KEIKO_LOG_CFG=/etc/kat/keiko.logging.json
-KEIKO_REPORTS_FOLDER=/var/lib/kat-keiko/reports
-KEIKO_TEMPLATES_FOLDER=/etc/kat/keiko/templates

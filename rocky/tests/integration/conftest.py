@@ -4,6 +4,8 @@ from ipaddress import ip_address
 
 import pytest
 from django.conf import settings
+from reports.runner.report_runner import LocalReportRunner
+from tools.models import Organization
 
 from octopoes.api.models import Declaration, Observation
 from octopoes.connector.octopoes import OctopoesAPIConnector
@@ -15,6 +17,7 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Networ
 from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, SecurityTXT, Website
+from rocky.health import ServiceHealth
 
 
 @pytest.fixture
@@ -23,10 +26,34 @@ def valid_time():
 
 
 @pytest.fixture
-def octopoes_api_connector(request) -> OctopoesAPIConnector:
+def katalogus_mock(mocker):
+    katalogus = mocker.patch("katalogus.client.KATalogusClient")
+    katalogus().health.return_value = ServiceHealth(service="katalogus", healthy=True)
+
+    return katalogus
+
+
+@pytest.fixture
+def integration_organization(katalogus_mock, mocker, request) -> Organization:
+    mocker.patch("rocky.signals.OctopoesAPIConnector")
+    mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
+    mocker.patch("crisis_room.management.commands.dashboards.get_bytes_client")
+
     test_node = f"test-{request.node.originalname}"
 
-    connector = OctopoesAPIConnector(settings.OCTOPOES_API, test_node)
+    return Organization.objects.create(name="Test", code=test_node)
+
+
+@pytest.fixture
+def integration_organization_2(request) -> Organization:
+    test_node = f"test-{request.node.originalname}-2"
+
+    return Organization.objects.create(name="Test 2", code=test_node)
+
+
+@pytest.fixture
+def octopoes_api_connector(integration_organization) -> OctopoesAPIConnector:
+    connector = OctopoesAPIConnector(settings.OCTOPOES_API, integration_organization.code)
 
     connector.create_node()
     yield connector
@@ -34,14 +61,17 @@ def octopoes_api_connector(request) -> OctopoesAPIConnector:
 
 
 @pytest.fixture
-def octopoes_api_connector_2(request) -> OctopoesAPIConnector:
-    test_node = f"test-{request.node.originalname}-2"
-
-    connector = OctopoesAPIConnector(settings.OCTOPOES_API, test_node)
+def octopoes_api_connector_2(integration_organization_2) -> OctopoesAPIConnector:
+    connector = OctopoesAPIConnector(settings.OCTOPOES_API, integration_organization_2.code)
 
     connector.create_node()
     yield connector
     connector.delete_node()
+
+
+@pytest.fixture
+def report_runner(valid_time, mocker) -> LocalReportRunner:
+    return LocalReportRunner(mocker.MagicMock(), valid_time)
 
 
 def seed_system(
@@ -214,5 +244,5 @@ def hostname_oois():
             name="example.com",
             dns_zone=Reference("DNSZone|test|example.com"),
             registered_domain=None,
-        )
+        ).reference
     ]

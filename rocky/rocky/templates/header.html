@@ -32,9 +32,14 @@
                                 <a href="{{ index_url }}"
                                    {% if index_url == request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Crisis room" %}</a>
                             </li>
+                            <li>
+                                {% url "all_task_list" as index_url %}
+                                <a href="{{ index_url }}"
+                                   {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Tasks" %}</a>
+                            </li>
                         {% else %}
                             <li>
-                                {% url "organization_crisis_room" organization.code as index_url %}
+                                {% url "organization_crisis_room_landing" organization.code as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url == request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Crisis room" %}</a>
                             </li>

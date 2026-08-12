@@ -43,14 +43,14 @@ def session_managed_iterator(service_factory: Callable[[Session], Any]) -> Itera
     try:
         yield service
     except Exception as error:
-        logger.exception("An error occurred: %s. Rolling back session", error)
+        logger.error("An error occurred: %s. Rolling back session", error)
         session.rollback()
         raise error
     finally:
-        logger.info("Closing session for %s", service.__class__)
+        logger.debug("Closing session for %s", service.__class__)
         session.close()
 
 
 class ObjectNotFoundException(Exception):
-    def __init__(self, cls: type | UnionType, **kwargs):  # type: ignore
+    def __init__(self, cls: type | UnionType, **kwargs):
         super().__init__(f"The object of type {cls} was not found for query parameters {kwargs}")

@@ -1,3 +1,2 @@
-from .boefje import BoefjeScheduler
-from .normalizer import NormalizerScheduler
 from .scheduler import Scheduler
+from .schedulers import BoefjeScheduler, NormalizerScheduler, ReportScheduler

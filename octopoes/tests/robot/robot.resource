@@ -17,8 +17,7 @@ ${QUEUE_URI}                        amqp://ci_user:ci_pass@localhost:29004/kat
 ${RABBIT_MQ_API_URI}                http://ci_user:ci_pass@localhost:29003/api
 ${VALID_TIME}                       2022-01-01T00:00:00+00:00
 
-${SCAN_PROFILE_INCREMENT_QUEUE}     _dev__scan_profile_increments
-${SCAN_PROFILE_MUTATION_QUEUE}      _dev__scan_profile_mutations
+${SCAN_PROFILE_MUTATION_QUEUE}      scan_profile_mutations
 
 
 *** Keywords ***
@@ -35,13 +34,15 @@ Declare Scan Profile
 Insert Observation
     [Arguments]    ${origin_file}
     ${norm_output_json}    Get File    ${origin_file}
-    ${response}    Post    ${OCTOPOES_URI}/observations    ${norm_output_json}
+    ${norm_output_dict}    Evaluate    json.loads('''${norm_output_json}''')    json
+    ${response}    Post    ${OCTOPOES_URI}/observations    json=${norm_output_dict}
     Should Be Equal As Integers    ${response.status_code}    200
 
 Insert Declaration
     [Arguments]    ${origin_file}
     ${norm_output_json}    Get File    ${origin_file}
-    ${response}    Post    ${OCTOPOES_URI}/declarations    ${norm_output_json}
+    ${norm_output_dict}    Evaluate    json.loads('''${norm_output_json}''')    json
+    ${response}    Post    ${OCTOPOES_URI}/declarations    json=${norm_output_dict}
     Should Be Equal As Integers    ${response.status_code}    200
 
 Insert Normalizer Output
@@ -73,7 +74,7 @@ Wait For XTDB Synced
 
 Get All Document Ids
     ${query}    Set Variable    {:query {:find [?e] :where [[?e :xt/id]]}}
-    ${headers}    Create Dictionary    Content-Type=application/edn    Accept=application/json
+    ${headers}    Create Dictionary    Content-Type=application/end    Accept=application/json
     ${response}    Post    ${XTDB_URI}/query    data=${query}    headers=${headers}
     ${rows}    Set Variable    ${response.json()}
     ${ids}    Create List
@@ -101,7 +102,6 @@ Setup Test
 Teardown Test
     Delete XTDB node
     Get Messages From Queue    octopoes    ack_requeue_false
-    Get Messages From Queue    ${SCAN_PROFILE_INCREMENT_QUEUE}    ack_requeue_false
     Get Messages From Queue    ${SCAN_PROFILE_MUTATION_QUEUE}    ack_requeue_false
     Stop Monitoring
 
@@ -121,6 +121,10 @@ Get Objects
 Get Valid Time Params
     ${valid_time_params}    Create Dictionary    valid_time=${VALID_TIME}
     RETURN    ${valid_time_params}
+
+Get Sync Params
+    ${sync_params}    Create Dictionary    sync=true
+    RETURN    ${sync_params}
 
 Await Tasks Done
     Wait Until Keyword Succeeds    1 min    200ms    Task Type Empty    SENT

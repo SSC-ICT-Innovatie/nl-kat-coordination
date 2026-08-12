@@ -1,9 +1,13 @@
 {
   "id": "CVE-2023-34039",
-  "name": "CVE_2023_34039",
-  "description": "Check to see if known keys are usable on VMware CVE-2023-34039",
+  "name": "CVE-2023-34039 - VMware Aria Operations",
+  "description": "Checks if there are static SSH keys present that can be used for remote code execution on VWware Aria Operations (CVE-2023-34039). This vulnerability can be used to bypass SSH authentication and gain access to the Aria Operations for Networks CLI.",
   "consumes": [
     "IPService"
   ],
-  "scan_level": 4
+  "scan_level": 4,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_cve_2023_34039.main"
+  ]
 }

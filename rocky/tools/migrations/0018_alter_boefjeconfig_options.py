@@ -4,13 +4,11 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0017_alter_organizationmember_foreignkey"),
-    ]
+    dependencies = [("tools", "0017_alter_organizationmember_foreignkey")]
 
     operations = [
         migrations.AlterModelOptions(
             name="boefjeconfig",
             options={"permissions": [("can_enable_disable_boefje", "Can enable or disable boefje")]},
-        ),
+        )
     ]

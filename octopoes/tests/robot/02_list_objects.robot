@@ -17,6 +17,11 @@ List Objects With Filter
     Await Sync
     Verify Object List With Filter
 
+List Objects With SearchString
+    Insert Normalizer Output
+    Await Sync
+    Verify Object List With SearchString
+
 List Random Objects With Filter
     Insert Normalizer Output
     Await Sync
@@ -43,6 +48,17 @@ Verify Object List With Filter
 
 Get Objects With ScanLevel 0
     ${params}    Create Dictionary    scan_level=0    valid_time=${VALID_TIME}
+    ${response}    Get    ${OCTOPOES_URI}/objects    params=${params}
+    ${response_data}    Set Variable    ${response.json()}
+    Should Be Equal As Integers    ${response.status_code}    200
+    RETURN    ${response_data}
+
+Verify Object List With SearchString
+    ${response_data}    Get Objects With SearchString example.com
+    Should Be Equal    ${response_data["count"]}    ${4}
+
+Get Objects With SearchString example.com
+    ${params}    Create Dictionary    search_string=example.com    valid_time=${VALID_TIME}
     ${response}    Get    ${OCTOPOES_URI}/objects    params=${params}
     ${response_data}    Set Variable    ${response.json()}
     Should Be Equal As Integers    ${response.status_code}    200

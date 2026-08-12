@@ -1,5 +1,13 @@
+.modal-wrapper {
+  position: fixed;
+}
+
+.modal-wrapper:not(:has(dialog[open])) {
+  display: none;
+}
+
 dialog {
-  border: 1px solid var(--colors-grey-4);
+  border: 1px solid var(--colors-grey-200);
   border-radius: 8px;
   max-height: calc(100vh - 3rem);
   padding: 0;
@@ -21,7 +29,7 @@ dialog {
   }
 
   &.dialog-medium {
-    width: 50rem;
+    width: 40rem;
   }
 
   &.dialog-large {
@@ -37,18 +45,20 @@ dialog {
     flex-direction: column;
     max-height: inherit;
     position: relative;
+    gap: 0;
 
     .header {
-      padding: 1.5rem;
+      padding: var(--spacing-grid-300);
       display: flex;
       justify-content: space-between;
       flex-direction: row;
-      border-bottom: 1px solid var(--colors-grey-4);
+      border-bottom: 1px solid var(--colors-grey-200);
       position: sticky;
       background-color: white;
       top: 0;
       left: 0;
       right: 0;
+      gap: var(--spacing-grid-400);
 
       button {
         margin-right: -1.5rem;
@@ -60,19 +70,29 @@ dialog {
     }
 
     .content {
-      padding: 1.5rem;
+      padding: var(--spacing-grid-400) var(--spacing-grid-300);
       flex-grow: 1;
       overflow: auto;
+      gap: var(--spacing-grid-400);
+
+      > section {
+        gap: var(--spacing-grid-300);
+
+        > div {
+          gap: var(--spacing-grid-100);
+        }
+      }
     }
 
     .footer {
-      padding: 1.5rem;
-      border-top: 1px solid var(--colors-grey-4);
+      padding: var(--spacing-grid-300);
+      border-top: 1px solid var(--colors-grey-200);
       position: sticky;
       background-color: white;
       bottom: 0;
       left: 0;
       right: 0;
+      gap: var(--spacing-grid-400);
 
       .toolbar {
         justify-content: flex-start;

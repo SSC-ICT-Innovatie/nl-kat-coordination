@@ -14,35 +14,35 @@ on:
       - ".github/workflows/build-debian-docker-image.yml"
 
 env:
-  REGISTRY: ghcr.io
+  REGISTRY: docker.underdark.nl
 
 jobs:
   build-debian-image:
     strategy:
       matrix:
-        dist: [debian12, ubuntu22.04]
-    runs-on: ubuntu-latest
+        dist: [debian12, debian13, ubuntu22.04, ubuntu24.04]
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Log in to the Container registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.underdark.nl
+          username: ${{ secrets.librekat_user }}
+          password: ${{ secrets.librekat_password }}
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@879dcbb708d40f8b8679d4f7941b938a086e23a7
+        uses: docker/metadata-action@80c7e94dd9b9319bd5eb7a0e0fe9291e23a2a2e9 # v6.1.0
         with:
           images: |
-            ghcr.io/${{ github.repository_owner }}/nl-kat-${{ matrix.dist }}-build-image
+            docker.underdark.nl/librekat/openkat-${{ matrix.dist }}-build-image
           tags: |
             type=ref,event=branch
             type=ref,event=tag
@@ -51,7 +51,7 @@ jobs:
             type=sha
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@f9f3042f7e2789586610d6e8b85c8f03e5195baf # v7.2.0
         with:
           context: ./packaging/${{ matrix.dist }}
           push: true

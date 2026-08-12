@@ -18,7 +18,7 @@ class DNSReport(Report):
     id = "dns-report"
     name = _("DNS Report")
     description = _("DNS reports focus on domain name system configuration and potential weaknesses.")
-    plugins = {"required": ["dns-records", "dns-sec"], "optional": ["dns-zone"]}
+    plugins = {"required": {"dns-records", "dns-sec"}, "optional": {"dns-zone"}}
     input_ooi_types = {Hostname}
     template_path = "dns_report/report.html"
 
@@ -35,7 +35,7 @@ class DNSReport(Report):
         for ooi_type, ooi in findings_tree.items():
             if isinstance(ooi, Finding):
                 for check in ["caa", "dkim", "dmarc", "dnssec", "spf"]:
-                    if "NO-%s" % check.upper() in ooi.finding_type.tokenized.id:
+                    if f"NO-{check.upper()}" in ooi.finding_type.tokenized.id:
                         security[check] = False
                 if ooi.finding_type.tokenized.id == "KAT-INVALID-SPF":
                     security["spf"] = False

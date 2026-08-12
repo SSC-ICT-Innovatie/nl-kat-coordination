@@ -1,0 +1,86 @@
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/categories.json"
+output = "categories.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/groups.json"
+output = "groups.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/_.json"
+output = "technologies/_.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/a.json"
+output = "technologies/a.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/b.json"
+output = "technologies/b.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/c.json"
+output = "technologies/c.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/d.json"
+output = "technologies/d.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/e.json"
+output = "technologies/e.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/f.json"
+output = "technologies/f.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/g.json"
+output = "technologies/g.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/h.json"
+output = "technologies/h.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/i.json"
+output = "technologies/i.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/j.json"
+output = "technologies/j.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/k.json"
+output = "technologies/k.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/l.json"
+output = "technologies/l.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/m.json"
+output = "technologies/m.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/n.json"
+output = "technologies/n.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/o.json"
+output = "technologies/o.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/p.json"
+output = "technologies/p.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/q.json"
+output = "technologies/q.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/r.json"
+output = "technologies/r.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/s.json"
+output = "technologies/s.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/t.json"
+output = "technologies/t.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/u.json"
+output = "technologies/u.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/v.json"
+output = "technologies/v.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/w.json"
+output = "technologies/w.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/x.json"
+output = "technologies/x.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/y.json"
+output = "technologies/y.json"
+
+url = "https://raw.githubusercontent.com/enthec/webappanalyzer/refs/heads/main/src/technologies/z.json"
+output = "technologies/z.json"

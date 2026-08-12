@@ -45,9 +45,7 @@ function loadform(className) {
     let form = schemafield.closest("form");
     form.addEventListener("submit", (event) => {
       event.preventDefault();
-      schemafield.innerHTML = JSON.stringify(
-        form2json(form, schema, identifier),
-      );
+      schemafield.value = JSON.stringify(form2json(form, schema, identifier));
       form.submit();
     });
   });

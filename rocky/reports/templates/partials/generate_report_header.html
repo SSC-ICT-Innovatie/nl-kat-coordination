@@ -1,0 +1,14 @@
+{% load i18n %}
+
+<div>
+    <h1>{% translate "Generate report" %}</h1>
+    <p>
+        {% if "aggregate-report" in request.get_full_path %}
+            {% translate "To generate an aggregate report, complete the following steps." %}
+        {% elif "multi-report" in request.get_full_path %}
+            {% translate "To generate a multi report, complete the following steps." %}
+        {% else %}
+            {% translate "To generate separate report(s), complete the following steps." %}
+        {% endif %}
+    </p>
+</div>

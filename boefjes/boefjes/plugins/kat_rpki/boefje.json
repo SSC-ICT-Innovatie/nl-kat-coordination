@@ -1,10 +1,14 @@
 {
   "id": "rpki",
   "name": "RPKI",
-  "description": "Check if an IPv4 or IPv6 address has a valid VRPS record.",
+  "description": "Check BGP announcements to see if an IPv4 or IPv6 address has Validated ROA Payload (VRPs).",
   "consumes": [
     "IPAddressV4",
     "IPAddressV6"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_rpki.main"
+  ]
 }

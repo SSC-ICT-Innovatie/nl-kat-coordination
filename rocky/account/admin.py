@@ -10,26 +10,16 @@ User = get_user_model()
 
 @admin.register(User)
 class KATUserAdmin(UserAdmin):
-    model = User
-    list_display = (
-        "email",
-        "is_staff",
-        "is_active",
-    )
+    list_display = ("email", "is_staff", "is_active")
     fieldsets = (
         (None, {"fields": ("email", "password", "full_name")}),
-        (_("Permissions"), {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
+        (
+            _("Permissions"),
+            {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions", "clearance_level")},
+        ),
         (_("Important dates"), {"fields": ("last_login", "date_joined")}),
     )
-    add_fieldsets = (
-        (
-            None,
-            {
-                "classes": ("wide",),
-                "fields": ("email", "password1", "password2", "is_staff"),
-            },
-        ),
-    )
+    add_fieldsets = ((None, {"classes": ("wide",), "fields": ("email", "password1", "password2", "is_staff")}),)
     search_fields = ("email",)
     ordering = ("email",)
 

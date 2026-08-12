@@ -15,14 +15,16 @@ on:
 
 jobs:
   build-packages:
+    permissions:
+      contents: read
     strategy:
       matrix:
-        dist: [ubuntu]
-        package: [bytes, boefjes, rocky, keiko, octopoes, mula]
+        dist: [ubuntu22.04, ubuntu24.04]
+        package: [bytes, boefjes, rocky, octopoes, mula]
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get version from release tag or generate one
         run: |
@@ -34,13 +36,13 @@ jobs:
           fi
 
       - name: Run debian package build
-        uses: addnab/docker-run-action@v3
+        uses: maus007/docker-run-action-fork@5ddaad0f7eedd03f64e412b1931852bd3031b273
         with:
           run: packaging/scripts/build-debian-package.sh
-          registry: ghcr.io
-          image: ghcr.io/minvws/nl-kat-${{ matrix.dist }}-build-image:latest
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.underdark.nl
+          image: docker.underdark.nl/librekat/openkat-${{ matrix.dist }}-build-image:latest
+          username: ${{ secrets.librekat_user }}
+          password: ${{ secrets.librekat_password }}
           options: -v ${{ github.workspace }}/${{ matrix.package }}:/app
             -v ${{ github.workspace }}/octopoes:/octopoes
             -e REPOSITORY=${{ github.repository }}
@@ -50,24 +52,26 @@ jobs:
             --workdir /app
 
       - name: Upload .deb to artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
           path: ${{ matrix.package }}/build/kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_amd64.deb
 
   test-deb-install:
+    permissions:
+      contents: read
     needs: build-packages
     runs-on: ${{ matrix.os }}
 
     strategy:
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
 
     env:
       PGPASSWORD: postgres # No password prompt
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get version from release tag or generate one
         run: |
@@ -77,6 +81,9 @@ jobs:
             pip install setuptools-scm==7.1.0
             echo "RELEASE_VERSION=$(python -m setuptools_scm)" >> $GITHUB_ENV
           fi
+
+      - name: Set distro name (match build matrix.dist)
+        run: echo "DIST_NAME=${{ matrix.os }}" | sed 's/-//' >> $GITHUB_ENV
 
       - name: Install dependencies Docker and rabbitmq
         run: sudo apt-get update && sudo apt-get install -y docker.io containerd runc rabbitmq-server postgresql
@@ -108,6 +115,7 @@ jobs:
           sudo -u postgres createuser rocky
           sudo -u postgres psql -c "GRANT ALL ON DATABASE rocky_db TO rocky;"
           sudo -u postgres psql -c "ALTER USER rocky WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d rocky_db -c "GRANT ALL ON SCHEMA public TO rocky;"
 
       - name: Prepare postgres service Katalogus
         run: |
@@ -115,6 +123,7 @@ jobs:
           sudo -u postgres createuser katalogus
           sudo -u postgres psql -c "GRANT ALL ON DATABASE katalogus_db TO katalogus;"
           sudo -u postgres psql -c "ALTER USER katalogus WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d katalogus_db -c "GRANT ALL ON SCHEMA public TO katalogus;"
 
       - name: Prepare postgres service Bytes
         run: |
@@ -122,6 +131,7 @@ jobs:
           sudo -u postgres createuser bytes
           sudo -u postgres psql -c "GRANT ALL ON DATABASE bytes_db TO bytes;"
           sudo -u postgres psql -c "ALTER USER bytes WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d bytes_db -c "GRANT ALL ON SCHEMA public TO bytes;"
 
       - name: Prepare postgres service Mula
         run: |
@@ -129,6 +139,7 @@ jobs:
           sudo -u postgres createuser mula
           sudo -u postgres psql -c "GRANT ALL ON DATABASE mula_db TO mula;"
           sudo -u postgres psql -c "ALTER USER mula WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d mula_db -c "GRANT ALL ON SCHEMA public TO mula;"
 
       - name: Wait until rabbitmq is healthy
         run: |
@@ -141,42 +152,37 @@ jobs:
           sudo rabbitmqctl set_permissions -p "kat" "kat" ".*" ".*" ".*"
 
       - name: Download Bytes artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: kat-bytes_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-bytes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Boefjes artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: kat-boefjes_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-boefjes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Rocky artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: kat-rocky_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-rocky_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Mula artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: kat-mula_${{ env.RELEASE_VERSION }}_ubuntu.deb
-
-      - name: Download Keiko artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: kat-keiko_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-mula_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Download Octopoes artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          name: kat-octopoes_${{ env.RELEASE_VERSION }}_ubuntu.deb
+          name: kat-octopoes_${{ env.RELEASE_VERSION }}_${{ env.DIST_NAME }}.deb
 
       - name: Get the OpenKAT artifacts
         run: |
-          curl -Ls https://github.com/dekkers/xtdb-http-multinode/releases/download/v1.0.6/xtdb-http-multinode_1.0.6_all.deb --output xtdb-http-multinode_1.0.6_all.deb;
+          curl -Ls https://github.com/underdarknl/xtdb-http-multinode/releases/download/v1.1.2/xtdb-http-multinode_1.1.2_all.deb --output xtdb-http-multinode.deb;
 
       - name: Install the artifacts
         run: |
-          sudo apt install ./kat-*.deb ./xtdb-http-multinode_*_all.deb
+          sudo apt install ./kat-*.deb ./xtdb-http-multinode.deb
 
       - name: Update configs for rabbitmq
         run: |
@@ -213,17 +219,12 @@ jobs:
           sudo sed -i "s/BYTES_PASSWORD=\$/BYTES_PASSWORD=$(sudo grep BYTES_PASSWORD /etc/kat/bytes.conf | awk -F'=' '{ print $2 }')/" /etc/kat/mula.conf
 
       - name: Restart KAT
-        run: sudo systemctl restart kat-rocky kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-keiko kat-octopoes kat-octopoes-worker
+        run: sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker kat-octopoes-scanlevels
 
       - name: Setup accounts in Rocky
         run: |
           DJANGO_SUPERUSER_PASSWORD=robotpassword sudo -E -u kat rocky-cli createsuperuser --noinput --email robot@localhost --full_name "Mr. Robot"
           sudo -u kat rocky-cli setup_dev_account
-
-      - name: Check Keiko API health or print response and logs
-        run: |
-          for i in {1..15}; do curl -s http://localhost:8005/health | jq .healthy | grep true -q && s=0 && break || s=$? && sleep 1 ; done
-          if [ $s != 0 ]; then echo $(curl -v http://localhost:8005/health) || true && journalctl --no-pager -u kat-keiko.service && exit $s ; fi
 
       - name: Check Bytes API health or print response and logs
         run: |
@@ -253,10 +254,10 @@ jobs:
           for i in {1..15}; do curl -s http://localhost:8001/_dev/health | jq .healthy | grep true -q && s=0 && break || s=$? && sleep 1 ; done
           if [ $s != 0 ]; then echo $(curl -v http://localhost:8001/_dev/health) || true && journalctl --no-pager -u kat-octopoes.service && exit $s ; fi
 
-      - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+      - name: Set up Python 3.13
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: "3.10"
+          python-version: "3.13"
           cache: pip
 
       - name: Install Robot Framework
@@ -269,7 +270,7 @@ jobs:
         run: robot -d rocky/tests/robot/results-ci -v headless:true rocky/tests/robot/ci
 
       - name: Upload Robot Framework reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: rf-results-ci

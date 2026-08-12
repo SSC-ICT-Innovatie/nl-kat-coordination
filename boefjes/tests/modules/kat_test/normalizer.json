@@ -1,0 +1,9 @@
+{
+  "id": "kat_test_normalize",
+  "name": "Test normalizer",
+  "description": "Testing KAT",
+  "consumes": [
+    "text/html"
+  ],
+  "produces": []
+}

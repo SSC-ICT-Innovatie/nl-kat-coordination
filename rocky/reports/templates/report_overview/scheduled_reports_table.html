@@ -1,0 +1,165 @@
+{% load i18n %}
+{% load static %}
+{% load ooi_extra %}
+{% load report_extra %}
+{% load component_tags %}
+
+{% if scheduled_reports %}
+    <p class="de-emphasized">
+        {% blocktranslate with length=scheduled_reports|length total=total_report_schedules trimmed %}
+            Showing {{ length }} of {{ total }} schedules
+        {% endblocktranslate %}
+    </p>
+    <div class="horizontal-scroll sticky-column">
+        <table>
+            <caption class="visually-hidden">{% translate "Scheduled reports:" %}</caption>
+            <thead>
+                <tr>
+                    <th scope="col">{% translate "Name" %}</th>
+                    <th scope="col">{% translate "Report type" %}</th>
+                    <th scope="col">{% translate "Scheduled for" %}</th>
+                    <th scope="col">{% translate "Recurrence" %}</th>
+                    <th class="nowrap" scope="col">{% translate "Schedule status" %}</th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for schedule in scheduled_reports %}
+                    {% if schedule.recipe %}
+                        <tr>
+                            <td>{{ schedule.recipe.report_name_format }}</td>
+                            <td>
+                                <ul class="tags horizontal-view">
+                                    {% if schedule.recipe.report_type == "aggregate-organisation-report" %}
+                                        <li>
+                                            <span class="label tags-color-{{ schedule.recipe.report_type|get_report_type_label_style }}">
+                                            {{ schedule.recipe.report_type|get_report_type_name }}</span>
+                                        </li>
+                                    {% else %}
+                                        {% for report_type in schedule.recipe.asset_report_types %}
+                                            {% if forloop.counter0 < 2 %}
+                                                <li>
+                                                    <span class="label tags-color-{{ report_type|get_report_type_label_style }}">{{ report_type|get_report_type_name }}</span>
+                                                </li>
+                                            {% endif %}
+                                            {% if forloop.counter0 == 2 %}
+                                                <li class="label tags-color-grey-2">+ {{ schedule.recipe.asset_report_types|length|add:"-2" }}</li>
+                                            {% endif %}
+                                        {% endfor %}
+                                    {% endif %}
+                                </ul>
+                            </td>
+                            <td class="nowrap">{{ schedule.deadline_at }}</td>
+                            <td>
+                                {% if schedule.cron is None %}
+                                    {% translate "Once" %}
+                                {% else %}
+                                    {{ schedule.cron|get_cron_description }}
+                                {% endif %}
+                            </td>
+                            <td class="nowrap">
+                                {% if schedule.enabled %}
+                                    <span class="label system-tag color-2">{% translate "Enabled" %}</span>
+                                {% else %}
+                                    <span class="label system-tag color-3">{% translate "Disabled" %}</span>
+                                {% endif %}
+                            </td>
+                            <td class="nowrap actions sticky-cell">
+                                <button class="expando-button"
+                                        data-icon-open-class="icon ti-chevron-down"
+                                        data-icon-close-class="icon ti-chevron-up"
+                                        data-close-label="{% translate "Close details" %}">
+                                    {% translate "Open details" %}
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="expando-row">
+                            <td colspan="6">
+                                {% if schedule.reports %}
+                                    <h5>{% translate "Recent reports" %}</h5>
+                                    <table>
+                                        <caption class="visually-hidden">{% translate "Scheduled Reports:" %}</caption>
+                                        <thead>
+                                            <tr>
+                                                <th scope="col" class="nowrap">{% translate "Name" %}</th>
+                                                <th scope="col">{% translate "Input objects" %}</th>
+                                                <th scope="col" class="nowrap">{% translate "Reference date" %}</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for report in schedule.reports %}
+                                                <tr>
+                                                    <td>
+                                                        {% if report.input_oois|length == 1 %}
+                                                            <a href="{% url "view_report" organization.code %}?asset_report_id={{ report.input_oois.0.reference }}&observed_at={{ report.input_oois.0.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                               title="{% translate "Show report details" %}">{{ report.input_oois.0.name }}</a>
+                                                        {% else %}
+                                                            <a href="{% url "view_report" organization.code %}?report_id={{ report.reference }}&observed_at={{ report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                               title="{% translate "Show report details" %}">{{ report.name }}</a>
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if report.input_oois|length == 1 or schedule.recipe.input_recipe.input_oois|length == 1 %}
+                                                            {% with ooi=report.input_oois.0 %}
+                                                                <a href="{% ooi_url 'ooi_detail' ooi organization.code query=ooi.mandatory_fields %}">{{ ooi|human_readable }}</a>
+                                                            {% endwith %}
+                                                        {% else %}
+                                                            {{ schedule.total_oois }} {% translate "objects" %}
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>{{ report.reference_date|date }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% endif %}
+                                <div class="horizontal-view toolbar">
+                                    <div class="button-container">
+                                        {% if schedule.enabled %}
+                                            <a class="button ghost"
+                                               href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
+                                            {% if perms.tools.can_enable_disable_schedule %}
+                                                <a class="button ghost destructive"
+                                                   href="#disable-schedule-modal-{{ schedule.recipe.recipe_id }}">{% translate "Disable schedule" %}</a>
+                                                {% include "report_overview/modal_partials/enable_disable_schedule_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
+
+                                            {% endif %}
+                                        {% else %}
+                                            {% if perms.tools.can_enable_disable_schedule %}
+                                                <form class="inline"
+                                                      method="post"
+                                                      action="{% url "enable_disable_scheduled_reports" organization.code %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden"
+                                                           name="recipe_id"
+                                                           value="{{ schedule.recipe.recipe_id }}" />
+                                                    <input type="hidden"
+                                                           name="report_name_format"
+                                                           value="{{ schedule.recipe.report_name_format }}" />
+                                                    <button type="submit">{% translate "Enable schedule" %}</button>
+                                                </form>
+                                            {% endif %}
+                                            <a class="button ghost"
+                                               href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
+                                        {% endif %}
+                                        {% if perms.tools.can_enable_disable_schedule %}
+                                            <a class="button ghost destructive"
+                                               href="#delete-recipe-modal-{{ schedule.recipe.recipe_id }}">{% translate "Delete" %}</a>
+                                            {% include "report_schedules/delete_recipe_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
+
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <p>{% translate "No scheduled reports have been generated yet." %}</p>
+{% endif %}
+{% block html_at_end_body %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+{% endblock html_at_end_body %}

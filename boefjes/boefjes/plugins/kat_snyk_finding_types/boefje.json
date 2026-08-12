@@ -1,10 +1,14 @@
 {
   "id": "snyk-finding-types",
   "name": "SNYK Finding Types",
-  "description": "Hydrate information of SNYK finding types",
+  "description": "Hydrate information of SNYK finding types.",
   "consumes": [
     "SnykFindingType"
   ],
   "scan_level": 0,
-  "enabled": true
+  "enabled": true,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_snyk_finding_types.main"
+  ]
 }

@@ -1,9 +1,13 @@
 {
   "id": "certificate-search",
   "name": "CRT",
-  "description": "Certificate search",
+  "description": "Searches for certificates and new hostnames in the transparency logs of crt.sh.",
   "consumes": [
     "DNSZone"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_crt_sh.main"
+  ]
 }

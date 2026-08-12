@@ -4,6 +4,7 @@
   justify-content: flex-end;
   align-items: center;
   width: 100%;
+  overflow: visible; /* Making sure outline is visible on focus */
 
   &.start {
     justify-content: flex-start;

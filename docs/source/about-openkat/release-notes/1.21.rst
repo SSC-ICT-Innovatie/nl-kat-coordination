@@ -1,0 +1,71 @@
+============================================
+OpenKAT 1.21 - Lapjeskat
+============================================
+
+In this release we have primarily focussed on patching dependencies, and fixing all issues related to our move from MinVWS to SSC-ICT-Innovatie.
+Our last release from MinVWS was 1.20 In august, and since then many of our dependencies required patching, either because of security issues (so we do strongly recommend upgrading),
+or because of other general improvements. The move from one Github Repository, while being gracefully supported on both sides, did still create a series of issues regarding naming, container storage.
+While we have finished all those steps, it would be great to make those naming issues disappear altogether by making them dynamic. This would allow other forks of OpenKAT to also seamlessly build packages
+and containers, which in turn makes it easier to collaborate and keep in sync with others (and this repo).
+Besides these changes, we have also included a new docker container that sets up a local (automatically updating) CVE api. This services makes sure you never leak any discovered CVEs from your assets to an outside party or even continent.
+Work on a Performance release, addressing many of the localized issues is well underway and will be released as 1.22 soon.
+
+New Features
+============
+
+* Fix backup and restore scripts for cross-platform support and correctness by @hasecon in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/5013
+* Remove url input for `kat_nuclei_cve`, It was adding no value over scanning the website/host by @ammar92 in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4761
+* Rewrite user manual by @madelondohmen in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4752
+* Support multiple ROAs in RPKI boefjes by @dekkers in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4780
+* Move to prek for precommit checks by @underdarknl in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/5003
+
+Bug fixes
+=========
+
+* Dont crash on worker threads that have no PID, when reporting on stopped workers. by @underdarknl in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4803
+* Fix command substitution syntax in systemd service files by @underdarknl in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/5022
+* Pass katalogus settings to containerized boefjes and add local CVE API by @hasecon in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/5017
+* Fix observed_at in dashboard items and modal error handling by @madelondohmen in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4770
+* Fix styling issues by @stephanie0x00 in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4584
+* Fix DKIM false positives by reverting PR 3997 by @dekkers in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4775
+* Fix HTTPError handling in Octopoes connector by @dekkers in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4793
+* Fix DNSSEC boefje for CNAME / AAAA records by @dekkers in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4767
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+There is a migration script available in the scripts folder named 'migrate-openkat.sh' which will migrate any data on your system from the older docker volumes into the new volumes required by the new openkat packages.
+More in depth details can be found in its documentation.
+https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/blob/main/scripts/migrate.md
+
+!! Be sure to use the backup option and dry-run options before attempting a full migration. !!
+
+Boefje container images
+-----------------------
+
+The boefje container images of 1.20 are still hosted by MinVWS, and as such can still be reached on their original URIs.
+They are also compatible, but might miss out on some dependency upgrades. To upgrade to the new container registry their urls need to be changed in the katalogus database.
+Docker will then subsequently download the new images. Older images can be deleted by telling docker to do so using a command similar to the one below.
+
+.. code-block:: sh
+
+    docker images | grep 'ghcr.io/minvws/openkat' | awk '{print $3}' | xargs -r docker rmi
+    # optionally remove dangling layers to free up disk-space
+    docker image prune -f
+
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/compare/v1.20.1...v1.21.0>`_.
+
+New Contributors
+================
+
+* @reinschaap made their first contribution in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4937
+* @cookiemonster made their first contribution in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4938
+* @hasecon made their first contribution in https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/4960

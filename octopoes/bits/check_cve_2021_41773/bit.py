@@ -1,5 +1,5 @@
 from bits.definitions import BitDefinition
-from octopoes.models.types import HTTPHeader
+from octopoes.models.ooi.web import HTTPHeader
 
 BIT = BitDefinition(
     id="check_cve_2021_41773",

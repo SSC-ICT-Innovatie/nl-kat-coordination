@@ -4,14 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0011_job_input_ooi"),
-    ]
+    dependencies = [("tools", "0011_job_input_ooi")]
 
-    operations = [
-        migrations.RenameField(
-            model_name="job",
-            old_name="module",
-            new_name="boefje_name",
-        ),
-    ]
+    operations = [migrations.RenameField(model_name="job", old_name="module", new_name="boefje_name")]

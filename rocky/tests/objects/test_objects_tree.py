@@ -1,6 +1,9 @@
+from unittest.mock import ANY, call
+
 from django.urls import resolve, reverse
 from pytest_django.asserts import assertContains
 
+from octopoes.models import Reference
 from octopoes.models.tree import ReferenceTree
 from rocky.views.ooi_tree import OOITreeView
 from tests.conftest import setup_request
@@ -11,11 +14,7 @@ TREE_DATA = {
         "children": {"ooi": [{"reference": "Network|testnetwork", "children": {}}]},
     },
     "store": {
-        "Network|testnetwork": {
-            "object_type": "Network",
-            "primary_key": "Network|testnetwork",
-            "name": "testnetwork",
-        },
+        "Network|testnetwork": {"object_type": "Network", "primary_key": "Network|testnetwork", "name": "testnetwork"},
         "Finding|Network|testnetwork|KAT-000": {
             "object_type": "Finding",
             "primary_key": "Finding|Network|testnetwork|KAT-000",
@@ -34,7 +33,13 @@ def test_ooi_tree(rf, client_member, mock_organization_view_octopoes):
     response = OOITreeView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().get_tree.call_count == 1
+    mock_organization_view_octopoes().get_tree.assert_has_calls(
+        [
+            call(Reference("Network|testnetwork"), valid_time=ANY, depth=2, with_scan_profiles=True, types=[]),
+            call(Reference("Network|testnetwork"), valid_time=ANY, depth=9, with_scan_profiles=False, types=[]),
+        ]
+    )
+
     assertContains(response, "testnetwork")
     assertContains(response, "KAT-000")
 

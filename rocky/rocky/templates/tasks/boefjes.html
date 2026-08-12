@@ -9,68 +9,102 @@
 
     <main id="main-content">
         <section>
-            <div>
-                {% include "tasks/partials/tab_navigation.html" with view="boefjes_tasks" %}
+            {% include "tasks/partials/tasks_overview_header.html" %}
+            {% include "tasks/partials/tab_navigation.html" with view="boefjes_tasks" %}
 
-                <h1>{% translate "Boefjes" %}</h1>
-                {% if not task_list %}
-                    <p class="emphasized">{% translate "There are no tasks for boefjes" %}</p>
+            {% if not task_list %}
+                <div>
+                    <h2>{% translate "Boefjes" %}</h2>
+                    <p>{% translate "There are no tasks for boefjes." %}</p>
+                </div>
+                {% include "tasks/partials/task_filter.html" %}
+
+            {% else %}
+                <div>
+                    <h2>{% translate "Boefjes" %}</h2>
+                    <p>{% translate "List of tasks for boefjes." %}</p>
+                </div>
+                <div class="horizontal-scroll sticky-column">
                     {% include "tasks/partials/task_filter.html" %}
 
-                {% else %}
-                    <p class="emphasized">{% translate "List of tasks for boefjes" %}</p>
-                    {% include "tasks/partials/task_filter.html" %}
-
-                    <div class="horizontal-scroll">
-                        <table rf-selector="table-scan-history">
-                            <thead>
-                                <tr>
-                                    <th scope="col">{% translate "Boefje" %}</th>
-                                    <th scope="col">{% translate "Status" %}</th>
-                                    <th scope="col">{% translate "Created date" %}</th>
-                                    <th scope="col">{% translate "Input Object" %}</th>
-                                    <th scope="col" class="visually-hidden">{% translate "Details" %}</th>
+                    <table rf-selector="table-scan-history" class="nowrap">
+                        <thead>
+                            <tr>
+                                {% if not organization.code %}
+                                    <th scope="col">{% translate "Organization Code" %}</th>
+                                {% endif %}
+                                <th scope="col">{% translate "Boefje" %}</th>
+                                <th scope="col">{% translate "Status" %}</th>
+                                <th scope="col">{% translate "Created date" %}</th>
+                                <th scope="col">{% translate "Modified date" %}</th>
+                                <th scope="col">{% translate "Input Object" %}</th>
+                                <th scope="col" class="visually-hidden actions">{% translate "Details" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in task_list %}
+                                <tr data-task-id="{{ task.id }}"
+                                    data-task-type="{{ task.type }}"
+                                    data-task-status="{{ task.status.value }}"
+                                    {% if not organization %}data-organization-code="{{ task.data.organization }}"{% endif %}>
+                                    {% if not organization.code %}
+                                        <td>
+                                            <a href="{% url "organization_crisis_room_landing" task.data.organization %}">{{ task.data.organization }}</a>
+                                        </td>
+                                    {% endif %}
+                                    <td>
+                                        <a href="{{ request.path }}?plugin_id={{ task.data.boefje.id }}"
+                                           title="{% translate "Filter on this plugin" %}"><i class="icon filter"></i></a>
+                                        <a href="{{ request.path }}{% querystring plugin_id=task.data.boefje.id %}"
+                                           title="{% translate "Add filter on this plugin" %}"><i class="icon filteradd"></i></a>
+                                        <a href="{% url "boefje_detail" task.data.organization task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
+                                    </td>
+                                    <td>
+                                        <i class="icon {{ task.status.value }}"></i>
+                                        <a href="{{ request.path }}?status={{ task.status.value }}"
+                                           title="{% translate "Filter on this status" %}">{{ task.status.value|capfirst }}</a>
+                                        <a href="{{ request.path }}{% querystring status=task.status.value %}"
+                                           title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                    </td>
+                                    <td>{{ task.created_at }}</td>
+                                    <td>{{ task.modified_at }}</td>
+                                    <td>
+                                        <a href="{{ request.path }}?ooi_id={{ task.data.input_ooi }}"
+                                           title="{% translate "Filter on this ooi" %}"><i class="icon filter"></i></a>
+                                        <a href="{{ request.path }}{% querystring ooi_id=task.data.input_ooi %}"
+                                           title="{% translate "Add filter on this ooi" %}"><i class="icon filteradd"></i></a>
+                                        <a href="{% ooi_url "ooi_detail" task.data.input_ooi task.data.organization observed_at=task.created_at|date:'c' %}">{{ task.data.input_ooi }}</a>
+                                    </td>
+                                    <td class="actions sticky-cell">
+                                        <button type="button"
+                                                class="expando-button boefjes-task-list-table-row"
+                                                data-icon-open-class="icon ti-chevron-down"
+                                                data-icon-close-class="icon ti-chevron-up"
+                                                data-close-label="{% translate "Close details" %}">
+                                            {% translate "Open details" %}
+                                        </button>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                {% for task in task_list %}
-                                    <tr data-task-id="{{ task.id }}">
-                                        <td>
-                                            <a href="{% url "boefje_detail" organization.code task.data.boefje.id %}">{{ task.data.boefje.name }}</a>
-                                        </td>
-                                        <td class="nowrap">
-                                            <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.value|capfirst }}
-                                        </td>
-                                        <td>{{ task.created_at }}</td>
-                                        <td>
-                                            <a href="{% ooi_url "ooi_detail" task.data.input_ooi organization.code observed_at=task.created_at|date:'c' %}">{{ task.data.input_ooi }}</a>
-                                        </td>
-                                        <td>
-                                            <button type="button"
-                                                    class="expando-button boefjes-task-list-table-row"
-                                                    data-icon-open-class="icon ti-chevron-down"
-                                                    data-icon-close-class="icon ti-chevron-up"
-                                                    data-close-label="{% translate "Close details" %}">
-                                                {% translate "Open details" %}
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr class="expando-row">
-                                        <td colspan="5">
-                                            {% include "tasks/partials/task_actions.html" %}
+                                <tr class="expando-row">
+                                    <td colspan="{% if not organization.code %}7{% else %}6{% endif %}">
+                                        {% include "tasks/partials/task_actions.html" %}
 
-                                        </td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                        {% include "partials/list_paginator.html" %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% include "partials/list_paginator.html" %}
 
-                    </div>
-                {% endif %}
-            </div>
+            {% endif %}
         </section>
         {% include "tasks/partials/stats.html" %}
 
     </main>
 {% endblock content %}
+{% block html_at_end_body %}
+    {{ block.super }}
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
+{% endblock html_at_end_body %}

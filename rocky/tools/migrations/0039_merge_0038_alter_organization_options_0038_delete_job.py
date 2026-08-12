@@ -4,9 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0038_alter_organization_options"),
-        ("tools", "0038_delete_job"),
-    ]
+    dependencies = [("tools", "0038_alter_organization_options"), ("tools", "0038_delete_job")]
 
     operations: list = []

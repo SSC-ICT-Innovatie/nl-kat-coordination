@@ -1,25 +1,33 @@
 {
-  "id": "70da7d4f-f41f-4940-901b-d98a92e9014b",
-  "priority": 1,
-  "scheduler_id": "boefje-_dev",
-  "schedule_id": null,
-  "status": "dispatched",
-  "type": "boefje",
-  "hash": "70da7d4f-f41f-4940-901b-d98a92e9014b",
-  "data": {
-    "id": "70da7d4f-f41f-4940-901b-d98a92e9014b",
-    "boefje": {
-      "id": "dns-records",
-      "version": null
-    },
-    "input_ooi": "",
-    "organization": "_dev",
-    "arguments": {},
-    "started_at": null,
-    "runnable_hash": null,
-    "environment": null,
-    "ended_at": null
-  },
-  "created_at": "2021-06-29T14:00:00",
-  "modified_at": "2021-06-29T14:00:00"
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "70da7d4f-f41f-4940-901b-d98a92e9014b",
+      "priority": 1,
+      "scheduler_id": "boefje",
+      "organisation": "_dev",
+      "schedule_id": null,
+      "status": "dispatched",
+      "type": "boefje",
+      "hash": "70da7d4f-f41f-4940-901b-d98a92e9014b",
+      "data": {
+        "id": "70da7d4f-f41f-4940-901b-d98a92e9014b",
+        "boefje": {
+          "id": "dns-records",
+          "version": null
+        },
+        "input_ooi": "",
+        "organization": "_dev",
+        "arguments": {},
+        "started_at": null,
+        "runnable_hash": null,
+        "environment": null,
+        "ended_at": null
+      },
+      "created_at": "2021-06-29T14:00:00",
+      "modified_at": "2021-06-29T14:00:00"
+    }
+  ]
 }

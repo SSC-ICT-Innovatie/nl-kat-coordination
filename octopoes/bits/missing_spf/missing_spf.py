@@ -25,7 +25,5 @@ def run(input_ooi: Hostname, additional_oois: list[DNSSPFRecord | NXDOMAIN], con
         ft = KATFindingType(id="KAT-NO-SPF")
         yield ft
         yield Finding(
-            ooi=input_ooi.reference,
-            finding_type=ft.reference,
-            description="This hostname does not have an SPF record",
+            ooi=input_ooi.reference, finding_type=ft.reference, description="This hostname does not have an SPF record"
         )

@@ -14,11 +14,7 @@ class RootAPI:
         self.ctx = ctx
 
         self.api.add_api_route(
-            path="/",
-            endpoint=self.root,
-            methods=["GET"],
-            status_code=status.HTTP_200_OK,
-            description="Root endpoint",
+            path="/", endpoint=self.root, methods=["GET"], status_code=status.HTTP_200_OK, description="Root endpoint"
         )
 
     def root(self) -> Any:

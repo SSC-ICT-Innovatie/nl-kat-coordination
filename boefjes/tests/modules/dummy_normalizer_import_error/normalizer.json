@@ -1,5 +1,6 @@
 {
   "id": "dummy_normalizer",
+  "name": "dummy_normalizer",
   "description": "",
   "consumes": [],
   "produces": []

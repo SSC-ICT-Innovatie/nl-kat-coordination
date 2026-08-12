@@ -23,7 +23,7 @@ bytes_database_raw_files_total = Gauge(
 logger = structlog.get_logger(__name__)
 
 
-def ignore_arguments_key(meta_repository: MetaDataRepository):
+def ignore_arguments_key(meta_repository: MetaDataRepository) -> str:
     return ""
 
 

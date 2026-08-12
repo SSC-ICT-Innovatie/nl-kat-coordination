@@ -7,7 +7,11 @@ from octopoes.models.ooi.web import URL, HTTPHeader, HTTPHeaderURL, Website
 
 
 def test_url_extracted_by_oois_in_headers_url():
-    header = HTTPHeader(resource="", key="Location", value="https://www.example.com/")
+    header = HTTPHeader(
+        resource="resource|internet|ip|protocol|port|protocol|internet|hostname|protocol|internet|hostname|port|location",
+        key="Location",
+        value="https://www.example.com/",
+    )
 
     results = list(run_oois_in_headers(header, [], {}))
 
@@ -39,8 +43,8 @@ def test_url_extracted_by_oois_in_headers_relative_path(http_resource_https):
 
 
 def test_finding_generated_when_443_not_open_and_80_is_open():
-    port_80 = IPPort(address="fake", protocol="tcp", port=80)
-    website = Website(ip_service="fake", hostname="fake")
+    port_80 = IPPort(address="address|fake", protocol="tcp", port=80)
+    website = Website(ip_service="service|fake", hostname="hostname|fake")
     results = list(run_https_availability(None, [port_80, website], {}))
     finding = results[0]
     assert isinstance(finding, Finding)

@@ -95,20 +95,4 @@ $normalizer-bg: #e17000;
   .tile-description {
     font-size: var(--tile-font-size);
   }
-
-  button,
-  a.button {
-    min-width: auto;
-    min-height: auto;
-    font-weight: 700;
-    line-height: var(--form-button-line-height);
-
-    &.plugin-disabled {
-      color: var(--color-alert-negative);
-
-      &.plugin-disabled:hover {
-        border-color: var(--color-alert-negative);
-      }
-    }
-  }
 }

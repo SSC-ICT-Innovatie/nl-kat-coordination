@@ -5,6 +5,4 @@
     <a href="{% url "finding_type_add" organization.code %}"
        class="button ghost">{% translate "Add finding type" %}</a>
     <!-- Note that we cannot pass e.g. severity=request.GET.severity explicitly since this is a list parameter -->
-    <a href="{% url "findings_pdf_report" organization.code %}?{{ request.GET.urlencode }}"
-       class="button ghost">{% translate "Download PDF" %}</a>
 </div>

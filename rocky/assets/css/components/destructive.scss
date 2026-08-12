@@ -1,0 +1,44 @@
+@mixin destructive-text-element {
+  &.destructive {
+    color: var(--color-alert-negative);
+
+    &:hover {
+      color: var(--color-alert-negative-darker);
+    }
+  }
+}
+
+@mixin destructive-button {
+  &.destructive {
+    color: var(--colors-white);
+    background-color: var(--color-alert-negative);
+
+    &:hover {
+      background-color: var(--color-alert-negative-darker);
+    }
+
+    &.ghost {
+      color: var(--color-alert-negative);
+      background-color: var(--color-white);
+      border-color: var(--colors-grey-200);
+      border-width: 1px;
+
+      &:hover {
+        color: var(--color-alert-negative);
+        border-color: var(--color-alert-negative-darker);
+      }
+    }
+  }
+}
+
+a {
+  @include destructive-text-element;
+}
+
+button,
+a.button,
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  @include destructive-button;
+}

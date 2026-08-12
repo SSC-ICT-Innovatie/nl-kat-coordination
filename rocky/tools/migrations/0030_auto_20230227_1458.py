@@ -6,24 +6,12 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("tools", "0029_set_user_full_name"),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL), ("tools", "0029_set_user_full_name")]
 
     operations = [
-        migrations.RemoveField(
-            model_name="organizationmember",
-            name="authorized",
-        ),
-        migrations.RemoveField(
-            model_name="organizationmember",
-            name="member_name",
-        ),
-        migrations.RemoveField(
-            model_name="organizationmember",
-            name="verified",
-        ),
+        migrations.RemoveField(model_name="organizationmember", name="authorized"),
+        migrations.RemoveField(model_name="organizationmember", name="member_name"),
+        migrations.RemoveField(model_name="organizationmember", name="verified"),
         migrations.AlterField(
             model_name="organizationmember",
             name="organization",

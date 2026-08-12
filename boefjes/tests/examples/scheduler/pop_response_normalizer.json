@@ -1,57 +1,65 @@
 {
-  "id": "60da7d4ff41f4940901bd98a92e9014b",
-  "priority": 1,
-  "scheduler_id": "normalizer-_dev",
-  "schedule_id": null,
-  "status": "dispatched",
-  "type": "normalizer",
-  "hash": "7e698c377cfd85015c0d7086b76b76b4",
-  "data": {
-    "id": "60da7d4ff41f4940901bd98a92e9014b",
-    "raw_data": {
-      "id": "60da7d4ff41f4940901bd98a92e9014a",
-      "boefje_meta": {
-        "id": "70da7d4ff41f4940901bd98a92e9014b",
-        "boefje": {
-          "id": "dns-records",
-          "name": "DnsRecords",
-          "description": "Fetch the DNS record(s) of a hostname",
-          "version": null,
-          "scan_level": 1,
-          "consumes": [
-            "Hostname"
-          ],
-          "produces": [
-            "DNSAAAARecord",
-            "IPAddressV6",
-            "NXDOMAIN",
-            "Hostname",
-            "Network",
-            "DNSNSRecord",
-            "DNSTXTRecord",
-            "IPAddressV4",
-            "DNSMXRecord",
-            "DNSZone",
-            "DNSARecord",
-            "DNSSOARecord",
-            "DNSCNAMERecord"
-          ],
-          "dispatches": null
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "60da7d4ff41f4940901bd98a92e9014b",
+      "priority": 1,
+      "scheduler_id": "normalizer",
+      "organisation": "_dev",
+      "schedule_id": null,
+      "status": "dispatched",
+      "type": "normalizer",
+      "hash": "7e698c377cfd85015c0d7086b76b76b4",
+      "data": {
+        "id": "60da7d4ff41f4940901bd98a92e9014b",
+        "raw_data": {
+          "id": "60da7d4ff41f4940901bd98a92e9014a",
+          "boefje_meta": {
+            "id": "70da7d4ff41f4940901bd98a92e9014b",
+            "boefje": {
+              "id": "dns-records",
+              "name": "DnsRecords",
+              "description": "Fetch the DNS record(s) of a hostname",
+              "version": null,
+              "scan_level": 1,
+              "consumes": [
+                "Hostname"
+              ],
+              "produces": [
+                "DNSAAAARecord",
+                "IPAddressV6",
+                "NXDOMAIN",
+                "Hostname",
+                "Network",
+                "DNSNSRecord",
+                "DNSTXTRecord",
+                "IPAddressV4",
+                "DNSMXRecord",
+                "DNSZone",
+                "DNSARecord",
+                "DNSSOARecord",
+                "DNSCNAMERecord"
+              ],
+              "dispatches": null
+            },
+            "input_ooi": "Hostname|internet|test.test",
+            "organization": "_dev",
+            "dispatches": []
+          },
+          "mime_types": [
+            {
+              "value": "boefje/dns-records"
+            }
+          ]
         },
-        "input_ooi": "Hostname|internet|test.test",
-        "organization": "_dev",
-        "dispatches": []
-      },
-      "mime_types": [
-        {
-          "value": "boefje/dns-records"
+        "normalizer": {
+          "id": "kat_dns_normalize"
         }
-      ]
-    },
-    "normalizer": {
-      "id": "kat_dns_normalize"
+      },
+      "created_at": "2021-06-29T14:00:00",
+      "modified_at": "2021-06-29T14:00:00"
     }
-  },
-  "created_at": "2021-06-29T14:00:00",
-  "modified_at": "2021-06-29T14:00:00"
+  ]
 }

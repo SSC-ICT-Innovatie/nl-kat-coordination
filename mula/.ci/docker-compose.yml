@@ -4,6 +4,8 @@ services:
       context: .
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
     volumes:
       - .:/app/scheduler
     env_file:
@@ -17,6 +19,8 @@ services:
       context: .
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
     volumes:
       - .:/app/scheduler
     env_file:

@@ -2,126 +2,49 @@
 {% load static %}
 {% load report_extra %}
 {% load ooi_extra %}
-{% load component_tags %}
-{% load compress %}
 
 <section>
     <div>
-        {% if selected_oois and selected_report_types %}
-            <h2>{% translate "Report name" %}</h2>
-            {% include "partials/return_button.html" with btn_text="Change selection" %}
-
+        {% if selected_report_types %}
+            <h2>{% translate "Report schedule" %}</h2>
             <p>
                 {% blocktranslate trimmed %}
-                    You can name individual reports.
+                    When scheduling your report, you have two options. You can either choose to generate it just once now,
+                    or set it to run automatically at regular intervals, like daily, weekly,
+                    or monthly. If you need the report just for a single occasion, select the one-time option.
                 {% endblocktranslate %}
             </p>
             <form id="generate_report" class="inline" method="post" action="{{ next }}">
-                <table id="report-name-table">
-                    <caption class="visually-hidden">{% translate "Report names:" %}</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">{% translate "Name" %}</th>
-                            <th scope="col"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for report_name in reports %}
-                            {% with report_id=report_name|slugify %}
-                                <input type="hidden" name="old_report_name" value="{{ report_name }}" />
-                                <tr>
-                                    <td id="text-{{ report_id }}">{{ report_name }}</td>
-                                    <td>
-                                        <input id="{{ report_id }}"
-                                               name="report_name"
-                                               type="hidden"
-                                               readonly
-                                               value="{{ report_name }}" />
-                                    </td>
-                                    <td>
-                                        {% component "modal" size="dialog-medium" %}
-                                        {% fill "trigger" %}
-                                        <button type="button"
-                                                id="edit-name-icon"
-                                                class="icon ti-edit action-button modal-trigger">
-                                            Edit {{ report_name }}
-                                        </button>
-                                    {% endfill %}
-                                    {% fill "header" %}
-                                    <h2>{% translate "Edit " %}{{ report_name }}</h2>
-                                {% endfill %}
-                                {% fill "content" %}
-                                <p>
-                                    {% blocktranslate %}
-                                                            Give your report a custom name and optionally add the reports' reference date
-                                                            to the name. To do so you can select an option below.
-                                                        {% endblocktranslate %}
-                                </p>
-                                <fieldset>
-                                    <legend>{% translate "Report name settings." %}</legend>
-                                    <input type="hidden"
-                                           class="old-report-name"
-                                           name="old-report-name"
-                                           value="{{ report_id }}">
-                                    <label for="report-name">{% translate "Report name" %}</label>
-                                    <br />
-                                    <span class="nota-bene">{% translate "This field is required." %}</span>
-                                    <div>
-                                        <input id="report-name"
-                                               class="new-report-name"
-                                               name="new-report-name"
-                                               type="text"
-                                               value="{{ report_name }}"
-                                               required>
-                                    </div>
-                                    <br />
-                                    <div>
-                                        <label for="reference-date">{% translate "Add reference date" %}</label>
-                                        <select class="reference-date" name="reference-date">
-                                            <option disabled selected value="">-- {% translate "Select option" %} --</option>
-                                            <option value="">{% translate "No reference date" %}</option>
-                                            <option value="{{ current_datetime|date:"N jS Y, H:i" }}">
-                                                {% translate "Day" %} ({{ current_datetime|date:"N jS Y, H:i" }})
-                                            </option>
-                                            <option value="{% translate "Week" %} {{ current_datetime|date:"W, Y" }}">
-                                                {% translate "Week" %} ({% translate "Week" %} {{ current_datetime|date:"W, Y" }})
-                                            </option>
-                                            <option value="{{ current_datetime|date:"N, Y" }}">
-                                                {% translate "Month" %} ({{ current_datetime|date:"N, Y" }})
-                                            </option>
-                                            <option value="{{ current_datetime|date:"Y" }}">{% translate "Year" %} ({{ current_datetime|date:"Y" }})</option>
-                                        </select>
-                                    </div>
-                                </fieldset>
-                            {% endfill %}
-                            {% fill "footer_buttons" %}
-                            <button type="button" class="confirm-button confirm-modal-button">{% translate "Confirm" %}</button>
-                            <button type="button" class="ghost close-modal-button">{% translate "Cancel" %}</button>
-                        {% endfill %}
-                    {% endcomponent %}
-                    {% component_css_dependencies %}
-                </td>
-            </tr>
-        {% endwith %}
-    {% endfor %}
-</tbody>
-</table>
-{% csrf_token %}
-<button type="submit" form="generate_report">
-    {% include "forms/report_form_fields.html" %}
+                {% csrf_token %}
+                {% include "forms/report_form_fields.html" %}
+                {% include "partials/form/fieldset.html" with fields=report_schedule_form_start_date fieldset_parent_class="column-2" %}
 
-    {% translate "Generate report" %}<span class="icon ti-chevron-right"></span>
-</button>
-</form>
-{% else %}
-{% include "partials/return_button.html" with btn_text="Go back" %}
+                <h2>{% translate "Report name" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        When generating reports, it is possible to give the report a name. The name
+                        can be static or dynamic. The default format for a report is '${report_type} for
+                        ${oois_count} objects'. These placeholders automatically adapt based on the report details.
+                        This format could for example return 'Aggregate Report for 15 objects'.
+                        Another placeholder that can be used is '${ooi}', which will show the name of the object when
+                        there is only one object. You can also customize the name by adding prefixes, suffixes,
+                        or other formats like '%W' for the week number, using options from
+                        <a href="https://strftime.org/" target="_blank" rel="noopener">Python strftime code</a>.
+                    {% endblocktranslate %}
+                </p>
+                {% include "partials/form/fieldset.html" with fields=report_name_form %}
 
-{% endif %}
-</div>
+                <button type="submit" form="generate_report">
+                    {% translate "Generate report" %}<span class="icon ti-chevron-right" aria-hidden="true"></span>
+                </button>
+            </form>
+        {% else %}
+            {% include "partials/return_button.html" with btn_text="Go back" %}
+
+        {% endif %}
+    </div>
 </section>
 {% block html_at_end_body %}
-    {% compress js %}
-        <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-        <script src="{% static "js/renameReports.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-    {% endcompress %}
+    <script src="{% static "js/renameReports.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}

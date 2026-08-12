@@ -1,3 +1,4 @@
+from collections.abc import Sequence
 from datetime import datetime
 from enum import Enum
 from typing import Any
@@ -47,7 +48,7 @@ def format_display(data: dict, ignore: list | None = None) -> dict[str, str]:
     return {format_attr_name(k): format_value(v) for k, v in data.items() if k not in ignore}
 
 
-def get_knowledge_base_data_for_ooi_store(ooi_store) -> dict[str, dict]:
+def get_knowledge_base_data_for_ooi_store(ooi_store: dict) -> dict[str, dict]:
     knowledge_base = {}
 
     for ooi in ooi_store.values():
@@ -86,11 +87,7 @@ def process_value(value: Any) -> Any:
 
 
 def get_ooi_dict(ooi: OOI) -> dict:
-    ooi_dict = {
-        "id": ooi.primary_key,
-        "ooi_type": ooi.get_ooi_type(),
-        "human_readable": ooi.human_readable,
-    }
+    ooi_dict = {"id": ooi.primary_key, "ooi_type": ooi.get_ooi_type(), "human_readable": ooi.human_readable}
 
     ignore_properties = ["primary_key", "scan_profile"]
 
@@ -130,9 +127,9 @@ def create_object_tree_item_from_ref(
     reference_node: ReferenceNode,
     ooi_store: dict[str, OOI],
     knowledge_base: dict[str, dict] | None = None,
-    depth=0,
-    position=1,
-    location="loc",
+    depth: int = 0,
+    position: int = 1,
+    location: str = "loc",
 ) -> dict:
     depth = sum([depth, 1])
     location = location + "-" + str(position)
@@ -181,7 +178,7 @@ def get_ooi_types_from_tree(ooi, include_self=True):
     return sorted(types)
 
 
-def filter_ooi_tree(ooi_node: dict, show_types=[], hide_types=[]) -> dict:
+def filter_ooi_tree(ooi_node: dict, show_types: Sequence = [], hide_types: Sequence = []) -> dict:
     if not show_types and not hide_types:
         return ooi_node
 
@@ -224,12 +221,7 @@ def filter_ooi_tree_item(ooi_node, show_types, hide_types, self_excluded_from_fi
 def get_finding_type_from_finding(finding: Finding) -> FindingType:
     return TypeAdapter(
         KATFindingType | CVEFindingType | CWEFindingType | RetireJSFindingType | SnykFindingType | CAPECFindingType
-    ).validate_python(
-        {
-            "object_type": finding.finding_type.class_,
-            "id": finding.finding_type.natural_key,
-        }
-    )
+    ).validate_python({"object_type": finding.finding_type.class_, "id": finding.finding_type.natural_key})
 
 
 _EXCLUDED = [Finding] + FindingType.strict_subclasses()
@@ -261,4 +253,23 @@ def create_ooi(
     declaration = Declaration(ooi=ooi, valid_time=observed_at, task_id=task_id, end_valid_time=end_valid_time)
     bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations([declaration]))
 
-    api_connector.save_declaration(declaration)
+    api_connector.save_declaration(declaration, sync=True)
+
+
+def create_oois(
+    api_connector: OctopoesAPIConnector,
+    bytes_client: BytesClient,
+    oois: list[OOI],
+    observed_at: datetime,
+    end_valid_time: datetime | None = None,
+) -> None:
+    declarations: list[Declaration] = []
+    task_id = uuid4()
+
+    for ooi in oois:
+        declarations.append(
+            Declaration(ooi=ooi, valid_time=observed_at, task_id=task_id, end_valid_time=end_valid_time)
+        )
+
+    bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations(declarations))
+    api_connector.save_many_declarations(declarations, sync=True)

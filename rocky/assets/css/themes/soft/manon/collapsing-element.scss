@@ -9,6 +9,29 @@ body header nav.collapsible {
   .collapsing-element {
     position: relative;
 
+    form {
+      &.inline {
+        width: 100%;
+      }
+
+      button {
+        background: transparent;
+        border-radius: 0;
+        border: 0;
+        font-weight: normal;
+        width: 100%;
+        max-width: 100%;
+        height: var(--header-navigation-button-min-height);
+        padding-top: var(--collapsing-element-list-item-link-padding-top);
+        padding-right: var(--collapsing-element-list-item-link-padding-right);
+        padding-bottom: var(--collapsing-element-list-item-link-padding-bottom);
+        padding-left: var(--collapsing-element-list-item-link-padding-left);
+        color: var(--collapsing-element-list-item-link-text-color);
+        justify-content: flex-start;
+        line-height: var(--header-navigation-link-line-height);
+      }
+    }
+
     .collapsible {
       position: static;
     }

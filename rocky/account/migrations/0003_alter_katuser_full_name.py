@@ -4,14 +4,10 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("account", "0002_remove_first_last_name"),
-    ]
+    dependencies = [("account", "0002_remove_first_last_name")]
 
     operations = [
         migrations.AlterField(
-            model_name="katuser",
-            name="full_name",
-            field=models.CharField(max_length=150, verbose_name="full name"),
-        ),
+            model_name="katuser", name="full_name", field=models.CharField(max_length=150, verbose_name="full name")
+        )
     ]

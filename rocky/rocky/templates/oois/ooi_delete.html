@@ -36,7 +36,7 @@
                     <form class="inline" method="post">
                         {% csrf_token %}
                         <div class="button-container">
-                            <button type="submit">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</button>
+                            <button type="submit" class="destructive">{% blocktranslate %}Delete {{ display_type }}{% endblocktranslate %}</button>
                             <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code %}"
                                class="button ghost">{% translate "Cancel" %}</a>
                         </div>

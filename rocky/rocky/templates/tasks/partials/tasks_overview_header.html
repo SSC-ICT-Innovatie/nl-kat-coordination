@@ -1,0 +1,12 @@
+{% load i18n %}
+
+<div>
+    <h1>{% translate "Tasks" %}</h1>
+    <p>
+        {% blocktranslate trimmed %}
+            An overview of the tasks for <strong>{{ organization }}</strong>. Tasks are divided in Boefjes, Normalizers and Reports.
+            Boefjes scan objects and Normalizers dispatch on the output mime-type. Additionally, there is a Report
+            tasks. This task aggregates and presents findings from both Boefjes and Normalizers.
+        {% endblocktranslate %}
+    </p>
+</div>

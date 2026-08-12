@@ -1,0 +1,105 @@
+{% load i18n %}
+{% load humanize %}
+{% load ooi_extra %}
+
+{% if show_introduction %}
+    <p class="toggle-item" data-show="off">
+        {% blocktranslate trimmed %}
+            This table provides an overview of the identified findings on the scanned
+            systems. For each finding type it shows the risk level, the number of occurrences
+            and the first known occurrence of the finding. The risk level may be different for your specific environment.
+            The details can be seen when expanding a row. A description, the source, impact and recommendation of the finding
+            can be found here. It also shows in which findings the finding type occurred.
+        {% endblocktranslate %}
+    </p>
+{% endif %}
+{% if finding_types %}
+    <div>
+        <table>
+            <caption class="visually-hidden">{% translate "Other findings found" %}</caption>
+            <thead>
+                <tr>
+                    <th scope="col">{% translate "Risk level" %}</th>
+                    <th scope="col">{% translate "Finding types" %}</th>
+                    <th scope="col">{% translate "Occurrences" %}</th>
+                    <th scope="col">{% translate "First known occurrence" %}</th>
+                    {% if is_crisis_room %}
+                        <th scope="col">{% translate "Open in report" %}</th>
+                    {% else %}
+                        <th scope="col" class="visually-hidden actions">{% translate "Details" %}</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for info in finding_types %}
+                    <tr id="{{ info.finding_type.id }}">
+                        <td>
+                            <span class="{{ info.finding_type.risk_severity }}">{{ info.finding_type.risk_severity|capfirst }}</span>
+                        </td>
+                        <td>{{ info.finding_type.id }}</td>
+                        <td>{{ info.occurrences|length }}</td>
+                        <td>{{ info.occurrences|get_first_seen }}</td>
+                        {% if is_crisis_room %}
+                            <td class="number">
+                                <a href="{% url "view_report" dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
+                            </td>
+                        {% else %}
+                            <td class="actions sticky-cell">
+                                <button class="expando-button"
+                                        data-icon-open-class="icon ti-chevron-down"
+                                        data-icon-close-class="icon ti-chevron-up"
+                                        data-close-label="{% translate "Close details" %}">
+                                    {% translate "Open details" %}
+                                </button>
+                            </td>
+                        {% endif %}
+                    </tr>
+                    {% if not is_crisis_room %}
+                        <tr class="expando-row">
+                            <td colspan="5">
+                                <h5>{% translate "Description" %}</h5>
+                                <p>{{ info.finding_type.description }}</p>
+                                <h5>{% translate "Source" %}</h5>
+                                {% if info.finding_type.source %}
+                                    <a class="nowrap" href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
+                                {% else %}
+                                    <p>{{ info.finding_type.source }}</p>
+                                {% endif %}
+                                <h5>{% translate "Impact" %}</h5>
+                                <p>{{ info.finding_type.impact }}</p>
+                                <h5>{% translate "Recommendation" %}</h5>
+                                <p>{{ info.finding_type.recommendation }}</p>
+                                <div>
+                                    <h5>{% translate "Findings" %}</h5>
+                                </div>
+                                <table>
+                                    <caption class="visually-hidden">{% translate "Findings overview" %}</caption>
+                                    <thead>
+                                        <tr>
+                                            <th scope="col">{% translate "Finding" %}</th>
+                                            <th scope="col">{% translate "First known occurrence" %}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for occurrence in info.occurrences %}
+                                            <tr>
+                                                <td>
+                                                    <a href="{% ooi_url 'ooi_detail' occurrence.finding.ooi organization.code %}">{{ occurrence.finding.ooi|human_readable }}</a>
+                                                </td>
+                                                <td title="{{ occurrence.first_seen }} UTC">{{ occurrence.first_seen|get_datetime|naturaltime }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                    {% endif %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% elif is_crisis_room or is_dashboard_item %}
+    <p>{% translate "No critical and high findings have been identified for this organization." %}</p>
+{% else %}
+    <p>{% translate "No findings have been identified for this organization." %}</p>
+{% endif %}

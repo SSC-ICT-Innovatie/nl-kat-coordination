@@ -10,32 +10,33 @@ This outlines the basic usages and provides a code block example below, of how t
 
 ### Instantiate
 
-First you need to add `{% load component_tags %}` at the top of your template. Next you need to add the following code block at the bottom, to include the corresponding JS (if you haven't already you also need to add `{% load compress %}`).
+First you need to add `{% load component_tags %}` at the top of your template. Next you need to add the following code block at the bottom, to include the corresponding JS (if you haven't already you also need to add `{% load static %}`).
 
 ```
 {% block html_at_end_body %}
-    {% compress js %}
-        <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
-    {% endcompress %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
 {% endblock html_at_end_body %}
 ```
 
-After that, `{% component "modal" size="xx" %}` is enough to instantiate the dialog modal component where size should contain the appropriate class name to achieve the correct sizing. This can be either `dialog-small`, `dialog-medium` or `dialog-large`.
+After that, `{% component "modal" modal_id="xx" size="xx" %}` is enough to instantiate the dialog modal component where `modal_id` should contain a unique identifier that must be also used in the triggers `data-modal-id` attribute, and `size` should contain the appropriate class name to achieve the correct sizing. This can be either `dialog-small`, `dialog-medium` or `dialog-large`.
+
+### The trigger element
+
+The trigger element needs some explaining. This will be the element that `on click` will show the modal dialog,
+the `element` gets assigned the click handler by JavaScript.
+It's essential to include the data attribute `data-modal-id="xx"`, where "xx" is the same as the `id` attribute on the intended modal. This is what defines the modal dialog that this trigger is meant to target. The only exception to this is when an `<a>` is used, with an `href` containing an anchor `"#xx"`, which points to `the modal-id` of the target modal.
+While it might seem obvious to use a `button` or a `a` as a trigger, the modal is set up in a way that allows for any HTML element to be used as a trigger.
+The trigger doesn't need to be part of the `{% component %}` itself and can be placed anywhere in the HTML template, though it makes sense to place them adjacent or as close as possible to each other.
 
 ### Slots and fills
 
 Each named `fill` corresponds with a placeholder/target `slot` in the component template. The contents between the `fill` tag will be passed to the corresponding `slot`. As shown in the below example it's possible to utilise Django template tags and `HTML` tags with these `fill` tags. This enables us to entirely build the contents of the modal in the template where we implement it. Because we can use `HTML` tags here, we can also use `forms` and leave the handling of said form up to the Django template that knows about the context and applicable data, where we implement the modal. The defaults are used when no `fill` tags are implemented for this slot at all.
 
-There's a total of four slots you can fill:
+There's a total of three slots you can fill:
 
-1.  `trigger`: call to action `button` by default, with the caption "Open modal".
-2.  `header`: empty by default
-3.  `content`: empty by default
-4.  `footer_buttons`: cancel `button` by default. To have _no buttons_ show at all, it's needed to implement empty `fill` tags for this `slot`.
-
-### The trigger element
-
-The trigger `slot` is a special one. This needs to contain the HTML `element` that gets assigned the click handler by JavaScript. It's essential to include the `class="modal-trigger"` attribute, because this is what we target to assign the click handler, using JS. While it might seem obvious to use a `button` as a trigger, the modal is setup in a way that allows for any HTML element to be used as a trigger.
+1.  `header`: empty by default
+2.  `content`: empty by default
+3.  `footer_buttons`: cancel `button` by default. To have _no buttons_ show at all, it's needed to implement empty `fill` tags for this `slot`.
 
 ### CSS dependencies
 
@@ -44,17 +45,18 @@ Including `{% component_css_dependencies %}` is needed to inject the reference t
 ### Example implementation
 
 ```
-{% component "modal" size="dialog-small" %}
-  {% fill "trigger" %}
-		<button class="modal-trigger">Click here to open the modal.</button>
-	{% endfill %}
+  <a href="#" data-modal-id="rename-modal">
+```
+
+```
+{% component "modal" modal_id="rename-modal" size="dialog-small" %}
 	{% fill "header" %}
 		{% translate "This is an example header." %}
 	{% endfill %}
 	{% fill "content" %}
 		<form  id="content-form"  class="horizontal-view"  action=""  method="post">
 			{% csrf_token %}
-			{% blocktranslate %}
+			{% blocktranslate with context_data_variable=context_data_variable %}
 				<p>You can use {{ context_data_variable }} and HTML here <code>valid_time</code>!</p>
 			{% endblocktranslate %}
 		</form>

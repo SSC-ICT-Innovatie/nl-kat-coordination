@@ -14,7 +14,7 @@
   --risk-level-low: var(--colors-green-150);
   --risk-level-informational: var(--colors-blue-150);
   --risk-level-pending: var(--colors-grey-400);
-  --risk-level-unkown: var(--colors-grey-400);
+  --risk-level-unknown: var(--colors-grey-400);
 
   display: flex;
   align-items: center;
@@ -57,5 +57,5 @@
 }
 
 .unknown::before {
-  background-color: var(--risk-level-unkown);
+  background-color: var(--risk-level-unknown);
 }

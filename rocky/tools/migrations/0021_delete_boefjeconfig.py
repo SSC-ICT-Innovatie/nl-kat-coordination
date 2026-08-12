@@ -4,12 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0020_auto_20220524_1324"),
-    ]
+    dependencies = [("tools", "0020_auto_20220524_1324")]
 
-    operations = [
-        migrations.DeleteModel(
-            name="BoefjeConfig",
-        ),
-    ]
+    operations = [migrations.DeleteModel(name="BoefjeConfig")]

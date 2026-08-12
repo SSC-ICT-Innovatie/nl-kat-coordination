@@ -24,27 +24,32 @@
                         The following objects are not yet cleared for level {{ scan_level }}, please be advised that by continuing you will declare a level {{ scan_level }} on these objects.
                     {% endblocktranslate %}
                 </p>
-                <table>
-                    <caption class="visually-hidden">{% translate "Selected objects" %}</caption>
-                    <thead>
-                        <tr>
-                            <th>{% translate "Object" %}</th>
-                            <th>{% translate "Clearance level" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for ooi in oois %}
+                <div class="horizontal-scroll">
+                    <table>
+                        <caption class="visually-hidden">{% translate "Selected objects" %}</caption>
+                        <thead>
                             <tr>
-                                <td scope="row">{{ ooi.primary_key }}</td>
-                                <td>
-                                    <ul class="level-indicator l{{ ooi.scan_profile.level }}">
-                                        {% for i in "1234"|make_list %}<li></li>{% endfor %}
-                                    </ul>
-                                </td>
+                                <th>{% translate "Object" %}</th>
+                                <th>{% translate "Clearance level" %}</th>
                             </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            {% for ooi in oois %}
+                                <tr>
+                                    <td scope="row">{{ ooi.primary_key }}</td>
+                                    <td>
+                                        <ul class="level-indicator l{{ ooi.scan_profile.level }}">
+                                            <li></li>
+                                            <li></li>
+                                            <li></li>
+                                            <li></li>
+                                        </ul>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
                 <p>{% translate "Are you sure you want to scan anyways?" %}</p>
                 <form class="inline" method="post">
                     {% csrf_token %}

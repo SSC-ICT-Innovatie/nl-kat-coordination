@@ -1,15 +1,11 @@
 {% load static %}
 {% load i18n %}
-{% load compress %}
 
 <div class="modal-wrapper">
-    {% slot "trigger" %}
-        <button class="modal-trigger">Open modal</button>
-    {% endslot %}
-
     <dialog class="modal {{ size }}"
-            aria-modal="true"
-            role="dialog">
+        aria-modal="true"
+        role="dialog"
+        id="{{ modal_id }}">
         <div class="content-wrapper">
             <section class="header">
                 <h2>{% slot "header" %}{% endslot %}</h2>

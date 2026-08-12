@@ -6,15 +6,19 @@ import re
 import shutil
 import tarfile
 from datetime import datetime, timezone
+from ipaddress import ip_address
 from os import getenv
 from pathlib import Path
 
 import maxminddb
 import requests
 
-from boefjes.job_models import BoefjeMeta
-
 BASE_PATH = Path(getenv("OPENKAT_CACHE_PATH", Path(__file__).parent))
+
+if BASE_PATH.name != Path(__file__).parent.name:
+    BASE_PATH = BASE_PATH / Path(__file__).parent.name
+    BASE_PATH.mkdir(exist_ok=True)
+
 GEOIP_PATH_PATTERN = r"GeoLite2-City_\d+/GeoLite2-City.mmdb"
 GEOIP_META_PATH = BASE_PATH / "geoip-meta.json"
 GEOIP_SOURCE_URL = "https://download.maxmind.com/geoip/databases/GeoLite2-City/download?suffix=tar.gz"
@@ -23,9 +27,14 @@ HASHFUNC = "sha256"
 REQUEST_TIMEOUT = 30
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
+    ip = input_["address"]
     hash_algorithm = getenv("HASHFUNC", HASHFUNC)
+
+    # if the address is private, we do not need a Location
+    if not ip_address(ip).is_global:
+        return [(set(), json.dumps("IP address is private, no location possible"))]
 
     if not geoip_file_exists() or cache_out_of_date():
         geoip_meta = refresh_geoip(hash_algorithm)
@@ -36,15 +45,9 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
     geoip_path = find_geoip_path()
 
     with maxminddb.open_database(geoip_path) as reader:
-        results = reader.get(input_["address"])
+        results = reader.get(ip)
 
-    return [
-        ({"maxmind-geoip/geo_data"}, json.dumps(results)),
-        (
-            {"maxmind-geoip/cache-meta"},
-            json.dumps(geoip_meta),
-        ),
-    ]
+    return [({"maxmind-geoip/geo_data"}, json.dumps(results)), ({"maxmind-geoip/cache-meta"}, json.dumps(geoip_meta))]
 
 
 def create_hash(data: bytes, algo: str) -> str:

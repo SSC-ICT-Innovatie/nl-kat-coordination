@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_databases",
+  "name": "BinaryEdge databases",
+  "description": "Parses BinaryEdge data to check if any Cassandra, ElasticSearch, Memcached, MongoDB and Redis servers are identified and parses the version number. Create 'EXPOSED-SOFTWARE' findings.",
   "consumes": [
     "boefje/binaryedge"
   ],

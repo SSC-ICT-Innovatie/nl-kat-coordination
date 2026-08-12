@@ -7,7 +7,7 @@
     {% include "partials/report_sidemenu.html" with data=report_data %}
 
     <article>
-        {% include "multi_organization_report/introduction.html" %}
+        {% include "partials/report_header.html" %}
         {% include "multi_organization_report/summary.html" %}
 
         <div class="chapter-numbers report-content">
@@ -27,6 +27,20 @@
                 </div>
             </section>
             {% include "multi_organization_report/vulnerabilities.html" %}
+
+            {% if data.findings %}
+                <section id="findings">
+                    <div>
+                        <h2>{% translate "Findings" %}</h2>
+                        {% if not data.findings %}
+                            <p>{% translate "No findings have been identified yet." %}</p>
+                        {% else %}
+                            {% include "findings_report/report.html" with data=data.findings show_introduction="yes" is_multi_report="yes" %}
+
+                        {% endif %}
+                    </div>
+                </section>
+            {% endif %}
             {% include "multi_organization_report/appendix.html" %}
 
         </div>

@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "EXPORT_HTTP_ENDPOINT": {
+      "title": "EXPORT_HTTP_ENDPOINT",
+      "type": "string",
+      "maxLength": 1024,
+      "description": "URL to call."
+    },
+    "TIMEOUT": {
+      "title": "TIMEOUT",
+      "type": "integer",
+      "default": 15,
+      "description": "Optional HTTP timeout in seconds."
+    },
+    "USERAGENT": {
+      "title": "USERAGENT",
+      "type": "string",
+      "default": "OpenKAT",
+      "maxLength": 1024,
+      "description": "Optional HTTP user-agent."
+    },
+    "EXPORT_REQUEST_HEADERS": {
+      "title": "EXPORT_REQUEST_HEADERS",
+      "type": "string",
+      "default": "OpenKAT",
+      "maxLength": 1024,
+      "description": "Optional extra HTTP request headers, newline-separated pairs of header:value. Useful for API tokens, etc."
+    },
+    "EXPORT_HTTP_VERB": {
+      "title": "EXPORT_HTTP_VERB",
+      "type": "string",
+      "enum": [
+        "GET",
+        "POST",
+        "DELETE",
+        "PUT",
+        "PATCH"
+      ],
+      "default": "POST",
+      "description": "Optional HTTP verb."
+    },
+    "EXPORT_REQUEST_PARAMETER": {
+      "title": "EXPORT_REQUEST_PARAMETER",
+      "type": "string",
+      "default": "ooi",
+      "maxLength": 1024,
+      "description": "Optional URL parameter to use when sending data, required for GET. If not given, other HTTP verbs will send OOI as a JSON body."
+    },
+    "EXPORT_HTTP_ORGANIZATION_IDENTIFIER": {
+      "title": "EXPORT_HTTP_ORGANIZATION_IDENTIFIER",
+      "type": "string",
+      "maxLength": 1024,
+      "description": "Optional organization identifier, defaults to the organization identifier present in the OOI."
+    },
+    "REQUESTS_CA_BUNDLE": {
+      "title": "REQUESTS_CA_BUNDLE",
+      "type": "string",
+      "maxLength": 1024,
+      "description": "Optional local file path for a CA bundle."
+    }
+  },
+  "required": [
+    "EXPORT_HTTP_ENDPOINT"
+  ]
+}

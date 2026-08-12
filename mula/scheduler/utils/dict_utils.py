@@ -34,6 +34,10 @@ class ExpiringDict:
         except KeyError:
             return default
 
+    def is_empty(self) -> bool:
+        with self.lock:
+            return len(self.cache) == 0
+
     def reset(self) -> None:
         with self.lock:
             self.cache.clear()

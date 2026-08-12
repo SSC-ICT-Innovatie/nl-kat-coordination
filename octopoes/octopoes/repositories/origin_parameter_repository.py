@@ -1,6 +1,5 @@
 from datetime import datetime
 from http import HTTPStatus
-from logging import getLogger
 from typing import Any
 
 from httpx import HTTPStatusError
@@ -15,8 +14,6 @@ from octopoes.xtdb import FieldSet
 from octopoes.xtdb.client import OperationType as XTDBOperationType
 from octopoes.xtdb.client import XTDBSession
 from octopoes.xtdb.query_builder import generate_pull_query
-
-logger = getLogger(__name__)
 
 
 class OriginParameterRepository(Repository):
@@ -46,19 +43,19 @@ class XTDBOriginParameterRepository(OriginParameterRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
     def serialize(cls, origin_parameter: OriginParameter) -> dict[str, Any]:
-        data = origin_parameter.dict()
+        data = origin_parameter.model_dump()
         data[cls.pk_prefix] = origin_parameter.id
         data["type"] = origin_parameter.__class__.__name__
         return data
 
     @classmethod
     def deserialize(cls, data: dict[str, Any]) -> OriginParameter:
-        return OriginParameter.parse_obj(data)
+        return OriginParameter.model_validate(data)
 
     def get(self, origin_parameter_id: str, valid_time: datetime) -> OriginParameter:
         try:
@@ -70,23 +67,13 @@ class XTDBOriginParameterRepository(OriginParameterRepository):
                 raise e
 
     def list_by_origin(self, origin_id: set[str], valid_time: datetime) -> list[OriginParameter]:
-        query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            {
-                "origin_id": origin_id,
-                "type": OriginParameter.__name__,
-            },
-        )
+        query = generate_pull_query(FieldSet.ALL_FIELDS, {"origin_id": origin_id, "type": OriginParameter.__name__})
         results = self.session.client.query(query, valid_time=valid_time)
         return [self.deserialize(r[0]) for r in results]
 
-    def list_by_reference(self, reference: Reference, valid_time: datetime):
+    def list_by_reference(self, reference: Reference, valid_time: datetime) -> list[OriginParameter]:
         query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            {
-                "reference": str(reference),
-                "type": OriginParameter.__name__,
-            },
+            FieldSet.ALL_FIELDS, {"reference": str(reference), "type": OriginParameter.__name__}
         )
         results = self.session.client.query(query, valid_time=valid_time)
         return [self.deserialize(r[0]) for r in results]

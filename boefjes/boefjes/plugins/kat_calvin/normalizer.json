@@ -1,5 +1,7 @@
 {
   "id": "calvin-normalize",
+  "name": "Calvin",
+  "description": "Produces applications and incidents for Calvin.",
   "consumes": [
     "boefje/calvin"
   ],

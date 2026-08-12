@@ -4,19 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0006_alter_organization_name"),
-    ]
+    dependencies = [("tools", "0006_alter_organization_name")]
 
     operations = [
-        migrations.RenameField(
-            model_name="job",
-            old_name="created_at",
-            new_name="created",
-        ),
-        migrations.RenameField(
-            model_name="job",
-            old_name="tool_module",
-            new_name="module",
-        ),
+        migrations.RenameField(model_name="job", old_name="created_at", new_name="created"),
+        migrations.RenameField(model_name="job", old_name="tool_module", new_name="module"),
     ]

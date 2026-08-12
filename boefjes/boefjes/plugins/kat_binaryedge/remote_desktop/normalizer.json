@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_remote_desktop",
+  "name": "Binary Edge remote desktop",
+  "description": "Parses BinaryEdge data to check for remote desktop services such as RDP, VNC and X11. Creates 'EXPOSED-SOFTWARE' findings.",
   "consumes": [
     "boefje/binaryedge"
   ],

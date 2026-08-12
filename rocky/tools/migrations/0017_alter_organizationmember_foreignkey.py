@@ -5,19 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0016_organization_signal_fields"),
-    ]
+    dependencies = [("tools", "0016_organization_signal_fields")]
 
     operations = [
         migrations.AlterField(
             model_name="organizationmember",
             name="organization",
             field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                related_name="members",
-                to="tools.organization",
+                null=True, on_delete=django.db.models.deletion.SET_NULL, related_name="members", to="tools.organization"
             ),
-        ),
+        )
     ]

@@ -5,14 +5,30 @@
     <div>
         <h2>{% translate "Summary" %}</h2>
         <dl>
-            {% for key, value in data.items %}
-                <div>
-                    <dt>{{ key }}</dt>
-                    <dd>
-                        {{ value }}
-                    </dd>
-                </div>
-            {% endfor %}
+            <div>
+                <dt>{% translate "Critical Vulnerabilities" %}</dt>
+                <dd>
+                    {{ data.critical_vulnerabilities }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "IPs scanned" %}</dt>
+                <dd>
+                    {{ data.ips_scanned }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "Hostnames scanned" %}</dt>
+                <dd>
+                    {{ data.hostnames_scanned }}
+                </dd>
+            </div>
+            <div>
+                <dt>{% translate "Terms in report" %}</dt>
+                <dd>
+                    {{ data.terms_in_report }}
+                </dd>
+            </div>
         </dl>
     </div>
 </section>

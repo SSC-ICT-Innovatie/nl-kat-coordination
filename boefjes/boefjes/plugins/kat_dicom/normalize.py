@@ -1,7 +1,7 @@
 import json
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import IPPort, PortState, Protocol
@@ -13,12 +13,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     ooi = Reference.from_str(input_ooi["primary_key"])
 
     for port in results["open_ports"]:
-        ip_port_ooi = IPPort(
-            address=ooi,
-            protocol=Protocol("tcp"),
-            port=int(port),
-            state=PortState("open"),
-        )
+        ip_port_ooi = IPPort(address=ooi, protocol=Protocol("tcp"), port=int(port), state=PortState("open"))
         yield ip_port_ooi
 
         software_ooi = Software(name="DICOM")

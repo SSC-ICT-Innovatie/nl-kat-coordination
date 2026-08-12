@@ -54,7 +54,7 @@
     },
     "mime_types": [
       {
-        "value": "openkat-http/response"
+        "value": "application/json+har"
       }
     ]
   },

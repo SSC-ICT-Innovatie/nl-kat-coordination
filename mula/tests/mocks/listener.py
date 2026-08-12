@@ -1,6 +1,6 @@
 import time
 
-from scheduler.connectors import listeners
+from scheduler.clients.amqp import listeners
 
 
 class MockListener(listeners.Listener):

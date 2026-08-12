@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_protocols",
+  "name": "BinaryEdge SSL/TLS protocols",
+  "description": "Parses BinaryEdge data to check for various vulnerabilities within SSL/TLS protocols, such as Heartbleed, Secure Renegotiation and SSL Compression.",
   "consumes": [
     "boefje/binaryedge"
   ],

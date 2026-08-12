@@ -1,9 +1,13 @@
 {
   "id": "fierce",
   "name": "Fierce",
-  "description": "Use a Fierce scan to find subdomains (with their ip)",
+  "description": "Perform DNS reconnaissance using Fierce. Helps to locate non-contiguous IP space and hostnames against specified hostnames. No exploitation is performed. Beware if your DNS is managed by an external party. This boefjes performs a brute force attack against the name server.",
   "consumes": [
     "Hostname"
   ],
-  "scan_level": 3
+  "scan_level": 3,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_fierce.main"
+  ]
 }

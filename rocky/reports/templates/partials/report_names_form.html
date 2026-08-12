@@ -1,0 +1,51 @@
+{% load i18n %}
+{% load static %}
+{% load report_extra %}
+{% load ooi_extra %}
+
+<table id="report-name-table">
+    <caption class="visually-hidden">{% translate "Report names:" %}</caption>
+    <thead>
+        <tr>
+            <th scope="col" colspan="2">
+                {% translate "Name" %} <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
+            </th>
+            <th scope="col">{% translate "Add reference date" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for report_name in reports %}
+            {% with report_id=report_name|slugify %}
+                <input type="hidden" name="old_report_name" value="{{ report_name }}" />
+                <tr>
+                    <td>
+                        <div>
+                            <input id="{{ report_id }}"
+                                   class="name-input"
+                                   name="report_name"
+                                   type="text"
+                                   value="{{ report_name }}"
+                                   required
+                                   minlength="3" />
+                        </div>
+                    </td>
+                    <td>
+                        <button type="button"
+                                class="icon ti-arrow-back-up action-button reset-button hidden"
+                                aria-label="{% translate "Reset" %}"></button>
+                    </td>
+                    <td>
+                        <select class="reference-date" name="reference_date">
+                            <option value="">{% translate "No reference date" %}</option>
+                            <option value="%b %d %Y, %H:%M">{% translate "Day" %} ({{ created_at|date:"N jS Y, H:i" }})</option>
+                            <option value="week">{% translate "Week" %} ({% translate "Week" %} {{ created_at|date:"W, Y" }})</option>
+                            <option value="%b, %Y">{% translate "Month" %} ({{ created_at|date:"N, Y" }})</option>
+                            <option value="%Y">{% translate "Year" %} ({{ created_at|date:"Y" }})</option>
+                        </select>
+                    </td>
+                </tr>
+            {% endwith %}
+        {% endfor %}
+    </tbody>
+</table>
+{% csrf_token %}

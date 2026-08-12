@@ -1,4 +1,4 @@
-from functools import lru_cache
+from functools import cache
 
 import structlog
 from sqlalchemy import create_engine
@@ -10,7 +10,7 @@ logger = structlog.get_logger(__name__)
 SQL_BASE = declarative_base()
 
 
-@lru_cache(maxsize=1)
+@cache
 def get_engine(db_uri: str, pool_size: int) -> Engine:
     """Returns database engine according to config settings."""
     db_uri_redacted = make_url(name_or_url=str(db_uri)).render_as_string(hide_password=True)

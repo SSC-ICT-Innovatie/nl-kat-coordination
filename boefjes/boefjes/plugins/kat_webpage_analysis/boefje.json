@@ -6,7 +6,7 @@
     "HTTPResource"
   ],
   "produces": [
-    "openkat-http/response",
+    "application/json+har",
     "openkat-http/headers",
     "openkat-http/body",
     "application/javascript",
@@ -141,8 +141,9 @@
     "video/x-msvideo",
     "video/x-sgi-movie"
   ],
-  "environment_keys": [
-    "USERAGENT"
-  ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_webpage_analysis.main"
+  ]
 }

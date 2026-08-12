@@ -1,13 +1,13 @@
 {
   "id": "dns-records",
-  "name": "DnsRecords",
-  "description": "Fetch the DNS record(s) of a hostname",
+  "name": "DNS records",
+  "description": "Fetch the DNS record(s) of a hostname.",
   "consumes": [
     "Hostname"
   ],
-  "environment_keys": [
-    "RECORD_TYPES",
-    "REMOTE_NS"
-  ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_dns.main"
+  ]
 }

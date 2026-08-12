@@ -14,10 +14,7 @@ class IndemnificationAddView(OrganizationPermissionRequiredMixin, OrganizationVi
     permission_required = "tools.add_indemnification"
 
     def post(self, request, *args, **kwargs):
-        Indemnification.objects.get_or_create(
-            user=self.request.user,
-            organization=self.organization,
-        )
+        Indemnification.objects.get_or_create(user=self.request.user, organization=self.organization)
         self.add_success_notification()
         return super().post(request, *args, **kwargs)
 
@@ -39,10 +36,7 @@ class IndemnificationAddView(OrganizationPermissionRequiredMixin, OrganizationVi
                 "text": "Settings",
             },
             {
-                "url": reverse(
-                    "indemnification_add",
-                    kwargs={"organization_code": self.organization.code},
-                ),
+                "url": reverse("indemnification_add", kwargs={"organization_code": self.organization.code}),
                 "text": _("Add indemnification"),
             },
         ]

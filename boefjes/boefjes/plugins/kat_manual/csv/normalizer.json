@@ -1,5 +1,7 @@
 {
   "id": "kat_manual_csv",
+  "name": "Manual CSV",
+  "description": "Parses uploaded CSV files into objects.",
   "consumes": [
     "manual/csv"
   ],

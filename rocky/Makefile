@@ -14,6 +14,9 @@ build-rocky:
 # Set DATABASE_MIGRATION=false to prevent entrypoint from running migration
 	docker compose run --rm -e DATABASE_MIGRATION=false rocky make build-rocky-native
 
+dashboards:
+	docker compose run --rm rocky python3 manage.py dashboards
+
 build-rocky-native:
 	while ! nc -vz $$ROCKY_DB_HOST $$ROCKY_DB_PORT; do sleep 0.1; done
 	python3 manage.py migrate
@@ -35,6 +38,7 @@ test:
 	python3 manage.py test
 
 testclean:
+	docker compose -f .ci/docker-compose.yml kill
 	docker compose -f .ci/docker-compose.yml down --remove-orphans
 	docker compose -f .ci/docker-compose.yml build
 
@@ -49,21 +53,22 @@ bench: testclean ## Run the report benchmark.
 	python -m cProfile -o .ci/bench_$$(date +%Y_%m_%d-%H:%M:%S).pstat -m pytest -m slow --no-cov tests/integration
 
 export_migrations:
-	python manage.py export_migrations contenttypes 0001
-	python manage.py export_migrations auth 0001
-	python manage.py export_migrations admin 0001
-	python manage.py export_migrations sessions 0001
-	python manage.py export_migrations two_factor 0001
-	python manage.py export_migrations otp_static 0001
-	python manage.py export_migrations otp_totp 0001
-	python manage.py export_migrations tools 0001
-	python manage.py export_migrations fmea 0001
-	python manage.py export_migrations accounts 0001
+	python3 manage.py export_migrations contenttypes 0001
+	python3 manage.py export_migrations auth 0001
+	python3 manage.py export_migrations admin 0001
+	python3 manage.py export_migrations sessions 0001
+	python3 manage.py export_migrations two_factor 0001
+	python3 manage.py export_migrations otp_static 0001
+	python3 manage.py export_migrations otp_totp 0001
+	python3 manage.py export_migrations tools 0001
+	python3 manage.py export_migrations fmea 0001
+	python3 manage.py export_migrations accounts 0001
+	python3 manage.py export_migrations crisis_room 0001
 
 languages:
-	# Extracts strings to `.pot` file which should be translated
-  # Note that the creation of `.po` files is delegated to another tool (Weblate)
-	python manage.py makemessages -i "venv/*" -i "build/*" -i "octopoes/*" -i "node_modules/*" --verbosity 2 --add-location file -a --keep-pot
+# Extracts strings to `.pot` file which should be translated
+# Note that the creation of `.po` files is delegated to another tool (Weblate)
+	python3 manage.py makemessages -i "venv/*" -i "build/*" -i "octopoes/*" -i "node_modules/*" --verbosity 2 --add-location file -a --keep-pot
 
 lang: languages
 
@@ -71,7 +76,7 @@ debian12:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-rocky \
-	--env REPOSITORY=minvws/nl-kat-rocky \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -84,13 +89,39 @@ ubuntu22.04:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-rocky \
-	--env REPOSITORY=minvws/nl-kat-rocky \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
 	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
 	--workdir /app \
 	kat-ubuntu22.04-build-image \
+	packaging/scripts/build-debian-package.sh
+
+debian13:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-rocky \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
+	--workdir /app \
+	kat-debian13-build-image \
+	packaging/scripts/build-debian-package.sh
+
+ubuntu24.04:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-rocky \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
+	--workdir /app \
+	kat-ubuntu24.04-build-image \
 	packaging/scripts/build-debian-package.sh
 
 clean:
@@ -116,7 +147,7 @@ test-rf: # Usage: `make test-rf headless=<bool>`
 	pip3 install robotframework robotframework-browser robotframework-debuglibrary robotframework-otp robotframework-postgresqldb
 	rfbrowser init
 
-	# Test fresh login while creating all users and running report generation as the superadmin
+# Test fresh login while creating all users and running report generation as the superadmin
 	docker exec -it nl-kat-coordination_rocky_1 make test-prepare
 	robot -d tests/robot/results-complete_onboarding -v headless:$(headless) tests/robot/complete_onboarding
 

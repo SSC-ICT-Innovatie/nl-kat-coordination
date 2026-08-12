@@ -5,7 +5,7 @@
 
 {% block content %}
     <h1>{% trans "Enable Two-Factor Authentication" %}</h1>
-    <form class="horizontal-view help">
+    <form class="help">
         <fieldset>
             <div class="explanation"
                  role="group"
@@ -39,7 +39,7 @@
             </div>
         </fieldset>
     </form>
-    <form action="" method="post" class="horizontal-view help">
+    <form action="" method="post" class="help">
         {% csrf_token %}
         {% include "two_factor/_wizard_forms.html" with step=wizard.steps.current %}
 

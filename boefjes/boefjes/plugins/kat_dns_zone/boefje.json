@@ -1,9 +1,13 @@
 {
   "id": "dns-zone",
-  "name": "DnsZone",
-  "description": "Fetch the parent DNS zone of a DNS zone",
+  "name": "DNS zone",
+  "description": "Fetch the parent DNS zone of a DNS zone.",
   "consumes": [
     "DNSZone"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_dns_zone.main"
+  ]
 }

@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.5.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: mixed-line-ending
@@ -27,15 +27,19 @@ repos:
       - id: fix-byte-order-marker
       - id: pretty-format-json
         args: ["--autofix", "--no-ensure-ascii", "--no-sort-keys"]
+        exclude: |
+          (?x)(
+          ^boefjes/boefjes/plugins/kat_wappalyzer/technologies.json |
+          )
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.16
+    rev: v0.23
     hooks:
       - id: validate-pyproject
         files: pyproject.toml$
 
   - repo: https://github.com/rstcheck/rstcheck
-    rev: v6.2.1
+    rev: v6.2.4
     hooks:
       - id: rstcheck
         # https://github.com/rstcheck/rstcheck-core/issues/4
@@ -49,37 +53,37 @@ repos:
         additional_dependencies: ["rstcheck[sphinx]", "autodoc-pydantic==2.1.0"]
 
   - repo: https://github.com/MarketSquare/robotframework-tidy
-    rev: "4.11.0"
+    rev: "4.14.0"
     hooks:
       - id: robotidy
 
   - repo: https://github.com/jendrikseipp/vulture
-    rev: v2.11
+    rev: v2.13
     hooks:
       - id: vulture
         exclude: |
           /tests/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.3.5"
+    rev: "v0.8.1"
     hooks:
       - id: ruff
       - id: ruff-format
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.15.2
+    rev: v3.19.0
     hooks:
       - id: pyupgrade
         args: [--py310-plus]
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.16.0
+    rev: 1.22.1
     hooks:
       - id: django-upgrade
         args: [--target-version, "5.0"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.9.0
+    rev: v1.13.0
     hooks:
       - id: mypy
         additional_dependencies:
@@ -92,10 +96,10 @@ repos:
           - types-python-dateutil
           - types-requests
           - types-croniter
+          - boto3-stubs[s3]
         exclude: |
           (?x)(
           ^boefjes/tools |
-          ^keiko/templates |
           ^mula/whitelist\.py$ |
           ^mula/scripts |
           ^octopoes/tools |
@@ -106,7 +110,7 @@ repos:
           )
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.6
+    rev: v2.3.0
     hooks:
       - id: codespell
         additional_dependencies: ["tomli"]
@@ -121,10 +125,9 @@ repos:
           requirements-.*.txt$ |
           retirejs.json$ |
           ^boefjes/boefjes/plugins/kat_fierce/lists |
+          ^boefjes/boefjes/plugins/kat_wappalyzer/data/.*.json |
           ^boefjes/tests/examples/inputs/cve-result-without-cvss.json |
           ^boefjes/tests/examples |
-          ^keiko/glossaries |
-          ^keiko/templates/.*/template.tex$ |
           ^rocky/assets/js/vendor |
           ^rocky/assets/css/themes/soft/fonts/tabler-icons/tabler-icons.scss$ |
           ^rocky/tests/stubs |
@@ -136,7 +139,7 @@ repos:
           )
 
   - repo: https://github.com/Riverside-Healthcare/djLint
-    rev: v1.34.1
+    rev: v1.36.3
     hooks:
       - id: djlint-reformat-django
         files: |
@@ -155,7 +158,7 @@ repos:
         exclude: '^rocky/rocky/templates/admin/.*\.html$'
 
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v16.3.1
+    rev: v16.10.0
     hooks:
       - id: stylelint
         args: [--fix]
@@ -171,13 +174,13 @@ repos:
         args: ["-e", "SC1091"]
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.8.0-1
+    rev: v3.10.0-1
     hooks:
       - id: shfmt
         args: ["-w", "-s", "-i", "4", "-sr"]
 
   - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v3.1.0
+    rev: v4.0.0-alpha.8
     hooks:
       - id: prettier
         additional_dependencies:
@@ -188,5 +191,6 @@ repos:
           \.json$ |
           \.min\.js$ |
           ^rocky/assets/css/themes/soft/fonts |
-          ^rocky/assets/vendors
+          ^rocky/assets/vendors |
+          ^docs/source/_static
           )

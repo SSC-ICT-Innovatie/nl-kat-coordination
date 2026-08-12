@@ -1,0 +1,59 @@
+{% load i18n %}
+
+{% if dashboard_items %}
+    {% if organizations_findings_summary and organizations_findings_summary.total_finding_types != 0 %}
+        <section>
+            <div>
+                <div>
+                    <h2>{% translate "Findings overview" %}</h2>
+                    <p>
+                        {% blocktranslate %}
+                            This overview shows the total number of findings per
+                            severity that have been identified for all organizations.
+                            This data is based on the latest Crisis Room Findings Report
+                            of each organization.
+                        {% endblocktranslate %}
+                    </p>
+                </div>
+                {% include "partials/report_severity_totals_table.html" with data=organizations_findings_summary %}
+
+            </div>
+        </section>
+        <section>
+            <div>
+                <div>
+                    <h2>{% translate "Findings per organization" %}</h2>
+                    <p>
+                        {% blocktranslate trimmed %}
+                            This table shows the findings that have been identified for each organization,
+                            sorted by the finding types and grouped by organizations.
+                            This data is based on the latest Crisis Room Findings Report
+                            of each organization.
+                        {% endblocktranslate %}
+                    </p>
+                </div>
+                {% include "partials/crisis_room_findings_table.html" %}
+
+            </div>
+        </section>
+    {% else %}
+        <section>
+            <h3>{% translate "Findings overview" %}</h3>
+            <p>
+                {% blocktranslate trimmed %}
+                    No findings have been identified yet. As soon as they have been
+                    identified, they will be shown on this page.
+                {% endblocktranslate %}
+            </p>
+        </section>
+    {% endif %}
+{% else %}
+    <section>
+        <p>
+            {% blocktranslate trimmed %}
+                There are no organizations yet. After creating an organization,
+                the identified findings will be shown here.
+            {% endblocktranslate %}
+        </p>
+    </section>
+{% endif %}

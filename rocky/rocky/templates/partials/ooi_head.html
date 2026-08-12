@@ -2,8 +2,11 @@
 
 {% include "partials/ooi_detail_toolbar.html" with ooi_id=ooi.primary_key %}
 
-<h1>{{ ooi.get_ooi_type }}: {{ ooi.human_readable }} @ {{ observed_at|date:"DATE_FORMAT" }}</h1>
+<h1>{{ ooi.get_ooi_type }}: {{ ooi.human_readable }}</h1>
 <p>
-    {% translate "An overview of" %} "{{ ooi.human_readable }}", {% translate "object type" %} "{{ ooi.get_ooi_type | lower }}". {% translate "This shows general information and its related objects. It also gives the possibility to add additional related objects, or to scan for them." %}
+    {% translate "Data from:" %} {{ observed_at }} GMT
+    {% if not historic_view %}
+        {% translate "(Now)" %}
+    {% endif %}
 </p>
 {% include "oois/ooi_page_tabs.html" with view=view ooi=ooi %}

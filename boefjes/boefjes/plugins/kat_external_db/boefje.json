@@ -1,16 +1,14 @@
 {
   "id": "external_db",
-  "name": "External Database",
-  "description": "Fetch hostnames and IP addresses/netblocks from an external database with API. See `description.md` for more information.",
+  "name": "External database host fetcher",
+  "description": "Fetch hostnames and IP addresses/netblocks from an external database with API. See `description.md` for more information. Useful if you have a large network and wish to add all your hosts. You can also upload hosts through the CSV upload functionality.",
   "consumes": [
     "Network"
   ],
-  "environment_keys": [
-    "DB_URL",
-    "DB_ACCESS_TOKEN",
-    "DB_ORGANIZATION_IDENTIFIER",
-    "DB_ENDPOINT_FORMAT",
-    "REQUESTS_CA_BUNDLE"
+  "scan_level": 0,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_external_db.main"
   ],
-  "scan_level": 0
+  "deduplicate": false
 }

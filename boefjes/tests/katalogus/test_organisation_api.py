@@ -1,50 +1,32 @@
-import json
-from unittest import TestCase
-
-from fastapi.testclient import TestClient
-
-from boefjes.katalogus.root import app
-from boefjes.models import Organisation
-from boefjes.sql.organisation_storage import get_organisations_store
-from boefjes.storage.memory import OrganisationStorageMemory
+def test_list(unit_test_client):
+    res = unit_test_client.get("/v1/organisations")
+    assert res.status_code == 200
 
 
-class TestOrganisations(TestCase):
-    def setUp(self) -> None:
-        self.client = TestClient(app)
+def test_get_organisation(unit_test_client):
+    res = unit_test_client.get("/v1/organisations/test")
+    assert res.status_code == 200
 
-        self._store = OrganisationStorageMemory({"test": Organisation(id="test", name="Test")})
 
-        app.dependency_overrides[get_organisations_store] = lambda: self._store
+def test_non_existing_organisation(unit_test_client):
+    res = unit_test_client.get("/v1/organisations/future-organisation")
+    assert res.status_code == 404
+    assert "unknown organisation" in res.text.lower()
 
-    def tearDown(self) -> None:
-        app.dependency_overrides = {}
 
-    def test_list(self):
-        res = self.client.get("/v1/organisations")
-        self.assertEqual(200, res.status_code)
+def test_add_organisation(unit_test_client):
+    res = unit_test_client.post("/v1/organisations/", json={"id": "new", "name": "New"})
+    assert res.status_code == 201
 
-    def test_get_organisation(self):
-        res = self.client.get("/v1/organisations/test")
-        self.assertEqual(200, res.status_code)
+    res = unit_test_client.get("/v1/organisations")
+    assert res.status_code == 200
+    assert len(res.json()) == 2
 
-    def test_non_existing_organisation(self):
-        res = self.client.get("/v1/organisations/future-organisation")
-        self.assertEqual(404, res.status_code)
-        self.assertIn("unknown organisation", res.text.lower())
 
-    def test_add_organisation(self):
-        res = self.client.post("/v1/organisations/", data=json.dumps({"id": "new", "name": "New"}))
-        self.assertEqual(201, res.status_code)
+def test_delete_organisation(unit_test_client):
+    res = unit_test_client.delete("/v1/organisations/test")
+    assert res.status_code == 200
 
-        res = self.client.get("/v1/organisations")
-        self.assertEqual(200, res.status_code)
-        self.assertEqual(2, len(res.json()))
-
-    def test_delete_organisation(self):
-        res = self.client.delete("/v1/organisations/test")
-        self.assertEqual(200, res.status_code)
-
-        res = self.client.get("/v1/organisations")
-        self.assertEqual(200, res.status_code)
-        self.assertEqual(0, len(res.json()))
+    res = unit_test_client.get("/v1/organisations")
+    assert res.status_code == 200
+    assert len(res.json()) == 0

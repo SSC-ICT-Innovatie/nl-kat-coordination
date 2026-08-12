@@ -1,13 +1,14 @@
 {
   "id": "binaryedge",
   "name": "BinaryEdge",
-  "description": "Use BinaryEdge to find open ports with vulnerabilities that are found on that port",
+  "description": "Use BinaryEdge to find open ports with vulnerabilities. Requires a BinaryEdge API key.",
   "consumes": [
     "IPAddressV4",
     "IPAddressV6"
   ],
-  "environment_keys": [
-    "BINARYEDGE_API"
-  ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_binaryedge.main"
+  ]
 }

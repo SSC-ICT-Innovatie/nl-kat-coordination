@@ -1,13 +1,22 @@
 {
   "id": "nmap-ports",
   "name": "Nmap Ports",
-  "description": "Scan a specific set of ports including service detection",
+  "description": "Scan a specific set of ports including service detection.",
   "consumes": [
     "IPAddressV4",
-    "IPAddressV6"
+    "IPAddressV6",
+    "IPV6NetBlock",
+    "IPV4NetBlock"
   ],
-  "environment_keys": [
-    "PORTS"
-  ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-nmap:latest",
+  "oci_arguments": [
+    "-T4",
+    "-Pn",
+    "-r",
+    "-v10",
+    "-sV",
+    "-sS",
+    "-sU"
+  ]
 }

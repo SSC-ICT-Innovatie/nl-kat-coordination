@@ -1,5 +1,7 @@
 {
   "id": "kat_retirejs_finding_types_normalize",
+  "name": "RetireJS finding types",
+  "description": "Parses RetireJS data into findings.",
   "consumes": [
     "boefje/retirejs-finding-types"
   ],

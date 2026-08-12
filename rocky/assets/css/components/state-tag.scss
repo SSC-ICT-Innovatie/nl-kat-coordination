@@ -1,0 +1,22 @@
+/* State tag */
+
+.state-tag {
+  border: 0;
+  padding: var(--spacing-grid-050) var(--spacing-grid-100);
+  border-radius: var(--border-radius-s);
+  box-sizing: border-box;
+  font-size: var(--body-text-small-font-size);
+  line-height: var(--body-text-small-line-height);
+  font-weight: bold;
+
+  &.enabled {
+    background-color: var(--colors-green-200);
+    color: var(--colors-green-700);
+  }
+
+  &.disabled {
+    background-color: var(--colors-red-150);
+    color: var(--colors-red-700);
+    opacity: 1;
+  }
+}

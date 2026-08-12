@@ -1,27 +1,27 @@
 import importlib
 import pkgutil
-from functools import lru_cache
-from logging import getLogger
+from functools import cache
 from pathlib import Path
 from types import ModuleType
 
+import structlog
 from pydantic import BaseModel
 
-from octopoes.models.types import OOIType
+from octopoes.models.types import BITOOIType
 
 BITS_DIR = Path(__file__).parent
 BIT_ATTR_NAME = "BIT"
-logger = getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 
 class BitParameterDefinition(BaseModel):
-    ooi_type: type[OOIType]
+    ooi_type: type[BITOOIType]
     relation_path: str
 
 
 class BitDefinition(BaseModel):
     id: str
-    consumes: type[OOIType]
+    consumes: type[BITOOIType]
     parameters: list[BitParameterDefinition]
     module: str
     min_scan_level: int = 1
@@ -29,7 +29,7 @@ class BitDefinition(BaseModel):
     config_ooi_relation_path: str | None = None
 
 
-@lru_cache(maxsize=32)
+@cache
 def get_bit_definitions() -> dict[str, BitDefinition]:
     bit_definitions = {}
 

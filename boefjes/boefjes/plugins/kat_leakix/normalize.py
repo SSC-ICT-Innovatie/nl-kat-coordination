@@ -3,7 +3,7 @@ import json
 import re
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType
@@ -34,14 +34,50 @@ SEVERITY_LEAKSTAGE_MAPPING = {
     "exfiltrate": "KAT-LEAKIX-CRITICAL",
 }
 
+# LeakIX event summaries can be large (e.g. a full Apache server-status dump);
+# keep the evidence bounded when storing it as Finding.proof.
+MAX_PROOF_LENGTH = 2048
+
+
+def truncate_proof(value: str | None) -> str | None:
+    if not value:
+        return None
+    value = value.strip()
+    return value if len(value) <= MAX_PROOF_LENGTH else value[:MAX_PROOF_LENGTH] + "…"
+
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    results = json.loads(raw)
+    data = json.loads(raw)
+
+    # Support both old format (list) and new format (dict with metadata)
+    if isinstance(data, list):
+        # Old format: raw list of events
+        results = data
+        search_mode = "permissive"
+        input_pk = input_ooi["primary_key"]
+    else:
+        # New format: dict with search_mode, input_ooi, and results
+        results = data.get("results", [])
+        search_mode = data.get("search_mode", "strict")
+        input_pk = data.get("input_ooi", input_ooi["primary_key"])
 
     pk_ooi_reference = Reference.from_str(input_ooi["primary_key"])
     network_reference = Network(name="internet").reference
 
+    # Precompute strict-mode filter check outside the loop
+    if search_mode == "strict" and input_pk and input_pk.startswith("Hostname|"):
+        input_value = input_pk.split("|")[-1]
+        strict = bool(input_value)
+    else:
+        input_value = None
+        strict = False
+
     for event in results:
+        # In strict mode, filter hostname results to exact matches only
+        if strict:
+            event_host = event.get("host", "")
+            if event_host.lower() != input_value.lower():
+                continue
         # TODO: add event["time"] to results. This is the time the event was first seen. Date of last scan is not
         #  included in the result.
         # TODO: LeakIX want to include a confidence per plugin, since some plugins have more false positives than others
@@ -49,6 +85,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
         # reset loop
         event_ooi_reference = pk_ooi_reference
+        ip_port_ooi_reference = pk_ooi_reference
 
         # Autonomous System
         as_ooi = None
@@ -105,10 +142,7 @@ def handle_ip(event, network_reference, as_ooi_reference):
 
     if as_ooi_reference and len(netblock_range) == 2:
         yield block_type(
-            network=network_reference,
-            start_ip=ip_ooi.reference,
-            mask=netblock_range[1],
-            announced_by=as_ooi_reference,
+            network=network_reference, start_ip=ip_ooi.reference, mask=netblock_range[1], announced_by=as_ooi_reference
         )
 
     # Store port
@@ -122,7 +156,7 @@ def handle_ip(event, network_reference, as_ooi_reference):
 
 def handle_hostname(event, network_reference):
     try:
-        ipvx = ipaddress.ip_address(event["ip"])
+        ipvx = ipaddress.ip_address(event["host"])
         if ipvx.version == 4:
             return IPAddressV4(address=event["host"], network=network_reference)
         return IPAddressV6(address=event["host"], network=network_reference)
@@ -153,11 +187,12 @@ def handle_software(event, event_ooi_reference):
 
 def handle_leak(event, event_ooi_reference, software_ooi):
     leak_severity = event.get("leak", {}).get("severity")
-    leak_stage = event.get("leak", {}).get("dataset", {}).get("stage")
+    dataset = event.get("leak", {}).get("dataset", {})
+    leak_stage = dataset.get("stage")
     if leak_severity or leak_stage:
         #  Got the different severities from: https://pkg.go.dev/github.com/LeakIX/l9format#pkg-constants
-        leak_infected = event.get("leak", {}).get("dataset", {}).get("infected")
-        leak_ransomnote = event.get("leak", {}).get("dataset", {}).get("ransom_notes")
+        leak_infected = dataset.get("infected")
+        leak_ransomnote = dataset.get("ransom_notes")
 
         # new stage or severity, default to low
         kat_finding = "KAT-LEAKIX-LOW"
@@ -172,10 +207,14 @@ def handle_leak(event, event_ooi_reference, software_ooi):
         yield finding_type
 
         kat_info = []
+        # event_source is the LeakIX plugin that made the detection, i.e. what
+        # kind of leak this is. The old code labelled this "Plugin" but
+        # interpolated the OOI reference instead of the plugin name.
+        event_source = event.get("event_source")
         if software_ooi:
             kat_info.append(f'Software = "{software_ooi.name}".')
-        else:
-            kat_info.append(f'Plugin = "{event_ooi_reference}".')
+        elif event_source:
+            kat_info.append(f'Plugin = "{event_source}".')
 
         if leak_infected:
             kat_info.append("Found evidence of external activity.")
@@ -184,10 +223,21 @@ def handle_leak(event, event_ooi_reference, software_ooi):
         if leak_stage:
             kat_info.append(f"Stage of the leak is: {leak_stage}.")
 
+        # Scale of the exposure.
+        for field in ("rows", "files", "size", "collections"):
+            value = dataset.get(field)
+            if value:
+                kat_info.append(f"{field.capitalize()}: {value}.")
+
+        # An unauthenticated service exposing data is worth calling out explicitly.
+        if event.get("service", {}).get("credentials", {}).get("noauth"):
+            kat_info.append("No authentication required.")
+
         yield Finding(
             finding_type=finding_type.reference,
             ooi=software_ooi.reference if software_ooi else event_ooi_reference,
             description=", ".join(kat_info),
+            proof=truncate_proof(event.get("summary")),
         )
 
 

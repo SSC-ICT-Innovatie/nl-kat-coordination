@@ -1,0 +1,48 @@
+name: Check dependencies
+
+on:
+  push:
+    branches:
+      - "main"
+      - "release-*"
+    tags:
+      - "*"
+    paths:
+      - "**/requirements.txt"
+      - "**/requirements-dev.txt"
+      - "**/pyproject.toml"
+      - "**/uv.lock"
+      - ".github/workflows/check_requirements.yml"
+  pull_request:
+    paths:
+      - "**/requirements.txt"
+      - "**/requirements-dev.txt"
+      - "**/pyproject.toml"
+      - "**/uv.lock"
+      - ".github/workflows/check_requirements.yml"
+
+jobs:
+  poetry-dependencies:
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        id: py313
+        with:
+          python-version: 3.13
+          cache: pip
+
+      - name: Install uv
+        run: pip install uv==0.7.13
+
+      - name: Check, lock, and export requirements
+        run: make requirements
+
+      - name: Check if there are any changed files
+        if: ${{ github.actor != 'dependabot[bot]' }}
+        run: git diff --exit-code

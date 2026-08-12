@@ -437,11 +437,22 @@ nl-kat-*
 /_version.py
 
 # Automatically generated markdown files for the environment variables
-/docs/source/technical_design/environment_settings/*.md
+docs/source/installation-and-deployment/environment-settings/boefjes.md
+docs/source/installation-and-deployment/environment-settings/bytes.md
+docs/source/installation-and-deployment/environment-settings/mula.md
+docs/source/installation-and-deployment/environment-settings/octopoes.md
+
+docs/source/_static/d3.min.js
+docs/source/_static/mermaid.min.js
 
 # rpki cache
 /boefjes/boefjes/plugins/kat_rpki/rpki.json
 /boefjes/boefjes/plugins/kat_rpki/rpki-meta.json
+/boefjes/boefjes/plugins/kat_rpki/bgp.jsonl
+/boefjes/boefjes/plugins/kat_rpki/bgp-meta.json
+
+# ignore test tmp files
+/boefjes/tests/modules/**/boefje.json.tmp
 
 *.pstat
 **/.cache*

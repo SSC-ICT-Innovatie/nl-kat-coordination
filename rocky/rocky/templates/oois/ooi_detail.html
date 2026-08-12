@@ -3,65 +3,95 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div>
-                {% if ooi_past_due %}
-                    {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
+            {% if historic_view %}
+                {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
 
-                {% endif %}
-                {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
+            {% endif %}
+            {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
 
-            </div>
             <div>
                 {% include "oois/ooi_detail_object.html" with ooi=ooi object_details=object_details %}
 
                 {% if is_question %}
+                    {% if current_config %}
+                        {% include "partials/current_config.html" with config=current_config %}
+
+                    {% endif %}
                     {% include "forms/json_schema_form.html" with json_schema=ooi.json_schema %}
 
                 {% endif %}
             </div>
-            <div>
-                {% include "oois/ooi_detail_origins_declarations.html" %}
-                {% include "oois/ooi_detail_origins_observations.html" %}
-                {% include "oois/ooi_detail_origins_inference.html" %}
-                {% include "partials/ooi_detail_related_object.html" with query=mandatory_fields ooi_past_due=ooi_past_due related=related ooi=ooi %}
-                {% include "tasks/ooi_detail_task_list.html" %}
+            {% include "oois/ooi_detail_origins_declarations.html" %}
+            {% include "oois/ooi_detail_origins_observations.html" %}
+            {% include "oois/ooi_detail_origins_inference.html" %}
+            {% include "partials/ooi_detail_related_object.html" with query=mandatory_fields ooi_past_due=ooi_past_due related=related ooi=ooi %}
+            {% include "tasks/ooi_detail_task_list.html" %}
 
-            </div>
-            <div>
-                {% if not ooi|is_finding and not ooi|is_finding_type %}
+            {% if not ooi|is_finding and not ooi|is_finding_type %}
+                <div>
                     {% include "oois/ooi_detail_findings_overview.html" with severity_summary=findings_severity_summary severity_summary_totals=severity_summary_totals %}
 
-                {% endif %}
-            </div>
+                </div>
+            {% endif %}
             <div>
-                <h2>{% translate "Scan" %} {{ ooi.human_readable }} {% translate "using boefjes" %}</h2>
-                {% if enabled_boefjes_available %}
-                    <div class="horizontal-view">
-                        <div>
-                            {% if member.acknowledged_clearance_level > 0 and organization_indemnification %}
-                                <form id="show_all_boefjes"
-                                      method="get"
-                                      action="#show_all_boefjes"
-                                      class="inline">
-                                    <input type="hidden" name="ooi_id" value="{{ ooi }}">
-                                    {% include "partials/form/form_errors.html" with form=possible_boefjes_filter_form %}
+                <h2>{% translate "Scan" %} {% translate "using boefjes" %}</h2>
+                <div class="horizontal-view">
+                    <div>
+                        <form id="show_all_boefjes"
+                              method="get"
+                              action="#show_all_boefjes"
+                              class="inline">
+                            <input type="hidden" name="ooi_id" value="{{ ooi }}">
+                            {% include "partials/form/form_errors.html" with form=possible_boefjes_filter_form %}
 
-                                    {% for field in possible_boefjes_filter_form %}
-                                        <fieldset>
-                                            {{ field }}
-                                        </fieldset>
-                                    {% endfor %}
-                                </form>
-                            {% endif %}
-                        </div>
+                            {% for field in possible_boefjes_filter_form %}
+                                <fieldset>
+                                    {{ field }}
+                                </fieldset>
+                            {% endfor %}
+                        </form>
                     </div>
+                </div>
+                {% if not indemnification_present %}
+                    <p class="warning"
+                       role="group"
+                       aria-label="{% translate "indemnification warning" %}">
+                        {% url "organization_settings" organization.code as organization_settings %}
+                        {% blocktranslate trimmed %}
+                            <strong>Warning:</strong>
+                            There is no indemnification for this organization.
+                            Go to the <a href="{{ organization_settings }}">organization settings page</a> to add one.
+                        {% endblocktranslate %}
+                    </p>
+                {% endif %}
+                {% if not perms.tools.can_scan_organization %}
+                    <p class="warning"
+                       role="group"
+                       aria-label="{% translate "Permission warning" %}">
+                        {% blocktranslate trimmed %}
+                            <strong>Warning:</strong>
+                            You don't have the proper permission at the organizational level to scan objects.
+                            Contact your administrator.
+                        {% endblocktranslate %}
+                    </p>
+                {% endif %}
+                {% if organization_member.max_clearance_level < ooi.scan_profile.level %}
+                    <p class="warning"
+                       role="group"
+                       aria-label="{% translate "Scan warning" %}">
+                        {% url "account_detail" organization.code as account_details %}
+                        {% blocktranslate trimmed with member_clearance_level=organization_member.max_clearance_level boefje_scan_level=ooi.scan_profile.level %}
+                            <strong>Warning:</strong>
+                            You are not allowed to scan this OOI. Your maximum clearance level is {{ member_clearance_level }} and this OOI has level {{ boefje_scan_level }}.
+                            Go to your <a href="{{ account_details }}">account details</a> to manage your clearance level.
+                        {% endblocktranslate %}
+                    </p>
                 {% endif %}
                 {% if boefjes %}
                     <div class="horizontal-scroll">
@@ -72,50 +102,39 @@
                                     <th>{% translate "Boefje" %}</th>
                                     <th>{% translate "Description" %}</th>
                                     <th>{% translate "Scan profile" %}</th>
-                                    {% if perms.tools.can_scan_organization %}
-                                        <th>{% translate "Scan" %}</th>
-                                    {% endif %}
+                                    <th>{% translate "Scan" %}</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for boefje in boefjes %}
                                     <tr>
-                                        <td>
+                                        <td class="nowrap">
                                             <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=boefje.id %}?ooi_id={{ ooi }}">{{ boefje.name }}</a>
                                         </td>
                                         <td>{{ boefje.description }}</td>
-                                        <td>
+                                        <td class="nowrap">
                                             {% include "partials/scan_level_indicator.html" with value=boefje.scan_level.value %}
 
                                         </td>
-                                        {% if perms.tools.can_scan_organization %}
-                                            <td>
+                                        <td class="nowrap">
+                                            {% if not indemnification_present or not perms.tools.can_scan_organization or organization_member.max_clearance_level < ooi.scan_profile.level %}
+                                                {% translate "Unable to start scan. See the warning for more details." %}
+                                            {% elif ooi.scan_profile.level < boefje.scan_level.value %}
+                                                <button type="button" class="disabled">{% translate "Start scan" %}</button>
+                                            {% else %}
                                                 {% include "partials/single_action_form.html" with btn_text="Start Scan" action="start_scan" key="boefje_id" value=boefje.id %}
 
-                                            </td>
-                                        {% endif %}
+                                            {% endif %}
+                                        </td>
                                     </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
                 {% else %}
-                    <div class="system">
-                        {% if not enabled_boefjes_available %}
-                            <p>
-                                {% translate "There are no boefjes enabled to scan an OOI of type" %} "{{ ooi.get_ooi_type }}". {% translate "See" %} <a href="{% url "katalogus" organization.code %}">KAT-alogus</a> {% translate "to find and enable boefjes that can scan within the current level." %}
-                            </p>
-                        {% else %}
-                            <p>
-                                {% translate "There are no boefjes available within the current clearance level of" %} "{{ ooi.scan_profile.human_readable }}".
-                                <br>
-                                {% translate "See" %} <a href="{% url "katalogus" organization.code %}">KAT-alogus</a> {% translate "to find and enable boefjes that can scan within the current level." %}
-                            </p>
-                            <p>
-                                <a href="{% ooi_url 'scan_profile_detail' ooi.primary_key organization.code query=mandatory_fields %}">{% translate "Or if you have the authorization, upgrade the clearance level of" %} "{{ ooi.human_readable }}".</a>
-                            </p>
-                        {% endif %}
-                    </div>
+                    <p>
+                        {% translate "There are no boefjes enabled to scan an OOI of type" %} "{{ ooi.get_ooi_type }}". {% translate "See" %} <a href="{% url "katalogus" organization.code %}">KAT-alogus</a> {% translate "to find and enable boefjes that can scan within the current level." %}
+                    </p>
                 {% endif %}
             </div>
         </section>
@@ -123,8 +142,8 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

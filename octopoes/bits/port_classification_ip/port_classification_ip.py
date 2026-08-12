@@ -19,14 +19,13 @@ COMMON_TCP_PORTS = [
 ]
 
 COMMON_UDP_PORTS = [
-    53,  # DNS
+    53  # DNS
 ]
 
 SA_TCP_PORTS = [
     21,  # FTP
     22,  # SSH
     23,  # Telnet
-    3389,  # Remote Desktop
     5900,  # VNC
 ]
 DB_TCP_PORTS = [
@@ -35,6 +34,9 @@ DB_TCP_PORTS = [
     3050,  # Interbase/Firebase
     3306,  # MySQL
     5432,  # PostgreSQL
+]
+MICROSOFT_RDP_PORTS = [
+    3389  # Microsoft Remote Desktop
 ]
 
 
@@ -53,6 +55,7 @@ def run(input_ooi: IPPort, additional_oois: list, config: dict[str, Any]) -> Ite
     common_udp_ports = get_ports_from_config(config, "common_udp_ports", COMMON_UDP_PORTS)
     sa_tcp_ports = get_ports_from_config(config, "sa_tcp_ports", SA_TCP_PORTS)
     db_tcp_ports = get_ports_from_config(config, "db_tcp_ports", DB_TCP_PORTS)
+    microsoft_rdp_ports = get_ports_from_config(config, "microsoft_rdp_ports", MICROSOFT_RDP_PORTS)
 
     for ip_port in additional_oois:
         port = ip_port.port
@@ -66,7 +69,8 @@ def run(input_ooi: IPPort, additional_oois: list, config: dict[str, Any]) -> Ite
                 yield Finding(
                     finding_type=open_sa_port.reference,
                     ooi=ip_port.reference,
-                    description=f"Port {port}/{protocol.value} is a system administrator port and should not be open.",
+                    description=f"Port {port}/{protocol.value} is a system administrator port and "
+                    f"should possibly not be open.",
                 )
         elif protocol == Protocol.TCP and port in db_tcp_ports:
             ft = KATFindingType(id="KAT-OPEN-DATABASE-PORT")
@@ -78,6 +82,18 @@ def run(input_ooi: IPPort, additional_oois: list, config: dict[str, Any]) -> Ite
                     finding_type=ft.reference,
                     ooi=ip_port.reference,
                     description=f"Port {port}/{protocol.value} is a database port and should not be open.",
+                )
+        elif port in microsoft_rdp_ports:
+            open_rdp_port = KATFindingType(id="KAT-REMOTE-DESKTOP-PORT")
+            if aggregate_findings:
+                open_ports.append(ip_port.port)
+            else:
+                yield open_rdp_port
+                yield Finding(
+                    finding_type=open_rdp_port.reference,
+                    ooi=ip_port.reference,
+                    description=f"Port {port}/{protocol.value} is a Microsoft Remote Desktop port and "
+                    f"should possibly not be open.",
                 )
         elif (protocol == Protocol.TCP and port not in common_tcp_ports) or (
             protocol == Protocol.UDP and port not in common_udp_ports
@@ -93,9 +109,7 @@ def run(input_ooi: IPPort, additional_oois: list, config: dict[str, Any]) -> Ite
                     description=f"Port {port}/{protocol.value} is not a common port and should possibly not be open.",
                 )
     if aggregate_findings and open_ports:
-        ft = KATFindingType(
-            id="KAT-UNCOMMON-OPEN-PORT",
-        )
+        ft = KATFindingType(id="KAT-UNCOMMON-OPEN-PORT")
         yield ft
         yield Finding(
             finding_type=ft.reference,

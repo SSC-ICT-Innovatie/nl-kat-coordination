@@ -1,6 +1,5 @@
 from datetime import datetime
 from http import HTTPStatus
-from logging import getLogger
 from typing import Any
 from uuid import UUID
 
@@ -16,8 +15,6 @@ from octopoes.xtdb import FieldSet
 from octopoes.xtdb.client import OperationType as XTDBOperationType
 from octopoes.xtdb.client import XTDBSession
 from octopoes.xtdb.query_builder import generate_pull_query
-
-logger = getLogger(__name__)
 
 
 class OriginRepository(Repository):
@@ -40,7 +37,7 @@ class OriginRepository(Repository):
         source: Reference | None = None,
         result: Reference | None = None,
         method: str | list[str] | None = None,
-        origin_type: OriginType | None = None,
+        origin_type: OriginType | list[OriginType] | set[OriginType] | None = None,
     ) -> list[Origin]:
         raise NotImplementedError
 
@@ -55,14 +52,15 @@ class XTDBOriginRepository(OriginRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
     def serialize(cls, origin: Origin) -> dict[str, Any]:
         data = origin.model_dump()
         data[cls.pk_prefix] = origin.id
         data["type"] = origin.__class__.__name__
+        data["result"] = list(dict.fromkeys(data["result"]))
         return data
 
     @classmethod
@@ -79,7 +77,7 @@ class XTDBOriginRepository(OriginRepository):
         source: Reference | None = None,
         result: Reference | None = None,
         method: str | list[str] | None = None,
-        origin_type: OriginType | None = None,
+        origin_type: OriginType | list[OriginType] | set[OriginType] | None = None,
     ) -> list[Origin]:
         where_parameters: dict[str, str | list[str]] = {"type": Origin.__name__}
 
@@ -96,14 +94,12 @@ class XTDBOriginRepository(OriginRepository):
             where_parameters["method"] = method
 
         if origin_type:
-            where_parameters["origin_type"] = origin_type.value
+            if isinstance(origin_type, OriginType):
+                where_parameters["origin_type"] = origin_type.value
+            elif isinstance(origin_type, list | set) and all(isinstance(otype, OriginType) for otype in origin_type):
+                where_parameters["origin_type"] = [otype.value for otype in origin_type]
 
-        query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            where_parameters,
-            offset=offset,
-            limit=limit,
-        )
+        query = generate_pull_query(FieldSet.ALL_FIELDS, where_parameters, offset=offset, limit=limit)
 
         results = self.session.client.query(query, valid_time=valid_time)
         return [self.deserialize(r[0]) for r in results]
@@ -135,7 +131,6 @@ class XTDBOriginRepository(OriginRepository):
             self.session.add((XTDBOperationType.DELETE, old_origin.id, valid_time))
 
         self.session.add((XTDBOperationType.PUT, self.serialize(origin), valid_time))
-
         if old_origin != origin:
             # Only publish an event if there is a change in data. We won't send
             # events when only the normalizer task id of an observed origin is

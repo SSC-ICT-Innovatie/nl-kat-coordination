@@ -1,10 +1,13 @@
 {
   "id": "kat_nuclei_takeover_normalize",
+  "name": "Nuclei takeover",
+  "description": "Parses Nuclei takeover data into findings.",
   "consumes": [
     "boefje/nuclei-takeover"
   ],
   "produces": [
     "Finding",
-    "KATFindingType"
+    "KATFindingType",
+    "URL"
   ]
 }

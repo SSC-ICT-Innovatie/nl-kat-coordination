@@ -14,3 +14,5 @@ accept_content = ["application/json", "application/x-python-serialize"]
 result_accept_content = ["application/json", "application/x-python-serialize"]
 
 task_queues = (Queue(QUEUE_NAME_OCTOPOES),)
+
+worker_concurrency = settings.workers

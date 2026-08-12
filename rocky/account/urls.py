@@ -10,14 +10,6 @@ urlpatterns = [
         "two_factor/setup/", views.SetupRockyView.as_view(), name="setup"
     ),  # Bypass the two_factor setup show that users have to be verified
     path("recover-email/", views.RecoverEmailView.as_view(), name="recover_email"),
-    path(
-        "password_reset/",
-        views.PasswordResetView.as_view(),
-        name="password_reset",
-    ),
-    path(
-        "reset/<uidb64>/<token>/",
-        views.PasswordResetConfirmView.as_view(),
-        name="password_reset_confirm",
-    ),
+    path("password_reset/", views.PasswordResetView.as_view(), name="password_reset"),
+    path("reset/<uidb64>/<token>/", views.PasswordResetConfirmView.as_view(), name="password_reset_confirm"),
 ]

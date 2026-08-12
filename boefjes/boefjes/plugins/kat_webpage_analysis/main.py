@@ -8,13 +8,14 @@ import requests
 from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 from requests import Session
 
-from boefjes.job_models import BoefjeMeta
+# TODO: refactor
+from boefjes.plugins.kat_webpage_analysis.har.requests import create_har_object
 
 ALLOWED_CONTENT_TYPES = mimetypes.types_map.values()
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     useragent = getenv("USERAGENT", default="OpenKAT")
 
     uri = get_uri(input_)
@@ -39,21 +40,10 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
             else:
                 url_parts = url_parts._replace(netloc=f"[{ip}]") if addr.version == 6 else url_parts._replace(netloc=ip)
 
-            uri = urlunsplit(
-                [
-                    url_parts.scheme,
-                    url_parts.netloc,
-                    url_parts.path,
-                    url_parts.query,
-                    url_parts.fragment,
-                ]
-            )
+            uri = urlunsplit([url_parts.scheme, url_parts.netloc, url_parts.path, url_parts.query, url_parts.fragment])
 
     body_mimetypes = {"openkat-http/body"}
-    try:
-        response = do_request(hostname, session, uri, useragent)
-    except requests.exceptions.RequestException as request_error:
-        return [({"openkat-http/error"}, str(request_error))]
+    response = do_request(hostname, session, uri, useragent)
 
     if "content-type" in response.headers:
         content_type = response.headers["content-type"]
@@ -62,45 +52,22 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
             body_mimetypes.add(content_type)
 
         # Pick up the content type for the body from the server and split away encodings to make normalization easier
-        content_type = content_type.split(";")
-        if content_type[0] in ALLOWED_CONTENT_TYPES:
-            body_mimetypes.add(content_type[0])
+        content_type_splitted = content_type.split(";")
+        if content_type_splitted[0] in ALLOWED_CONTENT_TYPES:
+            body_mimetypes.add(content_type_splitted[0])
 
-    # in case of a full response object, we hexdump to avoid issues with binary data or different encoding
-    response_dump = json.dumps(create_response_object(response))
+    har = json.dumps(create_har_object(response))
 
     return [
-        ({"openkat-http/response"}, response_dump.encode() + b"\n\n" + response.content),
+        ({"application/json+har"}, har.encode()),
         ({"openkat-http/headers"}, json.dumps(dict(response.headers))),
         (body_mimetypes, response.content),
     ]
 
 
-# todo: perhaps also implement response.history?
-def create_response_object(response: requests.Response) -> dict:
-    return {
-        "response": {
-            "url": response.url,
-            "status_code": response.status_code,
-            "headers": dict(response.headers),
-            "cookies": dict(response.cookies),
-            "is_redirect": response.is_redirect,
-            "encoding": response.encoding,
-        },
-        "request": {
-            "url": response.request.url,
-            "method": response.request.method,
-            "headers": dict(response.request.headers),
-        },
-    }
-
-
 def do_request(hostname: str, session: Session, uri: str, useragent: str):
     response = session.get(
-        uri,
-        headers={"Host": hostname, "User-Agent": useragent},
-        verify=False,
-        allow_redirects=False,
+        uri, headers={"Host": hostname, "User-Agent": useragent}, verify=False, allow_redirects=False
     )
 
     return response

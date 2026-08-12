@@ -35,11 +35,56 @@ help: ## Show this help.
 
 build: images
 
-images:  # Build the images for the containerized boefjes
-  # Dns-records is disabled for now, see the discussion in https://github.com/minvws/nl-kat-coordination/pull/2709
-	# docker build -f images/base.Dockerfile -t ghcr.io/minvws/openkat/dns-records --build-arg BOEFJE_PATH=./boefjes/plugins/kat_dns .
-	docker build -f ./boefjes/plugins/kat_dnssec/boefje.Dockerfile -t ghcr.io/minvws/openkat/dns-sec:latest .
-	docker build -f ./boefjes/plugins/kat_nmap_tcp/boefje.Dockerfile -t ghcr.io/minvws/openkat/nmap:latest  .
+base-image:
+	docker build -f **/base.Dockerfile -t openkat/boefje-base:latest .
+
+export REGISTRY=docker.underdark.nl/librekat
+
+# TODO: nikto cannot run as a worker as it uses a custom javascript image. We should differentiate between these images.
+# Build the images for the containerized boefjes
+images: dns-sec nmap export-http nikto adr-validator masscan nuclei ssl-certificates ssl-scan testssl-sh-ciphers webpage-capture wp-scan pdio-subfinder generic
+
+dns-sec: base-image
+	docker build -f */*/kat_dnssec/boefje.Dockerfile -t $(REGISTRY)/openkat-dns-sec:latest -t openkat/dns-sec .
+
+nmap: base-image
+	docker build -f */*/kat_nmap_tcp/boefje.Dockerfile -t $(REGISTRY)/openkat-nmap:latest -t openkat/nmap .
+
+export-http: base-image
+	docker build -f */*/kat_export_http/boefje.Dockerfile -t $(REGISTRY)/openkat-export-http:latest -t openkat/export-http .
+
+nikto: base-image
+	docker build -f */*/kat_nikto/boefje.Dockerfile -t $(REGISTRY)/openkat-nikto:latest .
+
+adr-validator: base-image
+	docker build -f */*/kat_adr_validator/boefje.Dockerfile -t $(REGISTRY)/openkat-adr-validator:latest .
+
+masscan: base-image
+	docker build -f */*/kat_masscan/boefje.Dockerfile -t $(REGISTRY)/openkat-masscan:latest .
+
+nuclei: base-image
+	docker build -f */*/kat_nuclei_cve/boefje.Dockerfile -t $(REGISTRY)/openkat-nuclei:latest .
+
+ssl-certificates: base-image
+	docker build -f */*/kat_ssl_certificates/boefje.Dockerfile -t $(REGISTRY)/openkat-ssl-certificates:latest .
+
+ssl-scan: base-image
+	docker build -f */*/kat_ssl_scan/boefje.Dockerfile -t $(REGISTRY)/openkat-ssl-scan:latest .
+
+testssl-sh-ciphers: base-image
+	docker build -f */*/kat_testssl_sh_ciphers/boefje.Dockerfile -t $(REGISTRY)/openkat-testssl-sh-ciphers:latest .
+
+webpage-capture: base-image
+	docker build -f */*/kat_webpage_capture/boefje.Dockerfile -t $(REGISTRY)/openkat-webpage-capture:latest .
+
+wp-scan: base-image
+	docker build -f */*/kat_wpscan/boefje.Dockerfile -t $(REGISTRY)/openkat-wp-scan:latest .
+
+pdio-subfinder: base-image
+	docker build -f */*/kat_pdio_subfinder/boefje.Dockerfile -t $(REGISTRY)/openkat-pdio-subfinder:latest .
+
+generic: base-image
+	docker build -f */generic.Dockerfile -t $(REGISTRY)/openkat-generic:latest -t openkat/generic .
 
 
 ##
@@ -75,19 +120,26 @@ itest: ## Run the integration tests.
 	$(ci-docker-compose) build
 	$(ci-docker-compose) down --remove-orphans
 	$(ci-docker-compose) run --rm katalogus_integration
-	$(ci-docker-compose) down
+	$(ci-docker-compose) stop
 
-bench:  ## Run the report benchmark.
+migration_bench:  ## Run the migration benchmark.
 	$(ci-docker-compose) build
 	$(ci-docker-compose) down --remove-orphans
 	$(ci-docker-compose) run --rm migration_bench
+	$(ci-docker-compose) stop
+
+bench:  ## Run the other benchmarks
+	$(ci-docker-compose) build
+	$(ci-docker-compose) down --remove-orphans
+	$(ci-docker-compose) run --rm katalogus_integration \
+	python -m cProfile -o .ci/bench_$$(date +%Y_%m_%d-%H:%M:%S).pstat -m pytest -m slow --no-cov tests/integration
 	$(ci-docker-compose) stop
 
 debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-boefjes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-boefjes \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -96,18 +148,45 @@ debian12:
 	kat-debian12-build-image \
 	packaging/scripts/build-debian-package.sh
 
+debian13:
+	docker run --rm \
+	--env PKG_NAME=kat-boefjes \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
+	--workdir /app \
+	kat-debian13-build-image \
+	packaging/scripts/build-debian-package.sh
+
 ubuntu22.04:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-boefjes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-boefjes \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
 	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
 	--workdir /app \
 	kat-ubuntu22.04-build-image \
+	packaging/scripts/build-debian-package.sh
+
+ubuntu24.04:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-boefjes \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
+	--workdir /app \
+	kat-ubuntu24.04-build-image \
 	packaging/scripts/build-debian-package.sh
 
 clean:

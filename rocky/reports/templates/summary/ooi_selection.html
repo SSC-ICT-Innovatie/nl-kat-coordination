@@ -1,26 +1,28 @@
 {% load i18n %}
 
-<table>
-    <caption class="visually-hidden">{% translate "Objects" %}</caption>
-    <thead>
-        <tr>
-            <th>{% translate "Object" %}</th>
-            <th>{% translate "Type" %}</th>
-            <th>{% translate "Clearance level" %}</th>
-            <th>{% translate "Clearance type" %}</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for ooi in oois %}
+<div class="horizontal-scroll">
+    <table>
+        <caption class="visually-hidden">{% translate "Objects" %}</caption>
+        <thead>
             <tr>
-                <td>{{ ooi.human_readable }}</td>
-                <td>{{ ooi.object_type }}</td>
-                <td>
-                    {% include "partials/scan_level_indicator.html" with value=ooi.scan_profile.level.value custom_class="left" %}
-
-                </td>
-                <td>{{ ooi.scan_profile.scan_profile_type|title }}</td>
+                <th>{% translate "Object" %}</th>
+                <th>{% translate "Type" %}</th>
+                <th>{% translate "Clearance level" %}</th>
+                <th>{% translate "Clearance type" %}</th>
             </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            {% for ooi in oois %}
+                <tr>
+                    <td>{{ ooi.human_readable }}</td>
+                    <td>{{ ooi.object_type }}</td>
+                    <td>
+                        {% include "partials/scan_level_indicator.html" with value=ooi.scan_profile.level.value custom_class="left" %}
+
+                    </td>
+                    <td>{{ ooi.scan_profile.scan_profile_type|title }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,20 @@
+p,
+a,
+span,
+li,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+div {
+  &.error,
+  &.warning,
+  &.explanation,
+  &.confirmation,
+  &.system {
+    max-width: var(--max-line-length-max-width);
+    margin: 0;
+  }
+}

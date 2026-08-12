@@ -12,7 +12,6 @@ from httpx import HTTPError, HTTPStatusError
 from tools.forms.upload_raw import UploadRawForm
 
 from octopoes.models.types import OOI_TYPES
-from rocky.bytes_client import get_bytes_client
 
 
 class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
@@ -62,10 +61,12 @@ class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         raw_file = form.cleaned_data["raw_file"]
         mime_types = form.cleaned_data["mime_types"]
         input_ooi = form.cleaned_data["ooi"]
-        valid_time = form.cleaned_data["date"]
+        valid_time = None
+        if "date" in form.cleaned_data:
+            valid_time = form.cleaned_data["date"].replace(tzinfo=timezone.utc)
 
         try:
-            get_bytes_client(self.organization.code).upload_raw(
+            self.bytes_client.upload_raw(
                 raw_file.read(),
                 mime_types,
                 input_ooi=input_ooi.primary_key,
@@ -82,10 +83,7 @@ class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             self.add_success_notification(_("Raw file successfully added."))
 
     def get_form_kwargs(self):
-        kwargs = {
-            "connector": self.octopoes_api_connector,
-            "ooi_list": self.get_ooi_options(),
-        }
+        kwargs = {"connector": self.octopoes_api_connector, "ooi_list": self.get_ooi_options()}
         kwargs.update(super().get_form_kwargs())
 
         if "ooi_class" in kwargs:

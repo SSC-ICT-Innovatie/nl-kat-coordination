@@ -30,6 +30,12 @@
       "pattern": "^(\\s*(,*)[0-9]+,?\\s*)*$",
       "default": "1433,1434,3050,3306,5432"
     },
+    "microsoft_rdp_ports": {
+      "description": "Comma separated list of (Microsoft) RDP ports",
+      "type": "string",
+      "pattern": "^(\\s*(,*)[0-9]+,?\\s*)*$",
+      "default": "3389"
+    },
     "aggregate_findings": {
       "description": "Do you want to aggregate findings into one finding of the IP? Answer with true or false.",
       "type": "string",

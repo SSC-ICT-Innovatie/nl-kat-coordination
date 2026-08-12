@@ -1,6 +1,22 @@
 import { onDomReady } from "../js/imports/utils.js";
 
-onDomReady(initDialogs);
+onDomReady(function () {
+  initDialogs();
+  openDialogFromUrl();
+});
+
+export function openDialogFromUrl() {
+  // If ID is present in the URL on DomReady, open the dialog immediately.
+  let id = window.location.hash.slice(1);
+  if (id) {
+    const dialog = document.getElementById(id);
+    if (!dialog) return;
+
+    if (dialog.querySelector(".error")) {
+      showModalBasedOnAnchor(id);
+    }
+  }
+}
 
 export function initDialogs(element) {
   let root = element || document;
@@ -10,67 +26,52 @@ export function initDialogs(element) {
 }
 
 export function initDialog(modal) {
-  let input_elements = [];
+  let dialog_element = modal.querySelector("dialog");
+  if (!dialog_element) return;
 
-  modal.querySelector(".modal-trigger").addEventListener("click", (event) => {
-    // Get and clone input elements to be able to "reset" them on "cancel".
-    input_elements = modal.querySelectorAll("input, textarea");
+  let trigger = document.querySelector(
+    "[data-modal-id='" + dialog_element.id + "']:not(a)",
+  );
 
-    // Clone nodeList input_elements to simple array, instead of making a pointer reference.
-    input_elements.forEach((element) => {
-      element.defaultvalue = element.value;
+  // Check if trigger element is <a>, if not, on click,
+  // alter the URL to open the dialog using the onhaschange event.
+  if (trigger) {
+    trigger.addEventListener("click", (event) => {
+      window.location.hash = "#" + dialog_element.id;
     });
+  }
 
-    // Used ".closest" instead of ".parentNode" to make sure we stay flexible in terms of
-    // HTML-structure when implementing the trigger.
-    event.target.closest(".modal-wrapper").querySelector("dialog").showModal();
-  });
-
-  modal.querySelector("dialog").addEventListener("click", (event) => {
+  dialog_element.addEventListener("click", (event) => {
     // The actual handling (like posting) of the input values should be done when implementing the component.
-    if (event.target.classList.contains("confirm-modal-button")) {
-      if (input_elements) {
-        // Closing is only allowed when the inputs are 'valid'.
-        if (checkValidity(input_elements)) {
-          event.target
-            .closest(".modal-wrapper")
-            .querySelector("dialog")
-            .close();
-        }
-        return;
-      }
-    }
     // event.target.nodeName === 'DIALOG' is needed to check if the ::backdrop is clicked.
     if (
+      event.target.classList.contains("confirm-modal-button") ||
       event.target.classList.contains("close-modal-button") ||
       event.target.nodeName === "DIALOG"
     ) {
-      // When canceling or closing using the 'x' remove the "error" styles.
-      input_elements.forEach((element) => {
-        element.classList.remove("error");
-      });
-
-      // When canceling or closing the modal, the inputs get reset to their initial value.
-      input_elements.forEach((element) => {
-        element.value = element.defaultvalue;
-      });
-
       event.target.closest(".modal-wrapper").querySelector("dialog").close();
     }
   });
-}
 
-export function checkValidity(elements) {
-  let valid = true;
-
-  elements.forEach((element) => {
-    if (!element.checkValidity()) {
-      valid = false;
-      element.classList.add("error");
-    } else {
-      element.classList.remove("error");
-    }
+  dialog_element.addEventListener("close", (event) => {
+    removeDialogAnchor();
   });
-
-  return valid;
 }
+
+export function removeDialogAnchor() {
+  // Remove the anchor from the URL when closing the modal
+  let baseUrl = window.location.href.split("#")[0];
+  window.history.replaceState(null, "", baseUrl);
+}
+
+export function showModalBasedOnAnchor(id) {
+  if (id && document.querySelector("dialog#" + id + ".modal")) {
+    // Show modal, selected by ID
+    document.querySelector("#" + id).showModal();
+  }
+}
+
+addEventListener("hashchange", function () {
+  let id = window.location.toString().split("#")[1];
+  showModalBasedOnAnchor(id);
+});

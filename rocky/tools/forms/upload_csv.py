@@ -14,9 +14,7 @@ CSV_ERRORS = {
 
 class UploadCSVForm(forms.Form):
     csv_file = forms.FileField(
-        label=_("Upload CSV file"),
-        help_text=_("Only accepts CSV file."),
-        allow_empty_file=False,
+        label=_("Upload CSV file"), help_text=_("Only accepts CSV file."), allow_empty_file=False
     )
 
     def clean_csv_file(self):

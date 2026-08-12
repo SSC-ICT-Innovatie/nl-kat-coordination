@@ -10,6 +10,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Group
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.forms import Form
 from django.http import FileResponse, HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
@@ -19,7 +20,7 @@ from django.views.generic.edit import FormView
 from onboarding.view_helpers import DNS_REPORT_LEAST_CLEARANCE_LEVEL
 from tools.forms.upload_csv import UploadCSVForm
 from tools.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, OrganizationMember
-from tools.view_helpers import OrganizationMemberBreadcrumbsMixin
+from tools.view_helpers import Breadcrumb, OrganizationMemberBreadcrumbsMixin
 
 from rocky.messaging import clearance_level_warning_dns_report
 
@@ -36,8 +37,8 @@ MEMBER_UPLOAD_COLUMNS = [
     "acknowledged_clearance_level",
 ]
 CSV_CRITERIA = [
-    _("Add column titles. Followed by each object on a new line."),
-    _("The columns are: ") + ", ".join(MEMBER_UPLOAD_COLUMNS),
+    _("Add column titles, followed by each object on a new line."),
+    _("The columns are: ") + ",".join(f"'{column}'" for column in MEMBER_UPLOAD_COLUMNS),
     _("Clearance levels should be between -1 and 4."),
     _("Account type can be one of: ") + f"'{GROUP_CLIENT}', '{GROUP_ADMIN}' and '{GROUP_REDTEAM}'",
 ]
@@ -47,7 +48,7 @@ class OrganizationMemberAddAccountTypeView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
     """
-    View to create a new member starting with choosing the account type.
+    View to create a new member. Step 1: choose an account type.
     """
 
     template_name = "organizations/organization_member_add_account_type.html"
@@ -65,16 +66,15 @@ class OrganizationMemberAddAccountTypeView(
             )
         )
 
-    def build_breadcrumbs(self):
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
         breadcrumbs = super().build_breadcrumbs()
         breadcrumbs.append(
             {
                 "url": reverse(
-                    "organization_member_add_account_type",
-                    kwargs={"organization_code": self.organization.code},
+                    "organization_member_add_account_type", kwargs={"organization_code": self.organization.code}
                 ),
-                "text": _("Add Account Type"),
-            },
+                "text": _("Add member"),
+            }
         )
         return breadcrumbs
 
@@ -83,7 +83,7 @@ class OrganizationMemberAddView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
     """
-    View to create a new member.
+    View to create a new member. Step 2: account setup.
     """
 
     template_name = "organizations/organization_member_add.html"
@@ -110,27 +110,16 @@ class OrganizationMemberAddView(
     def get_success_url(self, **kwargs):
         return reverse_lazy("organization_member_list", kwargs={"organization_code": self.organization.code})
 
-    def build_breadcrumbs(self):
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
         breadcrumbs = super().build_breadcrumbs()
         breadcrumbs.extend(
             [
                 {
                     "url": reverse(
-                        "organization_member_add_account_type",
-                        kwargs={"organization_code": self.organization.code},
+                        "organization_member_add_account_type", kwargs={"organization_code": self.organization.code}
                     ),
-                    "text": _("Add Account Type"),
-                },
-                {
-                    "url": reverse(
-                        "organization_member_add",
-                        kwargs={
-                            "organization_code": self.organization.code,
-                            "account_type": self.kwargs["account_type"],
-                        },
-                    ),
-                    "text": _("Add Member"),
-                },
+                    "text": _("Add member"),
+                }
             ]
         )
         return breadcrumbs
@@ -147,7 +136,13 @@ class DownloadMembersTemplateView(OrganizationPermissionRequiredMixin, Organizat
         return FileResponse(io.BytesIO(template.encode()), filename=f"{self.organization}_organization_members.csv")
 
 
-class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
+class MembersUploadView(
+    OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
+):
+    """
+    View to upload multiple new members with a CSV file.
+    """
+
     template_name = "organizations/organization_member_upload.html"
     form_class = UploadCSVForm
     permission_required = "tools.add_organizationmember"
@@ -159,7 +154,7 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
         self.process_csv(form)
         return super().form_valid(form)
 
-    def process_csv(self, form) -> None:
+    def process_csv(self, form: Form) -> None:
         csv_raw_data = form.cleaned_data["csv_file"].read()
         csv_data = io.StringIO(csv_raw_data.decode("UTF-8"))
 
@@ -178,7 +173,7 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
                     )
                 except KeyError:
                     messages.add_message(self.request, messages.ERROR, _("The csv file is missing required columns"))
-                    return redirect("organization_member_upload", self.organization.code)
+                    return
 
                 try:
                     with transaction.atomic():
@@ -193,16 +188,12 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
                     logger.exception("Invalid group")
                 except ValidationError:
                     messages.add_message(
-                        self.request,
-                        messages.WARNING,
-                        _("Invalid data for: '{email}'").format(email=email),
+                        self.request, messages.WARNING, _("Invalid data for: '{email}'").format(email=email)
                     )
                     logger.warning("Invalid data", exc_info=True)
                 except ValueError:
                     messages.add_message(
-                        self.request,
-                        messages.WARNING,
-                        _("Invalid email address: '{email}'").format(email=email),
+                        self.request, messages.WARNING, _("Invalid email address: '{email}'").format(email=email)
                     )
                     logger.warning("Invalid email address: %s", email)
 
@@ -215,7 +206,7 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
 
     def save_models(
         self, name: str, email: str, account_type: str, trusted_clearance: int, acknowledged_clearance: int
-    ):
+    ) -> None:
         user, user_created = User.objects.get_or_create(email=email, defaults={"full_name": name})
 
         member_kwargs = {
@@ -227,9 +218,7 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
         OrganizationMember(user=user, **member_kwargs).full_clean()  # Do validation before saving the model
 
         member, member_created = OrganizationMember.objects.get_or_create(
-            user=user,
-            organization=self.organization,
-            defaults=member_kwargs,
+            user=user, organization=self.organization, defaults=member_kwargs
         )
         member.groups.add(Group.objects.get(name=account_type))
 
@@ -247,6 +236,18 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
                 use_https=self.request.is_secure(),
                 request=self.request,
             )
+
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
+        breadcrumbs = super().build_breadcrumbs()
+        breadcrumbs.extend(
+            [
+                {
+                    "url": reverse("organization_member_upload", kwargs={"organization_code": self.organization.code}),
+                    "text": _("Add members"),
+                }
+            ]
+        )
+        return breadcrumbs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

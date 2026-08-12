@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from importlib import import_module
 from inspect import isfunction, signature
-from typing import Any, Protocol
+from typing import Any
 
 from bits.definitions import BitDefinition
 from octopoes.models import OOI
@@ -11,15 +11,11 @@ class ModuleException(Exception):
     """General error for modules"""
 
 
-class Runnable(Protocol):
-    def run(self, *args, **kwargs) -> Any: ...
-
-
 class BitRunner:
     def __init__(self, bit_definition: BitDefinition):
         self.module = bit_definition.module
 
-    def run(self, *args, **kwargs) -> list[OOI]:
+    def run(self, *args: Any, **kwargs: Any) -> list[OOI]:
         module = import_module(self.module)
 
         if not hasattr(module, "run") or not isfunction(module.run):
@@ -31,7 +27,7 @@ class BitRunner:
             )
         return list(module.run(*args, **kwargs))
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"BitRunner {self.module}"
 
 

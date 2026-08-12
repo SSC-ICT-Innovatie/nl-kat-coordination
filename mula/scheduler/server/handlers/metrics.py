@@ -25,8 +25,7 @@ class MetricsAPI:
         # Set up OpenTelemetry instrumentation
         if self.ctx.config.host_metrics is not None:
             self.logger.info(
-                "Setting up instrumentation with span exporter endpoint [%s]",
-                self.ctx.config.host_metrics,
+                "Setting up instrumentation with span exporter endpoint [%s]", self.ctx.config.host_metrics
             )
 
             FastAPIInstrumentor.instrument_app(self.api)

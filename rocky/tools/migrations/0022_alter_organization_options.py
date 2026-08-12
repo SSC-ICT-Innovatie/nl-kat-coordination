@@ -4,9 +4,7 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0021_delete_boefjeconfig"),
-    ]
+    dependencies = [("tools", "0021_delete_boefjeconfig")]
 
     operations = [
         migrations.AlterModelOptions(
@@ -18,5 +16,5 @@ class Migration(migrations.Migration):
                     ("can_enable_disable_boefje", "Can enable or disable boefje"),
                 )
             },
-        ),
+        )
     ]

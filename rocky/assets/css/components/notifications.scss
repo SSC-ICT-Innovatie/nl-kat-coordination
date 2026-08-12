@@ -1,3 +1,25 @@
+/* Block notification */
+div,
+section {
+  &.error,
+  &.warning,
+  &.explanation,
+  &.confirmation,
+  &.system {
+    flex-direction: row;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      font-size: var(--heading-small-font-size);
+    }
+  }
+}
+
+/* Help text */
 div {
   &.explanation {
     &.help-text {
@@ -8,5 +30,64 @@ div {
 
   &.confirmation {
     margin-top: 0;
+  }
+}
+
+/* Inline notification */
+p,
+span {
+  &.error,
+  &.warning,
+  &.explanation,
+  &.confirmation,
+  &.system {
+    &::before {
+      margin-left: -2rem;
+    }
+  }
+}
+
+/* Icons */
+p,
+span,
+section,
+div,
+form div,
+form section {
+  &.error {
+    &::before {
+      content: "\eac5";
+      color: var(--colors-red-600);
+    }
+  }
+
+  &.warning {
+    &::before {
+      content: "\ea06";
+      color: var(--colors-ochre-500);
+    }
+  }
+
+  &.explanation {
+    &::before {
+      content: "\eac5";
+      color: var(--colors-blue-600);
+    }
+  }
+
+  &.confirmation {
+    &::before {
+      content: "\ea5e";
+      color: var(--colors-green-600);
+    }
+  }
+
+  &.system {
+    background-color: var(--colors-black-05);
+
+    &::before {
+      content: "\ea06";
+      color: var(--colors-blue-600);
+    }
   }
 }

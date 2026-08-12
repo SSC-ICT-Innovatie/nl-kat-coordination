@@ -4,7 +4,7 @@ from typing import Any
 
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
-from octopoes.models.types import HTTPHeader
+from octopoes.models.ooi.web import HTTPHeader
 
 
 def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
@@ -35,18 +35,10 @@ def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) ->
         for index, finding in enumerate(findings):
             description += f"\n {index + 1}. {finding}"
 
-        yield from _create_kat_finding(
-            header.reference,
-            kat_id="KAT-HSTS-VULNERABILITIES",
-            description=description,
-        )
+        yield from _create_kat_finding(header.reference, kat_id="KAT-HSTS-VULNERABILITIES", description=description)
 
 
 def _create_kat_finding(header: Reference, kat_id: str, description: str) -> Iterator[OOI]:
     finding_type = KATFindingType(id=kat_id)
     yield finding_type
-    yield Finding(
-        finding_type=finding_type.reference,
-        ooi=header,
-        description=description,
-    )
+    yield Finding(finding_type=finding_type.reference, ooi=header, description=description)

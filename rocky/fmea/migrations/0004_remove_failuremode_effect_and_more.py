@@ -4,29 +4,13 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("fmea", "0003_auto_20220203_1534"),
-    ]
+    dependencies = [("fmea", "0003_auto_20220203_1534")]
 
     operations = [
-        migrations.RemoveField(
-            model_name="failuremode",
-            name="effect",
-        ),
-        migrations.RemoveField(
-            model_name="failuremodeaffectedobject",
-            name="failure_mode",
-        ),
-        migrations.DeleteModel(
-            name="FailureModeTreeObject",
-        ),
-        migrations.DeleteModel(
-            name="FailureMode",
-        ),
-        migrations.DeleteModel(
-            name="FailureModeAffectedObject",
-        ),
-        migrations.DeleteModel(
-            name="FailureModeEffect",
-        ),
+        migrations.RemoveField(model_name="failuremode", name="effect"),
+        migrations.RemoveField(model_name="failuremodeaffectedobject", name="failure_mode"),
+        migrations.DeleteModel(name="FailureModeTreeObject"),
+        migrations.DeleteModel(name="FailureMode"),
+        migrations.DeleteModel(name="FailureModeAffectedObject"),
+        migrations.DeleteModel(name="FailureModeEffect"),
     ]

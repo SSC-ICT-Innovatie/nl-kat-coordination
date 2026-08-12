@@ -3,9 +3,9 @@
 {% load report_extra %}
 {% load ooi_extra %}
 
-<div class="horizontal-view">
+<div class="horizontal-scroll sticky-column">
     <table>
-        <caption class="visually-hidden">{% translate "Subreports:" %}</caption>
+        <caption class="visually-hidden">{% translate "Asset reports" %}:</caption>
         <thead>
             <tr>
                 <th scope="col">{% translate "Name" %}</th>
@@ -16,20 +16,24 @@
             </tr>
         </thead>
         <tbody>
-            {% for parent_report, subreport in subreports %}
+            {% for asset_report in asset_reports %}
                 <tr>
                     <td>
-                        <a href="{% url "view_report" organization.code %}?report_id={{ subreport.reference }}&observed_at={{ subreport.observed_at|date:"Y-m-d H:i:s:u" }}"
-                           title="{% translate "Shows report details" %}">{{ subreport.name }}</a>
+                        <a href="{% url "view_report" organization.code %}?asset_report_id={{ asset_report.reference }}&observed_at={{ asset_report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                           title="{% translate "Shows report details" %}">{{ asset_report.name }}</a>
                     </td>
                     <td>
-                        <span class="label tags-color-{{ subreport.report_type|get_report_type_label_style }}">{{ subreport.report_type|get_report_type_name }}</span>
+                        <ul class="tags horizontal-view">
+                            <li>
+                                <span class="label tags-color-{{ asset_report.report_type|get_report_type_label_style }}">{{ asset_report.report_type|get_report_type_name }}</span>
+                            </li>
+                        </ul>
                     </td>
                     <td>
-                        <a href="{% ooi_url "ooi_detail" subreport.input_oois.0 organization.code %}">{{ subreport.input_oois.0|human_readable }}</a>
+                        <a href="{% ooi_url "ooi_detail" asset_report.input_ooi organization.code %}">{{ asset_report.input_ooi|human_readable }}</a>
                     </td>
-                    <td>{{ subreport.observed_at|date }}</td>
-                    <td>{{ subreport.date_generated }}</td>
+                    <td>{{ asset_report.observed_at|date }}</td>
+                    <td>{{ asset_report.date_generated }}</td>
                 </tr>
             {% endfor %}
         </tbody>

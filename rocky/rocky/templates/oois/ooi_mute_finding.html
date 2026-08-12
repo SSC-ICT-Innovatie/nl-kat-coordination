@@ -14,7 +14,7 @@
                 <form action="{% url 'ooi_add' ooi_type=ooi_type organization_code=organization.code %}"
                       novalidate
                       method="post"
-                      class="horizontal-view help">
+                      class="help">
                     {% csrf_token %}
                     {% translate "Mute finding" as fieldset_legend %}
                     {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}

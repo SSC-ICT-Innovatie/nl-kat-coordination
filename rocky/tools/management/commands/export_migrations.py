@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Any
 
 import structlog
 from django.core.management import BaseCommand, CommandParser
@@ -15,14 +16,9 @@ class Command(BaseCommand):
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("app", action="store", type=str, help="Django app")
         parser.add_argument("from_id", action="store", type=int, help="Migration id to start from")
-        parser.add_argument(
-            "--output-folder",
-            action="store",
-            default="export_migrations",
-            help="Output folder",
-        )
+        parser.add_argument("--output-folder", action="store", default="export_migrations", help="Output folder")
 
-    def handle(self, **options) -> None:
+    def handle(self, **options: Any) -> None:
         # Get the database we're operating from
         connection = connections[DEFAULT_DB_ALIAS]
 
@@ -35,13 +31,11 @@ class Command(BaseCommand):
 
         # Find migration record to start from
         migration_match = MigrationRecorder.Migration.objects.get(
-            app=options["app"],
-            name__istartswith=f"{options['from_id']:04d}",
+            app=options["app"], name__istartswith=f"{options['from_id']:04d}"
         )
 
         migrations_to_export = MigrationRecorder.Migration.objects.filter(
-            id__gte=migration_match.id,
-            app=options["app"],
+            id__gte=migration_match.id, app=options["app"]
         )
 
         for migration in migrations_to_export:

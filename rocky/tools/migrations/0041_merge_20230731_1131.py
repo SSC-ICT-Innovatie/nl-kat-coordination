@@ -4,9 +4,6 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0040_admin_inherits_red_teamer_permissions"),
-        ("tools", "0040_update_admin_permission"),
-    ]
+    dependencies = [("tools", "0040_admin_inherits_red_teamer_permissions"), ("tools", "0040_update_admin_permission")]
 
     operations: list = []

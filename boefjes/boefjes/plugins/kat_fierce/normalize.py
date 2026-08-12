@@ -4,7 +4,7 @@ from ipaddress import IPv4Address, ip_address
 
 from tldextract import tldextract
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.dns.zone import Hostname, ResolvedHostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 
@@ -17,7 +17,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     for _, subdomain in results["subdomains"].items():
         hostname = subdomain["url"].rstrip(".")
-        registered_domain = tldextract.extract(hostname).registered_domain
+        registered_domain = tldextract.extract(hostname).top_domain_under_public_suffix
 
         registered_domain_ooi = Hostname(name=registered_domain, network=internet.reference)
         yield registered_domain_ooi

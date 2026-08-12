@@ -1,4 +1,6 @@
-<form method="post" class="inline">
+<form method="post"
+      class="inline"
+      {% if url %}action="{{ url }}"{% endif %}>
     {% csrf_token %}
     <input type="hidden" name="action" value="{{ action }}">
     {% if key %}<input type="hidden" name="{{ key }}" value="{{ value }}">{% endif %}

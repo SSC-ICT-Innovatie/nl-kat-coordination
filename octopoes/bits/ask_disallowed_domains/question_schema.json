@@ -9,7 +9,7 @@
       "description": "Comma separated list of disallowed hostnames in CSP headers",
       "type": "string",
       "pattern": "^(\\s*(,*)[^,]+,?\\s*)*$",
-      "default": "githubpages.com,github.io,jsdelivr.com,cdn.skypack.dev"
+      "default": "githubpages.com,github.io,jsdelivr.com,cdn.skypack.dev,unpkg.com"
     },
     "disallow_url_shorteners": {
       "description": "Do you want to disallow url shorteners in csp headers?",

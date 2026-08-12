@@ -20,7 +20,4 @@ def run(hostname: Hostname, additional_oois: list[HostnameHTTPURL | Website], co
                 int(website.ip_service.tokenized.ip_port.port) == hostname_http_url.port
                 and website.ip_service.tokenized.service.name == hostname_http_url.scheme.value
             ):
-                yield HTTPResource(
-                    website=website.reference,
-                    web_url=hostname_http_url.reference,
-                )
+                yield HTTPResource(website=website.reference, web_url=hostname_http_url.reference)

@@ -7,6 +7,17 @@ from octopoes.models.persistence import ReferenceField
 
 
 class GeographicPoint(OOI):
+    """Represents Geographic points that can be added to objects.
+
+    Possible value
+    --------------
+    longitude, latitude
+
+    Example value
+    -------------
+    13,37
+    """
+
     object_type: Literal["GeographicPoint"] = "GeographicPoint"
 
     ooi: Reference = ReferenceField(OOI)

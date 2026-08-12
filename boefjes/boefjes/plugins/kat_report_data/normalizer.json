@@ -1,5 +1,7 @@
 {
   "id": "kat_report_data",
+  "name": "Report data",
+  "description": "Parses (uploaded) report data to create reports.",
   "consumes": [
     "openkat/report-data"
   ],

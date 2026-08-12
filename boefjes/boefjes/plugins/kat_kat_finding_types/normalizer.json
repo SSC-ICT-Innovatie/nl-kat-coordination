@@ -1,5 +1,7 @@
 {
   "id": "kat_kat_finding_types_normalize",
+  "name": "KAT finding types",
+  "description": "Parses KAT finding types.",
   "consumes": [
     "boefje/kat-finding-types"
   ],

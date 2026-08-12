@@ -1,19 +1,23 @@
 import logging
 import os
+from enum import Enum
 from pathlib import Path
 from typing import Any, Literal
 
-from pydantic import AmqpDsn, AnyHttpUrl, Field, FilePath, IPvAnyAddress, PostgresDsn, conint
+from pydantic import AnyHttpUrl, Field, FilePath, IPvAnyAddress, PostgresDsn, conint
 from pydantic_settings import BaseSettings, PydanticBaseSettingsSource, SettingsConfigDict
 from pydantic_settings.sources import EnvSettingsSource
-
-from boefjes.models import EncryptionMiddleware
 
 BASE_DIR: Path = Path(__file__).parent.resolve()
 
 # Set base dir to something generic when compiling environment docs
 if os.getenv("DOCS"):
     BASE_DIR = Path("../")
+
+
+class EncryptionMiddleware(Enum):
+    IDENTITY = "IDENTITY"
+    NACL_SEALBOX = "NACL_SEALBOX"
 
 
 class BackwardsCompatibleEnvSettings(EnvSettingsSource):
@@ -52,6 +56,15 @@ class Settings(BaseSettings):
     pool_size: int = Field(2, description="Number of workers to run per queue")
     poll_interval: float = Field(10.0, description="Time to wait before polling for tasks when all queues are empty")
     worker_heartbeat: float = Field(1.0, description="Seconds to wait before checking the workers when queues are full")
+    deduplicate: bool = Field(False, description="Whether to apply deduplication")
+    plugins: list[str] = Field(
+        default_factory=list, description="A list of plugin ids to filter on.", examples=['["dns-records"]']
+    )
+    images: list[str] = Field(
+        default_factory=list,
+        description="A list of oci images to filter on.",
+        examples=['["docker.underdark.nl/librekat/openkat-generic:latest"]'],
+    )
 
     remote_ns: IPvAnyAddress = Field(
         "1.1.1.1", description="Name server used for remote DNS resolution in the boefje runner"
@@ -62,9 +75,6 @@ class Settings(BaseSettings):
         description="Whitelist for normalizer ids allowed to produce scan profiles, including a maximum level.",
         examples=['{"kat_external_db_normalize": 3, "kat_dns_normalize": 1}'],
     )
-
-    # Queue configuration
-    queue_uri: AmqpDsn = Field(..., description="KAT queue URI", examples=["amqp://"], validation_alias="QUEUE_URI")
 
     katalogus_db_uri: PostgresDsn = Field(
         ...,
@@ -87,22 +97,16 @@ class Settings(BaseSettings):
         ..., examples=["http://localhost:8001"], description="Octopoes API URL", validation_alias="OCTOPOES_API"
     )
     api: AnyHttpUrl = Field(
-        ...,
-        examples=["http://boefje:8000"],
-        description="The URL on which the boefjes API is available",
+        ..., examples=["http://boefje:8000"], description="The URL on which the boefjes API is available"
     )
     # Boefje server settings
-    api_host: str = Field(
-        "0.0.0.0",
-        description="Host address of the Boefje API server",
-    )
-    api_port: int = Field(
-        8000,
-        description="Host port of the Boefje API server",
-    )
-    docker_network: str = Field(
-        "bridge",
-        description="Docker network to run Boefjes in",
+    api_host: str = Field("0.0.0.0", description="Host address of the Boefje API server")
+    api_port: int = Field(8000, description="Host port of the Boefje API server")
+    docker_network: str = Field("bridge", description="Docker network to run Boefjes in")
+    docker_internal_host: bool = Field(
+        False,
+        description='Add "host.docker.internal:host-gateway" to extra_hosts when running boefje. '
+        "This is enabled by default in the Debian package.",
     )
     bytes_api: AnyHttpUrl = Field(
         ..., examples=["http://localhost:8002"], description="Bytes API URL", validation_alias="BYTES_API"
@@ -132,6 +136,8 @@ class Settings(BaseSettings):
     )
 
     logging_format: Literal["text", "json"] = Field("text", description="Logging format")
+
+    outgoing_request_timeout: int = Field(30, description="Timeout for outgoing HTTP requests")
 
     model_config = SettingsConfigDict(env_prefix="BOEFJES_")
 

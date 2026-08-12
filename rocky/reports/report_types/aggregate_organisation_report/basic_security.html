@@ -1,14 +1,9 @@
 {% load i18n %}
 
-<h2>{% translate "Basic security" %}</h2>
-<p>
-    {% blocktranslate trimmed %}
-        In this chapter, first a table of compliance checks is displayed, followed by a
-        detailed examination of compliance issues for each component.
-    {% endblocktranslate %}
-</p>
-<h3>{% translate "Overview of the basic security status" %}</h3>
-<p>
+{% if not report_section %}
+    <h3>{% translate "Overview of the basic security status" %}</h3>
+{% endif %}
+<p class="toggle-item" data-show="off">
     {% blocktranslate trimmed %}
         This table provides an overview of the basic security status of the known assets.
         Basic security in order. In principle, all values in this table should be checked off.

@@ -1,5 +1,7 @@
 {
   "id": "kat_CVE_2023_35078_normalize",
+  "name": "CVE-2023-35078 Ivanti EPMM",
+  "description": "Checks if the Ivanti EPMM website is vulnerable to CVE-2023-35078. Produces a finding if it is vulnerable.",
   "consumes": [
     "boefje/CVE_2023_35078"
   ],

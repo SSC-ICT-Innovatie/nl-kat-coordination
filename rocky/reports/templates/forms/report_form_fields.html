@@ -1,7 +1,6 @@
 <input type="hidden"
        name="observed_at"
        value="{{ observed_at|date:"Y-m-d" }}">
-{% for ooi in selected_oois %}<input type="hidden" name="ooi" value="{{ ooi }}">{% endfor %}
 {% for ooi_type in ooi_types_selection %}<input type="hidden" name="ooi_type" value="{{ ooi_type }}">{% endfor %}
 {% for clearance_level in clearance_levels_selection %}
     <input type="hidden" name="clearance_level" value="{{ clearance_level }}">
@@ -9,14 +8,21 @@
 {% for clearance_type in clearance_types_selection %}
     <input type="hidden" name="clearance_type" value="{{ clearance_type }}">
 {% endfor %}
-{% if selected_report_types %}
+{% if request.GET.page %}<input type="hidden" name="page" value="{{ request.GET.page }}">{% endif %}
+{% if not disable_ooi_selection_fields %}
+    {% for ooi in selected_oois %}<input type="hidden" name="ooi" value="{{ ooi }}">{% endfor %}
+{% endif %}
+{% if not disable_report_type_fields %}
     {% for report_type in selected_report_types %}
         <input type="hidden" name="report_type" value="{{ report_type }}">
     {% endfor %}
 {% endif %}
-{% if plugins.required %}
-    {% for required_plugin in plugins.required %}
-        <input type="hidden" name="plugin" value="{{ required_plugin.id }}">
-    {% endfor %}
+{% for required_optional_plugin, plugins_ in plugins.items %}
+    {% for plugin in plugins_ %}<input type="hidden" name="all_plugins" value="{{ plugin.id }}">{% endfor %}
+{% endfor %}
+{% if request.POST.choose_recurrence %}
+    <input type="hidden"
+           name="choose_recurrence"
+           value="{{ request.POST.choose_recurrence }}">
 {% endif %}
-{% if request.GET.page %}<input type="hidden" name="page" value="{{ request.GET.page }}">{% endif %}
+<input type="hidden" name="object_selection" value="{{ object_selection }}">

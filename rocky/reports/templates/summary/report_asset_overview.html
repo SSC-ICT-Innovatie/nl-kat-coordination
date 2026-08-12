@@ -3,42 +3,59 @@
 <section id="asset-overview">
     <div>
         <h2>{% translate "Asset overview" %}</h2>
-        <h3>{% translate "Selected objects" %} ({{ total_oois }})</h3>
-        <p>
-            {% blocktranslate trimmed %}
-                The objects listed in the table below were used to generate this report.
-                For each object in the table it additionally shows the clearance level and whether or not the object was
-                added by a user ('Declared') or indirectly identified through another service or system ('Inherited').
-            {% endblocktranslate %}
-        </p>
-        {% include "summary/ooi_selection.html" %}
+        {% if oois %}
+            <h3>{% translate "Selected objects" %} ({{ oois|length }})</h3>
+            <p>
+                {% blocktranslate trimmed %}
+                    The objects listed in the table below were used to generate this report.
+                    For each object in the table it additionally shows the clearance level and whether or not the object was
+                    added by a user ('Declared') or indirectly identified through another service or system ('Inherited').
+                {% endblocktranslate %}
+            </p>
+            {% include "summary/ooi_selection.html" %}
 
-        <h3>{% translate "Selected Report Types" %}</h3>
-        <p>
-            {% blocktranslate trimmed %}
-                The table below shows which reports were chosen to generate this report,
-                including a report description.
-            {% endblocktranslate %}
-        </p>
-        <table>
-            <caption class="visually-hidden">{% translate "Selected Report Types" %}</caption>
-            <thead>
-                <tr>
-                    <th>{% translate "Report type" %}</th>
-                    <th>{% translate "Description" %}</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for report_type in report_types %}
-                    <tr>
-                        <td>
-                            <span class="label tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
-                        </td>
-                        <td>{{ report_type.description }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        {% else %}
+            <h3>{% translate "Selected objects" %}</h3>
+            <p>{% translate "No objects found." %}</p>
+        {% endif %}
+        {% if report_types %}
+            <h3>{% translate "Selected Report Types" %} ({{ report_types|length }})</h3>
+            <p>
+                {% blocktranslate trimmed %}
+                    The table below shows which reports were chosen to generate this report,
+                    including a report description.
+                {% endblocktranslate %}
+            </p>
+            <div class="horizontal-scroll">
+                <table>
+                    <caption class="visually-hidden">{% translate "Selected Report Types" %}</caption>
+                    <thead>
+                        <tr>
+                            <th>{% translate "Report type" %}</th>
+                            <th>{% translate "Description" %}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report_type in report_types %}
+                            <tr>
+                                <td class="nowrap">
+                                    <ul class="tags horizontal-view">
+                                        <li>
+                                            <span class="label tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
+                                        </li>
+                                    </ul>
+                                </td>
+                                <td>{{ report_type.description }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <h3>{% translate "Selected Report Types" %}</h3>
+            <p>{% translate "No report types found." %}</p>
+        {% endif %}
+        {{ data }}
         {% include "summary/selected_plugins.html" %}
 
     </div>

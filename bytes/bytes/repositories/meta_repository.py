@@ -27,8 +27,9 @@ class NormalizerMetaFilter(BaseModel):
 
 
 class RawDataFilter(BaseModel):
-    organization: str | None = None
+    organization: list[str] | None = None
     boefje_meta_id: UUID | None = None
+    raw_ids: list[UUID] | None = None
     normalized: bool | None = None
     mime_types: list[MimeType] = Field(default_factory=list)
     limit: int | None = 1
@@ -39,7 +40,10 @@ class RawDataFilter(BaseModel):
             query = query.filter(RawFileInDB.boefje_meta_id == str(self.boefje_meta_id))
 
         if self.organization:
-            query = query.join(BoefjeMetaInDB).filter(BoefjeMetaInDB.organization == self.organization)
+            if len(self.organization) == 1:
+                query = query.join(BoefjeMetaInDB).filter(BoefjeMetaInDB.organization == self.organization[0])
+            else:
+                query = query.join(BoefjeMetaInDB).filter(BoefjeMetaInDB.organization.in_(self.organization))
 
         if self.normalized:
             query = query.join(NormalizerMetaInDB, isouter=False)
@@ -49,6 +53,9 @@ class RawDataFilter(BaseModel):
 
         if self.mime_types:
             query = query.filter(RawFileInDB.mime_types.contains([m.value for m in self.mime_types]))
+
+        if self.raw_ids:
+            query = query.filter(RawFileInDB.id.in_([x.hex for x in self.raw_ids]))
 
         return query.offset(self.offset).limit(self.limit)
 
@@ -78,6 +85,11 @@ class MetaDataRepository:
     def get_normalizer_meta(self, query_filter: NormalizerMetaFilter) -> list[NormalizerMeta]:
         raise NotImplementedError()
 
+    def get_normalizer_metas(
+        self, normalizer_metas: list[UUID], query_filter: NormalizerMetaFilter | None = None
+    ) -> dict[str, NormalizerMeta]:
+        raise NotImplementedError()
+
     def save_raw(self, raw: RawData) -> UUID:
         raise NotImplementedError()
 
@@ -85,6 +97,9 @@ class MetaDataRepository:
         raise NotImplementedError()
 
     def get_raw(self, query_filter: RawDataFilter) -> list[RawDataMeta]:
+        raise NotImplementedError()
+
+    def get_raws(self, query_filter: RawDataFilter) -> list[tuple[UUID, RawData]]:
         raise NotImplementedError()
 
     def has_raw(self, boefje_meta: BoefjeMeta, mime_types: list[MimeType]) -> bool:

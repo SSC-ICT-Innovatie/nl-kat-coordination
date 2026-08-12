@@ -1,163 +1,127 @@
-from unittest import TestCase
+import pytest
 
-from boefjes.config import BASE_DIR
-from boefjes.dependencies.plugins import PluginService
-from boefjes.local_repository import LocalPluginRepository
 from boefjes.storage.interfaces import SettingsNotConformingToSchema
-from boefjes.storage.memory import ConfigStorageMemory, PluginStorageMemory
 
 
-def mock_plugin_service(organisation_id: str) -> PluginService:
-    storage = ConfigStorageMemory()
-    storage.upsert("test", "test_plugin", {"DUMMY_VAR": "123"})
+def test_get_plugins(mock_plugin_service, test_organisation):
+    plugins = mock_plugin_service.get_all(test_organisation.id)
+    assert len(plugins) == 15
 
-    test_boefjes_dir = BASE_DIR.parent / "tests" / "katalogus" / "boefjes_test_dir"
+    kat_test = list(filter(lambda x: x.id == "kat_test", plugins)).pop()
+    assert kat_test.id == "kat_test"
+    assert kat_test.name == "Kat test name"
+    assert kat_test.consumes == {"DNSZone"}
+    assert set(kat_test.produces) == {"boefje/kat_test"}
 
-    return PluginService(
-        PluginStorageMemory(),
-        storage,
-        LocalPluginRepository(test_boefjes_dir),
-    )
+    kat_test_norm = list(filter(lambda x: x.id == "kat_test_normalize", plugins)).pop()
+    assert "kat_test_normalize" in kat_test_norm.id
+    assert kat_test_norm.consumes == ["text/html", "normalizer/kat_test_normalize"]
+    assert kat_test_norm.produces == []
 
 
-class TestPluginsService(TestCase):
-    def setUp(self) -> None:
-        self.organisation = "test"
-        self.service = mock_plugin_service(self.organisation)
+def test_get_plugin_by_id(mock_plugin_service, test_organisation):
+    plugin = mock_plugin_service.by_plugin_id("kat_test_normalize", test_organisation.id)
 
-    def test_get_plugins(self):
-        plugins = self.service.get_all(self.organisation)
+    assert plugin.id == "kat_test_normalize"
+    assert plugin.enabled is True
 
-        self.assertEqual(len(plugins), 5)
 
-        kat_test = list(filter(lambda x: x.id == "kat_test", plugins)).pop()
-        self.assertEqual("kat_test", kat_test.id)
-        self.assertEqual("Kat test name", kat_test.name)
-        self.assertEqual({"DNSZone"}, kat_test.consumes)
-        self.assertSetEqual({"boefje/kat_test"}, set(kat_test.produces))
+def test_update_by_id(mock_plugin_service, test_organisation):
+    mock_plugin_service.set_enabled_by_id("kat_test_normalize", test_organisation.id, False)
+    plugin = mock_plugin_service.by_plugin_id("kat_test_normalize", test_organisation.id)
+    assert plugin.enabled is False
 
-        kat_test_norm = list(filter(lambda x: x.id == "kat_test_normalize", plugins)).pop()
-        self.assertIn("kat_test_normalize", kat_test_norm.id)
-        self.assertListEqual(["text/html", "normalizer/kat_test_normalize"], kat_test_norm.consumes)
-        self.assertListEqual([], kat_test_norm.produces)
 
-    def test_get_plugin_by_id(self):
-        plugin = self.service.by_plugin_id("kat_test_normalize", self.organisation)
+def test_update_by_id_bad_schema(mock_plugin_service, test_organisation):
+    plugin_id = "kat_test"
 
-        self.assertEqual(plugin.id, "kat_test_normalize")
-        self.assertTrue(plugin.enabled)
+    mock_plugin_service.config_storage.upsert(test_organisation.id, plugin_id, {"api_key": 128 * "a"})
+    mock_plugin_service.set_enabled_by_id(plugin_id, test_organisation.id, True)
 
-    def test_update_by_id(self):
-        self.service.set_enabled_by_id("kat_test_normalize", self.organisation, False)
-        plugin = self.service.by_plugin_id("kat_test_normalize", self.organisation)
-        self.assertFalse(plugin.enabled)
+    with pytest.raises(SettingsNotConformingToSchema) as ctx:
+        mock_plugin_service.upsert_settings({"api_key": 129 * "a"}, test_organisation.id, plugin_id)
 
-    def test_update_by_id_bad_schema(self):
-        plugin_id = "kat_test"
+    msg = f"Settings for plugin kat_test are not conform the plugin schema: '{129 * 'a'}' is too long"
+    assert ctx.value.message == msg
 
-        with self.assertRaises(SettingsNotConformingToSchema) as ctx:
-            self.service.set_enabled_by_id(plugin_id, self.organisation, True)
 
-        msg = (
-            "Settings for organisation test and plugin kat_test are not conform the plugin schema: 'api_key' is a "
-            "required property"
-        )
-        self.assertEqual(ctx.exception.message, msg)
+def test_get_schema(mock_plugin_service):
+    schema = mock_plugin_service.schema("kat_test")
+    assert schema == {
+        "title": "Arguments",
+        "type": "object",
+        "properties": {"api_key": {"title": "Api Key", "maxLength": 128, "type": "string"}},
+        "required": ["api_key"],
+    }
 
-        self.service.config_storage.upsert(self.organisation, plugin_id, {"api_key": 128 * "a"})
-        self.service.set_enabled_by_id(plugin_id, self.organisation, True)
+    schema = mock_plugin_service.schema("kat_test_normalize")
+    assert schema is None
 
-        value = 129 * "a"
-        self.service.config_storage.upsert(self.organisation, plugin_id, {"api_key": 129 * "a"})
-        with self.assertRaises(SettingsNotConformingToSchema) as ctx:
-            self.service.set_enabled_by_id(plugin_id, self.organisation, True)
 
-        msg = (
-            f"Settings for organisation test and plugin kat_test are not conform the plugin schema: "
-            f"'{value}' is too long"
-        )
-        self.assertEqual(ctx.exception.message, msg)
+def test_removing_mandatory_setting_does_not_disable_plugin_anymore(mock_plugin_service, test_organisation):
+    plugin_id = "kat_test"
 
-    def test_get_schema(self):
-        schema = self.service.schema("kat_test")
-        self.assertDictEqual(
-            {
-                "title": "Arguments",
-                "type": "object",
-                "properties": {"api_key": {"title": "Api Key", "maxLength": 128, "type": "string"}},
-                "required": ["api_key"],
-            },
-            schema,
-        )
+    mock_plugin_service.config_storage.upsert(test_organisation.id, plugin_id, {"api_key": 128 * "a"})
+    mock_plugin_service.set_enabled_by_id(plugin_id, test_organisation.id, True)
 
-        schema = self.service.schema("kat_test_normalize")
-        self.assertIsNone(schema)
+    plugin = mock_plugin_service.by_plugin_id(plugin_id, test_organisation.id)
+    assert plugin.enabled is True
 
-    def test_removing_mandatory_setting_disables_plugin(self):
-        plugin_id = "kat_test"
+    mock_plugin_service.delete_settings(test_organisation.id, plugin_id)
 
-        self.service.config_storage.upsert(self.organisation, plugin_id, {"api_key": 128 * "a"})
-        self.service.set_enabled_by_id(plugin_id, self.organisation, True)
+    plugin = mock_plugin_service.by_plugin_id(plugin_id, test_organisation.id)
+    assert plugin.enabled is True
 
-        plugin = self.service.by_plugin_id(plugin_id, self.organisation)
-        self.assertTrue(plugin.enabled)
 
-        self.service.delete_settings(self.organisation, plugin_id)
+def test_adding_integer_settings_within_given_constraints(mock_plugin_service, test_organisation):
+    plugin_id = "kat_test_2"
 
-        plugin = self.service.by_plugin_id(plugin_id, self.organisation)
-        self.assertFalse(plugin.enabled)
+    with pytest.raises(SettingsNotConformingToSchema) as ctx:
+        mock_plugin_service.upsert_settings({"api_key": "24"}, test_organisation.id, plugin_id)
 
-    def test_adding_integer_settings_within_given_constraints(self):
-        plugin_id = "kat_test_2"
+    assert "'24' is not of type 'integer'" in ctx.value.message
 
-        self.service.config_storage.upsert(self.organisation, plugin_id, {"api_key": "24"})
+    mock_plugin_service.upsert_settings({"api_key": 24}, test_organisation.id, plugin_id)
+    mock_plugin_service.set_enabled_by_id(plugin_id, test_organisation.id, True)
 
-        with self.assertRaises(SettingsNotConformingToSchema) as ctx:
-            self.service.set_enabled_by_id(plugin_id, self.organisation, True)
+    plugin = mock_plugin_service.by_plugin_id(plugin_id, test_organisation.id)
+    assert plugin.enabled is True
+    mock_plugin_service.set_enabled_by_id(plugin_id, test_organisation.id, False)
 
-        self.assertIn("'24' is not of type 'integer'", ctx.exception.message)
 
-        self.service.config_storage.upsert(self.organisation, plugin_id, {"api_key": 24})
+def test_clone_one_setting(mock_plugin_service, test_organisation):
+    new_org_id = "org2"
+    plugin_id = "kat_test"
+    mock_plugin_service.config_storage.upsert(test_organisation.id, plugin_id, {"api_key": "24"})
+    assert mock_plugin_service.get_all_settings(test_organisation.id, plugin_id) == {"api_key": "24"}
 
-        self.service.set_enabled_by_id(plugin_id, self.organisation, True)
+    mock_plugin_service.set_enabled_by_id(plugin_id, test_organisation.id, True)
 
-        plugin = self.service.by_plugin_id(plugin_id, self.organisation)
-        self.assertTrue(plugin.enabled)
-        self.service.set_enabled_by_id(plugin_id, self.organisation, False)
+    assert "api_key" not in mock_plugin_service.get_all_settings(new_org_id, plugin_id)
 
-    def test_clone_one_setting(self):
-        new_org_id = "org2"
-        plugin_id = "kat_test"
-        self.service.config_storage.upsert(self.organisation, plugin_id, {"api_key": "24"})
-        assert self.service.get_all_settings(self.organisation, plugin_id) == {"api_key": "24"}
+    new_org_plugins = mock_plugin_service.get_all(new_org_id)
+    assert len(new_org_plugins) == 15
+    assert len([x for x in new_org_plugins if x.enabled]) == 5  # 2 Normalizers
+    assert plugin_id not in [x.id for x in new_org_plugins if x.enabled]
 
-        self.service.set_enabled_by_id(plugin_id, self.organisation, True)
+    mock_plugin_service.clone_settings_to_organisation(test_organisation.id, new_org_id)
 
-        assert "api_key" not in self.service.get_all_settings(new_org_id, plugin_id)
+    assert mock_plugin_service.get_all_settings(test_organisation.id, plugin_id) == {"api_key": "24"}
+    assert mock_plugin_service.get_all_settings(new_org_id, plugin_id) == {"api_key": "24"}
 
-        new_org_plugins = self.service.get_all(new_org_id)
-        assert len(new_org_plugins) == 5
-        assert len([x for x in new_org_plugins if x.enabled]) == 2  # 2 Normalizers
-        assert plugin_id not in [x.id for x in new_org_plugins if x.enabled]
+    new_org_plugins = mock_plugin_service.get_all(new_org_id)
+    assert len(new_org_plugins) == 15
+    assert len([x for x in new_org_plugins if x.enabled]) == 6  # 2 Normalizers, 1 boefje
+    assert plugin_id in [x.id for x in new_org_plugins if x.enabled]
 
-        self.service.clone_settings_to_organisation(self.organisation, new_org_id)
 
-        assert self.service.get_all_settings(self.organisation, plugin_id) == {"api_key": "24"}
-        assert self.service.get_all_settings(new_org_id, plugin_id) == {"api_key": "24"}
+def test_clone_many_settings(mock_plugin_service, test_organisation):
+    plugin_id_1 = "kat_test"
 
-        new_org_plugins = self.service.get_all(new_org_id)
-        assert len(new_org_plugins) == 5
-        assert len([x for x in new_org_plugins if x.enabled]) == 3  # 2 Normalizers, 1 boefje
-        assert plugin_id in [x.id for x in new_org_plugins if x.enabled]
+    all_settings_1 = {"api_key": "123"}
+    mock_plugin_service.upsert_settings(all_settings_1, test_organisation.id, plugin_id_1)
+    mock_plugin_service.clone_settings_to_organisation(test_organisation.id, "org2")
 
-    def test_clone_many_settings(self):
-        plugin_id_1 = "kat_test"
-
-        all_settings_1 = {"api_key": "123"}
-        self.service.upsert_settings(all_settings_1, self.organisation, plugin_id_1)
-
-        self.service.clone_settings_to_organisation(self.organisation, "org2")
-
-        all_settings_for_new_org = self.service.get_all_settings("org2", plugin_id_1)
-        assert len(all_settings_for_new_org) == 1
-        assert all_settings_for_new_org == {"api_key": "123"}
+    all_settings_for_new_org = mock_plugin_service.get_all_settings("org2", plugin_id_1)
+    assert len(all_settings_for_new_org) == 1
+    assert all_settings_for_new_org == {"api_key": "123"}

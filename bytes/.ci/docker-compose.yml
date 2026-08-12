@@ -3,6 +3,8 @@ services:
     build:
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
       context: .
       dockerfile: Dockerfile
     command: pytest tests/unit
@@ -17,6 +19,8 @@ services:
       dockerfile: Dockerfile
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
     command: pytest -vv tests/integration
     depends_on:
       - ci_bytes

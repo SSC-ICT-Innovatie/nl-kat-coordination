@@ -1,0 +1,62 @@
+/* Body text set */
+
+:root {
+  /* Available variables to use within all text types */
+  --text-set-font-family: "Open Sans", sans-serif;
+  --text-set-font-size: 1rem;
+  --text-set-line-height: 1.75;
+
+  /* Body text large */
+  --body-text-large-font-size: 1.25rem;
+  --body-text-large-font-weight: var(--text-set-font-weight);
+  --body-text-large-line-height: var(--text-set-line-height);
+  --body-text-large-color: var(--text-set-text-color);
+  --body-text-large-text-align: var(--text-set-text-align);
+
+  /* Strong */
+  --body-text-large-strong-font-weight: var(--text-set-strong-font-weight);
+
+  /* Body text normal */
+  --body-text-normal-font-size: var(--text-set-font-size);
+  --body-text-normal-font-weight: var(--text-set-font-weight);
+  --body-text-normal-line-height: var(--text-set-line-height);
+  --body-text-normal-color: var(--text-set-text-color);
+  --body-text-normal-text-align: var(--text-set-text-align);
+
+  /* Strong */
+  --body-text-normal-strong-font-weight: var(--text-set-strong-font-weight);
+
+  /* Body text small */
+  --body-text-small-font-size: 0.875rem;
+  --body-text-small-font-weight: var(--text-set-font-weight);
+  --body-text-small-line-height: var(--text-set-line-height);
+  --body-text-small-color: var(--colors-grey-700);
+  --body-text-small-text-align: var(--text-set-text-align);
+
+  /* Strong */
+  --body-text-small-strong-font-weight: var(--text-set-strong-font-weight);
+}
+
+.body-text-large {
+  font-size: var(--body-text-large-font-size);
+  font-weight: var(--body-text-large-font-weight);
+  line-height: var(--body-text-large-line-height);
+  color: var(--body-text-large-color);
+  text-align: var(--body-text-large-text-align);
+}
+
+.body-text-normal {
+  font-size: var(--body-text-normal-font-size);
+  font-weight: var(--body-text-normal-font-weight);
+  line-height: var(--body-text-normal-line-height);
+  color: var(--body-text-normal-color);
+  text-align: var(--body-text-normal-text-align);
+}
+
+.body-text-small {
+  font-size: var(--body-text-small-font-size);
+  font-weight: var(--body-text-small-font-weight);
+  line-height: var(--body-text-small-line-height);
+  color: var(--body-text-small-color);
+  text-align: var(--body-text-small-text-align);
+}

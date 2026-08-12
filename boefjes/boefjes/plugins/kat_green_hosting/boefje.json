@@ -1,9 +1,13 @@
 {
   "id": "green-hosting",
   "name": "GreenHosting",
-  "description": "Use the Green Web Foundation Partner API to check whether the website is hosted on a green server. Meaning it runs on renewable energy and/or offsets its carbon footprint",
+  "description": "Use the Green Web Foundation Partner API to check whether the website is hosted on a green server. Meaning it runs on renewable energy and/or offsets its carbon footprint. Does not require an API key.",
   "consumes": [
     "Website"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_green_hosting.main"
+  ]
 }

@@ -18,15 +18,11 @@ COMMON_TCP_PORTS = [
 ]
 
 COMMON_UDP_PORTS = [
-    53,  # DNS
+    53  # DNS
 ]
 
 
-def run(
-    input_ooi: IPPort,
-    additional_oois: list,
-    config: dict,
-) -> Iterator[OOI]:
+def run(input_ooi: IPPort, additional_oois: list, config: dict) -> Iterator[OOI]:
     port = input_ooi.port
     protocol = input_ooi.protocol
     if (protocol == Protocol.TCP and port in COMMON_TCP_PORTS) or (

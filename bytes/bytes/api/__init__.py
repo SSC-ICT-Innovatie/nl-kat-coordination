@@ -30,7 +30,9 @@ structlog.configure(
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.processors.TimeStamper("iso", utc=False),
         (
-            structlog.dev.ConsoleRenderer(colors=True, pad_level=False)
+            structlog.dev.ConsoleRenderer(
+                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
+            )
             if settings.logging_format == "text"
             else structlog.processors.JSONRenderer()
         ),
@@ -46,10 +48,7 @@ logger = structlog.get_logger(__name__)
 app = FastAPI(title="Bytes API")
 
 if settings.span_export_grpc_endpoint is not None:
-    logger.info(
-        "Setting up instrumentation with span exporter endpoint [%s]",
-        settings.span_export_grpc_endpoint,
-    )
+    logger.info("Setting up instrumentation with span exporter endpoint [%s]", settings.span_export_grpc_endpoint)
 
     FastAPIInstrumentor.instrument_app(app)
     Psycopg2Instrumentor().instrument()

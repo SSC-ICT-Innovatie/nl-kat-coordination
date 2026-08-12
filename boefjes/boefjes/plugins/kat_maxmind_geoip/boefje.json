@@ -1,14 +1,11 @@
 {
   "id": "maxmind",
   "name": "Maxmind",
-  "description": "Fetch geolocation information for an IP address from Maxmind",
+  "description": "Fetch geolocation information for an IP address from Maxmind. Requires a MaxMind API key.",
   "consumes": [
     "IPAddressV4",
     "IPAddressV6"
   ],
   "scan_level": 1,
-  "environment_keys": [
-    "MAXMIND_USER_ID",
-    "MAXMIND_LICENCE_KEY"
-  ]
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest"
 }

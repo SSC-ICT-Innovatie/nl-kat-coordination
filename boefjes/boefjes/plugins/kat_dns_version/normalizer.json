@@ -1,0 +1,12 @@
+{
+  "id": "dns-bind-version-normalize",
+  "name": "DNS bind version normalizer",
+  "description": "Parses DNS Bind data into Software version objects.",
+  "consumes": [
+    "boefje/dns-bind-version"
+  ],
+  "produces": [
+    "Software",
+    "SoftwareInstance"
+  ]
+}

@@ -2,6 +2,7 @@ td,
 tr {
   .icon {
     margin-right: 0.5rem;
+    float: unset;
   }
 
   &.confirmation {
@@ -65,19 +66,31 @@ tr {
   }
 }
 
-table.nowrap {
-  th,
-  td {
-    a {
-      white-space: inherit;
-    }
-  }
-}
-
 /* table alignment within table expando row */
 table tr.expando-row td {
   table td {
     background-color: var(--application-base-background-color);
     padding: var(--table-cell-padding);
   }
+}
+
+table:not(.nowrap) tbody td:not(.nowrap) {
+  a:not(.button) {
+    line-break: break-all;
+    display: inline-block; /* Needed to be able to use max-width */
+    max-width: 20rem;
+  }
+
+  vertical-align: top;
+
+  /* Added spacing to align with text */
+  .level-indicator {
+    padding-top: 0.25rem;
+  }
+}
+
+div.horizontal-scroll.nowrap tbody td,
+table.nowrap tbody td,
+table tbody td.nowrap {
+  vertical-align: middle;
 }

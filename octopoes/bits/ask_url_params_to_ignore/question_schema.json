@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "/bit/oois-in-headers",
+  "type": "object",
+  "default": {},
+  "required": [
+    "ignored_url_parameters"
+  ],
+  "properties": {
+    "ignored_url_parameters": {
+      "description": "Comma separated list of url parameters that are ignored when following location headers.",
+      "type": "string",
+      "pattern": "^(\\s*(,*)[^,]+,?\\s*)*$",
+      "default": "session_id, phpsessid, jsessionid, cifd, cftoken, asp.net_sessionid"
+    }
+  }
+}

@@ -1,9 +1,13 @@
 {
   "id": "security_txt_downloader",
   "name": "Security.txt downloader",
-  "description": "Downloads the security.txt file from the target host.",
+  "description": "Downloads the security.txt file from the target website to check if it contains all the required elements.",
   "consumes": [
     "Website"
   ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_security_txt_downloader.main"
+  ]
 }

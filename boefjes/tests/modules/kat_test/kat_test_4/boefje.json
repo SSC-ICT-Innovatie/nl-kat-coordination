@@ -1,0 +1,12 @@
+{
+  "id": "kat_test_4",
+  "name": "Kat test 4 name",
+  "description": "Testing KAT",
+  "consumes": [
+    "DNSZone"
+  ],
+  "produces": [
+    "text/html"
+  ],
+  "scan_level": 1
+}

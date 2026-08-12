@@ -4,9 +4,11 @@
 @import "fonts/fonts";
 
 /* Styling sets. E.g color sets */
-@import "colors/colors";
-@import "colors/tag-colors";
-@import "manon/body-text-set";
+@import "fundamentals/body-text-set";
+@import "fundamentals/border-radii";
+@import "fundamentals/colors";
+@import "fundamentals/tag-colors";
+@import "fundamentals/tags-6-3";
 @import "manon/spot-large";
 @import "manon/headings-base-set";
 @import "manon/text-colors";
@@ -45,6 +47,8 @@
 @import "manon/button-ghost";
 @import "manon/checkbox";
 @import "manon/collapsible";
+@import "manon/code-base";
+@import "manon/code-block";
 @import "manon/de-emphasized";
 @import "manon/emphasized";
 @import "manon/expando-rows";
@@ -57,6 +61,7 @@
 @import "manon/header-navigation-link-active";
 @import "manon/notification-colors";
 @import "manon/notification-block";
+@import "manon/notification-paragraph";
 @import "manon/icon";
 @import "manon/layout-column-4";
 @import "manon/layout-form";

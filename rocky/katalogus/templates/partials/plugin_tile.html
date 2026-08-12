@@ -1,5 +1,6 @@
 {% load i18n %}
 {% load static %}
+{% load component_tags %}
 
 <div role="group"
      class="plugin {% if plugin.enabled %} plugin-is-enabled {% else %} plugin-is-disabled {% endif %}"
@@ -11,7 +12,8 @@
                value="{{ plugin.id }}"
                {% if checked %}checked{% endif %} />
     {% endif %}
-    <img src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
+    <img loading="lazy"
+         src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
          alt="boefje placeholder image" />
     <p class="tile-title">
         <strong>{{ plugin.name }}</strong><span class="label-plugin-type {{ plugin.type }}">{{ plugin.type|title }}</span>
@@ -27,23 +29,33 @@
         {% endif %}
         <span class="plugin-author-link de-emphasized"><a target="_blank" href="https://openkat.nl" rel="noopener noreferrer">OpenKAT</a></span>
         {% if show_report_types %}
-            <div class="tags">
-                <p>
-                    <strong>{% translate "Required for:" %}</strong>
-                </p>
-                {% for plugin_id, report_types in plugin_report_types.items %}
-                    {% if plugin_id == plugin.id %}
-                        {% for report_type in report_types %}
-                            <span class="label tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
-                        {% endfor %}
+            {% for plugin_id, report_types in plugin_report_types.items %}
+                {% if plugin_id == plugin.id %}
+                    {% if report_types|length >= 2 %}
+                        {% include "partials/modal_report_types.html" with plugin=plugin %}
+
+                    {% else %}
+                        <ul class="tags report-types">
+                            {% for report_type in report_types %}
+                                <li>
+                                    <label for="report-types-required-for-plugin">{% translate "Required for:" %}</label>
+                                    <span class="tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
+                                </li>
+                            {% endfor %}
+                        </ul>
                     {% endif %}
-                {% endfor %}
-            </div>
+                {% endif %}
+            {% endfor %}
         {% endif %}
-        {% if not remove_action_buttons %}
-            <div class="action-buttons">
+        <div class="action-buttons">
+            {% if not remove_action_buttons %}
                 {% include "partials/enable_disable_plugin.html" with plugin=plugin %}
 
+            {% endif %}
+            {% if show_report_types %}
+                {% include "partials/plugin_tile_modal.html" with plugin=plugin %}
+
+            {% else %}
                 {% if plugin.type == "boefje" %}
                     <a class="tile-detail-link"
                        href="{% url "boefje_detail" organization_code=organization.code plugin_id=plugin.id %}">{% translate "See details" %}</a>
@@ -51,7 +63,10 @@
                     <a class="tile-detail-link"
                        href="{% url "normalizer_detail" organization_code=organization.code plugin_id=plugin.id %}">{% translate "See details" %}</a>
                 {% endif %}
-            </div>
-        {% endif %}
+            {% endif %}
+        </div>
     {% endif %}
 </div>
+{% block html_at_end_body %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+{% endblock html_at_end_body %}

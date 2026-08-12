@@ -1,9 +1,13 @@
 {
   "id": "service_banner",
   "name": "Service banner download",
-  "description": "Downloads service banners from the target hosts",
+  "description": "Downloads service banners from the target hosts.",
   "consumes": [
     "IPPort"
   ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_service_banner.main"
+  ]
 }

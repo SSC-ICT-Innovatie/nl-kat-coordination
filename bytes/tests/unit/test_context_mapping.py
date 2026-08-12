@@ -62,7 +62,7 @@ def test_context_mapping_raw() -> None:
     assert raw_data.hash_retrieval_link == raw_data_in_db.hash_retrieval_link
     assert raw_data.secure_hash == raw_data_in_db.secure_hash
     assert raw_data.signing_provider_url is None
-    assert raw_data.mime_types == [to_mime_type(mime_type) for mime_type in raw_data_in_db.mime_types]
+    assert raw_data.mime_types == {to_mime_type(mime_type) for mime_type in raw_data_in_db.mime_types}
 
     raw_data_new = to_raw_data(raw_data_in_db, raw_data.value)
 

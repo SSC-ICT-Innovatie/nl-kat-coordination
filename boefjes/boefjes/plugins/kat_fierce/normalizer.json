@@ -1,5 +1,7 @@
 {
   "id": "kat_fierce_normalize",
+  "name": "Fierce",
+  "description": "Parse the DNS reconnaissance data from Fierce into hostnames and/or IP addresses.",
   "consumes": [
     "boefje/fierce"
   ],

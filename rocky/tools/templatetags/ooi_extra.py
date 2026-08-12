@@ -1,19 +1,17 @@
 import json
+from datetime import datetime
 from typing import Any
-from urllib import parse
 
+from account.models import KATUser
 from django import template
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import OOI, Reference, ScanLevel
 from octopoes.models.ooi.findings import Finding, FindingType
 from tools.view_helpers import get_ooi_url
 
 register = template.Library()
-
-
-@register.filter
-def get_encoded_dict(data_dict: dict):
-    return parse.urlencode(data_dict)
 
 
 @register.filter
@@ -37,27 +35,27 @@ def get_scan_levels() -> list[str]:
 
 
 @register.filter
-def ooi_types_to_strings(ooi_types: set[type[OOI]]):
+def ooi_types_to_strings(ooi_types: set[type[OOI]]) -> list["str"]:
     return [ooi_type.get_ooi_type() for ooi_type in ooi_types]
 
 
 @register.filter()
-def get_type(x: Any):
+def get_type(x: Any) -> Any:
     return type(x)
 
 
 @register.simple_tag()
-def ooi_url(routename: str, ooi_id: str, organization_code: str, **kwargs) -> str:
+def ooi_url(routename: str, ooi_id: str, organization_code: str, **kwargs: str) -> str:
     return get_ooi_url(routename, ooi_id, organization_code, **kwargs)
 
 
 @register.filter()
-def is_finding(ooi: OOI):
+def is_finding(ooi: OOI) -> bool:
     return isinstance(ooi, Finding)
 
 
 @register.filter()
-def is_finding_type(ooi: OOI):
+def is_finding_type(ooi: OOI) -> bool:
     return isinstance(ooi, FindingType)
 
 
@@ -79,7 +77,7 @@ def index(indexable, i):
 
 
 @register.filter
-def pretty_json(obj: dict):
+def pretty_json(obj: dict) -> str:
     return json.dumps(obj, default=str, indent=4)
 
 
@@ -99,3 +97,22 @@ def clearance_level(ooi: OOI) -> ScanLevel:
 @register.filter
 def ooi_type(reference_string: str) -> str:
     return Reference.from_str(reference_string).class_
+
+
+@register.filter
+def get_datetime(date_str: str) -> datetime:
+    return datetime.fromisoformat(date_str)
+
+
+@register.filter
+def get_first_seen(occurrences: dict) -> datetime:
+    first_seen = min(occurrences, key=lambda occurrence: occurrence["first_seen"])["first_seen"]
+    return datetime.fromisoformat(first_seen)
+
+
+@register.filter
+def get_user_full_name(ooi: OOI) -> str:
+    try:
+        return KATUser.objects.get(id=ooi.user_id).get_full_name()
+    except ObjectDoesNotExist:
+        return _("Unknown user")

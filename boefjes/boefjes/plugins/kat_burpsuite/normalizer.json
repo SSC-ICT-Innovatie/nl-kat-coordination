@@ -1,7 +1,7 @@
 {
   "id": "kat_burpsuite_normalize",
   "name": "Burpsuite normalizer",
-  "description": "Parses Burpsuite XML output (reports). Check https://docs.openkat.nl on how to create the XML file.",
+  "description": "Parses Burpsuite XML output into findings. Check https://docs.openkat.nl/manual/normalizers.html#burp-suite on how to create the XML file.",
   "consumes": [
     "xml/burp-export"
   ],

@@ -1,0 +1,712 @@
+{
+  "systems": {
+    "services": {
+      "IPAddressV4|internet|1.1.1.1": {
+        "hostnames": [
+          "Hostname|internet|mispo.es"
+        ],
+        "services": [
+          "DNS",
+          "Other",
+          "Web"
+        ]
+      }
+    }
+  },
+  "basic_security": {
+    "safe_connections": {
+      "DNS": {
+        "number_of_available": 1,
+        "sc_ips": {
+          "1.1.1.1": []
+        },
+        "number_of_ips": 1
+      },
+      "Web": {
+        "number_of_available": 1,
+        "sc_ips": {
+          "1.1.1.1": []
+        },
+        "number_of_ips": 1
+      },
+      "Other": {
+        "number_of_available": 1,
+        "sc_ips": {
+          "1.1.1.1": []
+        },
+        "number_of_ips": 1
+      }
+    },
+    "summary": {
+      "DNS": {
+        "safe_connections": {
+          "number_of_compliant": 1,
+          "total": 1
+        },
+        "system_specific": {
+          "number_of_compliant": 0,
+          "ips": {
+            "IPAddressV4|internet|1.1.1.1": [
+              {
+                "description": "A database port is open.",
+                "object_type": "KATFindingType",
+                "risk_score": 8.9,
+                "risk_severity": "high",
+                "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+                "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ",
+                "id": "KAT-OPEN-DATABASE-PORT",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "Databases should never be reachable from the internet, but only from secured internal networks. This will reduce unauthorized access.",
+                "primary_key": "KATFindingType|KAT-OPEN-DATABASE-PORT"
+              },
+              {
+                "description": "A known system administration port is open.",
+                "object_type": "KATFindingType",
+                "risk_score": 6.9,
+                "risk_severity": "medium",
+                "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+                "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary.",
+                "id": "KAT-OPEN-SYSADMIN-PORT",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "System administrator ports should only be reachable from safe and known locations to reduce attack surface.",
+                "primary_key": "KATFindingType|KAT-OPEN-SYSADMIN-PORT"
+              },
+              {
+                "description": "The provided domain does not have DNSSEC enabled.",
+                "object_type": "KATFindingType",
+                "risk_score": 6.9,
+                "risk_severity": "medium",
+                "source": "https://www.dns-school.org/Documentation/dnssec_howto.pdf",
+                "recommendation": "Enable DNSSEC on your name servers.",
+                "id": "KAT-NO-DNSSEC",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "DNS requests are not authenticated, thus there is no protection against DNS poisoning or manipulation.",
+                "primary_key": "KATFindingType|KAT-NO-DNSSEC"
+              }
+            ]
+          },
+          "checks": {
+            "DNSSEC Present": 0,
+            "Valid DNSSEC": 0,
+            "No unnecessary ports open": 0
+          },
+          "total": 1
+        },
+        "rpki": {
+          "number_of_compliant": 1,
+          "total": 1
+        }
+      },
+      "Web": {
+        "safe_connections": {
+          "number_of_compliant": 1,
+          "total": 1
+        },
+        "system_specific": {
+          "number_of_compliant": 0,
+          "ips": {
+            "IPAddressV4|internet|1.1.1.1": [
+              {
+                "description": "TLS certificate has expired",
+                "object_type": "KATFindingType",
+                "risk_score": 10.0,
+                "risk_severity": "critical",
+                "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
+                "recommendation": "Replace the certificate with a valid one.",
+                "id": "KAT-CERTIFICATE-EXPIRED",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
+                "primary_key": "KATFindingType|KAT-CERTIFICATE-EXPIRED"
+              },
+              {
+                "description": "A database port is open.",
+                "object_type": "KATFindingType",
+                "risk_score": 8.9,
+                "risk_severity": "high",
+                "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+                "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ",
+                "id": "KAT-OPEN-DATABASE-PORT",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "Databases should never be reachable from the internet, but only from secured internal networks. This will reduce unauthorized access.",
+                "primary_key": "KATFindingType|KAT-OPEN-DATABASE-PORT"
+              },
+              {
+                "description": "A known system administration port is open.",
+                "object_type": "KATFindingType",
+                "risk_score": 6.9,
+                "risk_severity": "medium",
+                "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+                "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary.",
+                "id": "KAT-OPEN-SYSADMIN-PORT",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "System administrator ports should only be reachable from safe and known locations to reduce attack surface.",
+                "primary_key": "KATFindingType|KAT-OPEN-SYSADMIN-PORT"
+              },
+              {
+                "description": "This hostname does not have a Security.txt file.",
+                "object_type": "KATFindingType",
+                "risk_score": "None",
+                "risk_severity": "recommendation",
+                "source": "None",
+                "recommendation": "Make sure there is a security.txt available.",
+                "id": "KAT-NO-SECURITY-TXT",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "None",
+                "primary_key": "KATFindingType|KAT-NO-SECURITY-TXT"
+              }
+            ]
+          },
+          "checks": {
+            "Certificate is not expired": 0,
+            "CSP Present": 1,
+            "Offers HTTPS": 1,
+            "No unnecessary ports open": 0,
+            "Has a Security.txt": 0,
+            "Has a certificate": 1,
+            "Redirects HTTP to HTTPS": 1,
+            "Secure CSP Header": 1,
+            "Certificate is not expiring soon": 1
+          },
+          "total": 1
+        },
+        "rpki": {
+          "number_of_compliant": 1,
+          "total": 1
+        }
+      },
+      "Other": {
+        "safe_connections": {
+          "number_of_compliant": 1,
+          "total": 1
+        },
+        "system_specific": {
+          "number_of_compliant": 0,
+          "ips": {},
+          "checks": {},
+          "total": 0
+        },
+        "rpki": {
+          "number_of_compliant": 1,
+          "total": 1
+        }
+      }
+    },
+    "system_specific": {
+      "DNS": [
+        {
+          "name_server_checks": {
+            "checks": [
+              {
+                "has_dnssec": false,
+                "has_valid_dnssec": false,
+                "no_uncommon_ports": false
+              }
+            ]
+          },
+          "input_ooi": "Hostname|internet|mispo.es",
+          "finding_types": [
+            {
+              "description": "A database port is open.",
+              "object_type": "KATFindingType",
+              "risk_score": 8.9,
+              "risk_severity": "high",
+              "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+              "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ",
+              "id": "KAT-OPEN-DATABASE-PORT",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "Databases should never be reachable from the internet, but only from secured internal networks. This will reduce unauthorized access.",
+              "primary_key": "KATFindingType|KAT-OPEN-DATABASE-PORT"
+            },
+            {
+              "description": "A known system administration port is open.",
+              "object_type": "KATFindingType",
+              "risk_score": 6.9,
+              "risk_severity": "medium",
+              "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+              "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary.",
+              "id": "KAT-OPEN-SYSADMIN-PORT",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "System administrator ports should only be reachable from safe and known locations to reduce attack surface.",
+              "primary_key": "KATFindingType|KAT-OPEN-SYSADMIN-PORT"
+            },
+            {
+              "description": "The provided domain does not have DNSSEC enabled.",
+              "object_type": "KATFindingType",
+              "risk_score": 6.9,
+              "risk_severity": "medium",
+              "source": "https://www.dns-school.org/Documentation/dnssec_howto.pdf",
+              "recommendation": "Enable DNSSEC on your name servers.",
+              "id": "KAT-NO-DNSSEC",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "DNS requests are not authenticated, thus there is no protection against DNS poisoning or manipulation.",
+              "primary_key": "KATFindingType|KAT-NO-DNSSEC"
+            }
+          ]
+        }
+      ],
+      "Mail": [],
+      "Web": [
+        {
+          "input_ooi": "Hostname|internet|mispo.es",
+          "finding_types": [
+            {
+              "description": "TLS certificate has expired",
+              "object_type": "KATFindingType",
+              "risk_score": 10.0,
+              "risk_severity": "critical",
+              "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
+              "recommendation": "Replace the certificate with a valid one.",
+              "id": "KAT-CERTIFICATE-EXPIRED",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
+              "primary_key": "KATFindingType|KAT-CERTIFICATE-EXPIRED"
+            },
+            {
+              "description": "A database port is open.",
+              "object_type": "KATFindingType",
+              "risk_score": 8.9,
+              "risk_severity": "high",
+              "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+              "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ",
+              "id": "KAT-OPEN-DATABASE-PORT",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "Databases should never be reachable from the internet, but only from secured internal networks. This will reduce unauthorized access.",
+              "primary_key": "KATFindingType|KAT-OPEN-DATABASE-PORT"
+            },
+            {
+              "description": "A known system administration port is open.",
+              "object_type": "KATFindingType",
+              "risk_score": 6.9,
+              "risk_severity": "medium",
+              "source": "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers",
+              "recommendation": "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary.",
+              "id": "KAT-OPEN-SYSADMIN-PORT",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "System administrator ports should only be reachable from safe and known locations to reduce attack surface.",
+              "primary_key": "KATFindingType|KAT-OPEN-SYSADMIN-PORT"
+            },
+            {
+              "description": "This hostname does not have a Security.txt file.",
+              "object_type": "KATFindingType",
+              "risk_score": "None",
+              "risk_severity": "recommendation",
+              "source": "None",
+              "recommendation": "Make sure there is a security.txt available.",
+              "id": "KAT-NO-SECURITY-TXT",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "None",
+              "primary_key": "KATFindingType|KAT-NO-SECURITY-TXT"
+            }
+          ],
+          "web_checks": {
+            "checks": [
+              {
+                "redirects_http_https": true,
+                "has_security_txt": false,
+                "offers_https": true,
+                "has_certificates": true,
+                "no_uncommon_ports": false,
+                "has_csp": true,
+                "certificates_not_expired": false,
+                "has_no_csp_vulnerabilities": true,
+                "certificates_not_expiring_soon": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "rpki": {
+      "DNS": {
+        "number_of_compliant": 1,
+        "rpki_ips": {
+          "1.1.1.1": {
+            "valid": true,
+            "exists": true
+          }
+        },
+        "number_of_available": 1,
+        "number_of_ips": 1,
+        "number_of_valid": 1
+      },
+      "Web": {
+        "number_of_compliant": 1,
+        "rpki_ips": {
+          "1.1.1.1": {
+            "valid": true,
+            "exists": true
+          }
+        },
+        "number_of_available": 1,
+        "number_of_ips": 1,
+        "number_of_valid": 1
+      },
+      "Other": {
+        "number_of_compliant": 1,
+        "rpki_ips": {
+          "1.1.1.1": {
+            "valid": true,
+            "exists": true
+          }
+        },
+        "number_of_available": 1,
+        "number_of_ips": 1,
+        "number_of_valid": 1
+      }
+    }
+  },
+  "open_ports": {
+    "1.1.1.1": {
+      "hostnames": [
+        "mispo.es"
+      ],
+      "ports": {
+        "3306": true,
+        "53": true,
+        "443": true,
+        "22": true,
+        "80": true
+      },
+      "services": {
+        "3306": [
+          "mysql"
+        ],
+        "53": [
+          "domain"
+        ],
+        "443": [
+          "https"
+        ],
+        "22": [
+          "ssh"
+        ],
+        "80": [
+          "http"
+        ]
+      }
+    }
+  },
+  "input_data": {
+    "plugins": {
+      "optional": [
+        "masscan",
+        "nmap-ports",
+        "shodan",
+        "nmap-ip-range",
+        "nmap-udp"
+      ],
+      "required": [
+        "nmap",
+        "ssl-certificates",
+        "dns-records",
+        "webpage-analysis",
+        "testssl-sh-ciphers",
+        "dns-sec",
+        "ssl-version",
+        "security_txt_downloader",
+        "rpki"
+      ]
+    },
+    "report_types": [
+      "ipv6-report",
+      "mail-report",
+      "name-server-report",
+      "open-ports-report",
+      "rpki-report",
+      "safe-connections-report",
+      "systems-report",
+      "vulnerability-report",
+      "web-system-report"
+    ],
+    "input_oois": [
+      "Hostname|internet|mispo.es"
+    ]
+  },
+  "recommendation_counts": {
+    "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ": 2,
+    "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary.": 2,
+    "Replace the certificate with a valid one.": 1,
+    "Enable DNSSEC on your name servers.": 1,
+    "Make sure there is a security.txt available.": 1
+  },
+  "summary": {
+    "IPs scanned": 1,
+    "Hostnames scanned": 1,
+    "Terms in report": "CVE-2016-10735, CVE-2018-14040, CVE-2018-14041, CVE-2018-14042, CVE-2019-8331, DNS, Other, RetireJS-jquerymigrate-f3a3, RetireJS-jquerymigrate-f901, Web",
+    "Critical vulnerabilities": 0
+  },
+  "config_oois": [],
+  "ipv6": {
+    "mispo.es": {
+      "systems": [
+        "DNS",
+        "Other",
+        "Web"
+      ],
+      "enabled": false
+    }
+  },
+  "total_systems_basic_security": 0,
+  "total_hostnames": 1,
+  "health": [
+    {
+      "service": "rocky",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "octopoes",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "xtdb",
+      "healthy": true,
+      "version": "1.24.4",
+      "additional": {
+        "kvStore": "xtdb.rocksdb.RocksKv",
+        "revision": "b46e92df67699cb25f3b21a61742c79da564b3b0",
+        "consumerState": "None",
+        "size": 46908877,
+        "estimateNumKeys": 105039,
+        "version": "1.24.4",
+        "indexVersion": 22
+      },
+      "results": []
+    },
+    {
+      "service": "katalogus",
+      "healthy": true,
+      "version": "0.0.1-development",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "scheduler",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "bytes",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    }
+  ],
+  "total_systems": 1,
+  "total_findings": 7,
+  "recommendations": [
+    "Replace the certificate with a valid one.",
+    "Make sure there is a security.txt available.",
+    "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ",
+    "Enable DNSSEC on your name servers.",
+    "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary."
+  ],
+  "vulnerabilities": {
+    "IPAddressV4|internet|1.1.1.1": {
+      "hostnames": "(mispo.es)",
+      "title": "1.1.1.1",
+      "summary": {
+        "total_criticals": 0,
+        "terms": [
+          "CVE-2016-10735",
+          "CVE-2018-14040",
+          "CVE-2018-14041",
+          "CVE-2018-14042",
+          "CVE-2019-8331",
+          "RetireJS-jquerymigrate-f3a3",
+          "RetireJS-jquerymigrate-f901"
+        ],
+        "total_findings": 7,
+        "recommendations": []
+      },
+      "vulnerabilities": {
+        "RetireJS-jquerymigrate-f3a3": {
+          "cvss": {
+            "risk_level": "Medium 6.9",
+            "class": "medium",
+            "score": 6.9
+          },
+          "description": "cross-site-scripting. More information at: http://blog.jquery.com/2013/05/01/jquery-migrate-1-2-0-released/ or https://github.com/jquery/jquery-migrate/issues/36",
+          "findings": {
+            "RetireJS-jquerymigrate-f3a3 @ jQuery Migrate 1.0.0 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Source": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        },
+        "CVE-2018-14042": {
+          "cvss": {
+            "risk_level": "Medium 6.1",
+            "class": "medium",
+            "score": 6.1
+          },
+          "description": "In Bootstrap before 4.1.2, XSS is possible in the data-container property of tooltip.",
+          "findings": {
+            "CVE-2018-14042 @ Bootstrap 3.3.7 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Source": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        },
+        "CVE-2018-14041": {
+          "cvss": {
+            "risk_level": "Medium 6.1",
+            "class": "medium",
+            "score": 6.1
+          },
+          "description": "In Bootstrap before 4.1.2, XSS is possible in the data-target property of scrollspy.",
+          "findings": {
+            "CVE-2018-14041 @ Bootstrap 3.3.7 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Source": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        },
+        "CVE-2018-14040": {
+          "cvss": {
+            "risk_level": "Medium 6.1",
+            "class": "medium",
+            "score": 6.1
+          },
+          "description": "In Bootstrap before 4.1.2, XSS is possible in the collapse data-parent attribute.",
+          "findings": {
+            "CVE-2018-14040 @ Bootstrap 3.3.7 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Source": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        },
+        "RetireJS-jquerymigrate-f901": {
+          "cvss": {
+            "risk_level": "Medium 6.9",
+            "class": "medium",
+            "score": 6.9
+          },
+          "description": "Selector interpreted as HTML. More information at: http://bugs.jquery.com/ticket/11290 or http://research.insecurelabs.org/jquery/test/",
+          "findings": {
+            "RetireJS-jquerymigrate-f901 @ jQuery Migrate 1.0.0 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Sourc2024-10-17T14:11:10.429803596Z e": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        },
+        "CVE-2016-10735": {
+          "cvss": {
+            "risk_level": "Medium 6.1",
+            "class": "medium",
+            "score": 6.1
+          },
+          "description": "In Bootstrap 3.x before 3.4.0 and 4.x-beta before 4.0.0-beta.2, XSS is possible in the data-target attribute, a different vulnerability than CVE-2018-14041.",
+          "findings": {
+            "CVE-2016-10735 @ Bootstrap 3.3.7 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Source": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        },
+        "CVE-2019-8331": {
+          "cvss": {
+            "risk_level": "Medium 6.1",
+            "class": "medium",
+            "score": 6.1
+          },
+          "description": "In Bootstrap before 3.4.1 and 4.3.x before 4.3.1, XSS is possible in the tooltip or popover data-template attribute.",
+          "findings": {
+            "CVE-2019-8331 @ Bootstrap 3.3.7 @ https://mispo.es:443/": {
+              "Evidence": "342902ce-1bf5-4ec5-b50a-5895d8a1d55c",
+              "Last seen": "-",
+              "First seen": "2024-10-17 13:27:19+00:00",
+              "Source": "kat_wappalyzer_normalize"
+            }
+          },
+          "occurrences": 1,
+          "advice": "-"
+        }
+      }
+    }
+  },
+  "services": {
+    "DNS": {
+      "IPAddressV4|internet|1.1.1.1": {
+        "hostnames": [
+          "Hostname|internet|mispo.es"
+        ],
+        "services": [
+          "DNS",
+          "Other",
+          "Web"
+        ]
+      }
+    },
+    "Web": {
+      "IPAddressV4|internet|1.1.1.1": {
+        "hostnames": [
+          "Hostname|internet|mispo.es"
+        ],
+        "services": [
+          "DNS",
+          "Other",
+          "Web"
+        ]
+      }
+    },
+    "Other": {
+      "IPAddressV4|internet|1.1.1.1": {
+        "hostnames": [
+          "Hostname|internet|mispo.es"
+        ],
+        "services": [
+          "DNS",
+          "Other",
+          "Web"
+        ]
+      }
+    }
+  }
+}

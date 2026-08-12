@@ -4,14 +4,8 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0007_update_job"),
-    ]
+    dependencies = [("tools", "0007_update_job")]
 
     operations = [
-        migrations.AddField(
-            model_name="organizationmember",
-            name="verified",
-            field=models.BooleanField(default=False),
-        ),
+        migrations.AddField(model_name="organizationmember", name="verified", field=models.BooleanField(default=False))
     ]

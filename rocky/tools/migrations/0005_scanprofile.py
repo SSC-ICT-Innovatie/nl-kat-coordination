@@ -6,39 +6,24 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("tools", "0004_ooiinformation"),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL), ("tools", "0004_ooiinformation")]
 
     operations = [
         migrations.CreateModel(
             name="ScanProfile",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("reference", models.CharField(max_length=256)),
                 (
                     "level",
                     models.PositiveSmallIntegerField(
-                        choices=[(0, "L0"), (1, "L1"), (2, "L2"), (3, "L3"), (4, "L4")],
-                        default=0,
+                        choices=[(0, "L0"), (1, "L1"), (2, "L2"), (3, "L3"), (4, "L4")], default=0
                     ),
                 ),
                 ("new", models.BooleanField(default=True)),
                 (
                     "organization",
-                    models.ForeignKey(
-                        on_delete=django.db.models.deletion.DO_NOTHING,
-                        to="tools.organization",
-                    ),
+                    models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to="tools.organization"),
                 ),
                 (
                     "user",
@@ -50,8 +35,6 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "unique_together": {("reference", "organization")},
-            },
-        ),
+            options={"unique_together": {("reference", "organization")}},
+        )
     ]

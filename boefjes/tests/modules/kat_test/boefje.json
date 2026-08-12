@@ -1,0 +1,9 @@
+{
+  "id": "kat_test",
+  "name": "Kat test name",
+  "description": "Testing KAT",
+  "consumes": [
+    "DNSZone"
+  ],
+  "scan_level": 1
+}

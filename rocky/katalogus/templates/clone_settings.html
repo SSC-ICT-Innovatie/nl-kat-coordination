@@ -4,14 +4,14 @@
     <div>
         <h2>{% translate "Clone settings" %}</h2>
         <p>
-            {% blocktranslate with current_organization=organization.name%}
-        Use the form below to clone the settings from <i>{{current_organization}}</i> to the selected organization.
-        This includes both the KAT-alogus settings as well as enabled and disabled plugins.
-      {% endblocktranslate %}
+            {% blocktranslate with current_organization=organization.name trimmed %}
+                Use the form below to clone the settings from <strong>{{ current_organization }}</strong> to the selected organization.
+                This includes both the KAT-alogus settings as well as enabled and disabled plugins.
+            {% endblocktranslate %}
         </p>
         <form action="{% url "katalogus_settings" organization.code %}"
               method="post"
-              class="horizontal-view help"
+              class="help"
               novalidate>
             {% csrf_token %}
             {% include "partials/form/fieldset.html" with legend=name fields=form %}

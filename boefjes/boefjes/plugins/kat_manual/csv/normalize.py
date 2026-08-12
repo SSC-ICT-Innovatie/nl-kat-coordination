@@ -6,8 +6,8 @@ from ipaddress import IPv4Network, ip_network
 
 from pydantic import ValidationError
 
-from boefjes.job_models import NormalizerDeclaration, NormalizerOutput
-from octopoes.models import Reference
+from boefjes.normalizer_models import NormalizerDeclaration, NormalizerOutput
+from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 from octopoes.models.ooi.web import URL
@@ -30,7 +30,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     yield from process_csv(raw, reference_cache)
 
 
-def process_csv(csv_raw_data, reference_cache) -> Iterable[NormalizerOutput]:
+def process_csv(csv_raw_data: bytes, reference_cache: dict) -> Iterable[NormalizerOutput]:
     csv_data = io.StringIO(csv_raw_data.decode("UTF-8"))
 
     object_type = get_object_type(csv_data)
@@ -74,7 +74,7 @@ def get_object_type(csv_data: io.StringIO) -> str:
 
 
 def get_ooi_from_csv(
-    ooi_type_name: str, values: dict[str, str], reference_cache
+    ooi_type_name: str, values: dict[str, str], reference_cache: dict
 ) -> tuple[OOIType, list[NormalizerDeclaration]]:
     skip_properties = ("object_type", "scan_profile", "primary_key")
 
@@ -85,7 +85,7 @@ def get_ooi_from_csv(
         if field not in skip_properties
     ]
 
-    kwargs = {}
+    kwargs: dict[str, Reference | str | None] = {}
     extra_declarations: list[NormalizerDeclaration] = []
 
     for field, is_reference, required in ooi_fields:
@@ -109,7 +109,7 @@ def get_ooi_from_csv(
     return ooi_type(**kwargs), extra_declarations
 
 
-def get_or_create_reference(ooi_type_name: str, value: str | None, reference_cache):
+def get_or_create_reference(ooi_type_name: str, value: str | None, reference_cache: dict) -> OOI:
     ooi_type_name = next(filter(lambda x: x.casefold() == ooi_type_name.casefold(), OOI_TYPES.keys()))
 
     # get from cache

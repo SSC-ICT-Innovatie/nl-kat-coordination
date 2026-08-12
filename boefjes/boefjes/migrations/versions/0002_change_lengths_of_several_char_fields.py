@@ -22,30 +22,18 @@ def upgrade() -> None:
 
     op.create_unique_constraint("organisation_id", "organisation", ["id"])
     op.create_unique_constraint(
-        "unique_plugin_per_repo_per_org",
-        "plugin_state",
-        ["plugin_id", "organisation_pk", "repository_pk"],
+        "unique_plugin_per_repo_per_org", "plugin_state", ["plugin_id", "organisation_pk", "repository_pk"]
     )
     op.create_unique_constraint("repository_id", "repository", ["id"])
     op.create_unique_constraint(
-        "unique_keys_per_organisation_per_plugin",
-        "setting",
-        ["key", "organisation_pk", "plugin_id"],
+        "unique_keys_per_organisation_per_plugin", "setting", ["key", "organisation_pk", "plugin_id"]
     )
 
     op.alter_column(
-        "setting",
-        "key",
-        existing_type=sa.String(length=32),
-        type_=sa.String(length=128),
-        existing_nullable=False,
+        "setting", "key", existing_type=sa.String(length=32), type_=sa.String(length=128), existing_nullable=False
     )
     op.alter_column(
-        "setting",
-        "value",
-        existing_type=sa.String(length=64),
-        type_=sa.String(length=128),
-        existing_nullable=False,
+        "setting", "value", existing_type=sa.String(length=64), type_=sa.String(length=128), existing_nullable=False
     )
     op.drop_constraint("plugin_state_plugin_id_key", "plugin_state", type_="unique")
     # ### end Alembic commands ###
@@ -56,18 +44,10 @@ def downgrade() -> None:
     op.drop_constraint("unique_keys_per_organisation_per_plugin", "setting", type_="unique")
 
     op.alter_column(
-        "setting",
-        "value",
-        existing_type=sa.String(length=128),
-        type_=sa.String(length=64),
-        existing_nullable=False,
+        "setting", "value", existing_type=sa.String(length=128), type_=sa.String(length=64), existing_nullable=False
     )
     op.alter_column(
-        "setting",
-        "key",
-        existing_type=sa.String(length=128),
-        type_=sa.String(length=32),
-        existing_nullable=False,
+        "setting", "key", existing_type=sa.String(length=128), type_=sa.String(length=32), existing_nullable=False
     )
 
     op.drop_constraint("repository_id", "repository", type_="unique")

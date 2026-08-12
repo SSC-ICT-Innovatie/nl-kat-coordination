@@ -43,11 +43,7 @@ class UserRegistrationForm(forms.Form):
         max_length=254,
         help_text=_("Enter an email address."),
         widget=forms.EmailInput(
-            attrs={
-                "autocomplete": "off",
-                "placeholder": "name@example.com",
-                "aria-describedby": "explanation-email",
-            }
+            attrs={"autocomplete": "off", "placeholder": "name@example.com", "aria-describedby": "explanation-email"}
         ),
     )
     password = forms.CharField(
@@ -91,19 +87,9 @@ class AccountTypeSelectForm(forms.Form):
     ]
 
     account_type = forms.CharField(
-        label=_("Account Type"),
-        help_text=_("Every member of OpenKAT must be part of an account type."),
-        error_messages={
-            "group": {
-                "required": _("Please select an account type to proceed."),
-            },
-        },
-        widget=forms.Select(
-            choices=ACCOUNT_TYPE_CHOICES,
-            attrs={
-                "aria-describedby": "explanation-account-type",
-            },
-        ),
+        label=_("Account type"),
+        error_messages={"group": {"required": _("Please select an account type to proceed.")}},
+        widget=forms.Select(choices=ACCOUNT_TYPE_CHOICES, attrs={"aria-describedby": "explanation-account-type"}),
     )
 
 
@@ -115,11 +101,7 @@ class TrustedClearanceLevelRadioPawsForm(forms.Form):
         initial=-1,
         help_text=_("Select a clearance level you trust this member with."),
         widget=forms.RadioSelect(attrs={"radio_paws": True}),
-        error_messages={
-            "trusted_clearance_level": {
-                "required": _("Please select a clearance level to proceed."),
-            },
-        },
+        error_messages={"trusted_clearance_level": {"required": _("Please select a clearance level to proceed.")}},
     )
 
 
@@ -168,16 +150,16 @@ class OrganizationForm(BaseRockyModelForm):
                     "placeholder": _("The name of the organization."),
                     "autocomplete": "off",
                     "aria-describedby": _("explanation-organization-name"),
-                },
+                }
             ),
             "code": forms.TextInput(
                 attrs={
-                    "placeholder": _("A unique code of {code_length} characters.").format(
+                    "placeholder": _("A unique code of maximum {code_length} characters in length.").format(
                         code_length=ORGANIZATION_CODE_LENGTH
                     ),
                     "autocomplete": "off",
                     "aria-describedby": _("explanation-organization-code"),
-                },
+                }
             ),
         }
         error_messages = {
@@ -197,13 +179,13 @@ class IndemnificationAddForm(BaseRockyForm):
         label=_(
             "I declare that OpenKAT may scan the assets of my organization and "
             "that I have permission to scan these assets. "
-            "I am aware of the implications a scan with a higher scan level brings on my systems."
+            "I am aware of the implications a scan (with a higher scan level) brings on my systems."
         ),
         widget=forms.CheckboxInput(),
     )
     am_authorized = forms.CharField(
         label=_(
-            "I declare that I am authorized to give this indemnification within my organization. "
+            "I declare that I am authorized to give this indemnification on behalf of my organization. "
             "I have the experience and knowledge to know what the consequences might be and"
             " can be held responsible for them."
         ),
@@ -212,15 +194,11 @@ class IndemnificationAddForm(BaseRockyForm):
 
 
 class AssignClearanceLevelForm(BaseRockyForm):
-    assigned_level = forms.BooleanField(
-        label=_("Trusted to change Clearance Levels."),
-    )
+    assigned_level = forms.BooleanField(label=_("Trusted to change Clearance Levels."))
 
 
 class AcknowledgeClearanceLevelForm(BaseRockyForm):
-    acknowledged_level = forms.BooleanField(
-        label=_("Acknowledged to change Clearance Levels."),
-    )
+    acknowledged_level = forms.BooleanField(label=_("Acknowledged to change Clearance Levels."))
 
 
 class OrganizationMemberEditForm(BaseRockyModelForm, TrustedClearanceLevelRadioPawsForm):
@@ -281,17 +259,10 @@ class SetPasswordForm(auth_forms.SetPasswordForm):
     password
     """
 
-    error_messages = {
-        "password_mismatch": _("The two password fields didn’t match."),
-    }
+    error_messages = {"password_mismatch": _("The two password fields didn’t match.")}
     new_password1 = forms.CharField(
         label=_("New password"),
-        widget=forms.PasswordInput(
-            attrs={
-                "autocomplete": "new-password",
-                "placeholder": _("Enter a new password"),
-            }
-        ),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": _("Enter a new password")}),
         strip=False,
         help_text=get_password_validators_help_texts,
         validators=[validate_password],
@@ -299,12 +270,7 @@ class SetPasswordForm(auth_forms.SetPasswordForm):
     new_password2 = forms.CharField(
         label=_("New password confirmation"),
         strip=False,
-        widget=forms.PasswordInput(
-            attrs={
-                "autocomplete": "new-password",
-                "placeholder": _("Repeat the new password"),
-            }
-        ),
+        widget=forms.PasswordInput(attrs={"autocomplete": "new-password", "placeholder": _("Repeat the new password")}),
         help_text=_("Confirm the new password"),
         validators=[validate_password],
     )

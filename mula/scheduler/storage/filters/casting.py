@@ -28,7 +28,7 @@ def cast_expression(expression: BinaryExpression, filter_: Filter) -> BinaryExpr
                 raise MismatchedTypeError("List values must be of the same type")
 
         element_type = type(filter_.value[0])
-        if element_type == str:
+        if element_type is str:
             expression = expression.astext
         elif element_type in [int, float]:
             expression = expression.cast(Numeric)
@@ -43,9 +43,9 @@ def cast_expression(expression: BinaryExpression, filter_: Filter) -> BinaryExpr
         # if the value can be decoded.
         try:
             decoded_value = json.loads(filter_.value)
-            if isinstance(decoded_value, dict):
-                # If it's a JSON object, return the expression as is. We don't
-                # need to cast it.
+            # If the string is a JSON object, return the expression as is.
+            # We don't need to cast it.
+            if isinstance(decoded_value, dict | list):
                 return expression
             expression = expression.astext
         except json.JSONDecodeError:

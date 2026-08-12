@@ -10,28 +10,10 @@ from xtdb_client import XTDBClient
 logger = logging.getLogger(__name__)
 
 
-@click.group(
-    context_settings={
-        "help_option_names": ["-h", "--help"],
-        "max_content_width": 120,
-        "show_default": True,
-    }
-)
+@click.group(context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 120, "show_default": True})
 @click.option("-c", "--code", default="0", help="The organisation code")
-@click.option(
-    "-u",
-    "--url",
-    default="http://localhost:3000",
-    envvar="XTDB_URI",
-    help="XTDB server base url",
-)
-@click.option(
-    "-t",
-    "--timeout",
-    type=int,
-    default=5000,
-    help="XTDB request timeout (in ms)",
-)
+@click.option("-u", "--url", default="http://localhost:3000", envvar="XTDB_URI", help="XTDB server base url")
+@click.option("-t", "--timeout", type=int, default=5000, help="XTDB request timeout (in ms)")
 @click.option("-v", "--verbosity", count=True, help="Increase the verbosity level")
 @click.pass_context
 def cli(ctx: click.Context, url: str, code: str, timeout: int, verbosity: int):

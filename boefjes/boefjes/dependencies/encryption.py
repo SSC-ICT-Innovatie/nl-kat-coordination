@@ -34,8 +34,8 @@ class NaclBoxMiddleware(EncryptMiddleware):
 
     def encode(self, contents: str) -> str:
         encrypted_contents = self.box.encrypt(contents.encode())
-        encrypted_contents = base64.b64encode(encrypted_contents)
-        return encrypted_contents.decode()
+        base64_encrypted_contents = base64.b64encode(encrypted_contents)
+        return base64_encrypted_contents.decode()
 
     def decode(self, contents: str) -> str:
         encrypted_binary = base64.b64decode(contents)

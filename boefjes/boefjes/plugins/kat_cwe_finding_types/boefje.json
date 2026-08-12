@@ -1,10 +1,14 @@
 {
   "id": "cwe-finding-types",
   "name": "CWE Finding Types",
-  "description": "Hydrate information of CWE finding types",
+  "description": "Hydrate information of Common Weakness Enumeration (CWE) finding types.",
   "consumes": [
     "CWEFindingType"
   ],
   "scan_level": 0,
-  "enabled": true
+  "enabled": true,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_cwe_finding_types.main"
+  ]
 }

@@ -5,23 +5,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0002_alter_organization_octopoes_host"),
-    ]
+    dependencies = [("tools", "0002_alter_organization_octopoes_host")]
 
     operations = [
-        migrations.RemoveField(
-            model_name="organization",
-            name="octopoes_host",
-        ),
+        migrations.RemoveField(model_name="organization", name="octopoes_host"),
         migrations.AddField(
             model_name="job",
             name="organization",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.SET_NULL,
-                to="tools.organization",
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.SET_NULL, to="tools.organization"),
         ),
         migrations.AddField(
             model_name="organization",

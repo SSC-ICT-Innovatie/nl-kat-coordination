@@ -10,13 +10,9 @@ from octopoes.models.types import HTTPHeader
 
 NON_DECIMAL_FILTER = re.compile(r"[^\d.]+")
 
-XSS_CAPABLE_TYPES = [
-    "text/html",
-    "application/xhtml+xml",
-    "application/xml",
-    "text/xml",
-    "image/svg+xml",
-]
+XSS_CAPABLE_TYPES = ["text/html", "application/xhtml+xml", "application/xml", "text/xml", "image/svg+xml"]
+
+DEPRECATED_DIRECTIVES = ["block-all-mixed-content", "prefetch-src"]
 
 
 def is_xss_capable(content_type: str) -> bool:
@@ -75,6 +71,14 @@ def run(resource: HTTPResource, additional_oois: list[HTTPHeader], config: dict[
     if "default-src" not in csp_header:
         findings.append("default-src has not been defined.")
 
+    for deprecated_directive in DEPRECATED_DIRECTIVES:
+        if deprecated_directive in csp_header:
+            findings.append(f"Deprecated CSP directive found: {deprecated_directive}")
+
+    if "report-uri" in csp_header:
+        findings.append("""Deprecated CSP directive found. report-uri is superseded by report-to:
+        https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/report-uri""")
+
     policies = [policy.strip().split(" ") for policy in csp_header.split(";")]
     for policy in policies:
         if len(policy) < 2:
@@ -123,11 +127,7 @@ def run(resource: HTTPResource, additional_oois: list[HTTPHeader], config: dict[
         for index, finding in enumerate(findings):
             description += f"\n {index + 1}. {finding}"
 
-        yield from _create_kat_finding(
-            resource.reference,
-            kat_id="KAT-CSP-VULNERABILITIES",
-            description=description,
-        )
+        yield from _create_kat_finding(resource.reference, kat_id="KAT-CSP-VULNERABILITIES", description=description)
 
 
 def _ip_valid(source: str) -> bool:
@@ -146,27 +146,14 @@ def _ip_valid(source: str) -> bool:
 def _create_kat_finding(header: Reference, kat_id: str, description: str) -> Iterator[OOI]:
     finding_type = KATFindingType(id=kat_id)
     yield finding_type
-    yield Finding(
-        finding_type=finding_type.reference,
-        ooi=header,
-        description=description,
-    )
+    yield Finding(finding_type=finding_type.reference, ooi=header, description=description)
 
 
 def _source_valid(policy: list[str]) -> bool:
     for value in policy:
         if not (
             re.search(r"\S+\.\S{2,3}([\s]+|$|;|:\d+)", value)
-            or value
-            in [
-                "'none'",
-                "'self'",
-                "data:",
-                "unsafe-inline",
-                "unsafe-eval",
-                "unsafe-hashes",
-                "report-sample",
-            ]
+            or value in ["'none'", "'self'", "data:", "unsafe-inline", "unsafe-eval", "unsafe-hashes", "report-sample"]
         ):
             return False
 

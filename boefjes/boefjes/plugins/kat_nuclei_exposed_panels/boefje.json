@@ -1,10 +1,15 @@
 {
   "id": "nuclei-exposed-panels",
   "name": "Nuclei Exposed panels",
-  "description": "Nuclei is used to send requests across targets based on a template, providing fast scanning. (Exposed panels)",
+  "description": "Nuclei is used to send requests across targets based on a template, providing fast scanning. Can be used to find specific exposed administrative panels in your network.",
   "consumes": [
-    "Hostname",
-    "HostnameHTTPURL"
+    "Hostname"
   ],
-  "scan_level": 3
+  "scan_level": 3,
+  "oci_image": "docker.underdark.nl/librekat/openkat-nuclei:latest",
+  "oci_arguments": [
+    "-t",
+    "/root/nuclei-templates/http/exposed-panels/",
+    "-jsonl"
+  ]
 }

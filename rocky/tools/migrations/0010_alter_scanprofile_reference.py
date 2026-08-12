@@ -4,14 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0009_scanprofile_is_source_ooi"),
-    ]
+    dependencies = [("tools", "0009_scanprofile_is_source_ooi")]
 
-    operations = [
-        migrations.AlterField(
-            model_name="scanprofile",
-            name="reference",
-            field=models.TextField(),
-        ),
-    ]
+    operations = [migrations.AlterField(model_name="scanprofile", name="reference", field=models.TextField())]

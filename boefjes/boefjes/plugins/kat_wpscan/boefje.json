@@ -1,12 +1,11 @@
 {
   "id": "wp-scan",
   "name": "WPScan",
-  "description": "WordPress security scanner",
+  "description": "Scans WordPress websites.",
   "consumes": [
     "SoftwareInstance"
   ],
-  "environment_keys": [
-    "WP_SCAN_API"
-  ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-wp-scan:latest",
+  "oci_arguments": []
 }

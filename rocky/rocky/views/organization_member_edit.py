@@ -1,3 +1,4 @@
+import structlog
 from account.forms import OrganizationMemberEditForm
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django.contrib import messages
@@ -6,6 +7,8 @@ from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import UpdateView
 from tools.models import GROUP_CLIENT, OrganizationMember
+
+logger = structlog.get_logger(__name__)
 
 
 class OrganizationMemberEditView(
@@ -37,9 +40,7 @@ class OrganizationMemberEditView(
 
     def get_success_url(self):
         messages.add_message(
-            self.request,
-            messages.SUCCESS,
-            _("Member %s successfully updated.") % (self.object.user.full_name),
+            self.request, messages.SUCCESS, _("Member %s successfully updated.") % (self.object.user.full_name)
         )
         return reverse("organization_member_list", kwargs={"organization_code": self.organization.code})
 
@@ -67,6 +68,9 @@ class OrganizationMemberEditView(
         acl = form.cleaned_data["acknowledged_clearance_level"]
         if not tcl:
             tcl = -1
+        else:
+            logger.info("Setting trusted clearance level", event_code="900108", level=tcl, user=form.instance.id)
+
         if not acl:
             acl = -1
 

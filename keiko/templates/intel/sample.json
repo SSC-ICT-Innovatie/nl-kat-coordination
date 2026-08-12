@@ -1,8 +1,0 @@
-{
-  "template": "intel",
-  "data": {
-    "findings": {},
-    "finding_types": {}
-  },
-  "glossary": "dutch.hiero.csv"
-}

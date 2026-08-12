@@ -2,10 +2,25 @@
 
 table i.icon,
 table span.icon {
-  float: left;
-
   &::before {
-    display: block;
+    display: inline-block;
     line-height: 1.25;
   }
+}
+
+.expando-row > td > section {
+  width: 100%;
+}
+
+table .expando-row pre {
+  max-width: 80vw;
+}
+
+table td.ascii {
+  font-family: monospace;
+}
+
+table.hex td.ascii:hover,
+table.hex td.ascii .highlight {
+  background-color: var(--branding-color-2-background-color);
 }

@@ -4,14 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0014_drop_dispatches_field"),
-    ]
+    dependencies = [("tools", "0014_drop_dispatches_field")]
 
-    operations = [
-        migrations.AlterField(
-            model_name="job",
-            name="input_ooi",
-            field=models.TextField(null=True),
-        ),
-    ]
+    operations = [migrations.AlterField(model_name="job", name="input_ooi", field=models.TextField(null=True))]

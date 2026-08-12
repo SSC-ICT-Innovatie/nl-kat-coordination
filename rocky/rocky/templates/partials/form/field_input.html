@@ -1,12 +1,16 @@
 {% load i18n %}
 
 <div {% if field.field.required %}class="required"{% endif %}>
-    {{ field.label_tag }}
+    {% if field.field.required %}
+        <label>
+            {{ field.label_tag }} <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
+        </label>
+    {% else %}
+        {{ field.label_tag }}
+    {% endif %}
+    <p id="input-description" class="nota-bene">{{ field.field.widget.attrs.description }}</p>
     {% if form_view != "vertical" %}
         <div>
-            {% if field.field.required %}
-                <span class="nota-bene">{% translate "This field is required" %}</span>
-            {% endif %}
             <div>
                 {% if not field.field.widget.attrs.fixed_paws %}
                     {{ field }}
@@ -34,7 +38,9 @@
     {% else %}
         <div>
             {% if field.field.required %}
-                <span class="nota-bene">{% translate "This field is required" %}</span>
+                <label>
+                    {{ field.label_tag }} <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
+                </label>
             {% endif %}
             <div>
                 {{ field }}

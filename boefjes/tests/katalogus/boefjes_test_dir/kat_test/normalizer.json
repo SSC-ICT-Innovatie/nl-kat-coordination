@@ -1,8 +1,0 @@
-{
-  "id": "kat_test_normalize",
-  "description": "Testing KAT",
-  "consumes": [
-    "text/html"
-  ],
-  "produces": []
-}

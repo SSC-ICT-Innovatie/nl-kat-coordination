@@ -1,8 +1,15 @@
-{% extends "partials/list_filters.html" %}
-
 {% load i18n %}
 
-{% block filter_form %}
+<div class="filter">
+    <div>
+        <button aria-expanded="false"
+                data-hide-filters-label='{% translate "Hide filters" %}'>
+            {% translate "Show filters" %}
+            {% if active_filters_counter > 0 %}
+                ({{ active_filters_counter }} {% translate "applied" %})
+            {% endif %}
+        </button>
+    </div>
     <form novalidate method="get" class="help">
         {% include "partials/form/fieldset.html" with fields=form %}
 
@@ -11,4 +18,4 @@
             <a href="{{ request.path }}" class="button ghost">{% translate "Clear filter" %}</a>
         </div>
     </form>
-{% endblock filter_form %}
+</div>

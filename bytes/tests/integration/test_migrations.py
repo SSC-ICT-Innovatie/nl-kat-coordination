@@ -13,15 +13,15 @@ def test_clean_mime_types(meta_repository: SQLMetaDataRepository) -> None:
         meta_repository.save_boefje_meta(boefje_meta)
 
         raw = get_raw_data()
-        raw.mime_types.append(MimeType(value=raw.boefje_meta.boefje.id))
+        raw.mime_types.add(MimeType(value=raw.boefje_meta.boefje.id))
         raw_id_1 = meta_repository.save_raw(raw)
 
-        raw.mime_types.append(
+        raw.mime_types.add(
             MimeType(value=f"boefje/{raw.boefje_meta.boefje.id}-ce293f79fd3c809a300a2837bb1da4f7115fc034a1f78")
         )
         raw_id_2 = meta_repository.save_raw(raw)
 
-        raw.mime_types.append(
+        raw.mime_types.add(
             MimeType(value=f"boefje/{raw.boefje_meta.boefje.id}-ba293f79fd3c809a300a2837bb1da4f7115fc034a1f78")
         )
         raw_id_3 = meta_repository.save_raw(raw)

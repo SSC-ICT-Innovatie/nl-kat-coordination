@@ -5,13 +5,14 @@ services:
       dockerfile: rocky/Dockerfile
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
       target: dev
-    command: bash /app/run_rocky.sh
+    command: pytest tests/
     depends_on:
       - ci_rocky-db
     volumes:
       - ..:/app/rocky
-      - ./run_rocky.sh:/app/run_rocky.sh
       - ../../octopoes/octopoes:/app/rocky/octopoes
     env_file:
       - .env.test
@@ -22,6 +23,8 @@ services:
       dockerfile: rocky/Dockerfile
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
       target: dev
     command: pytest tests/integration
     depends_on:
@@ -29,7 +32,6 @@ services:
       - ci_octopoes
     volumes:
       - ..:/app/rocky
-      - ./run_rocky.sh:/app/run_rocky.sh
       - ../../octopoes/octopoes:/app/rocky/octopoes
     env_file:
       - .env.test
@@ -52,7 +54,7 @@ services:
       - .env.test
 
   xtdb:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:v1.0.8"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
 
   rabbitmq:
     restart: on-failure

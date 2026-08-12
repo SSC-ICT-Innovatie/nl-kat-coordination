@@ -7,6 +7,7 @@ from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.ooi.reports import ReportData
 from reports.report_types.definitions import MultiReport, ReportPlugins
+from reports.report_types.findings_report.report import SEVERITY_OPTIONS
 
 
 class OpenPortsDict(TypedDict):
@@ -23,7 +24,7 @@ class MultiOrganizationReport(MultiReport):
     id = "multi-organization-report"
     name = _("Multi Organization Report")
     description = _("Multi Organization Report")
-    plugins: ReportPlugins = {"required": [], "optional": []}
+    plugins: ReportPlugins = {"required": set(), "optional": set()}
     input_ooi_types = {ReportData}
     template_path = "multi_organization_report/report.html"
 
@@ -51,10 +52,12 @@ class MultiOrganizationReport(MultiReport):
         system_specific: dict[str, SystemSpecificDict] = {}
         rpki_summary = {}
         ipv6 = {}
+        findings: dict[str, Any] = {}
         recommendation_counts = {}
         organization_metrics: dict[str, Any] = {}
 
         for organization, report_data in data.items():
+            aggregate_data = report_data["data"]
             basic_security = {"compliant": 0, "total": 0}
 
             for tag in report_data["organization_tags"]:
@@ -63,13 +66,17 @@ class MultiOrganizationReport(MultiReport):
 
                 tags[tag].append(report_data["organization_code"])
 
-            aggregate_data = report_data["data"]["post_processed_data"]
-            total_critical_vulnerabilities += aggregate_data["summary"]["Critical vulnerabilities"]
+            # Added for backward compatability issues
+            if "Critical vulnerabilities" in aggregate_data["summary"]:
+                total_critical_vulnerabilities += aggregate_data["summary"]["Critical vulnerabilities"]
+            else:
+                total_critical_vulnerabilities += aggregate_data["summary"]["critical_vulnerabilities"]
+
             total_findings += aggregate_data["total_findings"]
             total_systems += aggregate_data["total_systems"]
             total_hostnames += aggregate_data["total_hostnames"]
 
-            for compliance in report_data["data"]["post_processed_data"]["basic_security"]["summary"].values():
+            for compliance in report_data["data"]["basic_security"]["summary"].values():
                 for counts in compliance.values():
                     basic_security["total"] += counts["total"]
                     basic_security["compliant"] += counts["number_of_compliant"]
@@ -164,6 +171,32 @@ class MultiOrganizationReport(MultiReport):
 
                 recommendation_counts[recommendation] += 1
 
+            # Findings
+            if not findings:
+                findings["finding_types"] = {}
+                findings["summary"] = {
+                    "total_by_severity": {severity: 0 for severity in SEVERITY_OPTIONS},
+                    "total_by_severity_per_finding_type": {severity: 0 for severity in SEVERITY_OPTIONS},
+                    "total_finding_types": 0,
+                    "total_occurrences": 0,
+                }
+            if aggregate_data["findings"]:
+                for finding_type_with_occurrences in aggregate_data["findings"]["finding_types"]:
+                    finding_type = finding_type_with_occurrences["finding_type"]
+                    finding_type_id = finding_type["id"]
+                    occurrences = finding_type_with_occurrences["occurrences"]
+                    severity = finding_type["risk_severity"]
+
+                    if finding_type_id not in findings["finding_types"]:
+                        findings["finding_types"][finding_type_id] = {
+                            "finding_type": finding_type,
+                            "occurrences": occurrences,
+                        }
+                        findings["summary"]["total_by_severity_per_finding_type"][severity] += 1
+                        findings["summary"]["total_finding_types"] += 1
+                    else:
+                        findings["finding_types"][finding_type_id]["occurrences"].extend(occurrences)
+
             # Get metrics per organization for best and worst security score
             ## Safe Connections
             is_check_compliant = (
@@ -217,6 +250,27 @@ class MultiOrganizationReport(MultiReport):
             sorted(system_vulnerabilities.items(), key=lambda x: x[1]["cvss"] or 0, reverse=True)
         )
 
+        # Remove duplicate occurrences
+        for finding_type in findings["finding_types"].values():
+            severity = finding_type["finding_type"]["risk_severity"]
+            unique_occurrences = []
+            seen_keys = set()
+
+            for occurrence in finding_type["occurrences"]:
+                occurrence_ooi = occurrence["finding"]["ooi"]
+
+                if occurrence_ooi not in seen_keys:
+                    seen_keys.add(occurrence_ooi)
+                    unique_occurrences.append(occurrence)
+                    findings["summary"]["total_by_severity"][severity] += 1
+
+            finding_type["occurrences"] = unique_occurrences
+            findings["summary"]["total_occurrences"] += len(unique_occurrences)
+
+        findings["finding_types"] = sorted(
+            findings["finding_types"].values(), key=lambda x: x["finding_type"]["risk_score"] or 0, reverse=True
+        )
+
         return {
             "multi_data": data,
             "organizations": [value["organization_code"] for key, value in data.items()],
@@ -247,16 +301,15 @@ class MultiOrganizationReport(MultiReport):
             "best_scoring": best_score,
             "worst_scoring": worst_score,
             "ipv6": ipv6,
+            "findings": findings,
         }
 
 
 def collect_report_data(
-    connector: OctopoesAPIConnector,
-    input_ooi_references: list[str],
-    observed_at: datetime,
-):
+    connector: OctopoesAPIConnector, input_ooi_references: list[str], observed_at: datetime
+) -> dict:
     report_data = {}
     for ooi in [x for x in input_ooi_references if Reference.from_str(x).class_type == ReportData]:
-        report_data[ooi] = connector.get(Reference.from_str(ooi), observed_at).dict()
+        report_data[ooi] = connector.get(Reference.from_str(ooi), observed_at).model_dump()
 
     return report_data

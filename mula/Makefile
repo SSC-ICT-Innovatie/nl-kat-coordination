@@ -74,7 +74,7 @@ cov: ## Generate a test coverage report
 
 sql: ## Generate raw sql for the migrations.
 	docker compose run --rm scheduler \
-		alembic --config /app/scheduler/scheduler/alembic.ini \
+		alembic --config /app/scheduler/scheduler/storage/migrations/alembic.ini \
 		upgrade $(rev1):$(rev2) --sql
 
 migrations: ## Create migration.
@@ -84,14 +84,14 @@ else ifeq ($(revid),)
 	$(HIDE) (echo "ERROR: Specify a message with m={message} and a rev-id with revid={revid} (e.g. 0001 etc.)"; exit 1)
 else
 	docker compose run --rm scheduler \
-		alembic --config /app/scheduler/scheduler/alembic.ini \
+		alembic --config /app/scheduler/scheduler/storage/migrations/alembic.ini \
 		revision --autogenerate \
 		-m "$(m)" --rev-id "$(revid)"
 endif
 
 migrate: ## Run migrations using alembic.
 	docker compose run scheduler \
-		alembic --config /app/scheduler/scheduler/alembic.ini \
+		alembic --config /app/scheduler/scheduler/storage/migrations/alembic.ini \
 		upgrade head
 
 ##
@@ -128,7 +128,7 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-mula \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-mula \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -141,12 +141,38 @@ ubuntu22.04:
 	docker run --rm \
 	--env PKG_NAME=kat-mula \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-mula \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
 	--workdir /app \
-	kat-ubuntu-build-image \
+	kat-ubuntu22.04-build-image \
+	packaging/scripts/build-debian-package.sh
+
+debian13:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-mula \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--workdir /app \
+	kat-debian13-build-image \
+	packaging/scripts/build-debian-package.sh
+
+ubuntu24.04:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-mula \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--workdir /app \
+	kat-ubuntu24.04-build-image \
 	packaging/scripts/build-debian-package.sh
 
 clean: ## clean

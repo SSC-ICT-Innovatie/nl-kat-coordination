@@ -7,7 +7,7 @@ from typing import Any
 from octopoes.models import OOI
 from octopoes.models.ooi.findings import CVEFindingType, Finding, RetireJSFindingType
 from octopoes.models.ooi.software import Software, SoftwareInstance
-from packaging import version
+from packaging.version import parse
 
 
 def run(input_ooi: Software, additional_oois: list[SoftwareInstance], config: dict[str, Any]) -> Iterator[OOI]:
@@ -40,7 +40,7 @@ def run(input_ooi: Software, additional_oois: list[SoftwareInstance], config: di
             )
 
 
-def _check_vulnerabilities(name, package_version: str, known_vulnerabilities: dict) -> dict[str, list[str]]:
+def _check_vulnerabilities(name: str, package_version: str, known_vulnerabilities: dict) -> dict[str, list[str]]:
     vulnerabilities: dict[str, list[str]] = {"CVE": [], "RetireJS": []}
     processed_name = _process_name(name)
     found_brands = [brand for brand in known_vulnerabilities if processed_name == _process_name(brand)]
@@ -70,10 +70,10 @@ def _hash_identifiers(identifiers: dict[str, str | list[str]]) -> str:
 
 
 def _check_versions(package_version: str, known_vulnerability: dict) -> bool:
-    below = version.parse(package_version) < version.parse(known_vulnerability["below"])
+    below = parse(package_version) < parse(known_vulnerability["below"])
     # Some packages are only vulnerable below a version and not above
     above = (
-        version.parse(package_version) >= version.parse(known_vulnerability["atOrAbove"])
+        parse(package_version) >= parse(known_vulnerability["atOrAbove"])
         if "atOrAbove" in known_vulnerability
         else True
     )

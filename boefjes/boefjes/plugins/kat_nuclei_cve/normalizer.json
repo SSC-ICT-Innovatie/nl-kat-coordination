@@ -1,5 +1,7 @@
 {
   "id": "kat_nuclei_cve_normalize",
+  "name": "Nuclei CVE",
+  "description": "Parses Nuclei CVE data into findings.",
   "consumes": [
     "boefje/nuclei-cve"
   ],

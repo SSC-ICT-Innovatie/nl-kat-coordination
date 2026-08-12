@@ -106,27 +106,27 @@ def test_save_raw(meta_repository: SQLMetaDataRepository) -> None:
         meta_repository.save_raw(raw)
 
     query_filter = RawDataFilter(
-        organization=raw.boefje_meta.organization, boefje_meta_id=raw.boefje_meta.id, normalized=False
+        organization=[raw.boefje_meta.organization], boefje_meta_id=raw.boefje_meta.id, normalized=False
     )
     first_updated_raw = meta_repository.get_raw(query_filter).pop()
 
     assert first_updated_raw.signing_provider_url in ["https://test", "https://freetsa.org/tsr"]  # Depends on CI env
-    assert "hash_retrieval_link" in first_updated_raw.json()
-    assert "secure_hash" in first_updated_raw.json()
-    assert "signing_provider" in first_updated_raw.json()
+    assert "hash_retrieval_link" in first_updated_raw.model_dump_json()
+    assert "secure_hash" in first_updated_raw.model_dump_json()
+    assert "signing_provider" in first_updated_raw.model_dump_json()
 
     query_filter = RawDataFilter(
-        organization=raw.boefje_meta.organization,
+        organization=[raw.boefje_meta.organization],
         boefje_meta_id=raw.boefje_meta.id,
         mime_types=[MimeType(value="text/plain")],
     )
     first_updated_raw = meta_repository.get_raw(query_filter).pop()
-    assert "hash_retrieval_link" in first_updated_raw.json()
-    assert "secure_hash" in first_updated_raw.json()
-    assert "signing_provider" in first_updated_raw.json()
+    assert "hash_retrieval_link" in first_updated_raw.model_dump_json()
+    assert "secure_hash" in first_updated_raw.model_dump_json()
+    assert "signing_provider" in first_updated_raw.model_dump_json()
 
     query_filter = RawDataFilter(
-        organization=raw.boefje_meta.organization,
+        organization=[raw.boefje_meta.organization],
         boefje_meta_id=raw.boefje_meta.id,
         mime_types=[MimeType(value="bad/mime")],
     )
@@ -134,7 +134,7 @@ def test_save_raw(meta_repository: SQLMetaDataRepository) -> None:
     assert empty_raws == []
 
     # No raw data has been normalized
-    query_filter = RawDataFilter(organization=raw.boefje_meta.organization, normalized=True)
+    query_filter = RawDataFilter(organization=[raw.boefje_meta.organization], normalized=True)
     empty_raws = meta_repository.get_raw(query_filter)
     assert empty_raws == []
 
@@ -150,27 +150,49 @@ def test_save_raw(meta_repository: SQLMetaDataRepository) -> None:
 
 def test_filter_raw_on_organization(meta_repository: SQLMetaDataRepository) -> None:
     raw = get_raw_data()
+    raw2 = get_raw_data()
+    raw2.boefje_meta.id = uuid.uuid4()
 
     with meta_repository:
         meta_repository.save_boefje_meta(raw.boefje_meta)
         meta_repository.save_raw(raw)
+        meta_repository.save_boefje_meta(raw2.boefje_meta)
+        meta_repository.save_raw(raw2)
 
     query_filter = RawDataFilter(
-        organization=raw.boefje_meta.organization, boefje_meta_id=raw.boefje_meta.id, normalized=False, limit=10
+        organization=[raw.boefje_meta.organization], boefje_meta_id=raw.boefje_meta.id, normalized=False, limit=10
     )
     assert len(meta_repository.get_raw(query_filter)) == 1
 
-    raw.boefje_meta.organization = "test2"
-    raw.boefje_meta.id = str(uuid.uuid4())
+    raw3 = get_raw_data()
+
+    raw3.boefje_meta.organization = "test2"
+    raw3.boefje_meta.id = uuid.uuid4()
 
     with meta_repository:
-        meta_repository.save_boefje_meta(raw.boefje_meta)
-        meta_repository.save_raw(raw)
+        meta_repository.save_boefje_meta(raw3.boefje_meta)
+        meta_repository.save_raw(raw3)
 
     assert len(meta_repository.get_raw(query_filter)) == 1
 
-    query_filter.organization = "test2"
+    query_filter.organization = ["test2"]
     assert len(meta_repository.get_raw(query_filter)) == 0
+
+    query_filter.boefje_meta_id = raw3.boefje_meta.id
+    assert len(meta_repository.get_raw(query_filter)) == 1
+
+    assert {x.boefje_meta for x in meta_repository.get_raw(RawDataFilter(organization=["test"], limit=10))} == {
+        raw.boefje_meta,
+        raw2.boefje_meta,
+    }
+    assert {x.boefje_meta for x in meta_repository.get_raw(RawDataFilter(limit=10))} == {
+        raw.boefje_meta,
+        raw2.boefje_meta,
+        raw3.boefje_meta,
+    }
+    assert {
+        x.boefje_meta for x in meta_repository.get_raw(RawDataFilter(organization=["test", "test2"], limit=10))
+    } == {raw.boefje_meta, raw2.boefje_meta, raw3.boefje_meta}
 
 
 def test_filter_raw_not_on_organization(meta_repository: SQLMetaDataRepository) -> None:
@@ -246,6 +268,10 @@ def test_filter_normalizer_meta(meta_repository: SQLMetaDataRepository) -> None:
     assert len(normalizer_metas) == 0
 
     normalizer_metas = meta_repository.get_normalizer_meta(NormalizerMetaFilter(organization="test", limit=10))
+    assert len(normalizer_metas) == 2
+
+    meta_ids = [meta.id for meta in normalizer_metas]
+    normalizer_metas = meta_repository.get_normalizer_metas(meta_ids)
     assert len(normalizer_metas) == 2
 
     normalizer_metas = meta_repository.get_normalizer_meta(NormalizerMetaFilter(organization="test2", limit=10))

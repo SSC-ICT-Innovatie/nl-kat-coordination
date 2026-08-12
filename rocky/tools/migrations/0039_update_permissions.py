@@ -32,11 +32,6 @@ def add_group_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0039_merge_0038_alter_organization_options_0038_delete_job"),
-    ]
+    dependencies = [("tools", "0039_merge_0038_alter_organization_options_0038_delete_job")]
 
-    operations = [
-        migrations.RunPython(migrate_permissions),
-        migrations.RunPython(add_group_permissions),
-    ]
+    operations = [migrations.RunPython(migrate_permissions), migrations.RunPython(add_group_permissions)]

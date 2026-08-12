@@ -4,9 +4,7 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0032_alter_organizationmember_user"),
-    ]
+    dependencies = [("tools", "0032_alter_organizationmember_user")]
 
     operations = [
         migrations.AlterModelOptions(
@@ -20,5 +18,5 @@ class Migration(migrations.Migration):
                     ("can_recalculate_bits", "Can recalculate bits"),
                 )
             },
-        ),
+        )
     ]

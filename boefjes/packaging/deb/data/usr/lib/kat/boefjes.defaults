@@ -1,9 +1,11 @@
-BOEFJES_API_HOST=localhost
+# This is the default network used by docker
+BOEFJES_API_HOST=172.17.0.1
 BOEFJES_API_PORT=8006
-BOEFJES_API=http://localhost:8006
+BOEFJES_API=http://host.docker.internal:8006
 OCTOPOES_API=http://localhost:8001
 BYTES_API=http://localhost:8002
 KATALOGUS_API=http://localhost:8003
 SCHEDULER_API=http://localhost:8004
 
 BOEFJES_LOG_CFG=/etc/kat/boefjes.logging.json
+BOEFJES_DOCKER_INTERNAL_HOST=True

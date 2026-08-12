@@ -1,7 +1,6 @@
 OCTOPOES_API=http://localhost:8001
 SCHEDULER_API=http://localhost:8004
 KATALOGUS_API=http://localhost:8003
-KEIKO_API=http://localhost:8005
 BYTES_API=http://localhost:8002
 STATIC_ROOT=/usr/share/kat-rocky/static
 GRANIAN_WORKERS=2

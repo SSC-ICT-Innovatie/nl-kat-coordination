@@ -1,14 +1,19 @@
 {
   "id": "leakix",
   "name": "LeakIX",
-  "description": "Use LeakIX to find open ports, software and vulnerabilities",
+  "description": "Use LeakIX to find open ports, software and vulnerabilities. Requires a LeakIX API key.",
   "consumes": [
     "IPAddressV4",
     "IPAddressV6",
     "Hostname"
   ],
   "environment_keys": [
-    "LEAKIX_API"
+    "LEAKIX_API",
+    "LEAKIX_SEARCH_MODE"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_leakix.main"
+  ]
 }

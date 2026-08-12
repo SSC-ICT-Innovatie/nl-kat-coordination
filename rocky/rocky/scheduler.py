@@ -1,19 +1,21 @@
 from __future__ import annotations
 
 import datetime
-import json
 import uuid
 from enum import Enum
 from functools import cached_property
 from typing import Any
 
 import httpx
+import structlog
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from httpx import ConnectError, HTTPError, HTTPStatusError, RequestError, codes
-from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, SerializeAsAny, TypeAdapter, ValidationError
 
 from rocky.health import ServiceHealth
+
+logger = structlog.get_logger(__name__)
 
 
 class Boefje(BaseModel):
@@ -22,6 +24,7 @@ class Boefje(BaseModel):
     id: str
     name: str | None = Field(default=None)
     version: str | None = Field(default=None)
+    oci_image: str | None = Field(default=None)
 
 
 class BoefjeMeta(BaseModel):
@@ -79,6 +82,16 @@ class BoefjeTask(BaseModel):
     boefje: Boefje
     input_ooi: str | None = None
     organization: str
+    deduplication_key: uuid.UUID | None = None
+
+
+class ReportTask(BaseModel):
+    """ReportTask represent data needed for a Report to run."""
+
+    type: str = "report"
+
+    organisation_id: str
+    report_recipe_id: str
 
 
 class TaskStatus(Enum):
@@ -108,16 +121,78 @@ class TaskStatus(Enum):
 class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: uuid.UUID | None = None
+    id: uuid.UUID = Field(default_factory=uuid.uuid4)
     scheduler_id: str
     schedule_id: str | None = None
+    organisation: str
     priority: int
     status: TaskStatus | None = TaskStatus.PENDING
     type: str | None = None
     hash: str | None = None
-    data: SerializeAsAny[BoefjeTask | NormalizerTask]
+    data: SerializeAsAny[BoefjeTask | NormalizerTask | ReportTask]
     created_at: datetime.datetime | None = None
     modified_at: datetime.datetime | None = None
+
+    def organization_id(self) -> str:
+        if isinstance(self.data, BoefjeTask):
+            return self.data.organization
+
+        if isinstance(self.data, NormalizerTask):
+            return self.data.raw_data.boefje_meta.organization
+
+        if isinstance(self.data, ReportTask):
+            return self.data.organisation_id
+
+        raise ValueError("No organization found related to task")
+
+
+class TaskPush(BaseModel):
+    id: uuid.UUID | None = None
+    scheduler_id: str | None = None
+    organisation: str
+    priority: int | None = None
+    data: dict
+
+
+class ScheduleRequest(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    scheduler_id: str
+    organisation: str
+    data: dict
+    schedule: str | None = None
+    deadline_at: str
+
+
+class ScheduleResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    scheduler_id: str
+    organisation: str
+    hash: str
+    data: dict
+    enabled: bool
+    schedule: str | None
+    deadline_at: datetime.datetime | None
+    created_at: datetime.datetime
+    modified_at: datetime.datetime
+
+
+class SchedulerResponse(BaseModel):
+    id: str
+    enabled: bool
+    priority_queue: dict[str, Any]
+    last_activity: str | None
+
+
+class SchedulerNoResponse(BaseModel):
+    detail: str
+
+
+class Queue(BaseModel):
+    id: str
+    size: int
 
 
 class PaginatedTasksResponse(BaseModel):
@@ -127,14 +202,21 @@ class PaginatedTasksResponse(BaseModel):
     results: list[Task]
 
 
+class TaskPop(BaseModel):
+    results: list[Task]
+
+
+class PaginatedSchedulesResponse(BaseModel):
+    count: int
+    next: str | None = None
+    previous: str | None = None
+    results: list[ScheduleResponse]
+
+
 class LazyTaskList:
     HARD_LIMIT = 500
 
-    def __init__(
-        self,
-        scheduler_client: SchedulerClient,
-        **kwargs,
-    ):
+    def __init__(self, scheduler_client: SchedulerClient, **kwargs: Any):
         self.scheduler_client = scheduler_client
         self.kwargs = kwargs
         self._count: int | None = None
@@ -142,16 +224,13 @@ class LazyTaskList:
     @cached_property
     def count(self) -> int:
         if self._count is None:
-            self._count = self.scheduler_client.list_tasks(
-                limit=0,
-                **self.kwargs,
-            ).count
+            self._count = self.scheduler_client.list_tasks(limit=0, **self.kwargs).count
         return self._count
 
     def __len__(self):
         return self.count
 
-    def __getitem__(self, key) -> list[Task]:
+    def __getitem__(self, key: slice | int) -> list[Task]:
         if isinstance(key, slice):
             offset = key.start or 0
             limit = min(LazyTaskList.HARD_LIMIT, key.stop - offset or key.stop or LazyTaskList.HARD_LIMIT)
@@ -162,11 +241,8 @@ class LazyTaskList:
         else:
             raise TypeError("Invalid slice argument type.")
 
-        res = self.scheduler_client.list_tasks(
-            limit=limit,
-            offset=offset,
-            **self.kwargs,
-        )
+        logger.debug("Getting max %s lazy items at offset %s with filter %s", limit, offset, self.kwargs)
+        res = self.scheduler_client.list_tasks(limit=limit, offset=offset, **self.kwargs)
 
         self._count = res.count
 
@@ -181,7 +257,7 @@ class SchedulerError(Exception):
         if extra_message is not None:
             self.message = extra_message + self.message
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.message)
 
 
@@ -214,80 +290,184 @@ class SchedulerHTTPError(SchedulerError):
 
 
 class SchedulerClient:
-    def __init__(self, base_uri: str, organization_code: str):
-        self._client = httpx.Client(base_url=base_uri)
+    def __init__(self, base_uri: str, organization_code: str | None):
+        self._client = httpx.Client(base_url=base_uri, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT)
         self.organization_code = organization_code
 
-    def list_tasks(
-        self,
-        **kwargs,
-    ) -> PaginatedTasksResponse:
+    def list_schedules(self, **kwargs) -> PaginatedSchedulesResponse:
         try:
             kwargs = {k: v for k, v in kwargs.items() if v is not None}  # filter Nones from kwargs
-            res = self._client.get("/tasks", params=kwargs)
-            return PaginatedTasksResponse.model_validate_json(res.content)
+            kwargs["allow_partial_count"] = True
+            res = self._client.get("/schedules", params=kwargs)
+            res.raise_for_status()
+            return PaginatedSchedulesResponse.model_validate_json(res.content)
         except ValidationError:
-            raise SchedulerValidationError(extra_message=_("Task list: "))
+            raise SchedulerValidationError(extra_message=_("Schedule list: "))
+        except ConnectError:
+            raise SchedulerConnectError(extra_message=_("Schedule list: "))
+
+    def get_schedule_details(self, schedule_id: str) -> ScheduleResponse:
+        try:
+            res = self._client.get(f"/schedules/{schedule_id}")
+            res.raise_for_status()
+            return ScheduleResponse.model_validate_json(res.content)
+        except ConnectError:
+            raise SchedulerConnectError()
+
+    def post_schedule_search(self, filters: dict[str, list[dict[str, Any]]]) -> PaginatedSchedulesResponse:
+        try:
+            filters["filters"].append({"column": "organisation", "operator": "eq", "value": self.organization_code})
+            res = self._client.post("/schedules/search", json=filters)
+            res.raise_for_status()
+            return PaginatedSchedulesResponse.model_validate_json(res.content)
+        except ConnectError:
+            raise SchedulerConnectError()
+
+    def patch_schedule(self, schedule_id: str, params: dict[str, Any]) -> None:
+        try:
+            response = self._client.patch(f"/schedules/{schedule_id}", json=params)
+            response.raise_for_status()
+            logger.info("Schedule updated", event_code=800082, schedule_id=schedule_id, params=params)
+        except (HTTPStatusError, ConnectError):
+            raise SchedulerHTTPError()
+
+    def post_schedule(self, schedule: ScheduleRequest) -> ScheduleResponse:
+        try:
+            res = self._client.post("/schedules", json=schedule.model_dump(exclude_none=True, mode="json"))
+            logger.info(res.content)
+            res.raise_for_status()
+            logger.info("Schedule created", event_code=800081, schedule=schedule)
+
+            return ScheduleResponse.model_validate_json(res.content)
+        except ValidationError:
+            raise SchedulerValidationError(extra_message="Report schedule failed: ")
+        except HTTPStatusError:
+            raise SchedulerHTTPError()
+        except ConnectError:
+            raise SchedulerConnectError()
+
+    def delete_schedule(self, schedule_id: str) -> None:
+        try:
+            response = self._client.delete(f"/schedules/{schedule_id}")
+            response.raise_for_status()
+            logger.info("Schedule deleted", event_code=800083, schedule_id=schedule_id)
+        except (HTTPStatusError, ConnectError):
+            raise SchedulerHTTPError()
+
+    def list_tasks(self, **kwargs) -> PaginatedTasksResponse:
+        try:
+            filter_key = "filters"
+            params = {k: v for k, v in kwargs.items() if v is not None if k != filter_key}  # filter Nones from kwargs
+            params["allow_partial_count"] = True
+            endpoint = "/tasks"
+            res = self._client.post(endpoint, params=params, json=kwargs.get(filter_key))
+            return PaginatedTasksResponse.model_validate_json(res.content)
+        except ValidationError as error:
+            raise SchedulerValidationError(extra_message=_("Task list: ")) from error
         except ConnectError:
             raise SchedulerConnectError(extra_message=_("Task list: "))
 
     def get_task_details(self, task_id: str) -> Task:
         try:
-            res = self._client.get(f"/tasks/{task_id}")
-            res.raise_for_status()
-            task_details = Task.model_validate_json(res.content)
-
-            if task_details.type == "normalizer":
-                organization = task_details.data.raw_data.boefje_meta.organization
-            else:
-                organization = task_details.data.organization
-
-            if organization != self.organization_code:
-                raise SchedulerTaskNotFound()
-
-            return task_details
-        except ConnectError:
-            raise SchedulerConnectError()
+            task_id = str(uuid.UUID(task_id))
+            return Task.model_validate_json(self._get(f"/tasks/{task_id}", return_type="content"))
+        except ValueError:
+            raise SchedulerTaskNotFound()
 
     def push_task(self, item: Task) -> None:
         try:
-            queue_name = f"{item.data.type}-{self.organization_code}"
             res = self._client.post(
-                f"/queues/{queue_name}/push",
-                content=item.json(exclude_none=True),
-                headers={"Content-Type": "application/json"},
+                f"/schedulers/{item.scheduler_id}/push", json=item.model_dump(exclude_none=True, mode="json")
             )
             res.raise_for_status()
         except HTTPStatusError as http_error:
             code = http_error.response.status_code
             if code == codes.TOO_MANY_REQUESTS:
-                raise SchedulerTooManyRequestError()
+                raise SchedulerTooManyRequestError() from http_error
             elif code == codes.BAD_REQUEST:
-                raise SchedulerBadRequestError()
+                raise SchedulerBadRequestError() from http_error
             elif code == codes.CONFLICT:
-                raise SchedulerConflictError()
-        except RequestError:
-            raise SchedulerError()
+                raise SchedulerConflictError() from http_error
+        except RequestError as request_error:
+            raise SchedulerError() from request_error
+
+    def get_queues(self) -> list[Queue]:
+        response = self._client.get("/queues")
+        response.raise_for_status()
+
+        return TypeAdapter(list[Queue]).validate_json(response.content)
+
+    def pop_item(self, scheduler_id: str) -> Task | None:
+        response = self._client.post(f"/schedulers/{scheduler_id}/pop?limit=1")
+        response.raise_for_status()
+
+        popped_items = TypeAdapter(TaskPop | None).validate_json(response.content)
+        if len(popped_items.results) == 0:
+            return None
+
+        return popped_items.results[0]
+
+    def pop_items(self, scheduler_id: str, filters: dict[str, Any]) -> TaskPop | None:
+        response = self._client.post(f"/schedulers/{scheduler_id}/pop", json=filters)
+
+        return TypeAdapter(TaskPop | None).validate_json(response.content)
+
+    def patch_task(self, task_id: uuid.UUID, status: TaskStatus) -> None:
+        response = self._client.patch(f"/tasks/{task_id}", json={"status": status.value})
+        response.raise_for_status()
 
     def health(self) -> ServiceHealth:
-        try:
-            health_endpoint = self._client.get("/health")
-            health_endpoint.raise_for_status()
-            return ServiceHealth.model_validate_json(health_endpoint.content)
-        except HTTPError:
-            raise SchedulerHTTPError()
-        except ConnectError:
-            raise SchedulerConnectError()
+        return ServiceHealth.model_validate_json(self._get("/health", return_type="content"))
+
+    def _get_task_stats(self, scheduler_id: str, organization_ids: list[str] | None = None) -> dict:
+        """Return task stats for specific scheduler."""
+
+        params: dict[str, object] = {"scheduler_id": scheduler_id}
+
+        if organization_ids:
+            params["organisation_ids"] = organization_ids
+
+        return self._get("/tasks/stats", params=params)  # type: ignore
 
     def get_task_stats(self, task_type: str) -> dict:
+        """Return task stats for specific task type."""
+        if not self.organization_code:
+            raise ValueError("No organization_code set")
+        return self._get_task_stats(scheduler_id=task_type, organization_ids=[self.organization_code])
+
+    def get_combined_schedulers_stats(self, scheduler_id: str, organization_ids: list[str] | None = None) -> dict:
+        """Return merged stats for a set of organization ids."""
+        return self._get_task_stats(scheduler_id, organization_ids)
+
+    def _get(self, path: str, params: dict | None = None, return_type: str = "json") -> dict | bytes:
+        """Helper to do a get request and raise warning for path."""
         try:
-            res = self._client.get(f"/tasks/stats/{task_type}-{self.organization_code}")
+            res = self._client.get(path, params=params)
             res.raise_for_status()
-        except ConnectError:
-            raise SchedulerConnectError(extra_message=_("Task statistics: "))
-        task_stats = json.loads(res.content)
-        return task_stats
+        except HTTPError as exc:
+            raise SchedulerError(path) from exc
+        except ConnectError as exc:
+            raise SchedulerConnectError(path) from exc
+
+        if return_type == "content":
+            return res.content
+        return res.json()
+
+    def get_scheduled_reports(self) -> list[dict[str, Any]]:
+        try:
+            filters: dict[str, list[dict[str, Any]]] = {
+                "filters": [
+                    {"column": "scheduler_id", "operator": "eq", "value": "report"},
+                    {"column": "organisation", "operator": "eq", "value": self.organization_code},
+                ]
+            }
+
+            response = self._client.post("/schedules/search", json=filters)
+            response.raise_for_status()
+        except HTTPStatusError:
+            logger.error("A HTTPStatusError occurred. Check logs for more info.")
+        return response.json()["results"]
 
 
-def scheduler_client(organization_code: str) -> SchedulerClient:
+def scheduler_client(organization_code: str | None) -> SchedulerClient:
     return SchedulerClient(settings.SCHEDULER_API, organization_code)

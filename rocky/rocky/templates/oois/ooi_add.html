@@ -11,11 +11,10 @@
             <div class="layout-form">
                 <h1>{% blocktranslate %}Add a {{ display_type }}{% endblocktranslate %}</h1>
                 <p>{% translate "Here you can add the asset of the client. Findings can be added to these in the findings page." %}</p>
-                <form method="post" class="horizontal-view">
+                <form method="post">
                     {% csrf_token %}
                     {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
                     <fieldset>
-                        <legend>{% translate type %}</legend>
                         <div>
                             <label for="ooi_type">Type</label>
                             <input id="ooi_type" type="text" name="ooi_type" value="{{ type }}" readonly>

@@ -1,6 +1,0 @@
-#!/bin/bash -e
-
-#DEBHELPER#
-
-chown -R root:kat /etc/kat/
-chown -R kat:kat /var/lib/kat-keiko

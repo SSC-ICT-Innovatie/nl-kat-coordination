@@ -1,9 +1,10 @@
 {
   "id": "kat_cve_2024_6387_normalize",
+  "name": "CVE-2024-6387 OpenSSH",
+  "description": "Checks the service banner for a race condition in OpenSSH server which can result in an unauthenticated remote attacker to trigger that some signals are handled in an unsafe manner (CVE-2024-6387). Requires the Service-Banner-boefje to be enabled.",
   "consumes": [
     "openkat/service-banner"
   ],
-  "description": "Checks service banner for CVE-2024-6387, enable service banner boefje to get the service banner",
   "produces": [
     "Finding",
     "CVEFindingType"

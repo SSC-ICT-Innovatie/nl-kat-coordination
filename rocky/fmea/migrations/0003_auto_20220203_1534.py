@@ -4,23 +4,13 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("fmea", "0002_auto_20220120_0839"),
-    ]
+    dependencies = [("fmea", "0002_auto_20220120_0839")]
 
     operations = [
         migrations.CreateModel(
             name="FailureModeEffect",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("effect", models.TextField(max_length=256, unique=True)),
                 (
                     "severity_level",
@@ -37,27 +27,15 @@ class Migration(migrations.Migration):
                 ),
             ],
         ),
-        migrations.RemoveField(
-            model_name="failuremode",
-            name="severity_level",
+        migrations.RemoveField(model_name="failuremode", name="severity_level"),
+        migrations.AddField(
+            model_name="failuremode", name="critical_score", field=models.PositiveSmallIntegerField(default=0)
         ),
         migrations.AddField(
-            model_name="failuremode",
-            name="critical_score",
-            field=models.PositiveSmallIntegerField(default=0),
+            model_name="failuremode", name="risk_priority_number", field=models.PositiveSmallIntegerField(default=0)
         ),
+        migrations.RemoveField(model_name="failuremode", name="effect"),
         migrations.AddField(
-            model_name="failuremode",
-            name="risk_priority_number",
-            field=models.PositiveSmallIntegerField(default=0),
-        ),
-        migrations.RemoveField(
-            model_name="failuremode",
-            name="effect",
-        ),
-        migrations.AddField(
-            model_name="failuremode",
-            name="effect",
-            field=models.ManyToManyField(to="fmea.FailureModeEffect"),
+            model_name="failuremode", name="effect", field=models.ManyToManyField(to="fmea.FailureModeEffect")
         ),
     ]

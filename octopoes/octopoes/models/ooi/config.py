@@ -7,6 +7,8 @@ from octopoes.models.persistence import ReferenceField
 
 
 class Config(OOI):
+    """Represents Config objects used for specifying organisation specific policies."""
+
     object_type: Literal["Config"] = "Config"
 
     ooi: Reference = ReferenceField(OOI)

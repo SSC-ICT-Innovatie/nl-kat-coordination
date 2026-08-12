@@ -4,7 +4,7 @@ from io import BytesIO
 from PIL import Image, UnidentifiedImageError
 from PIL.ExifTags import TAGS
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import ImageMetadata
@@ -54,5 +54,5 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield Finding(
             finding_type=kat_ooi.reference,
             ooi=resource,
-            description="Image ended up bigger than %d Pixels, possible decompression Bomb" % image.MAX_IMAGE_PIXELS,
+            description=f"Image ended up bigger than {image.MAX_IMAGE_PIXELS} Pixels, possible decompression Bomb",
         )

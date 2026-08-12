@@ -1,5 +1,7 @@
 {
   "id": "kat_manual_ooi",
+  "name": "Manual OOI normalizer",
+  "description": "Parses manually added objects.",
   "consumes": [
     "manual/ooi"
   ],

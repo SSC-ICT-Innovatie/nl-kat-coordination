@@ -1,6 +1,6 @@
 import logging
 import os
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 from typing import Any, Literal
 
@@ -84,13 +84,15 @@ class Settings(BaseSettings):
     file_permission: str = Field("640", description="Unix permission level on the raw files themselves")
 
     hashing_algorithm: HashingAlgorithm = Field(
-        HashingAlgorithm.SHA512, description="Hashing algorithm used in Bytes", possible_values=["sha512", "sha224"]
+        HashingAlgorithm.SHA512,
+        description="Hashing algorithm used in Bytes",
+        json_schema_extra={"possible_values": ["sha512", "sha224"]},
     )
 
     ext_hash_repository: HashingRepositoryReference = Field(
         HashingRepositoryReference.IN_MEMORY,
         description="Hashing repository used in Bytes (IN_MEMORY is a stub)",
-        possible_values=["IN_MEMORY", "PASTEBIN", "RFC3161"],
+        json_schema_extra={"possible_values": ["IN_MEMORY", "PASTEBIN", "RFC3161"]},
     )
     pastebin_api_dev_key: str | None = Field(
         None, description="API key for Pastebin. Required when using PASTEBIN hashing repository."
@@ -112,7 +114,7 @@ class Settings(BaseSettings):
     encryption_middleware: EncryptionMiddleware = Field(
         EncryptionMiddleware.IDENTITY,
         description="Encryption middleware used in Bytes",
-        possible_values=["IDENTITY", "NACL_SEALBOX"],
+        json_schema_extra={"possible_values": ["IDENTITY", "NACL_SEALBOX"]},
     )
     private_key_b64: str | None = Field(
         None,
@@ -140,6 +142,10 @@ class Settings(BaseSettings):
 
     logging_format: Literal["text", "json"] = Field("text", description="Logging format")
 
+    s3_bucket_prefix: str | None = Field(None, validation_alias="S3_BUCKET_PREFIX")
+    s3_bucket_name: str | None = Field(None, validation_alias="S3_BUCKET")
+    bucket_per_org: bool = Field(True, validation_alias="BUCKET_PER_ORG")
+
     model_config = SettingsConfigDict(env_prefix="BYTES_")
 
     @classmethod
@@ -155,7 +161,7 @@ class Settings(BaseSettings):
         return env_settings, init_settings, file_secret_settings, backwards_compatible_settings
 
 
-@lru_cache
+@cache
 def get_settings() -> Settings:
     return Settings()
 

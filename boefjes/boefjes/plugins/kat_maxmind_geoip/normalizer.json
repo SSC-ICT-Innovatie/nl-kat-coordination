@@ -1,5 +1,7 @@
 {
   "id": "kat_maxmind_geoip_normalize",
+  "name": "MaxMind GeoIP",
+  "description": "Parses MaxMind GeoIP data into geographical points.",
   "consumes": [
     "maxmind-geoip/geo_data"
   ],

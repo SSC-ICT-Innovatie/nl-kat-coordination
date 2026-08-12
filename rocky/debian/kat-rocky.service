@@ -1,5 +1,6 @@
 [Unit]
 Description=kat-rocky daemon
+Requires=kat-rocky-worker.service
 After=network.target
 
 [Service]

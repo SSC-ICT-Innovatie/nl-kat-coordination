@@ -8,6 +8,7 @@ services:
     command: sh -c 'python -m pytest -v tests/integration'
     depends_on:
       - ci_katalogus-db
+      - ci_katalogus
     env_file:
       - .ci/.env.test
     volumes:
@@ -24,7 +25,7 @@ services:
       dockerfile: boefjes/Dockerfile
       args:
         - ENVIRONMENT=dev
-    command: bash -c "python -m cProfile -o .ci/bench_$(date +%Y_%m_%d-%H:%M:%S).pstat -m pytest -v -m slow tests/integration"
+    command: bash -c "python -m cProfile -o .ci/bench_$(date +%Y_%m_%d-%H:%M:%S).pstat -m pytest -v -m slow tests/integration/test_bench.py::test_migration"
     depends_on:
       - ci_bytes
       - ci_octopoes
@@ -84,7 +85,7 @@ services:
       - .ci/.env.test
 
   ci_xtdb:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:v1.0.8"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
 
   ci_octopoes_api_worker:
     build:
@@ -103,8 +104,15 @@ services:
         hard: 262144
 
   ci_katalogus:
-    image: "docker.io/wiremock/wiremock:2.34.0"
-    volumes:
-      - .ci/wiremock:/home/wiremock
+    build:
+      context: ..
+      dockerfile: boefjes/Dockerfile
+      args:
+        - ENVIRONMENT=dev
+    command: uvicorn boefjes.katalogus.root:app --host 0.0.0.0 --port 8080
+    depends_on:
+      - ci_katalogus-db
     env_file:
       - .ci/.env.test
+    volumes:
+      - .:/app/boefjes

@@ -1,0 +1,170 @@
+{% load i18n %}
+{% load static %}
+{% load crisis_room %}
+
+<table>
+    <caption class="visually-hidden">
+        {% translate "Findings table " %}
+        <span class="visually-hidden">, {% translate "column headers with buttons are sortable" %}</span>
+    </caption>
+    <thead>
+        <tr>
+            {% for column_value in dashboard_item.settings.columns %}
+                <th>{{ column_value|get_column_name_finding_list }}</th>
+            {% endfor %}
+            <th class="sticky-cell visually-hidden actions">{% translate "Details" %}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for finding in data.finding_list %}
+            <tr>
+                {% for column_value in dashboard_item.settings.columns %}
+                    <td>
+                        {% if column_value == "severity" %}
+                            <span class="{{ finding.finding_type.risk_severity.value|lower }}">{{ finding.finding_type.risk_severity.value|capfirst }}</span>
+                        {% endif %}
+                        {% if column_value == "finding" %}
+                            {% if finding.finding_type.name %}
+                                <a href="{% ooi_url "ooi_detail" finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
+                                   title="{% blocktranslate trimmed with finding=finding.finding_type.name %} Show details for {{ finding }} {% endblocktranslate %}">{{ finding.finding_type.name }}</a>
+                            {% else %}
+                                <a href="{% ooi_url "ooi_detail" finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
+                                   title="{% blocktranslate trimmed with finding=finding.finding.finding_type %} Show details for {{ finding }} {% endblocktranslate %}">{{ finding.finding.finding_type.human_readable }}</a>
+                            {% endif %}
+                        {% endif %}
+                        {% if column_value == "location" %}
+                            <a href="{% ooi_url "ooi_detail" finding.finding.ooi organization.code query=mandatory_fields observed_at=observed_at %}"
+                               title="{% blocktranslate trimmed with finding=finding.finding.primary_key %} Show details for {{ finding }} {% endblocktranslate %}">{{ finding.finding.ooi.human_readable }}</a>
+                        {% endif %}
+                        {% if column_value == "tree" %}
+                            <a aria-label="Navigate to tree view of {{ finding.finding.human_readable }}"
+                               class="actions icon-only ti-subtask button"
+                               href="{% ooi_url 'ooi_tree' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
+                        {% endif %}
+                        {% if column_value == "graph" %}
+                            <a aria-label="Navigate to graph view of {{ finding.finding.human_readable }}"
+                               class="actions icon-only ti-affiliate button"
+                               href="{% ooi_url 'ooi_graph' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
+                        {% endif %}
+                    </td>
+                {% endfor %}
+                <td class="actions sticky-cell">
+                    <button type="button"
+                            class="expando-button"
+                            data-icon-open-class="icon ti-chevron-down"
+                            data-icon-close-class="icon ti-chevron-up"
+                            data-close-label="{% translate "Close details" %}">{% translate "Open details" %}</button>
+                </td>
+            </tr>
+            <tr class="expando-row">
+                <td colspan="7">
+                    <div>
+                        <dl>
+                            {% if "severity" not in dashboard_item.settings.columns %}
+                                <div>
+                                    <dt>{% translate "Severity" %}</dt>
+                                    <dd>
+                                        <span class="{{ finding.finding_type.risk_severity.value|lower }}">{{ finding.finding_type.risk_severity.value|capfirst }}</span>
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            {% if "finding" not in dashboard_item.settings.columns %}
+                                <div>
+                                    <dt>{% translate "Finding" %}</dt>
+                                    <dd>
+                                        {% if finding.finding_type.name %}
+                                            <a href="{% ooi_url "ooi_detail" finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
+                                               title="{% blocktranslate trimmed with finding=finding.finding_type.name %} Show details for {{ finding }} {% endblocktranslate %}">{{ finding.finding_type.name }}</a>
+                                        {% else %}
+                                            <a href="{% ooi_url "ooi_detail" finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}"
+                                               title="{% blocktranslate trimmed with finding=finding.finding.finding_type %} Show details for {{ finding }} {% endblocktranslate %}">{{ finding.finding.finding_type.human_readable }}</a>
+                                        {% endif %}
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <dt>{% translate "Finding type" %}</dt>
+                                <dd>
+                                    <a href="{% ooi_url "ooi_detail" finding.finding_type organization.code query=mandatory_fields observed_at=observed_at %}"
+                                       title="{% blocktranslate trimmed with finding_type=finding.finding_type.human_readable %} Show details for {{ finding_type }} {% endblocktranslate %}">{{ finding.finding_type.human_readable }}</a>
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>{% translate "OOI type" %}</dt>
+                                <dd>
+                                    <a href="{% url "ooi_list" organization_code=organization.code %}?observed_at={{ observed_at }}&ooi_type={{ finding.ooi.object_type }}"
+                                       title="{% blocktranslate trimmed with ooi_type=finding.ooi.object_type %} Show {{ ooi_type }} objects {% endblocktranslate %}">{{ finding.ooi.object_type }}</a>
+                                </dd>
+                            </div>
+                            {% if "location" not in dashboard_item.settings.columns %}
+                                <div>
+                                    <dt>{% translate "Location" %}</dt>
+                                    <dd>
+                                        <a href="{% ooi_url "ooi_detail" finding.finding.ooi organization.code query=mandatory_fields observed_at=observed_at %}"
+                                           title="{% blocktranslate trimmed with ooi=finding.finding.ooi.human_readable %} Show details for {{ ooi }} {% endblocktranslate %}">{{ finding.finding.ooi.human_readable }}</a>
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <dt>{% translate "Risk score" %}</dt>
+                                <dd>
+                                    {{ finding.finding_type.risk_score }}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt>{% translate "Description" %}</dt>
+                                <dd>
+                                    {{ finding.finding_type.description }}
+                                </dd>
+                            </div>
+                            {% if finding.finding_type.recommendation %}
+                                <div>
+                                    <dt>{% translate "Recommendation" %}</dt>
+                                    <dd>
+                                        {{ finding.finding_type.recommendation }}
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            {% if finding.finding_type.source %}
+                                <div>
+                                    <dt>{% translate "Source" %}</dt>
+                                    <dd>
+                                        {{ finding.finding_type.source }}
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            {% if finding.finding_type.impact %}
+                                <div>
+                                    <dt>{% translate "Impact" %}</dt>
+                                    <dd>
+                                        {{ finding.finding_type.impact }}
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            {% if "tree" not in dashboard_item.settings.columns %}
+                                <div>
+                                    <dt>{% translate "Tree" %}</dt>
+                                    <dd>
+                                        <a aria-label="Navigate to tree view of {{ finding.finding.human_readable }}"
+                                           class="actions icon-only ti-subtask button"
+                                           href="{% ooi_url 'ooi_tree' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Tree" %}</a>
+                                    </dd>
+                                </div>
+                            {% endif %}
+                            {% if "graph" not in dashboard_item.settings.columns %}
+                                <div>
+                                    <dt>{% translate "Graph" %}</dt>
+                                    <dd>
+                                        <a aria-label="Navigate to graph view of {{ finding.finding.human_readable }}"
+                                           class="actions icon-only ti-affiliate button"
+                                           href="{% ooi_url 'ooi_graph' finding.finding.primary_key organization.code query=mandatory_fields observed_at=observed_at %}">{% translate "Graph" %}</a>
+                                    </dd>
+                                </div>
+                            {% endif %}
+                        </dl>
+                    </div>
+                </td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>

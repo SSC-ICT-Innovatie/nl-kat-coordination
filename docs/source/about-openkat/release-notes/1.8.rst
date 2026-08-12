@@ -1,0 +1,111 @@
+===========
+OpenKAT 1.8
+===========
+
+One of the focus areas of this release is reducing false positives and noise the
+OOIs and findings that are created.
+
+Bits have a min clearance level now and a bit won't be run when the OOI doesn't
+have the specified clearance level. This fixes bits creating DMARC/DKIM/SPF
+findings on domains that have clearance level of 0 because there aren't any DNS
+records.
+
+In all places where hostname OOIs are created we made sure only hostnames
+without the trailing dot are created. This means from now on there will only be
+a hostname objects without a dot instead of both one with and without.
+
+Support for enabling and disabling bits using environment variables has been
+added and a bit can now be disabled by default. More info can be found :ref:`basics-bits`.
+
+It is possible to mute a finding with a button on the findings page. This will
+create a MuteFinding OOI and results in the finding not being shown anymore in
+the web interface and reports. A finding can be unmuted by deleting the
+MuteFinding object.
+
+On the OOI detail page the inherented clearance level chain can be shown. For
+OOIs created by bits the bit and its parameters are also shown on the OOI detail
+page.
+
+New Features
+============
+
+ * The project discovery Nuclei boefje has been added.
+ * The Subfinder Boefje has been added.
+ * When a new boefje is enabled the boefje will be scheduled faster.
+ * An organisation dashboard has been added that is the landing page for an
+   organization.
+ * Tags on organizations are visible and can be added and edited.
+ * Added organization level finding reports. There is a button on the findings
+   page and a new generate_report management command to generate the report.
+ * A new port-common bit that also makes findings for every open common port.
+   This bit is disabled by default.
+ * The organization settings page has a new "Rerun all bits" button that can be
+   used after upgrading.
+
+Bug fixes
+=========
+
+ * The SSL Certificate bit checks for wildcards before creating findings.
+ * Plugin cover images have been resized to the right size and compressed.
+ * DNSSPFMechanismHostname inheritance level is set 0 to prevent discovery from
+   going to far.
+ * The port classification bit differentiates between TCP and UDP ports.
+ * In a lot of places the error handling has been improved resulting in error
+   messages in the web interface.
+ * The scheduler DB was missing an index. This has been added and should fix some
+   performance issues.
+
+Upgrading
+=========
+
+The usual instructions for upgrading can be followed. For the changes that cause
+certain object to no longer be created it can take some time before they
+disappear because the boefjes and normalizers need to run again for that to
+happen. Objects created by bits might not disappear automatically at all because
+the bit will not be triggered if the data doesn't change. You can use the "Rerun
+all bits" button on the organization settings page to trigger all bits.
+
+Development containers
+----------------------
+
+The development Docker Compose configuration has been changed from four
+PostgreSQL containers with one database each to a single container with four
+databases. In addition, PostgreSQL is upgraded from version 12.8 to version 15.
+
+If you don't need to keep the data in your development instance you only need to
+update your .env. If you do want to keep the data you need to dump the databases
+with the following commands before you update the git repository (the commands
+need to run using the old docker-compose.yml):
+
+.. code-block:: sh
+
+    docker-compose exec bytes-db pg_dump -U postgres bytes > bytes.sql
+    docker-compose exec katalogus-db pg_dump -U postgres katalogus > katalogus.sql
+    docker-compose exec rocky-db pg_dump -U postgres rocky > rocky.sql
+    docker-compose exec scheduler-db pg_dump -U postgres scheduler > scheduler.sql
+
+In .env, you need to change ROCKY_DB_HOST to "postgres" and also change
+BYTES_DB_URI, KATALOGUS_DB_URI, SCHEDULER_DB_DSN to use "postgres" as hostname
+by changing the "@{bytes,katalogus,scheduler}-db:5432/" part to
+"@postgres:5432/".
+
+After that you can pull in the changes you can start the new PostgreSQL
+container using:
+
+.. code-block:: sh
+
+    docker-compose up -d postgres
+
+And load the dumps back in with psql:
+
+.. code-block:: sh
+
+    docker-compose exec -T postgres psql -U postgres bytes < bytes.sql
+    docker-compose exec -T postgres psql -U postgres katalogus < katalogus.sql
+    docker-compose exec -T postgres psql -U postgres rocky < rocky.sql
+    docker-compose exec -T postgres psql -U postgres scheduler < scheduler.sql
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github <https://github.com/minvws/nl-kat-coordination/releases/tag/v1.8.0>`_.

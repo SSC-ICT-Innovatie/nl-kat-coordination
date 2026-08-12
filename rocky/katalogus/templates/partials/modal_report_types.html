@@ -1,0 +1,31 @@
+{% load i18n %}
+
+<a href="#{{ plugin_id }}-report-types-modal"
+   class="tile-report-types-link">{% translate "Required for" %} {{ report_types|length }} {% translate "report types" %}<span aria-hidden="true" class="icon ti-chevron-right"></span></a>
+{% with modal_id=plugin.id|add:"-report-types-modal" %}
+    {% component "modal" modal_id=modal_id size="dialog-medium" %}
+    {% fill "header" %}
+    {% translate "Report types for " %}{{ plugin.name }}
+{% endfill %}
+{% fill "content" %}
+<section>
+    <div>
+        <ul class="tags report-types">
+            {% for plugin_id, report_types in plugin_report_types.items %}
+                {% if plugin_id == plugin.id %}
+                    {% for report_type in report_types %}
+                        <li>
+                            <span class="tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
+                        </li>
+                    {% endfor %}
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endfill %}
+{% fill "footer_buttons" %}
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}
+{% endwith %}

@@ -3,11 +3,12 @@ import uuid
 from pathlib import Path
 
 import pytest
-from tools.upgrade_v1_16_0 import upgrade
+from tools.upgrade_v1_17_0 import upgrade
 
 from boefjes.clients.bytes_client import BytesAPIClient
 from boefjes.config import BASE_DIR
 from boefjes.sql.organisation_storage import SQLOrganisationStorage
+from boefjes.worker.models import Organisation
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.origin import OriginType
@@ -15,15 +16,19 @@ from tests.conftest import seed_system
 from tests.loading import get_boefje_meta, get_normalizer_meta
 
 
+@pytest.mark.skipif("not os.getenv('DATABASE_MIGRATION')")
 @pytest.mark.slow
 def test_migration(
     octopoes_api_connector: OctopoesAPIConnector,
     bytes_client: BytesAPIClient,
-    organisation_repository: SQLOrganisationStorage,
+    organisation_storage: SQLOrganisationStorage,
     valid_time,
 ):
     octopoes_api_connector.session._timeout.connect = 60
     octopoes_api_connector.session._timeout.read = 60
+
+    # Create an organisation that does not exist in Octopoes
+    organisation_storage.create(Organisation(id="test2", name="Test 2"))
 
     iterations = 30
     cache_path = Path(BASE_DIR.parent / ".ci" / f".cache_{iterations}.json")
@@ -78,7 +83,7 @@ def test_migration(
 
             boefje_meta = get_boefje_meta(uuid.uuid4(), boefje_id=boefje_id)
             bytes_client.save_boefje_meta(boefje_meta)
-            raw_data_id = bytes_client.save_raw(boefje_meta.id, raw)
+            raw_data_id = bytes_client.save_raw(boefje_meta.id, raw, {})
 
             normalizer_meta = get_normalizer_meta(boefje_meta, raw_data_id)
             normalizer_meta.id = origin.task_id
@@ -87,7 +92,7 @@ def test_migration(
             bytes_client.save_normalizer_meta(normalizer_meta)
 
     total_oois = octopoes_api_connector.list_objects(set(), valid_time).count
-    total_processed, total_failed = upgrade(organisation_repository, valid_time)
+    total_processed, total_failed = upgrade(organisation_storage, valid_time)
 
     assert total_processed == len(hostname_range)
     assert total_failed == 0
@@ -111,3 +116,8 @@ def test_migration(
     assert observation.source_method == "boefje_udp"
 
     assert octopoes_api_connector.list_objects(set(), valid_time).count == total_oois
+
+
+@pytest.mark.slow
+def test_plugins_bench(plugin_service, organisation):
+    plugin_service.get_all(organisation.id)

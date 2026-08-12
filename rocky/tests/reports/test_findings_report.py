@@ -4,13 +4,9 @@ from octopoes.models.tree import ReferenceTree
 
 
 def test_findings_report_no_findings(mock_octopoes_api_connector, valid_time, hostname, tree_data_no_findings):
-    mock_octopoes_api_connector.oois = {
-        hostname.reference: hostname,
-    }
+    mock_octopoes_api_connector.oois = {hostname.reference: hostname}
 
-    mock_octopoes_api_connector.tree = {
-        hostname.reference: ReferenceTree.model_validate(tree_data_no_findings),
-    }
+    mock_octopoes_api_connector.tree = {hostname.reference: ReferenceTree.model_validate(tree_data_no_findings)}
 
     report = FindingsReport(mock_octopoes_api_connector)
     data = report.generate_data(str(hostname.reference), valid_time)
@@ -30,9 +26,7 @@ def test_findings_report_two_findings_one_finding_type(
     }
 
     # This tree data contains four OOIs, three of which are findings that contain two different finding_types.
-    mock_octopoes_api_connector.tree = {
-        hostname.reference: ReferenceTree.model_validate(tree_data_findings),
-    }
+    mock_octopoes_api_connector.tree = {hostname.reference: ReferenceTree.model_validate(tree_data_findings)}
 
     report = FindingsReport(mock_octopoes_api_connector)
     data = report.generate_data(str(hostname.reference), valid_time)

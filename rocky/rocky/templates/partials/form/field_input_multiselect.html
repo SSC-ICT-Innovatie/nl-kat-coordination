@@ -1,5 +1,12 @@
+{% load i18n %}
+
 <fieldset class="{{ fieldset_class }}">
-    <legend>{{ field.label }}</legend>
+    <label>
+        {{ field.label }}
+        {% if field.field.required %}
+            <span class="nota-bene">({% translate "Required" %})</span>
+        {% endif %}
+    </label>
     <div class="{{ custom_class }}">
         {% for choice in field %}
             <div class="checkbox">

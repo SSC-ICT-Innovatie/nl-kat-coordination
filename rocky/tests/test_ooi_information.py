@@ -40,7 +40,4 @@ def test_service_info(mocker):
     output = get_info("Service", "ssh")
     output.pop("information updated")  # Remove timestamp
 
-    assert output == {
-        "description": description,
-        "source": source,
-    }
+    assert output == {"description": description, "source": source}

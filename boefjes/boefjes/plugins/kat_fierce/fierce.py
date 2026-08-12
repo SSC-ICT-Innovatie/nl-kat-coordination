@@ -102,12 +102,7 @@ def query(resolver, domain, record_type="A", tcp=False):
             return query(resolver, domain, record_type, tcp=tcp)
 
         return None
-    except (
-        dns.resolver.NXDOMAIN,
-        dns.resolver.NoNameservers,
-        dns.exception.Timeout,
-        ValueError,
-    ):
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoNameservers, dns.exception.Timeout, ValueError):
         return None
 
 
@@ -197,8 +192,7 @@ def find_nearby(resolver, ips, filter_func=None):
         reversed_ips = {
             ip: query_result
             for ip, query_result in zip(
-                str_ips,
-                executor.map(reverse_query, itertools.repeat(resolver, len(str_ips)), str_ips),
+                str_ips, executor.map(reverse_query, itertools.repeat(resolver, len(str_ips)), str_ips)
             )
         }
 
@@ -261,10 +255,7 @@ def fierce(**kwargs):
 
     if kwargs.get("range"):
         range_ips = range_expander(kwargs.get("range"))
-        nearby = find_nearby(
-            resolver,
-            range_ips,
-        )
+        nearby = find_nearby(resolver, range_ips)
         if nearby:
             pass
 
@@ -352,11 +343,7 @@ def parse_args(args):
     )
 
     p.add_argument("--domain", action="store", help="domain name to test")
-    p.add_argument(
-        "--connect",
-        action="store_true",
-        help="attempt HTTP connection to non-RFC 1918 hosts",
-    )
+    p.add_argument("--connect", action="store_true", help="attempt HTTP connection to non-RFC 1918 hosts")
     p.add_argument("--wide", action="store_true", help="scan entire class c of discovered records")
     p.add_argument(
         "--traverse",
@@ -365,20 +352,9 @@ def parse_args(args):
         default=5,
         help="scan IPs near discovered records, this won't enter adjacent class c's",
     )
-    p.add_argument(
-        "--search",
-        action="store",
-        nargs="+",
-        help="filter on these domains when expanding lookup",
-    )
+    p.add_argument("--search", action="store", nargs="+", help="filter on these domains when expanding lookup")
     p.add_argument("--range", action="store", help="scan an internal IP range, use cidr notation")
-    p.add_argument(
-        "--delay",
-        action="store",
-        type=float,
-        default=None,
-        help="time to wait between lookups",
-    )
+    p.add_argument("--delay", action="store", type=float, default=None, help="time to wait between lookups")
 
     subdomain_group = p.add_mutually_exclusive_group()
     subdomain_group.add_argument("--subdomains", action="store", nargs="+", help="use these subdomains")
@@ -390,16 +366,9 @@ def parse_args(args):
     )
 
     dns_group = p.add_mutually_exclusive_group()
+    dns_group.add_argument("--dns-servers", action="store", nargs="+", help="use these dns servers for reverse lookups")
     dns_group.add_argument(
-        "--dns-servers",
-        action="store",
-        nargs="+",
-        help="use these dns servers for reverse lookups",
-    )
-    dns_group.add_argument(
-        "--dns-file",
-        action="store",
-        help="use dns servers specified in this file for reverse lookups (one per line)",
+        "--dns-file", action="store", help="use dns servers specified in this file for reverse lookups (one per line)"
     )
     p.add_argument("--tcp", action="store_true", help="use TCP instead of UDP")
 

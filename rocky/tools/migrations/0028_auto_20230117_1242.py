@@ -6,10 +6,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ("tools", "0027_auto_20230103_1721"),
-    ]
+    dependencies = [migrations.swappable_dependency(settings.AUTH_USER_MODEL), ("tools", "0027_auto_20230103_1721")]
 
     operations = [
         migrations.AlterField(
@@ -24,20 +21,8 @@ class Migration(migrations.Migration):
             name="user",
             field=models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to=settings.AUTH_USER_MODEL),
         ),
-        migrations.AlterUniqueTogether(
-            name="organizationmember",
-            unique_together={("user", "organization")},
-        ),
-        migrations.RemoveField(
-            model_name="organizationmember",
-            name="goal",
-        ),
-        migrations.RemoveField(
-            model_name="organizationmember",
-            name="member_role",
-        ),
-        migrations.RemoveField(
-            model_name="organizationmember",
-            name="signal_username",
-        ),
+        migrations.AlterUniqueTogether(name="organizationmember", unique_together={("user", "organization")}),
+        migrations.RemoveField(model_name="organizationmember", name="goal"),
+        migrations.RemoveField(model_name="organizationmember", name="member_role"),
+        migrations.RemoveField(model_name="organizationmember", name="signal_username"),
     ]

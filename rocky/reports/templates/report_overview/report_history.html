@@ -1,14 +1,25 @@
+{% extends "layouts/base.html" %}
+
 {% load i18n %}
+{% load static %}
 
-<section>
-    <div class="horizontal-scroll">
-        <h2>{% translate "Reports history" %}</h2>
-        <p>{% translate "An overview of all your generated reports." %}</p>
-        <p class="de-emphasized">
-            {% blocktranslate with length=reports|length total=total_oois %}Showing {{ length }} of {{ total }} reports{% endblocktranslate %}
-        </p>
-        {% include "report_overview/report_history_table.html" %}
-        {% include "partials/list_paginator.html" %}
+{% block content %}
+    {% include "header.html" %}
 
-    </div>
-</section>
+    <main id="main-content">
+        <section>
+            {% include "report_overview/report_overview_header.html" %}
+            {% include "report_overview/report_overview_navigation.html" with active="history" %}
+
+            <div class="horizontal-scroll">
+                <h2>{% translate "Reports history" %}</h2>
+                <p>
+                    {% translate "On this page you can see all the reports that have been generated in the past. To create a new report, click the 'Generate Report' button." %}
+                </p>
+                {% include "report_overview/report_history_table.html" %}
+                {% include "partials/list_paginator.html" %}
+
+            </div>
+        </section>
+    </main>
+{% endblock content %}

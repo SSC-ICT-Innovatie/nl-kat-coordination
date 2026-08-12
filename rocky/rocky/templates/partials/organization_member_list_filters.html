@@ -1,42 +1,18 @@
-{% extends "partials/list_filters.html" %}
-
 {% load i18n %}
 
-{% block title %}
-    {{ members.count }} {% translate "Members" %}
-{% endblock title %}
-{% block filter_form %}
+<div class="filter">
+    <div>
+        <button aria-expanded="false"
+                data-hide-filters-label='{% translate "Hide filters" %}'>
+            {% translate "Show filters" %}
+            {% if active_filters_counter > 0 %}
+                ({{ active_filters_counter }} {% translate "applied" %})
+            {% endif %}
+        </button>
+    </div>
     <form method="get">
-        <fieldset>
-            <legend>{% translate "Shown status types" %}</legend>
-            <div>
-                {% for option in status_filters %}
-                    <div class="checkbox">
-                        <input type="checkbox"
-                               id="option-filter-{{ option.value }}"
-                               name="client_status"
-                               value="{{ option.value }}"
-                               {% if option.checked %}checked{% endif %}>
-                        <label for="option-filter-{{ option.value }}">{{ option.label }}</label>
-                    </div>
-                {% endfor %}
-            </div>
-        </fieldset>
-        <fieldset>
-            <legend>{% translate "Blocked status" %}</legend>
-            <div>
-                {% for option in blocked_filters %}
-                    <div class="checkbox">
-                        <input type="checkbox"
-                               id="option-filter-{{ option.value }}"
-                               name="blocked_status"
-                               value="{{ option.value }}"
-                               {% if option.checked %}checked{% endif %}>
-                        <label for="option-filter-{{ option.value }}">{{ option.label }}</label>
-                    </div>
-                {% endfor %}
-            </div>
-        </fieldset>
+        {% include "partials/form/fieldset.html" with fields=member_filter_form %}
+
         <input type="submit" value="{% translate "Update List" %}">
     </form>
-{% endblock filter_form %}
+</div>

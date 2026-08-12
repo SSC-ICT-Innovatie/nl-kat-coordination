@@ -2,8 +2,8 @@ import ipaddress
 import json
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
-from boefjes.plugins.kat_binaryedge.services.normalize import get_name_from_cpe
+from boefjes.normalizer_models import NormalizerOutput
+from boefjes.plugins.helpers import cpe_to_name_version
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
@@ -32,24 +32,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         else:
             ipvx = ipaddress.ip_address(ip)
             if ipvx.version == 4:
-                ip_ooi = IPAddressV4(
-                    address=ip,
-                    network=network,
-                )
+                ip_ooi = IPAddressV4(address=ip, network=network)
             else:
-                ip_ooi = IPAddressV6(
-                    address=ip,
-                    network=network,
-                )
+                ip_ooi = IPAddressV6(address=ip, network=network)
             yield ip_ooi
             ip_ref = ip_ooi.reference
 
-        ip_port_ooi = IPPort(
-            address=ip_ref,
-            protocol=Protocol(protocol),
-            port=port_nr,
-            state=PortState("open"),
-        )
+        ip_port_ooi = IPPort(address=ip_ref, protocol=Protocol(protocol), port=port_nr, state=PortState("open"))
         yield ip_port_ooi
 
         if "service" in scan["result"]["data"]:
@@ -62,11 +51,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
             if "cpe" in service:
                 for cpe in service["cpe"]:
-                    software_ooi = Software(name=get_name_from_cpe(cpe), cpe=cpe)
+                    name, version = cpe_to_name_version(cpe=cpe)
+                    software_ooi = Software(name=name, version=version, cpe=cpe)
                     yield software_ooi
                     software_instance_ooi = SoftwareInstance(
-                        ooi=ip_service_ooi.reference,
-                        software=software_ooi.reference,
+                        ooi=ip_service_ooi.reference, software=software_ooi.reference
                     )
                     yield software_instance_ooi
 
@@ -90,8 +79,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
                     yield software_ooi
                     software_instance_ooi = SoftwareInstance(
-                        ooi=ip_service_ooi.reference,
-                        software=software_ooi.reference,
+                        ooi=ip_service_ooi.reference, software=software_ooi.reference
                     )
                     yield software_instance_ooi
 

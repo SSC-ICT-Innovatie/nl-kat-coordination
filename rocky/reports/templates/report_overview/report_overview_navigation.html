@@ -3,17 +3,8 @@
 <div>
     <nav class="tabs" aria-label="{% translate "Plugins Navigation" %}">
         <ul>
-            <li {% if active == "recent" %}aria-current="page"{% endif %}>
-                <a href="">{% translate "Recent" %}</a>
-            </li>
-            <li {% if active == "presets" %}aria-current="page"{% endif %}>
-                <a href="">{% translate "Presets" %}</a>
-            </li>
             <li {% if active == "scheduled" %}aria-current="page"{% endif %}>
-                <a href="">{% translate "Scheduled" %}</a>
-            </li>
-            <li {% if active == "folders" %}aria-current="page"{% endif %}>
-                <a href="">{% translate "Folders" %}</a>
+                <a href="{% url 'scheduled_reports' organization.code %}">{% translate "Scheduled" %}</a>
             </li>
             <li {% if active == "history" %}aria-current="page"{% endif %}>
                 <a href="{% url 'report_history' organization.code %}">{% translate "History" %}</a>

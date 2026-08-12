@@ -1,104 +1,100 @@
 import os
-from unittest import TestCase, skipIf
 
 import alembic.config
+import pytest
 from sqlalchemy import text
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import Session, sessionmaker
 
-from boefjes.config import settings
-from boefjes.models import Organisation
 from boefjes.sql.db import SQL_BASE, get_engine
-from boefjes.sql.organisation_storage import SQLOrganisationStorage
+
+pytestmark = pytest.mark.skipif(os.environ.get("CI") != "1", reason="Needs a CI database.")
 
 
-@skipIf(os.environ.get("CI") != "1", "Needs a CI database.")
-class TestRemoveRepositories(TestCase):
-    def setUp(self) -> None:
-        self.engine = get_engine()
+@pytest.fixture
+def migration_cd34fdfafdaf() -> Session:
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "head"])
+    # To reset autoincrement ids
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "base"])
+    # Set state to revision cd34fdfafdaf
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "cd34fdfafdaf"])
 
-        # To reset autoincrement ids
-        alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "base"])
-        # Set state to revision cd34fdfafdaf
-        alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "cd34fdfafdaf"])
+    engine = get_engine()
+    session = sessionmaker(bind=engine)()
 
-        session = sessionmaker(bind=self.engine)()
+    query = f"""INSERT INTO organisation (id, name) values {','.join(map(str, [
+        ("dev1", "Test 1 "),
+         ("dev2", "Test 2 "),
+    ]))}"""  # noqa: S608
+    session.get_bind().execute(text(query))
 
-        with SQLOrganisationStorage(session, settings) as storage:
-            storage.create(Organisation(id="dev1", name="Test 1 "))
-            storage.create(Organisation(id="dev2", name="Test 2 "))
+    entries = [(1, "LOCAL", "Repository Local", "https://local.com/")]
+    query = f"INSERT INTO repository (pk, id, name, base_url) values {','.join(map(str, entries))}"  # noqa: S608
 
-        entries = [(1, "LOCAL", "Repository Local", "https://local.com/")]
-        query = f"INSERT INTO repository (pk, id, name, base_url) values {','.join(map(str, entries))}"  # noqa: S608
-        self.engine.execute(text(query))
+    engine.execute(text(query))
 
-        entries = [(1, "test_plugin_id", True, 1, 1)]  # New unique constraint fails
-        query = (
-            f"INSERT INTO plugin_state (id, plugin_id, enabled, organisation_pk, repository_pk)"
-            f"values {','.join(map(str, entries))}"
-        )  # noqa: S608
+    entries = [(1, "test_plugin_id", True, 1, 1)]  # New unique constraint fails
+    query = (
+        f"INSERT INTO plugin_state (id, plugin_id, enabled, organisation_pk, repository_pk)"
+        f"values {','.join(map(str, entries))}"
+    )  # noqa: S608
 
-        self.engine.execute(text(query))
+    engine.execute(text(query))
 
-        entries = [(1, 1)]
-        query = (
-            f"INSERT INTO organisation_repository (repository_pk, organisation_pk) values {','.join(map(str, entries))}"  # noqa: S608
-        )
-        self.engine.execute(text(query))
-        session.close()
+    entries = [(1, 1)]
+    query = f"INSERT INTO organisation_repository (repository_pk, organisation_pk) values {','.join(map(str, entries))}"  # noqa: S608
+    engine.execute(text(query))
 
-    def test_fail_on_non_unique(self):
-        session = sessionmaker(bind=self.engine)()
+    yield session
+    session.commit()
 
-        entries = [(2, "test", "test", "https://test.co/")]  # Another non-local repository
-        query = f"INSERT INTO repository (pk, id, name, base_url) values {','.join(map(str, entries))}"  # noqa: S608
-        self.engine.execute(text(query))
+    engine.execute(text("DELETE FROM plugin_state"))
 
-        entries = [(2, "test_plugin_id", True, 1, 2)]  # New unique constraint fails
-        query = (
-            f"INSERT INTO plugin_state (id, plugin_id, enabled, organisation_pk, repository_pk)"
-            f"values {','.join(map(str, entries))}"
-        )  # noqa: S608
-        self.engine.execute(text(query))
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "head"])
 
-        with self.assertRaises(Exception) as ctx:
-            alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
+    engine.execute(";".join([f"TRUNCATE TABLE {t} CASCADE" for t in SQL_BASE.metadata.tables]))
 
-        assert "remove plugin_states that refer to nonlocal repositories first" in str(ctx.exception)
 
-        self.engine.execute(text("DELETE FROM plugin_state WHERE id = 2"))  # Fix unique constraint fails
-        self.engine.execute(text("DELETE FROM repository WHERE pk = 2"))  # Fix unique constraint fails
+def test_fail_on_non_unique(migration_cd34fdfafdaf):
+    session = migration_cd34fdfafdaf
 
+    entries = [(2, "test", "test", "https://test.co/")]  # Another non-local repository
+    query = f"INSERT INTO repository (pk, id, name, base_url) values {','.join(map(str, entries))}"  # noqa: S608
+    session.get_bind().execute(text(query))
+    entries = [(2, "test_plugin_id", True, 1, 2)]  # New unique constraint fails
+    query = (
+        f"INSERT INTO plugin_state (id, plugin_id, enabled, organisation_pk, repository_pk)"
+        f"values {','.join(map(str, entries))}"
+    )  # noqa: S608
+    session.get_bind().execute(text(query))
+
+    with pytest.raises(Exception) as ctx:
         alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
 
-        all_plugin_states = [x[1:] for x in self.engine.execute(text("SELECT * FROM plugin_state")).fetchall()]
-        assert all_plugin_states == [("test_plugin_id", True, 1)]
+    assert "remove plugin_states that refer to nonlocal repositories first" in str(ctx.value)
 
-        session.close()
+    # Fix unique constraint failures
+    session.get_bind().execute(text("DELETE FROM plugin_state WHERE id = 2; DELETE FROM repository WHERE pk = 2"))
 
-    def test_downgrade(self):
-        session = sessionmaker(bind=self.engine)()
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
 
-        self.engine.execute(text("DELETE FROM plugin_state WHERE id = 2"))  # Fix unique constraint fails
-        alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
-        alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "-1"])
+    all_plugin_states = [
+        (x[1], x[2], x[3]) for x in session.get_bind().execute(text("SELECT * FROM plugin_state")).fetchall()
+    ]
+    assert all_plugin_states == [("test_plugin_id", True, 1)]
 
-        all_plugin_states = [x[1:] for x in self.engine.execute(text("SELECT * FROM plugin_state")).fetchall()]
-        assert all_plugin_states == [("test_plugin_id", True, 1, 1)]
-        assert self.engine.execute(text("SELECT * from repository")).fetchall() == [
-            (1, "LOCAL", "Local Plugin Repository", "http://dev/null")
-        ]
 
-        session.close()
+def test_downgrade(migration_cd34fdfafdaf):
+    session = migration_cd34fdfafdaf
+    session.get_bind().execute(text("DELETE FROM plugin_state WHERE id = 2"))  # Fix unique constraint fails
 
-    def tearDown(self) -> None:
-        self.engine.execute(text("DELETE FROM plugin_state"))  # Fix unique constraint fails
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "7c88b9cd96aa"])
+    alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "downgrade", "-1"])
 
-        alembic.config.main(argv=["--config", "/app/boefjes/boefjes/alembic.ini", "upgrade", "head"])
+    all_plugin_states = [
+        (x[1], x[2], x[3], x[4]) for x in session.get_bind().execute(text("SELECT * FROM plugin_state")).fetchall()
+    ]
 
-        session = sessionmaker(bind=get_engine())()
-
-        for table in SQL_BASE.metadata.tables:
-            session.execute(f"DELETE FROM {table} CASCADE")  # noqa: S608
-
-        session.commit()
-        session.close()
+    assert all_plugin_states == [("test_plugin_id", True, 1, 1)]
+    assert session.get_bind().execute(text("SELECT * from repository")).fetchall() == [
+        (1, "LOCAL", "Local Plugin Repository", "http://dev/null")
+    ]

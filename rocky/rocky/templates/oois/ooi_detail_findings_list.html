@@ -3,15 +3,17 @@
 
 {% spaceless %}
     <div class="horizontal-scroll">
-        <h2>{% translate "Findings" %}</h2>
-        <div class="horizontal-view toolbar">
-            {% if not ooi|is_finding and not ooi|is_finding_type %}
-                <a href="{% ooi_url 'finding_add' ooi.primary_key organization.code %}"
-                   class="button">{% translate "Add finding" %}</a>
-            {% endif %}
+        <div class="introduction">
+            <h2>{% translate "Findings" %}</h2>
+            <div class="horizontal-view toolbar">
+                {% if not ooi|is_finding and not ooi|is_finding_type %}
+                    <a href="{% ooi_url 'finding_add' ooi.primary_key organization.code %}"
+                       class="button">{% translate "Add finding" %}</a>
+                {% endif %}
+            </div>
         </div>
         <table>
-            <caption>
+            <caption class="visually-hidden">
                 {% translate "Overview of findings for" %} {{ ooi.get_ooi_type }} "{{ ooi.name }}".
             </caption>
             <thead>

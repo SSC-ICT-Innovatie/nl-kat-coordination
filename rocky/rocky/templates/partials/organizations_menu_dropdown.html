@@ -2,7 +2,9 @@
 
 {% if organizations_including_blocked|length > 0 %}
     <div class="dropdown">
-        <button class="dropdown-button ghost">
+        <button aria-controls="change-organization"
+                aria-expanded="false"
+                class="dropdown-button ghost">
             {% if not organization.code %}
                 {% translate "Select organization" %}
             {% else %}
@@ -10,7 +12,7 @@
             {% endif %}
             <span class="icon ti-chevron-down"></span>
         </button>
-        <div class="dropdown-list">
+        <div id="change-organization" class="dropdown-list">
             <ul>
                 <li>
                     <a href="{% url "crisis_room" %}">{% translate "All organizations" %}</a>
@@ -18,7 +20,7 @@
                 {% for org in organizations_including_blocked %}
                     {% if organization.code != org.code %}
                         <li>
-                            <a href="{% url "organization_crisis_room" org.code %}">{{ org.name }}</a>
+                            <a href="{% url "organization_crisis_room_landing" org.code %}">{{ org.name }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}

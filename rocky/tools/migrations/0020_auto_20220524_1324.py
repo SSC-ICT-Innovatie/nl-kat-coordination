@@ -4,9 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0019_alter_scanprofile_remove_level_and_user"),
-    ]
+    dependencies = [("tools", "0019_alter_scanprofile_remove_level_and_user")]
 
     operations = [
         migrations.AlterModelOptions(
@@ -18,13 +16,8 @@ class Migration(migrations.Migration):
                 )
             },
         ),
-        migrations.RemoveField(
-            model_name="scanprofile",
-            name="is_source_ooi",
-        ),
+        migrations.RemoveField(model_name="scanprofile", name="is_source_ooi"),
         migrations.AddField(
-            model_name="organizationmember",
-            name="onboarded",
-            field=models.BooleanField(default=False),
+            model_name="organizationmember", name="onboarded", field=models.BooleanField(default=False)
         ),
     ]

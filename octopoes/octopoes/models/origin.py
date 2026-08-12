@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from enum import Enum
 from uuid import UUID
 
@@ -21,7 +23,7 @@ class Origin(BaseModel):
     result: list[Reference] = Field(default_factory=list)
     task_id: UUID | None = None
 
-    def __sub__(self, other) -> set[Reference]:
+    def __sub__(self, other: Origin) -> set[Reference]:
         if isinstance(other, Origin):
             return set(self.result) - set(other.result)
         else:

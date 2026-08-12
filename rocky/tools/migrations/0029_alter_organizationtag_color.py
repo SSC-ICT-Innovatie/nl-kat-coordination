@@ -4,9 +4,7 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0028_auto_20230117_1242"),
-    ]
+    dependencies = [("tools", "0028_auto_20230117_1242")]
 
     operations = [
         migrations.AlterField(
@@ -36,5 +34,5 @@ class Migration(migrations.Migration):
                 default="color-1-light",
                 max_length=20,
             ),
-        ),
+        )
     ]

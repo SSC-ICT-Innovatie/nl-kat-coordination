@@ -1,9 +1,0 @@
-{
-  "id": "pdio-subfinder",
-  "name": "Subfinder",
-  "description": "A subdomain discovery tool. (projectdiscovery.io)",
-  "consumes": [
-    "Hostname"
-  ],
-  "scan_level": 2
-}

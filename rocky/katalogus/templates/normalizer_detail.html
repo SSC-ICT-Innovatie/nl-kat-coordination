@@ -8,7 +8,7 @@
 
     <main id="main-content">
         <section>
-            <div class="two-thirds-one-third">
+            <div class="introduction">
                 <div>
                     <h1>{{ plugin.name }}</h1>
                     {% if plugin.description %}
@@ -24,7 +24,8 @@
                 </div>
                 <div class="image-square">
                     <div class="image-container">
-                        <img src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
+                        <img loading="lazy"
+                             src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
                              alt="boefje placeholder image" />
                     </div>
                 </div>

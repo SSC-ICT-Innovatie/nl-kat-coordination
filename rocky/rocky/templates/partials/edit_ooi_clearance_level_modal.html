@@ -1,0 +1,75 @@
+{% load i18n %}
+{% load form_extra %}
+
+{% component "modal" modal_id="edit-clearance-level-modal" size="dialog-medium" %}
+{% fill "header" %}
+{% translate "Edit clearance level settings" %}
+{% endfill %}
+{% fill "content" %}
+{% if type == "ooi_list" %}
+    <p>{% translate "You are editing clearance level of all the selected objects." %}</p>
+{% endif %}
+<div class="message">
+    <div class="explanation"
+         role="group"
+         aria-label="{% translate "explanation" %}">
+        <div>
+            <span>{% translate "Switching between declare and inherit" %}</span>
+            <p>
+                {% blocktranslate trimmed %}
+                    Clearance levels can be automatically inherited or you can manually
+                    declare the clearance level for an object. Switching to inherit
+                    clearance level will also recalculate the clearance levels of
+                    objects that inherit from these clearance levels.
+                {% endblocktranslate %}
+            </p>
+        </div>
+    </div>
+</div>
+{% if type == "ooi_detail" %}
+    <form id="set_clearance_level"
+          action="{% ooi_url "scan_profile_detail" ooi.primary_key organization.code %}#set_clearance_level"
+          method="post"
+          class="help">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_clearance_level">
+        {% include "partials/form/fieldset.html" with fields=form %}
+
+    </form>
+{% else %}
+    <form class="help">
+        <fieldset>
+            {% for field in edit_clearance_level_form %}
+                <fieldset>
+                    <label for="{{ field.id_for_label }}">
+                        {{ field.label }}
+                        {% if field.field.required %}
+                            <span class="nota-bene" aria-hidden>({% translate "Required" %})</span>
+                        {% endif %}
+                    </label>
+                    <div>
+                        {{ field|with_form_attr:"ooi_list_form" }}
+                        {% include "partials/form/field_input_help_text.html" with help_text=field.help_text %}
+                        {% include "partials/form/field_input_errors.html" %}
+
+                    </div>
+                </fieldset>
+            {% endfor %}
+        </fieldset>
+    </form>
+{% endif %}
+{% endfill %}
+{% fill "footer_buttons" %}
+{% if type == "ooi_list" %}
+    <button type="submit"
+            class="dropdown-button"
+            name="action"
+            value="update-scan-profile"
+            form="ooi_list_form">{% translate "Save changes" %}</button>
+{% else %}
+    <button type="submit" form="set_clearance_level">{% translate "Save changes" %}</button>
+{% endif %}
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

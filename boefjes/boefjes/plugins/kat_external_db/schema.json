@@ -25,6 +25,12 @@
       "maxLength": 2048,
       "type": "string",
       "description": "Python format string with all variables above (optionally empty). E.g. '{DB_URL}/api/v1/participants/assets/{DB_ORGANIZATION_IDENTIFIER}?access_token={DB_ACCESS_TOKEN}' (without quotes)"
+    },
+    "REQUESTS_CA_BUNDLE": {
+      "title": "REQUESTS_CA_BUNDLE",
+      "maxLength": 1024,
+      "type": "string",
+      "description": "Optional local file path for a CA bundle."
     }
   },
   "required": [

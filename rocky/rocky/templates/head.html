@@ -1,15 +1,10 @@
 {% load static %}
-{% load compress %}
 
 <head>
     <title>OpenKAT - {{ request.resolver_match.url_name }}</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="shortcut icon" href="{% static "img/favicon.svg" %}" />
-    {% compress css %}
-        <link href="{% static "dist/app.css" %}" rel="stylesheet">
-    {% endcompress %}
-    {% compress js %}
-        <script defer src="{% static "dist/imports/manon.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <link href="{% static "dist/app.css" %}" rel="stylesheet">
+    <script defer src="{% static "dist/imports/manon.js" %}" nonce="{{ request.csp_nonce }}"></script>
 </head>

@@ -1,21 +1,16 @@
 """Boefje script for scanning wordpress sites using wpscan"""
 
+import subprocess
 from os import getenv
 
-import docker
 
-from boefjes.job_models import BoefjeMeta
-
-WPSCAN_IMAGE = "wpscanteam/wpscan:latest"
-
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
-    info_mimetype = {"info/boefje"}
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
+    info_mimetype = {"openkat/deschedule"}
 
     if input_["software"]["name"] != "WordPress":
         return [(info_mimetype, "Not wordpress.")]
-    if "netloc" not in input_["ooi"] or "name" not in input_["ooi"]["netloc"].dict():
+    if "netloc" not in input_["ooi"] or "name" not in input_["ooi"]["netloc"]:
         return [(info_mimetype, "No hostname available for input OOI.")]
 
     hostname = input_["ooi"]["netloc"]["name"]
@@ -27,33 +22,11 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
 
     url = f"{scheme}://{hostname}{path}"
 
-    argv = [
-        "--url",
-        url,
-        "--format",
-        "json",
-        "--plugins-version-detection",
-        "aggressive",
-    ]
+    argv = ["--url", url, "--format", "json", "--plugins-version-detection", "aggressive"]
     if wpscan_api_token := getenv("WP_SCAN_API"):
         argv += ["--api-token", wpscan_api_token]
 
-    # update WPScan image
-    client = docker.from_env()
-    client.images.pull(WPSCAN_IMAGE)
+    output = subprocess.run(["/usr/local/bin/wpscan"] + argv, capture_output=True)
+    output.check_returncode()
 
-    # since WPScan can give positive exit codes on completion, docker-py's run() can fail on this
-    container = client.containers.run(
-        WPSCAN_IMAGE,
-        argv,
-        detach=True,
-    )
-
-    try:
-        # wait for container to exit, read its output in the logs and remove container
-        container.wait()
-        output = container.logs()
-    finally:
-        container.remove()
-
-    return [(set(), output)]
+    return [({"openkat/wp-scan"}, output.stdout.decode())]

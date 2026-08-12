@@ -1,0 +1,20 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "SUBFINDER_RATE_LIMIT": {
+      "title": "SUBFINDER_RATE_LIMIT",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 65535,
+      "description": "Maximum number of http requests to send per second."
+    },
+    "SUBFINDER_VERSION": {
+      "title": "SUBFINDER_VERSION",
+      "type": "string",
+      "maxLength": 10,
+      "description": "Version string including 'v', e.g. 'v2.6.6'."
+    }
+  },
+  "required": []
+}

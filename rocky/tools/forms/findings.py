@@ -32,3 +32,17 @@ class MutedFindingSelectionForm(BaseRockyForm):
         choices=MUTED_FINDINGS_CHOICES,
         widget=forms.RadioSelect,
     )
+
+
+class FindingSearchForm(BaseRockyForm):
+    search = forms.CharField(
+        label=_("Search"), required=False, max_length=256, help_text=_("Object ID contains (case sensitive)")
+    )
+
+
+class OrderByFindingTypeForm(BaseRockyForm):
+    order_by = forms.CharField(widget=forms.HiddenInput(attrs={"value": "finding_type"}), required=False)
+
+
+class OrderBySeverityForm(BaseRockyForm):
+    order_by = forms.CharField(widget=forms.HiddenInput(attrs={"value": "score"}), required=False)

@@ -4,26 +4,30 @@
     <div>
         <h2>Open ports</h2>
         <p>{% translate "See an overview of open ports found over all systems and the services these systems provide." %}</p>
-        <div class="horizontal-scroll">
-            <table>
-                <caption class="visually-hidden">{% translate "Overview of detected open ports" %}</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">{% translate "Open ports" %}</th>
-                        <th scope="col">{% translate "Occurrences (IP addresses)" %}</th>
-                        <th scope="col">{% translate "Services" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for port, port_info in report_data.open_ports.ports.items %}
+        {% if report_data.open_ports.ports %}
+            <div class="horizontal-scroll">
+                <table>
+                    <caption class="visually-hidden">{% translate "Overview of detected open ports" %}</caption>
+                    <thead>
                         <tr>
-                            <td>{{ port }}</td>
-                            <td>{{ port_info.open }}/{{ report_data.open_ports.total }}</td>
-                            <td>{{ port_info.services|join:", "|upper }}</td>
+                            <th scope="col">{% translate "Open ports" %}</th>
+                            <th scope="col">{% translate "Occurrences (IP addresses)" %}</th>
+                            <th scope="col">{% translate "Services" %}</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {% for port, port_info in report_data.open_ports.ports.items %}
+                            <tr>
+                                <td>{{ port }}</td>
+                                <td>{{ port_info.open }}/{{ report_data.open_ports.total }}</td>
+                                <td>{{ port_info.services|join:", "|upper }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            {% translate "No open ports found." %}
+        {% endif %}
     </div>
 </section>

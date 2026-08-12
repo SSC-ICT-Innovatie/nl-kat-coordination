@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load static %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -16,7 +15,7 @@
                     {% include "oois/ooi_detail_findings_list.html" with findings=findings %}
 
                 {% else %}
-                    <p>{% translate "Currently there are no findings for OOI" %} "{{ ooi.human_readable }}".</p>
+                    <p>{% translate "Currently no findings have been identified for OOI" %} "{{ ooi.human_readable }}".</p>
                     <a href="{% ooi_url 'finding_add' ooi.primary_key organization.code %}"
                        class="button">{% translate "Add finding" %}</a>
                 {% endif %}
@@ -27,7 +26,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

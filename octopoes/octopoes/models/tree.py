@@ -12,7 +12,7 @@ class ReferenceNode(BaseModel):
     reference: Reference
     children: dict[str, list[ReferenceNode]]
 
-    def filter_children(self, filter_fn: Callable[[ReferenceNode], bool]):
+    def filter_children(self, filter_fn: Callable[[ReferenceNode], bool]) -> bool:
         """
         Mutable filter function to evict any children from the tree that do not adhere to the provided callback
         """

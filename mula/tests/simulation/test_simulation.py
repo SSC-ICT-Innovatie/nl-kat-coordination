@@ -34,9 +34,7 @@ class SimulationTestCase(unittest.TestCase):
             allow_priority_updates=True,
         )
 
-        normalizer_ranker = rankers.NormalizerRanker(
-            ctx=self.mock_ctx,
-        )
+        normalizer_ranker = rankers.NormalizerRanker(ctx=self.mock_ctx)
 
         return schedulers.NormalizerScheduler(
             ctx=self.mock_ctx,
@@ -54,9 +52,7 @@ class SimulationTestCase(unittest.TestCase):
             allow_priority_updates=True,
         )
 
-        boefje_ranker = rankers.BoefjeRanker(
-            ctx=self.mock_ctx,
-        )
+        boefje_ranker = rankers.BoefjeRanker(ctx=self.mock_ctx)
 
         return schedulers.BoefjeScheduler(
             ctx=self.mock_ctx,
@@ -70,12 +66,7 @@ class SimulationTestCase(unittest.TestCase):
     @mock.patch("scheduler.context.AppContext.services.scan_profile.get_latest_object")
     @mock.patch("scheduler.context.AppContext.services.octopoes.get_random_objects")
     @mock.patch("scheduler.schedulers.BoefjeScheduler.create_tasks_for_oois")
-    def test_simulation_boefje_queue(
-        self,
-        mock_create_tasks_for_oois,
-        mock_get_random_objects,
-        mock_get_latest_object,
-    ):
+    def test_simulation_boefje_queue(self, mock_create_tasks_for_oois, mock_get_random_objects, mock_get_latest_object):
         iterations = 1000
         oois = [OOIFactory(scan_profile=ScanProfileFactory(level=0)) for _ in range(iterations)]
 
@@ -127,9 +118,7 @@ class SimulationTestCase(unittest.TestCase):
                 queues.PrioritizedItem(
                     0,
                     models.NormalizerTask(
-                        id=uuid.uuid4(),
-                        normalizer=PluginFactory(type="normalizer"),
-                        boefje_meta=raw_file.boefje_meta,
+                        id=uuid.uuid4(), normalizer=PluginFactory(type="normalizer"), boefje_meta=raw_file.boefje_meta
                     ),
                 )
             ]

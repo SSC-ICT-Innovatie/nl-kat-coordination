@@ -1,13 +1,16 @@
+from datetime import datetime, timezone
 from enum import Enum
 
 from django.utils.translation import gettext_lazy as _
 from tools.view_helpers import get_ooi_url
 
 from rocky.views.ooi_view import BaseOOIFormView
+from rocky.views.scheduler import SchedulerView
 
 
-class OOIEditView(BaseOOIFormView):
+class OOIEditView(BaseOOIFormView, SchedulerView):
     template_name = "oois/ooi_edit.html"
+    task_type = "report"
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -36,16 +39,32 @@ class OOIEditView(BaseOOIFormView):
 
         return kwargs
 
+    def form_valid(self, form):
+        form_data = form.cleaned_data
+        report_recipe_id = form_data.get("recipe_id")
+        cron_expression = form_data.get("cron_expression")
+
+        # If the cron_expression of the ReportRecipe is changed, the scheduler must also be updated
+        if report_recipe_id and cron_expression:
+            deadline_at = datetime.now(timezone.utc).isoformat()
+            filters = {
+                "filters": [
+                    {"column": "data", "field": "report_recipe_id", "operator": "eq", "value": report_recipe_id}
+                ]
+            }
+            schedule = self.get_schedule_with_filters(filters)
+            if schedule:
+                self.edit_report_schedule(str(schedule.id), {"schedule": cron_expression, "deadline_at": deadline_at})
+
+        return super().form_valid(form)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         # Construct breadcrumbs
         breadcrumb_list = self.get_breadcrumb_list()
         breadcrumb_list.append(
-            {
-                "url": get_ooi_url("ooi_edit", self.ooi.primary_key, self.organization.code),
-                "text": _("Edit"),
-            }
+            {"url": get_ooi_url("ooi_edit", self.ooi.primary_key, self.organization.code), "text": _("Edit")}
         )
 
         context["type"] = self.ooi_class.get_ooi_type()

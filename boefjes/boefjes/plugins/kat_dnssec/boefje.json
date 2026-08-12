@@ -1,10 +1,10 @@
 {
   "id": "dns-sec",
-  "name": "Dnssec",
-  "description": "Validates DNSSec of a hostname",
+  "name": "DNSSEC",
+  "description": "Validates DNSSEC of a hostname by checking the cryptographic signatures.",
   "consumes": [
     "Hostname"
   ],
   "scan_level": 1,
-  "oci_image": "ghcr.io/minvws/openkat/dns-sec:latest"
+  "oci_image": "docker.underdark.nl/librekat/openkat-dns-sec:latest"
 }

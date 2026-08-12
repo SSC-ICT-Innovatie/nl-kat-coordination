@@ -1,5 +1,6 @@
 {
   "id": "dummy_bad_normalizer_return_type",
+  "name": "dummy_bad_normalizer_return_type",
   "description": "",
   "consumes": [],
   "produces": []

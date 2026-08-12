@@ -1,4 +1,7 @@
-from dataclasses import dataclass, field
+from __future__ import annotations
+
+from collections.abc import Iterable
+from dataclasses import dataclass, field, replace
 from uuid import UUID, uuid4
 
 from octopoes.models import OOI
@@ -14,7 +17,7 @@ class InvalidPath(ValueError):
     pass
 
 
-@dataclass
+@dataclass(frozen=True)
 class Aliased:
     """OOI type wrapper to have control over the query alias used per type. This is necessary to traverse the same
     OOI type more than once, since by default we have that
@@ -35,7 +38,7 @@ class Aliased:
     we will get the DNSAAAARecords of the Hostname of the name server of "test.com".
     """
 
-    type: type[OOI]
+    type: type[OOI] = OOI  # Represents a generic lookup on all OOIs
 
     # The lambda makes it possible to mock the factory more easily, see:
     # https://stackoverflow.com/questions/61257658/python-dataclasses-mocking-the-default-factory-in-a-frozen-dataclass
@@ -49,7 +52,7 @@ class Aliased:
 Ref = type[OOI] | Aliased
 
 
-@dataclass
+@dataclass(frozen=True)
 class Query:
     """Object representing an XTDB query.
 
@@ -68,7 +71,7 @@ class Query:
     '
     """
 
-    result_type: Ref
+    result_type: Ref = OOI
 
     _where_clauses: list[str] = field(default_factory=list)
     _find_clauses: list[str] = field(default_factory=list)
@@ -76,25 +79,30 @@ class Query:
     _offset: int | None = None
     _order_by: tuple[Aliased, bool] | None = None
 
-    def where(self, ooi_type: Ref, **kwargs) -> "Query":
+    def where(self, ooi_type: Ref, **kwargs) -> Query:
+        new = self._copy()
+
         for field_name, value in kwargs.items():
-            self._where_field_is(ooi_type, field_name, value)
+            new._where_field_is(ooi_type, field_name, value)
 
-        return self
+        return new
 
-    def where_in(self, ooi_type: Ref, **kwargs: list[str]) -> "Query":
+    def where_in(self, ooi_type: Ref, **kwargs: Iterable[str]) -> Query:
         """Allows for filtering on multiple values for a specific field."""
+        new = self._copy()
 
         for field_name, values in kwargs.items():
-            self._where_field_in(ooi_type, field_name, values)
+            new._where_field_in(ooi_type, field_name, values)
 
-        return self
+        return new
 
     def format(self) -> str:
-        return self._compile(separator="\n    ")
+        new = self._copy()
+
+        return new._compile(separator="\n    ")
 
     @classmethod
-    def from_path(cls, path: Path) -> "Query":
+    def from_path(cls, path: Path) -> Query:
         """
         Create a query from a Path.
 
@@ -143,48 +151,48 @@ class Query:
                 query = query.where(target_ref, **{segment.property_name: source_ref})
 
         # Make sure we use the last reference in the path as a target
-        query.result_type = target_ref
+        query = replace(query, result_type=target_ref)
 
         return query
 
-    def pull(self, ooi_type: Ref, *, fields: str = "[*]") -> "Query":
+    def pull(self, ooi_type: Ref, *, fields: str = "[*]") -> Query:
         """By default, we pull the target type. But when using find, count, etc., you have to pull explicitly."""
+        new = self._copy()
 
-        self._find_clauses.append(f"(pull {self._get_object_alias(ooi_type)} {fields})")
+        new._find_clauses.append(f"(pull {new._get_object_alias(ooi_type)} {fields})")
 
-        return self
+        return new
 
-    def find(self, item: Ref, *, index: int | None = None) -> "Query":
+    def find(self, item: Ref, *, index: int | None = None) -> Query:
         """Add a find clause, so we can select specific fields in a query to be returned as well."""
-
         if index is None:
-            self._find_clauses.append(self._get_object_alias(item))
+            return replace(self, _find_clauses=self._find_clauses + [self._get_object_alias(item)])
         else:
-            self._find_clauses.insert(index, self._get_object_alias(item))
+            find_clauses = self._find_clauses
+            find_clauses.insert(index, self._get_object_alias(item))
+            return replace(self, _find_clauses=find_clauses)
 
-        return self
+    def count(self, ooi_type: Ref | None = None) -> Query:
+        if ooi_type:
+            return replace(self, _find_clauses=self._find_clauses + [f"(count {self._get_object_alias(ooi_type)})"])
+        else:
+            return replace(
+                self, _find_clauses=self._find_clauses + [f"(count {self._get_object_alias(self.result_type)})"]
+            )
 
-    def count(self, ooi_type: Ref) -> "Query":
-        self._find_clauses.append(f"(count {self._get_object_alias(ooi_type)})")
+    def limit(self, limit: int) -> Query:
+        return replace(self, _limit=limit)
 
-        return self
+    def offset(self, offset: int) -> Query:
+        return replace(self, _offset=offset)
 
-    def limit(self, limit: int) -> "Query":
-        self._limit = limit
+    def order_by(self, ref: Aliased, ascending: bool = True) -> Query:
+        return replace(self, _order_by=(ref, ascending))
 
-        return self
+    def _copy(self) -> Query:
+        return replace(self)
 
-    def offset(self, offset: int) -> "Query":
-        self._offset = offset
-
-        return self
-
-    def order_by(self, ref: Aliased, ascending: bool = True) -> "Query":
-        self._order_by = (ref, ascending)
-
-        return self
-
-    def _where_field_is(self, ref: Ref, field_name: str, value: Ref | str | set[str]) -> None:
+    def _where_field_is(self, ref: Ref, field_name: str, value: Ref | str | set[str] | bool) -> None:
         """
         We need isinstance(value, type) checks to verify value is an OOIType, as issubclass() fails on non-classes:
 
@@ -205,16 +213,21 @@ class Query:
         ooi_type = ref.type if isinstance(ref, Aliased) else ref
         abstract_types = get_abstract_types()
 
-        if field_name not in ooi_type.model_fields and (
-            ooi_type not in abstract_types
-            or not any(field_name in concrete_type.model_fields for concrete_type in ooi_type.strict_subclasses())
+        if (
+            field_name not in ooi_type.model_fields
+            and field_name != "id"
+            and (
+                ooi_type not in abstract_types
+                or not any(field_name in concrete_type.model_fields for concrete_type in ooi_type.strict_subclasses())
+            )
         ):
             raise InvalidField(f'"{field_name}" is not a field of {ooi_type.get_object_type()}')
 
         if isinstance(value, str):
+            value = value.replace("\\", "\\\\")
             value = value.replace('"', r"\"")
 
-        if ooi_type in abstract_types:
+        if ooi_type in abstract_types and ooi_type != OOI:
             if isinstance(value, str):
                 self._add_or_statement_for_abstract_types(ref, field_name, f'"{value}"')
                 return
@@ -227,13 +240,7 @@ class Query:
                 raise InvalidField(f"value '{value}' for abstract class fields should be a string or an OOI Type")
 
             if isinstance(value, Aliased) or issubclass(value, OOI):
-                self._add_or_statement_for_abstract_types(
-                    ref,
-                    field_name,
-                    self._get_object_alias(
-                        value,
-                    ),
-                )
+                self._add_or_statement_for_abstract_types(ref, field_name, self._get_object_alias(value))
                 return
 
         if isinstance(value, str):
@@ -252,10 +259,10 @@ class Query:
 
         self._add_where_statement(ref, field_name, self._get_object_alias(value))
 
-    def _where_field_in(self, ref: Ref, field_name: str, values: list[str]) -> None:
+    def _where_field_in(self, ref: Ref, field_name: str, values: Iterable[str]) -> None:
         ooi_type = ref.type if isinstance(ref, Aliased) else ref
 
-        if field_name not in ooi_type.model_fields:
+        if field_name not in ooi_type.model_fields and field_name != "id":
             raise InvalidField(f'"{field_name}" is not a field of {ooi_type.get_object_type()}')
 
         new_values = []
@@ -263,10 +270,11 @@ class Query:
             if not isinstance(value, str):
                 raise InvalidField("Only strings allowed as values for a WHERE IN statement for now.")
 
+            value = value.replace("\\", "\\\\")
             value = value.replace('"', r"\"")
             new_values.append(f'"{value}"')
 
-        if ooi_type in get_abstract_types():
+        if ooi_type in get_abstract_types() and ooi_type != OOI:
             types_to_check = ooi_type.strict_subclasses()
         else:
             types_to_check = [ooi_type]
@@ -278,26 +286,24 @@ class Query:
     def _add_where_statement(self, ref: Ref, field_name: str, to_alias: str) -> None:
         ooi_type = ref.type if isinstance(ref, Aliased) else ref
 
-        self._where_clauses.append(self._assert_type(ref, ooi_type))
-        self._where_clauses.append(
-            self._relationship(
-                self._get_object_alias(ref),
-                ooi_type.get_object_type(),
-                field_name,
-                to_alias,
+        if ooi_type != OOI:
+            self._where_clauses.append(self._assert_type(ref, ooi_type))
+
+        if field_name == "id":
+            self._where_clauses.append(self._relationship(self._get_object_alias(ref), "xt", field_name, to_alias))
+        else:
+            self._where_clauses.append(
+                self._relationship(self._get_object_alias(ref), ooi_type.get_object_type(), field_name, to_alias)
             )
-        )
 
     def _add_or_statement_for_abstract_types(self, ref: Ref, field_name: str, to_alias: str) -> None:
         ooi_type = ref.type if isinstance(ref, Aliased) else ref
 
-        self._where_clauses.append(self._assert_type(ref, ooi_type))
+        if ooi_type != OOI:
+            self._where_clauses.append(self._assert_type(ref, ooi_type))
         self._where_clauses.append(
             self._or_statement_for_abstract_types(
-                self._get_object_alias(ref),
-                ooi_type.strict_subclasses(),
-                field_name,
-                to_alias,
+                self._get_object_alias(ref), ooi_type.strict_subclasses(), field_name, to_alias
             )
         )
 
@@ -314,11 +320,14 @@ class Query:
     def _or_statement_for_multiple_values(
         self, from_alias: str, ooi_types: list[type[OOI]], field_name: str, to_aliases: list[str]
     ) -> str:
-        relationships = [
-            self._relationship(from_alias, ooi_type.get_object_type(), field_name, to_alias)
-            for to_alias in to_aliases
-            for ooi_type in ooi_types
-        ]
+        if field_name == "id":  # Generic field for XTDB entities. TODO: refactor
+            relationships = [self._relationship(from_alias, "xt", "id", to_alias) for to_alias in to_aliases]
+        else:
+            relationships = [
+                self._relationship(from_alias, ooi_type.get_object_type(), field_name, to_alias)
+                for to_alias in to_aliases
+                for ooi_type in ooi_types
+            ]
 
         return f"(or {' '.join(relationships)} )"
 
@@ -335,7 +344,7 @@ class Query:
     def _to_object_type_statement(self, ref: Ref, other_type: type[OOI]) -> str:
         return f'[ {self._get_object_alias(ref)} :object_type "{other_type.get_object_type()}" ]'
 
-    def _compile_where_clauses(self, *, separator=" ") -> str:
+    def _compile_where_clauses(self, *, separator: str = " ") -> str:
         """Sorted and deduplicated where clauses, since they are both idempotent and commutative"""
 
         return separator + separator.join(sorted(set(self._where_clauses)))
@@ -343,27 +352,32 @@ class Query:
     def _compile_find_clauses(self) -> str:
         return " ".join(self._find_clauses)
 
-    def _compile(self, *, separator=" ") -> str:
+    def _compile(self, *, separator: str = " ") -> str:
         result_ooi_type = self.result_type.type if isinstance(self.result_type, Aliased) else self.result_type
 
-        self._where_clauses.append(self._assert_type(self.result_type, result_ooi_type))
-        where_clauses = self._compile_where_clauses(separator=separator)
+        if result_ooi_type != OOI:
+            self._where_clauses.append(self._assert_type(self.result_type, result_ooi_type))
 
         if not self._find_clauses:
-            self._find_clauses = [f"(pull {self._get_object_alias(self.result_type)} [*])"]
+            new = replace(
+                self, _find_clauses=self._find_clauses + [f"(pull {self._get_object_alias(self.result_type)} [*])"]
+            )
+        else:
+            new = self
 
-        find_clauses = self._compile_find_clauses()
+        where_clauses = new._compile_where_clauses(separator=separator)
+        find_clauses = new._compile_find_clauses()
         compiled = f"{{:query {{:find [{find_clauses}] :where [{where_clauses}]"
 
-        if self._order_by is not None:
-            asc_desc = ":asc" if self._order_by[1] else ":desc"
-            compiled += f" :order-by [[{self._get_object_alias(self._order_by[0])} {asc_desc}]]"
+        if new._order_by is not None:
+            asc_desc = ":asc" if new._order_by[1] else ":desc"
+            compiled += f" :order-by [[{new._get_object_alias(new._order_by[0])} {asc_desc}]]"
 
-        if self._limit is not None:
-            compiled += f" :limit {self._limit}"
+        if new._limit is not None:
+            compiled += f" :limit {new._limit}"
 
-        if self._offset is not None:
-            compiled += f" :offset {self._offset}"
+        if new._offset is not None:
+            compiled += f" :offset {new._offset}"
 
         return compiled + "}}"
 
@@ -379,7 +393,7 @@ class Query:
     def __str__(self) -> str:
         return self._compile()
 
-    def __eq__(self, other: object):
+    def __eq__(self, other: object) -> bool:
         if not isinstance(other, Query):
             return NotImplemented
 

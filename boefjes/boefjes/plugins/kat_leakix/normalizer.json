@@ -1,5 +1,7 @@
 {
   "id": "kat_leakix_normalize",
+  "name": "LeakIX",
+  "description": "Parses the LeakIX output into findings and identified software and services.",
   "consumes": [
     "boefje/leakix"
   ],

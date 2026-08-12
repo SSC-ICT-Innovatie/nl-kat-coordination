@@ -1,6 +1,5 @@
 from datetime import datetime
 from http import HTTPStatus
-from logging import getLogger
 from typing import Any
 
 from httpx import HTTPStatusError
@@ -16,7 +15,7 @@ from octopoes.xtdb.client import OperationType as XTDBOperationType
 from octopoes.xtdb.client import XTDBSession
 from octopoes.xtdb.query_builder import generate_pull_query
 
-logger = getLogger(__name__)
+scan_profile_adapter = TypeAdapter(ScanProfile)
 
 
 class ScanProfileRepository(Repository):
@@ -49,11 +48,11 @@ class XTDBScanProfileRepository(ScanProfileRepository):
         super().__init__(event_manager)
         self.session = session
 
-    def commit(self):
-        self.session.commit()
+    def commit(self, sync: bool = False):
+        self.session.commit(sync)
 
     @classmethod
-    def format_id(cls, ooi_reference: Reference):
+    def format_id(cls, ooi_reference: Reference) -> str:
         return f"{cls.object_type}|{ooi_reference}"
 
     @classmethod
@@ -65,16 +64,13 @@ class XTDBScanProfileRepository(ScanProfileRepository):
 
     @classmethod
     def deserialize(cls, data: dict[str, Any]) -> ScanProfileBase:
-        return TypeAdapter(ScanProfile).validate_python(data)
+        return scan_profile_adapter.validate_python(data)
 
     def list_scan_profiles(self, scan_profile_type: str | None, valid_time: datetime) -> list[ScanProfileBase]:
         where = {"type": self.object_type}
         if scan_profile_type is not None:
             where["scan_profile_type"] = scan_profile_type
-        query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            where,
-        )
+        query = generate_pull_query(FieldSet.ALL_FIELDS, where)
         results = self.session.client.query(query, valid_time=valid_time)
         return [self.deserialize(r[0]) for r in results]
 

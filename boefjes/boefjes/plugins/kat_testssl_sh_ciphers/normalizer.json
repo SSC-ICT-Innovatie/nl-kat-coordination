@@ -1,7 +1,9 @@
 {
   "id": "kat_ssl_test_ciphers_normalize",
+  "name": "SSL test ciphers",
+  "description": "Parses TestSSL data into TLS ciphers.",
   "consumes": [
-    "boefje/testssl-sh-ciphers"
+    "openkat/testssl-sh-ciphers-output"
   ],
   "produces": [
     "TLSCipher"

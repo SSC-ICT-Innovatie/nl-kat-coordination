@@ -10,6 +10,6 @@ class ConcatenatedReport(Report):
     """
 
     id = "concatenated-report"
-    name = _("Concatenated Report")
+    name = _("Report")
     description = "A Concatenated Report shows multiple reports placed below each other in a single report."
     label_style = "5-light"

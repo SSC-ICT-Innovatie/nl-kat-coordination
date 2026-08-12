@@ -1,15 +1,15 @@
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 from octopoes.models.ooi.software import Software, SoftwareInstance
-from packaging import version
+from packaging.version import Version, parse
 
 VULNERABLE_RANGES: list[tuple[str, str]] = [("0", "11.8.1.1"), ("11.9.0.0", "11.9.1.1"), ("11.10.0.0", "11.10.0.2")]
 
 
-def extract_js_version(html_content: str) -> version.Version | bool:
+def extract_js_version(html_content: str) -> Version | bool:
     telltale = "/mifs/scripts/auth.js?"
     telltale_position = html_content.find(telltale)
     if telltale_position == -1:
@@ -20,10 +20,10 @@ def extract_js_version(html_content: str) -> version.Version | bool:
     version_string = html_content[telltale_position + len(telltale) : version_end]
     if not version_string:
         return False
-    return version.parse(" ".join(strip_vsp_and_build(version_string)))
+    return parse(" ".join(strip_vsp_and_build(version_string)))
 
 
-def extract_css_version(html_content: str) -> version.Version | bool:
+def extract_css_version(html_content: str) -> Version | bool:
     telltale = "/mifs/css/windowsAllAuth.css?"
     telltale_position = html_content.find(telltale)
     if telltale_position == -1:
@@ -34,7 +34,7 @@ def extract_css_version(html_content: str) -> version.Version | bool:
     version_string = html_content[telltale_position + len(telltale) : version_end]
     if not version_string:
         return False
-    return version.parse(" ".join(strip_vsp_and_build(version_string)))
+    return parse(" ".join(strip_vsp_and_build(version_string)))
 
 
 def strip_vsp_and_build(url: str) -> Iterable[str]:
@@ -47,9 +47,7 @@ def strip_vsp_and_build(url: str) -> Iterable[str]:
         yield part
 
 
-def is_vulnerable_version(
-    vulnerable_ranges: list[tuple[version.Version, version.Version]], detected_version: version.Version
-) -> bool:
+def is_vulnerable_version(vulnerable_ranges: list[tuple[Version, Version]], detected_version: Version) -> bool:
     return any(start <= detected_version < end for start, end in vulnerable_ranges)
 
 
@@ -70,11 +68,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     yield software_instance
     if js_detected_version:
         vulnerable = is_vulnerable_version(
-            [(version.parse(start), version.parse(end)) for start, end in VULNERABLE_RANGES], js_detected_version
+            [(parse(start), parse(end)) for start, end in VULNERABLE_RANGES], js_detected_version
         )
     else:
         # The CSS version only included the first two parts of the version number so we don't know the patch level
-        vulnerable = css_detected_version < version.parse("11.8")
+        vulnerable = css_detected_version < parse("11.8")
     if vulnerable:
         finding_type = CVEFindingType(id="CVE-2023-35078")
         finding = Finding(

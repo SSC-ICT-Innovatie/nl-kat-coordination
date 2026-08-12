@@ -1,54 +1,83 @@
 {% load i18n %}
 
-<h3>{% translate "Selected Plugins" %}</h3>
-{% if data.plugins %}
+{% if plugins %}
+    <h3 id="selected-plugins">{% translate "Plugins" %} ({{ plugins|length }})</h3>
     <p>
         {% blocktranslate trimmed %}
             The table below shows all required or optional plugins for the selected reports.
         {% endblocktranslate %}
     </p>
-    <table>
-        <caption class="visually-hidden">{% translate "Required and optional plugins" %}</caption>
-        <thead>
-            <tr>
-                <th>{% translate "Plugin enabled" %}</th>
-                <th>{% translate "Plugin options" %}</th>
-                <th>{% translate "Plugin name" %}</th>
-                <th>{% translate "Plugin scan level" %}</th>
-                <th>{% translate "Plugin type" %}</th>
-                <th>{% translate "Plugin description" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for plugin in data.plugins %}
+    <div class="horizontal-scroll">
+        <table>
+            <caption class="visually-hidden">{% translate "Required and optional plugins" %}</caption>
+            <thead>
                 <tr>
-                    <td>
-                        {% if plugin.enabled %}
-                            <span class="icon positive"></span>
-                        {% else %}
-                            <span class="icon incomplete"></span>
-                        {% endif %}
-                    </td>
-                    <td>
-                        {% if plugin.required %}
-                            required
-                        {% else %}
-                            optional
-                        {% endif %}
-                    </td>
-                    <td>{{ plugin.name }}</td>
-                    <td>
-                        {% include "partials/scan_level_indicator.html" with value=plugin.scan_level custom_class="left" %}
-
-                    </td>
-                    <td>
-                        <span class="label-plugin-type {{ plugin.type }}">{{ plugin.type|title }}</span>
-                    </td>
-                    <td>{{ plugin.description }}</td>
+                    <th class="nowrap">{% translate "Plugin enabled" %}</th>
+                    <th class="nowrap">{% translate "Plugin options" %}</th>
+                    <th class="nowrap">{% translate "Plugin name" %}</th>
+                    <th class="nowrap">{% translate "Plugin scan level" %}</th>
+                    <th class="nowrap actions">{% translate "Details" %}</th>
                 </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                {% for plugin in plugins %}
+                    <tr>
+                        <td>
+                            {% if plugin.enabled %}
+                                <span class="icon positive">{% translate "Enabled." %}</span>
+                            {% else %}
+                                {% if plugin.required %}
+                                    <span class="icon failed">{% translate "Disabled" %} {% translate "required" %}</span>
+                                {% else %}
+                                    <span class="icon incomplete">{% translate "Disabled" %} {% translate "optional" %}</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if plugin.required %}
+                                {% translate "required" %}
+                            {% else %}
+                                {% translate "optional" %}
+                            {% endif %}
+                        </td>
+                        <td>{{ plugin.name }}</td>
+                        <td>
+                            {% include "partials/scan_level_indicator.html" with value=plugin.scan_level custom_class="left" %}
+
+                        </td>
+                        <td class="actions">
+                            <button class="expando-button"
+                                    data-icon-open-class="icon ti-chevron-down"
+                                    data-icon-close-class="icon ti-chevron-up"
+                                    data-close-label="{% translate "Close details" %}">
+                                {% translate "Open details" %}
+                            </button>
+                        </td>
+                    </tr>
+                    <tr class="expando-row">
+                        <td colspan="6">
+                            <table>
+                                <caption class="visually-hidden">{% translate "Plugin extra info" %}</caption>
+                                <thead>
+                                    <tr>
+                                        <th class="nowrap">{% translate "Plugin type" %}</th>
+                                        <th class="nowrap">{% translate "Plugin description" %}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <td>
+                                        <span class="label-plugin-type {{ plugin.type }}">{{ plugin.type|title }}</span>
+                                    </td>
+                                    <td>{{ plugin.description }}</td>
+                                </tbody>
+                            </table>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% else %}
+    <h3 id="selected-plugins">{% translate "Plugins" %}</h3>
     {% translate "There are no required or optional plugins needed for the selected report types." %}
 {% endif %}

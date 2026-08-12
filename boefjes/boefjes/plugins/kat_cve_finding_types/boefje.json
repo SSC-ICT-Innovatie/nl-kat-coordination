@@ -1,13 +1,14 @@
 {
   "id": "cve-finding-types",
   "name": "CVE Finding Types",
-  "description": "Hydrate information of CVE finding types from the CVE API",
+  "description": "Hydrate information of Common Vulnerabilities and Exposures (CVE) finding types from the CVE API.",
   "consumes": [
     "CVEFindingType"
   ],
-  "environment_keys": [
-    "CVEAPI_URL"
-  ],
   "scan_level": 0,
-  "enabled": true
+  "enabled": true,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_cve_finding_types.main"
+  ]
 }

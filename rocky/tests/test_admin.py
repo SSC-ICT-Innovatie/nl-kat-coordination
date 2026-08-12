@@ -15,13 +15,21 @@ class OrganizationAdminTestCase(ModelAdminTestCase):
     def setUp(self):
         super().setUp()
 
-        katalogus_patcher = patch("tools.models.get_katalogus")
+        katalogus_patcher = patch("katalogus.client.KATalogusClient")
         katalogus_patcher.start()
         self.addCleanup(katalogus_patcher.stop)
 
-        octopoes_patcher = patch("tools.models.OctopoesAPIConnector")
+        octopoes_patcher = patch("rocky.signals.OctopoesAPIConnector")
         octopoes_patcher.start()
         self.addCleanup(octopoes_patcher.stop)
+
+        scheduler_patcher = patch("crisis_room.management.commands.dashboards.scheduler_client")
+        scheduler_patcher.start()
+        self.addCleanup(scheduler_patcher.stop)
+
+        bytes_patcher = patch("rocky.bytes_client.BytesClient")
+        bytes_patcher.start()
+        self.addCleanup(bytes_patcher.stop)
 
 
 class AuthTokenAdminTestCase(ModelAdminTestCase):

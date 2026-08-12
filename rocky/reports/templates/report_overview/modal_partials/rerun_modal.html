@@ -1,0 +1,49 @@
+{% load i18n %}
+
+{% component 'modal' size='dialog-large' modal_id='rerun-modal' %}
+{% fill 'header' %}{% translate "Rerun the following report(s):" %}{% endfill %}
+{% fill 'content' %}
+<p>
+    {% blocktranslate trimmed %}
+        By submitting you're generating the selected reports again, using the current data.
+    {% endblocktranslate %}
+</p>
+<form id="rerun-form" class="inline layout-wide" method="post">
+    {% csrf_token %}
+    <table id="rerun-table">
+        <thead>
+            <tr>
+                <th>{% translate "Name" %}</th>
+                <th>{% translate "Type" %}</th>
+                <th>{% translate "Input objects" %}</th>
+                <th>{% translate "Reference date" %}</th>
+                <th>{% translate "Creation date" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="rerun-table-row">
+                <td class="name">
+                    <span class="name-holder"></span>
+                    <input type="hidden" name="report_reference" class="report-reference-input" />
+                </td>
+                <td class="type">
+                    <ul class="tags horizontal-view">
+                    </ul>
+                </td>
+                <td class="input_objects"></td>
+                <td class="reference_date"></td>
+                <td class="creation_date"></td>
+            </tr>
+        </tbody>
+    </table>
+</form>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button type="submit"
+        form="rerun-form"
+        class="submit"
+        name="action"
+        value="rerun">{% translate "Rerun" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

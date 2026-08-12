@@ -1,5 +1,7 @@
 {
   "id": "kat_cve_finding_types_normalize",
+  "name": "CVE finding types",
+  "description": "Parses Common Vulnerability Exposures (CVE) into findings.",
   "consumes": [
     "boefje/cve-finding-types"
   ],

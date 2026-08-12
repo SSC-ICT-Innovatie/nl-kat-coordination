@@ -1,20 +1,26 @@
 {% load i18n %}
 
-<form action="{% if organization.code %}{% url request.resolver_match.url_name organization.code %}{% else %}{% url request.resolver_match.url_name %}{% endif %}"
+<form id="ooi_list_settings"
+      action="{% if organization.code %}{% url request.resolver_match.url_name organization.code %}{% else %}{% url request.resolver_match.url_name %}{% endif %}"
       method="get"
       class="help">
     {% if ooi_id %}<input type="hidden" name="ooi_id" value="{{ ooi_id }}" />{% endif %}
     {% include "partials/form/field_hidden_from_list.html" with list=mandatory_fields form=observed_at_form %}
     {% include "partials/form/fieldset.html" with fields=observed_at_form %}
-    {% include "partials/form/fieldset.html" with fields=ooi_type_form custom_class="column-4" %}
+    {% include "partials/form/fieldset.html" with fields=ooi_type_form custom_class="column-4 checkbox-list" %}
 
     {% if ooi_type_form.fields.ooi_type.choices|length > 4 %}
         <button type="button"
                 class="toggle-all toggle-on ghost"
                 data-toggle-target="ooi_type">{% translate "Toggle all OOI types" %}</button>
     {% endif %}
-    {% include "partials/form/fieldset.html" with fields=clearance_level_filter_form %}
+    {% include "partials/form/fieldset.html" with fields=clearance_level_filter_form fieldset_parent_class="column-2" %}
+    {% include "partials/form/fieldset.html" with fields=ooi_search_form %}
 
+    {{ order_by_form }}
+    <input type="hidden"
+           name="sorting_order"
+           value="{% if sorting_order == "asc" %}desc{% else %}asc{% endif %}">
     <div class="button-container">
         <input type="submit"
                value="{% if submit_text %}{{ submit_text }}{% else %}{% translate "Set filters" %}{% endif %}" />

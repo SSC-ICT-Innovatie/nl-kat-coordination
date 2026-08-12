@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 
 import pika
-from scheduler import connectors, utils
+from scheduler import clients, utils
 
 from tests.mocks import listener
 
@@ -13,7 +13,7 @@ class RabbitMQTestCase(unittest.TestCase):
     DSN = "amqp://guest:guest@ci_rabbitmq:5672/%2Fkat"
 
     def setUp(self):
-        self.listeners: list[connectors.listeners.Listener] = []
+        self.listeners: list[clients.listeners.Listener] = []
 
         threading.excepthook = self.unhandled_exception
 
@@ -34,31 +34,17 @@ class RabbitMQTestCase(unittest.TestCase):
 
         stop_event = threading.Event()
 
-        listener_ = listener.MockRabbitMQ(
-            dsn=self.DSN,
-            queue="test",
-            func=test_func,
-        )
+        listener_ = listener.MockRabbitMQ(dsn=self.DSN, queue="test", func=test_func)
         self.listeners.append(listener_)
 
         # Run the listener
         thread = utils.ThreadRunner(
-            name="MockRabbitMQ",
-            target=listener_.listen,
-            stop_event=stop_event,
-            interval=0.01,
-            daemon=False,
-            loop=False,
+            name="MockRabbitMQ", target=listener_.listen, stop_event=stop_event, interval=0.01, daemon=False, loop=False
         )
         thread.start()
 
         # Make sure the listener is running
         self.assertTrue(thread.is_alive())
-
-        # Stop the listener
-        listener_.channel.stop_consuming()
-        listener_.channel.close()
-        listener_.connection.close()
 
         # Call stop on the listener
         listener_.stop()
@@ -80,21 +66,12 @@ class RabbitMQTestCase(unittest.TestCase):
 
         stop_event = threading.Event()
 
-        listener_ = listener.MockRabbitMQ(
-            dsn=self.DSN,
-            queue="test",
-            func=test_func,
-        )
+        listener_ = listener.MockRabbitMQ(dsn=self.DSN, queue="test", func=test_func)
         self.listeners.append(listener_)
 
         # Run the listener
         thread = utils.ThreadRunner(
-            name="MockRabbitMQ",
-            target=listener_.listen,
-            stop_event=stop_event,
-            interval=0.01,
-            daemon=False,
-            loop=False,
+            name="MockRabbitMQ", target=listener_.listen, stop_event=stop_event, interval=0.01, daemon=False, loop=False
         )
         thread.start()
 
@@ -122,11 +99,7 @@ class RabbitMQTestCase(unittest.TestCase):
 
         stop_event = threading.Event()
 
-        listener_ = listener.MockRabbitMQ(
-            dsn=self.DSN,
-            queue="test",
-            func=test_func,
-        )
+        listener_ = listener.MockRabbitMQ(dsn=self.DSN, queue="test", func=test_func)
         self.listeners.append(listener_)
 
         # Mocks
@@ -135,12 +108,7 @@ class RabbitMQTestCase(unittest.TestCase):
 
         # Run the listener
         thread = utils.ThreadRunner(
-            name="MockRabbitMQ",
-            target=listener_.listen,
-            stop_event=stop_event,
-            interval=0.01,
-            daemon=False,
-            loop=False,
+            name="MockRabbitMQ", target=listener_.listen, stop_event=stop_event, interval=0.01, daemon=False, loop=False
         )
         thread.start()
 
@@ -171,21 +139,12 @@ class RabbitMQTestCase(unittest.TestCase):
 
         stop_event = threading.Event()
 
-        listener_ = listener.MockRabbitMQ(
-            dsn=self.DSN,
-            queue="test",
-            func=test_func,
-        )
+        listener_ = listener.MockRabbitMQ(dsn=self.DSN, queue="test", func=test_func)
         self.listeners.append(listener_)
 
         # Run the listener
         thread = utils.ThreadRunner(
-            name="MockRabbitMQ",
-            target=listener_.listen,
-            stop_event=stop_event,
-            interval=0.01,
-            daemon=False,
-            loop=False,
+            name="MockRabbitMQ", target=listener_.listen, stop_event=stop_event, interval=0.01, daemon=False, loop=False
         )
         thread.start()
 
@@ -196,11 +155,7 @@ class RabbitMQTestCase(unittest.TestCase):
         connection = pika.BlockingConnection(pika.URLParameters(self.DSN))
         channel = connection.channel()
         channel.queue_declare(queue="test", durable=True)
-        channel.basic_publish(
-            exchange="",
-            routing_key="test",
-            body="Test Message",
-        )
+        channel.basic_publish(exchange="", routing_key="test", body="Test Message")
         channel.stop_consuming()
         channel.close()
         connection.close()

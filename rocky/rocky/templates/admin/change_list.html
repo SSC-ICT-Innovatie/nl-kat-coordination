@@ -49,7 +49,11 @@
     {% endblock %}
     {% if cl.formset and cl.formset.errors %}
         <p class="errornote">
-        {% blocktranslate count counter=cl.formset.total_error_count %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktranslate %}
+          {% blocktranslate count counter=cl.formset.total_error_count trimmed %}
+            Please correct the error below.
+          {% plural %}
+            Please correct the errors below.
+          {% endblocktranslate %}
         </p>
         {{ cl.formset.non_form_errors }}
     {% endif %}

@@ -1,0 +1,14 @@
+.sticky-column {
+  max-width: 100%;
+  position: relative;
+
+  .sticky-cell {
+    position: sticky;
+    right: 0;
+    background-color: #ffffff;
+  }
+
+  tr.expanded-row .sticky-cell {
+    background-color: var(--expando-rows-row-background-color);
+  }
+}

@@ -4,6 +4,5 @@
   "description": "",
   "consumes": [],
   "produces": [],
-  "environment_keys": [],
   "oci_image": "openkat/test"
 }

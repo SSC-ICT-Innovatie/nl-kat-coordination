@@ -7,8 +7,9 @@ from django.urls import resolve, reverse
 from pytest_django.asserts import assertContains, assertNotContains
 from tools.models import Indemnification
 
-from octopoes.models import ScanLevel, ScanProfileType
+from octopoes.models import ScanLevel
 from octopoes.models.exception import ObjectNotFoundException
+from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
 from octopoes.models.pagination import Paginated
 from octopoes.models.types import OOIType
@@ -31,7 +32,7 @@ def test_ooi_list(rf, client_member, mock_organization_view_octopoes):
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert mock_organization_view_octopoes().list_objects.call_count == 1
     assertContains(response, "testnetwork")
 
 
@@ -40,10 +41,7 @@ def test_ooi_list_with_clearance_type_filter_and_clearance_level_filter(
 ):
     kwargs = {"organization_code": client_member.organization.code}
     url = reverse("ooi_list", kwargs=kwargs)
-    request = rf.get(
-        url,
-        {"clearance_level": [0, 1], "clearance_type": ["declared", "inherited"]},
-    )
+    request = rf.get(url, {"clearance_level": [0, 1], "clearance_type": ["declared", "inherited"]})
     request.resolver_match = resolve(url)
 
     setup_request(request, client_member.user)
@@ -55,21 +53,39 @@ def test_ooi_list_with_clearance_type_filter_and_clearance_level_filter(
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert mock_organization_view_octopoes().list_objects.call_count == 1
 
     list_call_0 = mock_organization_view_octopoes().list_objects.call_args_list[0]
-    assert list_call_0.kwargs["limit"] == 0
+    assert list_call_0.kwargs["limit"] == 150
     assert list_call_0.kwargs["scan_level"] == {ScanLevel.L0, ScanLevel.L1}
-    assert list_call_0.kwargs["scan_profile_type"] == {ScanProfileType.DECLARED, ScanProfileType.INHERITED}
-
-    list_call_1 = mock_organization_view_octopoes().list_objects.call_args_list[1]
-    assert list_call_1.kwargs["limit"] == 150
-    assert list_call_1.kwargs["offset"] == 0
-    assert list_call_1.kwargs["scan_level"] == {ScanLevel.L0, ScanLevel.L1}
-    assert list_call_1.kwargs["scan_profile_type"] == {ScanProfileType.DECLARED, ScanProfileType.INHERITED}
+    assert list_call_0.kwargs["scan_profile_type"] == {"declared", "inherited"}
 
     assertContains(response, "testnetwork")
     assertContains(response, "Showing 150 of 200 objects")
+
+
+def test_ooi_list_search(rf, client_member, mock_organization_view_octopoes):
+    kwargs = {"organization_code": client_member.organization.code}
+    url = reverse("ooi_list", kwargs=kwargs)
+    request = rf.get(url, {"search": "testnetwork"})
+    request.resolver_match = resolve(url)
+
+    setup_request(request, client_member.user)
+
+    network = Network(name="testnetwork")
+
+    mock_organization_view_octopoes().list_objects.return_value = Paginated[OOIType](
+        count=2, items=[network, Hostname(name="example.com", network=network.reference)]
+    )
+
+    response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert response.status_code == 200
+
+    list_call_1 = mock_organization_view_octopoes().list_objects.call_args_list[0]
+    assert list_call_1.kwargs["search_string"] == "testnetwork"
+
+    assertContains(response, "Showing 2 of 2 objects")
 
 
 def test_ooi_list_delete_multiple(rf, client_member, mock_organization_view_octopoes):
@@ -81,17 +97,12 @@ def test_ooi_list_delete_multiple(rf, client_member, mock_organization_view_octo
 
     request = rf.post(
         url,
-        data={
-            "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L0",
-            "action": "delete",
-        },
+        data={"ooi": ["Network|internet", "Hostname|internet|scanme.org"], "scan-profile": "L0", "action": "delete"},
     )
     setup_request(request, client_member.user)
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
-    assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert response.status_code == 302
     assert mock_organization_view_octopoes().delete_many.call_count == 1
 
 
@@ -133,14 +144,15 @@ def test_update_scan_profile_multiple(rf, client_member, mock_organization_view_
         url,
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L1",
+            "clearance_type": "declared",
+            "level": "1",
             "action": "update-scan-profile",
         },
     )
     setup_request(request, client_member.user)
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
-    assert response.status_code == 200
+    assert response.status_code == 302
     assert mock_organization_view_octopoes().save_many_scan_profiles.call_count == 1
 
 
@@ -155,7 +167,8 @@ def test_update_scan_profile_single(rf, client_member, mock_organization_view_oc
         url,
         data={
             "ooi": ["Hostname|internet|scanme.org"],
-            "scan-profile": "L4",
+            "clearance_type": "declared",
+            "level": "4",
             "action": "update-scan-profile",
         },
     )
@@ -163,7 +176,7 @@ def test_update_scan_profile_single(rf, client_member, mock_organization_view_oc
     setup_request(request, client_member.user)
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
-    assert response.status_code == 200
+    assert response.status_code == 302
     assert mock_organization_view_octopoes().save_many_scan_profiles.call_count == 1
 
 
@@ -173,16 +186,12 @@ def test_update_scan_profile_to_inherit(rf, client_member, mock_organization_vie
 
     request = rf.post(
         url,
-        data={
-            "ooi": ["Hostname|internet|scanme.org"],
-            "scan-profile": "inherit",
-            "action": "update-scan-profile",
-        },
+        data={"ooi": ["Hostname|internet|scanme.org"], "clearance_type": "inherited", "action": "update-scan-profile"},
     )
     setup_request(request, client_member.user)
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
 
-    assert response.status_code == 200
+    assert response.status_code == 302
     assert mock_organization_view_octopoes().save_many_scan_profiles.call_count == 1
 
 
@@ -193,11 +202,7 @@ def test_update_scan_profile_to_inherit_connection_error(rf, client_member, mock
 
     request = rf.post(
         url,
-        data={
-            "ooi": ["Hostname|internet|scanme.org"],
-            "scan-profile": "inherit",
-            "action": "update-scan-profile",
-        },
+        data={"ooi": ["Hostname|internet|scanme.org"], "clearance_type": "inherited", "action": "update-scan-profile"},
     )
     setup_request(request, client_member.user)
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
@@ -212,11 +217,7 @@ def test_update_scan_profile_to_inherit_object_not_found(rf, client_member, mock
 
     request = rf.post(
         url,
-        data={
-            "ooi": ["Hostname|internet|scanme.org"],
-            "scan-profile": "inherit",
-            "action": "update-scan-profile",
-        },
+        data={"ooi": ["Hostname|internet|scanme.org"], "clearance_type": "inherited", "action": "update-scan-profile"},
     )
     setup_request(request, client_member.user)
     response = OOIListView.as_view()(request, organization_code=client_member.organization.code)
@@ -232,7 +233,8 @@ def test_update_scan_profiles_forbidden_acknowledged(rf, client_member, mock_org
         url,
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L1",
+            "clearance_type": "declared",
+            "level": "1",
             "action": "update-scan-profile",
         },
     )
@@ -259,11 +261,7 @@ def test_update_scan_profiles_forbidden_trusted(rf, client_member, mock_organiza
 
     request = rf.post(
         url,
-        data={
-            "ooi": ["Network|internet"],
-            "scan-profile": "L1",
-            "action": "update-scan-profile",
-        },
+        data={"ooi": ["Network|internet"], "clearance_type": "declared", "level": "1", "action": "update-scan-profile"},
     )
 
     client_member.trusted_clearance_level = -1
@@ -284,7 +282,8 @@ def test_update_scan_profiles_no_indemnification(rf, redteam_member, mock_organi
         url,
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L1",
+            "clearance_type": "declared",
+            "level": "1",
             "action": "update-scan-profile",
         },
     )
@@ -307,7 +306,8 @@ def test_update_scan_profiles_octopoes_down(rf, client_member, mock_organization
         "ooi_list",
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L2",
+            "clearance_type": "declared",
+            "level": 2,
             "action": "update-scan-profile",
         },
     )
@@ -329,7 +329,8 @@ def test_update_scan_profiles_object_not_found(rf, client_member, mock_organizat
         "ooi_list",
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L2",
+            "clearance_type": "declared",
+            "level": 2,
             "action": "update-scan-profile",
         },
     )
@@ -348,7 +349,8 @@ def test_delete_octopoes_down(rf, client_member, mock_organization_view_octopoes
         "ooi_list",
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L2",
+            "clearance_type": "declared",
+            "level": 2,
             "action": "delete",
         },
     )
@@ -369,7 +371,8 @@ def test_delete_object_not_found(rf, client_member, mock_organization_view_octop
         "ooi_list",
         data={
             "ooi": ["Network|internet", "Hostname|internet|scanme.org"],
-            "scan-profile": "L2",
+            "clearance_type": "declared",
+            "level": 2,
             "action": "delete",
         },
     )
@@ -454,9 +457,10 @@ def test_ooi_list_filtered_export_csv(rf, client_member, mock_organization_view_
     assert mock_organization_view_octopoes().list_objects.call_count == 1
 
     mock_calls = mock_organization_view_octopoes().list_objects.mock_calls
-    assert list(mock_calls[0].kwargs["scan_level"])[0].value == 3
-    assert mock_calls[0].args[0].pop() == Network
-    assert list(mock_calls[0].kwargs["scan_profile_type"])[0].value == "inherited"
+    assert list(mock_calls[0].kwargs["scan_level"])[0] == 3
+    popped_ooi_type = mock_calls[0].args[0].pop()
+    assert popped_ooi_type == "Network"
+    assert list(mock_calls[0].kwargs["scan_profile_type"])[0] == "inherited"
 
 
 @pytest.mark.parametrize("member", ["superuser_member", "admin_member", "redteam_member"])
@@ -469,14 +473,11 @@ def test_delete_perms_object_list(request, member, rf, mock_organization_view_oc
     url = reverse("ooi_list", kwargs={"organization_code": member.organization.code})
     request = rf.get(url)
     request.resolver_match = resolve(url)
-    response = OOIListView.as_view()(
-        setup_request(request, member.user),
-        organization_code=member.organization.code,
-    )
+    response = OOIListView.as_view()(setup_request(request, member.user), organization_code=member.organization.code)
 
     assert response.status_code == 200
 
-    assertContains(response, "Delete object(s)")
+    assertContains(response, "Delete")
 
 
 def test_delete_perms_object_list_clients(rf, client_member, mock_organization_view_octopoes):
@@ -488,10 +489,9 @@ def test_delete_perms_object_list_clients(rf, client_member, mock_organization_v
     request = rf.get(url)
     request.resolver_match = resolve(url)
     response = OOIListView.as_view()(
-        setup_request(request, client_member.user),
-        organization_code=client_member.organization.code,
+        setup_request(request, client_member.user), organization_code=client_member.organization.code
     )
 
     assert response.status_code == 200
 
-    assertNotContains(response, "Delete object(s)")
+    assertNotContains(response, "Delete")

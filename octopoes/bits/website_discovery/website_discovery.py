@@ -12,7 +12,8 @@ def run(
     ip_address: IPAddressV4, additional_oois: list[IPService | ResolvedHostname], config: dict[str, Any]
 ) -> Iterator[OOI]:
     def is_service_http(ip_service: IPService) -> bool:
-        return "http" in ip_service.service.tokenized.name.lower().strip()
+        service_name = ip_service.service.tokenized.name.lower().strip()
+        return service_name in ("http", "https")
 
     hostnames = [resolved.hostname for resolved in additional_oois if isinstance(resolved, ResolvedHostname)]
     services = [ip_service for ip_service in additional_oois if isinstance(ip_service, IPService)]
@@ -21,7 +22,4 @@ def run(
     # website is cartesian product of hostname and http services
     for http_service in http_services:
         for hostname in hostnames:
-            yield Website(
-                hostname=hostname,
-                ip_service=http_service.reference,
-            )
+            yield Website(hostname=hostname, ip_service=http_service.reference)

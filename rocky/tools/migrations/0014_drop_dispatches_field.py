@@ -4,18 +4,9 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0013_boefjeconfig"),
-    ]
+    dependencies = [("tools", "0013_boefjeconfig")]
 
     operations = [
-        migrations.RemoveField(
-            model_name="job",
-            name="dispatches",
-        ),
-        migrations.RenameField(
-            model_name="job",
-            old_name="boefje_name",
-            new_name="boefje_id",
-        ),
+        migrations.RemoveField(model_name="job", name="dispatches"),
+        migrations.RenameField(model_name="job", old_name="boefje_name", new_name="boefje_id"),
     ]

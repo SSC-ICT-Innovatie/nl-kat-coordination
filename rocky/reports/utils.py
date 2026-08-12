@@ -20,7 +20,10 @@ class JSONEncoder(DjangoJSONEncoder):
     def default(self, o):
         if isinstance(o, OOI):
             return str(o)
-        elif dataclasses.is_dataclass(o):
+        elif dataclasses.is_dataclass(o) and not isinstance(o, type):
+            # is_dataclass return True if o is a dataclass or an instance, but
+            # asdict only accept instances, so we need to add the "not
+            # isinstance(o, type)" to make sure o is an instance not a class.
             return dataclasses.asdict(o)
         else:
             return super().default(o)

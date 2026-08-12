@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_services",
+  "name": "BinaryEdge services",
+  "description": "Parses BinaryEdge data to check for services such as SSH, rsync, FTP, telnet and SMB.",
   "consumes": [
     "boefje/binaryedge"
   ],

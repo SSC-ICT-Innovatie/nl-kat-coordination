@@ -5,23 +5,13 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("fmea", "0001_initial"),
-    ]
+    dependencies = [("fmea", "0001_initial")]
 
     operations = [
         migrations.CreateModel(
             name="FailureModeAffectedObject",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 (
                     "affected_department",
                     models.CharField(
@@ -39,22 +29,12 @@ class Migration(migrations.Migration):
                 ),
                 ("affected_ooi_type", models.CharField(max_length=100)),
             ],
-            options={
-                "verbose_name_plural": "Failure Mode Affected Objects",
-            },
+            options={"verbose_name_plural": "Failure Mode Affected Objects"},
         ),
         migrations.CreateModel(
             name="FailureModeTreeObject",
             fields=[
-                (
-                    "id",
-                    models.BigAutoField(
-                        auto_created=True,
-                        primary_key=True,
-                        serialize=False,
-                        verbose_name="ID",
-                    ),
-                ),
+                ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
                 ("tree_object", models.CharField(max_length=256)),
                 (
                     "affected_department",
@@ -79,33 +59,16 @@ class Migration(migrations.Migration):
             field=models.PositiveSmallIntegerField(
                 choices=[
                     ("", "--- Select an option ----"),
-                    (
-                        1,
-                        "Level 1: Always Detectable. Incident (almost) never occurs, almost unthinkable.",
-                    ),
-                    (
-                        2,
-                        "Level 2: Usually Detectable. Incidents occur less than once a year (3-5).",
-                    ),
-                    (
-                        3,
-                        "Level 3: Detectable. Failure mode is detectable with effort.",
-                    ),
-                    (
-                        4,
-                        "Level 4: Poorly Detectable. Detecting the failure mode is difficult.",
-                    ),
-                    (
-                        5,
-                        "Level 5: Almost Undetectable. Failure mode detection is very difficult or nearly impossible.",
-                    ),
+                    (1, "Level 1: Always Detectable. Incident (almost) never occurs, almost unthinkable."),
+                    (2, "Level 2: Usually Detectable. Incidents occur less than once a year (3-5)."),
+                    (3, "Level 3: Detectable. Failure mode is detectable with effort."),
+                    (4, "Level 4: Poorly Detectable. Detecting the failure mode is difficult."),
+                    (5, "Level 5: Almost Undetectable. Failure mode detection is very difficult or nearly impossible."),
                 ]
             ),
         ),
         migrations.AlterField(
-            model_name="failuremode",
-            name="failure_mode",
-            field=models.CharField(max_length=256, unique=True),
+            model_name="failuremode", name="failure_mode", field=models.CharField(max_length=256, unique=True)
         ),
         migrations.AlterField(
             model_name="failuremode",
@@ -113,10 +76,7 @@ class Migration(migrations.Migration):
             field=models.PositiveSmallIntegerField(
                 choices=[
                     ("", "--- Select an option ----"),
-                    (
-                        1,
-                        "Level 1: Very Rare. Incident (almost) never occurs, almost unthinkable.",
-                    ),
+                    (1, "Level 1: Very Rare. Incident (almost) never occurs, almost unthinkable."),
                     (2, "Level 2: Rare. Incidents occur less than once a year (3-5)."),
                     (3, "Level 3: Occurs. Incidents occur several times a year."),
                     (4, "Level 4: Regularly. Incidents occur weekly."),
@@ -138,16 +98,10 @@ class Migration(migrations.Migration):
                 ]
             ),
         ),
-        migrations.DeleteModel(
-            name="FailureModeDepartment",
-        ),
+        migrations.DeleteModel(name="FailureModeDepartment"),
         migrations.AddField(
             model_name="failuremodeaffectedobject",
             name="failure_mode",
-            field=models.ForeignKey(
-                null=True,
-                on_delete=django.db.models.deletion.CASCADE,
-                to="fmea.failuremode",
-            ),
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to="fmea.failuremode"),
         ),
     ]

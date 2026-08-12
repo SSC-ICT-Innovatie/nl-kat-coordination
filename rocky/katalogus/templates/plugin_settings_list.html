@@ -2,62 +2,48 @@
 {% load i18n %}
 
 {% if object_list %}
-    <section>
-        <div>
-            <h1>{{ plugin.type|title }}{% translate " Details" %}</h1>
-            <p>{% translate "Settings" %}</p>
-            <div class="horizontal-scroll">
-                <table>
-                    <caption class="visually-hidden">{% translate "Overview of settings" %}</caption>
-                    <thead>
-                        <tr>
-                            <th scope="col">{% translate "Name" %}</th>
-                            <th scope="col">{% translate "Value" %}</th>
-                            <th scope="col">{% translate "Required" %}</th>
-                            <th scope="col">{% translate "Action" %}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for setting in object_list %}
-                            <tr>
-                                <td>{{ setting.name }}</td>
-                                <td>
-                                    {% if setting.value is None %}
-                                        {% translate "Unset" %}
-                                    {% elif setting.secret %}
-                                        •••••••••••••
-                                    {% else %}
-                                        {{ setting.value }}
-                                    {% endif %}
-                                </td>
-                                <td>
-                                    {% if setting.required %}
-                                        {% translate "Yes" %}
-                                    {% else %}
-                                        {% translate "No" %}
-                                    {% endif %}
-                                </td>
-                                {% if setting.value is None %}
-                                    <td>
-                                        <a href="{% url 'plugin_settings_add' organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id %}">{% translate "Add" %}</a>
-                                    </td>
-                                    <td></td>
-                                {% else %}
-                                    <td>
-                                        <a href="{% url 'plugin_settings_add' organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id %}">{% translate "Edit" %}</a>
-                                    </td>
-                                {% endif %}
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <form action="{% url "plugin_settings_delete" organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id %}"
-                      method="get"
-                      class="inline">
-                    {% csrf_token %}
-                    <button type="submit">{% translate "Delete" %}</button>
-                </form>
+    <div>
+        <div class="introduction">
+            <div>
+                <h2>{% translate "Settings" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        In the table below the settings for this specific Boefje can be seen.
+                        Set or change the value of the variables by editing the settings.
+                    {% endblocktranslate %}
+                </p>
+            </div>
+            <div class="horizontal-view toolbar">
+                <a class="button ghost"
+                   href="{% url 'plugin_settings_add' organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id %}"><span class="icon ti-settings"></span>{% translate "Configure Settings" %}</a>
             </div>
         </div>
-    </section>
+        <div class="horizontal-scroll">
+            <table>
+                <caption class="visually-hidden">{% translate "Overview of settings" %}</caption>
+                <thead>
+                    <tr>
+                        <th scope="col">{% translate "Variable" %}</th>
+                        <th scope="col">{% translate "Value" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for setting in object_list %}
+                        <tr>
+                            <td>{{ setting.name }}</td>
+                            <td>
+                                {% if setting.value is None %}
+                                    -
+                                {% elif setting.secret %}
+                                    •••••••••••••
+                                {% else %}
+                                    {{ setting.value }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 {% endif %}

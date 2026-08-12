@@ -1,0 +1,18 @@
+[Unit]
+Description=kat-rocky worker
+After=network.target
+
+[Service]
+User=kat
+Group=kat
+SyslogIdentifier=kat-rocky-worker
+WorkingDirectory=/opt/venvs/kat-rocky/
+EnvironmentFile=/usr/lib/kat/rocky.defaults
+EnvironmentFile=/etc/kat/rocky.conf
+ExecStart=/usr/bin/rocky-cli worker
+Restart=on-failure
+RestartSec=3s
+KillMode=mixed
+
+[Install]
+WantedBy=multi-user.target

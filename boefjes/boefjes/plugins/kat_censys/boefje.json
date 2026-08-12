@@ -1,14 +1,14 @@
 {
   "id": "censys",
   "name": "Censys",
-  "description": "Use Censys to discover open ports, services and certificates",
+  "description": "Use Censys to discover open ports, services and certificates. Requires an API key.",
   "consumes": [
     "IPAddressV4",
     "IPAddressV6"
   ],
-  "environment_keys": [
-    "CENSYS_API_ID",
-    "CENSYS_API_SECRET"
-  ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_cencys.main"
+  ]
 }

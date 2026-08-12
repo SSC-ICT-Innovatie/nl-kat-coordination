@@ -93,10 +93,7 @@ class HTTPResource(OOI):
 
     _natural_key_attrs = ["website", "web_url"]
 
-    _reverse_relation_names = {
-        "website": "resources",
-        "web_url": "resources",
-    }
+    _reverse_relation_names = {"website": "resources", "web_url": "resources"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -244,9 +241,7 @@ class RESTAPI(OOI):
     api_url: Reference = ReferenceField(WebURL)
 
     _natural_key_attrs = ["api_url"]
-    _reverse_relation_names = {
-        "api_url": "api_url_of",
-    }
+    _reverse_relation_names = {"api_url": "api_url_of"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -276,10 +271,7 @@ class APIDesignRuleResult(OOI):
     message: str
 
     _natural_key_attrs = ["rest_api", "rule"]
-    _reverse_relation_names = {
-        "rest_api": "api_design_rule_results",
-        "rule": "results",
-    }
+    _reverse_relation_names = {"rest_api": "api_design_rule_results", "rule": "results"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:

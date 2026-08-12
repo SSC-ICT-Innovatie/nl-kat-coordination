@@ -36,7 +36,7 @@ def test_upload_empty(rf, redteam_member, mock_organization_view_octopoes, mock_
 
     assert response.status_code == 200
     mock_bytes_client().upload_raw.assert_not_called()
-    assertContains(response, "This field is required")
+    assertContains(response, "Required")
 
 
 def test_upload_raw(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client, network):

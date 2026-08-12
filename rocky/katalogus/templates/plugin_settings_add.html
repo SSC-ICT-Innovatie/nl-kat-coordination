@@ -10,39 +10,39 @@
         <section>
             <div>
                 <h1>
-                    {% blocktrans count form.fields|length as count %}
-            Add setting
-          {% plural %}
-            Add settings
-          {% endblocktrans %}
+                    {% blocktranslate count form.fields|length as count trimmed %}
+                        Add setting
+                    {% plural %}
+                        Add settings
+                    {% endblocktranslate %}
                 </h1>
                 <p class="emphasized">
-                    {% blocktrans count form.fields|length as count %}
-            Setting
-          {% plural %}
-            Settings
-          {% endblocktrans %}
+                    {% blocktranslate count form.fields|length as count trimmed %}
+                        Setting
+                    {% plural %}
+                        Settings
+                    {% endblocktranslate %}
                 </p>
                 <div class="layout-form">
-                    <form novalidate method="post" class="horizontal-view help">
+                    <form novalidate method="post" class="help">
                         {% csrf_token %}
                         {% include "partials/form/form_errors.html" with form=form %}
                         {% include "partials/form/fieldset.html" with legend=name fields=form %}
 
                         <div class="button-container">
                             <button type="submit" name="add-enable">
-                                {% blocktrans count form.fields|length as count %}
-                  Add setting and enable boefje
-                {% plural %}
-                  Add settings and enable boefje
-                {% endblocktrans %}
+                                {% blocktranslate count form.fields|length as count trimmed %}
+                                    Add setting and enable boefje
+                                {% plural %}
+                                    Add settings and enable boefje
+                                {% endblocktranslate %}
                             </button>
                             <button type="submit" class="ghost" name="add">
-                                {% blocktrans count form.fields|length as count %}
-                Add setting
-              {% plural %}
-                Add settings
-              {% endblocktrans %}
+                                {% blocktranslate count form.fields|length as count trimmed %}
+                                    Add setting
+                                {% plural %}
+                                    Add settings
+                                {% endblocktranslate %}
                             </button>
                         </div>
                     </form>

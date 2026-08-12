@@ -1,5 +1,7 @@
 {
   "id": "kat_webpage_analysis_headers_normalize",
+  "name": "Webpage analysis HTTP headers",
+  "description": "Parses the HTTP headers from websites.",
   "consumes": [
     "openkat-http/headers"
   ],

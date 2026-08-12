@@ -1,5 +1,7 @@
 {
   "id": "kat_check_images",
+  "name": "Webpage analysis check images for metadata",
+  "description": "Checks images for metadata.",
   "consumes": [
     "image/jpeg",
     "image/jpg",

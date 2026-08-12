@@ -1,20 +1,20 @@
 {% load i18n %}
 {% load ooi_extra %}
 
-<div class="horizontal-scroll">
+<div class="horizontal-scroll sticky-column">
     <p class="de-emphasized">
         {% blocktranslate trimmed with name=ooi.human_readable type=ooi.get_ooi_type %}
             Findings for {{ type }} {{ name }} on {{ observed_at }}:
         {% endblocktranslate %}
     </p>
-    <table>
+    <table class="nowrap">
         <caption class="visually-hidden">{% translate "Findings" %}</caption>
         <thead>
             <tr>
                 <th scope="col">{% translate "Risk level" %}</th>
                 <th scope="col">{% translate "Finding type" %}</th>
                 <th scope="col">{% translate "Occurrences" %}</th>
-                <th scope="col" class="visually-hidden">{% translate "Details" %}</th>
+                <th scope="col" class="visually-hidden actions">{% translate "Details" %}</th>
             </tr>
         </thead>
         <tbody>
@@ -25,7 +25,7 @@
                     </td>
                     <td>{{ findings.finding_type.id }}</td>
                     <td class="number">{{ findings_list.meta.total_by_finding_type|get_item:findings.finding_type.id }}</td>
-                    <td>
+                    <td class="actions sticky-cell">
                         <button class="expando-button"
                                 data-icon-open-class="icon ti-chevron-down"
                                 data-icon-close-class="icon ti-chevron-up">

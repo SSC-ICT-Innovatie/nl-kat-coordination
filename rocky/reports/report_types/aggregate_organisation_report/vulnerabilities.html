@@ -1,0 +1,14 @@
+{% load i18n %}
+
+{% if not report_section %}
+    <div>
+        <h3>{% translate "Vulnerabilities" %}</h3>
+        <p class="toggle-item" data-show="off">{% translate "Vulnerabilities found are grouped per system." %}</p>
+    </div>
+{% endif %}
+{% if not data.vulnerabilities %}
+    <p>{% translate "No CVEs have been found." %}</p>
+{% else %}
+    {% include "vulnerability_report/report.html" with data=data.vulnerabilities %}
+
+{% endif %}

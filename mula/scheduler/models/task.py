@@ -9,6 +9,7 @@ from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from sqlalchemy.sql.schema import Index
 
 from scheduler.utils import GUID
 
@@ -42,24 +43,21 @@ class TaskStatus(str, enum.Enum):
     CANCELLED = "cancelled"
 
 
+ACTIVE_TASK_STATUSES = (TaskStatus.PENDING, TaskStatus.QUEUED, TaskStatus.DISPATCHED, TaskStatus.RUNNING)
+
+
 class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True, use_enum_values=True)
 
     id: uuid.UUID = Field(default_factory=uuid.uuid4)
-
-    scheduler_id: str | None = None
-
+    scheduler_id: str
     schedule_id: uuid.UUID | None = None
-
+    organisation: str
     priority: int | None = 0
-
     status: TaskStatus = TaskStatus.PENDING
-
     type: str | None = None
-
     hash: str | None = Field(None, max_length=32)
-
-    data: dict | None = None
+    data: dict = Field(default_factory=dict)
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     modified_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -69,38 +67,68 @@ class TaskDB(Base):
     __tablename__ = "tasks"
 
     id = Column(GUID, primary_key=True)
-
     scheduler_id = Column(String, nullable=False)
-
     schedule_id = Column(GUID, ForeignKey("schedules.id", ondelete="SET NULL"), nullable=True)
+    organisation = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    hash = Column(String(32), index=True)
+    priority = Column(Integer)
+    data = Column(JSONB, nullable=False)
+    status = Column(Enum(TaskStatus), nullable=False, default=TaskStatus.PENDING)
+
     schedule = relationship("ScheduleDB", back_populates="tasks")
 
-    type = Column(String, nullable=False)
+    created_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    modified_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now())
 
-    hash = Column(String(32), index=True)
 
-    priority = Column(Integer)
+Index("ix_tasks_organisation", TaskDB.organisation)
+Index("ix_tasks_org_type_created", TaskDB.organisation, TaskDB.type, TaskDB.created_at.desc())
+Index("ix_tasks_scheduler_id", TaskDB.scheduler_id)
+Index("ix_tasks_status", TaskDB.status)
+Index("ix_tasks_schedule_status", TaskDB.schedule_id, TaskDB.status)
+Index("ix_tasks_type", TaskDB.type, TaskDB.created_at.desc())
+Index("ix_tasks_hash_created", TaskDB.hash, TaskDB.created_at.desc())
 
-    data = Column(JSONB, nullable=False)
+# used by the scheduler to find queued items
+Index(
+    "ix_tasks_queue_polling",
+    TaskDB.scheduler_id,
+    TaskDB.status,
+    TaskDB.priority,
+    TaskDB.created_at,
+    postgresql_where=TaskDB.status == TaskStatus.QUEUED,
+)
+Index("ix_tasks_status_queued", TaskDB.scheduler_id, TaskDB.status, postgresql_where=TaskDB.status == TaskStatus.QUEUED)
 
-    status = Column(
-        Enum(TaskStatus),
-        nullable=False,
-        default=TaskStatus.PENDING,
-    )
+# only have one 'active or to be active task on the queue per schedule_id'
+# used by the scheduler's job rescheduler
+Index(
+    "ix_tasks_active_per_schedule",
+    TaskDB.schedule_id,
+    unique=True,
+    postgresql_where=TaskDB.status.in_(ACTIVE_TASK_STATUSES),
+)
 
-    created_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-    )
+# used by the superadmin task list stats
+Index("ix_tasks_scheduler_modified_status", TaskDB.scheduler_id, TaskDB.modified_at.desc(), TaskDB.status)
+# used by the regular user task list stats
+Index(
+    "ix_tasks_org_scheduler_modified_status",
+    TaskDB.organisation,
+    TaskDB.scheduler_id,
+    TaskDB.modified_at.desc(),
+    TaskDB.status,
+)
 
-    modified_at = Column(
-        DateTime(timezone=True),
-        nullable=False,
-        server_default=func.now(),
-        onupdate=func.now(),
-    )
+# used by the object detail page's task list
+Index(
+    "ix_tasks_sched_org_input_ooi_created",
+    TaskDB.organisation,
+    TaskDB.scheduler_id,
+    TaskDB.data["input_ooi"].astext,
+    TaskDB.created_at.desc(),
+)
 
 
 class NormalizerTask(BaseModel):
@@ -131,6 +159,7 @@ class BoefjeTask(BaseModel):
     boefje: Boefje
     input_ooi: str | None = None
     organization: str
+    deduplication_key: uuid.UUID | None = None
 
     dispatches: list[Normalizer] = Field(default_factory=list)
 
@@ -143,3 +172,14 @@ class BoefjeTask(BaseModel):
             return mmh3.hash_bytes(f"{self.input_ooi}-{self.boefje.id}-{self.organization}").hex()
 
         return mmh3.hash_bytes(f"{self.boefje.id}-{self.organization}").hex()
+
+
+class ReportTask(BaseModel):
+    type: ClassVar[str] = "report"
+
+    organisation_id: str
+    report_recipe_id: str
+
+    @property
+    def hash(self) -> str:
+        return mmh3.hash_bytes(f"{self.report_recipe_id}-{self.organisation_id}").hex()

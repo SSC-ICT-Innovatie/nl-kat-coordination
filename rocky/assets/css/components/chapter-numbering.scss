@@ -37,6 +37,14 @@
       }
     }
   }
+
+  .modal-wrapper {
+    h2::before,
+    h3::before {
+      content: none;
+      counter-increment: none;
+    }
+  }
 }
 
 ol.chapter-numbers {

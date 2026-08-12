@@ -1,5 +1,6 @@
 import pytest
-from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport, aggregate_reports
+from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
+from reports.runner.report_runner import aggregate_reports
 
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
@@ -23,7 +24,7 @@ def test_aggregate_report_benchmark(octopoes_api_connector, valid_time, organiza
     ]
     _, data, _, _ = aggregate_reports(
         octopoes_api_connector,
-        [Hostname(name=f"{x}.com", network=Network(name="test").reference) for x in hostname_range],
+        [Hostname(name=f"{x}.com", network=Network(name="test").reference).reference for x in hostname_range],
         reports,
         valid_time,
         organization.code,

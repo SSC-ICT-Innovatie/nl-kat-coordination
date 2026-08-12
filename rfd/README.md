@@ -7,6 +7,7 @@ on how to create and discuss RFDs.
 
 ## RFDs
 
-| Number | State     | Title                                                   |
-| ------ | --------- | ------------------------------------------------------- |
-| 0001   | Published | [RFD 0001: Request for Discussion Process](0001-rfd.md) |
+| Number | State     | Title                                                             |
+| ------ | --------- | ----------------------------------------------------------------- |
+| 0001   | Published | [RFD 0001: Request for Discussion Process](0001-rfd.md)           |
+| 0002   | Published | [RFD 0002: Code of Conduct: Code Review](0002-code-of-conduct.md) |

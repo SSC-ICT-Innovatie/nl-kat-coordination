@@ -4,11 +4,9 @@ from typing import Any
 import structlog
 from django.utils.translation import gettext_lazy as _
 
-from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import OOI
-from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.config import Config
 from reports.report_types.definitions import AggregateReport
+from reports.report_types.findings_report.report import SEVERITY_OPTIONS, FindingsReport
 from reports.report_types.ipv6_report.report import IPv6Report
 from reports.report_types.mail_report.report import MailReport
 from reports.report_types.name_server_report.report import NameServerSystemReport
@@ -25,7 +23,7 @@ logger = structlog.get_logger(__name__)
 
 class AggregateOrganisationReport(AggregateReport):
     id = "aggregate-organisation-report"
-    name = "Aggregate Organisation Report"
+    name = _("Aggregate Organisation Report")
     description = "Aggregate Organisation Report"
     reports = {
         "required": [SystemReport],
@@ -38,16 +36,20 @@ class AggregateOrganisationReport(AggregateReport):
             WebSystemReport,
             NameServerSystemReport,
             SafeConnectionsReport,
+            FindingsReport,
         ],
     }
     template_path = "aggregate_organisation_report/report.html"
 
-    def post_process_data(self, data: dict[str, Any], valid_time: datetime, organization_code: str) -> dict[str, Any]:
+    def post_process_data(
+        self, report_data: dict[str, Any], valid_time: datetime, organization_code: str
+    ) -> dict[str, Any]:
         systems: dict[str, dict[str, Any]] = {"services": {}}
         services = {}
         open_ports = {}
         ipv6 = {}
         vulnerabilities = {}
+        findings: dict[str, Any] = {}
         total_criticals = 0
         total_systems = 0
         unique_ips = set()
@@ -57,6 +59,20 @@ class AggregateOrganisationReport(AggregateReport):
         safe_connections_ips = {}
         recommendations = []
         total_systems_basic_security = 0
+
+        # For consistency with reporting but backward compatibility with this logic, we flipped the data in report_data,
+        # so we need to change it back from
+        # report_id => input_ooi => {data}
+        # to
+        # input_ooi => report_id => {data}
+        data: dict[str, Any] = {}
+
+        for report_id, report_datas in report_data.items():
+            for input_ooi, item in report_datas.items():
+                if input_ooi not in data:
+                    data[input_ooi] = {}
+
+                data[input_ooi][report_id] = item["data"]
 
         for input_ooi, reports_data in data.items():
             for report_id, report_specific_data in reports_data.items():
@@ -113,6 +129,32 @@ class AggregateOrganisationReport(AggregateReport):
                 if report_id == SafeConnectionsReport.id:
                     safe_connections_ips.update({ip: value for ip, value in report_specific_data["sc_ips"].items()})
 
+                if report_id == FindingsReport.id:
+                    if not findings:
+                        findings["finding_types"] = {}
+                        findings["summary"] = {
+                            "total_by_severity": {severity: 0 for severity in SEVERITY_OPTIONS},
+                            "total_by_severity_per_finding_type": {severity: 0 for severity in SEVERITY_OPTIONS},
+                            "total_finding_types": 0,
+                            "total_occurrences": 0,
+                        }
+
+                    for report_specific_data_ft in report_specific_data["finding_types"]:
+                        finding_type = report_specific_data_ft["finding_type"]
+                        finding_type_id = finding_type.id
+                        occurrences = report_specific_data_ft["occurrences"]
+                        severity = finding_type.risk_severity.value
+
+                        if finding_type_id not in findings["finding_types"]:
+                            findings["finding_types"][finding_type_id] = {
+                                "finding_type": finding_type,
+                                "occurrences": occurrences,
+                            }
+                            findings["summary"]["total_by_severity_per_finding_type"][severity] += 1
+                            findings["summary"]["total_finding_types"] += 1
+                        else:
+                            findings["finding_types"][finding_type_id]["occurrences"].extend(occurrences)
+
         mail_report_data = self.collect_system_specific_data(data, services, SystemType.MAIL, MailReport.id)
         web_report_data = self.collect_system_specific_data(data, services, SystemType.WEB, WebSystemReport.id)
         dns_report_data = self.collect_system_specific_data(data, services, SystemType.DNS, NameServerSystemReport.id)
@@ -125,7 +167,7 @@ class AggregateOrganisationReport(AggregateReport):
         basic_security: dict[str, Any] = {"rpki": {}, "system_specific": {}, "safe_connections": {}}
 
         # Safe connections
-        for ip, findings in safe_connections_ips.items():
+        for ip, findings_types in safe_connections_ips.items():
             ip_services = systems["services"][str(ip)]["services"]
 
             for service in ip_services:
@@ -139,12 +181,12 @@ class AggregateOrganisationReport(AggregateReport):
                 if ip in basic_security["safe_connections"][service]["sc_ips"]:
                     continue  # We already processed data from this ip for this service
 
-                basic_security["safe_connections"][service]["sc_ips"][ip.tokenized.address] = findings
+                basic_security["safe_connections"][service]["sc_ips"][ip.tokenized.address] = findings_types
                 basic_security["safe_connections"][service]["number_of_ips"] += 1
-                basic_security["safe_connections"][service]["number_of_available"] += 1 if not findings else 0
+                basic_security["safe_connections"][service]["number_of_available"] += 1 if not findings_types else 0
 
                 # Collect recommendations from findings
-                recommendations.extend({finding_type.recommendation for finding_type in findings})
+                recommendations.extend({finding_type.recommendation for finding_type in findings_types})
 
         # RPKI
         for ip, compliance in rpki_ips.items():
@@ -182,6 +224,29 @@ class AggregateOrganisationReport(AggregateReport):
         basic_security["system_specific"][SystemType.DNS] = [
             report for ip in dns_report_data for report in dns_report_data[ip]
         ]
+
+        # Findings
+        if "finding_types" in findings:
+            for finding_type in findings["finding_types"].values():
+                # Remove duplicate occurrences
+                severity = finding_type["finding_type"].risk_severity.value
+                unique_occurrences = []
+                seen_keys = set()
+
+                for occurrence in finding_type["occurrences"]:
+                    occurrence_ooi = occurrence["finding"].ooi
+
+                    if occurrence_ooi not in seen_keys:
+                        seen_keys.add(occurrence_ooi)
+                        unique_occurrences.append(occurrence)
+                        findings["summary"]["total_by_severity"][severity] += 1
+
+                finding_type["occurrences"] = unique_occurrences
+                findings["summary"]["total_occurrences"] += len(unique_occurrences)
+
+            findings["finding_types"] = sorted(
+                findings["finding_types"].values(), key=lambda x: x["finding_type"].risk_score or 0, reverse=True
+            )
 
         # Summary
         basic_security["summary"] = {}
@@ -372,16 +437,16 @@ class AggregateOrganisationReport(AggregateReport):
 
         summary = {
             # _("General recommendations"): "",
-            str(_("Critical vulnerabilities")): total_criticals,
-            str(_("IPs scanned")): total_ips,
-            str(_("Hostnames scanned")): total_hostnames,
+            "critical_vulnerabilities": total_criticals,
+            "ips_scanned": total_ips,
+            "hostnames_scanned": total_hostnames,
             # _("Systems found"): total_systems,
             # _("Sector of organisation"): "",
             # _("Basic security score compared to sector"): "",
             # _("Sector defined"): "",
             # _("Lowest security score in organisation"): "",
             # _("Newly discovered items since last week, october 8th 2023"): "",
-            str(_("Terms in report")): ", ".join(sorted(terms)),
+            "terms_in_report": ", ".join(sorted(terms)),
         }
 
         all_findings = set()
@@ -402,6 +467,7 @@ class AggregateOrganisationReport(AggregateReport):
             "open_ports": open_ports,
             "ipv6": ipv6,
             "vulnerabilities": vulnerabilities,
+            "findings": findings,
             "basic_security": basic_security,
             "summary": summary,
             "total_findings": len(all_findings),
@@ -412,7 +478,9 @@ class AggregateOrganisationReport(AggregateReport):
             "config_oois": config_oois,
         }
 
-    def collect_system_specific_data(self, data, services, system_type: str, report_id: str) -> dict[str, Any]:
+    def collect_system_specific_data(
+        self, data: dict, services: dict, system_type: str, report_id: str
+    ) -> dict[str, Any]:
         """Given a system, return a list of report data from the right sub-reports based on the related report_id"""
 
         report_data: dict[str, Any] = {}
@@ -434,48 +502,3 @@ class AggregateOrganisationReport(AggregateReport):
         report_data = {key: value for key, value in report_data.items() if value}
 
         return report_data
-
-
-def aggregate_reports(
-    connector: OctopoesAPIConnector,
-    input_ooi_references: list[OOI],
-    selected_report_types: list[str],
-    valid_time: datetime,
-    organization_code: str,
-) -> tuple[AggregateOrganisationReport, dict[str, Any], dict[str, Any], list[str]]:
-    by_type: dict[str, list[str]] = {}
-
-    for ooi in input_ooi_references:
-        if ooi.get_object_type() not in by_type:
-            by_type[ooi.get_object_type()] = []
-
-        by_type[ooi.get_object_type()].append(str(ooi.reference))
-
-    all_types = [
-        t
-        for t in AggregateOrganisationReport.reports["required"] + AggregateOrganisationReport.reports["optional"]
-        if t.id in selected_report_types
-    ]
-    report_data: dict[str, Any] = {}
-    errors = []
-
-    for report_type in all_types:
-        oois = {x for ooi_type in report_type.input_ooi_types for x in by_type.get(ooi_type.get_object_type(), [])}
-
-        try:
-            results = report_type(connector).collect_data(oois, valid_time)
-        except ObjectNotFoundException:
-            logger.error("Object not found")
-            errors.append(report_type.id)
-            continue
-
-        for ooi_str, data in results.items():
-            if ooi_str not in report_data:
-                report_data[ooi_str] = {}
-
-            report_data[ooi_str][report_type.id] = data
-
-    aggregate_report = AggregateOrganisationReport(connector)
-    post_processed_data = aggregate_report.post_process_data(report_data, valid_time, organization_code)
-
-    return aggregate_report, post_processed_data, report_data, errors

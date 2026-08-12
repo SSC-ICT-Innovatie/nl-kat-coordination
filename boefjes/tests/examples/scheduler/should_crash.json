@@ -1,43 +1,51 @@
 {
-  "id": "9071c9fd-2b9f-440f-a524-ef1ca4824fd4",
-  "priority": 1,
-  "scheduler_id": "boefje-_dev",
-  "schedule_id": null,
-  "status": "dispatched",
-  "type": "boefje",
-  "hash": "7e698c377cfd85015c0d7086b76b76b4",
-  "data": {
-    "id": "9071c9fd-2b9f-440f-a524-ef1ca4824fd4",
-    "boefje": {
-      "id": "dns-records",
-      "name": "DnsRecords",
-      "description": "Fetch the DNS record(s) of a hostname",
-      "version": null,
-      "scan_level": 1,
-      "consumes": [
-        "Hostname"
-      ],
-      "produces": [
-        "DNSAAAARecord",
-        "IPAddressV6",
-        "NXDOMAIN",
-        "Hostname",
-        "Network",
-        "DNSNSRecord",
-        "DNSTXTRecord",
-        "IPAddressV4",
-        "DNSMXRecord",
-        "DNSZone",
-        "DNSARecord",
-        "DNSSOARecord",
-        "DNSCNAMERecord"
-      ],
-      "dispatches": null
-    },
-    "input_ooi": "Hostname|internet|test.test",
-    "organization": "_dev",
-    "dispatches": []
-  },
-  "created_at": "2021-06-29T14:00:00",
-  "modified_at": "2021-06-29T14:00:00"
+  "count": 1,
+  "next": null,
+  "previous": null,
+  "results": [
+    {
+      "id": "9071c9fd-2b9f-440f-a524-ef1ca4824fd4",
+      "priority": 1,
+      "scheduler_id": "boefje",
+      "organisation": "_dev",
+      "schedule_id": null,
+      "status": "dispatched",
+      "type": "boefje",
+      "hash": "7e698c377cfd85015c0d7086b76b76b4",
+      "data": {
+        "id": "9071c9fd-2b9f-440f-a524-ef1ca4824fd4",
+        "boefje": {
+          "id": "dns-records",
+          "name": "DnsRecords",
+          "description": "Fetch the DNS record(s) of a hostname",
+          "version": null,
+          "scan_level": 1,
+          "consumes": [
+            "Hostname"
+          ],
+          "produces": [
+            "DNSAAAARecord",
+            "IPAddressV6",
+            "NXDOMAIN",
+            "Hostname",
+            "Network",
+            "DNSNSRecord",
+            "DNSTXTRecord",
+            "IPAddressV4",
+            "DNSMXRecord",
+            "DNSZone",
+            "DNSARecord",
+            "DNSSOARecord",
+            "DNSCNAMERecord"
+          ],
+          "dispatches": null
+        },
+        "input_ooi": "Hostname|internet|test.test",
+        "organization": "_dev",
+        "dispatches": []
+      },
+      "created_at": "2021-06-29T14:00:00",
+      "modified_at": "2021-06-29T14:00:00"
+    }
+  ]
 }

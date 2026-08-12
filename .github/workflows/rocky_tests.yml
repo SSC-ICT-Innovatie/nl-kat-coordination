@@ -10,23 +10,27 @@ on:
     paths:
       - octopoes/**
       - rocky/**
+      - .github/workflows/rocky_tests.yml
   pull_request:
     paths:
       - octopoes/**
       - rocky/**
+      - .github/workflows/rocky_tests.yml
 
 jobs:
   test:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        version: ["3.10", "3.11"]
+        version: ["3.10", "3.11", "3.12", "3.13"]
 
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build image
         run: DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose -f rocky/.ci/docker-compose.yml build --build-arg USER_UID="$(id -u)" --build-arg USER_GID="$(id -g)" --build-arg PYTHON_VERSION=${{ matrix.version }} rocky_tests rocky_integration

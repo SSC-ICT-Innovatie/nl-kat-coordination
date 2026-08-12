@@ -1,5 +1,5 @@
 import os
-from collections.abc import Iterator
+from collections.abc import AsyncIterator, Iterator
 from pathlib import Path
 
 import alembic.config
@@ -89,11 +89,7 @@ def bytes_api_client(settings) -> Iterator[BytesAPIClient]:
     alembicArgs = ["--config", "/app/bytes/bytes/alembic.ini", "--raiseerr", "upgrade", "head"]
     alembic.config.main(argv=alembicArgs)
 
-    client = BytesAPIClient(
-        "http://ci_bytes:8000",
-        settings.username,
-        settings.password,
-    )
+    client = BytesAPIClient("http://ci_bytes:8000", settings.username, settings.password)
     client.login()
 
     yield client
@@ -109,5 +105,9 @@ def raw_repository(tmp_path: Path) -> FileRawRepository:
 
 
 @pytest.fixture
-def event_manager(settings: Settings) -> RabbitMQEventManager:
-    return RabbitMQEventManager(str(settings.queue_uri))
+async def event_manager(settings: Settings) -> AsyncIterator[RabbitMQEventManager]:
+    manager = RabbitMQEventManager(str(settings.queue_uri))
+    channel = await manager._get_channel()
+    await channel.queue_delete("raw_file_received")
+
+    yield manager

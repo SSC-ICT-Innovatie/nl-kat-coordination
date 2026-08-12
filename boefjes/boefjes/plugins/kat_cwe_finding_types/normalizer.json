@@ -1,5 +1,7 @@
 {
   "id": "kat_cwe_finding_types_normalize",
+  "name": "CWE finding",
+  "description": "Parses Common Weakness Enumeration (CWE) into findings.",
   "consumes": [
     "boefje/cwe-finding-types"
   ],

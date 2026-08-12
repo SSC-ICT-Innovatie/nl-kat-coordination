@@ -1,25 +1,30 @@
-{% extends "partials/list_filters.html" %}
-
-{% load static %}
 {% load i18n %}
 
-{% block title %}
-    {% if count %}<span>{{ count }}</span>{% endif %}
-    {{ title }}
-{% endblock title %}
-{% block filter_form %}
-    <form method="get" class="help">
+<div class="filter">
+    <div>
+        <button aria-expanded="false"
+                data-hide-filters-label='{% translate "Hide filters" %}'>
+            {% translate "Show filters" %}
+            {% if active_filters_counter > 0 %}
+                ({{ active_filters_counter }} {% translate "applied" %})
+            {% endif %}
+        </button>
+    </div>
+    <form id="finding-list" method="get" class="help">
         {% include "partials/form/fieldset.html" with fields=observed_at_form %}
+        {% include "partials/form/fieldset.html" with fields=severity_filter fieldset_class="filter-fields-direction column" %}
+        {% include "partials/form/fieldset.html" with fields=muted_findings_filter fieldset_class="filter-fields-direction column" %}
+        {% include "partials/form/fieldset.html" with fields=finding_search_form %}
 
-        <div class="column-3 filter-fields-direction row">
-            {% include "partials/form/fieldset.html" with fields=severity_filter fieldset_class="filter-fields-direction column" %}
-            {% include "partials/form/fieldset.html" with fields=muted_findings_filter fieldset_class="filter-fields-direction column" %}
-
-        </div>
+        {{ order_by_severity_form }}
+        {{ order_by_finding_type_form }}
+        <input type="hidden"
+               name="sorting_order"
+               value="{% if sorting_order == "asc" %}desc{% else %}asc{% endif %}">
         <div class="button-container">
             <input type="submit"
                    value="{% if submit_text %}{{ submit_text }}{% else %}{% translate "Set filters" %}{% endif %}" />
             <a href="{{ request.path }}" class="button ghost">{% translate "Clear filters" %}</a>
         </div>
     </form>
-{% endblock filter_form %}
+</div>

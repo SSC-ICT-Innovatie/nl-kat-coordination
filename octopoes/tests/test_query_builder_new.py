@@ -175,11 +175,9 @@ class QueryNodeTest(TestCase):
             ("DnsARecord", "IpAddressV4", "DnsARecord/_IpAddressV4"): RelatedFieldNode(
                 data_model=datamodel, object_types={"DnsARecord"}
             ),
-            (
-                "DnsAaaaRecord",
-                "IpAddressV6",
-                "DnsAaaaRecord/_IpAddressV6",
-            ): RelatedFieldNode(data_model=datamodel, object_types={"DnsAaaaRecord"}),
+            ("DnsAaaaRecord", "IpAddressV6", "DnsAaaaRecord/_IpAddressV6"): RelatedFieldNode(
+                data_model=datamodel, object_types={"DnsAaaaRecord"}
+            ),
             ("Finding", "OOI", "Finding/_OOI"): RelatedFieldNode(data_model=datamodel, object_types={"Finding"}),
             ("Job", "oois", "Job/_oois"): RelatedFieldNode(data_model=datamodel, object_types={"Job"}),
         }
@@ -192,9 +190,7 @@ class QueryNodeTest(TestCase):
         field_node.build_tree(1)
 
         query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            {"xt/id": "IpAddressV4|internet|1.1.1.1"},
-            field_node=field_node,
+            FieldSet.ALL_FIELDS, {"xt/id": "IpAddressV4|internet|1.1.1.1"}, field_node=field_node
         )
 
         expected_query = (
@@ -203,33 +199,20 @@ class QueryNodeTest(TestCase):
             "{(:IpPort/_IpAddress {:as IpPort/_IpAddress}) [*]} {(:Job/_oois {:as Job/_oois}) [*]}])] "
             ':in [_xt_id] :where [[?e :xt/id _xt_id]]   } :in-args [ "IpAddressV4|internet|1.1.1.1" ]}'
         )
-        self.assertEqual(
-            expected_query,
-            query,
-        )
+        self.assertEqual(expected_query, query)
 
     def test_escape_injection_success(self):
-        query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            where={"attr_1": 'test_value_with_quotes" and injection'},
-        )
+        query = generate_pull_query(FieldSet.ALL_FIELDS, where={"attr_1": 'test_value_with_quotes" and injection'})
 
         expected_query = (
             "{:query {:find [(pull ?e [*])] :in [_attr_1] :where [[?e :attr_1 _attr_1]]   } "
             ':in-args [ "test_value_with_quotes\\" and injection" ]}'
         )
-        self.assertEqual(
-            expected_query,
-            query,
-        )
+        self.assertEqual(expected_query, query)
 
     def test_get_origin_by_task_id(self):
         query = generate_pull_query(
-            FieldSet.ALL_FIELDS,
-            {
-                "task_id": "5c864d45a4364a81a5fecfd8b359cf9d",
-                "type": Origin.__name__,
-            },
+            FieldSet.ALL_FIELDS, {"task_id": "5c864d45a4364a81a5fecfd8b359cf9d", "type": Origin.__name__}
         )
 
         expected_query = (

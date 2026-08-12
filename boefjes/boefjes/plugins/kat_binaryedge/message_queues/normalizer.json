@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_message_queues",
+  "name": "BinaryEdge message queues",
+  "description": "Parses BinaryEdge data to check for message queues (mqtt) servers. Creates the finding 'EXPOSED-SOFTWARE' if mqtt servers are found.",
   "consumes": [
     "boefje/binaryedge"
   ],

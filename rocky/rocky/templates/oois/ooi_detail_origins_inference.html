@@ -22,10 +22,13 @@
                                 <a href="{% ooi_url 'ooi_detail' inference.origin.source organization.code %}">{{ inference.origin.source }}</a>
                             </td>
                             <td>
-                                {% for param in params %}
-                                    <a href="{% ooi_url 'ooi_detail' param.reference organization.code %}">{{ param.reference }}</a>
-                                    <br>
-                                {% endfor %}
+                                <ul>
+                                    {% for param in params %}
+                                        <li>
+                                            <a href="{% ooi_url 'ooi_detail' param.reference organization.code %}">{{ param.reference }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
                             </td>
                         </tr>
                     {% endfor %}

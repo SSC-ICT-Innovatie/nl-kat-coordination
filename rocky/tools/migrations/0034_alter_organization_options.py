@@ -4,9 +4,7 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0033_auto_20230407_1113"),
-    ]
+    dependencies = [("tools", "0033_auto_20230407_1113")]
 
     operations = [
         migrations.AlterModelOptions(
@@ -20,5 +18,5 @@ class Migration(migrations.Migration):
                     ("can_delete_oois", "Can delete oois"),
                 )
             },
-        ),
+        )
     ]

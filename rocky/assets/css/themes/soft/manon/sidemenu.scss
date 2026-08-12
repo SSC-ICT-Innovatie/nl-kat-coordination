@@ -67,7 +67,7 @@ main.sidemenu {
           a:visited,
           a:focus,
           a:active {
-            color: var(--colors-black);
+            color: var(--application-base-text-color);
             text-decoration: none;
           }
 
@@ -76,7 +76,7 @@ main.sidemenu {
             a:visited,
             a:focus,
             a:active {
-              color: var(--colors-black);
+              color: var(--application-base-text-color);
               text-decoration: none;
               font-style: italic;
               word-break: break-all;
@@ -112,7 +112,7 @@ main.sidemenu {
         font-size: var(--sidemenu-toggle-button-font-size);
         border: 0;
         border-radius: 0;
-        color: var(--colors-black);
+        color: var(--application-base-text-color);
 
         /* Transition */
         transition: margin-left 1s;

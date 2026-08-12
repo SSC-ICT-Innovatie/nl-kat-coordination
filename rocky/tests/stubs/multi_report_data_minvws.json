@@ -1,0 +1,323 @@
+{
+  "systems": {
+    "services": {
+      "IPAddressV4|internet|1.1.1.1": {
+        "hostnames": [
+          "Hostname|internet|minvws.nl"
+        ],
+        "services": [
+          "Web"
+        ]
+      },
+      "IPAddressV6|internet|2001:4860:4860::8888": {
+        "hostnames": [
+          "Hostname|internet|minvws.nl"
+        ],
+        "services": []
+      }
+    }
+  },
+  "basic_security": {
+    "safe_connections": {
+      "Web": {
+        "number_of_available": 0,
+        "sc_ips": {
+          "1.1.1.1": [
+            {
+              "description": "Ciphers are used that are labeled as bad. These should not be used anymore",
+              "object_type": "KATFindingType",
+              "risk_score": 6.9,
+              "risk_severity": "medium",
+              "source": "https://wiki.mozilla.org/Security/Server_Side_TLS",
+              "recommendation": "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers.",
+              "id": "KAT-MEDIUM-BAD-CIPHER",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "Weak or insecure ciphers may result in loss of confidentiality and integrity of data through decryption.",
+              "primary_key": "KATFindingType|KAT-MEDIUM-BAD-CIPHER"
+            }
+          ]
+        },
+        "number_of_ips": 1
+      }
+    },
+    "summary": {
+      "Web": {
+        "safe_connections": {
+          "number_of_compliant": 0,
+          "total": 1
+        },
+        "system_specific": {
+          "number_of_compliant": 1,
+          "ips": {
+            "IPAddressV4|internet|1.1.1.1": [
+              {
+                "description": "This hostname does not have a Security.txt file.",
+                "object_type": "KATFindingType",
+                "risk_score": "None",
+                "risk_severity": "recommendation",
+                "source": "None",
+                "recommendation": "Make sure there is a security.txt available.",
+                "id": "KAT-NO-SECURITY-TXT",
+                "user_id": "None",
+                "scan_profile": "None",
+                "impact": "None",
+                "primary_key": "KATFindingType|KAT-NO-SECURITY-TXT"
+              }
+            ]
+          },
+          "checks": {
+            "Certificate is not expired": 1,
+            "CSP Present": 1,
+            "Offers HTTPS": 1,
+            "No unnecessary ports open": 1,
+            "Has a Security.txt": 1,
+            "Has a certificate": 1,
+            "Redirects HTTP to HTTPS": 1,
+            "Secure CSP Header": 1,
+            "Certificate is not expiring soon": 1
+          },
+          "total": 1
+        },
+        "rpki": {
+          "number_of_compliant": 1,
+          "total": 1
+        }
+      }
+    },
+    "system_specific": {
+      "DNS": [],
+      "Mail": [],
+      "Web": [
+        {
+          "input_ooi": "Hostname|internet|minvws.nl",
+          "finding_types": [
+            {
+              "description": "This hostname does not have a Security.txt file.",
+              "object_type": "KATFindingType",
+              "risk_score": "None",
+              "risk_severity": "recommendation",
+              "source": "None",
+              "recommendation": "Make sure there is a security.txt available.",
+              "id": "KAT-NO-SECURITY-TXT",
+              "user_id": "None",
+              "scan_profile": "None",
+              "impact": "None",
+              "primary_key": "KATFindingType|KAT-NO-SECURITY-TXT"
+            }
+          ],
+          "web_checks": {
+            "checks": [
+              {
+                "redirects_http_https": true,
+                "has_security_txt": true,
+                "offers_https": true,
+                "has_certificates": true,
+                "no_uncommon_ports": true,
+                "has_csp": true,
+                "certificates_not_expired": true,
+                "has_no_csp_vulnerabilities": true,
+                "certificates_not_expiring_soon": true
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "rpki": {
+      "Web": {
+        "number_of_compliant": 2,
+        "rpki_ips": {
+          "1.1.1.1": {
+            "valid": true,
+            "exists": true
+          },
+          "2001:4860:4860::8888": {
+            "valid": true,
+            "exists": true
+          }
+        },
+        "number_of_available": 2,
+        "number_of_ips": 2,
+        "number_of_valid": 2
+      }
+    }
+  },
+  "open_ports": {
+    "1.1.1.1": {
+      "hostnames": [
+        "minvws.nl"
+      ],
+      "ports": {
+        "443": true,
+        "80": true
+      },
+      "services": {
+        "443": [
+          "https"
+        ],
+        "80": [
+          "http"
+        ]
+      }
+    },
+    "2001:4860:4860::8888": {
+      "hostnames": [
+        "minvws.nl"
+      ],
+      "ports": {},
+      "services": {}
+    }
+  },
+  "input_data": {
+    "plugins": {
+      "optional": [
+        "nmap-ip-range",
+        "masscan",
+        "nmap-udp",
+        "nmap-ports",
+        "shodan"
+      ],
+      "required": [
+        "nmap",
+        "security_txt_downloader",
+        "webpage-analysis",
+        "dns-sec",
+        "testssl-sh-ciphers",
+        "dns-records",
+        "ssl-certificates",
+        "rpki",
+        "ssl-version"
+      ]
+    },
+    "report_types": [
+      "ipv6-report",
+      "mail-report",
+      "name-server-report",
+      "open-ports-report",
+      "rpki-report",
+      "safe-connections-report",
+      "systems-report",
+      "vulnerability-report",
+      "web-system-report"
+    ],
+    "input_oois": [
+      "Hostname|internet|minvws.nl"
+    ]
+  },
+  "recommendation_counts": {
+    "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers.": 1,
+    "Make sure there is a security.txt available.": 1
+  },
+  "summary": {
+    "IPs scanned": 2,
+    "Hostnames scanned": 1,
+    "Terms in report": "Web",
+    "Critical vulnerabilities": 0
+  },
+  "config_oois": [],
+  "ipv6": {
+    "minvws.nl": {
+      "systems": [
+        "Web"
+      ],
+      "enabled": true
+    }
+  },
+  "total_systems_basic_security": 0,
+  "total_hostnames": 1,
+  "health": [
+    {
+      "service": "rocky",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "octopoes",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "xtdb",
+      "healthy": true,
+      "version": "1.24.4",
+      "additional": {
+        "kvStore": "xtdb.rocksdb.RocksKv",
+        "revision": "b46e92df67699cb25f3b21a61742c79da564b3b0",
+        "consumerState": "None",
+        "size": 47131394,
+        "estimateNumKeys": 123591,
+        "version": "1.24.4",
+        "indexVersion": 22
+      },
+      "results": []
+    },
+    {
+      "service": "katalogus",
+      "healthy": true,
+      "version": "0.0.1-development",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "scheduler",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    },
+    {
+      "service": "bytes",
+      "healthy": true,
+      "version": "0.0.1.dev1",
+      "additional": "None",
+      "results": []
+    }
+  ],
+  "total_systems": 2,
+  "total_findings": 0,
+  "recommendations": [
+    "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers.",
+    "Make sure there is a security.txt available."
+  ],
+  "vulnerabilities": {
+    "IPAddressV4|internet|1.1.1.1": {
+      "hostnames": "(minvws.nl)",
+      "title": "1.1.1.1",
+      "summary": {
+        "total_criticals": 0,
+        "terms": [],
+        "total_findings": 0,
+        "recommendations": []
+      },
+      "vulnerabilities": {}
+    },
+    "IPAddressV6|internet|2001:4860:4860::8888": {
+      "hostnames": "(minvws.nl)",
+      "title": "2001:4860:4860::8888",
+      "summary": {
+        "total_criticals": 0,
+        "terms": [],
+        "total_findings": 0,
+        "recommendations": []
+      },
+      "vulnerabilities": {}
+    }
+  },
+  "services": {
+    "Web": {
+      "IPAddressV4|internet|1.1.1.1": {
+        "hostnames": [
+          "Hostname|internet|minvws.nl"
+        ],
+        "services": [
+          "Web"
+        ]
+      }
+    }
+  }
+}

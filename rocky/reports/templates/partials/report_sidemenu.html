@@ -63,6 +63,21 @@
                         </ol>
                     </li>
                 {% endif %}
+                {% if data.findings.summary %}
+                    <li>
+                        <a href="#findings">{% translate "Findings" %}</a>
+                        <ol>
+                            <li>
+                                <a href="#findings-overview">{% translate "Findings overview" %}</a>
+                            </li>
+                            {% if data.findings.finding_types %}
+                                <li>
+                                    <a href="#findings-table">{% translate "Findings" %}</a>
+                                </li>
+                            {% endif %}
+                        </ol>
+                    </li>
+                {% endif %}
             </ol>
             <ol class="chapter-numbers type-a">
                 <li>
@@ -71,21 +86,23 @@
                         <li>
                             <a href="#term-overview">{% translate "Term Overview" %}</a>
                         </li>
-                        <li>
-                            <a href="#selected-oois">{% translate "Selected Objects" %}</a>
-                        </li>
-                        <li>
-                            <a href="#selected-report-types">{% translate "Selected Report Types" %}</a>
-                        </li>
-                        <li>
-                            <a href="#selected-plugins">{% translate "Selected Plugins" %}</a>
-                        </li>
-                        <li>
-                            <a href="#service-versions-and-health">{% translate "Service Versions and Health" %}</a>
-                        </li>
-                        <li>
-                            <a href="#used-config-oois">{% translate "Used Config Objects" %}</a>
-                        </li>
+                        {% if 'multi-organization-report' not in data.input_data.report_types %}
+                            <li>
+                                <a href="#selected-oois">{% translate "Selected Objects" %}</a>
+                            </li>
+                            <li>
+                                <a href="#selected-report-types">{% translate "Selected Report Types" %}</a>
+                            </li>
+                            <li>
+                                <a href="#selected-plugins">{% translate "Selected Plugins" %}</a>
+                            </li>
+                            <li>
+                                <a href="#service-versions-and-health">{% translate "Service Versions and Health" %}</a>
+                            </li>
+                            <li>
+                                <a href="#used-config-oois">{% translate "Used Config Objects" %}</a>
+                            </li>
+                        {% endif %}
                     </ol>
                 </li>
             </ol>

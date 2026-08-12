@@ -19,6 +19,27 @@ form {
     }
   }
 
+  .input-icon {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    input {
+      padding-right: 2.5rem;
+
+      &:hover {
+        border-color: var(--colors-grey-700);
+      }
+    }
+
+    .icon {
+      display: block;
+      margin-left: -1.25rem;
+      stroke: var(--colors-blue-600);
+    }
+  }
+
   @media (min-width: $breakpoint-filter) {
     .filter-fields-direction {
       &.row {

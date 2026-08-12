@@ -1,0 +1,105 @@
+.. _release-notes-1.13:
+
+============
+OpenKAT 1.13
+============
+
+This release introduces a preview of our new reporting functionality. It is not
+finished yet and only available when you set the feature flag
+``FEATURE_REPORTS`` to ``True`` in the rocky configuration. The new reporting is
+based on HTML instead of LaTeX which should make it easier to implement new
+reports and customize existing reports. Let us know if you have any feedback on
+what we have already implemented.
+
+A new container-native boefjes runner has been added. This allows running
+boefjes as self-contained OCI images. These boefjes get their task input and
+save their output using REST APIs. This is a big step towards making it possible
+to run your own boefjes without having to add them to the OpenKAT source.
+
+We are replacing the uWSGI server in rocky with Granian. uWSGI doesn't seem to
+be well maintained anymore and we run into a bug that has existed for a long
+time and doesn't get fixed. Granian is new application server that is better
+maintained and also has good performance. Granian is also written in Rust
+instead of C so should also have better security.
+
+If you have made any configuration changes or are using rocky on port 8443 with
+the Debian packages you need to make sure to configure Granian correctly.
+Granian will only listen on 127.0.0.1 port 8000 by default and won't also listen
+on 0.0.0.0 port 8443 like uWSGI. To not break anything in 1.13 we will support
+using both uWSGI and Granian with uWSGI still being used when upgrading from
+earlier versions. In 1.14 we will switch to using Granian and in 1.15 we will
+remove uWSGI. In new installation the Debian packages will already use Granian
+by default.
+
+New Features
+============
+
+ * Findings can also be unmuted in bulk.
+ * Detail pages for normalizers have been added to the KAT-alogus.
+ * Boefje for checking CVE-2023-34039 (authentication bypass in Aria) has been
+   added.
+ * New CLI tools have been added that allow you to run a boefje, normalizer and
+   bit from the CLI and show the raw file output of a boefje. See :ref:`developer-documentation/boefjes:Manually
+   running a boefje or normalizer` and :ref:`developer-documentation/octopoes:Run bit manually`.
+ * Filtering on the object list page has been improved.
+ * Tabs have new a visual styling.
+ * Descructive button styling has been added.
+ * The risk level indicator also have new improved styling.
+ * The color scheme used in OpenKAT has been updated.
+ * New design of expanding rows.
+ * OpenKAT has been translated to Italian.
+ * The scheduler has more metrics available about task status.
+ * The openkat-reset.sh script has been added to scripts directory that resets
+   your whole installation and deletes all your data.
+
+Bug fixes
+=========
+
+ * We no longer add missing DKIM/DMARC/SPF findings for hostnames that don't exist.
+ * Enabling or disabling of normalizer has been fixed.
+ * Tasks that are stalled will be set to failed instead of being dispatched forever.
+ * Fixed issues in the error handling of requests to scheduler in rocky.
+ * A bug where the scheduler used a wrong header in requests has been fixed.
+ * The DATABASE_MIGRATION container environment variable is no longer case sensitive
+ * We give proper error message if the API url of one of the other services are
+   missing in rocky.
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Containers
+----------
+
+If you are using the container images you can switch to granian by setting the
+`USE_GRANIAN` env variable to `1` or `true`.
+
+Debian packages
+---------------
+
+If you want to switch to Granian you can create the directory
+``/etc/systemd/system/kat-rocky.service.d`` and creat the file
+``/etc/systemd/system/kat-rocky.service.d/use-granian.conf`` with the following contents:
+
+.. code-block:: systemd
+
+    [Service]
+    ExecStart=
+    ExecStart=/opt/venvs/kat-rocky/bin/granian --interface wsgi rocky.wsgi:application
+    Type=simple
+
+This file is also used by the packaging scripts in new installations to have
+those installations use Granian by default. Do not put any other configuration
+in this file because it will be automatically removed when upgrading to 1.14.
+
+If you were previously accessing OpenKAT using https on port 8443 you need to
+change the configuration as described on the :ref:`debian_prod_configure_reverse_proxy`.
+
+
+Full Changelog
+==============
+
+The full changelog can be found on `Github
+<https://github.com/minvws/nl-kat-coordination/releases/tag/v1.13.0>`_.

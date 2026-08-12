@@ -4,7 +4,7 @@
   /* Button */
   --button-base-background-color: var(--branding-color-2-background-color);
   --button-base-text-color: var(--branding-color-2-text-color);
-  --button-base-border-radius: 1rem;
+  --button-base-border-radius: var(--border-radius-l);
   --button-base-font-family: var(--application-base-font-family);
   --button-base-padding-top: var(--spacing-grid-150);
   --button-base-padding-right: var(--spacing-grid-200);
@@ -27,18 +27,18 @@
 
   /* Hover */
   --button-base-hover-background-color: var(--colors-yellow-300);
-  --button-base-hover-text-color: var(--colors-black);
+  --button-base-hover-text-color: var(--colors-grey-900);
 
   /* Active */
   --button-base-active-background-color: var(--colors-yellow-300);
-  --button-base-active-text-color: var(--colors-black);
+  --button-base-active-text-color: var(--colors-grey-900);
   --button-base-active-border-style: var(--button-base-border-style);
   --button-base-active-border-color: var(--button-base-active-background-color);
   --button-base-active-border-width: var(--button-base-border-width);
 
   /* Focus */
   --button-base-focus-background-color: var(--colors-yellow-300);
-  --button-base-focus-text-color: var(--colors-black);
+  --button-base-focus-text-color: var(--colors-grey-900);
   --button-base-focus-border-style: var(--button-base-border-style);
   --button-base-focus-border-color: var(--button-base-focus-background-color);
   --button-base-focus-border-width: var(--button-base-border-width);

@@ -1,5 +1,7 @@
 {
   "id": "kat_binaryedge_http_web",
+  "name": "BinaryEdge Websites",
+  "description": "Parses BinaryEdge data to check for AWS secrets, F5 BIG IP loadbalancers and Citrix NetScaler.",
   "consumes": [
     "boefje/binaryedge"
   ],

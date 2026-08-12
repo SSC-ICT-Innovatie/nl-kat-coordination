@@ -2,27 +2,21 @@
 
 {% load static %}
 {% load i18n %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div class="two-thirds-one-third">
+            <div class="introduction">
                 <div>
                     <h1>{{ plugin.name }}</h1>
+                    {% if plugin.description %}<p class="emphasized">{{ plugin.description }}</p>{% endif %}
                     <div class="horizontal-view scan-intensity">
                         <span class="de-emphasized">{% translate "Scan level" %}</span>
                         {% include "partials/scan_level_indicator.html" with value=plugin.scan_level %}
 
                     </div>
-                    {% if plugin.description %}
-                        <p>
-                            <strong>{% translate "Description" %}</strong>
-                        </p>
-                        <p>{{ plugin.description }}</p>
-                    {% endif %}
                     <div class="horizontal-view">
                         {% include "partials/enable_disable_plugin.html" with plugin=plugin %}
 
@@ -30,15 +24,24 @@
                 </div>
                 <div class="image-square">
                     <div class="image-container">
-                        <img src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
+                        <img loading="lazy"
+                             src="{% url "plugin_cover" organization_code=organization.code plugin_id=plugin.id %}"
                              alt="boefje placeholder image" />
                     </div>
                 </div>
             </div>
         </section>
-        {% if perms.tools.can_view_katalogus_settings %}
-            {% include "plugin_settings_list.html" with object_list=plugin_settings plugin=plugin %}
+        {% if perms.tools.can_view_katalogus_settings and plugin_settings %}
+            <section>
+                {% include "plugin_settings_list.html" with object_list=plugin_settings plugin=plugin %}
 
+            </section>
+        {% endif %}
+        {% if plugin.oci_image %}
+            <section>
+                {% include "plugin_container_image.html" %}
+
+            </section>
         {% endif %}
         <section>
             <div>
@@ -60,23 +63,32 @@
                         {{ plugin_name }} does not need any input objects.
                     {% endblocktranslate %}
                 {% endif %}
-                <h2>{% translate "Produces" %}</h2>
-                <p>
-                    {% blocktranslate trimmed with plugin_name=plugin.name %}
-                        {{ plugin_name }} can produce the following output:
-                    {% endblocktranslate %}
-                </p>
-                <p>
-                    {{ plugin.produce }}
-                    <ul>
-                        {% for mime_type in plugin.produces %}<li>{{ mime_type }}</li>{% endfor %}
-                    </ul>
-                </p>
-                <p>
-                    {% include "tasks/plugin_detail_task_list.html" %}
-
-                </p>
             </div>
+        </section>
+        <section>
+            <div>
+                <h2>{% translate "Produces" %}</h2>
+                {% if plugin.produces %}
+                    <p>
+                        {% blocktranslate trimmed with plugin_name=plugin.name %}
+                            {{ plugin_name }} can produce the following output:
+                        {% endblocktranslate %}
+                    </p>
+                    <p>
+                        <ul>
+                            {% for mime_type in plugin.produces %}<li>{{ mime_type }}</li>{% endfor %}
+                        </ul>
+                    </p>
+                {% else %}
+                    {% blocktranslate trimmed with plugin_name=plugin.name %}
+                        {{ plugin_name }} doesn't produce any output mime types.
+                    {% endblocktranslate %}
+                {% endif %}
+            </div>
+        </section>
+        <section>
+            {% include "tasks/plugin_detail_task_list.html" %}
+
         </section>
         {% if perms.tools.can_scan_organization %}
             {% include "partials/objects_to_scan.html" with plugin=plugin %}
@@ -86,8 +98,8 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

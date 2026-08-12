@@ -32,16 +32,8 @@ xtdb_sample_2 = {
     ],
     "xt/id": "DNSZone|internet|nl",
     "name_servers": [
-        {
-            "xt/id": "Hostname|internet|ns3.dns.nl",
-            "dns_zone": {},
-            "network": {"xt/id": "Network|internet"},
-        },
-        {
-            "xt/id": "Hostname|internet|ns2.dns.nl",
-            "dns_zone": {},
-            "network": {"xt/id": "Network|internet"},
-        },
+        {"xt/id": "Hostname|internet|ns3.dns.nl", "dns_zone": {}, "network": {"xt/id": "Network|internet"}},
+        {"xt/id": "Hostname|internet|ns2.dns.nl", "dns_zone": {}, "network": {"xt/id": "Network|internet"}},
         {
             "xt/id": "Hostname|internet|ns1.dns.nl",
             "dns_zone": {},
@@ -104,7 +96,7 @@ class ReferenceNodeTest(TestCase):
         self.assertDictEqual({}, root_node.children["ip_addresses"][0].children)
 
     def test_xtdb_reference_node_to_reference_node(self):
-        root = XTDBReferenceNode.parse_obj(xtdb_sample)
+        root = XTDBReferenceNode.model_validate(xtdb_sample)
         reference_node = root.to_reference_node("xt/id")
         self.assertEqual(
             "IPAddressV6|internet|2001:1c00:2303:8f00:21c7:4dc2:5738:28af",
@@ -124,13 +116,13 @@ class ReferenceNodeTest(TestCase):
             Reference.from_str("IPPort|internet|1.1.1.2|tcp|80"),
         }
 
-        root = XTDBReferenceNode.parse_obj(xtdb_sample)
+        root = XTDBReferenceNode.model_validate(xtdb_sample)
         reference_node = root.to_reference_node("xt/id")
 
         self.assertEqual(refs, reference_node.collect_references())
 
     def test_xtdb_data_to_reference_node_complext(self):
-        root = XTDBReferenceNode.parse_obj(xtdb_sample_2)
+        root = XTDBReferenceNode.model_validate(xtdb_sample_2)
         reference_node = root.to_reference_node("xt/id")
 
         self.assertEqual("DNSZone|internet|nl", str(reference_node.reference))

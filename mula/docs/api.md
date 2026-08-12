@@ -9,16 +9,16 @@ The endpoints `/tasks` and `/queues/{queue_id}/pop` support additional payload
 filters. An example:
 
 ```json
-POST /tasks
+// POST /tasks
 
 {
-    "filters": [
-        {
-            "column": "status",
-            "operator": "eq",
-            "value": "completed"
-        }
-    ]
+  "filters": [
+    {
+      "column": "status",
+      "operator": "eq",
+      "value": "completed"
+    }
+  ]
 }
 ```
 
@@ -33,85 +33,85 @@ POST /tasks
 Filters can be chained using the `and`, `or` and `not`, and defaults to `and`:
 
 ```json
-POST /tasks
+// POST /tasks
 
 {
-    "filters": [
-        {
-            "column": "type",
-            "operator": "eq",
-            "value": "boefje"
-        },
-        {
-            "column": "status",
-            "operator": "eq",
-            "value": "completed"
-        }
-    ]
+  "filters": [
+    {
+      "column": "type",
+      "operator": "eq",
+      "value": "boefje"
+    },
+    {
+      "column": "status",
+      "operator": "eq",
+      "value": "completed"
+    }
+  ]
 }
 ```
 
 Is the same as:
 
 ```json
-POST /tasks
+// POST /tasks
 
 {
-    "filters": {
-        "and": [
-            {
-                "column": "type",
-                "operator": "eq",
-                "value": "boefje"
-            },
-            {
-                "column": "status",
-                "operator": "eq",
-                "value": "completed"
-            }
-        ]
-    }
+  "filters": {
+    "and": [
+      {
+        "column": "type",
+        "operator": "eq",
+        "value": "boefje"
+      },
+      {
+        "column": "status",
+        "operator": "eq",
+        "value": "completed"
+      }
+    ]
+  }
 }
 ```
 
 Example using the `or` operator:
 
 ```json
-POST /tasks
+// POST /tasks
 
 {
-    "filters": {
-        "or": [
-            {
-                "column": "status",
-                "operator": "eq",
-                "value": "completed"
-            },
-            {
-                "column": "status",
-                "operator": "eq",
-                "value": "failed"
-            }
-        ]
-    }
+  "filters": {
+    "or": [
+      {
+        "column": "status",
+        "operator": "eq",
+        "value": "completed"
+      },
+      {
+        "column": "status",
+        "operator": "eq",
+        "value": "failed"
+      }
+    ]
+  }
 }
 ```
 
 Example using the `not` operator:
 
 ```json
-POST /tasks
+// POST /tasks
 
 {
-    "filters": {
-        "not": [
-            {
-                "column": "status",
-                "operator": "eq",
-                "value": "completed"
-            }
-        ]
-    }
+  "filters": {
+    "not": [
+      {
+        "column": "status",
+        "operator": "eq",
+        "value": "completed"
+      }
+    ]
+  }
 }
 ```
 
@@ -125,23 +125,50 @@ to specify what nested field to filter on.
 Example:
 
 ```json
-POST /tasks
+// POST /tasks
 
 {
-    "filters": [
-        {
-            "column": "p_item",
-            "field": "data__input_ooi",
-            "operator": "like",
-            "value": "%internet%"
-        },
-        {
-            "column": "p_item",
-            "field": "data__boefje__id",
-            "operator": "eq",
-            "value": "dns-zone"
-        }
-    ]
+  "filters": [
+    {
+      "column": "scheduler_id",
+      "operator": "eq",
+      "value": "boefje"
+    },
+    {
+      "column": "data",
+      "field": "input_ooi",
+      "operator": "like",
+      "value": "%internet%"
+    },
+    {
+      "column": "data",
+      "field": "boefje__id", // note the double underscore
+      "operator": "eq",
+      "value": "dns-zone"
+    }
+  ]
+}
+```
+
+When using the specialized `@>` and `<@` operators, make sure the value is
+a JSON formatted string, for example:
+
+```json
+// POST /tasks
+
+{
+  "filters": [
+    {
+      "column": "scheduler_id",
+      "operator": "eq",
+      "value": "boefje"
+    },
+    {
+      "column": "data",
+      "operator": "@>",
+      "value": "{\"boefje\": {\"id\": \"dns-zone\"}}"
+    }
+  ]
 }
 ```
 

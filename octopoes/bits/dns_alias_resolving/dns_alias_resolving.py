@@ -15,10 +15,7 @@ def run(
 
     for cname_record in cname_records:
         for resolved_hostname in resolved_hostnames:
-            yield ResolvedHostname(
-                hostname=cname_record.hostname,
-                address=resolved_hostname.address,
-            )
+            yield ResolvedHostname(hostname=cname_record.hostname, address=resolved_hostname.address)
             # Also the non-fqdn variant
             yield ResolvedHostname(
                 hostname=Hostname(

@@ -1,7 +1,7 @@
 import httpx
 
 
-class KATalogusClientV1:
+class KATalogusClient:
     def __init__(self, base_uri: str):
         self.base_uri = f"{base_uri.rstrip('/')}/v1"
 

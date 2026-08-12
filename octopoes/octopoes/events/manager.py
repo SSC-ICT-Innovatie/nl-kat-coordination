@@ -7,7 +7,7 @@ import pika
 import structlog
 from celery import Celery
 from pika.adapters.blocking_connection import BlockingChannel
-from pika.exceptions import StreamLostError
+from pika.exceptions import ChannelWrongStateError, StreamLostError
 from pydantic import BaseModel
 
 from octopoes.events.events import DBEvent, OperationType, ScanProfileDBEvent
@@ -26,6 +26,7 @@ class ScanProfileMutation(BaseModel):
     operation: OperationType
     primary_key: str
     value: AbstractOOI | None = None
+    client_id: str
 
 
 thread_local = threading.local()
@@ -67,66 +68,40 @@ class EventManager:
     def publish(self, event: DBEvent) -> None:
         try:
             self._publish(event)
-        except StreamLostError:  # Retry publishing once on connection issues
+        except (StreamLostError, ChannelWrongStateError):  # Retry publishing once on connection issues
             logger.exception("Failed publishing event, retrying...")
 
             try:
                 self._connect()
-                self._publish(event)
+                self._publish(event, push_to_celery=False)
             except StreamLostError:
                 logger.exception("Failed publishing event again")
                 raise
 
-    def _publish(self, event: DBEvent) -> None:
-        # schedule celery event processor
-        self.celery_app.send_task(
-            "octopoes.tasks.tasks.handle_event",
-            (json.loads(event.json()),),
-            queue=self.celery_queue_name,
-            task_id=str(uuid.uuid4()),
-        )
+    def _publish(self, event: DBEvent, push_to_celery=True) -> None:
+        if push_to_celery:
+            # schedule celery event processor
+            self.celery_app.send_task(
+                "octopoes.tasks.tasks.handle_event",
+                (event.model_dump(mode="json"),),
+                queue=self.celery_queue_name,
+                task_id=str(uuid.uuid4()),
+            )
 
-        logger.debug(
-            "Published handle_event task [operation_type=%s] [primary_key=%s] [client=%s]",
-            event.operation_type,
-            format_id_short(event.primary_key),
-            event.client,
-        )
+            logger.debug(
+                "Published handle_event task [operation_type=%s] [primary_key=%s] [client=%s]",
+                event.operation_type,
+                format_id_short(event.primary_key),
+                event.client,
+            )
 
         if not isinstance(event, ScanProfileDBEvent):
             return
 
-        # There doesn't seem to be an easy way to tell mypy when old_data or new_data is None.
-        incremented = (event.operation_type == OperationType.CREATE and event.new_data.level > 0) or (  # type: ignore[union-attr]
-            event.operation_type == OperationType.UPDATE
-            and event.old_data
-            and event.new_data.level > event.old_data.level  # type: ignore[union-attr]
-        )
-
-        if incremented:
-            ooi = json.dumps(
-                {
-                    "primary_key": event.reference,
-                    "object_type": event.reference.class_,
-                    "scan_profile": event.new_data.dict(),  # type: ignore[union-attr]
-                }
-            )
-
-            self.channel.basic_publish(
-                "",
-                f"{event.client}__scan_profile_increments",
-                ooi.encode(),
-                properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-            )
-
-            logger.debug(
-                "Published scan_profile_increment [primary_key=%s] [level=%s]",
-                format_id_short(event.primary_key),
-                event.new_data.level,  # type: ignore[union-attr]
-            )
-
         # publish mutations
-        mutation = ScanProfileMutation(operation=event.operation_type, primary_key=event.primary_key)
+        mutation = ScanProfileMutation(
+            operation=event.operation_type, primary_key=event.primary_key, client_id=event.client
+        )
 
         if event.operation_type != OperationType.DELETE:
             mutation.value = AbstractOOI(
@@ -135,10 +110,12 @@ class EventManager:
                 scan_profile=event.new_data,
             )
 
+        payload = json.dumps(mutation.model_dump(mode="json")).encode("utf-8")
+
         self.channel.basic_publish(
-            "",
-            f"{event.client}__scan_profile_mutations",
-            mutation.json().encode(),
+            exchange="",
+            routing_key="scan_profile_mutations",
+            body=payload,
             properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
         )
 
@@ -164,5 +141,4 @@ class EventManager:
 
     def _connect(self) -> None:
         self.channel = self.channel_factory(self.queue_uri)
-        self.channel.queue_declare(queue=f"{self.client}__scan_profile_increments", durable=True)
-        self.channel.queue_declare(queue=f"{self.client}__scan_profile_mutations", durable=True)
+        self.channel.queue_declare(queue="scan_profile_mutations", durable=True)

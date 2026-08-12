@@ -1,5 +1,6 @@
 import logging
 import socket
+from contextlib import asynccontextmanager
 from logging import config
 from pathlib import Path
 
@@ -18,6 +19,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from pika.adapters.utils.connection_workflow import AMQPConnectionWorkflowFailed
 
+from octopoes.api.bulk_router import router as bulk_router
 from octopoes.api.models import ServiceHealth
 from octopoes.api.router import router
 from octopoes.config.settings import Settings
@@ -25,6 +27,7 @@ from octopoes.core.app import close_rabbit_channel
 from octopoes.events.manager import get_rabbit_channel
 from octopoes.models.exception import ObjectNotFoundException, TypeNotFound
 from octopoes.version import __version__
+from octopoes.xtdb.client import XTDBHTTPClient
 from octopoes.xtdb.exceptions import NodeNotFound
 from octopoes.xtdb.query import InvalidField, InvalidPath
 
@@ -48,7 +51,9 @@ structlog.configure(
         structlog.stdlib.PositionalArgumentsFormatter(),
         structlog.processors.TimeStamper("iso", utc=False),
         (
-            structlog.dev.ConsoleRenderer(colors=True, pad_level=False)
+            structlog.dev.ConsoleRenderer(
+                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
+            )
             if settings.logging_format == "text"
             else structlog.processors.JSONRenderer()
         ),
@@ -58,7 +63,20 @@ structlog.configure(
     wrapper_class=structlog.stdlib.BoundLogger,
     cache_logger_on_first_use=True,
 )
-app = FastAPI(title="Octopoes API")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        get_rabbit_channel(str(settings.queue_uri))
+    except (AMQPConnectionWorkflowFailed, socket.gaierror):
+        logger.exception("Unable to connect RabbitMQ on startup")
+    yield
+    # clean up items
+    close_rabbit_channel(str(settings.queue_uri))
+
+
+app = FastAPI(title="Octopoes API", lifespan=lifespan)
 
 # Set up OpenTelemetry instrumentation
 if settings.span_export_grpc_endpoint is not None:
@@ -131,24 +149,28 @@ def uncaught_exception_handler(_: Request, exc: Exception) -> None:
 
 @app.get("/health")
 def root_health() -> ServiceHealth:
-    return ServiceHealth(
-        service="octopoes",
-        healthy=True,
-        version=__version__,
-    )
+    return ServiceHealth(service="octopoes", healthy=True, version=__version__)
 
 
-@app.on_event("shutdown")
-def close_rabbit_mq_connection():
-    close_rabbit_channel(str(settings.queue_uri))
-
-
-@app.on_event("startup")
-def create_rabbit_mq_connection():
-    try:
-        get_rabbit_channel(str(settings.queue_uri))
-    except (AMQPConnectionWorkflowFailed, socket.gaierror):
-        logger.exception("Unable to connect RabbitMQ on startup")
+@app.get("/health/organizations")
+def organizations_health() -> ServiceHealth:
+    xtdb_client = XTDBHTTPClient(str(settings.xtdb_uri))
+    orga_results = []
+    overall_healthy = True
+    for orga in xtdb_client.list_nodes():
+        xtdb_client.node = orga
+        try:
+            xtdbstatus = xtdb_client.status()
+            healthy = True
+        except Exception:
+            overall_healthy = False
+            healthy = False
+            xtdbstatus = None
+        orga_results.append(
+            ServiceHealth(service=f"xtdb for {orga}", healthy=healthy, version=__version__, additional=xtdbstatus)
+        )
+    return ServiceHealth(service="octopoes", healthy=overall_healthy, version=__version__, results=orga_results)
 
 
 app.include_router(router)
+app.include_router(bulk_router)

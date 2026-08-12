@@ -26,12 +26,6 @@ def add_group_permissions(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0034_alter_organization_options"),
-        ("contenttypes", "0002_remove_content_type_name"),
-    ]
+    dependencies = [("tools", "0034_alter_organization_options"), ("contenttypes", "0002_remove_content_type_name")]
 
-    operations = [
-        migrations.RunPython(migrate_permissions),
-        migrations.RunPython(add_group_permissions),
-    ]
+    operations = [migrations.RunPython(migrate_permissions), migrations.RunPython(add_group_permissions)]

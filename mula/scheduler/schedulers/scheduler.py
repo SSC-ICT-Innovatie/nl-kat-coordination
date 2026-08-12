@@ -3,95 +3,80 @@ import random
 import threading
 import time
 from collections.abc import Callable
+from concurrent import futures
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import structlog
 from opentelemetry import trace
 
-from scheduler import connectors, context, models, queues, storage, utils
+from scheduler import clients, context, models, storage, utils
+from scheduler.schedulers.queue import PriorityQueue
+from scheduler.schedulers.queue.errors import InvalidItemError, NotAllowedError, QueueFullError
 from scheduler.utils import cron, thread
 
 tracer = trace.get_tracer(__name__)
 
 
 class Scheduler(abc.ABC):
-    """The Scheduler class combines the priority queue.
-    The scheduler is responsible for populating the queue, and ranking tasks.
+    """The scheduler base class that all schedulers should inherit from.
 
     Attributes:
         logger:
-            The logger for the class
+            The logger instance.
         ctx:
             Application context of shared data (e.g. configuration, external
             services connections).
-        queue:
-            A queues.PriorityQueue instance
-        callback:
-            A callback function to call when the scheduler is stopped.
         scheduler_id:
-             The id of the scheduler.
+            The id of the scheduler.
         max_tries:
             The maximum number of retries for an item to be pushed to
             the queue.
-        enabled:
-            Whether the scheduler is enabled or not.
-        _last_activity:
+        create_schedule:
+            Whether to create a Schedule for a task.
+        auto_calculate_deadline:
+            Whether to automatically calculate the deadline at of the Schedule
+            from a task.
+        last_activity:
             The last activity of the scheduler.
+        queue:
+            A queues.PriorityQueue instance
         listeners:
-            A dict of connector.Listener instances, used for listening to
-            external events.
-        lock:
-            A threading.Lock instance used for locking
-        stop_event_threads:
-            A threading.Event object used for communicating a stop
-            event across threads.
+            A dictionary of listeners, typically AMQP listeners on which
+            event messages are received.
         threads:
-            A dict of ThreadRunner instances, used for running processes
-            concurrently.
+            A list of threads that are running, typically long running
+            processes.
+        lock:
+            A threading lock
+        stop_event_threads:
+            A threading event to stop the running threads.
     """
 
+    TYPE: models.SchedulerType = models.SchedulerType.UNKNOWN
     ITEM_TYPE: Any = None
 
     def __init__(
         self,
         ctx: context.AppContext,
         scheduler_id: str,
-        queue: queues.PriorityQueue | None = None,
-        callback: Callable[..., None] | None = None,
+        queue: PriorityQueue | None = None,
         max_tries: int = -1,
         create_schedule: bool = False,
+        auto_calculate_deadline: bool = True,
     ):
-        """Initialize the Scheduler.
-
-        Args:
-            ctx:
-                Application context of shared data (e.g. configuration, external
-                services connections).
-            scheduler_id:
-                The id of the scheduler.
-            queue:
-                A queues.PriorityQueue instance
-            callback:
-                A callback function to call when the scheduler is stopped.
-            max_tries:
-                The maximum number of retries for an item to be pushed to
-                the queue.
-        """
-
         self.logger: structlog.BoundLogger = structlog.getLogger(__name__)
         self.ctx: context.AppContext = ctx
-        self.callback: Callable[[], Any] | None = callback
 
         # Properties
         self.scheduler_id: str = scheduler_id
         self.max_tries: int = max_tries
-        self.enabled: bool = True
         self.create_schedule: bool = create_schedule
+        self.auto_calculate_deadline: bool = auto_calculate_deadline
         self._last_activity: datetime | None = None
 
         # Queue
-        self.queue = queue or queues.PriorityQueue(
+        self.queue = queue or PriorityQueue(
             pq_id=scheduler_id,
             maxsize=self.ctx.config.pq_maxsize,
             item_type=self.ITEM_TYPE,
@@ -99,24 +84,24 @@ class Scheduler(abc.ABC):
         )
 
         # Listeners
-        self.listeners: dict[str, connectors.listeners.Listener] = {}
+        self.listeners: dict[str, clients.amqp.Listener] = {}
 
         # Threads
+        self.threads: list[thread.ThreadRunner] = []
         self.lock: threading.Lock = threading.Lock()
         self.stop_event_threads: threading.Event = threading.Event()
-        self.threads: list[thread.ThreadRunner] = []
 
     @abc.abstractmethod
     def run(self) -> None:
         raise NotImplementedError
 
+    def log_future_exceptions(self, fut: futures.Future):
+        exc = fut.exception()
+        if exc:
+            self.logger.exception("%s task crashed in ThreadPoolExecutor", self.ITEM_TYPE, exc_info=exc)
+
     def run_in_thread(
-        self,
-        name: str,
-        target: Callable[[], Any],
-        interval: float = 0.01,
-        daemon: bool = False,
-        loop: bool = True,
+        self, name: str, target: Callable[[], Any], interval: float = 0.01, daemon: bool = False, loop: bool = True
     ) -> None:
         """Make a function run in a thread, and add it to the dict of threads.
 
@@ -128,12 +113,7 @@ class Scheduler(abc.ABC):
             loop: Whether the thread should loop.
         """
         t = utils.ThreadRunner(
-            name=name,
-            target=target,
-            stop_event=self.stop_event_threads,
-            interval=interval,
-            daemon=daemon,
-            loop=loop,
+            name=name, target=target, stop_event=self.stop_event_threads, interval=interval, daemon=daemon, loop=loop
         )
         t.start()
 
@@ -149,11 +129,7 @@ class Scheduler(abc.ABC):
         for item in items:
             try:
                 self.push_item_to_queue(item)
-            except (
-                queues.errors.NotAllowedError,
-                queues.errors.QueueFullError,
-                queues.errors.InvalidItemError,
-            ) as exc:
+            except (NotAllowedError, QueueFullError, InvalidItemError) as exc:
                 self.logger.debug(
                     "Unable to push item %s to queue %s (%s)",
                     item.id,
@@ -178,10 +154,7 @@ class Scheduler(abc.ABC):
             count += 1
 
     def push_item_to_queue_with_timeout(
-        self,
-        item: models.Task,
-        max_tries: int = 5,
-        timeout: int = 1,
+        self, item: models.Task, max_tries: int = 5, timeout: int = 1, create_schedule: bool = True
     ) -> None:
         """Push an item to the queue, with a timeout.
 
@@ -197,6 +170,7 @@ class Scheduler(abc.ABC):
         while not self.is_space_on_queue() and (tries < max_tries or max_tries == -1):
             self.logger.debug(
                 "Queue %s is full, waiting for space",
+                self.queue.pq_id,
                 queue_id=self.queue.pq_id,
                 queue_qsize=self.queue.qsize(),
                 scheduler_id=self.scheduler_id,
@@ -205,11 +179,11 @@ class Scheduler(abc.ABC):
             tries += 1
 
         if tries >= max_tries and max_tries != -1:
-            raise queues.errors.QueueFullError()
+            raise QueueFullError()
 
-        self.push_item_to_queue(item)
+        self.push_item_to_queue(item, create_schedule=create_schedule)
 
-    def push_item_to_queue(self, item: models.Task) -> models.Task:
+    def push_item_to_queue(self, item: models.Task, create_schedule: bool = True) -> models.Task:
         """Push a Task to the queue.
 
         Args:
@@ -220,43 +194,32 @@ class Scheduler(abc.ABC):
             QueueFullError: When the queue is full.
             InvalidItemError: When the item is invalid.
         """
-        if not self.is_enabled():
-            self.logger.warning(
-                "Scheduler is disabled, not pushing item to queue %s",
-                self.queue.pq_id,
-                item_id=item.id,
-                queue_id=self.queue.pq_id,
-                scheduler_id=self.scheduler_id,
-            )
-            raise queues.errors.NotAllowedError("Scheduler is disabled")
-
         try:
             if item.type is None:
                 item.type = self.ITEM_TYPE.type
             item.status = models.TaskStatus.QUEUED
             item = self.queue.push(item)
-        except queues.errors.NotAllowedError as exc:
-            self.logger.warning(
-                "Not allowed to push to queue %s (%s)",
+        except NotAllowedError:
+            self.logger.debug(
+                "Not allowed to push to queue %s",
                 self.queue.pq_id,
-                exc,
                 item_id=item.id,
                 queue_id=self.queue.pq_id,
                 scheduler_id=self.scheduler_id,
+                item=item,
             )
-            raise exc
-        except queues.errors.QueueFullError as exc:
+            raise
+        except QueueFullError:
             self.logger.warning(
-                "Queue %s is full, not pushing new items (%s)",
+                "Queue %s is full, not pushing new items",
                 self.queue.pq_id,
-                exc,
                 item_id=item.id,
                 queue_id=self.queue.pq_id,
                 queue_qsize=self.queue.qsize(),
                 scheduler_id=self.scheduler_id,
             )
-            raise exc
-        except queues.errors.InvalidItemError as exc:
+            raise
+        except InvalidItemError:
             self.logger.warning(
                 "Invalid item %s",
                 item.id,
@@ -265,7 +228,7 @@ class Scheduler(abc.ABC):
                 queue_qsize=self.queue.qsize(),
                 scheduler_id=self.scheduler_id,
             )
-            raise exc
+            raise
 
         self.logger.debug(
             "Pushed item %s to queue %s with priority %s ",
@@ -278,21 +241,43 @@ class Scheduler(abc.ABC):
             scheduler_id=self.scheduler_id,
         )
 
-        item = self.post_push(item)
+        item = self.post_push(item, create_schedule)
 
         return item
 
-    def post_push(self, item: models.Task) -> models.Task:
-        """After an in item is pushed to the queue, we execute this function
+    def post_push(self, item: models.Task, create_schedule: bool = True) -> models.Task:
+        """After an item is pushed to the queue, we execute this function. We
+        perform the following actions:
+
+        - We set the last activity of the scheduler to now.
+        - We check if we should create a schedule for the item.
+        - If a schedule already exists, we update the deadline.
+        - If no schedule exists, we create a new schedule and set the deadline.
+        - We update the item with the schedule id.
 
         Args:
             item: The item from the priority queue.
         """
         self.last_activity = datetime.now(timezone.utc)
 
-        if self.create_schedule is False:
+        # We differentiate between the scheduler configuration if we should
+        # create a schedule for the item, and or if it was specifically
+        # specified for the item to create a schedule.
+        scheduler_create_schedule = self.create_schedule
+        if not scheduler_create_schedule:
             self.logger.debug(
-                "Not creating schedule for item %s",
+                "Scheduler is not creating schedules, not creating schedule for item %s",
+                item.id,
+                item_id=item.id,
+                queue_id=self.queue.pq_id,
+                scheduler_id=self.scheduler_id,
+            )
+            return item
+
+        item_create_schedule = create_schedule
+        if not item_create_schedule:
+            self.logger.debug(
+                "Item is not creating schedules, not creating schedule for item %s",
                 item.id,
                 item_id=item.id,
                 queue_id=self.queue.pq_id,
@@ -301,30 +286,26 @@ class Scheduler(abc.ABC):
             return item
 
         schedule_db = None
-        if item.schedule_id is None:
-            schedule_db = self.ctx.datastores.schedule_store.get_schedule_by_hash(item.hash)
-            if schedule_db is None:
-                deadline_at = self.calculate_deadline(item)
-                cron_expression = f"{deadline_at.minute} {deadline_at.hour} * * *"
-
-                schedule = models.Schedule(
-                    scheduler_id=self.scheduler_id,
-                    hash=item.hash,
-                    schedule=cron_expression,
-                    deadline_at=deadline_at,
-                    data=item.data,
-                )
-                schedule_db = self.ctx.datastores.schedule_store.create_schedule(schedule)
-                item.schedule_id = schedule_db.id
-                self.ctx.datastores.task_store.update_task(item)
-                return item
-
-            item.schedule_id = schedule_db.id
-            self.ctx.datastores.task_store.update_task(item)
-        else:
+        if item.schedule_id is not None:
             schedule_db = self.ctx.datastores.schedule_store.get_schedule(item.schedule_id)
-            if schedule_db is None:
-                raise ValueError(f"Schedule with id {item.schedule_id} not found for item {item.id}")
+        else:
+            schedule_db = self.ctx.datastores.schedule_store.get_schedule_by_hash(item.hash)
+
+        if schedule_db is None:
+            schedule = models.Schedule(
+                scheduler_id=self.scheduler_id, hash=item.hash, data=item.data, organisation=item.organisation
+            )
+            schedule_db = self.ctx.datastores.schedule_store.create_schedule(schedule)
+
+        if schedule_db is None:
+            self.logger.debug(
+                "No schedule found for item %s",
+                item.id,
+                item_id=item.id,
+                queue_id=self.queue.pq_id,
+                scheduler_id=self.scheduler_id,
+            )
+            return item
 
         if not schedule_db.enabled:
             self.logger.debug(
@@ -337,12 +318,17 @@ class Scheduler(abc.ABC):
             )
             return item
 
-        schedule_db.deadline_at = cron.next_run(schedule_db.schedule)
+        item.schedule_id = schedule_db.id
+
+        schedule_db = self.calculate_deadline(schedule_db)
         self.ctx.datastores.schedule_store.update_schedule(schedule_db)
+        self.ctx.datastores.task_store.update_task(item)
 
         return item
 
-    def pop_item_from_queue(self, filters: storage.filters.FilterRequest | None = None) -> models.Task | None:
+    def pop_item_from_queue(
+        self, limit: int | None = None, filters: storage.filters.FilterRequest | None = None
+    ) -> list[models.Task]:
         """Pop an item from the queue.
 
         Args:
@@ -353,57 +339,45 @@ class Scheduler(abc.ABC):
 
         Raises:
             NotAllowedError: When the scheduler is disabled.
-            QueueEmptyError: When the queue is empty.
         """
-        if not self.is_enabled():
-            self.logger.warning(
-                "Scheduler is disabled, not popping item from queue",
-                queue_id=self.queue.pq_id,
-                queue_qsize=self.queue.qsize(),
-                scheduler_id=self.scheduler_id,
-            )
-            raise queues.errors.NotAllowedError("Scheduler is disabled")
+        items = self.queue.pop(limit, filters)
 
-        try:
-            item = self.queue.pop(filters)
-        except queues.QueueEmptyError as exc:
-            raise exc
-
-        if item is not None:
+        if items is not None:
             self.logger.debug(
-                "Popped item %s from queue %s with priority %s",
-                item.id,
+                "Popped %s item(s) from queue %s",
+                len(items),
                 self.queue.pq_id,
-                item.priority,
-                item_id=item.id,
                 queue_id=self.queue.pq_id,
                 scheduler_id=self.scheduler_id,
             )
 
-            self.post_pop(item)
+            self.post_pop()
 
-        return item
+        return items
 
-    def post_pop(self, item: models.Task) -> None:
-        """After an item is popped from the queue, we execute this function
-
-        Args:
-            item: An item from the queue
-        """
+    def post_pop(self) -> None:
+        """After an item is popped from the queue, we execute this function"""
         self.last_activity = datetime.now(timezone.utc)
 
-    def calculate_deadline(self, task: models.Task) -> datetime:
-        """Calculate the deadline for a task.
+    def calculate_deadline(self, schedule: models.Schedule) -> models.Schedule:
+        """Calculate the deadline for a schedule.
 
-        NOTE: This is a simple implementation, you can override this method
-        to implement a more complex logic.
-
-        Args:
-            task: The task to calculate the deadline for.
-
-        Returns:
-            The deadline for the task.
+        When the schedule is not set, and the auto_calculate_deadline is
+        not set, we set the deadline to None. This means that the task
+        will not be scheduled and was likely a one-off scheduled task.
         """
+        if schedule.schedule is not None:
+            schedule.deadline_at = cron.next_run(schedule.schedule)
+        elif self.auto_calculate_deadline:
+            schedule.deadline_at = self.calculate_default_deadline(schedule)
+        elif schedule.deadline_at is not None and schedule.deadline_at < datetime.now(timezone.utc):
+            schedule.deadline_at = None
+
+        return schedule
+
+    def calculate_default_deadline(self, schedule: models.Schedule) -> datetime:
+        """The default deadline calculation for a task, when the
+        auto_calculate_deadline attribute is set to True"""
         # We at least delay a job by the grace period
         minimum = self.ctx.config.pq_grace_period
         deadline = datetime.now(timezone.utc) + timedelta(seconds=minimum)
@@ -418,76 +392,8 @@ class Scheduler(abc.ABC):
 
         return adjusted_time
 
-    def enable(self) -> None:
-        """Enable the scheduler.
-
-        This will start the scheduler, and start all listeners and threads.
-        """
-        if self.is_enabled():
-            self.logger.debug("Scheduler is already enabled")
-            return
-
-        self.logger.info(
-            "Enabling scheduler: %s",
-            self.scheduler_id,
-            scheduler_id=self.scheduler_id,
-        )
-        self.enabled = True
-        self.stop_event_threads.clear()
-        self.run()
-
-        self.logger.info(
-            "Enabled scheduler: %s",
-            self.scheduler_id,
-            scheduler_id=self.scheduler_id,
-        )
-
-    def disable(self) -> None:
-        """Disable the scheduler.
-
-        This will stop all listeners and threads, and clear the queue, and any
-        tasks that were on the queue will be set to CANCELLED.
-        """
-        if not self.is_enabled():
-            self.logger.warning(
-                "Scheduler already disabled: %s",
-                self.scheduler_id,
-                scheduler_id=self.scheduler_id,
-            )
-            return
-
-        self.logger.info("Disabling scheduler: %s", self.scheduler_id)
-        self.enabled = False
-
-        self.stop_listeners()
-        self.stop_threads()
-        self.queue.clear()
-
-        # Get all tasks that were on the queue and set them to CANCELLED
-        tasks, _ = self.ctx.datastores.task_store.get_tasks(
-            scheduler_id=self.scheduler_id,
-            status=models.TaskStatus.QUEUED,
-        )
-        task_ids = [task.id for task in tasks]
-        self.ctx.datastores.task_store.cancel_tasks(scheduler_id=self.scheduler_id, task_ids=task_ids)
-
-        self.logger.info(
-            "Disabled scheduler: %s",
-            self.scheduler_id,
-            scheduler_id=self.scheduler_id,
-        )
-
-    def stop(self, callback: bool = True) -> None:
-        """Stop the scheduler.
-
-        Args:
-            callback: Whether to call the callback function.
-        """
-        self.logger.info(
-            "Stopping scheduler: %s",
-            self.scheduler_id,
-            scheduler_id=self.scheduler_id,
-        )
+    def stop(self) -> None:
+        self.logger.info("Stopping scheduler: %s", self.scheduler_id, scheduler_id=self.scheduler_id)
 
         # First, stop the listeners, when those are running in a thread and
         # they're using rabbitmq, they will block. Setting the stop event
@@ -495,14 +401,7 @@ class Scheduler(abc.ABC):
         self.stop_listeners()
         self.stop_threads()
 
-        if self.callback and callback:
-            self.callback(self.scheduler_id)  # type: ignore [call-arg]
-
-        self.logger.info(
-            "Stopped scheduler: %s",
-            self.scheduler_id,
-            scheduler_id=self.scheduler_id,
-        )
+        self.logger.info("Stopped scheduler: %s", self.scheduler_id, scheduler_id=self.scheduler_id)
 
     def stop_listeners(self) -> None:
         """Stop the listeners."""
@@ -518,14 +417,6 @@ class Scheduler(abc.ABC):
 
         self.threads = []
 
-    def is_enabled(self) -> bool:
-        """Check if the scheduler is enabled.
-
-        Returns:
-            True if the scheduler is enabled, False otherwise.
-        """
-        return self.enabled
-
     def is_space_on_queue(self) -> bool:
         """Check if there is space on the queue.
 
@@ -534,7 +425,7 @@ class Scheduler(abc.ABC):
         Returns:
             True if there is space on the queue, False otherwise.
         """
-        if (self.queue.maxsize - self.queue.qsize()) <= 0 and self.queue.maxsize != 0:
+        if self.queue.maxsize != 0 and (self.queue.maxsize - self.queue.qsize()) <= 0:
             return False
 
         return True
@@ -558,15 +449,8 @@ class Scheduler(abc.ABC):
         """Get a dict representation of the scheduler."""
         return {
             "id": self.scheduler_id,
-            "enabled": self.enabled,
-            "priority_queue": {
-                "id": self.queue.pq_id,
-                "item_type": self.queue.item_type.type,
-                "maxsize": self.queue.maxsize,
-                "qsize": self.queue.qsize(),
-                "allow_replace": self.queue.allow_replace,
-                "allow_updates": self.queue.allow_updates,
-                "allow_priority_updates": self.queue.allow_priority_updates,
-            },
+            "type": self.TYPE.value,
+            "item_type": self.ITEM_TYPE.__name__,
+            "qsize": self.queue.qsize(),
             "last_activity": self.last_activity,
         }

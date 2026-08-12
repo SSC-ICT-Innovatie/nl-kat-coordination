@@ -1,12 +1,15 @@
 {
   "id": "testssl-sh-ciphers",
   "name": "Testssl.sh Ciphers",
-  "description": "Run testssl.sh Docker container and check ciphers",
+  "description": "Checks the SSL and TLS ciphers of a website for any insecure ciphers that are offered.",
   "consumes": [
     "IPService"
   ],
   "scan_level": 2,
-  "environment_keys": [
-    "TIMEOUT"
+  "oci_image": "docker.underdark.nl/librekat/openkat-testssl-sh-ciphers:latest",
+  "oci_arguments": [
+    "--jsonfile",
+    "/tmp/output.json",
+    "--server-preference"
   ]
 }

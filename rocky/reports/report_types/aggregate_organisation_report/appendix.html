@@ -1,11 +1,11 @@
 {% load i18n %}
 
-<section class="introduction type-a" id="introduction">
+<section class="appendix type-a" id="introduction">
     <div>
         <h2 id="appendix">{% translate "Appendix" %}</h2>
         {% include "aggregate_organisation_report/term_overview.html" %}
 
-        <h3 id="selected-oois">{% translate "Selected objects" %} ({{ total_oois }})</h3>
+        <h3 id="selected-oois">{% translate "Selected objects" %} ({{ oois|length }})</h3>
         {% if active_filters %}
             <p>
                 <span class="icon positive"></span><strong>{% translate "Currently filtered on" %}</strong>
@@ -17,77 +17,87 @@
         {% include "summary/ooi_selection.html" %}
 
     </div>
-    <h3 id="selected-report-types">{% translate "Selected Report Types" %}</h3>
-    <table>
-        <caption class="visually-hidden">{% translate "Selected report types" %}</caption>
-        <thead>
-            <tr>
-                <th>{% translate "Report type" %}</th>
-                <th>{% translate "Description" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for report_type in data.report_types %}
-                <tr>
-                    <td>
-                        <span class="label tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
-                    </td>
-                    <td>{{ report_type.description }}</td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% include "summary/selected_plugins.html" %}
-
-    <h3 id="service-versions-and-health">{% translate "Service Versions and Health" %}</h3>
-    <table>
-        <caption class="visually-hidden">{% translate "Service, version and health" %}</caption>
-        <thead>
-            <tr>
-                <th>{% translate "Service" %}</th>
-                <th>{% translate "Version" %}</th>
-                <th>{% translate "Health" %}</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for service in data.health %}
-                <tr>
-                    <td>{{ service.service }}</td>
-                    <td>{{ service.version }}</td>
-                    <td>
-                        {% if service.healthy %}
-                            <span class="icon positive"></span>{% translate "Healthy" %}
-                        {% else %}
-                            <span class="icon alert"></span>{% translate "Unhealthy" %}
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <h3 id="used-config-oois">{% translate "Used Config objects" %}</h3>
-    {% if data.config_oois %}
+    <h3 id="selected-report-types">{% translate "Selected Report Types" %} ({{ report_types|length }})</h3>
+    <div class="horizontal-scroll">
         <table>
-            <caption class="visually-hidden">{% translate "Used config objects" %}</caption>
+            <caption class="visually-hidden">{% translate "Selected report types" %}</caption>
             <thead>
                 <tr>
-                    <th>{% translate "Primary Key" %}</th>
-                    <th>{% translate "Bit ID" %}</th>
-                    <th>{% translate "Config" %}</th>
+                    <th>{% translate "Report type" %}</th>
+                    <th>{% translate "Description" %}</th>
                 </tr>
             </thead>
             <tbody>
-                {% for config in data.config_oois %}
+                {% for report_type in report_types %}
                     <tr>
-                        <td>{{ config.primary_key }}</td>
-                        <td>{{ config.bit_id }}</td>
+                        <td class="nowrap">
+                            <ul class="tags horizontal-view">
+                                <li>
+                                    <span class="label tags-color-{{ report_type.label_style }}">{{ report_type.name }}</span>
+                                </li>
+                            </ul>
+                        </td>
+                        <td>{{ report_type.description }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% include "summary/selected_plugins.html" %}
+
+    <h3 id="service-versions-and-health">{% translate "Service Versions and Health" %}</h3>
+    <div class="horizontal-scroll">
+        <table>
+            <caption class="visually-hidden">{% translate "Service, version and health" %}</caption>
+            <thead>
+                <tr>
+                    <th>{% translate "Service" %}</th>
+                    <th>{% translate "Version" %}</th>
+                    <th>{% translate "Health" %}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for service in data.health %}
+                    <tr>
+                        <td>{{ service.service }}</td>
+                        <td>{{ service.version }}</td>
                         <td>
-                            {% for key, value in config.config.items %}<p>{{ key }}: {{ value }}</p>{% endfor %}
+                            {% if service.healthy %}
+                                <span class="icon positive"></span>{% translate "Healthy" %}
+                            {% else %}
+                                <span class="icon alert"></span>{% translate "Unhealthy" %}
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+    <h3 id="used-config-oois">{% translate "Used Config objects" %}</h3>
+    {% if data.config_oois %}
+        <div class="horizontal-scroll">
+            <table>
+                <caption class="visually-hidden">{% translate "Used config objects" %}</caption>
+                <thead>
+                    <tr>
+                        <th>{% translate "Primary Key" %}</th>
+                        <th>{% translate "Bit ID" %}</th>
+                        <th>{% translate "Config" %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for config in data.config_oois %}
+                        <tr>
+                            <td>{{ config.primary_key }}</td>
+                            <td>{{ config.bit_id }}</td>
+                            <td>
+                                {% for key, value in config.config.items %}<p>{{ key }}: {{ value }}</p>{% endfor %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     {% else %}
         <p>{% translate "No config objects found." %}</p>
     {% endif %}

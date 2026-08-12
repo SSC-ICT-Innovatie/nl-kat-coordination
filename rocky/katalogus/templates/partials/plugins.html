@@ -2,30 +2,37 @@
 {% load static %}
 
 {% if view_type == "table" %}
-    <div class="horizontal-scroll">
+    <div class="horizontal-scroll sticky-column">
         <table class="plugins">
             <caption>{% translate "Plugins overview:" %}</caption>
             <thead>
                 <tr>
                     <th>{% translate "Plugin name" %}</th>
-                    <th>{% translate "Plugin type" %}</th>
+                    {% if active == "all" %}
+                        <th>{% translate "Plugin type" %}</th>
+                    {% endif %}
                     <th>{% translate "Plugin description" %}</th>
-                    <th colspan="2">{% translate "Actions" %}</th>
+                    <th>{% translate "Actions" %}</th>
+                    <th class="visually-hidden">{% translate "Detail page" %}</th>
                 </tr>
             </thead>
             <tbody>
                 {% for plugin in object_list %}
                     <tr id="plugin_{{ plugin.id|slugify }}">
                         <td scope="row">
-                            <span class="plugin-title">
-                                <strong>{{ plugin.name }}</strong>
-                            </span>
+                            {% if plugin.type == "boefje" %}
+                                <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=plugin.id %}">{{ plugin.name }}</a>
+                            {% else %}
+                                <a href="{% url "normalizer_detail" organization_code=organization.code plugin_id=plugin.id %}">{{ plugin.name }}</a>
+                            {% endif %}
                         </td>
-                        <td scope="row">
-                            <p class="plugin-title">
-                                <span class="label-plugin-type {{ plugin.type }}">{{ plugin.type|title }}</span>
-                            </p>
-                        </td>
+                        {% if active == "all" %}
+                            <td scope="row">
+                                <p class="plugin-title">
+                                    <span class="label-plugin-type {{ plugin.type }}">{{ plugin.type|title }}</span>
+                                </p>
+                            </td>
+                        {% endif %}
                         <td>
                             {% if plugin.description %}<span class="plugin-description">{{ plugin.description }}</span>{% endif %}
                         </td>
@@ -33,13 +40,19 @@
                             {% include "partials/enable_disable_plugin.html" with plugin=plugin %}
 
                         </td>
-                        <td>
+                        <td class="sticky-cell">
                             {% if plugin.scan_level != None %}
                                 <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=plugin.id %}"
-                                   class="nowrap">{% translate "See details" %}</a>
+                                   class="nowrap icon-only">
+                                    {% translate "Detail page" %}
+                                    <span class="icon ti-chevron-right" aria-hidden="true"></span>
+                                </a>
                             {% else %}
                                 <a href="{% url "normalizer_detail" organization_code=organization.code plugin_id=plugin.id %}"
-                                   class="nowrap">{% translate "See details" %}</a>
+                                   class="nowrap icon-only">
+                                    {% translate "Detail page" %}
+                                    <span class="icon ti-chevron-right" aria-hidden="true"></span>
+                                </a>
                             {% endif %}
                         </td>
                     </tr>

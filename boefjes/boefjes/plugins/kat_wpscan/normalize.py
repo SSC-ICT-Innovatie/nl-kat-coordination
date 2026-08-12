@@ -3,7 +3,7 @@ from collections.abc import Iterable
 
 from wpscan_out_parse import WPScanJsonParser
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 
@@ -24,8 +24,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                         ft = CVEFindingType(id=id_)
                         yield ft
                         finding = Finding(
-                            finding_type=ft.reference,
-                            ooi=url_reference,
-                            description=alert.splitlines()[0],
+                            finding_type=ft.reference, ooi=url_reference, description=alert.splitlines()[0]
                         )
                         yield finding

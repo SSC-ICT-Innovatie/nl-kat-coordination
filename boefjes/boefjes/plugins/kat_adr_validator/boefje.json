@@ -1,9 +1,11 @@
 {
   "id": "adr-validator",
   "name": "API Design Rules validator",
-  "description": "Validate if an API conforms to the API Design Rules",
+  "description": "Validate if an API conforms to the API Design Rules (ADR).",
   "consumes": [
     "RESTAPI"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-adr-validator:latest",
+  "oci_arguments": []
 }

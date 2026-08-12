@@ -23,22 +23,24 @@ def test_spf_discovery_simple_success():
         exp="explain._spf.example.com",
     )
 
-    assert results[-1].dict() == spf_record.dict()
-
-    assert results[0].dict() == IPAddressV4(address="1.1.1.1", network=Reference.from_str("Network|internet")).dict()
+    assert results[-1].model_dump() == spf_record.model_dump()
 
     assert (
-        results[1].dict()
+        results[0].model_dump()
+        == IPAddressV4(address="1.1.1.1", network=Reference.from_str("Network|internet")).model_dump()
+    )
+
+    assert (
+        results[1].model_dump()
         == DNSSPFMechanismIP(
             ip=Reference.from_str("IPAddressV4|internet|1.1.1.1"), spf_record=spf_record.reference, mechanism="ip4"
-        ).dict()
+        ).model_dump()
     )
 
 
 def test_spf_discovery_invalid_():
     dnstxt_record = DNSTXTRecord(
-        hostname=Reference.from_str("Hostname|internet|example.com"),
-        value="v=spf1 assdfsdf w rgw",
+        hostname=Reference.from_str("Hostname|internet|example.com"), value="v=spf1 assdfsdf w rgw"
     )
 
     results = list(run(dnstxt_record, [], {}))
@@ -55,3 +57,14 @@ def test_spf_discovery_intermediate_success():
     results = list(run(dnstxt_record, [], {}))
 
     assert len(results) == 12
+
+
+def test_spf_discovery_with_identifier():
+    dnstxt_record = DNSTXTRecord(
+        hostname=Reference.from_str("Hostname|internet|example1.com"),
+        value="v=spf1 a:example.com mx mx:deferrals.domain.com ptr:otherdomain.com "
+        "exists:%{i}.example.com ?include:example2.com ~all",
+    )
+    results = list(run(dnstxt_record, [], {}))
+
+    assert len(results) == 10

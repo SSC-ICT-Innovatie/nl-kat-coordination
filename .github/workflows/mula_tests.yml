@@ -9,24 +9,28 @@ on:
       - "*"
     paths:
       - mula/**
+      - .github/workflows/mula_tests.yml
   pull_request:
     paths:
       - mula/**
+      - .github/workflows/mula_tests.yml
 
 jobs:
   test:
+    permissions:
+      contents: read
     strategy:
       fail-fast: false
       matrix:
-        version: ["3.10", "3.11"]
+        version: ["3.10", "3.11", "3.12", "3.13"]
 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     env:
       COMPOSE_FILE: .ci/docker-compose.yml
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Build the images
         run: DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker compose --project-directory . -f .ci/docker-compose.yml build --build-arg PYTHON_VERSION=${{ matrix.version }}

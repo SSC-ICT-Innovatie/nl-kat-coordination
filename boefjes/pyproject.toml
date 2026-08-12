@@ -1,97 +1,90 @@
-[tool.poetry]
+[project]
 name = "boefjes"
 version = "0.0.1.dev1"
-description = "KAT's pentest tool runtime"
-authors = ["MinVWS <maintainer@openkat.nl>"]
-license = "EUPL"
+description = "OpenKAT's pentest tool runtime"
+authors = [{ name = "Stichting Librekat", email = "maintainer@librekat.nl" }]
+requires-python = ">=3.10"
+license = "EUPL-1.2"
+dependencies = [
+    "alembic~=1.8",
+    "click>=8.1.3,<9",
+    "jsonschema>=4.17.0,<5",
+    "pydantic>=2.7.1,<3",
+    "docker>=7.1.0,<8",
+    "uvicorn>=0.29.0,<0.30",
+    "psycopg2-binary>=2.9.10",
+    "pynacl>=1.5.0,<2",
+    "sqlalchemy>=1.4.48",
+    "python-dateutil>=2.8.2,<3",
+    "pydantic-settings>=2.14.2,<3",
+    "opentelemetry-sdk",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-psycopg2",
+    "opentelemetry-instrumentation-requests",
+    "opentelemetry-instrumentation",
+    "requests>=2.33.0,<3",
+    "beautifulsoup4==4.11.1",
+    "dnspython>=2.6.1,<3",
+    "tldextract>5",
+    "validators==0.20.0",
+    "python-libnmap==0.7.3",
+    "cryptography>=48.0.1",
+    "forcediphttpsadapter==1.1.0",
+    "urllib3>=2.1.0,<3",
+    "wpscan-out-parse==1.9.3",
+    "netaddr>=1.3.0,<2",
+    "defusedxml>=0.7.1,<0.8",
+    "pillow>=12.3.0",
+    "httpx>=0.28.1,<0.29",
+    "opentelemetry-api",
+    "opentelemetry-exporter-otlp-proto-common",
+    "opentelemetry-instrumentation-asgi",
+    "opentelemetry-instrumentation-dbapi",
+    "opentelemetry-proto",
+    "opentelemetry-semantic-conventions",
+    "opentelemetry-util-http",
+    "fastapi-slim>=0.115.2",
+    "structlog>=25.2.0,<26",
+    "maxminddb>=2.6.2,<3",
+    "tanimachi>=0.0.6,<0.0.7",
+    "cpe>=1.3.1,<2",
+    "croniter>=6.0.0,<7",
+    "setuptools>=80.9.0",
+    "pygments>=2.20.0",
+    "wrapt>=2.1.2",
+    "attrs>=26.1.0",
+    "mako>=1.3.12",
+    "urllib3>=2.7.0",
+    "idna>=3.15",
+    "starlette>=1.3.1",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-alembic = "^1.8.1"
-click = "^8.1.3"
-jsonschema = "^4.17.0"
-pydantic = "^2.7.1"
-docker = "^7.1.0"
-uvicorn = "^0.29.0"
-psycopg2 = "^2.9.6"
-pynacl = "^1.5.0"
-sqlalchemy = "^1.4.48"
-python-dateutil = "^2.8.2"
-pydantic-settings = "^2.2.1"
-opentelemetry-sdk = "^1.26.0"
-opentelemetry-exporter-otlp-proto-grpc = "^1.26.0"
-opentelemetry-instrumentation-fastapi = "^0.47b0"
-opentelemetry-instrumentation-psycopg2 = "^0.47b0"
-opentelemetry-instrumentation-requests = "^0.47b0"
-opentelemetry-instrumentation = "^0.47b0"
-# required by kat_snyk, kat_crt_sh, kat_crt_sh boefjes
-requests = "^2.32.1"
-# required by kat_binaryedge boefje
-pybinaryedge = "0.5"
-# required by kat_burpsuite, kat_snyk boefjes, kat_webpage_analysis/find_images_in_html normalizer
-beautifulsoup4 = "4.11.1"
-# required by kat_censys boefje
-censys = "2.1.8"
-# required by kat_dicom boefje
-pynetdicom = "2.0.2"
-# required by kat_dns, kat_dns_zone boefjes
-dnspython = "^2.6.1"
-# required by kat_fierce
-tldextract = "^3.4.4"
-# required by kat_log4shell boefje, kat_webpage_analysis/find_images_in_html normalizer
-validators = "0.20.0"
-# required by kat_nmap boefje
-python-libnmap = "0.7.3"
-# required by kat_shodan boefje
-shodan = "1.25.0"
-# required by kat_ssl_certificates boefje
-cryptography = "^42.0.1"
-# required by kat_webpage_analysis
-forcediphttpsadapter = "1.1.0"
-python-wappalyzer = {git = "https://github.com/chorsley/python-Wappalyzer.git", rev = "0.4.0"}
-# required by kat_webpage_analysis (forcediphttpsadapter)
-urllib3 = "^2.1.0"
-# required by kat_wpscan
-wpscan-out-parse = "1.9.3"
-# required by kat_sec_txt
-sectxt = "0.9.0"
-# required by kat_rpki
-netaddr = "0.9.0"
-# required by kat_burpsuite, kat_cwe_finding_types and kat_ssl_scan
-defusedxml = "^0.7.1"
-# required by kat_webpage_analysis/check_images normalizer
-pillow = "^10.3.0"
-httpx = "^0.27.0"
-opentelemetry-api = "^1.26.0"
-opentelemetry-exporter-otlp-proto-common = "^1.26.0"
-opentelemetry-instrumentation-asgi = "^0.47b0"
-opentelemetry-instrumentation-dbapi = "^0.47b0"
-opentelemetry-proto = "^1.26.0"
-opentelemetry-semantic-conventions = "^0.47b0"
-opentelemetry-util-http = "^0.47b0"
-fastapi-slim = "^0.111.0"
-structlog = "^24.2.0"
-# required by kat_maxmind_geoip
-maxminddb = "^2.6.2"
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3,<10",
+    "pytest-env>=1.1.3,<2",
+    "pytest-mock>=3.14.0,<4",
+    "pytest-cov>=7",
+    "soupsieve>=2.8.4",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.2.0"
-pytest-env = "^1.1.3"
-
-[build-system]
-requires = ["setuptools>=45", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+[tool.uv]
+package = false
 
 [tool.flynt]
 line-length = 120
 transform-concats = true
 
+[tool.coverage.run]
+relative_files = true
+
 [tool.pytest.ini_options]
-addopts = "-m 'not slow'"
+markers = ["slow: marks tests as slow"]
+addopts = "--cov --cov-report xml --cov-branch --cov-report=term-missing:skip-covered -m 'not slow'"
 env = [
     "D:KATALOGUS_DB_URI=postgresql://postgres:postgres@ci_katalogus-db:5432/ci_katalogus",
-    "D:QUEUE_URI=amqp://placeholder",
-    "D:BOEFJE_API=http://placeholder:8006",
+    "D:BOEFJES_API=http://placeholder:8006",
     "D:KATALOGUS_API=http://placeholder:8000",
     "D:OCTOPOES_API=http://placeholder:8001",
     "D:SCHEDULER_API=http://placeholder:8002",

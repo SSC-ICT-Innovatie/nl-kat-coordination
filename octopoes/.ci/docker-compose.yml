@@ -16,6 +16,8 @@ services:
     build:
       args:
         ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
       context: .
     command: pytest tests/integration --timeout=300
     depends_on:
@@ -24,8 +26,22 @@ services:
     env_file:
       - ".ci/ci.env"
 
+  octopoes_pytest:
+    build:
+      args:
+        ENVIRONMENT: dev
+        USER_UID: 1001
+        USER_GID: 1001
+      context: .
+    command: pytest --timeout=300
+    depends_on:
+      - xtdb
+      - ci_octopoes
+    env_file:
+      - ".ci/ci.env"
+
   xtdb:
-    image: "ghcr.io/dekkers/xtdb-http-multinode:v1.0.8"
+    image: "docker.underdark.nl/librekat/xtdb-http-multinode:main"
     ports:
       - "127.0.0.1:29002:3000"
 

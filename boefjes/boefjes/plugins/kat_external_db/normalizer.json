@@ -1,5 +1,7 @@
 {
   "id": "kat_external_db_normalize",
+  "name": "External database hosts fetcher",
+  "description": "Parse the fetched host data from the external database into hostnames and IP-addresses.",
   "consumes": [
     "boefje/external_db"
   ],

@@ -1,0 +1,282 @@
+{
+  "organizations": [
+    "org_b",
+    "test"
+  ],
+  "tags": {},
+  "basic_security_score": 71,
+  "total_critical_vulnerabilities": 0,
+  "total_findings": 7,
+  "total_systems": 3,
+  "total_hostnames": 2,
+  "service_counts": {
+    "DNS": 1,
+    "Web": 2,
+    "Other": 1
+  },
+  "asset_vulnerabilities": [
+    {
+      "asset": "IPAddressV4|internet|1.1.1.1",
+      "vulnerabilities": {
+        "RetireJS-jquerymigrate-f3a3": 6.9,
+        "CVE-2018-14042": 6.1,
+        "CVE-2018-14041": 6.1,
+        "CVE-2018-14040": 6.1,
+        "RetireJS-jquerymigrate-f901": 6.9,
+        "CVE-2016-10735": 6.1,
+        "CVE-2019-8331": 6.1
+      },
+      "organisation": "org_b",
+      "services": [
+        "DNS",
+        "Other",
+        "Web"
+      ]
+    },
+    {
+      "asset": "IPAddressV4|internet|1.1.1.1",
+      "vulnerabilities": {},
+      "organisation": "test",
+      "services": [
+        "Web"
+      ]
+    },
+    {
+      "asset": "IPAddressV6|internet|2001:4860:4860::8888",
+      "vulnerabilities": {},
+      "organisation": "test",
+      "services": []
+    }
+  ],
+  "system_vulnerabilities": {
+    "RetireJS-jquerymigrate-f3a3": {
+      "cvss": 6.9,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    },
+    "RetireJS-jquerymigrate-f901": {
+      "cvss": 6.9,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    },
+    "CVE-2018-14042": {
+      "cvss": 6.1,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    },
+    "CVE-2018-14041": {
+      "cvss": 6.1,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    },
+    "CVE-2018-14040": {
+      "cvss": 6.1,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    },
+    "CVE-2016-10735": {
+      "cvss": 6.1,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    },
+    "CVE-2019-8331": {
+      "cvss": 6.1,
+      "DNS": 1,
+      "Other": 1,
+      "Web": 1
+    }
+  },
+  "system_vulnerability_totals": {
+    "DNS": 7,
+    "Other": 7,
+    "Web": 7
+  },
+  "open_ports": {
+    "total": 3,
+    "ports": {
+      "3306": {
+        "open": 1,
+        "services": [
+          "mysql"
+        ]
+      },
+      "53": {
+        "open": 1,
+        "services": [
+          "domain"
+        ]
+      },
+      "443": {
+        "open": 2,
+        "services": [
+          "https"
+        ]
+      },
+      "22": {
+        "open": 1,
+        "services": [
+          "ssh"
+        ]
+      },
+      "80": {
+        "open": 2,
+        "services": [
+          "http"
+        ]
+      }
+    }
+  },
+  "basic_security": {
+    "summary": {
+      "DNS": {
+        "rpki": {
+          "number_of_compliant": 1,
+          "total": 1
+        },
+        "system_specific": {
+          "number_of_compliant": 0,
+          "total": 1
+        },
+        "safe_connections": {
+          "number_of_compliant": 1,
+          "total": 1
+        }
+      },
+      "Web": {
+        "rpki": {
+          "number_of_compliant": 2,
+          "total": 2
+        },
+        "system_specific": {
+          "number_of_compliant": 1,
+          "total": 2
+        },
+        "safe_connections": {
+          "number_of_compliant": 1,
+          "total": 2
+        }
+      },
+      "Other": {
+        "rpki": {
+          "number_of_compliant": 1,
+          "total": 1
+        },
+        "system_specific": {
+          "number_of_compliant": 0,
+          "total": 0
+        },
+        "safe_connections": {
+          "number_of_compliant": 1,
+          "total": 1
+        }
+      }
+    },
+    "safe_connections": {
+      "number_of_available": 3,
+      "number_of_ips": 4
+    },
+    "system_specific": {
+      "DNS": {
+        "checks": {
+          "DNSSEC Present": 0,
+          "Valid DNSSEC": 0,
+          "No unnecessary ports open": 0
+        },
+        "total": 1
+      },
+      "Web": {
+        "checks": {
+          "Certificate is not expired": 1,
+          "CSP Present": 2,
+          "Offers HTTPS": 2,
+          "No unnecessary ports open": 1,
+          "Has a Security.txt": 1,
+          "Has a certificate": 2,
+          "Redirects HTTP to HTTPS": 2,
+          "Secure CSP Header": 2,
+          "Certificate is not expiring soon": 2
+        },
+        "total": 2
+      },
+      "Other": {
+        "checks": {},
+        "total": 0
+      }
+    },
+    "rpki": {
+      "DNS": {
+        "number_of_available": 1,
+        "number_of_ips": 1,
+        "number_of_valid": 1,
+        "rpki_ips": true
+      },
+      "Web": {
+        "number_of_available": 3,
+        "number_of_ips": 3,
+        "number_of_valid": 3,
+        "rpki_ips": true
+      },
+      "Other": {
+        "number_of_available": 1,
+        "number_of_ips": 1,
+        "number_of_valid": 1,
+        "rpki_ips": true
+      }
+    }
+  },
+  "services": {
+    "DNS": [
+      "IPAddressV4|internet|1.1.1.1"
+    ],
+    "Web": [
+      "IPAddressV4|internet|1.1.1.1",
+      "IPAddressV4|internet|1.1.1.1"
+    ],
+    "Other": [
+      "IPAddressV4|internet|1.1.1.1"
+    ]
+  },
+  "recommendation_counts": {
+    "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary. ": 1,
+    "Determine if this port should be reachable from the identified location. Limit access to reduce the attack surface if necessary.": 1,
+    "Replace the certificate with a valid one.": 1,
+    "Enable DNSSEC on your name servers.": 1,
+    "Make sure there is a security.txt available.": 2,
+    "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers.": 1
+  },
+  "best_scoring": "CSP Present",
+  "worst_scoring": "DNSSEC Present",
+  "ipv6": {
+    "DNS": {
+      "total": 1,
+      "enabled": 0
+    },
+    "Other": {
+      "total": 1,
+      "enabled": 0
+    },
+    "Web": {
+      "total": 2,
+      "enabled": 1
+    }
+  },
+  "input_data": {
+    "input_oois": [
+      "ReportData|test",
+      "ReportData|org_b"
+    ],
+    "report_types": [
+      "multi-organization-report"
+    ],
+    "plugins": {
+      "required": [],
+      "optional": []
+    }
+  }
+}

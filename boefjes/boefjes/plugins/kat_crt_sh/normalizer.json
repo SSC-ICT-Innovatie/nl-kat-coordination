@@ -1,5 +1,7 @@
 {
   "id": "kat_crt_sh_normalize",
+  "name": "Certificate Transparency logs (crt.sh)",
+  "description": "Parses data from certificate transparency logs (crt.sh) into hostnames and X509 certificates.",
   "consumes": [
     "boefje/certificate-search"
   ],

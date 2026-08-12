@@ -15,7 +15,7 @@ def run(input_ooi: Hostname, additional_oois: list[DNSCAARecord | NXDOMAIN], con
 
     if any(nxdomains):
         return
-    # only report finding when there is no SPF record
+    # only report finding when there is no CAA record
     if (
         not tldextract.extract(input_ooi.name).subdomain
         and tldextract.extract(input_ooi.name).domain
@@ -24,7 +24,5 @@ def run(input_ooi: Hostname, additional_oois: list[DNSCAARecord | NXDOMAIN], con
         ft = KATFindingType(id="KAT-NO-CAA")
         yield ft
         yield Finding(
-            ooi=input_ooi.reference,
-            finding_type=ft.reference,
-            description="This hostname does not have a CAA record",
+            ooi=input_ooi.reference, finding_type=ft.reference, description="This hostname does not have a CAA record"
         )

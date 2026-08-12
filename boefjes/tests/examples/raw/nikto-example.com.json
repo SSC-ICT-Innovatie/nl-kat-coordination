@@ -1,0 +1,23 @@
+[
+  {
+    "host": "example.com",
+    "ip": "178.128.108.228",
+    "port": "80",
+    "banner": "",
+    "vulnerabilities": [
+      {
+        "id": "600575",
+        "method": "HEAD",
+        "url": "/",
+        "msg": "nginx/1.18.0 appears to be outdated (current is at least 1.25.3)."
+      },
+      {
+        "id": "999103",
+        "references": "https://www.netsparker.com/web-vulnerability-scanner/vulnerabilities/missing-content-type-header/",
+        "method": "GET",
+        "url": "/",
+        "msg": "The X-Content-Type-Options header is not set. This could allow the user agent to render the content of the site in a different fashion to the MIME type."
+      }
+    ]
+  }
+]

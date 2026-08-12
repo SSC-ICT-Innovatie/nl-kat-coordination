@@ -6,7 +6,11 @@ import httpx
 import structlog
 from bs4 import BeautifulSoup
 
+from rocky.version import __version__
+
 SEPARATOR = "|"
+SOURCE_TIMEOUT = 10
+REQUEST_HEADERS = {"User-Agent": f"OpenKAT-{__version__} (maintainer@librekat.nl) https://librekat.nl"}
 
 logger = structlog.get_logger(__name__)
 
@@ -26,14 +30,15 @@ class _PortInfo:
     description: str
 
 
-def iana_service_table(search_query: str) -> list[_Service]:
+class InformationUpdateError(Exception):
+    """Could not update information due to various reasons"""
+
+
+def iana_service_table(source: str, search_query: str) -> list[_Service]:
     services = []
 
-    response = httpx.get(
-        "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml",
-        params={"search": search_query},
-        timeout=30,
-    )
+    response = httpx.get(source, params={"search": search_query}, timeout=SOURCE_TIMEOUT, headers=REQUEST_HEADERS)
+    response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
 
     table = soup.select_one("table#table-service-names-port-numbers")
@@ -48,10 +53,7 @@ def iana_service_table(search_query: str) -> list[_Service]:
         try:
             if name == search_query:
                 service = _Service(
-                    name,
-                    int(port) if port else None,
-                    transport_protocol if transport_protocol else None,
-                    description,
+                    name, int(port) if port else None, transport_protocol if transport_protocol else None, description
                 )
                 services.append(service)
         except Exception:  # noqa: S110
@@ -60,10 +62,10 @@ def iana_service_table(search_query: str) -> list[_Service]:
     return services
 
 
-def service_info(value) -> tuple[str, str]:
+def service_info(value: str) -> tuple[str, str]:
     """Provides information about IP Services such as common assigned ports for certain protocols and descriptions"""
-    services = iana_service_table(value)
     source = "https://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xhtml"
+    services = iana_service_table(source, value)
     if not services:
         return f"No description found for {value}", "No source found"
 
@@ -94,8 +96,7 @@ def table_to_2d(table_tag):
         # a colspan of 0 means “fill until the end” but can really only apply
         # to the last cell; ignore it elsewhere.
         colcount = max(
-            colcount,
-            sum(int(c.get("colspan", 1)) or 1 for c in cells[:-1]) + len(cells[-1:]) + len(rowspans_list),
+            colcount, sum(int(c.get("colspan", 1)) or 1 for c in cells[:-1]) + len(cells[-1:]) + len(rowspans_list)
         )
         # update rowspan bookkeeping; 0 is a span to the bottom.
         rowspans_list += [int(c.get("rowspan", 1)) or len(rows) - r for c in cells]
@@ -144,8 +145,9 @@ def _map_usage_value(value: str) -> bool:
     return bool(value and value != "no")
 
 
-def wiki_port_tables() -> list[_PortInfo]:
-    response = httpx.get("https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers", timeout=30)
+def wiki_port_tables(source: str) -> list[_PortInfo]:
+    response = httpx.get(source, timeout=SOURCE_TIMEOUT, headers=REQUEST_HEADERS)
+    response.raise_for_status()
     soup = BeautifulSoup(response.text, "html.parser")
 
     rows = []
@@ -162,7 +164,7 @@ def wiki_port_tables() -> list[_PortInfo]:
             protocols = []
             if _map_usage_value(tcp):
                 protocols.append("tcp")
-            if _map_usage_value(tcp):
+            if _map_usage_value(udp):
                 protocols.append("udp")
             description = description.strip()
         except Exception:  # noqa: S112
@@ -175,14 +177,11 @@ def wiki_port_tables() -> list[_PortInfo]:
 
 def port_info(number: str, protocol: str) -> tuple[str, str]:
     """Provides possible or common protocols for operation of network applications behind TCP and UDP ports"""
-    items = wiki_port_tables()
     source = "https://en.wikipedia.org/wiki/List_of_TCP_and_UDP_port_numbers"
+    items = wiki_port_tables(source)
     descriptions = []
     if not items:
-        return (
-            f"No description found in wiki table for port {number} with protocol {protocol}",
-            source,
-        )
+        return (f"No description found in wiki table for port {number} with protocol {protocol}", source)
 
     for item in items:
         if item.port == int(number) and protocol.lower() in item.protocols:
@@ -194,19 +193,23 @@ def port_info(number: str, protocol: str) -> tuple[str, str]:
 def get_info(ooi_type: str, natural_key: str) -> dict:
     """Adds OOI information to the OOI Information table"""
     logger.info("Getting OOI information for %s %s", ooi_type, natural_key)
-    if ooi_type == "IPPort":
-        protocol, port = natural_key.split(SEPARATOR)
-        description, source = port_info(port, protocol)
-        return {
-            "description": description,
-            "source": source,
-            "information updated": datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-        }
-    if ooi_type == "Service":
-        description, source = service_info(natural_key)
-        return {
-            "description": description,
-            "source": source,
-            "information updated": datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
-        }
-    return {"description": ""}
+    try:
+        if ooi_type == "IPPort":
+            protocol, port = natural_key.split(SEPARATOR)
+            description, source = port_info(port, protocol)
+            return {
+                "description": description,
+                "source": source,
+                "information updated": datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+            }
+        if ooi_type == "Service":
+            description, source = service_info(natural_key)
+            return {
+                "description": description,
+                "source": source,
+                "information updated": datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
+            }
+    except httpx.HTTPError as error:
+        logger.error("Getting OOI information for %s %s failed due to http error: %s", ooi_type, natural_key, error)
+        raise InformationUpdateError()
+    return {"description": "No source available."}

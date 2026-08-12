@@ -14,9 +14,6 @@ def set_full_name(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("account", "0001_initial"),
-        ("tools", "0028_auto_20230117_1242"),
-    ]
+    dependencies = [("account", "0001_initial"), ("tools", "0028_auto_20230117_1242")]
 
     operations = [migrations.RunPython(set_full_name)]

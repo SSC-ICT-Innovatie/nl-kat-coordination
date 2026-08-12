@@ -5,11 +5,13 @@
 
 {% else %}
     <div class="{% if field.field.required %}required{% endif %}">
-        <label>{{ field.field.widget.attrs.field_form_label }}</label>
-        <div>
+        <label>
+            {{ field.field.widget.attrs.field_form_label }}
             {% if field.field.required %}
-                <span class="nota-bene">{% translate "This field is required" %}</span>
+                <span class="nota-bene">({% translate "Required" %})</span>
             {% endif %}
+        </label>
+        <div>
             <div class="checkbox">
                 {{ field }}
                 {{ field.label_tag }}

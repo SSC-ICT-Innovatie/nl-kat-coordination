@@ -1,5 +1,7 @@
 {
   "id": "kat_dns_normalize",
+  "name": "DNS records",
+  "description": "Parses DNS records. Can parse A, AAAA, CAA, CNAME, MX, NS, SOA, TXT, DKIM and DMARC data.",
   "consumes": [
     "boefje/dns-records"
   ],

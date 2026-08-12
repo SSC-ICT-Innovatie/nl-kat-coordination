@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load static %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -11,7 +10,7 @@
         <section>
             <div>
                 <h1>{% translate "Edit organization" %} {{ organization.name }}</h1>
-                <form method="post" class="horizontal-view help">
+                <form method="post" class="help">
                     {% csrf_token %}
                     <fieldset>
                         {% for field in form %}
@@ -31,7 +30,5 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

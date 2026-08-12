@@ -9,16 +9,10 @@ def migrate_organizationmember_status_blocked_to_blocked_attribute(apps, schema_
 
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ("tools", "0032_alter_organizationmember_user"),
-    ]
+    dependencies = [("tools", "0032_alter_organizationmember_user")]
 
     operations = [
-        migrations.AddField(
-            model_name="organizationmember",
-            name="blocked",
-            field=models.BooleanField(default=False),
-        ),
+        migrations.AddField(model_name="organizationmember", name="blocked", field=models.BooleanField(default=False)),
         migrations.RunPython(migrate_organizationmember_status_blocked_to_blocked_attribute),
         migrations.AlterField(
             model_name="organizationmember",

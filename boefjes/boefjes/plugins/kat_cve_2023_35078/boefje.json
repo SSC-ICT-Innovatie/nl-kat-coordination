@@ -1,9 +1,13 @@
 {
   "id": "CVE_2023_35078",
-  "name": "CVE_2023_35078",
-  "description": "Use NFIR script to find CVE-2023-35078",
+  "name": "CVE-2023-35078 - Ivanti EPMM",
+  "description": "Checks websites for the presents of the Ivanti EPMM interface and whether the interface is vulnerable to the remote unauthenticated API access vulnerability (CVE-2023-35078). Script contribution by NFIR.",
   "consumes": [
     "Website"
   ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_cve_2023_35078.main"
+  ]
 }
