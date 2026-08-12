@@ -8,6 +8,8 @@
   "produces": [
     "Finding",
     "IPPort",
-    "CVEFindingType"
+    "CVEFindingType",
+    "Software",
+    "SoftwareInstance"
   ]
 }
