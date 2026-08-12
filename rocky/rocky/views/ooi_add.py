@@ -49,7 +49,7 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
                 "url": reverse("ooi_add_type_select", kwargs={"organization_code": self.organization.code}),
-                "text": _("Add object"),
+                "text": _("Type select"),
             },
         ]
 

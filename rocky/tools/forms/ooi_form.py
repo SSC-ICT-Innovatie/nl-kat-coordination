@@ -64,7 +64,12 @@ class OOIForm(BaseRockyForm):
                 fields[name] = generate_ip_field(field)
             elif annotation == AnyUrl:
                 fields[name] = generate_url_field(field)
-            elif annotation is dict or annotation == list[str] or annotation == dict[str, Any]:
+            elif (
+                annotation is dict
+                or annotation == list[str]
+                or annotation == dict[str, Any]
+                or annotation == dict[str, JsonValue]
+            ):
                 fields[name] = forms.JSONField(**default_attrs)
             elif annotation is int or (hasattr(annotation, "__args__") and int in annotation.__args__):
                 fields[name] = forms.IntegerField(**default_attrs)
@@ -79,10 +84,6 @@ class OOIForm(BaseRockyForm):
                     fields[name] = forms.CharField(
                         max_length=256, **default_attrs, empty_value=None if not field.is_required() else ""
                     )
-            elif (
-                name in self.ooi_class.__annotations__ and self.ooi_class.__annotations__[name] == dict[str, JsonValue]
-            ):
-                fields[name] = forms.JSONField(**default_attrs)
             else:
                 fields[name] = forms.CharField(max_length=256, **default_attrs)
 
@@ -127,7 +128,7 @@ def generate_select_ooi_field(
     select_options.extend([(ooi.primary_key, ooi.primary_key) for ooi in oois])
 
     if field.is_required() and len(oois) == 1:
-        initial = oois[0]
+        initial = oois[0].primary_key
 
     if is_multiselect:
         return forms.MultipleChoiceField(
