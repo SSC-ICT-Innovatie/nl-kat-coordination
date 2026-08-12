@@ -1,0 +1,13 @@
+{
+  "id": "kat_find_identifiers_in_html",
+  "name": "Webpage analysis find various identifiers in html",
+  "description": "Parses html to find identifiers.",
+  "consumes": [
+    "text/html"
+  ],
+  "produces": [
+    "IdentifierLocation",
+    "IdentifierVendor",
+    "Identifier"
+  ]
+}
