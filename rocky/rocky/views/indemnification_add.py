@@ -15,7 +15,9 @@ class IndemnificationAddView(OrganizationPermissionRequiredMixin, OrganizationVi
     permission_required = "tools.add_indemnification"
 
     def post(self, request, *args, **kwargs):
-        _, created = Indemnification.objects.get_or_create(user=self.request.user, organization=self.organization)
+        _indemnification, created = Indemnification.objects.get_or_create(
+            user=self.request.user, organization=self.organization
+        )
         if created:
             AuditLog.record(
                 user=self.request.user,
