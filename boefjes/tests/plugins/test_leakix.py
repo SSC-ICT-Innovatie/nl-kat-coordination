@@ -5,6 +5,7 @@ from pydantic import TypeAdapter
 
 import boefjes.plugins.kat_leakix.normalize as leakix_normalize
 from boefjes.plugins.kat_leakix.normalize import run
+from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
     SubjectAlternativeNameHostname,
     SubjectAlternativeNameQualifier,
@@ -327,3 +328,27 @@ def test_old_format_enables_all_components(monkeypatch):
     assert any(isinstance(o, Software) for o in output)
     # The old-format fixture contains five events with real certificates
     assert any(isinstance(o, X509Certificate) for o in output)
+
+
+def test_software_pipe_never_reaches_a_primary_key():
+    # #5299: a "|" (the reference separator) in a header OS hint, a service.software
+    # field or a nested module must never end up in a Software primary key. A corrupt
+    # name is dropped; a piped version is nulled.
+    host = Reference.from_str("Hostname|internet|example.com")
+    events = [
+        {"http": {"header": {"server": "Apache/2.4.6 (Ubuntu|evil|x)"}}},
+        {"service": {"software": {"name": "Apache", "version": "2.4.66|evil"}}},
+        {"service": {"software": {"name": "Nginx|evil"}}},
+        {"service": {"software": {"name": "Nginx", "modules": [{"name": "mod|evil", "version": "1|2"}]}}},
+    ]
+    for event in events:
+        oois, _, _ = leakix_normalize.extract_software(event, host)
+        for software in (o for o in oois if isinstance(o, Software)):
+            assert "|" not in software.name
+            assert "|" not in (software.version or "")
+            # A clean Software reference is exactly "Software|name|version|cpe".
+            assert str(software.reference).count("|") == 3
+
+    # Positive control: the clean product from the first header is still extracted.
+    oois, _, _ = leakix_normalize.extract_software(events[0], host)
+    assert any(isinstance(o, Software) and o.name == "Apache" for o in oois)

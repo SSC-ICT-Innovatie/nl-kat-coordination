@@ -262,6 +262,13 @@ def extract_software(event, event_ooi_reference):
 
     def add_software(name, version, instance_parent_reference):
         version = version or None
+        # A "|" is the OOI primary-key separator; never let banner/header/service
+        # data smuggle one into a Software reference (#5299). Drop a corrupt name
+        # outright; keep a clean name but discard a version carrying a pipe.
+        if "|" in name:
+            return None, None
+        if version and "|" in version:
+            version = None
         if (name, version) in seen:
             return None, None
         seen.add((name, version))
@@ -299,7 +306,12 @@ def extract_software(event, event_ooi_reference):
         products, os_hints = parse_software_tokens(header_value)
         for name, version in products:
             add_software(name, version, event_ooi_reference)
-        os_names.extend(os_hints)
+        # Clean header OS hints the same way as service.software["os"] so a
+        # parenthesized comment can never carry a pipe into a Software name.
+        for os_hint in os_hints:
+            cleaned = clean_os_name(os_hint)
+            if cleaned:
+                os_names.append(cleaned)
 
     for os_name in os_names:
         add_software(os_name, None, event_ooi_reference)
@@ -351,7 +363,16 @@ def get_certificate_data(event) -> dict | None:
     if not certificate_data.get("fingerprint"):
         return None
     not_before, not_after = certificate_data.get("not_before"), certificate_data.get("not_after")
-    if not not_before or not not_after or not_after.startswith(GO_ZERO_TIME_PREFIX):
+    if not not_before or not not_after:
+        return None
+    # Either bound as the Go zero date means LeakIX did not observe it.
+    if not_before.startswith(GO_ZERO_TIME_PREFIX) or not_after.startswith(GO_ZERO_TIME_PREFIX):
+        return None
+    # A validity date that cannot be parsed must skip this certificate, not abort the run.
+    try:
+        parse_datetime(not_before)
+        parse_datetime(not_after)
+    except (ValueError, OverflowError, TypeError):
         return None
     return certificate_data
 
@@ -365,7 +386,9 @@ def collect_certificate_candidate(event, candidates: dict) -> None:
     except (KeyError, TypeError, ValueError, OverflowError):
         event_time = datetime.min.replace(tzinfo=timezone.utc)
 
-    key = (event.get("ip") or event.get("host"), str(event.get("port")))
+    # Key on the host first so distinct SNI virtual hosts on the same IP:port keep
+    # their own certificate; rescans of the same host still dedup to the newest.
+    key = (event.get("host") or event.get("ip"), str(event.get("port")))
     if key not in candidates or event_time > candidates[key][0]:
         candidates[key] = (event_time, event)
 
