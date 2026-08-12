@@ -1180,6 +1180,75 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         self.assertEqual("unlimited", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
         self.assertEqual("limited-2", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
 
+    def test_resolve_rate_limit_group_template(self):
+        ooi = OOIFactory(
+            primary_key="IPAddressV4|internet|192.0.2.5", object_type="IPAddressV4", scan_profile=ScanProfileFactory()
+        )
+
+        static = BoefjeFactory(id="static", rate_limit_interval=1, rate_limit_group="api.shodan.io")
+        self.scheduler.resolve_rate_limit_group(static, ooi)
+        self.assertEqual("api.shodan.io", static.rate_limit_group)
+
+        templated = BoefjeFactory(id="templated", rate_limit_interval=1, rate_limit_group="{input_ooi}")
+        self.scheduler.resolve_rate_limit_group(templated, ooi)
+        self.assertEqual("IPAddressV4|internet|192.0.2.5", templated.rate_limit_group)
+
+        prefixed = BoefjeFactory(id="prefixed", rate_limit_interval=1, rate_limit_group="shodan:{object_type}")
+        self.scheduler.resolve_rate_limit_group(prefixed, ooi)
+        self.assertEqual("shodan:IPAddressV4", prefixed.rate_limit_group)
+
+        # A static group still resolves without an input OOI.
+        no_ooi_static = BoefjeFactory(id="no-ooi-static", rate_limit_interval=1, rate_limit_group="api.shodan.io")
+        self.scheduler.resolve_rate_limit_group(no_ooi_static, None)
+        self.assertEqual("api.shodan.io", no_ooi_static.rate_limit_group)
+
+        # A templated group without an input OOI cannot be resolved -> rate limit disabled.
+        no_ooi_template = BoefjeFactory(id="no-ooi-template", rate_limit_interval=1, rate_limit_group="{input_ooi}")
+        self.scheduler.resolve_rate_limit_group(no_ooi_template, None)
+        self.assertIsNone(no_ooi_template.rate_limit_interval)
+        self.assertIsNone(no_ooi_template.rate_limit_group)
+
+        # An unresolvable OOI property disables rate limiting for this task (full OOI property
+        # resolution is a follow-up, see #1317).
+        unresolvable = BoefjeFactory(id="unresolvable", rate_limit_interval=1, rate_limit_group="{address}")
+        self.scheduler.resolve_rate_limit_group(unresolvable, ooi)
+        self.assertIsNone(unresolvable.rate_limit_interval)
+        self.assertIsNone(unresolvable.rate_limit_group)
+
+    @mock.patch("scheduler.schedulers.schedulers.boefje.monotonic", side_effect=[0, 0.5, 1.1])
+    def test_pop_respects_rate_limit_grouped_by_input_ooi(self, _mock_monotonic):
+        self.mock_get_plugin.return_value = PluginFactory()
+        shared_ip = "IPAddressV4|internet|192.0.2.5"
+        boefjes = [
+            BoefjeFactory(id="by-ip-1", rate_limit_interval=1, rate_limit_group="{input_ooi}"),
+            BoefjeFactory(id="by-ip-2", rate_limit_interval=1, rate_limit_group="{input_ooi}"),
+            BoefjeFactory(id="by-other-ip", rate_limit_interval=1, rate_limit_group="{input_ooi}"),
+        ]
+        inputs = [shared_ip, shared_ip, "IPAddressV4|internet|192.0.2.9"]
+
+        for boefje, input_ooi in zip(boefjes, inputs):
+            ooi = OOIFactory(primary_key=input_ooi, object_type="IPAddressV4", scan_profile=ScanProfileFactory())
+            self.scheduler.resolve_rate_limit_group(boefje, ooi)
+            boefje_task = models.BoefjeTask(boefje=boefje, input_ooi=input_ooi, organization=OrganisationFactory().id)
+            self.scheduler.push_item_to_queue(
+                models.Task(
+                    scheduler_id=self.scheduler.scheduler_id,
+                    organisation=boefje_task.organization,
+                    priority=1,
+                    type=models.BoefjeTask.type,
+                    hash=boefje_task.hash,
+                    data=boefje_task.model_dump(),
+                )
+            )
+
+        # by-ip-1 is popped first and rate-limits the shared_ip group.
+        self.assertEqual("by-ip-1", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        # by-other-ip has a different group, so it is not rate-limited.
+        self.assertEqual("by-other-ip", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        # by-ip-2 shares the shared_ip group; it was skipped on the second pop because the group
+        # was still rate-limited, and is only popped once the interval has elapsed.
+        self.assertEqual("by-ip-2", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+
     def test_pop_deduplication(self):
         # Arrange
         scan_profile = ScanProfileFactory(level=0)
