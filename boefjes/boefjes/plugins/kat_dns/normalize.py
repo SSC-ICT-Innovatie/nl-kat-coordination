@@ -61,6 +61,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     responses: list[Message] = []
     for section in sections:
         lines = section.splitlines()
+        if ";QUESTION" not in lines:
+            continue  # nothing parseable in this block
         start = lines.index(";QUESTION")  # skip everything before the question block
         responses.append(from_text("\n".join(lines[start:])))
 
