@@ -1,12 +1,13 @@
 from unittest.mock import patch
 
 import pytest
+from crisis_room.models import AuditLog
 from django.contrib.auth.models import Permission
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.urls import reverse
 from httpx import RequestError
 from pytest_django.asserts import assertContains, assertNotContains
-from tools.models import DENY_ORGANIZATION_CODES, Organization
+from tools.models import DENY_ORGANIZATION_CODES, Indemnification, Organization
 
 from rocky.views.indemnification_add import IndemnificationAddView
 from rocky.views.organization_add import OrganizationAddView
@@ -325,6 +326,21 @@ def test_edit_organization_indemnification(rf, redteam_member, client_member):
         IndemnificationAddView.as_view()(
             request_client, organization_code=client_member.organization.code, pk=client_member.organization.id
         )
+
+
+def test_add_organization_indemnification(rf, admin_member):
+    Indemnification.objects.filter(user=admin_member.user, organization=admin_member.organization).delete()
+    request = setup_request(
+        rf.post("indemnification_add", {"may_scan": "on", "am_authorized": "on"}), admin_member.user
+    )
+
+    response = IndemnificationAddView.as_view()(request, organization_code=admin_member.organization.code)
+
+    assert response.status_code == 302
+    assert Indemnification.objects.filter(user=admin_member.user, organization=admin_member.organization).exists()
+    audit_log = AuditLog.objects.get()
+    assert audit_log.action == AuditLog.Action.INDEMNIFICATION_SET
+    assert audit_log.object_label == "Scanning indemnification"
 
 
 def test_admin_rights_edits_organization(rf, admin_member):
