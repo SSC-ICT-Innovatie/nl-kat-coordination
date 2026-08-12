@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-23 13:04+0000\n"
+"POT-Creation-Date: 2026-08-12 06:33+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -930,6 +930,7 @@ msgstr ""
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -945,6 +946,7 @@ msgstr ""
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -6056,6 +6058,47 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Normalizer task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
+msgstr ""
+
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6110,21 +6153,13 @@ msgid "List of views for OOI"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due"
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due and has been deleted"
+msgid "You are looking at a historic view of this object."
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"This object is past due. You are viewing the object state in a past state."
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's to past due objects."
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
@@ -6807,11 +6842,6 @@ msgid ""
 msgstr ""
 
 #: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr ""
-
-#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr ""
 
@@ -6907,35 +6937,7 @@ msgid "List of tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Loading..."
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Normalizer task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
 msgid "Processing input from Boefje task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Consuming Raw file"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded raw files for task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Origin boefje task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "See all similar tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
