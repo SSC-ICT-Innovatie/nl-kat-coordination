@@ -37,6 +37,7 @@ override_dh_gencontrol:
 override_dh_installsystemd:
 	dh_installsystemd --name=kat-octopoes
 	dh_installsystemd --name=kat-octopoes-worker
+	dh_installsystemd --name=kat-octopoes-scanlevels
 
 execute_after_dh_install:
 	dh_installsysusers
