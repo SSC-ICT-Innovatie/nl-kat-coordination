@@ -161,9 +161,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             event_ooi_reference = host_ooi.reference
 
         primary_software = None
-        primary_instance = None
         if enabled("software"):
-            software_oois, primary_software, primary_instance = extract_software(event, event_ooi_reference)
+            software_oois, primary_software, _ = extract_software(event, event_ooi_reference)
             yield from software_oois
 
         if enabled("ssh"):
@@ -178,10 +177,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         # Leak
         yield from handle_leak(event, event_ooi_reference, primary_software)
 
-        # CVEs from tags relate to the detected software on this asset, so they
-        # bind to the SoftwareInstance (which keeps the host context, #3211)
-        # instead of the bare Software OOI.
-        yield from handle_tag(event, primary_instance.reference if primary_instance else None, event_ooi_reference)
+        # A CVE is a property of the software version itself, so it binds to the
+        # Software OOI. "Which assets are affected" is answered by traversing the
+        # graph (Software <- SoftwareInstance <- asset) in reports, which avoids
+        # duplicating the same finding per host. Falls back to the asset when no
+        # software was detected.
+        yield from handle_tag(event, primary_software.reference if primary_software else None, event_ooi_reference)
 
     for _, event in certificate_candidates.values():
         yield from extract_certificate(event, network_reference)
@@ -489,13 +490,13 @@ def handle_leak(event, event_ooi_reference, software_ooi):
         )
 
 
-def handle_tag(event, software_instance_reference=None, event_ooi_reference=None):
-    # Tags (CVE's)
+def handle_tag(event, software_reference=None, event_ooi_reference=None):
+    # Tags (CVE's) bind to the Software OOI; the scanned asset is the fallback.
     if isinstance(event.get("tags"), Iterable):
         for tag in event.get("tags", {}):
             if re.match(r"cve-\d{4}-\d{4,6}", tag):
                 ft = CVEFindingType(id=tag)
-                cve_ooi = software_instance_reference if software_instance_reference else event_ooi_reference
+                cve_ooi = software_reference if software_reference else event_ooi_reference
                 f = Finding(finding_type=ft.reference, ooi=cve_ooi)
                 yield ft
                 yield f

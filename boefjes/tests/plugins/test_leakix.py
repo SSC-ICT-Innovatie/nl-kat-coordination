@@ -167,15 +167,16 @@ def test_stage_only_leak_produces_finding():
     assert "Leak type: configuration." in finding.description
 
 
-def test_cve_tags_bind_to_software_instance():
+def test_cve_tags_bind_to_software():
     output = _run_enrichment_fixture()
     cve_findings = [
         o for o in output if o.object_type == "Finding" and str(o.finding_type).startswith("CVEFindingType")
     ]
 
     assert len(cve_findings) == 1
-    # The SoftwareInstance keeps both the software and the host context
-    assert str(cve_findings[0].ooi) == "SoftwareInstance|Hostname|internet|example.com|Software|Apache httpd|2.4.66|"
+    # A CVE is a property of the software version; affected assets are found by
+    # traversing the graph in reports, not by binding the finding per instance.
+    assert str(cve_findings[0].ooi) == "Software|Apache httpd|2.4.66|"
 
 
 def test_certificate_extraction_keeps_newest_observation_per_endpoint():
