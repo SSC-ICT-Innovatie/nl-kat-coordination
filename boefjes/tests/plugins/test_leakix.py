@@ -268,6 +268,54 @@ def test_components_can_be_disabled():
     assert any(f.description and 'Plugin = "WpUserEnumHttp".' in f.description for f in leak_findings)
 
 
+def _run_hostdetails_fixture():
+    """Run the anonymized real /host API capture (12 events, captured 2026-08)."""
+    input_ooi = TypeAdapter(OOIType).validate_python(
+        {"object_type": "Hostname", "network": "Network|internet", "name": "example.org"}
+    )
+    return list(run(input_ooi.serialize(), get_dummy_data("raw/leakix-hostdetails.json")))
+
+
+def test_hostdetails_capture_keeps_newest_certificate_per_endpoint():
+    output = _run_hostdetails_fixture()
+    certificates = {c.serial_number[:8]: c for c in output if isinstance(c, X509Certificate)}
+
+    # The capture holds three distinct certificates; the renewed-away one
+    # (expired 2026-06-14, last seen 2026-05-09) must not be emitted, the
+    # newest observation per endpoint must be: R12 on :443, R13 on :80.
+    assert len(certificates) == 2
+    assert "89bb2615" not in certificates
+    assert certificates["72726f1a"].issuer == "R12"
+    assert certificates["5ec5563e"].issuer == "R13"
+
+    # The wildcard SAN from the live certificate becomes a qualifier
+    assert any(o.name == "*.example.org" for o in output if isinstance(o, SubjectAlternativeNameQualifier))
+
+
+def test_hostdetails_capture_emits_conflicting_as_but_no_netblocks():
+    output = _run_hostdetails_fixture()
+
+    # The capture reports two different AS for the same IP (LeakIX per-event
+    # attribution is low-confidence); both are emitted, netblocks never.
+    as_numbers = {o.number for o in output if isinstance(o, AutonomousSystem)}
+    assert as_numbers == {"13127", "31798"}
+    assert all(o.object_type not in ("IPV4NetBlock", "IPV6NetBlock") for o in output)
+
+
+def test_hostdetails_capture_leak_binding_and_software():
+    output = _run_hostdetails_fixture()
+
+    leak_findings = [o for o in output if o.object_type == "Finding" and "KAT-LEAKIX" in str(o.finding_type)]
+    assert len(leak_findings) == 1
+    assert str(leak_findings[0].ooi) == "Hostname|internet|example.org"
+    assert leak_findings[0].proof
+
+    software = {(o.name, o.version) for o in output if isinstance(o, Software)}
+    assert ("Apache", "2.4.66") in software  # service.software and Server header
+    assert ("PHP", "8.3.30") in software  # X-Powered-By header
+    assert ("Debian", None) in software  # service.software.os
+
+
 def test_old_format_enables_all_components(monkeypatch):
     """Raw files from before the component toggles existed extract everything."""
     freeze_normalizer_clock(monkeypatch)
