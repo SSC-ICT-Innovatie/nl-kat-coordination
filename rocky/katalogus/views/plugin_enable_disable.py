@@ -1,7 +1,6 @@
 import structlog
 from django.contrib import messages
 from django.http import HttpResponseForbidden, HttpResponseRedirect
-from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.utils.translation import gettext_lazy as _
@@ -14,6 +13,12 @@ logger = structlog.get_logger(__name__)
 class PluginEnableDisableView(SinglePluginView):
     def post(self, request, *args, **kwargs):
         plugin_state = kwargs["plugin_state"]
+        redirect_url = request.POST.get("current_url") or reverse(
+            "katalogus", kwargs={"organization_code": self.organization.code}
+        )
+
+        if not url_has_allowed_host_and_scheme(redirect_url, allowed_hosts=None):
+            return HttpResponseForbidden()
 
         if plugin_state == "True":
             self.katalogus_client.disable_plugin(self.plugin)
@@ -22,10 +27,7 @@ class PluginEnableDisableView(SinglePluginView):
                 messages.WARNING,
                 _("{} '{}' disabled.").format(self.plugin.type.title(), self.plugin.name),
             )
-            redirect_url = request.POST.get("current_url")
-            if url_has_allowed_host_and_scheme(redirect_url, allowed_hosts=None):
-                return HttpResponseRedirect(redirect_url)
-            return HttpResponseForbidden()
+            return HttpResponseRedirect(redirect_url)
 
         if self.plugin.can_scan(self.organization_member):
             self.katalogus_client.enable_plugin(self.plugin)
@@ -61,4 +63,4 @@ class PluginEnableDisableView(SinglePluginView):
                 ),
             )
 
-        return redirect(reverse("katalogus", kwargs={"organization_code": self.organization.code}))
+        return HttpResponseRedirect(redirect_url)

@@ -393,7 +393,8 @@ def test_enable_disable_plugin_has_clearance(rf, redteam_member, mocker):
     mock_requests.Client().get.return_value = mock_response
     mock_response.json.return_value = plugin
 
-    request = setup_request(rf.post("plugin_enable_disable"), redteam_member.user)
+    current_url = "/en/test/kat-alogus/plugins/boefjes/grid/#plugin_test-boefje"
+    request = setup_request(rf.post("plugin_enable_disable", {"current_url": current_url}), redteam_member.user)
 
     response = PluginEnableDisableView.as_view()(
         setup_request(request, redteam_member.user),
@@ -405,6 +406,7 @@ def test_enable_disable_plugin_has_clearance(rf, redteam_member, mocker):
 
     # redirects back to KAT-alogus
     assert response.status_code == 302
+    assert response.url == current_url
 
     assert list(request._messages).pop().message == "Boefje '" + plugin["name"] + "' enabled."
 
