@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from bs4 import BeautifulSoup
 
 from boefjes.normalizer_models import NormalizerOutput
-from octopoes.models.ooi.identifier import Identifier, IdentifierUsage, IdentifierVendor
+from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 
 IDENTIFIER_PATTERNS = {
     "GoogleTagManager": [re.compile(r"\bGTM-[A-Z0-9]+\b")],
@@ -88,4 +88,4 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield vendor
         yield identifier
 
-        yield IdentifierUsage(identifier=identifier.reference, usage=input_ooi["reference"])
+        yield IdentifierInstance(identifier=identifier.reference, usage=input_ooi["reference"])
