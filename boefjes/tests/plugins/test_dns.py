@@ -372,3 +372,21 @@ def test_exception_raised_no_input_ooi(normalizer_runner):
 
     with pytest.raises(ObservationsWithoutInputOOI):
         normalizer_runner.run(meta, get_dummy_data("inputs/dns-result-example.nl.json"))
+
+
+def test_dns_normalizer_skips_ede_options(normalizer_runner):
+    # Regression test for #5312: when a resolver returns an Extended DNS Error, the
+    # response block carries an `option EDE ...` header line that from_text does # codespell-ignore
+    # not recognise (UnknownHeaderField), which aborted the whole normalizer.
+    # The NS block in this raw carries that EDE option; it must be parsed, not crash. # codespell-ignore
+    meta = NormalizerMeta.model_validate_json(get_dummy_data("dns-normalize.json"))
+
+    results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-result-openkat.nl-ede.json"))
+
+    ns_values = {str(r.value) for r in results.observations[0].results if isinstance(r, DNSNSRecord)}
+    assert ns_values == {
+        "ns0.rijksoverheidnl.com.",
+        "ns1.rijksoverheidnl.nl.",
+        "ns2.rijksoverheidnl.eu.",
+        "ns3.rijksoverheidnl.org.",
+    }
