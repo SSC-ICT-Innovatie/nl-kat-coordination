@@ -33,6 +33,26 @@ def _get_hostname_input_ooi():
     )
 
 
+def test_leak_findings_are_enriched():
+    input_ooi = _get_hostname_input_ooi()
+
+    output = list(run(input_ooi.serialize(), get_dummy_data("raw/leakix-example.com.json")))
+    findings = [o for o in output if o.object_type == "Finding"]
+
+    # Leak findings now carry the event summary as proof...
+    assert findings
+    assert any(f.proof for f in findings)
+    # ...a Plugin label never interpolates an OOI reference (the old bug was
+    # 'Plugin = "IPPort|internet|..."' instead of the plugin name)...
+    plugin_labels = [
+        f.description.split('Plugin = "')[1] for f in findings if f.description and 'Plugin = "' in f.description
+    ]
+    assert plugin_labels, "expected at least one event_source-derived Plugin label"
+    assert all("|" not in label for label in plugin_labels)
+    # ...and the unauthenticated services in the fixture are flagged.
+    assert any(f.description and "No authentication required." in f.description for f in findings)
+
+
 def test_strict_mode_filters_hostname_subdomains():
     """Test that strict mode only keeps events with exact hostname match."""
     input_ooi = _get_hostname_input_ooi()

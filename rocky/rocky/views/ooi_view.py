@@ -140,15 +140,16 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         tree = self.tree
         self.ooi = tree.store[tree.root.reference]
 
+    @property
     def get_current_ooi(self) -> OOI | None:
         """
         Some OOIs have an old valid time, this will fetch the latest OOI for today.
         """
         now = datetime.now(timezone.utc)
-        if self.observed_at.date() == now.date():
+        if not self.is_historic_view:
             return self.ooi
         try:
-            return self.get_ooi_tree(self.get_ooi_id(), observed_at=now).store[self.get_ooi_id()]
+            return self.get_single_ooi(self.get_ooi_id(), observed_at=now)
         except Http404:
             return None
 
@@ -156,7 +157,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         context = super().get_context_data(**kwargs)
 
         context["ooi"] = self.ooi
-        context["ooi_current"] = self.get_current_ooi()
+        context["ooi_current"] = self.get_current_ooi
         context["mandatory_fields"] = get_mandatory_fields(self.request)
         return context
 
