@@ -96,9 +96,11 @@ def analyze_script_src_in_html(har: HarWrapper, fingerprint: schemas.Fingerprint
     detections: list[Detection] = []
 
     for pattern in fingerprint.script_src:
-        if pattern.regex.search(har.html):
-            detections.append(
-                Detection(url=har.url, fingerprint=fingerprint, app_type="html", pattern=pattern, value=har.html)
-            )
-
+        try:
+            if pattern.regex.search(har.html):
+                detections.append(
+                    Detection(url=har.url, fingerprint=fingerprint, app_type="html", pattern=pattern, value=har.html)
+                )
+        except ValueError:  # no html found
+            return []
     return detections
