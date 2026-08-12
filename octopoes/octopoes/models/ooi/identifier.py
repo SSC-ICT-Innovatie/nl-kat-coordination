@@ -34,7 +34,7 @@ class Identifier(OOI):
 
     @property
     def natural_key(self) -> str:
-        return f"{str(self.vendor.name)}|{self.value}"
+        return f"{str(self.vendor)}|{self.value}"
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:

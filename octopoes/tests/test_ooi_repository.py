@@ -85,8 +85,8 @@ class OOIRepositoryTest(TestCase):
                         :find [
                             (pull ?e [
                                 :xt/id
-                                {:IdentifierInstance/_location [*]}
                                 {:IPService/_ip_port [*]}
+                                {:IdentifierInstance/_location [*]}
                                 {:Config/_ooi [*]}
                                 {:Finding/_ooi [*]}
                                 {:GeographicPoint/_ooi [*]}
