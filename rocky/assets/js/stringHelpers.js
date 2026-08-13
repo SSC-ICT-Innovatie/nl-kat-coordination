@@ -18,7 +18,7 @@ const stringToColor = (str) => {
   return color;
 };
 
-const colorForOoi = (ooiType) => {
+export const colorForOoi = (ooiType) => {
   const colors = {
     dnsNameServer: "#FFDFD3",
     dnsRecord: "#98E2F7",
@@ -34,7 +34,7 @@ const colorForOoi = (ooiType) => {
   return stringToColor(ooiType);
 };
 
-const truncateText = (text, length, truncateCenter = true) => {
+export const truncateText = (text, length, truncateCenter = true) => {
   if (!text) {
     return "";
   }
