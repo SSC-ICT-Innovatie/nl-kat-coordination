@@ -134,7 +134,7 @@ class DNSSOARecord(DNSRecord):
     dns_record_type: Literal["SOA"] = "SOA"
 
     soa_hostname: Reference = ReferenceField(Hostname)
-    rname: str | None
+    rname: str | None = None
     email: Reference | None = ReferenceField(EmailAddress, default=None, max_inherit_scan_level=4)
     serial: int | None = None
     retry: int | None = None
