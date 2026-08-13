@@ -54,3 +54,5 @@ def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any])
             yield emailaddress
             soa_record.email = emailaddress.reference
             yield soa_record
+            # We dont yield an EmailAddressInstance, as the soar_record itself already contains
+            # a reference to the address.
