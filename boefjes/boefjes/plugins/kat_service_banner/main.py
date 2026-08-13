@@ -6,13 +6,15 @@ REQUEST_TIMEOUT = 5
 
 
 def get_sock(ip, port, timeout):
-    """returns a socket to the ip/port with the given timeout set or returns None"""
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(timeout)
+    """returns a socket to the ip/port with the given timeout set or returns None.
+
+    Uses create_connection so both IPv4 and IPv6 targets work. The previous
+    AF_INET socket silently failed for every IPv6 IPPort, since IPPort.address
+    can be an IPAddressV6.
+    """
     try:
-        sock.connect((ip, port))
-        return sock
-    except Exception:
+        return socket.create_connection((ip, port), timeout=timeout)
+    except OSError:
         return None
 
 
