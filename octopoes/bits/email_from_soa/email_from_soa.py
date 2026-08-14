@@ -46,10 +46,10 @@ def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any])
         if email and "@" in email:
             localpart, domain = email.split("@", 1)
 
-            domain_ooi = Hostname(network=soa_record.soa_hostname.network, name=domain)
+            domain_ooi = Hostname(network=soa_record.soa_hostname, name=domain)
             yield domain_ooi
             emailaddress = EmailAddress(
-                network=soa_record.soa_hostname.network, localpart=localpart, domain=domain_ooi.reference
+                network=soa_record.soa_hostname, localpart=localpart, domain=domain_ooi.reference
             )
             yield emailaddress
             soa_record.email = emailaddress.reference
