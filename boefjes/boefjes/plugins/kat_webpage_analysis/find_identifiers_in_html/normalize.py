@@ -83,7 +83,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     for match in extract_identifiers(search_text):
         vendor = IdentifierVendor(name=match.vendor)
 
-        identifier = Identifier(vendor=vendor.reference, identifier=match.identifier)
+        identifier = Identifier(vendor=vendor.reference, value=match.identifier)
 
         yield vendor
         yield identifier
