@@ -40,7 +40,7 @@ def soa_rname_to_email(rname: str) -> str:
 
 
 def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any]) -> Iterator[OOI]:
-    network = Network(name=soa_record.soa_hostnametokenized.network.name).reference
+    network = Network(name=soa_record.soa_hostnametokenized.network.name)
     yield network
     if soa_record.rname:
         # extract email from SOA rname
@@ -49,9 +49,9 @@ def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any])
         if email and "@" in email:
             localpart, domain = email.split("@", 1)
 
-            domain_ooi = Hostname(network=network, name=domain)
+            domain_ooi = Hostname(network=network.reference, name=domain)
             yield domain_ooi
-            emailaddress = EmailAddress(network=network, localpart=localpart, domain=domain_ooi.reference)
+            emailaddress = EmailAddress(network=network.reference, localpart=localpart, domain=domain_ooi.reference)
             yield emailaddress
             soa_record.email = emailaddress.reference
             yield soa_record
