@@ -5,7 +5,7 @@ from typing import Any
 
 from octopoes.models import OOI
 from octopoes.models.ooi.dns.records import DNSTXTRecord
-from octopoes.models.ooi.identifiers import Identifier, IdentifierUsage, IdentifierVendor
+from octopoes.models.ooi.identifier import Identifier, IdentifierUsage, IdentifierVendor
 
 IDENTIFIER_PATTERNS = {
     "GoogleSiteVerification": [re.compile(r"(?:^|\s)google-site-verification=([A-Za-z0-9_-]+)(?:\s|$)", re.I)],
