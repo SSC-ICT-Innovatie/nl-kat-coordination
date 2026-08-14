@@ -8,13 +8,13 @@ from octopoes.models.ooi.findings import Finding, KATFindingType
 
 
 def run(hostname: Hostname, additional_oois: list[DNSTXTRecord], config: dict[str, Any]) -> Iterator[OOI]:
-    csp_records = [csp_record for csp_record in additional_oois if csp_record.value.startswith("v=spf1 ")]
+    spf_records = [spf_record for spf_record in additional_oois if spf_record.value.startswith("v=spf1 ")]
 
-    if len(csp_records) > 1:
-        finding_type = KATFindingType(id="KAT-MULTIPLE-CSP")
+    if len(spf_records) > 1:
+        finding_type = KATFindingType(id="KAT-MULTIPLE-spf")
         yield finding_type
         yield Finding(
             finding_type=finding_type.reference,
             ooi=hostname.reference,
-            description="This host has multiple CSP records, only one can exist.",
+            description="This host has multiple spf records, only one can exist.",
         )
