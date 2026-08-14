@@ -5,7 +5,7 @@ from typing import Any
 
 from octopoes.models import OOI
 from octopoes.models.ooi.dns.records import DNSTXTRecord
-from octopoes.models.ooi.identifier import Identifier, IdentifierUsage, IdentifierVendor
+from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 
 IDENTIFIER_PATTERNS = {
     "GoogleSiteVerification": [re.compile(r"(?:^|\s)google-site-verification=([A-Za-z0-9_-]+)(?:\s|$)", re.I)],
@@ -56,4 +56,4 @@ def run(record: DNSTXTRecord, additional_oois: list[OOI], config: dict[str, Any]
 
         yield vendor
         yield identifier
-        yield IdentifierUsage(identifier=identifier.reference, usage=record.reference)
+        yield IdentifierInstance(identifier=identifier.reference, usage=record.reference)
