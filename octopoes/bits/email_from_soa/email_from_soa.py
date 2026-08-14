@@ -5,6 +5,7 @@ from octopoes.models import OOI
 from octopoes.models.ooi.dns.records import DNSSOARecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.email import EmailAddress
+from octopoes.models.ooi.network import Network
 
 
 def _split_soa_rname(rname: str) -> list[str]:
@@ -39,6 +40,8 @@ def soa_rname_to_email(rname: str) -> str:
 
 
 def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any]) -> Iterator[OOI]:
+    network = Network(name=soa_record.soa_hostnametokenized.network.name).reference
+    yield network
     if soa_record.rname:
         # extract email from SOA rname
         email = soa_rname_to_email(str(soa_record.rname))
@@ -46,11 +49,9 @@ def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any])
         if email and "@" in email:
             localpart, domain = email.split("@", 1)
 
-            domain_ooi = Hostname(network=soa_record.soa_hostname, name=domain)
+            domain_ooi = Hostname(network=network, name=domain)
             yield domain_ooi
-            emailaddress = EmailAddress(
-                network=soa_record.soa_hostname, localpart=localpart, domain=domain_ooi.reference
-            )
+            emailaddress = EmailAddress(network=network, localpart=localpart, domain=domain_ooi.reference)
             yield emailaddress
             soa_record.email = emailaddress.reference
             yield soa_record
