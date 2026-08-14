@@ -6,7 +6,7 @@
     "text/html"
   ],
   "produces": [
-    "IdentifierLocation",
+    "IdentifierInstance",
     "IdentifierVendor",
     "Identifier"
   ]
