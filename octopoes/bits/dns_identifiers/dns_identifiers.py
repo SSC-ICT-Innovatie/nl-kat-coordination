@@ -52,7 +52,7 @@ def run(record: DNSTXTRecord, additional_oois: list[OOI], config: dict[str, Any]
     for match in extract_identifiers(record.value):
         vendor = IdentifierVendor(name=match.vendor)
 
-        identifier = Identifier(vendor=vendor.reference, identifier=match.identifier)
+        identifier = Identifier(vendor=vendor.reference, value=match.identifier)
 
         yield vendor
         yield identifier
