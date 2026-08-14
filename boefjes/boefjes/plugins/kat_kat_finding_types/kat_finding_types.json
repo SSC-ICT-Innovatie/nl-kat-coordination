@@ -653,5 +653,13 @@
     "risk": "low",
     "impact": "Information disclosure about the underlying software stack, assisting reconnaissance.",
     "recommendation": "Remove default files from production deployments or deny-list them at the web server level."
+  },
+  "KAT-MULTIPLE-SPF-RECORDS": {
+    "name":"Multiple SPF records",
+    "description": "Any hostname can only have one SPF record. This hostname has multiple.",
+    "source": "https://www.rfc-editor.org/info/rfc7208/#section-3.2",
+    "risk": "low",
+    "impact": "SPF governs which email senders are allowed for each hostname, having multiple SPF records might introduce partial or ignored senders causing delivery problems.",
+    "recommendation": "Combine the SPF records into 1 record."
   }
 }

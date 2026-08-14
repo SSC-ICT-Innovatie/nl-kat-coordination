@@ -12,7 +12,7 @@ def run(hostname: Hostname, additional_oois: list[DNSTXTRecord], config: dict[st
     spf_records = [spf_record for spf_record in additional_oois if spf_record.value.startswith("v=spf1 ")]
 
     if len(spf_records) > 1:
-        finding_type = KATFindingType(id="KAT-MULTIPLE-spf")
+        finding_type = KATFindingType(id="KAT-MULTIPLE-SPF-RECORDS")
         yield finding_type
         yield Finding(
             finding_type=finding_type.reference,
