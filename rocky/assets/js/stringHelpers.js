@@ -35,6 +35,10 @@ const colorForOoi = (ooiType) => {
 };
 
 const truncateText = (text, length, truncateCenter = true) => {
+  if (!text) {
+    return "";
+  }
+
   if (text.length <= length) {
     return text;
   }
