@@ -17,7 +17,7 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 
 
 def run(input_ooi: DNSTXTRecord, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
-    if input_ooi.value.startswith("v=spf1"):
+    if input_ooi.value.lower().startswith("v=spf1"):
         spf_value = input_ooi.value.replace("%{d}", input_ooi.hostname.tokenized.name)
 
         # remove exists:%i mechanisms
