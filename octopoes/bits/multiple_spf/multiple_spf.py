@@ -9,7 +9,7 @@ from octopoes.models.ooi.findings import Finding, KATFindingType
 
 def run(hostname: Hostname, additional_oois: list[DNSTXTRecord], config: dict[str, Any]) -> Iterator[OOI]:
     # https://www.rfc-editor.org/info/rfc7208/#section-3.2
-    spf_records = [spf_record for spf_record in additional_oois if spf_record.value.startswith("v=spf1 ")]
+    spf_records = [spf_record for spf_record in additional_oois if spf_record.value.lower().startswith("v=spf1")]
 
     if len(spf_records) > 1:
         finding_type = KATFindingType(id="KAT-MULTIPLE-SPF-RECORDS")
