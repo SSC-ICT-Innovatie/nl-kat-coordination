@@ -46,9 +46,6 @@ def build_search_text(soup: BeautifulSoup, raw_html: str) -> str:
         if script.string:
             chunks.append(script.string)
 
-        if src := script.get("src"):
-            chunks.append(src)
-
     for tag in soup.find_all(src=True):
         chunks.append(tag["src"])
 
