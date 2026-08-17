@@ -1,0 +1,56 @@
+[
+  {
+    "host": "apache.dvwa.cloud",
+    "ip": "192.0.2.10",
+    "port": "443",
+    "banner": "Apache/2.4.49 (Unix)",
+    "vulnerabilities": [
+      {
+        "id": "999986",
+        "method": "GET",
+        "url": "/",
+        "msg": "Retrieved x-powered-by header: Apache/2.4.49."
+      },
+      {
+        "id": "013587",
+        "references": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options",
+        "method": "GET",
+        "url": "/",
+        "msg": "Suggested security header missing: x-content-type-options. See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options"
+      },
+      {
+        "id": "600050",
+        "method": "GET",
+        "url": "/",
+        "msg": "Apache/2.4.49 appears to be outdated (current is at least 2.4.66)."
+      },
+      {
+        "id": "999992",
+        "references": "https://en.wikipedia.org/wiki/Wildcard_certificate",
+        "method": "GET",
+        "url": "/",
+        "msg": "Server is using a wildcard certificate: *.dvwa.cloud. See: https://en.wikipedia.org/wiki/Wildcard_certificate"
+      },
+      {
+        "id": "999990",
+        "method": "OPTIONS",
+        "url": "/",
+        "msg": "Allowed HTTP Methods: HEAD, GET, POST, OPTIONS, TRACE ."
+      },
+      {
+        "id": "000434",
+        "references": "https://owasp.org/www-community/attacks/Cross_Site_Tracing",
+        "method": "TRACE",
+        "url": "/",
+        "msg": "HTTP TRACE method is active and replies which suggests the host is vulnerable to XST. See: https://owasp.org/www-community/attacks/Cross_Site_Tracing"
+      },
+      {
+        "id": "003584",
+        "references": "https://www.vntweb.co.uk/apache-restricting-access-to-iconsreadme/",
+        "method": "GET",
+        "url": "/icons/README",
+        "msg": "Apache default file found. See: https://www.vntweb.co.uk/apache-restricting-access-to-iconsreadme/"
+      }
+    ]
+  }
+]

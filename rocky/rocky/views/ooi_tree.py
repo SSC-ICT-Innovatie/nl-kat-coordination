@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from tools.forms.ooi import OoiTreeSettingsForm
@@ -17,7 +19,7 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
     def get_tree_dict(self):
         if self._tree_dict is None:
-            tree = self.get_ooi_tree()
+            tree = self.get_ooi_tree(with_scan_profiles=False, types=self.request.GET.getlist("ooi_type", None))
             self._tree_dict = create_object_tree_item_from_ref(tree.root, tree.store)
 
         return self._tree_dict
@@ -70,9 +72,13 @@ class OOISummaryView(OOITreeView):
 class OOIGraphView(OOITreeView):
     template_name = "graph-d3.html"
 
-    def get_filtered_tree(self, tree_dict: dict) -> dict:
-        filtered_tree = super().get_filtered_tree(tree_dict)
-        return hydrate_tree(filtered_tree, self.organization.code)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Only the graph template needs the hydrated fields (display_name, overlay_data,
+        # graph_url), so build them on a dedicated, deep-copied tree. The shared `tree`
+        # context used by the tree/summary tabs stays filter-only and unhydrated.
+        context["graph_tree"] = hydrate_tree(deepcopy(context["tree"]), self.organization.code)
+        return context
 
     def get_last_breadcrumb(self):
         return {

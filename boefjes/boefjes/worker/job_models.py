@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from typing import Annotated
 from uuid import UUID
@@ -66,7 +67,7 @@ class ObservationsWithoutInputOOI(JobException):
             "Observations are yielded in the normalizer but no input ooi was found. "
             "Your boefje should either yield observations with a custom input"
             "or always run on a specified input ooi type.\n"
-            f"NormalizerMeta: {normalizer_meta.model_dump_json(indent=3)}"
+            f"NormalizerMeta: {json.dumps(normalizer_meta.model_dump(mode='json'), indent=3)}"
         )
 
 

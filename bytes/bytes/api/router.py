@@ -210,8 +210,6 @@ async def create_raw(
             logger.exception("Error saving raw data")
             raise HTTPException(status_code=codes.INTERNAL_SERVER_ERROR, detail="Could not save raw data") from error
 
-        all_parsed_mime_types.append(parsed_mime_types)
-
     return raw_ids
 
 

@@ -224,6 +224,7 @@ class Query:
             raise InvalidField(f'"{field_name}" is not a field of {ooi_type.get_object_type()}')
 
         if isinstance(value, str):
+            value = value.replace("\\", "\\\\")
             value = value.replace('"', r"\"")
 
         if ooi_type in abstract_types and ooi_type != OOI:
@@ -269,6 +270,7 @@ class Query:
             if not isinstance(value, str):
                 raise InvalidField("Only strings allowed as values for a WHERE IN statement for now.")
 
+            value = value.replace("\\", "\\\\")
             value = value.replace('"', r"\"")
             new_values.append(f'"{value}"')
 

@@ -1,0 +1,214 @@
+{
+    "search_mode": "strict",
+    "input_ooi": "Hostname|internet|example.com",
+    "components": {
+        "asn": true,
+        "certificates": true,
+        "software": true,
+        "ssh": true,
+        "tls": true
+    },
+    "results": [
+        {
+            "event_type": "leak",
+            "event_source": "WpUserEnumHttp",
+            "event_fingerprint": "aabb001122334455aabb001122334455aabb001122334455aabb001122334455",
+            "ip": "192.0.2.10",
+            "host": "example.com",
+            "reverse": "",
+            "port": "443",
+            "transport": ["tcp", "https"],
+            "protocol": "https",
+            "http": {
+                "root": "",
+                "url": "/",
+                "status": 200,
+                "header": {
+                    "server": "Apache/2.4.66 (Debian)",
+                    "x-powered-by": "PHP/8.3.30"
+                },
+                "title": "Example",
+                "favicon_hash": ""
+            },
+            "summary": "Found usernames: adm_example",
+            "time": "2026-08-01T10:00:00Z",
+            "ssl": {
+                "detected": true,
+                "enabled": true,
+                "jarm": "27d40d40d29d40d1dc42d43d00041d4689ee210389f4f6b4b077b96a480745",
+                "cypher_suite": "TLS_AES_128_GCM_SHA256",
+                "version": "TLSv1.3",
+                "certificate": {
+                    "cn": "example.com",
+                    "domain": ["example.com", "www.example.com", "*.staging.example.com"],
+                    "fingerprint": "3f2a1b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708",
+                    "key_algo": "RSA",
+                    "key_size": 2048,
+                    "issuer_name": "R12",
+                    "not_before": "2026-05-15T00:00:00Z",
+                    "not_after": "2026-08-13T00:00:00Z",
+                    "valid": true
+                }
+            },
+            "ssh": {"fingerprint": "", "version": 0, "banner": "", "motd": ""},
+            "service": {
+                "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+                "software": {
+                    "name": "Apache httpd",
+                    "version": "2.4.66",
+                    "os": "Debian GNU/Linux 12 (bookworm) 6.1.0-18-amd64",
+                    "modules": [{"name": "PHP", "version": "8.3.30", "fingerprint": ""}],
+                    "fingerprint": ""
+                }
+            },
+            "leak": {
+                "stage": "open",
+                "type": "configuration",
+                "severity": "",
+                "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null}
+            },
+            "network": {"organization_name": "EXAMPLE-AS", "asn": 64500, "network": "192.0.2.0/24"},
+            "tags": ["cve-2017-5487"]
+        },
+        {
+            "event_type": "service",
+            "event_source": "HttpPlugin",
+            "event_fingerprint": "bbcc001122334455bbcc001122334455bbcc001122334455bbcc001122334455",
+            "ip": "192.0.2.10",
+            "host": "example.com",
+            "reverse": "",
+            "port": "443",
+            "transport": ["tcp", "https"],
+            "protocol": "https",
+            "http": {"root": "", "url": "", "status": 200, "header": {}, "title": "", "favicon_hash": ""},
+            "summary": "",
+            "time": "2026-06-01T10:00:00Z",
+            "ssl": {
+                "detected": true,
+                "enabled": true,
+                "jarm": "",
+                "cypher_suite": "TLS_AES_128_GCM_SHA256",
+                "version": "TLSv1.3",
+                "certificate": {
+                    "cn": "example.com",
+                    "domain": ["example.com"],
+                    "fingerprint": "0011223344556677889900112233445566778899001122334455667788990011",
+                    "key_algo": "RSA",
+                    "key_size": 2048,
+                    "issuer_name": "R11",
+                    "not_before": "2026-03-01T00:00:00Z",
+                    "not_after": "2026-05-30T00:00:00Z",
+                    "valid": false
+                }
+            },
+            "ssh": {"fingerprint": "", "version": 0, "banner": "", "motd": ""},
+            "service": {
+                "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+                "software": {"name": "", "version": "", "os": "", "modules": null, "fingerprint": ""}
+            },
+            "leak": {
+                "stage": "",
+                "type": "",
+                "severity": "",
+                "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null}
+            },
+            "network": {"organization_name": "EXAMPLE-AS", "asn": 64500, "network": "192.0.2.0/24"},
+            "tags": []
+        },
+        {
+            "event_type": "service",
+            "event_source": "SshOpenPlugin",
+            "event_fingerprint": "ccdd001122334455ccdd001122334455ccdd001122334455ccdd001122334455",
+            "ip": "192.0.2.10",
+            "host": "example.com",
+            "reverse": "",
+            "port": "22",
+            "transport": ["tcp"],
+            "protocol": "ssh",
+            "http": {"root": "", "url": "", "status": 0, "header": {}, "title": "", "favicon_hash": ""},
+            "summary": "",
+            "time": "2026-08-01T10:05:00Z",
+            "ssl": {
+                "detected": false,
+                "enabled": false,
+                "jarm": "",
+                "cypher_suite": "",
+                "version": "",
+                "certificate": {
+                    "cn": "",
+                    "domain": null,
+                    "fingerprint": "",
+                    "key_algo": "",
+                    "key_size": 0,
+                    "issuer_name": "",
+                    "not_before": "0001-01-01T00:00:00Z",
+                    "not_after": "0001-01-01T00:00:00Z",
+                    "valid": false
+                }
+            },
+            "ssh": {
+                "fingerprint": "SHA256:aBcDeFgHiJkLmNoPqRsTuVwXyZ0123456789abcdefg",
+                "version": 2,
+                "banner": "SSH-2.0-OpenSSH_9.2p1 Debian-2+deb12u3",
+                "motd": ""
+            },
+            "service": {
+                "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+                "software": {"name": "", "version": "", "os": "", "modules": null, "fingerprint": ""}
+            },
+            "leak": {
+                "stage": "",
+                "type": "",
+                "severity": "",
+                "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null}
+            },
+            "network": {"organization_name": "EXAMPLE-AS", "asn": 64500, "network": "192.0.2.0/24"},
+            "tags": []
+        },
+        {
+            "event_type": "service",
+            "event_source": "HttpPlugin",
+            "event_fingerprint": "ddee001122334455ddee001122334455ddee001122334455ddee001122334455",
+            "ip": "192.0.2.10",
+            "host": "example.com",
+            "reverse": "",
+            "port": "8443",
+            "transport": ["tcp", "https"],
+            "protocol": "https",
+            "http": {"root": "", "url": "", "status": 200, "header": {}, "title": "", "favicon_hash": ""},
+            "summary": "",
+            "time": "2026-08-01T10:10:00Z",
+            "ssl": {
+                "detected": true,
+                "enabled": true,
+                "jarm": "",
+                "cypher_suite": "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+                "version": "TLSv1.0",
+                "certificate": {
+                    "cn": "",
+                    "domain": null,
+                    "fingerprint": "",
+                    "key_algo": "",
+                    "key_size": 0,
+                    "issuer_name": "",
+                    "not_before": "0001-01-01T00:00:00Z",
+                    "not_after": "0001-01-01T00:00:00Z",
+                    "valid": false
+                }
+            },
+            "ssh": {"fingerprint": "", "version": 0, "banner": "", "motd": ""},
+            "service": {
+                "credentials": {"noauth": false, "username": "", "password": "", "key": "", "raw": null},
+                "software": {"name": "", "version": "", "os": "", "modules": null, "fingerprint": ""}
+            },
+            "leak": {
+                "stage": "",
+                "type": "",
+                "severity": "",
+                "dataset": {"rows": 0, "files": 0, "size": 0, "collections": 0, "infected": false, "ransom_notes": null}
+            },
+            "network": {"organization_name": "EXAMPLE-AS", "asn": 64500, "network": "192.0.2.0/24"},
+            "tags": []
+        }
+    ]
+}

@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: kat-octopoes
-Upstream-Contact: info@openkat.nl
-Source: __URL__
+Upstream-Contact: maintainer@librekat.nl
+Source: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination
 
 Files: *
 Copyright: 2022 OpenKAT

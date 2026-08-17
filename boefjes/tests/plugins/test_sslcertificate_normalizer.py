@@ -21,5 +21,7 @@ input_ooi = {
 
 def test_ssl_certificates_normalizer():
     output = list(run(input_ooi, get_dummy_data("ssl-certificates.txt")))
-
     assert len([ooi for ooi in output if hasattr(ooi, "object_type") and ooi.object_type == "X509Certificate"]) == 3
+    for ooi in output:
+        if hasattr(ooi, "object_type") and ooi.object_type == "X509Certificate":
+            assert ooi.valid_from != ooi.valid_until

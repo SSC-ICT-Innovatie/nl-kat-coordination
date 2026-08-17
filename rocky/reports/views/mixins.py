@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timezone
 
 import structlog
@@ -98,7 +99,7 @@ class SaveMultiReportMixin(BaseReportView):
             collect_report_data(self.octopoes_api_connector, self.get_ooi_pks(), self.observed_at)
         )
         report_data_raw_id = self.bytes_client.upload_raw(
-            ReportDataDict(report_data | self.get_input_data()).model_dump_json().encode(),
+            json.dumps(ReportDataDict(report_data | self.get_input_data()).model_dump(mode="json")).encode("utf-8"),
             manual_mime_types={"openkat/report"},
         )
 

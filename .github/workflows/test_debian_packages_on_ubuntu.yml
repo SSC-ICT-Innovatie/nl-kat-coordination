@@ -19,12 +19,12 @@ jobs:
       contents: read
     strategy:
       matrix:
-        dist: [ubuntu22.04]
+        dist: [ubuntu22.04, ubuntu24.04]
         package: [bytes, boefjes, rocky, octopoes, mula]
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get version from release tag or generate one
         run: |
@@ -52,7 +52,7 @@ jobs:
             --workdir /app
 
       - name: Upload .deb to artifacts
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
           path: ${{ matrix.package }}/build/kat-${{ matrix.package }}_${{ env.RELEASE_VERSION }}_amd64.deb
@@ -65,13 +65,13 @@ jobs:
 
     strategy:
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-22.04, ubuntu-24.04]
 
     env:
       PGPASSWORD: postgres # No password prompt
 
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Get version from release tag or generate one
         run: |
@@ -115,6 +115,7 @@ jobs:
           sudo -u postgres createuser rocky
           sudo -u postgres psql -c "GRANT ALL ON DATABASE rocky_db TO rocky;"
           sudo -u postgres psql -c "ALTER USER rocky WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d rocky_db -c "GRANT ALL ON SCHEMA public TO rocky;"
 
       - name: Prepare postgres service Katalogus
         run: |
@@ -122,6 +123,7 @@ jobs:
           sudo -u postgres createuser katalogus
           sudo -u postgres psql -c "GRANT ALL ON DATABASE katalogus_db TO katalogus;"
           sudo -u postgres psql -c "ALTER USER katalogus WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d katalogus_db -c "GRANT ALL ON SCHEMA public TO katalogus;"
 
       - name: Prepare postgres service Bytes
         run: |
@@ -129,6 +131,7 @@ jobs:
           sudo -u postgres createuser bytes
           sudo -u postgres psql -c "GRANT ALL ON DATABASE bytes_db TO bytes;"
           sudo -u postgres psql -c "ALTER USER bytes WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d bytes_db -c "GRANT ALL ON SCHEMA public TO bytes;"
 
       - name: Prepare postgres service Mula
         run: |
@@ -136,6 +139,7 @@ jobs:
           sudo -u postgres createuser mula
           sudo -u postgres psql -c "GRANT ALL ON DATABASE mula_db TO mula;"
           sudo -u postgres psql -c "ALTER USER mula WITH PASSWORD 'postgres';"
+          sudo -u postgres psql -d mula_db -c "GRANT ALL ON SCHEMA public TO mula;"
 
       - name: Wait until rabbitmq is healthy
         run: |
@@ -215,7 +219,7 @@ jobs:
           sudo sed -i "s/BYTES_PASSWORD=\$/BYTES_PASSWORD=$(sudo grep BYTES_PASSWORD /etc/kat/bytes.conf | awk -F'=' '{ print $2 }')/" /etc/kat/mula.conf
 
       - name: Restart KAT
-        run: sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
+        run: sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker kat-octopoes-scanlevels
 
       - name: Setup accounts in Rocky
         run: |
@@ -251,7 +255,7 @@ jobs:
           if [ $s != 0 ]; then echo $(curl -v http://localhost:8001/_dev/health) || true && journalctl --no-pager -u kat-octopoes.service && exit $s ; fi
 
       - name: Set up Python 3.13
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: "3.13"
           cache: pip
@@ -266,7 +270,7 @@ jobs:
         run: robot -d rocky/tests/robot/results-ci -v headless:true rocky/tests/robot/ci
 
       - name: Upload Robot Framework reports
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         if: always()
         with:
           name: rf-results-ci
