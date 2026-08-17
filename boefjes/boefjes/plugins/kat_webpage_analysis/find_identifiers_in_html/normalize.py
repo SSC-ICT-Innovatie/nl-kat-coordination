@@ -88,4 +88,4 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield vendor
         yield identifier
 
-        yield IdentifierInstance(identifier=identifier.reference, usage=input_ooi["reference"])
+        yield IdentifierInstance(identifier=identifier.reference, location=input_ooi["reference"])

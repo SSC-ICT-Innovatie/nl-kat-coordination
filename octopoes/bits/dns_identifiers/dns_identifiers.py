@@ -56,4 +56,4 @@ def run(record: DNSTXTRecord, additional_oois: list[OOI], config: dict[str, Any]
 
         yield vendor
         yield identifier
-        yield IdentifierInstance(identifier=identifier.reference, usage=record.reference)
+        yield IdentifierInstance(identifier=identifier.reference, location=record.reference)
