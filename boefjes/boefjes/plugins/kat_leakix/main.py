@@ -6,6 +6,17 @@ import requests
 
 API_TIMEOUT = 30
 
+# Extraction components the normalizer supports; each can be disabled through a
+# boefje setting. The resolved booleans travel with the raw output because
+# normalizers have no access to boefje settings.
+COMPONENT_ENV_VARS = {
+    "asn": "LEAKIX_EXTRACT_ASN",
+    "certificates": "LEAKIX_EXTRACT_CERTIFICATES",
+    "software": "LEAKIX_EXTRACT_SOFTWARE",
+    "ssh": "LEAKIX_EXTRACT_SSH",
+    "tls": "LEAKIX_EXTRACT_TLS",
+}
+
 
 def get_api_headers() -> dict:
     """Get API headers with current LEAKIX_API key."""
@@ -91,7 +102,9 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     else:
         raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')
 
-    # Include search_mode in output so normalizer can filter accordingly
-    output = {"search_mode": search_mode, "input_ooi": pk, "results": results}
+    # Include search_mode and the extraction component toggles in the output so
+    # the normalizer can filter and extract accordingly
+    components = {name: getenv(var, "enabled") != "disabled" for name, var in COMPONENT_ENV_VARS.items()}
+    output = {"search_mode": search_mode, "input_ooi": pk, "components": components, "results": results}
 
     return [(set(), json.dumps(output))]
