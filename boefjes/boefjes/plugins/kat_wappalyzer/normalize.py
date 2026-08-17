@@ -60,8 +60,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     analyzes = [analyze_scripts, analyze_css]
 
-    # check if the content type is html
-    if har.log.entries and is_html(har.log.entries[0]):
+    # is_html() only checks the Content-Type header; a redirect / Content-Length: 0
+    # response can be text/html with no body, so har.html raises inside
+    # analyze_html / analyze_dom / analyze_meta / analyze_script_src_in_html.
+    first_entry = har.log.entries[0] if har.log.entries else None
+    if first_entry and is_html(first_entry) and first_entry.response.content.text:
         analyzes.extend(
             [
                 analyze_headers,
@@ -96,9 +99,11 @@ def analyze_script_src_in_html(har: HarWrapper, fingerprint: schemas.Fingerprint
     detections: list[Detection] = []
 
     for pattern in fingerprint.script_src:
-        if pattern.regex.search(har.html):
-            detections.append(
-                Detection(url=har.url, fingerprint=fingerprint, app_type="html", pattern=pattern, value=har.html)
-            )
-
+        try:
+            if pattern.regex.search(har.html):
+                detections.append(
+                    Detection(url=har.url, fingerprint=fingerprint, app_type="html", pattern=pattern, value=har.html)
+                )
+        except ValueError:  # no html found
+            return []
     return detections
