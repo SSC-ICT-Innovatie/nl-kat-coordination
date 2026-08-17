@@ -59,7 +59,7 @@
     ]
   },
   "normalizer": {
-    "id": "find_identifiers_in_html",
+    "id": "kat_find_identifiers_in_html",
     "version": null
   }
 }
