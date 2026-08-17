@@ -6,6 +6,7 @@ from urllib.parse import parse_qs, urlencode, urljoin, urlparse, urlunparse
 from pydantic import ValidationError
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import URL, HTTPHeader, HTTPHeaderHostname, HTTPHeaderURL
@@ -38,6 +39,9 @@ def remove_ignored_params(url: str, ignored_params: list[str]) -> str:
 
 def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
     network = Network(name=input_ooi.reference.tokenized.resource.web_url.netloc.network.name)
+
+    if input_ooi.key.lower() not in ("location", "content-security-policy"):
+        raise BitNoOperation("Not an http-header with locations.")
 
     if input_ooi.key.lower() == "location":
         ignored_url_params = get_ignored_url_params(config, "ignored_url_parameters", [])

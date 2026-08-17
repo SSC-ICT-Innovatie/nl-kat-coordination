@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.dns.records import DNSAAAARecord, DNSARecord, DNSNSRecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType
@@ -14,7 +15,7 @@ def run(hostname: Hostname, additional_oois: list[DNSAAAARecord | DNSARecord], c
     ]
 
     if dns_aaaa_records:
-        return
+        raise BitNoOperation("We have AAAA records, as such we are done.")
 
     for dns_ns_record in dns_ns_records:
         finding_type = KATFindingType(id="KAT-NAMESERVER-NO-IPV6")

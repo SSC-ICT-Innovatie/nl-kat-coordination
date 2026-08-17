@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from octopoes.models import OOI
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 from octopoes.models.ooi.web import HTTPHeader
 
@@ -9,7 +10,7 @@ from octopoes.models.ooi.web import HTTPHeader
 def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
     header = input_ooi
     if header.key.lower() != "server":
-        return
+        raise BitNoOperation("Not a server header.")
 
     if "Apache/2.4.49" in header.value or "Apache/2.4.50" in header.value:
         finding_type = CVEFindingType(id="CVE-2021-41773")

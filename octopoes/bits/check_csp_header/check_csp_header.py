@@ -4,6 +4,7 @@ from collections.abc import Iterator
 from typing import Any
 
 from octopoes.models import OOI, Reference
+from octopoes.models.exception import BitNoOperation
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import HTTPResource
 from octopoes.models.types import HTTPHeader
@@ -26,16 +27,15 @@ def run(resource: HTTPResource, additional_oois: list[HTTPHeader], config: dict[
         return
 
     headers = {header.key.lower(): header.value for header in additional_oois}
+    csp_header = headers.get("content-security-policy", "")
+
+    if not csp_header:
+        raise BitNoOperation("NO CSP header.")
 
     content_type = headers.get("content-type", "")
     # if no content type is present, we can't determine if the resource is XSS capable, so assume it is
     if content_type and not is_xss_capable(content_type):
-        return
-
-    csp_header = headers.get("content-security-policy", "")
-
-    if not csp_header:
-        return
+        raise BitNoOperation("NOT XSS capable content_type.")
 
     findings: list[str] = []
 
