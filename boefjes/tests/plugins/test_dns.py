@@ -394,7 +394,7 @@ def test_dns_normalizer_skips_ede_options(normalizer_runner):
 
 def test_dns_loc_gpos_records(normalizer_runner):
     meta = NormalizerMeta.model_validate_json(get_dummy_data("dns-normalize.json"))
-    results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-results-loc.example.nl.txt"))
+    results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-results-loc.example.nl.json"))
     oois = results.observations[0].results
     types = {o.object_type for o in oois}
     assert "DNSLOCRecord" in types  # and "DNSGPOSRecord" with a GPOS section
