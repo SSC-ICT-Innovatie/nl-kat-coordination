@@ -29,6 +29,7 @@ from octopoes.models import (
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.explanation import InheritanceSection
 from octopoes.models.ooi.config import Config
+from octopoes.models.ooi.OOIError import OOIValidationError
 from octopoes.models.origin import Origin, OriginParameter, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.path import (
@@ -140,9 +141,10 @@ class OctopoesService:
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
+        skip_errors: bool = False,
     ) -> Paginated[OOI]:
         paginated = self.ooi_repository.list_oois(
-            types, valid_time, offset, limit, scan_levels, scan_profile_types, search_string, order_by, asc_desc
+            types, valid_time, offset, limit, scan_levels, scan_profile_types, search_string, order_by, asc_desc, skip_errors
         )
         self._populate_scan_profiles(paginated.items, valid_time)
         return paginated
@@ -154,8 +156,9 @@ class OctopoesService:
         search_types: set[type[OOI]] | None = None,
         depth: int = 1,
         with_scan_profiles: bool | None = False,
+        skip_errors: bool = False,
     ) -> ReferenceTree:
-        tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth, with_scan_profiles)
+        tree = self.ooi_repository.get_tree(reference, valid_time, search_types, depth, with_scan_profiles, skip_errors=skip_errors)
         return tree
 
     def _delete_ooi(self, reference: Reference, valid_time: datetime) -> None:
@@ -237,11 +240,15 @@ class OctopoesService:
         source = self.ooi_repository.get(origin.source, valid_time)
 
         parameters_references = self.origin_parameter_repository.list_by_origin({origin.id}, valid_time)
-        parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time)
+        parameters = self.ooi_repository.load_bulk_as_list(
+            {x.reference for x in parameters_references if not isinstance(x, OOIValidationError)},
+            valid_time,
+            skip_errors=True
+        )
 
         config = {}
         if bit_definition.config_ooi_relation_path is not None:
-            configs = self.ooi_repository.get_bit_configs(source, bit_definition, valid_time)
+            configs = self.ooi_repository.get_bit_configs(source, bit_definition, valid_time, skip_errors=True)
             if len(configs) != 0:
                 config = configs[-1].config
 
@@ -295,7 +302,7 @@ class OctopoesService:
             start_ooi_references = {
                 profile.reference for profile in all_declared_scan_profiles if profile.level == current_level
             } | {reference for reference, level in assigned_scan_levels.items() if level > current_level}
-            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time).values()}
+            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time, skip_errors=True).values() if not isinstance(ooi, OOIValidationError)}
 
             while next_ooi_set:
                 # prepare next iteration, group oois per type
@@ -320,7 +327,7 @@ class OctopoesService:
 
                     # find all neighbours
                     references = {ooi.reference for ooi in current_ooi_set}
-                    next_level = self.ooi_repository.list_neighbours(references, paths, valid_time)
+                    next_level = self.ooi_repository.list_neighbours(references, paths, valid_time, skip_errors=True)
 
                     # assign scan levels to newly found oois and add to next iteration
                     for ooi in next_level:
@@ -561,7 +568,7 @@ class OctopoesService:
     def get_scan_profile_inheritance(
         self, reference: Reference, valid_time: datetime, inheritance_chain: list[InheritanceSection]
     ) -> list[InheritanceSection]:
-        neighbour_cache = self.ooi_repository.get_neighbours(reference, valid_time)
+        neighbour_cache = self.ooi_repository.get_neighbours(reference, valid_time, skip_errors=True)
 
         last_inheritance_level = inheritance_chain[-1].level
         visited = {inheritance.reference for inheritance in inheritance_chain}
@@ -633,7 +640,10 @@ class OctopoesService:
         bit_definitions = get_bit_definitions()
         for bit_id, bit_definition in bit_definitions.items():
             # loop over all oois that are consumed by the bit
-            for ooi in self.ooi_repository.list_oois_by_object_types({bit_definition.consumes}, valid_time=valid_time):
+            for ooi in self.ooi_repository.list_oois_by_object_types({bit_definition.consumes}, valid_time=valid_time, skip_errors=True):
+                if isinstance(ooi, OOIValidationError):
+                    logger.exception("OOI does not fit model, skipping for bit recalculation", bit_id=bit_id, ooi=ooi)
+                    continue
                 if not isinstance(ooi, bit_definition.consumes):
                     logger.exception("Requested OOI type not met")
                     raise ObjectNotFoundException("Requested OOI type not met")
@@ -649,8 +659,11 @@ class OctopoesService:
                 for param_def in bit_definition.parameters:
                     path = Path.parse(f"{param_def.ooi_type.get_object_type()}.{param_def.relation_path}").reverse()
 
-                    param_oois = self.ooi_repository.list_related(ooi, path, valid_time=valid_time)
+                    param_oois = self.ooi_repository.list_related(ooi, path, valid_time=valid_time, skip_errors=True)
                     for param_ooi in param_oois:
+                        if isinstance(param_ooi, OOIValidationError):
+                            logger.exception("OOI does not fit model, skipping for OriginParameter creation", bit_id=bit_id, param_ooi=param_ooi)
+                            continue
                         param = OriginParameter(origin_id=bit_instance.id, reference=param_ooi.reference)
                         self.origin_parameter_repository.save(param, valid_time)
 

@@ -103,9 +103,10 @@ def list_objects(
     search_string: str | None = None,
     order_by: Literal["scan_level", "object_type"] = "object_type",
     asc_desc: Literal["asc", "desc"] = "asc",
+    skip_errors: bool = False,
 ):
     return octopoes.list_ooi(
-        types, valid_time, offset, limit, scan_level, scan_profile_type, search_string, order_by, asc_desc
+        types, valid_time, offset, limit, scan_level, scan_profile_type, search_string, order_by, asc_desc, skip_errors
     )
 
 

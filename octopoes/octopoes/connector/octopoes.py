@@ -92,6 +92,7 @@ class OctopoesAPIConnector:
         search_string: str | None = None,
         order_by: Literal["scan_level", "object_type"] = "object_type",
         asc_desc: Literal["asc", "desc"] = "asc",
+        skip_errors: bool = False,
     ) -> Paginated[OOIType]:
         params: dict[str, str | int | list[str] | list[int] | None] = {
             "types": [t.__name__ if hasattr(t, "__name__") else t for t in types if t],
@@ -100,6 +101,7 @@ class OctopoesAPIConnector:
             "limit": limit,
             "order_by": order_by,
             "asc_desc": asc_desc,
+            "skip_errors": "true" if skip_errors else "false",
         }
 
         if scan_level:
