@@ -38,10 +38,10 @@ class LocalNormalizerJobRunner(NormalizerJobRunner):
                     input_ooi = {}
 
             results = normalizer.module.run(input_ooi, raw)
+            return self._parse_results(normalizer_meta, results)
+
         except BaseException as e:
             raise JobRuntimeError("Normalizer failed") from e
-
-        return self._parse_results(normalizer_meta, results)
 
     def _parse_results(self, normalizer_meta: NormalizerMeta, results: Iterable[NormalizerOutput]) -> NormalizerResults:
         oois = []
