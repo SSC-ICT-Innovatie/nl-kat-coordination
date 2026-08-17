@@ -227,7 +227,7 @@ class DNSCAARecord(DNSRecord):
 class DNSLocation(DNSRecord):
     latitude: float | None = None
     longitude: float | None = None
-    altitude: float | None = None
+    altitude: float | None = None  # in cm's
 
     @property
     def natural_key(self) -> str:
@@ -249,8 +249,8 @@ class DNSLOCRecord(DNSLocation):
     object_type: Literal["DNSLOCRecord"] = "DNSLOCRecord"
     dns_record_type: Literal["LOC"] = "LOC"
 
-    horizontal_precision: int | None = None
-    vertical_precision: int | None = None
-    size: int | None = None
+    horizontal_precision: float | None = None  # in cms
+    vertical_precision: float | None = None  # in cms
+    size: float | None = None  # in cms
 
     _reverse_relation_names = {"hostname": "dns_loc_records"}

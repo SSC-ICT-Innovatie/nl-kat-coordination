@@ -149,7 +149,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     if isinstance(rr, LOC):
                         default_args.update(
                             {
-                                "altitude": rr.altitude,  # cm; convert to metres if desired
+                                "altitude": rr.altitude * 100,  # cm; converted from meters
                                 "horizontal_precision": rr.horizontal_precision,  # attribute, no ()
                                 "vertical_precision": rr.vertical_precision,  # attribute, no ()
                                 "size": rr.size,  # attribute, no ()
