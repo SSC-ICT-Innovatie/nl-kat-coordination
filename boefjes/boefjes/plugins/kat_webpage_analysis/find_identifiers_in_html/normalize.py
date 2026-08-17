@@ -5,6 +5,7 @@ from dataclasses import dataclass
 from bs4 import BeautifulSoup
 
 from boefjes.normalizer_models import NormalizerOutput
+from octopoes.models import Reference
 from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 
 IDENTIFIER_PATTERNS = {
@@ -39,8 +40,8 @@ class IdentifierMatch:
     identifier: str
 
 
-def build_search_text(soup: BeautifulSoup, raw_html: str) -> str:
-    chunks = [raw_html]
+def build_search_text(soup: BeautifulSoup) -> str:
+    chunks = []
 
     for script in soup.find_all("script"):
         if script.contents:
@@ -72,10 +73,9 @@ def extract_identifiers(text: str) -> set[IdentifierMatch]:
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    html = raw.decode(errors="ignore")
     soup = BeautifulSoup(raw, "html.parser")
 
-    search_text = build_search_text(soup, html)
+    search_text = build_search_text(soup)
 
     for match in extract_identifiers(search_text):
         vendor = IdentifierVendor(name=match.vendor)
@@ -85,4 +85,4 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield vendor
         yield identifier
 
-        yield IdentifierInstance(identifier=identifier.reference, location=input_ooi["reference"])
+        yield IdentifierInstance(identifier=identifier.reference, location=Reference.from_str(input_ooi["primary_key"]))
