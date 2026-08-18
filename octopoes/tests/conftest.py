@@ -111,6 +111,9 @@ class MockOOIRepository(OOIRepository):
     def list_oois_without_scan_profile(self, valid_time: datetime) -> set[Reference]:
         return set()
 
+    def get(self, ooi_reference: Reference, valid_time: datetime) -> OOI:
+        return self.oois[ooi_reference]
+
 
 @pytest.fixture
 def ooi_repository():
