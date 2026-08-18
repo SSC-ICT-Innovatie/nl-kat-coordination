@@ -73,7 +73,6 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
 def do_request(hostname: str, session: Session, uri: str, useragent: str):
     headers = {"Host": hostname, "User-Agent": useragent}
-    response = session.get(uri, headers=headers, verify=False, allow_redirects=False)
 
     # Follow a redirect only when it points back to the same resource — the
     # server canonicalising the URL (e.g. dropping the explicit :443, or a
@@ -84,8 +83,15 @@ def do_request(hostname: str, session: Session, uri: str, useragent: str):
     # as a 301: the oois_in_headers bit turns its Location into a URL that is
     # discovered and scanned as its own resource, so following it here would
     # only duplicate that detection onto the wrong resource.
-    seen = {uri}
-    while response.is_redirect and len(seen) <= MAX_SAME_RESOURCE_REDIRECTS:
+    target = uri
+    seen: set[str] = set()
+    while True:
+        response = session.get(target, headers=headers, verify=False, allow_redirects=False)
+        seen.add(target)
+
+        if not response.is_redirect or len(seen) > MAX_SAME_RESOURCE_REDIRECTS:
+            break
+
         location = response.headers.get("location")
         if not location:
             break
@@ -93,9 +99,6 @@ def do_request(hostname: str, session: Session, uri: str, useragent: str):
         target = urljoin(response.url, location)
         if target in seen or not is_same_resource(uri, target):
             break
-
-        seen.add(target)
-        response = session.get(target, headers=headers, verify=False, allow_redirects=False)
 
     return response
 
