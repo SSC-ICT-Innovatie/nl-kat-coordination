@@ -68,6 +68,12 @@ class MockScanProfileRepository(ScanProfileRepository):
     def delete(self, scan_profile: ScanProfileBase, valid_time: datetime) -> None:
         del self.profiles[scan_profile.reference]
 
+    def get_bulk(self, references: set[Reference], valid_time: datetime) -> list[ScanProfileBase]:
+        profiles = []
+        for ref in references:
+            profiles.append(self.profiles[ref])
+        return profiles
+
 
 @pytest.fixture
 def scan_profile_repository():
