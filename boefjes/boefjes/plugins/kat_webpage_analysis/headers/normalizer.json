@@ -6,6 +6,8 @@
     "openkat-http/headers"
   ],
   "produces": [
-    "HTTPHeader"
+    "HTTPHeader",
+    "Cookie",
+    "Hostname"
   ]
 }

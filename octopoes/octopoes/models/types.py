@@ -72,6 +72,7 @@ from octopoes.models.ooi.web import (
     URL,
     APIDesignRule,
     APIDesignRuleResult,
+    Cookie,
     HostnameHTTPURL,
     HTTPHeader,
     HTTPHeaderHostname,
@@ -123,6 +124,7 @@ WebType = (
     | HTTPHeader
     | HTTPHeaderURL
     | HTTPHeaderHostname
+    | Cookie
     | ImageMetadata
     | RESTAPI
     | APIDesignRule
