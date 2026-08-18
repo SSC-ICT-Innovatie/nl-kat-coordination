@@ -74,11 +74,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     is_legacy = isinstance(parsed, dict)
     pairs = list(parsed.items()) if is_legacy else [(item[0], item[1]) for item in parsed]
 
-    # The Date header is itself volatile (nulled below), but it is the deterministic
-    # reference point for converting absolute Expires dates into relative lifetimes.
-    response_date = next((parse_expires(value) for key, value in pairs if key.lower() == "date"), None)
-
     set_cookie_values: list[str] = []
+    # HTTPHeader identity is (resource, key), so repeated headers (Via, Link, …)
+    # must fold into one value, joined with ", " like the legacy dict shape did.
+    merged_headers: dict[str, tuple[str, list[str]]] = {}
 
     for key, value in pairs:
         lower_key = key.lower()
@@ -90,8 +89,14 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 set_cookie_values.append(value)
             continue
 
-        if lower_key in VOLATILE_HEADERS:
-            value = REDACTED
+        merged_headers.setdefault(lower_key, (key, []))[1].append(value)
+
+    # The Date header is itself volatile (nulled below), but it is the deterministic
+    # reference point for converting absolute Expires dates into relative lifetimes.
+    response_date = parse_expires(merged_headers["date"][1][0]) if "date" in merged_headers else None
+
+    for lower_key, (key, values) in merged_headers.items():
+        value = REDACTED if lower_key in VOLATILE_HEADERS else ", ".join(values)
 
         yield HTTPHeader(resource=resource, key=key, value=value)
 

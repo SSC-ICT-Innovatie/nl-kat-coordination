@@ -149,6 +149,15 @@ def test_stable_meaningful_cookie_value_is_kept(normalizer_runner):
     assert "SERVERID=backend1" in _headers(oois)["Set-Cookie"]
 
 
+def test_repeated_headers_fold_into_one_joined_value(normalizer_runner):
+    # HTTPHeader identity is (resource, key); repeated headers must merge into
+    # one value like the legacy dict shape did, not last-write-wins.
+    oois = _run(normalizer_runner, [["Via", "1.1 proxy-a"], ["Via", "1.1 proxy-b"], ["Server", "nginx"]])
+
+    headers = _headers(oois)
+    assert headers["Via"] == "1.1 proxy-a, 1.1 proxy-b"
+
+
 def test_output_is_deterministic(normalizer_runner):
     headers = [["Set-Cookie", "sessionid=tok; Path=/; Secure"], ["Server", "nginx"]]
 
