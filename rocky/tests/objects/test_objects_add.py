@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 from django import forms
 from pytest_django.asserts import assertContains
+from tools.forms.ooi_form import generate_select_ooi_field
 
 from rocky.views.ooi_add import OOIAddView
 from tests.conftest import setup_request
-from tools.forms.ooi_form import generate_select_ooi_field
 
 
 def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_client):
