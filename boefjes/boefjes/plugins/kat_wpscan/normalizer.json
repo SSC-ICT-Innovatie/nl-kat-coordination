@@ -9,8 +9,8 @@
   "produces": [
     "Finding",
     "CVEFindingType",
-    "KATFindingType",
     "Software",
-    "SoftwareInstance"
+    "SoftwareInstance",
+    "WPVulnFindingType"
   ]
 }

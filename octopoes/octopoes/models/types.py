@@ -52,6 +52,7 @@ from octopoes.models.ooi.findings import (
     MutedFinding,
     RetireJSFindingType,
     SnykFindingType,
+    WPVulnFindingType,
 )
 from octopoes.models.ooi.geography import GeographicPoint
 from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
@@ -117,6 +118,7 @@ ConcreteFindingTypeType: TypeAlias = (
     | CWEFindingType
     | CAPECFindingType
     | SnykFindingType
+    | WPVulnFindingType
 )
 EmailAddressType: TypeAlias = EmailAddress | EmailAddressInstance
 FindingTypeType: TypeAlias = FindingType | ConcreteFindingTypeType

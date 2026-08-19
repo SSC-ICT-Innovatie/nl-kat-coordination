@@ -170,6 +170,7 @@ def test_finding_type_count_query():
         '[ FindingType :object_type "KATFindingType" ]',
         '[ FindingType :object_type "RetireJSFindingType" ]',
         '[ FindingType :object_type "SnykFindingType" ]',
+        '[ FindingType :object_type "WPVulnFindingType" ]',
     ]
     or_statement_list = " ".join(object_type_options)
 
