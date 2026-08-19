@@ -1,7 +1,7 @@
 import json
 
 from boefjes.plugins.kat_wpscan.normalize import run
-from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType
+from octopoes.models.ooi.findings import CVEFindingType, Finding, RiskLevelSeverity, WPVulnFindingType
 from octopoes.models.ooi.software import Software, SoftwareInstance
 
 # The boefje consumes SoftwareInstance, so the normalizer receives the
@@ -85,36 +85,78 @@ def test_wpscan_extracts_core_and_plugin_software():
     software = {(s.name, s.version) for s in results if isinstance(s, Software)}
     assert ("WordPress", "4.9.8") in software
     assert ("contact-form-7", "5.0.1") in software
-    # The outdated plugin yields a KAT-OUTDATED-SOFTWARE finding.
-    assert "KAT-OUTDATED-SOFTWARE" in {ft.id for ft in results if isinstance(ft, KATFindingType)}
+    # The outdated flag is no longer surfaced as a finding by the normalizer;
+    # staleness is derived from the graph by a BIT (see PR description).
+    assert not [f for f in results if isinstance(f, Finding)]
 
 
-def test_wpscan_surfaces_non_cve_vulnerability():
+def test_wpscan_surfaces_non_cve_vulnerability_as_wpvuln_finding():
     raw = json.dumps(
         {
             "version": {
                 "number": "4.9.8",
-                "vulnerabilities": [{"title": "WPVulnDB-only bug", "references": {"url": ["https://wpscan.com/x"]}}],
+                "vulnerabilities": [
+                    {
+                        "id": "11111111-1111-1111-1111-111111111111",
+                        "title": "WPVulnDB-only bug",
+                        "references": {
+                            "url": ["https://wpscan.com/vulnerability/11111111-1111-1111-1111-111111111111"]
+                        },
+                    }
+                ],
             }
         }
     ).encode()
 
     results = list(run(input_ooi, raw))
 
-    assert "KAT-VULNERABLE-SOFTWARE-VERSION" in {ft.id for ft in results if isinstance(ft, KATFindingType)}
-    assert [f for f in results if isinstance(f, Finding)]
+    wpvuln_types = [r for r in results if isinstance(r, WPVulnFindingType)]
+    assert len(wpvuln_types) == 1
+    assert wpvuln_types[0].id == "11111111-1111-1111-1111-111111111111"
+    assert wpvuln_types[0].description == "WPVulnDB-only bug"
+    findings = [r for r in results if isinstance(r, Finding)]
+    assert len(findings) == 1
+    assert findings[0].finding_type.tokenized.id == "11111111-1111-1111-1111-111111111111"
 
 
-def test_wpscan_findings_bind_to_software_instance():
+def test_wpscan_wpvuln_finding_type_hydrated_from_scan_json():
+    raw = json.dumps(
+        {
+            "version": {
+                "number": "4.9.8",
+                "vulnerabilities": [
+                    {
+                        "id": "22222222-2222-2222-2222-222222222222",
+                        "title": "Auth bypass",
+                        "cvss": {"vector": "AV:N/AC:L/Au:N/C:P/I:P/A:P", "score": 7.5},
+                        "references": {
+                            "url": ["https://wpscan.com/vulnerability/22222222-2222-2222-2222-222222222222"]
+                        },
+                    }
+                ],
+            }
+        }
+    ).encode()
+
+    results = list(run(input_ooi, raw))
+
+    wpvuln_type = next(r for r in results if isinstance(r, WPVulnFindingType))
+    assert wpvuln_type.risk_score == 7.5
+    assert wpvuln_type.risk_severity == RiskLevelSeverity.HIGH
+    assert str(wpvuln_type.source) == "https://wpscan.com/vulnerability/22222222-2222-2222-2222-222222222222"
+
+
+def test_wpscan_findings_bind_to_software():
     raw = _wpscan_payload([{"title": "Stored XSS", "references": {"cve": ["2018-12895"]}}])
 
     results = list(run(input_ooi, raw))
 
-    instances = [si for si in results if isinstance(si, SoftwareInstance)]
+    software = [s for s in results if isinstance(s, Software)]
     findings = [f for f in results if isinstance(f, Finding)]
-    assert instances
-    # The CVE finding is bound to the WordPress SoftwareInstance, not the raw URL.
-    assert any(f.ooi == instances[0].reference for f in findings)
+    assert software
+    # The CVE finding is bound to the WordPress Software, not the SoftwareInstance
+    # nor the raw URL — the vulnerability is a property of the software.
+    assert all(f.ooi == software[0].reference for f in findings)
 
 
 def test_wpscan_no_nested_software_instance():
@@ -132,19 +174,18 @@ def test_wpscan_no_nested_software_instance():
         assert str(si.ooi) == URL_PK
 
 
-def test_wpscan_aggregates_non_cve_vulnerabilities():
-    """Multiple non-CVE vulnerabilities on one component share one finding type
-    and one OOI, so they collapse to one Finding in Octopoes. The normalizer
-    must aggregate them deliberately — one finding carrying the count and all
-    titles — instead of emitting N findings that silently collapse."""
+def test_wpscan_non_cve_vulnerabilities_are_distinct():
+    """Each wpscan vulnerability carries a unique WPVulnDB id, so N non-CVE
+    vulnerabilities yield N distinct WPVulnFindingType instances and N distinct
+    Findings — they do not collapse to a single Finding in Octopoes."""
     raw = json.dumps(
         {
             "version": {
                 "number": "4.9.8",
                 "vulnerabilities": [
-                    {"title": "Bug A - auth bypass", "references": {"url": ["https://wpscan.com/a"]}},
-                    {"title": "Bug B - SQL injection", "references": {"url": ["https://wpscan.com/b"]}},
-                    {"title": "Bug C - RCE", "references": {"url": ["https://wpscan.com/c"]}},
+                    {"id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa", "title": "Bug A - auth bypass"},
+                    {"id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb", "title": "Bug B - SQL injection"},
+                    {"id": "cccccccc-cccc-cccc-cccc-cccccccccccc", "title": "Bug C - RCE"},
                 ],
             }
         }
@@ -152,28 +193,39 @@ def test_wpscan_aggregates_non_cve_vulnerabilities():
 
     results = list(run(input_ooi, raw))
 
-    vuln_findings = [
-        f for f in results if isinstance(f, Finding) and f.finding_type.tokenized.id == "KAT-VULNERABLE-SOFTWARE-VERSION"
-    ]
-    assert len(vuln_findings) == 1
-    description = vuln_findings[0].description
-    assert description.startswith("3 known vulnerabilities without CVE:")
-    assert "Bug A - auth bypass" in description
-    assert "Bug B - SQL injection" in description
-    assert "Bug C - RCE" in description
+    wpvuln_types = [r for r in results if isinstance(r, WPVulnFindingType)]
+    findings = [f for f in results if isinstance(f, Finding)]
+    assert len(wpvuln_types) == 3
+    assert len(findings) == 3
+    assert {ft.id for ft in wpvuln_types} == {
+        "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+        "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+        "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    }
+    # Distinct finding types on the same OOI -> distinct Finding natural keys.
+    assert len({f.natural_key for f in findings}) == 3
 
 
-def test_wpscan_flags_outdated_core_via_status():
-    """WordPress core reports staleness through `status` ("insecure"/"outdated"),
-    not the `outdated` boolean plugins/themes use."""
+def test_wpscan_findings_fall_back_to_url_without_version():
+    """When a component's version is not detected there is no Software, so
+    findings bind to the scanned URL instead."""
     raw = json.dumps(
-        {"version": {"number": "4.9.8", "status": "insecure", "vulnerabilities": []}}
+        {
+            "version": None,
+            "plugins": {
+                "contact-form-7": {
+                    "slug": "contact-form-7",
+                    "version": None,
+                    "vulnerabilities": [
+                        {"id": "dddddddd-dddd-dddd-dddd-dddddddddddd", "title": "Version-independent bug"}
+                    ],
+                }
+            },
+        }
     ).encode()
 
     results = list(run(input_ooi, raw))
 
-    outdated_findings = [
-        f for f in results if isinstance(f, Finding) and f.finding_type.tokenized.id == "KAT-OUTDATED-SOFTWARE"
-    ]
-    assert len(outdated_findings) == 1
-    assert "WordPress 4.9.8 is outdated." == outdated_findings[0].description
+    findings = [f for f in results if isinstance(f, Finding)]
+    assert findings
+    assert all(str(f.ooi) == URL_PK for f in findings)
