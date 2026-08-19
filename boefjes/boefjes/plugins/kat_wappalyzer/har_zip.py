@@ -23,6 +23,11 @@ def har_from_playwright_zip(raw: bytes) -> bytes:
         return raw
 
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        # A zip that is not a Playwright HAR archive (no `har.har` member) is
+        # neither shape we handle; pass it through instead of raising KeyError.
+        if "har.har" not in archive.namelist():
+            return raw
+
         har = json.loads(archive.read("har.har"))
 
         for entry in har.get("log", {}).get("entries", []):
@@ -35,6 +40,19 @@ def har_from_playwright_zip(raw: bytes) -> bytes:
             # A referenced body missing from the archive should not abort the
             # whole analysis; the entry is simply left without a body.
             with contextlib.suppress(KeyError):
-                content["text"] = archive.read(file_name).decode(errors="ignore")
+                content["text"] = _decode_body(archive.read(file_name))
 
     return json.dumps(har).encode()
+
+
+def _decode_body(body: bytes) -> str:
+    """Decode a response body without losing bytes on non-UTF-8 pages.
+
+    Wappalyzer matches (mostly ASCII) regexes over the body, so dropping bytes
+    with errors="ignore" could hide a detection on a latin-1/utf-16 page. Fall
+    back to latin-1, which never raises and maps every byte 1:1.
+    """
+    try:
+        return body.decode()
+    except UnicodeDecodeError:
+        return body.decode("latin-1")

@@ -10,7 +10,6 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import cast
 
-import httpx
 from tanimachi import (
     Categories,
     Fingerprints,
@@ -46,7 +45,6 @@ def software_from_har(raw: bytes, target: Reference) -> Iterable[NormalizerOutpu
     fingerprints = Fingerprints.model_validate_pattern(DATA_DIRECTORY.joinpath("technologies/*.json").as_posix())
     categories = Categories.model_validate_file(DATA_DIRECTORY.joinpath("categories.json"))
     groups = Groups.model_validate_file(DATA_DIRECTORY.joinpath("groups.json"))
-    httpx.HTTPTransport()
     har = Har.model_validate_json(raw)
 
     wappalyzer = Wappalyzer(fingerprints, categories=categories, groups=groups)
@@ -76,12 +74,17 @@ def software_from_har(raw: bytes, target: Reference) -> Iterable[NormalizerOutpu
         version = None
         cpe = detection.fingerprint.cpe
         if detection.pattern.version:
-            version = detection.pattern.regex.search(detection.value).expand(detection.pattern.version)
+            # A version template does not guarantee the pattern captured a version
+            # (the match can be None, or the group empty); guard so one odd
+            # detection cannot crash the whole run.
+            match = detection.pattern.regex.search(detection.value)
+            if match:
+                version = match.expand(detection.pattern.version)
 
-        if cpe is not None and version is not None:
+        if cpe is not None and version:
             cpe = replace_cpe_version(cpe, version)
 
-        software = Software(name=detection.fingerprint.id, version=version, cpe=cpe)
+        software = Software(name=detection.fingerprint.id, version=version or None, cpe=cpe)
         yield software
         yield SoftwareInstance(ooi=target, software=software.reference)
 

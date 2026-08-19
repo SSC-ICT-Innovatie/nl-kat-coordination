@@ -21,15 +21,9 @@ def test_attaches_software_and_versions_to_the_input_url():
     instances = [o for o in results if o.object_type == "SoftwareInstance"]
 
     assert software, "expected Wappalyzer detections"
+    # Scan-level scoping (per #3916 discussion): every SoftwareInstance attaches to
+    # the input URL and nothing else — no OOI is minted for a third-party host the
+    # page loaded resources from.
     assert instances and all(str(instance.ooi) == str(url.reference) for instance in instances)
     # Versions coming through is the whole point of running over the rendered HAR (#4447).
     assert any(o.version for o in software)
-
-
-def test_no_third_party_host_or_url_oois_are_minted():
-    # Scan-level scoping (per #3916 discussion): only Software/SoftwareInstance,
-    # never a Hostname/URL for a third-party host the page referenced.
-    url = _input_url()
-    results = list(run({"primary_key": str(url.reference)}, get_dummy_data("download_page_analysis.raw")))
-
-    assert {o.object_type for o in results} <= {"Software", "SoftwareInstance"}

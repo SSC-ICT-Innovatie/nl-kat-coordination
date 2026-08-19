@@ -1,7 +1,7 @@
 from collections.abc import Iterable
 
 from boefjes.normalizer_models import NormalizerOutput
-from boefjes.plugins.kat_wappalyzer._analysis import software_from_har
+from boefjes.plugins.kat_wappalyzer.analysis import software_from_har
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
