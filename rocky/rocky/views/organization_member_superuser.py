@@ -56,10 +56,7 @@ class SuperuserAccessView(UserPassesTestMixin, OrganizationView, TemplateView):
                 ),
                 "text": _("Edit member"),
             },
-            {
-                "url": self.request.path,
-                "text": self.action_label,
-            },
+            {"url": self.request.path, "text": self.action_label},
         ]
         return context
 
@@ -126,23 +123,34 @@ class RevokeSuperuserAccessView(SuperuserAccessView):
             target_member = get_object_or_404(
                 OrganizationMember.objects.select_for_update(), pk=kwargs["pk"], organization=self.organization
             )
+            # Lock the full set of active superusers (in pk order) before the
+            # target row, so two concurrent revokes serialise on the set instead
+            # of deadlocking: both transactions lock the same rows in the same
+            # order, so the second waits for the first to commit before counting.
+            active_superusers = list(
+                User.objects.select_for_update().filter(is_superuser=True, is_active=True).order_by("pk")
+            )
             target_user = User.objects.select_for_update().get(pk=target_member.user_id)
             previous_is_superuser = target_user.is_superuser
             previous_is_staff = target_user.is_staff
 
             if not previous_is_superuser:
-                messages.warning(request, _("%(email)s does not have superuser access.") % {"email": target_user.email})
+                if previous_is_staff:
+                    messages.warning(
+                        request,
+                        _(
+                            "%(email)s does not have superuser access but still has Django administration "
+                            "access; revoke that via Django administration."
+                        )
+                        % {"email": target_user.email},
+                    )
+                else:
+                    messages.warning(
+                        request, _("%(email)s does not have superuser access.") % {"email": target_user.email}
+                    )
                 return HttpResponseRedirect(self.get_success_url())
 
-            # ponytail: last-superuser guard has a TOCTOU ceiling: two superusers
-            # revoking two *different* superusers concurrently can each see a
-            # remaining count of 1 and both proceed, leaving zero. A DB-level
-            # constraint or advisory lock forbidding zero active superusers is
-            # the upgrade path; until then recovery is `manage.py createsuperuser`.
-            remaining_active_superusers = (
-                User.objects.filter(is_superuser=True, is_active=True).exclude(pk=target_user.pk).count()
-            )
-            if remaining_active_superusers == 0:
+            if not any(other.pk != target_user.pk for other in active_superusers):
                 messages.warning(
                     request,
                     _(

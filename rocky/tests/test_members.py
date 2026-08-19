@@ -7,6 +7,7 @@ from django.test import Client
 from django.urls import reverse
 from django_otp import DEVICE_ID_SESSION_KEY
 from pytest_django.asserts import assertContains, assertNotContains
+
 from rocky.views.organization_member_add import OrganizationMemberAddAccountTypeView, OrganizationMemberAddView
 from rocky.views.organization_member_edit import OrganizationMemberEditView
 from rocky.views.organization_member_superuser import (
@@ -15,7 +16,6 @@ from rocky.views.organization_member_superuser import (
     GrantSuperuserAccessView,
     RevokeSuperuserAccessView,
 )
-
 from tests.conftest import setup_request
 
 
@@ -384,7 +384,7 @@ def test_superuser_can_view_revoke_superuser_confirmation(rf, superuser_member, 
 
     assertContains(response, "Revoke superuser access")
     assertContains(response, superuser_member_b.user.email.lower())
-    assertContains(response, "revoke")
+    assertContains(response, "unrestricted access to every organization")
     assertContains(response, "csrfmiddlewaretoken")
 
 
@@ -450,6 +450,31 @@ def test_revoke_superuser_access_is_idempotent(rf, superuser_member, admin_membe
     assert admin_member.user.is_staff is False
     assert [str(message) for message in get_messages(request)] == [
         f"{admin_member.user.email} does not have superuser access."
+    ]
+    assert not any(entry.get("event") == "Superuser access revoked" for entry in log_output.entries)
+
+
+def test_revoke_warns_when_account_has_staff_access_without_superuser(rf, superuser_member, admin_member, log_output):
+    """An account with Django administration access but no superuser access is
+    not silently left as-is: Rocky points out the retained staff access so the
+    actor does not believe the revoke closed the administrative loop."""
+    admin_member.user.is_staff = True
+    admin_member.user.save(update_fields=["is_staff"])
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_revoke_superuser"), superuser_member.user)
+    response = RevokeSuperuserAccessView.as_view()(
+        request, organization_code=admin_member.organization.code, pk=admin_member.id
+    )
+
+    assert response.status_code == 302
+    admin_member.user.refresh_from_db()
+    assert admin_member.user.is_superuser is False
+    # is_staff is untouched: this flow only manages the superuser grant, not
+    # staff access set independently via Django administration.
+    assert admin_member.user.is_staff is True
+    assert [str(message) for message in get_messages(request)] == [
+        f"{admin_member.user.email} does not have superuser access but still has Django administration access; "
+        f"revoke that via Django administration."
     ]
     assert not any(entry.get("event") == "Superuser access revoked" for entry in log_output.entries)
 
