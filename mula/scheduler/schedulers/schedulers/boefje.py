@@ -32,6 +32,9 @@ class BoefjePQ(queue.PriorityQueue):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # ponytail: per-process, not shared across mula replicas — two replicas
+        # can pop the same rate-limited group simultaneously. Ceiling: one
+        # replica. Upgrade: a shared TTL store (e.g. Redis) keyed by group.
         self.rate_limit_deadlines: dict[str, float] = {}
 
     @queue.pq.with_lock
@@ -49,8 +52,8 @@ class BoefjePQ(queue.PriorityQueue):
         self.pq_store.bulk_update_status(self.pq_id, [item.id for item in items], models.TaskStatus.DISPATCHED)
 
         boefje = items[0].data["boefje"]
-        if interval := boefje.get("rate_limit_interval"):
-            self.rate_limit_deadlines[boefje["rate_limit_group"]] = now + interval
+        if (interval := boefje.get("rate_limit_interval")) and (group := boefje.get("rate_limit_group")):
+            self.rate_limit_deadlines[group] = now + interval
 
         return items
 
