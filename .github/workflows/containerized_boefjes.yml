@@ -21,6 +21,7 @@ on:
       - boefjes/boefjes/plugins/kat_nuclei_cve/**
       - boefjes/boefjes/plugins/kat_nuclei_exposed_panels/**
       - boefjes/boefjes/plugins/kat_nuclei_take_over/**
+      - boefjes/boefjes/plugins/kat_webpage_capture/**
       - boefjes/images/**
       - .github/workflows/containerized_boefjes.yml
 
