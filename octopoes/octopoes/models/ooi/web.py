@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal
 
-from pydantic import AnyUrl
+from pydantic import AnyUrl, ValidationError
 
 from octopoes.models import OOI, PrimaryKeyToken, Reference
 from octopoes.models.ooi.certificate import X509Certificate
@@ -228,8 +228,10 @@ class ImageMetadata(OOI):
             address = t.resource.website.ip_service.ip_port.address.address
 
             return f"{web_url} @ {address}"
-        except IndexError:
-            # try parsing reference as a HostnameHTTPURL instead
+        except (IndexError, ValidationError):
+            # The resource is a HostnameHTTPURL, not an HTTPResource: its primary key
+            # has too few tokens for the HTTPResource token tree, which raises
+            # IndexError on the old tokenizer and ValidationError on the pydantic one.
             tokenized = HostnameHTTPURL.get_tokenized_primary_key(reference.natural_key)
             port = f":{tokenized.port}" if tokenized.port else ""
             return f"{tokenized.scheme}://{tokenized.netloc.name}{port}{tokenized.path}"
