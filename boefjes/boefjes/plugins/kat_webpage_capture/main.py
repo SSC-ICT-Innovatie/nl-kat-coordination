@@ -17,8 +17,10 @@ class WebpageCaptureException(Exception):
 
 def build_playwright_command(webpage: str, browser: str, tmp_path: str) -> list[str]:
     """Returns playwright command including webpage, browser and locations for image, har and storage."""
+    # Call the pinned Playwright binary directly, never `npx playwright`: with no
+    # local package, npx fetches the latest Playwright at runtime, which then wants
+    # a browser revision the image never baked, breaking every capture (#3916).
     return [
-        "/usr/bin/npx",
         "playwright",
         "screenshot",
         "-b",
