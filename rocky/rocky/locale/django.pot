@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-07-24 20:14+0000\n"
+"POT-Creation-Date: 2026-08-19 13:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -590,6 +590,7 @@ msgstr ""
 #: rocky/templates/organizations/organization_edit.html
 #: rocky/templates/organizations/organization_member_edit.html
 #: rocky/templates/organizations/organization_member_grant_superuser.html
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
 #: rocky/templates/partials/delete_ooi_modal.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 #: rocky/templates/partials/mute_findings_modal.html
@@ -931,6 +932,7 @@ msgstr ""
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -946,6 +948,7 @@ msgstr ""
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -6058,6 +6061,47 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Normalizer task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
+msgstr ""
+
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6112,21 +6156,13 @@ msgid "List of views for OOI"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due"
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due and has been deleted"
+msgid "You are looking at a historic view of this object."
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"This object is past due. You are viewing the object state in a past state."
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's to past due objects."
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
@@ -6264,6 +6300,12 @@ msgid ""
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+#: rocky/views/organization_member_superuser.py
+msgid "Revoke superuser access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
 #: rocky/templates/organizations/organization_member_grant_superuser.html
 #: rocky/views/organization_member_superuser.py
 msgid "Grant superuser access"
@@ -6295,52 +6337,6 @@ msgstr ""
 msgid ""
 "Only continue when this person is authorized to administer the entire "
 "installation."
-msgstr ""
-
-#: rocky/templates/organizations/organization_member_edit.html
-#: rocky/templates/organizations/organization_member_revoke_superuser.html
-#: rocky/views/organization_member_superuser.py
-msgid "Revoke superuser access"
-msgstr ""
-
-#: rocky/templates/organizations/organization_member_revoke_superuser.html
-#, python-format
-msgid ""
-"You are about to revoke <strong>%(email)s</strong>'s unrestricted access to "
-"every organization and all administrative functionality in this OpenKAT "
-"installation."
-msgstr ""
-
-#: rocky/templates/organizations/organization_member_revoke_superuser.html
-msgid "This removes a global account permission, not an organization role."
-msgstr ""
-
-#: rocky/templates/organizations/organization_member_revoke_superuser.html
-msgid "The account will keep its organization membership and organization role."
-msgstr ""
-
-#: rocky/templates/organizations/organization_member_revoke_superuser.html
-msgid ""
-"Only continue when this person should no longer administer the entire "
-"installation."
-msgstr ""
-
-#: rocky/views/organization_member_superuser.py
-#, python-format
-msgid "%(email)s does not have superuser access."
-msgstr ""
-
-#: rocky/views/organization_member_superuser.py
-#, python-format
-msgid ""
-"Revoking superuser access from %(email)s would leave this installation "
-"without any active superuser. Promote another account first, or revoke it "
-"via Django administration."
-msgstr ""
-
-#: rocky/views/organization_member_superuser.py
-#, python-format
-msgid "Superuser access revoked from %(email)s."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
@@ -6382,6 +6378,29 @@ msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
 msgid "Super user"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+#, python-format
+msgid ""
+"You are about to revoke <strong>%(email)s</strong>'s unrestricted access to "
+"every organization and all administrative functionality in this OpenKAT "
+"installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid "This removes a global account permission, not an organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid ""
+"The account will keep its organization membership and organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid ""
+"Only continue when this person should no longer administer the entire "
+"installation."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_upload.html
@@ -6900,11 +6919,6 @@ msgid ""
 msgstr ""
 
 #: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr ""
-
-#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr ""
 
@@ -7000,35 +7014,7 @@ msgid "List of tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Loading..."
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Normalizer task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
 msgid "Processing input from Boefje task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Consuming Raw file"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded raw files for task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Origin boefje task"
-msgstr ""
-
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "See all similar tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
@@ -7624,6 +7610,31 @@ msgstr ""
 #: rocky/views/organization_member_superuser.py
 #, python-format
 msgid "Superuser access granted to %(email)s."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid ""
+"%(email)s does not have superuser access but still has Django administration "
+"access; revoke that via Django administration."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s does not have superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid ""
+"Revoking superuser access from %(email)s would leave this installation "
+"without any active superuser. Promote another account first, or revoke it "
+"via Django administration."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "Superuser access revoked from %(email)s."
 msgstr ""
 
 #: rocky/views/organization_settings.py
