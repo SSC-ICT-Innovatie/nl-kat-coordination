@@ -212,10 +212,8 @@ def get_max_scan_level_issuance(segment: Segment) -> int | None:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
 
-        return segment.target_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_inherit_scan_level", None
-        )
-    else:
-        return segment.source_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_issue_scan_level", None
-        )
+        field = segment.target_type.model_fields[segment.property_name]
+        return (field.json_schema_extra or {}).get("max_inherit_scan_level")
+
+    field = segment.source_type.model_fields[segment.property_name]
+    return (field.json_schema_extra or {}).get("max_issue_scan_level")
