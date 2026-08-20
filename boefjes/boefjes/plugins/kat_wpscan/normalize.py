@@ -30,21 +30,30 @@ def _cvss_score(vulnerability: dict) -> float | None:
     cvss = vulnerability.get("cvss") or {}
     if isinstance(cvss, dict):
         score = cvss.get("score")
-        if score is not None:
-            return float(score)
-    score = vulnerability.get("cvss_score")
-    return float(score) if score is not None else None
+    elif isinstance(cvss, str):
+        score = cvss
+    else:
+        score = vulnerability.get("cvss_score")
+    if score is None:
+        return None
+    try:
+        return float(score)
+    except (TypeError, ValueError):
+        return None
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # The boefje consumes SoftwareInstance, so the input OOI is the
-    # SoftwareInstance that triggered the scan — its `ooi` field is the scanned
-    # URL. Resolve the URL so we don't nest a SoftwareInstance inside the very
-    # SoftwareInstance that triggered the scan.
-    if input_ooi.get("object_type") == "SoftwareInstance":
-        url_reference = Reference.from_str(input_ooi["ooi"]["primary_key"])
+    # SoftwareInstance that triggered the scan. The scanned URL is the `ooi`
+    # part of its primary key — strip the leading "SoftwareInstance|" and the
+    # trailing "Software|name|version|cpe" segments to recover it. This works
+    # for both the serialized shape (token tree, no nested primary_key) and
+    # the runner-fallback shape ({"primary_key": ...}).
+    pk = input_ooi["primary_key"]
+    if pk.startswith("SoftwareInstance|"):
+        url_reference = Reference.from_str("|".join(pk[len("SoftwareInstance|") :].split("|")[:-4]))
     else:
-        url_reference = Reference.from_str(input_ooi["primary_key"])
+        url_reference = Reference.from_str(pk)
     if not raw:
         return
 
@@ -103,17 +112,17 @@ def _handle_component(
                     cve_id = f"CVE-{cve_id}"
                 cve_type = CVEFindingType(id=cve_id)
                 yield cve_type
-                yield Finding(finding_type=cve_type.reference, ooi=finding_ooi, description=title)
+                yield Finding(finding_type=cve_type.reference, ooi=finding_ooi, description=title or cve_id)
             continue
 
         # Non-CVE vulnerability: WPVulnDB carries a unique id per entry, so each
         # becomes its own WPVulnFindingType + Finding (no collapse).
-        vuln_id = vulnerability.get("id")
+        vuln_id = str(vulnerability.get("id") or "").strip()
         if not vuln_id or not title:
             continue
         cvss_score = _cvss_score(vulnerability)
         wpvuln_type = WPVulnFindingType(
-            id=str(vuln_id),
+            id=vuln_id,
             description=title,
             risk_score=cvss_score,
             risk_severity=_risk_severity(cvss_score),
