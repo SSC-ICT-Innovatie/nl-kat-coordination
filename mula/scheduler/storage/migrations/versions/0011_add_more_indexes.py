@@ -22,6 +22,14 @@ def upgrade():
     op.create_index("ix_schedules_hash", "schedules", ["hash"], unique=False)
     op.create_index("ix_schedules_organisation", "schedules", ["organisation"], unique=False)
     op.create_index("ix_schedules_scheduler_id", "schedules", ["scheduler_id"], unique=False)
+    op.execute(
+        """
+        UPDATE tasks
+        SET status = 'FAILED'
+        WHERE status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')
+          AND created_at < NOW() - INTERVAL '1 day'
+        """
+    )
     op.create_index(
         "ix_tasks_active_per_schedule",
         "tasks",
