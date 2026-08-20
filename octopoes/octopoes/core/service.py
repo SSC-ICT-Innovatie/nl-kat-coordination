@@ -570,14 +570,7 @@ class OctopoesService:
 
         neighbour_paths = get_paths_to_neighbours(reference.class_type)
 
-        eligible_paths = {
-            path
-            for path in neighbour_paths
-            if (
-                (max_level := get_max_scan_level_inheritance(path.segments[0])) is not None
-                and max_level >= required_level
-            )
-        }
+        eligible_paths = {path for path in neighbour_paths if path._path_can_inherit_level(required_level)}
 
         if not eligible_paths:
             return inheritance_chain
@@ -616,12 +609,6 @@ class OctopoesService:
         inheritances: list[InheritanceSection] = []
 
         for segment, neighbour, max_inheritance_level in eligible_edges:
-            # Use the canonical instance whose scan profile was populated.
-            neighbour = neighbours_by_reference[neighbour.reference]
-
-            if neighbour.scan_profile is None:
-                raise ValueError(f"Neighbour {neighbour.reference} has no scan profile")
-
             inherited_level = min(max_inheritance_level, neighbour.scan_profile.level)
 
             # A lower transferable level cannot explain the current object.
