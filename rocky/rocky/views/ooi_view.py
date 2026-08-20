@@ -221,8 +221,7 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
                 organization=self.organization,
                 action=(AuditLog.Action.OBJECT_UPDATED if hasattr(self, "ooi") else AuditLog.Action.OBJECT_ADDED),
                 object_type=new_ooi.get_ooi_type(),
-                object_label=new_ooi.human_readable,
-                object_url=get_ooi_url("ooi_detail", new_ooi.primary_key, self.organization.code),
+                object_pk=new_ooi.primary_key,
             )
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:

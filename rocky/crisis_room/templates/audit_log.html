@@ -17,7 +17,7 @@
 
                 {% endif %}
                 <h2>{% translate "Activity log" %}</h2>
-                <p>{% translate "The 50 most recent recorded user actions are shown below." %}</p>
+                <p>{% translate "Recent recorded user actions are shown below." %}</p>
                 {% if audit_logs %}
                     <div class="horizontal-scroll">
                         <table class="nowrap">
@@ -43,9 +43,9 @@
                                         {% if not organization %}<td>{{ entry.organization.name }}</td>{% endif %}
                                         <td>{{ entry.get_action_display }}</td>
                                         <td>
-                                            {% if entry.object_url %}<a href="{{ entry.object_url }}">{% endif %}
-                                                {{ entry.object_label|default:"—" }}
-                                                {% if entry.object_url %}</a>{% endif %}
+                                            {% if entry.object_pk %}<a href="{{ entry.get_object_url }}">{% endif %}
+                                                {{ entry.get_object_label|default:"—" }}
+                                                {% if entry.object_pk %}</a>{% endif %}
                                             {% if entry.object_type %}<span class="nota-bene">{{ entry.object_type }}</span>{% endif %}
                                         </td>
                                     </tr>
