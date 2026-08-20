@@ -95,8 +95,6 @@ class PriorityQueueStore:
                     .limit(limit)
                     .all()
                 )
-                if item_orm[0].data["boefje"].get("rate_limit_interval"):
-                    item_orm = item_orm[:1]
             except exc.ProgrammingError as e:
                 raise StorageError(f"Invalid filter: {e}") from e
 
