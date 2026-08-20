@@ -24,10 +24,27 @@ def upgrade():
     op.create_index("ix_schedules_scheduler_id", "schedules", ["scheduler_id"], unique=False)
     op.execute(
         """
+        WITH duplicate_active_tasks AS (
+            SELECT id
+            FROM (
+                SELECT
+                    id,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY schedule_id
+                        ORDER BY created_at DESC, id DESC
+                    ) AS row_number
+                FROM tasks
+                WHERE status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')
+                  AND schedule_id IS NOT NULL
+            ) ranked
+            WHERE row_number > 1
+        )
         UPDATE tasks
         SET status = 'FAILED'
-        WHERE status IN ('PENDING', 'QUEUED', 'DISPATCHED', 'RUNNING')
-          AND created_at < NOW() - INTERVAL '1 day'
+        WHERE id IN (
+            SELECT id
+            FROM duplicate_active_tasks
+        )
         """
     )
     op.create_index(
