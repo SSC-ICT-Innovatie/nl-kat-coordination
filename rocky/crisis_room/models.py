@@ -11,7 +11,9 @@ from django.db.models.query_utils import Q
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
+from octopoes.models.reference import Reference
 from tools.models import Organization
+from tools.view_helpers import get_ooi_url
 
 logger = structlog.get_logger(__name__)
 
@@ -33,13 +35,13 @@ class AuditLog(models.Model):
     actor_label = models.CharField(max_length=254)
     action = models.CharField(max_length=32, choices=Action.choices)
     object_type = models.CharField(blank=True, max_length=64)
-    object_label = models.CharField(blank=True, max_length=512)
-    object_url = models.CharField(blank=True, max_length=2048)
+    object_label = models.TextField(blank=True, default="")
+    object_pk = models.TextField(blank=True, default="")
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
 
     class Meta:
         ordering = ["-created_at"]
-        indexes = [models.Index(fields=["organization", "-created_at"], name="crisis_room_organiz_875530_idx")]
+        indexes = [models.Index(fields=["organization", "-created_at"], name="audit_log_org_created_idx")]
 
     @classmethod
     def record(
@@ -50,7 +52,7 @@ class AuditLog(models.Model):
         action: Any,
         object_type: str = "",
         object_label: str = "",
-        object_url: str = "",
+        object_pk: str = "",
     ) -> "AuditLog":
         return cls.objects.create(
             organization=organization,
@@ -59,8 +61,27 @@ class AuditLog(models.Model):
             action=action,
             object_type=object_type,
             object_label=object_label,
-            object_url=object_url,
+            object_pk=object_pk,
         )
+
+    def get_object_label(self) -> str:
+        """Infer the display label from the stored PK for OOI actions;
+        fall back to the stored label for non-OOI actions (plugins, etc.)."""
+        if self.object_pk:
+            try:
+                return Reference.from_str(self.object_pk).human_readable
+            except Exception:
+                return self.object_pk
+        return self.object_label
+
+    def get_object_url(self) -> str:
+        """Construct the detail URL at read time from the stored PK."""
+        if not self.object_pk:
+            return ""
+        try:
+            return get_ooi_url("ooi_detail", self.object_pk, self.organization.code)
+        except Exception:
+            return ""
 
 
 class Dashboard(models.Model):

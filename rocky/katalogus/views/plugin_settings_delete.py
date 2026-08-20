@@ -66,7 +66,6 @@ class PluginSettingsDeleteView(OrganizationPermissionRequiredMixin, SinglePlugin
                 action=AuditLog.Action.PLUGIN_SETTINGS_DELETED,
                 object_type=self.plugin.type.title(),
                 object_label=self.plugin.name,
-                object_url=self.get_success_url(),
             )
             messages.add_message(
                 request, messages.SUCCESS, _("Settings for plugin {} successfully deleted.").format(self.plugin.name)

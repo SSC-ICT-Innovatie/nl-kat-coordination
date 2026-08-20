@@ -114,5 +114,4 @@ class PluginSettingsAddView(OrganizationPermissionRequiredMixin, SinglePluginVie
             action=action,
             object_type=self.plugin.type.title(),
             object_label=self.plugin.name,
-            object_url=self.get_success_url(),
         )

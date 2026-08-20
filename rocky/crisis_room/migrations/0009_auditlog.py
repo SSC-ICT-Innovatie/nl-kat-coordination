@@ -34,8 +34,8 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("object_type", models.CharField(blank=True, max_length=64)),
-                ("object_label", models.CharField(blank=True, max_length=512)),
-                ("object_url", models.CharField(blank=True, max_length=2048)),
+                ("object_label", models.TextField(blank=True, default="")),
+                ("object_pk", models.TextField(blank=True, default="")),
                 ("created_at", models.DateTimeField(auto_now_add=True, db_index=True)),
                 (
                     "actor",
@@ -53,7 +53,7 @@ class Migration(migrations.Migration):
             options={
                 "ordering": ["-created_at"],
                 "indexes": [
-                    models.Index(fields=["organization", "-created_at"], name="crisis_room_organiz_875530_idx")
+                    models.Index(fields=["organization", "-created_at"], name="audit_log_org_created_idx")
                 ],
             },
         )

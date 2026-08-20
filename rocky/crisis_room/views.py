@@ -9,6 +9,7 @@ from account.mixins import OrganizationView
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models.manager import BaseManager
 from django.http import HttpResponse
@@ -334,12 +335,14 @@ class AuditLogView(TemplateView):
     """Recent user actions for every organization the user may access."""
 
     template_name = "audit_log.html"
+    paginate_by = 50
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["audit_logs"] = AuditLog.objects.filter(
-            organization__in=self.request.user.organizations
-        ).select_related("organization")[:50]
+        page_number = self.request.GET.get("page", 1)
+        logs = AuditLog.objects.filter(organization__in=self.request.user.organizations).select_related("organization")
+        paginator = Paginator(logs, self.paginate_by)
+        context["audit_logs"] = paginator.page(page_number)
         context["breadcrumbs"] = [{"url": reverse("crisis_room_audit_log"), "text": _("Activity log")}]
         return context
 
@@ -369,11 +372,15 @@ class OrganizationAuditLogView(OrganizationView, TemplateView):
     """Recent user actions for one organization."""
 
     template_name = "audit_log.html"
+    paginate_by = 50
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["dashboards"] = Dashboard.objects.filter(organization=self.organization)
-        context["audit_logs"] = AuditLog.objects.filter(organization=self.organization)[:50]
+        page_number = self.request.GET.get("page", 1)
+        logs = AuditLog.objects.filter(organization=self.organization)
+        paginator = Paginator(logs, self.paginate_by)
+        context["audit_logs"] = paginator.page(page_number)
         context["breadcrumbs"] = [
             {
                 "url": reverse(

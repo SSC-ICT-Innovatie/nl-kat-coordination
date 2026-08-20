@@ -16,7 +16,6 @@ from katalogus.client import KATalogus, get_katalogus
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
 from tools.models import Indemnification, Organization, OrganizationMember
-from tools.view_helpers import get_ooi_url
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
@@ -184,8 +183,7 @@ class OrganizationView(ContextMixin, View):
             organization=self.organization,
             action=AuditLog.Action.CLEARANCE_LEVEL_CHANGED,
             object_type=ooi_reference.class_,
-            object_label=ooi_reference.human_readable,
-            object_url=get_ooi_url("ooi_detail", ooi_reference, self.organization.code),
+            object_pk=ooi_reference,
         )
 
         return True

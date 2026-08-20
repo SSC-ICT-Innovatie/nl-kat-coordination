@@ -75,8 +75,4 @@ class PluginEnableDisableView(SinglePluginView):
             action=action,
             object_type=self.plugin.type.title(),
             object_label=self.plugin.name,
-            object_url=reverse(
-                "boefje_detail" if self.plugin.type == "boefje" else "normalizer_detail",
-                kwargs={"organization_code": self.organization.code, "plugin_id": self.plugin.id},
-            ),
         )
