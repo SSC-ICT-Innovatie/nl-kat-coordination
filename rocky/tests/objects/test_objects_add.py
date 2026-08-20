@@ -40,7 +40,7 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
     audit_log = AuditLog.objects.get()
     assert audit_log.actor == client_member.user
     assert audit_log.action == AuditLog.Action.OBJECT_ADDED
-    assert audit_log.object_label == "testnetwork"
+    assert audit_log.object_pk == "Network|testnetwork"
 
 
 def test_add_bad_schema(rf, client_member):

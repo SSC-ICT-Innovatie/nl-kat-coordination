@@ -26,7 +26,7 @@ class OOIDeleteView(OrganizationPermissionRequiredMixin, SingleOOIMixin, Templat
             organization=self.organization,
             action=AuditLog.Action.OBJECT_DELETED,
             object_type=self.ooi.get_ooi_type(),
-            object_label=self.ooi.human_readable,
+            object_pk=self.ooi.primary_key,
         )
         return HttpResponseRedirect(self.get_success_url())
 

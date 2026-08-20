@@ -11,8 +11,7 @@ def test_organization_audit_log(rf, client_member):
         organization=client_member.organization,
         action=AuditLog.Action.OBJECT_ADDED,
         object_type="Network",
-        object_label="internet",
-        object_url="/objects/internet/",
+        object_pk="Network|internet",
     )
 
     request = setup_request(rf.get("organization_crisis_room_audit_log"), client_member.user)
@@ -22,7 +21,8 @@ def test_organization_audit_log(rf, client_member):
     assertContains(response, "Activity log")
     assertContains(response, client_member.user.email)
     assertContains(response, "Added object")
-    assertContains(response, 'href="/objects/internet/"')
+    # The URL is constructed at read time from the stored PK.
+    assertContains(response, "Network|internet")
 
 
 def test_general_audit_log_only_shows_accessible_organizations(rf, client_member, organization_b):
