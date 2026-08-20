@@ -1186,15 +1186,15 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         )
 
         static = BoefjeFactory(id="static", rate_limit_interval=1, rate_limit_group="api.shodan.io")
-        self.scheduler.resolve_rate_limit_group(static, ooi)
+        self.scheduler.resolve_rate_limit_group(static, ooi.primary_key)
         self.assertEqual("api.shodan.io", static.rate_limit_group)
 
         templated = BoefjeFactory(id="templated", rate_limit_interval=1, rate_limit_group="{input_ooi}")
-        self.scheduler.resolve_rate_limit_group(templated, ooi)
+        self.scheduler.resolve_rate_limit_group(templated, ooi.primary_key)
         self.assertEqual("IPAddressV4|internet|192.0.2.5", templated.rate_limit_group)
 
         prefixed = BoefjeFactory(id="prefixed", rate_limit_interval=1, rate_limit_group="shodan:{object_type}")
-        self.scheduler.resolve_rate_limit_group(prefixed, ooi)
+        self.scheduler.resolve_rate_limit_group(prefixed, ooi.primary_key)
         self.assertEqual("shodan:IPAddressV4", prefixed.rate_limit_group)
 
         # A static group still resolves without an input OOI.
@@ -1211,7 +1211,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         # An unresolvable OOI property disables rate limiting for this task (full OOI property
         # resolution is a follow-up, see #1317).
         unresolvable = BoefjeFactory(id="unresolvable", rate_limit_interval=1, rate_limit_group="{address}")
-        self.scheduler.resolve_rate_limit_group(unresolvable, ooi)
+        self.scheduler.resolve_rate_limit_group(unresolvable, ooi.primary_key)
         self.assertIsNone(unresolvable.rate_limit_interval)
         self.assertIsNone(unresolvable.rate_limit_group)
 
@@ -1228,7 +1228,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
 
         for boefje, input_ooi in zip(boefjes, inputs):
             ooi = OOIFactory(primary_key=input_ooi, object_type="IPAddressV4", scan_profile=ScanProfileFactory())
-            self.scheduler.resolve_rate_limit_group(boefje, ooi)
+            self.scheduler.resolve_rate_limit_group(boefje, ooi.primary_key)
             boefje_task = models.BoefjeTask(boefje=boefje, input_ooi=input_ooi, organization=OrganisationFactory().id)
             self.scheduler.push_item_to_queue(
                 models.Task(
@@ -1289,6 +1289,39 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         for item in popped_items:
             # Assert: the deduplication_key of the items should be the same
             self.assertEqual(str(dkey), item.data.get("deduplication_key"))
+
+    def test_pop_dedup_batch_with_rate_limit_pops_full_batch(self):
+        """A deduplicated batch with a rate-limited boefje should pop all
+        tasks, not just one — the batch shares one boefje and thus one
+        rate-limit group, so one worker run serves all orgs."""
+        scan_profile = ScanProfileFactory(level=0)
+        ooi = OOIFactory(scan_profile=scan_profile)
+        self.mock_get_plugin.return_value = PluginFactory(
+            scan_level=0, consumes=[ooi.object_type], rate_limit_interval=1, rate_limit_group="api.example.com"
+        )
+        boefje = BoefjeFactory(rate_limit_interval=1, rate_limit_group="api.example.com")
+        dkey = uuid.uuid4()
+        for org in [self.organisation.id, OrganisationFactory().id, OrganisationFactory().id]:
+            boefje_task = models.BoefjeTask(
+                boefje=models.Boefje.model_validate(boefje.model_dump()),
+                input_ooi=ooi.primary_key,
+                organization=org,
+                deduplication_key=dkey.hex,
+            )
+            self.scheduler.push_item_to_queue(
+                models.Task(
+                    scheduler_id=self.scheduler.scheduler_id,
+                    organisation=self.organisation.id,
+                    priority=1,
+                    type=models.BoefjeTask.type,
+                    hash=boefje_task.hash,
+                    data=boefje_task.model_dump(),
+                    created_at=datetime.now(timezone.utc),
+                    modified_at=datetime.now(timezone.utc),
+                )
+            )
+        # One deduplicated batch = one worker run = one API call for all three orgs.
+        self.assertEqual(3, len(self.scheduler.pop_item_from_queue()))
 
     def test_pop_deduplication_different_deduplication_key(self):
         # Arrange
