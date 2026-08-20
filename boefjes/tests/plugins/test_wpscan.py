@@ -1,20 +1,26 @@
 import json
 
-from boefjes.plugins.kat_wpscan.normalize import run
-from octopoes.models.ooi.findings import CVEFindingType, Finding, RiskLevelSeverity, WPVulnFindingType
-from octopoes.models.ooi.software import Software, SoftwareInstance
+from pydantic_core import to_jsonable_python
 
-# The boefje consumes SoftwareInstance, so the normalizer receives the
-# serialized SoftwareInstance that triggered the scan — its `ooi` field is the
-# scanned URL. Tests use this production shape so the input-handling path is
-# exercised the same way the scheduler exercises it.
-URL_PK = "HostnameHTTPURL|internet|https|example.com|443|/"
-input_ooi = {
-    "object_type": "SoftwareInstance",
-    "primary_key": f"SoftwareInstance|{URL_PK}|Software|WordPress|4.9.8|",
-    "ooi": {"primary_key": URL_PK},
-    "software": {"name": "WordPress", "version": "4.9.8", "primary_key": "Software|WordPress|4.9.8|"},
-}
+from boefjes.plugins.kat_wpscan.normalize import run
+from octopoes.models.ooi.dns.zone import Hostname
+from octopoes.models.ooi.findings import CVEFindingType, Finding, RiskLevelSeverity, WPVulnFindingType
+from octopoes.models.ooi.network import Network
+from octopoes.models.ooi.software import Software, SoftwareInstance
+from octopoes.models.ooi.web import HostnameHTTPURL, WebScheme
+
+# Build the normalizer input via the real serializer, exactly like
+# scheduler_client.py does (boefje_meta.arguments["input"] = ooi.serialize()).
+# This ensures the fixture can never drift from the production input shape.
+_network = Network(name="internet")
+_hostname = Hostname(network=_network.reference, name="example.com")
+_url = HostnameHTTPURL(
+    network=_network.reference, scheme=WebScheme.HTTPS, netloc=_hostname.reference, port=443, path="/"
+)
+_software = Software(name="WordPress", version="4.9.8")
+_instance = SoftwareInstance(ooi=_url.reference, software=_software.reference)
+input_ooi = json.loads(json.dumps(to_jsonable_python(_instance.serialize())))
+URL_PK = str(_url.reference)
 
 
 def _wpscan_payload(vulnerabilities: list[dict]) -> bytes:
@@ -229,3 +235,73 @@ def test_wpscan_findings_fall_back_to_url_without_version():
     findings = [f for f in results if isinstance(f, Finding)]
     assert findings
     assert all(str(f.ooi) == URL_PK for f in findings)
+
+
+def test_wpscan_input_shape_matches_production_serializer():
+    """The module-level input_ooi is built via SoftwareInstance.serialize(),
+    exactly like scheduler_client.py:125. This pins the fixture to the
+    production shape so the input-handling path can't silently drift."""
+    assert input_ooi["object_type"] == "SoftwareInstance"
+    assert input_ooi["primary_key"].startswith("SoftwareInstance|")
+    # The serialized `ooi` field is a token tree, not a nested primary_key.
+    assert "primary_key" not in input_ooi["ooi"]
+    assert input_ooi["ooi"]["scheme"] == "https"
+    assert input_ooi["ooi"]["netloc"]["name"] == "example.com"
+
+    results = list(run(input_ooi, _wpscan_payload([])))
+
+    instances = [si for si in results if isinstance(si, SoftwareInstance)]
+    assert instances
+    assert all(str(si.ooi) == URL_PK for si in instances)
+
+
+def test_wpscan_runner_fallback_input_shape():
+    """The local runner falls back to {"primary_key": ...} when arguments["input"]
+    is absent (runner.py:36). The normalizer must handle this shape too."""
+    fallback_input = {"primary_key": input_ooi["primary_key"]}
+
+    results = list(run(fallback_input, _wpscan_payload([])))
+
+    instances = [si for si in results if isinstance(si, SoftwareInstance)]
+    assert instances
+    assert all(str(si.ooi) == URL_PK for si in instances)
+
+
+def test_wpscan_cvss_scalar_string():
+    """wpscan_out_parse types cvss as a scalar string; handle both shapes."""
+    raw = json.dumps(
+        {
+            "version": {
+                "number": "4.9.8",
+                "vulnerabilities": [
+                    {"id": "eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee", "title": "Scalar cvss bug", "cvss": "7.5"}
+                ],
+            }
+        }
+    ).encode()
+
+    results = list(run(input_ooi, raw))
+
+    wpvuln_type = next(r for r in results if isinstance(r, WPVulnFindingType))
+    assert wpvuln_type.risk_score == 7.5
+    assert wpvuln_type.risk_severity == RiskLevelSeverity.HIGH
+
+
+def test_wpscan_cvss_non_numeric_does_not_abort():
+    """A non-numeric cvss score must not abort the entire normalizer run."""
+    raw = json.dumps(
+        {
+            "version": {
+                "number": "4.9.8",
+                "vulnerabilities": [
+                    {"id": "ffffffff-ffff-ffff-ffff-ffffffffffff", "title": "Bad cvss bug", "cvss": {"score": "N/A"}}
+                ],
+            }
+        }
+    ).encode()
+
+    results = list(run(input_ooi, raw))
+
+    wpvuln_type = next(r for r in results if isinstance(r, WPVulnFindingType))
+    assert wpvuln_type.risk_score is None
+    assert wpvuln_type.risk_severity == RiskLevelSeverity.UNKNOWN
