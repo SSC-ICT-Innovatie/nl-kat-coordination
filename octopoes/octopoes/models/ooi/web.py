@@ -24,8 +24,12 @@ def format_web_url_token(token: PrimaryKeyToken) -> str:
 class Website(OOI):
     object_type: Literal["Website"] = "Website"
 
-    ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
-    hostname: Reference = ReferenceField(Hostname, max_inherit_scan_level=4)
+    ip_service: Reference = ReferenceField(
+        IPService, max_issue_scan_level=0, max_inherit_scan_level=1
+    )  # this means any co-hosted websites on a given IP are included
+    hostname: Reference = ReferenceField(
+        Hostname, max_inherit_scan_level=4
+    )  # any website using the same hostname is included and allowed.
     certificate: Reference | None = ReferenceField(X509Certificate, default=None, max_issue_scan_level=1)
 
     _natural_key_attrs = ["ip_service", "hostname"]
