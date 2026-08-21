@@ -37,3 +37,10 @@ def test_multiple_spf_records_are_flagged_uppercase():
     """Test if we pick up mixed case SPF records"""
     records = [_txt("v=SPF1 include:_spf.google.com ~all"), _txt("v=spf1 ip4:1.1.1.1 -all")]
     assert len(_findings(records)) == 1
+
+
+def test_non_spf_version_tag_is_not_flagged():
+    # RFC 7208 3.1: the version tag is v=spf1 followed by whitespace or end-of-record;
+    # v=spf10 / v=spf1mx are not SPF records and must not be counted.
+    records = [_txt("v=spf1 -all"), _txt("v=spf10 something")]
+    assert _findings(records) == []

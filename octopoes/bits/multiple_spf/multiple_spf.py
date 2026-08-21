@@ -12,7 +12,7 @@ def run(hostname: Hostname, additional_oois: list[DNSTXTRecord], config: dict[st
     spf_records = [
         spf_record
         for spf_record in additional_oois
-        if spf_record.value.lower().startswith("v=spf1") or spf_record.value.lower() == "v=spf1"
+        if spf_record.value.lower().startswith("v=spf1 ") or spf_record.value.lower() == "v=spf1"
     ]
 
     if len(spf_records) > 1:
