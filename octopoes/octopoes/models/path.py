@@ -157,6 +157,11 @@ class Path:
     def __repr__(self) -> str:
         return str(self)
 
+    def _path_can_inherit_level(self, required_level: int) -> bool:
+        max_inheritance_level = get_max_scan_level_inheritance(self.segments[0])
+
+        return max_inheritance_level is not None and max_inheritance_level >= required_level
+
 
 def get_paths_to_neighbours(source_type: type[OOI]) -> set[Path]:
     """
@@ -188,18 +193,16 @@ def _cached_paths_to_neighbours(cls_name: str) -> set[Path]:
 
 @cache
 def get_max_scan_level_inheritance(segment: Segment) -> int | None:
-    """This does not change during runtime as the models are static and as such can be cached."""
+    """Return the maximum level transferable while tracing inheritance."""
     if segment.direction == Direction.INCOMING:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
 
-        return segment.target_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_issue_scan_level", None
-        )
-    else:
-        return segment.source_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_inherit_scan_level", None
-        )
+        field = segment.target_type.model_fields[segment.property_name]
+        return (field.json_schema_extra or {}).get("max_issue_scan_level")
+
+    field = segment.source_type.model_fields[segment.property_name]
+    return (field.json_schema_extra or {}).get("max_inherit_scan_level")
 
 
 @cache
@@ -209,10 +212,8 @@ def get_max_scan_level_issuance(segment: Segment) -> int | None:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
 
-        return segment.target_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_inherit_scan_level", None
-        )
-    else:
-        return segment.source_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_issue_scan_level", None
-        )
+        field = segment.target_type.model_fields[segment.property_name]
+        return (field.json_schema_extra or {}).get("max_inherit_scan_level")
+
+    field = segment.source_type.model_fields[segment.property_name]
+    return (field.json_schema_extra or {}).get("max_issue_scan_level")
