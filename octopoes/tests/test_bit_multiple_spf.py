@@ -28,7 +28,7 @@ def test_single_spf_record_is_not_flagged():
 
 
 def test_bare_second_record_is_flagged():
-    # RFC 7208 4.5: a bare "v=spf1" (version terminated by end-of-record) is a valid SPF record.
+    # RFC 7208 3.1: a bare "v=spf1" (version terminated by end-of-record) is a valid SPF record.
     records = [_txt("v=spf1 include:_spf.google.com ~all"), _txt("v=spf1")]
     assert len(_findings(records)) == 1
 
