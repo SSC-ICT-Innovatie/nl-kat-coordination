@@ -201,4 +201,4 @@ repos:
         name: Playwright base image tag must match PLAYWRIGHT_VERSION
         entry: python3 .github/scripts/check_playwright_version_pin.py
         language: system
-        files: boefje\.Dockerfile$
+        files: ^boefjes/boefjes/plugins/kat_webpage_capture/boefje\.Dockerfile$

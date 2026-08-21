@@ -8,8 +8,10 @@ ecosystem bumps only the `FROM` tag + digest — it cannot touch the `ARG` — s
 silently leaves the package and browser behind at the old version (PR #5334). This
 guard makes that drift a red `pre-commit` check instead of a no-op "upgrade".
 
-Scope: a Dockerfile is checked when it references a Playwright base image or declares
-`PLAYWRIGHT_VERSION`; anything else is ignored. The check is fail-closed — if such a
+Scope: the pre-commit hook targets `kat_webpage_capture/boefje.Dockerfile` (the only
+Playwright-pinned image today; add a path when another appears). The script itself stays
+general — a file it is handed is checked when it references a Playwright base image or
+declares `PLAYWRIGHT_VERSION`, and ignored otherwise. The check is fail-closed: if such a
 file is present but a version can't be parsed from both the `FROM` tag and the `ARG`,
 that is an error, not a skip, so a reformat that outruns these regexes can't silently
 disable the guard.
