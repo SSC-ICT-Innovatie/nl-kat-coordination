@@ -11,7 +11,7 @@
             <div class="layout-form">
                 <h1>{% translate "Mute finding:" %} {{ ooi.human_readable }}</h1>
                 <p>{% translate "Give a reason below why you want to mute this finding." %}</p>
-                <form action="{% url 'ooi_add' ooi_type=ooi_type organization_code=organization.code %}"
+                <form action="{% app_url 'ooi_add' ooi_type=ooi_type %}"
                       novalidate
                       method="post"
                       class="help">
@@ -21,7 +21,7 @@
 
                     <div class="button-container">
                         <button type="submit">{% translate "Mute" %}</button>
-                        <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code %}"
+                        <a href="{% app_url 'ooi_detail' ooi=ooi.primary_key %}"
                            class="button ghost"
                            type="submit"
                            name="cancel">{% translate "Cancel" %}</a>

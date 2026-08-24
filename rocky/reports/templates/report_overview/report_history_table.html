@@ -74,7 +74,7 @@
                             </td>
                             <td class="report_name nowrap">
                                 <a id="report_name_{{ report.report.reference|slugify }}"
-                                   href="{% app_url "view_report" %}?report_id={{ report.report.reference }}&observed_at={{ report.report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                   href="{% app_url "view_report" temporal_context=report.report.observed_at %}?report_id={{ report.report.reference }}"
                                    title="{% translate "Shows parent report details" %}">{{ report.report.name }}</a>
                             </td>
                             <td class="report_types">
@@ -185,7 +185,7 @@
                                                         <a href="{% app_url 'ooi_detail' ooi=asset_report.input_ooi %}">{{ asset_report.input_ooi|human_readable }}</a>
                                                     </td>
                                                     <td>
-                                                        <a href="{% app_url "view_report" %}?asset_report_id={{ asset_report }}&observed_at={{ asset_report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                        <a href="{% app_url "view_report" temporal_context=asset_report.observed_at %}?asset_report_id={{ asset_report }}"
                                                            title="{% translate "Shows asset report details" %}">{{ asset_report.name }}</a>
                                                     </td>
                                                 </tr>

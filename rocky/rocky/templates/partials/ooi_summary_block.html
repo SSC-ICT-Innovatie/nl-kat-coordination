@@ -38,9 +38,8 @@
                             {% for job in tree_node.children %}
                                 {% if job.ooi_type == "Job" %}
                                     <li>
-                                        <a href="{% ooi_url 'ooi_detail' 'Job|'|add:job.id organization.code %}"
-                                           target="_blank"
-                                           rel="noopener noreferrer">{{ job.human_readable }}</a>
+                                        <a href="{% app_url 'ooi_detail' ooi='Job|'|add:job.id %}"
+                                           target="_blank">{{ job.human_readable }}</a>
                                     </li>
                                 {% endif %}
                             {% endfor %}
@@ -97,9 +96,8 @@
                             {% for job in tree_node.children %}
                                 {% if job.ooi_type == "Job" %}
                                     <li>
-                                        <a href="{% ooi_url 'ooi_detail' 'Job|'|add:job.id organization.code %}"
-                                           target="_blank"
-                                           rel="noopener noreferrer">{{ job.human_readable }}</a>
+                                        <a href="{% app_url 'ooi_detail' ooi='Job|'|add:job.id %}"
+                                           target="_blank">{{ job.human_readable }}</a>
                                     </li>
                                 {% endif %}
                             {% endfor %}
