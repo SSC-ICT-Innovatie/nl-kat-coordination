@@ -18,7 +18,6 @@
                         Select an existing organization to continue the onboarding in.
                     {% endblocktranslate %}
                 </p>
-
                 <form novalidate
                       action="{% url "step_2a_organization_select" %}"
                       method="post"
@@ -29,10 +28,8 @@
 
                     <button type="submit">{% translate "Continue" %}</button>
                 </form>
-
                 {% if may_create_organization %}
-                    <a class="button ghost"
-                       href="{% url "step_2a_organization_setup" %}">{% translate "Or create a new organization" %}</a>
+                    <a class="button ghost" href="{% url "step_2a_organization_setup" %}">{% translate "Or create a new organization" %}</a>
                 {% endif %}
             </div>
         </section>
