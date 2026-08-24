@@ -5,7 +5,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-08-24 13:47+0000\n"
 "PO-Revision-Date: 2025-08-22 09:39+0000\n"
 "Last-Translator: Luca Racchetti <razzo1987@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -363,6 +363,7 @@ msgstr "Tipo di membro"
 
 #: account/templates/account_detail.html
 #: crisis_room/templates/partials/crisis_room_findings_table.html
+#: onboarding/forms.py onboarding/templates/step_2a_organization_select.html
 #: rocky/templates/tasks/normalizers.html
 msgid "Organization"
 msgstr "Organizzazione"
@@ -961,6 +962,7 @@ msgstr "Dettagli"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -976,6 +978,7 @@ msgstr "Chiudi dettagli"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -1708,7 +1711,7 @@ msgstr "Questa è una panoramica delle ultime impostazioni di tutti i plugin."
 msgid "Latest plugin settings"
 msgstr ""
 
-#: katalogus/templates/katalogus_settings.html
+#: katalogus/templates/katalogus_settings.html tools/forms/scheduler.py
 #: rocky/templates/tasks/ooi_detail_task_list.html
 msgid "Plugin"
 msgstr "Plugin"
@@ -2273,6 +2276,21 @@ msgstr "Spiegazione del livello di autorizzazione"
 msgid "Please enter a valid URL starting with 'http://' or 'https://'."
 msgstr ""
 
+#: onboarding/forms.py
+#, fuzzy
+msgid "--- Select an organization ---"
+msgstr "--- Seleziona un'opzione ----"
+
+#: onboarding/forms.py
+#, fuzzy
+msgid "Please select an organization to proceed."
+msgstr "Seleziona un tipo di account per procedere."
+
+#: onboarding/forms.py
+#, fuzzy
+msgid "explanation-organization-select"
+msgstr "spiegazione-nome-organizzazione"
+
 #: onboarding/templates/partials/onboarding_header.html
 msgid "Onboarding"
 msgstr ""
@@ -2339,6 +2357,30 @@ msgstr ""
 msgid "Let's get started"
 msgstr "Cominciamo"
 
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Select an organization"
+msgstr "Seleziona organizzazione"
+
+#: onboarding/templates/step_2a_organization_select.html
+msgid ""
+"You are already a member of one or more organizations. Select an existing "
+"organization to continue the onboarding in."
+msgstr ""
+
+#: onboarding/templates/step_2a_organization_select.html
+#: onboarding/templates/step_2b_organization_update.html
+#: onboarding/templates/step_3_indemnification_setup.html
+#: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
+#: onboarding/templates/step_7_clearance_level_introduction.html
+msgid "Continue"
+msgstr "Continua"
+
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Or create a new organization"
+msgstr "Aggiungi nuova organizzazione"
+
 #: onboarding/templates/step_2a_organization_setup.html
 #: onboarding/templates/step_2b_organization_update.html
 #: rocky/templates/organizations/organization_add.html
@@ -2359,16 +2401,14 @@ msgstr "Dettagli dell'organizzazione"
 msgid "Submit"
 msgstr "Invia"
 
+#: onboarding/templates/step_2a_organization_setup.html
+#, fuzzy
+msgid "Or select an existing organization"
+msgstr "Seleziona organizzazione"
+
 #: onboarding/templates/step_2b_organization_update.html
 msgid "Submit changes"
 msgstr "Invia modifiche"
-
-#: onboarding/templates/step_2b_organization_update.html
-#: onboarding/templates/step_3_indemnification_setup.html
-#: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
-#: onboarding/templates/step_7_clearance_level_introduction.html
-msgid "Continue"
-msgstr "Continua"
 
 #: onboarding/templates/step_3_indemnification_setup.html
 msgid "Indemnification setup"
@@ -4777,10 +4817,6 @@ msgstr ""
 msgid "Date"
 msgstr "Data"
 
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr ""
-
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
 msgstr ""
@@ -4958,7 +4994,7 @@ msgstr "Filtra per gravità"
 msgid "Filter by muted findings"
 msgstr "Filtra per rilevamenti mutati"
 
-#: tools/forms/findings.py tools/forms/ooi_form.py tools/forms/scheduler.py
+#: tools/forms/findings.py tools/forms/ooi_form.py
 msgid "Search"
 msgstr "Ricerca"
 
@@ -5055,8 +5091,52 @@ msgid "Running"
 msgstr ""
 
 #: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search (in OOI)"
+msgstr "Scansione OOI"
+
+#: tools/forms/scheduler.py
 msgid "Search by object name"
 msgstr "Cerca per nome oggetto"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Input OOI"
+msgstr "Nessun OOI di input"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Select specific object"
+msgstr "Elimina oggetto(i)"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search by plugin"
+msgstr "Opzioni di filtro"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Task id"
+msgstr "ID Attività"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search by task ID"
+msgstr "Cerca per nome oggetto"
+
+#: tools/forms/scheduler.py
+#, python-format
+msgid ""
+"The selected date (%s) is in the future. Please select a different date."
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'from'"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'to'"
+msgstr ""
 
 #: tools/forms/settings.py
 msgid "--- Show all ----"
@@ -5687,8 +5767,9 @@ msgid "Add finding"
 msgstr "Aggiungi rilevamento"
 
 #: rocky/templates/findings/finding_list.html
-msgid "Findings @ "
-msgstr "Risultati @ "
+#, fuzzy
+msgid "Findings "
+msgstr "Rilevamenti"
 
 #: rocky/templates/findings/finding_list.html
 #, python-format
@@ -5932,7 +6013,7 @@ msgstr "Aggiungi %(display_type)s"
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
-#: rocky/templates/partials/ooi_list_toolbar.html rocky/views/ooi_add.py
+#: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Add object"
 msgstr "Aggiungi oggetto"
 
@@ -6167,6 +6248,49 @@ msgstr ""
 msgid "Warning"
 msgstr "Avviso"
 
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Normalizer task"
+msgstr "Normalizzatori"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr "Oggetti prodotti"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr "Scarica dati meta e raw"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Origin boefje task"
+msgstr "usando boefjes"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
+msgstr ""
+
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6227,26 +6351,14 @@ msgid "List of views for OOI"
 msgstr "Elenco delle visualizzazioni per OOI"
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due"
-msgstr "Questo oggetto è scaduto"
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due and has been deleted"
-msgstr "Questo oggetto è scaduto ed è stato eliminato"
+msgid "You are looking at a historic view of this object."
+msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"This object is past due. You are viewing the object state in a past state."
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
 msgstr ""
-"Questo oggetto è scaduto. Stai visualizzando lo stato dell'oggetto in uno "
-"stato passato."
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's to past due objects."
-msgstr ""
-"Non sarai in grado di aggiungere Rilevamenti o altri OOI agli oggetti "
-"scaduti."
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 #: rocky/templates/partials/hyperlink_ooi_id.html
@@ -6564,8 +6676,22 @@ msgid "OOI"
 msgstr "OOI"
 
 #: rocky/templates/partials/explanations.html
+#, fuzzy
+msgid "This OOI"
+msgstr "Questo"
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
 msgstr "Origine"
+
+#: rocky/templates/partials/explanations.html
+#, fuzzy
+msgid "declared"
+msgstr "Dichiarato"
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
+msgstr ""
 
 #: rocky/templates/partials/explanations.html
 msgid "Show clearance level inheritance"
@@ -6671,6 +6797,10 @@ msgid "Page"
 msgstr "Pagina"
 
 #: rocky/templates/partials/list_paginator.html
+msgid "Current"
+msgstr ""
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr "Cinque pagine avanti"
 
@@ -6712,11 +6842,11 @@ msgid "Edit %(display_type)s"
 msgstr "Modifica %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
-#, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
+msgstr ""
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
 msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
@@ -6925,11 +7055,6 @@ msgstr ""
 "generato."
 
 #: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr "Scarica dati meta e raw"
-
-#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr "Scarica dati meta"
 
@@ -6959,6 +7084,35 @@ msgstr "Data di creazione"
 #: rocky/templates/tasks/reports.html
 msgid "Modified date"
 msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Filter on this plugin"
+msgstr "Opzioni di filtro"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Add filter on this plugin"
+msgstr "Opzioni di filtro"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+#, fuzzy
+msgid "Filter on this status"
+msgstr "Opzioni di filtro"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Add filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Filter on this ooi"
+msgstr "Opzioni di filtro"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Add filter on this ooi"
+msgstr "Nascondi opzioni di filtro"
 
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
@@ -7001,12 +7155,17 @@ msgid "List of tasks"
 msgstr "Elenco dei compiti"
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
-msgstr "Oggetti prodotti"
+msgid "Processing input from Boefje task"
+msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
 msgstr "Ripianifica"
+
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Related Normalizer tasks"
+msgstr "Normalizzatori"
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Download task data"
@@ -7341,6 +7500,10 @@ msgid "Upload raw"
 msgstr "Carica raw"
 
 #: rocky/views/bytes_raw.py
+msgid "Getting raw data failed, No such meta."
+msgstr ""
+
+#: rocky/views/bytes_raw.py
 msgid "Getting raw data failed."
 msgstr ""
 
@@ -7369,12 +7532,30 @@ msgid "Can not parse date, falling back to show current date."
 msgstr ""
 
 #: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
+msgstr ""
+
+#: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
 msgstr ""
 
 #: rocky/views/mixins.py
 msgid "Dashboard item has been added."
 msgstr ""
+
+#: rocky/views/ooi_add.py
+msgid "Type select"
+msgstr "Seleziona il tipo"
 
 #: rocky/views/ooi_add.py
 #, python-format
@@ -7647,14 +7828,14 @@ msgid "Scans"
 msgstr "Scansioni"
 
 #: rocky/views/scheduler.py
-msgid "Your report has been scheduled."
-msgstr ""
-
-#: rocky/views/scheduler.py
 msgid ""
 "Your task is scheduled and will soon be started in the background. Results "
 "will be added to the object list when they are in. It may take some time, a "
 "refresh of the page may be needed to show the results."
+msgstr ""
+
+#: rocky/views/scheduler.py
+msgid "Your report has been scheduled."
 msgstr ""
 
 #: rocky/views/tasks.py
@@ -7725,6 +7906,27 @@ msgstr ""
 msgid "Raw file successfully added."
 msgstr "File raw aggiunto con successo."
 
+#~ msgid "Findings @ "
+#~ msgstr "Risultati @ "
+
+#~ msgid "This object is past due"
+#~ msgstr "Questo oggetto è scaduto"
+
+#~ msgid "This object is past due and has been deleted"
+#~ msgstr "Questo oggetto è scaduto ed è stato eliminato"
+
+#~ msgid ""
+#~ "This object is past due. You are viewing the object state in a past state."
+#~ msgstr ""
+#~ "Questo oggetto è scaduto. Stai visualizzando lo stato dell'oggetto in uno "
+#~ "stato passato."
+
+#~ msgid ""
+#~ "You will not be able to add Findings or other OOI's to past due objects."
+#~ msgstr ""
+#~ "Non sarai in grado di aggiungere Rilevamenti o altri OOI agli oggetti "
+#~ "scaduti."
+
 #~ msgid "Clearance level has been set"
 #~ msgstr "Il livello di autorizzazione è stato impostato"
 
@@ -7737,9 +7939,6 @@ msgstr "File raw aggiunto con successo."
 #~ msgstr ""
 #~ "I Boefjes che hanno un livello di scansione inferiore o uguale al livello "
 #~ "di autorizzazione sono autorizzati a eseguire la scansione di un oggetto."
-
-#~ msgid "Delete object(s)"
-#~ msgstr "Elimina oggetto(i)"
 
 #~ msgid "Set clearance level to inherit"
 #~ msgstr "Imposta il livello di autorizzazione su eredità"
@@ -8464,9 +8663,6 @@ msgstr "File raw aggiunto con successo."
 
 #~ msgid "Blocked status"
 #~ msgstr "Stato bloccato"
-
-#~ msgid "Type select"
-#~ msgstr "Seleziona il tipo"
 
 #~ msgid "Add Account Type"
 #~ msgstr "Aggiungi tipo di account"
@@ -9690,9 +9886,6 @@ msgstr "File raw aggiunto con successo."
 #~ msgid "Heatmap"
 #~ msgstr "Mappa termica"
 
-#~ msgid "--- Select an option ----"
-#~ msgstr "--- Seleziona un'opzione ----"
-
 #~ msgid "Failure mode affected objects successfully created."
 #~ msgstr "Oggetti interessati dalla modalità di guasto creati con successo."
 
@@ -9762,9 +9955,6 @@ msgstr "File raw aggiunto con successo."
 #~ msgstr ""
 #~ "Il codice organizzazione(i) per il file raw non esiste nel nostro database"
 
-#~ msgid "Scan OOI"
-#~ msgstr "Scansione OOI"
-
 #~ msgid "Selected OOIs:"
 #~ msgstr "OOI selezionati:"
 
@@ -9814,9 +10004,6 @@ msgstr "File raw aggiunto con successo."
 
 #~ msgid "List of tasks for "
 #~ msgstr "Elenco dei compiti per"
-
-#~ msgid "No input OOI"
-#~ msgstr "Nessun OOI di input"
 
 #~ msgid ""
 #~ "Can not parse observed_at parameter, falling back to showing current "
