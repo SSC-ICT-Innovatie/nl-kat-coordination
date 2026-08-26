@@ -566,6 +566,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-dropulous"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/ad/30/73da4cdee64eca29eaef9322c60efa2bef64f6854ea12158584d291a5f4d/django_dropulous-0.1.1.tar.gz", hash = "sha256:d3ce12fe6f1e02220541a8c9bf59308aded5c2907739b3703131dbc55389d076", size = 23886 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/79/4f/705770c4ef90cb73e1d5ded5f8ffd91c74c30760d64f1c6612beb63aac0f/django_dropulous-0.1.1-py3-none-any.whl", hash = "sha256:fbd8ca2009ce2cf21ec67b82537942fdc0caf079ecf743cb4f7b8e67426e4f3c", size = 18339 },
+]
+
+[[package]]
 name = "django-environ"
 version = "0.12.1"
 source = { registry = "https://pypi.org/simple" }
@@ -664,14 +676,15 @@ wheels = [
 
 [[package]]
 name = "django-tagulous"
-version = "2.1.1"
+version = "2.2.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "django" },
+    { name = "django-dropulous" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/f4/f7/bef3d5ff4e0c7b786732ab77ca41eff8dd704f6552fb70b2fada1a0b64bc/django_tagulous-2.1.1.tar.gz", hash = "sha256:772941e0e359bb5478597fdafdb89e5619310a038e777e9599d0a5c036a05ceb", size = 291557 }
+sdist = { url = "https://files.pythonhosted.org/packages/d4/33/db1a5de32a51f6b753b8a6419e17f333a3341c63b4411451f1c8141c3cb1/django_tagulous-2.2.2.tar.gz", hash = "sha256:64c876d0a63e868d5d15df517f0873d7355c09318b0f91babeba1afd9215c875", size = 306735 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/66/03/e5bf7c3535f06d3962065a8e320aaca1cf6bef85e23e3fd8725e95c551be/django_tagulous-2.1.1-py3-none-any.whl", hash = "sha256:f5a6453407bcf4047f619f92be42e8b56615e00bbbd718d8810ce6fd5cf4888b", size = 286350 },
+    { url = "https://files.pythonhosted.org/packages/e0/ef/f7b27c790099fe6da752484cb4889ba95406cd5de56c35f8f61c4609869c/django_tagulous-2.2.2-py3-none-any.whl", hash = "sha256:53bae606b425991228a3b7b41f416e52ad472afd2b43c074c9f26450fb81fd35", size = 294985 },
 ]
 
 [[package]]
@@ -2545,7 +2558,7 @@ requires-dist = [
     { name = "django-password-validators", specifier = ">=1.7.1,<2" },
     { name = "django-rest-knox", specifier = ">=5.0.2,<6" },
     { name = "django-structlog", specifier = ">=9.1.1,<10" },
-    { name = "django-tagulous", specifier = ">=2.1.0,<3" },
+    { name = "django-tagulous", specifier = ">=2.2.2,<3" },
     { name = "django-two-factor-auth", specifier = ">=1.17.0,<2" },
     { name = "django-weasyprint", specifier = ">=2.4.0,<3" },
     { name = "djangorestframework", specifier = ">=3.16.0,<4" },

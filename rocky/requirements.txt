@@ -307,6 +307,7 @@ django==5.2.17 \
     # via
     #   django-components
     #   django-csp
+    #   django-dropulous
     #   django-formtools
     #   django-otp
     #   django-password-validators
@@ -327,6 +328,10 @@ django-csp==4.0 \
     --hash=sha256:b27010bb702eb20a3dad329178df2b61a2b82d338b70fbdc13c3a3bd28712833 \
     --hash=sha256:d5a0a05463a6b75a4f1fc1828c58c89af8db9364d09fc6e12f122b4d7f3d00dc
     # via rocky
+django-dropulous==0.1.1 \
+    --hash=sha256:d3ce12fe6f1e02220541a8c9bf59308aded5c2907739b3703131dbc55389d076 \
+    --hash=sha256:fbd8ca2009ce2cf21ec67b82537942fdc0caf079ecf743cb4f7b8e67426e4f3c
+    # via django-tagulous
 django-environ==0.12.1 \
     --hash=sha256:064ba2d5082f833e6d7fe4def4928bde1eedc0248a417575da7db147aeec1c20 \
     --hash=sha256:22859c6e905ab7637fa3348d1787543bb4492f38d761104a3ce0519b7b752845
@@ -359,9 +364,9 @@ django-structlog==9.1.1 \
     --hash=sha256:14342c6c824581f1e063c88a8bc52314cd67995a3bd4a4fc8c27ea37ccd78947 \
     --hash=sha256:5b6ac3abdf6549e94ccb35160b1f10266f1627c3ac77844571235a08a1ddae66
     # via rocky
-django-tagulous==2.1.1 \
-    --hash=sha256:772941e0e359bb5478597fdafdb89e5619310a038e777e9599d0a5c036a05ceb \
-    --hash=sha256:f5a6453407bcf4047f619f92be42e8b56615e00bbbd718d8810ce6fd5cf4888b
+django-tagulous==2.2.2 \
+    --hash=sha256:53bae606b425991228a3b7b41f416e52ad472afd2b43c074c9f26450fb81fd35 \
+    --hash=sha256:64c876d0a63e868d5d15df517f0873d7355c09318b0f91babeba1afd9215c875
     # via rocky
 django-two-factor-auth==1.18.1 \
     --hash=sha256:9d624db63123141cd95a6afe3d626105c3c29a7c8e25a3d93411dd1fac0be464 \
