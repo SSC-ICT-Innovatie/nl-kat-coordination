@@ -1,0 +1,9 @@
+{
+  "id": "kat_har_unpacker",
+  "name": "HAR unpacker",
+  "description": "Unpacks the HTTP response bodies from a HAR file into separate raw files, each tagged with its own mime type, so the existing content normalizers (html, javascript, css, images, ...) run on them without every normalizer needing to understand the HAR format.",
+  "consumes": [
+    "application/json+har"
+  ],
+  "produces": []
+}
