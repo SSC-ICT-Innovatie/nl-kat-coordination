@@ -7,7 +7,7 @@ requires-python = ">=3.10"
 license = "EUPL-1.2"
 dependencies = [
     "beautifulsoup4>=4.11.2,<5",
-    "django>=5.1.14,<5.2",
+    "django>=5.2.16,<5.3",
     "django-two-factor-auth>=1.17.0,<2",
     "django-environ>=0.12.0,<0.13",
     "jsonschema>=4.17.0,<5",
@@ -18,7 +18,7 @@ dependencies = [
     "django-password-validators>=1.7.1,<2",
     "django-csp~=4.0",
     "djangorestframework>=3.16.0,<4",
-    "django-tagulous>=2.1.0,<3",
+    "django-tagulous>=2.2.2,<3",
     "drf-standardized-errors>=0.14.1,<0.15",
     "django-weasyprint>=2.4.0,<3",
     "strenum>=0.4.15,<0.5",
@@ -78,6 +78,7 @@ dev = [
     "robotframework-otp>=1.1.0,<2",
     "robotframework-postgresqldb>=2.0.0,<3",
     "setuptools>=81,<82",
+    "sqlparse>=0.6.0",
 ]
 
 [tool.uv]
