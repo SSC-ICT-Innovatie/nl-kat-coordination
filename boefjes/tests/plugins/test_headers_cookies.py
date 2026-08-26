@@ -1,6 +1,7 @@
 import json
 
 from boefjes.worker.job_models import NormalizerMeta
+from octopoes.models.ooi.findings import Finding
 from octopoes.models.ooi.web import Cookie, HTTPHeader
 from tests.loading import get_dummy_data
 
@@ -18,6 +19,10 @@ def _headers(oois):
 
 def _cookies(oois):
     return {ooi.name: ooi for ooi in oois if isinstance(ooi, Cookie)}
+
+
+def _malformed_findings(oois):
+    return [ooi for ooi in oois if isinstance(ooi, Finding) and "KAT-MALFORMED-COOKIE" in str(ooi.finding_type)]
 
 
 def test_legacy_dict_shape_passes_headers_through(normalizer_runner):
@@ -99,25 +104,32 @@ def test_max_age_wins_over_expires_and_buckets_lifetime(normalizer_runner):
     assert not cookies["c"].persistent and cookies["c"].lifetime == "session"
 
 
-def test_broken_expires_is_ignored_not_a_finding(normalizer_runner):
+def test_broken_expires_keeps_cookie_but_warns(normalizer_runner):
     # RFC 6265 5.2.1: an Expires that fails to parse means the attribute is ignored;
-    # browsers keep the cookie. No finding, cookie becomes a session cookie.
+    # browsers keep the cookie (it becomes a session cookie). Other parsers may
+    # disagree, so the parse problem surfaces as a warning finding.
     oois = _run(normalizer_runner, {"Set-Cookie": "a=1; Expires=sdsd 28 Feb 2023; Path=/"})
 
     cookies = _cookies(oois)
     assert not cookies["a"].persistent
-    assert all(ooi.object_type in ("HTTPHeader", "Cookie", "Hostname") for ooi in oois)
+
+    (finding,) = _malformed_findings(oois)
+    assert "Expires" in finding.description
 
 
 def test_domain_mismatch_is_treated_as_host_only(normalizer_runner):
     # RFC 6265 5.3 p6 — and it keeps a scanned server from injecting arbitrary
-    # Hostname OOIs into the graph.
+    # Hostname OOIs into the graph. A server claiming a foreign domain is worth
+    # a warning of its own.
     oois = _run(normalizer_runner, {"Set-Cookie": "evil=1; Domain=evil.com"})
 
     cookies = _cookies(oois)
     assert cookies["evil"].host_only
     assert str(cookies["evil"].domain) == "Hostname|internet|mispo.es"
     assert not any(str(ooi.reference) == "Hostname|internet|evil.com" for ooi in oois)
+
+    (finding,) = _malformed_findings(oois)
+    assert "Domain" in finding.description
 
 
 def test_valid_parent_domain_mints_domain_cookie_and_hostname(normalizer_runner):
@@ -128,10 +140,12 @@ def test_valid_parent_domain_mints_domain_cookie_and_hostname(normalizer_runner)
     assert str(cookies["shared"].domain) == "Hostname|internet|mispo.es"
 
 
-def test_nameless_cookie_is_ignored(normalizer_runner):
+def test_nameless_cookie_is_ignored_with_warning(normalizer_runner):
     oois = _run(normalizer_runner, {"Set-Cookie": "justavalue"})
 
     assert _cookies(oois) == {}
+    (finding,) = _malformed_findings(oois)
+    assert "without a cookie name" in finding.description
 
 
 def test_pipe_in_cookie_name_does_not_mint_a_cookie(normalizer_runner):
@@ -139,6 +153,37 @@ def test_pipe_in_cookie_name_does_not_mint_a_cookie(normalizer_runner):
     oois = _run(normalizer_runner, {"Set-Cookie": "bad|name=1; Path=/"})
 
     assert _cookies(oois) == {}
+    (finding,) = _malformed_findings(oois)
+    assert "invalid character" in finding.description
+
+
+def test_wellformed_cookies_produce_no_malformed_finding(normalizer_runner):
+    oois = _run(
+        normalizer_runner,
+        [["Set-Cookie", "lang=en; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=86400"], ["Server", "nginx"]],
+    )
+
+    assert _cookies(oois)
+    assert _malformed_findings(oois) == []
+
+
+def test_malformed_finding_description_is_stable_and_aggregated(normalizer_runner):
+    # One finding per resource; categories only (never cookie values), sorted so
+    # repeated observations produce a byte-identical Finding.
+    headers = [
+        ["Set-Cookie", "justavalue"],
+        ["Set-Cookie", "b=2; SameSite=Sometimes"],
+        ["Set-Cookie", "c=3; Max-Age=soon; SameSite=Never"],
+    ]
+
+    (first,) = _malformed_findings(_run(normalizer_runner, headers))
+    (second,) = _malformed_findings(_run(normalizer_runner, list(reversed(headers))))
+
+    assert first.model_dump() == second.model_dump()
+    assert first.description == (
+        "Set-Cookie parsing problems: a Max-Age attribute is not an integer; "
+        "a SameSite attribute has an invalid value; set-cookie-string without a cookie name."
+    )
 
 
 def test_stable_meaningful_cookie_value_is_kept(normalizer_runner):

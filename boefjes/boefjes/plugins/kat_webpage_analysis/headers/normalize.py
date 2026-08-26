@@ -8,7 +8,6 @@ only values are redacted. See
 https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/213.
 """
 
-import contextlib
 import fnmatch
 import json
 import re
@@ -20,6 +19,7 @@ from pathlib import Path
 from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
+from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import Cookie, HTTPHeader
 
@@ -61,6 +61,7 @@ class ParsedCookie:
     http_only: bool = False
     same_site: str | None = None
     unknown_attributes: list[str] = field(default_factory=list)
+    problems: list[str] = field(default_factory=list)
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
@@ -104,25 +105,45 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         return
 
     canonical_values = []
+    problems: set[str] = set()
     for set_cookie in set_cookie_values:
         cookie = parse_set_cookie(set_cookie)
         if cookie is None:
+            problems.add("set-cookie-string without a cookie name")
             continue
 
+        problems.update(cookie.problems)
         canonical_values.append(serialize_canonical(cookie))
-        yield from cookie_oois(cookie, request_host, request_path, network, response_date)
+        yield from cookie_oois(cookie, request_host, request_path, network, response_date, problems)
 
     if canonical_values:
         # HTTPHeader identity is (resource, key), so all Set-Cookie headers fold
         # into one OOI. Joining the canonical forms keeps that value stable.
         yield HTTPHeader(resource=resource, key="Set-Cookie", value=", ".join(canonical_values))
 
+    if problems:
+        # Browsers apply error-tolerant parsing, so a malformed cookie usually
+        # still works — but different parsers can disagree on what it means,
+        # which can mask attributes or smuggle unintended values. The
+        # description only names the problem categories (never cookie values),
+        # and is sorted so repeated observations stay byte-identical.
+        finding_type = KATFindingType(id="KAT-MALFORMED-COOKIE")
+        yield finding_type
+        yield Finding(
+            finding_type=finding_type.reference,
+            ooi=resource,
+            description="Set-Cookie parsing problems: " + "; ".join(sorted(problems)) + ".",
+        )
+
 
 def parse_set_cookie(set_cookie: str) -> ParsedCookie | None:
     """Parse one set-cookie-string per RFC 6265 5.2 (lenient, browser-like).
 
-    Broken attributes are ignored rather than rejected: browsers keep the
-    cookie, so a parse failure is not a finding.
+    Broken attributes are ignored rather than rejected — browsers keep the
+    cookie — but each ignored attribute is recorded on ``problems`` so the
+    caller can surface a KAT-MALFORMED-COOKIE warning: parsers that are less
+    lenient (or lenient differently) may interpret such a cookie in a way the
+    server did not intend.
     """
     first, *attribute_parts = set_cookie.split(";")
 
@@ -144,20 +165,30 @@ def parse_set_cookie(set_cookie: str) -> ParsedCookie | None:
 
         if attribute == "domain" and attribute_value:
             cookie.domain = attribute_value.lstrip(".").lower()
-        elif attribute == "path" and attribute_value.startswith("/"):
-            cookie.path = attribute_value
+        elif attribute == "path":
+            if attribute_value.startswith("/"):
+                cookie.path = attribute_value
+            else:
+                # RFC 6265 5.2.4: a Path not starting with "/" is ignored.
+                cookie.problems.append("a Path attribute does not start with /")
         elif attribute == "max-age":
-            with contextlib.suppress(ValueError):
+            try:
                 cookie.max_age = int(attribute_value)
+            except ValueError:
+                cookie.problems.append("a Max-Age attribute is not an integer")
         elif attribute == "expires":
             cookie.has_expires_attribute = True
             cookie.expires = parse_expires(attribute_value)
+            if cookie.expires is None:
+                cookie.problems.append("an Expires attribute has an unparsable date")
         elif attribute == "secure":
             cookie.secure = True
         elif attribute == "httponly":
             cookie.http_only = True
         elif attribute == "samesite":
             cookie.same_site = _SAME_SITE_VALUES.get(attribute_value.lower())
+            if cookie.same_site is None:
+                cookie.problems.append("a SameSite attribute has an invalid value")
         elif attribute:
             cookie.unknown_attributes.append(part.strip())
 
@@ -212,11 +243,17 @@ def is_volatile_cookie(name: str) -> bool:
 
 
 def cookie_oois(
-    cookie: ParsedCookie, request_host: str, request_path: str, network: Network, response_date: datetime | None
+    cookie: ParsedCookie,
+    request_host: str,
+    request_path: str,
+    network: Network,
+    response_date: datetime | None,
+    problems: set[str],
 ) -> Iterable[NormalizerOutput]:
     if "|" in cookie.name or "|" in (cookie.path or ""):
         # A pipe would corrupt the natural key (reference separator); a cookie
         # name/path containing one is hostile or garbage either way.
+        problems.add("a cookie name or path contains an invalid character")
         return
 
     # https://datatracker.ietf.org/doc/html/rfc6265#section-5.3 p6: a Domain
@@ -225,9 +262,12 @@ def cookie_oois(
     # OOIs into the graph.
     host_only = True
     domain = request_host
-    if cookie.domain and domain_matches(request_host, cookie.domain):
-        host_only = False
-        domain = cookie.domain
+    if cookie.domain:
+        if domain_matches(request_host, cookie.domain):
+            host_only = False
+            domain = cookie.domain
+        else:
+            problems.add("a Domain attribute does not domain-match the request host")
 
     persistent, lifetime = lifetime_bucket(cookie, response_date)
 

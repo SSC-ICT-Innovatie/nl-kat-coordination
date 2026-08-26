@@ -8,6 +8,8 @@
   "produces": [
     "HTTPHeader",
     "Cookie",
-    "Hostname"
+    "Hostname",
+    "Finding",
+    "KATFindingType"
   ]
 }
