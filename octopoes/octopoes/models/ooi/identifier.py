@@ -31,10 +31,7 @@ class Identifier(OOI):
     value: str
 
     _reverse_relation_names = {"vendor": "identifiers"}
-
-    @property
-    def natural_key(self) -> str:
-        return f"{str(self.vendor)}|{self.value}"
+    _natural_key_attrs = ["vendor", "value"]
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -49,11 +46,11 @@ class IdentifierInstance(OOI):
     identifier: Reference = ReferenceField(Identifier)
     location: Reference = ReferenceField(OOI)
 
-    _reverse_relation_names = {"identifier": "locations", "location": "identifiers"}
+    _reverse_relation_names = {"identifier": "locations", "location": "identifier_sightings"}
 
     @property
     def natural_key(self) -> str:
-        return f"{self.identifier.natural_key}|{self.location.natural_key}"
+        return f"{str(self.location)}|{self.identifier.natural_key}"
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
