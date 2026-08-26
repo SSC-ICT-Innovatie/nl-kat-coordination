@@ -570,7 +570,7 @@ class OctopoesService:
 
         neighbour_paths = get_paths_to_neighbours(reference.class_type)
 
-        eligible_paths = {path for path in neighbour_paths if path._path_can_inherit_level(required_level)}
+        eligible_paths = {path for path in neighbour_paths if path.path_can_inherit_level(required_level)}
 
         if not eligible_paths:
             return inheritance_chain
