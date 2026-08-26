@@ -157,7 +157,7 @@ class Path:
     def __repr__(self) -> str:
         return str(self)
 
-    def _path_can_inherit_level(self, required_level: int) -> bool:
+    def path_can_inherit_level(self, required_level: int) -> bool:
         max_inheritance_level = get_max_scan_level_inheritance(self.segments[0])
 
         return max_inheritance_level is not None and max_inheritance_level >= required_level
@@ -207,7 +207,7 @@ def get_max_scan_level_inheritance(segment: Segment) -> int | None:
 
 @cache
 def get_max_scan_level_issuance(segment: Segment) -> int | None:
-    """This does not change during runtime as the models are static and as such can be cached."""
+    """Return the maximum level transferable while tracing issuance."""
     if segment.direction == Direction.INCOMING:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
