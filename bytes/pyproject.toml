@@ -36,7 +36,7 @@ dependencies = [
     "pyjwt>=2.13.0",
     "fastapi-slim>=0.115.2",
     "structlog>=25.2.0,<26",
-    "cryptography>=48.0.1",
+    "cryptography>=50.0.0",
     "boto3>=1.42.70,<3",
     "bcrypt<5",
     "requests>=2.33.0,<3",
