@@ -37,7 +37,7 @@ def test_filter_plugins(test_client, organisation):
     assert len(response.json()) == 1
     assert response.json()[0]["id"] == "adr-finding-types"
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"produces": "Finding"})
-    assert len(response.json()) == 27
+    assert len(response.json()) == 28
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"consumes": "boefje/censys"})
     assert len(response.json()) == 1
     response = test_client.get(
