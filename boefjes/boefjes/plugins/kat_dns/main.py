@@ -11,7 +11,22 @@ from dns.name import Name
 from dns.resolver import Answer
 
 logger = logging.getLogger(__name__)
-DEFAULT_RECORD_TYPES = {"A", "AAAA", "CAA", "CERT", "RP", "SRV", "TXT", "MX", "NS", "CNAME", "DNAME", "SOA"}
+DEFAULT_RECORD_TYPES = {
+    "A",
+    "AAAA",
+    "CAA",
+    "CERT",
+    "RP",
+    "SRV",
+    "TXT",
+    "MX",
+    "NS",
+    "CNAME",
+    "DNAME",
+    "SOA",
+    "LOC",
+    "GPOS",
+}
 
 
 class TimeoutException(Exception):
