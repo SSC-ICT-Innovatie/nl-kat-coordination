@@ -660,7 +660,7 @@
     "source": "https://www.rfc-editor.org/rfc/rfc7208.html#section-3.2",
     "risk": "low",
     "impact": "SPF governs which email senders are allowed for each hostname, having multiple SPF records might introduce partial or ignored senders causing delivery problems.",
-    "recommendation": "Combine the SPF records into 1 record.",
+    "recommendation": "Combine the SPF records into 1 record."
   },
   "KAT-MALFORMED-COOKIE": {
     "name": "Malformed cookie",
