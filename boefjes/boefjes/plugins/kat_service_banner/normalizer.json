@@ -1,0 +1,12 @@
+{
+  "id": "kat_service_banner_normalize",
+  "name": "Service banner",
+  "description": "Extracts the running Software (name and version) from a service banner, e.g. an SSH or FTP server-speaks-first greeting. Requires the Service-Banner-boefje to be enabled.",
+  "consumes": [
+    "openkat/service-banner"
+  ],
+  "produces": [
+    "Software",
+    "SoftwareInstance"
+  ]
+}

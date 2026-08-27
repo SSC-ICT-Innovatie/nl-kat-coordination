@@ -154,10 +154,10 @@ class ObservedAtMixin(ContextMixin, View):
 class OctopoesView(ObservedAtMixin, OrganizationView):
     add_object_to_dashboard_form = None
 
-    def get_single_ooi(self, pk: str) -> OOI:
+    def get_single_ooi(self, pk: str, observed_at=None) -> OOI:
         try:
             ref = Reference.from_str(pk)
-            ooi = self.octopoes_api_connector.get(ref, valid_time=self.observed_at)
+            ooi = self.octopoes_api_connector.get(ref, valid_time=observed_at or self.observed_at)
 
             return ooi
         except Exception as e:
