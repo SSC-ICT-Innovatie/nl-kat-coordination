@@ -1,5 +1,7 @@
 from typing import Literal
 
+from pydantic import field_validator
+
 from octopoes.models import OOI, Reference
 from octopoes.models.persistence import ReferenceField
 
@@ -10,6 +12,24 @@ class Software(OOI):
     name: str
     version: str | None = None
     cpe: str | None = None
+
+    @field_validator("name", "version", "cpe", mode="before")
+    @classmethod
+    def sanitize_natural_key_part(cls, value: object) -> str | None:
+        """Keep the natural-key separator out of key material (issue #5299).
+
+        These fields are fed by banner/API output that scanned hosts control.
+        A pipe is the OOI reference separator, so an unescaped one corrupts
+        the primary key of this Software and of every SoftwareInstance built
+        on it (TypeNotFound when the reference is re-parsed). External APIs
+        also deliver numeric versions (e.g. shodan), which would otherwise
+        fail validation and abort the whole scan's normalization.
+        """
+        if value is None:
+            return None
+        if not isinstance(value, str):
+            value = str(value)
+        return value.replace("|", "%7C")
 
     _natural_key_attrs = ["name", "version", "cpe"]
     _information_value = ["name"]
