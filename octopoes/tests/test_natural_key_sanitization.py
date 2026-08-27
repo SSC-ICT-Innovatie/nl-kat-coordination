@@ -43,3 +43,28 @@ def test_clean_values_are_untouched():
 
     assert software.version == "1.24.0"
     assert software.primary_key == "Software|nginx|1.24.0|"
+
+
+def test_pipe_in_url_raw_is_percent_encoded():
+    # A raw pipe is valid in a URL but is also the reference separator; %7C is
+    # the URL's proper percent-encoding, so the URL stays equivalent.
+    from octopoes.models.ooi.network import Network
+    from octopoes.models.ooi.web import URL
+
+    url = URL(network=Network(name="internet").reference, raw="https://example.com/a|b")
+
+    assert "%7C" in str(url.raw)
+    assert url.primary_key == "URL|internet|https://example.com/a%7Cb"
+    assert url.reference.tokenized.raw == "https://example.com/a%7Cb"
+
+
+def test_pipe_in_http_header_key_is_escaped():
+    # RFC 7230 allows "|" in header names and the server controls them fully.
+    from octopoes.models import Reference
+    from octopoes.models.ooi.web import HTTPHeader
+
+    resource = Reference.from_str("HTTPResource|internet|1.2.3.4|tcp|443|https|internet|x.nl|https|internet|x.nl|443|/")
+    header = HTTPHeader(resource=resource, key="X-Evil|Header", value="v")
+
+    assert header.primary_key.endswith("|X-Evil%7CHeader")
+    assert header.reference.tokenized.key == "X-Evil%7CHeader"
