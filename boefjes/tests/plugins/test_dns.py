@@ -397,7 +397,8 @@ def test_dns_loc_gpos_records(normalizer_runner):
     results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-results-loc.example.nl.json"))
     oois = results.observations[0].results
     types = {o.object_type for o in oois}
-    assert "DNSLOCRecord" in types  # and "DNSGPOSRecord" with a GPOS section
+    assert "DNSLOCRecord" in types
+    assert "DNSGPOSRecord" in types
     assert "GeographicPoint" in types
 
     loc = next(o for o in oois if o.object_type == "DNSLOCRecord")
