@@ -1407,9 +1407,7 @@ pytest-cov==7.1.0 \
 pytest-django==4.12.0 \
     --hash=sha256:3ff300c49f8350ba2953b90297d23bf5f589db69545f56f1ec5f8cff5da83e85 \
     --hash=sha256:df94ec819a83c8979c8f6de13d9cdfbe76e8c21d39473cfe2b40c9fc9be3c758
-pytest-drf==1.1.3 \
-    --hash=sha256:4d6106f7f313de2e8158ca41550817ca564f1ddcf6ba68a1e2ab404e04b36282 \
-    --hash=sha256:4f8bd999a0d80654a55145761e5ced7601baf301fdb020ba62a25ac708fe070a
+pytest-drf @ git+https://github.com/theY4Kman/pytest-drf.git@9e3797b3f62899c7c1bb6856299e0d7e0e4ec504
 pytest-fixture-order==0.1.5 \
     --hash=sha256:25991b4dc2f0cb40655d93886d20de73056bde87196f07abb2b36c78f08ed90b \
     --hash=sha256:ce4ac6b51dca6476dbc1406a61199dfff6352fc5333bd0b52e2d3420487e834a
@@ -1417,9 +1415,9 @@ pytest-fixture-order==0.1.5 \
 pytest-httpx==0.30.0 \
     --hash=sha256:6d47849691faf11d2532565d0c8e0e02b9f4ee730da31687feae315581d7520c \
     --hash=sha256:755b8edca87c974dd4f3605c374fda11db84631de3d163b99c0df5807023a19a
-pytest-lambda==1.3.0 \
-    --hash=sha256:e91b6e1f0c13d54fdda0c7b0be3deefca3b65e3c140f3e96d2f4968eb37d65e5 \
-    --hash=sha256:f7aa827c74be5b2332f2beb9295f46bbffc1826301fc1c0507b077ba2ea8ca4a
+pytest-lambda==2.2.1 \
+    --hash=sha256:872c30dc14316fe75ba365645dca56e24851892e69ec76af38b8185c16e036ba \
+    --hash=sha256:92d4c19d5cc3df93744dbb8d2ccec06abc5dcbe2d41a7a518282450c17b4948d
     # via
     #   pytest-common-subject
     #   pytest-drf
