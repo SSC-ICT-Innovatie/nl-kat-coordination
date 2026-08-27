@@ -23,7 +23,7 @@ IDENTIFIER_PATTERNS = {
     "Segment": [re.compile(r"analytics\.load\(\s*['\"]([^'\"]+)['\"]", re.I)],
     "Sentry": [re.compile(r"https://([^@]+@sentry\.io/\d+)", re.I)],
     "GoogleMapsApiKey": [re.compile(r"AIza[0-9A-Za-z\-_]{20,}")],
-    "Mapbox": [re.compile(r"pk\.[A-Za-z0-9._\-]+")],
+    "Mapbox": [re.compile(r"\bpk\.eyJ[A-Za-z0-9._\-]+")],
     "FirebaseProjectId": [re.compile(r'"projectId"\s*:\s*"([^"]+)"', re.I)],
     "Matomo": [re.compile(r"setSiteId['\"]?\s*,\s*['\"](\d+)['\"]", re.I)],
     "Crisp": [re.compile(r"CRISP_WEBSITE_ID\s*=\s*['\"]([a-f0-9\-]+)", re.I)],
