@@ -661,5 +661,13 @@
     "risk": "low",
     "impact": "Ambiguous cookie parsing can mask security attributes or allow smuggling of unintended values; the cookie may behave differently across browsers, proxies and security tooling.",
     "recommendation": "Emit syntactically valid Set-Cookie headers: a named cookie whose Domain matches the origin, with a valid Expires date, an integer Max-Age, a Path starting with '/', and a SameSite of Strict, Lax or None."
+  },
+  "KAT-INSECURE-COOKIE": {
+    "name": "Insecure cookie configuration",
+    "description": "A cookie is set without one or more recommended security attributes (Secure, HttpOnly, SameSite), or violates the requirements of its __Host-/__Secure- name prefix.",
+    "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie",
+    "risk": "medium",
+    "impact": "A cookie without the Secure attribute may be sent over an unencrypted connection and intercepted. Without HttpOnly the cookie is readable by client-side scripts, so an XSS flaw can steal it. Without a restrictive SameSite value the cookie is sent with cross-site requests, enabling CSRF. For session cookies this can lead to session hijacking.",
+    "recommendation": "Set the Secure and HttpOnly attributes on all cookies, and set SameSite to Strict or Lax (use None only together with Secure when cross-site use is required)."
   }
 }
