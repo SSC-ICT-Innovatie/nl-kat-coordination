@@ -653,5 +653,13 @@
     "risk": "low",
     "impact": "Information disclosure about the underlying software stack, assisting reconnaissance.",
     "recommendation": "Remove default files from production deployments or deny-list them at the web server level."
+  },
+  "KAT-MALFORMED-COOKIE": {
+    "name": "Malformed cookie",
+    "description": "The server sets a cookie that violates RFC 6265 syntax rules. Browsers apply error-tolerant parsing, so the cookie may still work, but different parsers can interpret it differently.",
+    "source": "https://www.rfc-editor.org/rfc/rfc6265#section-5.2",
+    "risk": "low",
+    "impact": "Ambiguous cookie parsing can mask security attributes or allow smuggling of unintended values; the cookie may behave differently across browsers, proxies and security tooling.",
+    "recommendation": "Emit syntactically valid Set-Cookie headers: a named cookie whose Domain matches the origin, with a valid Expires date, an integer Max-Age, a Path starting with '/', and a SameSite of Strict, Lax or None."
   }
 }
