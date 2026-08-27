@@ -60,9 +60,22 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     return [
         ({"application/json+har"}, har.encode()),
-        ({"openkat-http/headers"}, json.dumps(dict(response.headers))),
+        ({"openkat-http/headers"}, json.dumps(get_header_pairs(response))),
         (body_mimetypes, response.content),
     ]
+
+
+def get_header_pairs(response) -> list[list[str]]:
+    # A list of [name, value] pairs instead of a dict: a dict collapses repeated
+    # headers (requests joins multiple Set-Cookie values with ", ", which is
+    # ambiguous because Expires dates also contain commas — RFC 6265 requires one
+    # cookie per Set-Cookie header). The urllib3 HTTPHeaderDict on response.raw
+    # still has the individual headers.
+    raw_headers = getattr(response.raw, "headers", None)
+    if raw_headers is None:
+        return [[key, value] for key, value in response.headers.items()]
+
+    return [[key, value] for key in dict.fromkeys(raw_headers) for value in raw_headers.getlist(key)]
 
 
 def do_request(hostname: str, session: Session, uri: str, useragent: str):

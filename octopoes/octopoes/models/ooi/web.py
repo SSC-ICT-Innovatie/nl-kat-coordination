@@ -141,6 +141,46 @@ class HTTPHeader(OOI):
         return f"{reference.tokenized.key} @ {web_url} @ {address}"
 
 
+class Cookie(OOI):
+    """A cookie slot observed via a Set-Cookie response header.
+
+    Identity is name + domain + path — deliberately not the value: session
+    tokens change on every request (we hold no cookie jar), so keying on the
+    value would mint a new object per observation. The raw value is not stored
+    at all; only a coarse size bucket is kept as a performance signal.
+    See https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/213.
+    """
+
+    object_type: Literal["Cookie"] = "Cookie"
+
+    name: str
+    domain: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
+    path: str = "/"
+
+    secure_only: bool = False
+    http_only: bool = False
+    same_site: str | None = None
+    # https://datatracker.ietf.org/doc/html/rfc6265#section-5.3 p6
+    host_only: bool = True
+    # https://datatracker.ietf.org/doc/html/rfc6265#section-5.3 p3
+    persistent: bool = False
+    # Relative lifetime bucket ("session", "<1d", "<30d", ">30d", ">400d") instead of
+    # the absolute Expires date, which changes every response for rolling sessions.
+    lifetime: str | None = None
+    # Coarse value-size bucket ("<1KB", "1-4KB", ">4KB"); the raw value is never stored.
+    value_size: str | None = None
+
+    _natural_key_attrs = ["name", "domain", "path"]
+    _information_value = ["name"]
+    _reverse_relation_names = {"domain": "cookies"}
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        t = reference.tokenized
+
+        return f"Cookie {t.name} @ {t.domain.name}{t.path}"
+
+
 class URL(OOI):
     object_type: Literal["URL"] = "URL"
 
