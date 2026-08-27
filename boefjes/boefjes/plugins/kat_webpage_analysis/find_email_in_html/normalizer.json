@@ -6,6 +6,8 @@
     "text/html"
   ],
   "produces": [
-    "EmailAddress"
+    "EmailAddress",
+    "EmailAddressInstance",
+    "Hostname"
   ]
 }

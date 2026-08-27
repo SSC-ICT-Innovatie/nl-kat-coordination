@@ -88,6 +88,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                         expire=rr.expire,
                         minimum=rr.minimum,
                         soa_hostname=register_hostname(str(rr.mname)).reference,
+                        rname=str(rr.rname),
                         **default_args,
                     )
                     yield soa

@@ -4,7 +4,7 @@ from typing import Any
 from octopoes.models import OOI
 from octopoes.models.ooi.dns.records import DNSSOARecord
 from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.email import EmailAddress
+from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.network import Network
 
 
@@ -40,7 +40,7 @@ def soa_rname_to_email(rname: str) -> str:
 
 
 def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any]) -> Iterator[OOI]:
-    network = Network(name=soa_record.soa_hostnametokenized.network.name)
+    network = Network(name=soa_record.soa_hostname.tokenized.network.name)
     yield network
     if soa_record.rname:
         # extract email from SOA rname
@@ -51,9 +51,9 @@ def run(soa_record: DNSSOARecord, additional_oois: None, config: dict[str, Any])
 
             domain_ooi = Hostname(network=network.reference, name=domain)
             yield domain_ooi
-            emailaddress = EmailAddress(network=network.reference, localpart=localpart, domain=domain_ooi.reference)
+            emailaddress = EmailAddress(localpart=localpart, domain=domain_ooi.reference)
             yield emailaddress
-            soa_record.email = emailaddress.reference
-            yield soa_record
-            # We dont yield an EmailAddressInstance, as the soar_record itself already contains
+            # We could yield the Soarecord after we update its email value to reference this emailaadress
+            # but that complicates provenace, and deletion propagation
             # a reference to the address.
+            yield EmailAddressInstance(emailaddress=emailaddress.reference, location=soa_record.reference)

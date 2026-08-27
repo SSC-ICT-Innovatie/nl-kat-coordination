@@ -3,10 +3,12 @@ import json
 from collections.abc import Iterable
 from urllib.parse import urlparse
 
+import validators
+
 from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.email import EmailAddress
+from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network
 from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.web import URL, SecurityTXT, Website
@@ -106,14 +108,16 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             if contact.lower().startswith("mailto:"):
                 email = contact[7:].split("?")[0].strip()
 
-                if "@" not in email:
+                if not validators.email(email):
                     continue
 
-                localpart, domain = email.split("@", 1)
+                localpart, domain = email.lower().split("@", 1)
 
                 domain_ooi = Hostname(name=domain.strip(), network=network_ref)
                 yield domain_ooi
-                yield EmailAddress(network=domain_ooi.network, localpart=localpart, domain=domain_ooi.reference)
+                emailaddress = EmailAddress(localpart=localpart, domain=domain_ooi.reference)
+                yield emailaddress
+                yield EmailAddressInstance(emailaddress=emailaddress.reference, location=security_txt.reference)
 
         seen_urls = set()
 

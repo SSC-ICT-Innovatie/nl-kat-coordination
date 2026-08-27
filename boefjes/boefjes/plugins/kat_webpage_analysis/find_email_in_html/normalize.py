@@ -4,8 +4,9 @@ import validators
 from bs4 import BeautifulSoup
 
 from boefjes.normalizer_models import NormalizerOutput
+from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.email import EmailAddress
+from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.network import Network
 
 
@@ -16,7 +17,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     network_name = input_ooi["website"]["hostname"]["network"]["name"]
     network_ref = Network(name=network_name).reference
     for mailto in mailtos:
-        email = mailto[7:].strip()  # remove "mailto:"
+        email = mailto[7:].split("?")[0].strip()  # remove mailto:
         if not validators.email(email):
             continue
 
@@ -26,4 +27,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             continue
         domainooi = Hostname(network=network_ref, name=domain.strip())
         yield domainooi
-        yield EmailAddress(network=network_ref, localpart=localpart, domain=domainooi.reference)
+        emailaddress = EmailAddress(localpart=localpart, domain=domainooi.reference)
+        yield emailaddress
+        yield EmailAddressInstance(
+            emailaddress=emailaddress.reference, location=Reference.from_str(input_ooi["primary_key"])
+        )

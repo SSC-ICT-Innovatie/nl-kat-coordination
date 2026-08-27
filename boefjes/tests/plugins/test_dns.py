@@ -98,9 +98,6 @@ def test_dns_normalizer(normalizer_runner):
         minimum=86400,
     )
 
-    soa_maildomain = Hostname(name="sidn.nl", network=internet.reference)
-    emailaddress = EmailAddress(localpart="hostmaster", domain=soa_maildomain.reference, network=internet.reference)
-
     # noinspection PyTypeChecker
     expected = (
         [zone_hostname, zone]
@@ -113,7 +110,6 @@ def test_dns_normalizer(normalizer_runner):
         + dns_mx_records
         + ns_hostnames
         + ns_records
-        + [soa_maildomain, emailaddress]
         + [soa_record]
     )
 
