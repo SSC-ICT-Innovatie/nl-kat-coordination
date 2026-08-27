@@ -2070,8 +2070,8 @@ wheels = [
 
 [[package]]
 name = "pytest-drf"
-version = "1.1.3"
-source = { git = "https://github.com/theY4Kman/pytest-drf.git?rev=9e3797b3f62899c7c1bb6856299e0d7e0e4ec504#9e3797b3f62899c7c1bb6856299e0d7e0e4ec504" }
+version = "1.1.4"
+source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "djangorestframework" },
     { name = "inflection" },
@@ -2079,6 +2079,10 @@ dependencies = [
     { name = "pytest-assert-utils" },
     { name = "pytest-common-subject" },
     { name = "pytest-lambda" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/53/9a/709c56ee70a9c16d091ed3a03909f2b1c56b47a99da74e9cc6ea24f86e16/pytest_drf-1.1.4.tar.gz", hash = "sha256:d43ab0689fb769c8dde25fd50993422df3b04d5dd80fc8feab4c334f34ab7549", size = 30484 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8a/c9/66eef9d07700624501ea2a1cb77196e531eaa575fe7bc0065cc27c57117a/pytest_drf-1.1.4-py3-none-any.whl", hash = "sha256:c9d2f68be8b803adc14b4e61e307339ea58d5e00aacd3eaef64ded5b8898f8fe", size = 20894 },
 ]
 
 [[package]]
@@ -2604,7 +2608,7 @@ dev = [
     { name = "pytest", specifier = ">=7.4.0" },
     { name = "pytest-cov", specifier = ">=7" },
     { name = "pytest-django", specifier = ">=4.5.2,<5" },
-    { name = "pytest-drf", git = "https://github.com/theY4Kman/pytest-drf.git?rev=9e3797b3f62899c7c1bb6856299e0d7e0e4ec504" },
+    { name = "pytest-drf", specifier = ">=1.1.4,<2" },
     { name = "pytest-httpx", specifier = ">=0.30.0,<0.31" },
     { name = "pytest-mock", specifier = ">=3.11.1,<4" },
     { name = "robotframework", specifier = ">=7.1.1,<8" },

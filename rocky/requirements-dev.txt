@@ -1407,7 +1407,9 @@ pytest-cov==7.1.0 \
 pytest-django==4.12.0 \
     --hash=sha256:3ff300c49f8350ba2953b90297d23bf5f589db69545f56f1ec5f8cff5da83e85 \
     --hash=sha256:df94ec819a83c8979c8f6de13d9cdfbe76e8c21d39473cfe2b40c9fc9be3c758
-pytest-drf @ git+https://github.com/theY4Kman/pytest-drf.git@9e3797b3f62899c7c1bb6856299e0d7e0e4ec504
+pytest-drf==1.1.4 \
+    --hash=sha256:c9d2f68be8b803adc14b4e61e307339ea58d5e00aacd3eaef64ded5b8898f8fe \
+    --hash=sha256:d43ab0689fb769c8dde25fd50993422df3b04d5dd80fc8feab4c334f34ab7549
 pytest-fixture-order==0.1.5 \
     --hash=sha256:25991b4dc2f0cb40655d93886d20de73056bde87196f07abb2b36c78f08ed90b \
     --hash=sha256:ce4ac6b51dca6476dbc1406a61199dfff6352fc5333bd0b52e2d3420487e834a
