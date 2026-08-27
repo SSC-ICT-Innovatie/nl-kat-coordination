@@ -75,7 +75,7 @@ class DNSMXRecord(DNSRecord):
 
 
 class DNSTXTRecord(DNSRecord):
-    """Represents the DNS TXT riecord.
+    """Represents the DNS TXT record.
 
     Example value
     -------------
