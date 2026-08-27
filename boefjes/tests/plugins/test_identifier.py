@@ -23,3 +23,29 @@ def test_find_identifiers_in_html(normalizer_runner):
     output = normalizer_runner.run(meta, raw)
     types = {o.object_type for obs in output.observations for o in obs.results}
     assert {"IdentifierVendor", "Identifier", "IdentifierInstance"} <= types
+
+
+def test_mapbox_pattern_ignores_bundler_filenames_but_matches_tokens():
+    # Bundled assets like chunk-vendors.abc123.pk.min.js must not mint a fake
+    # Mapbox identifier; real Mapbox tokens always start with "pk.eyJ".
+    raw = b'<script src="/assets/chunk-vendors.abc123.pk.min.js"></script>'
+    assert extract_identifiers(raw.decode()) == set()
+
+    token = "pk.eyJub3QiOiJhLXJlYWwtdG9rZW4ifQ.dummy-signature-for-tests"  # fake, matches the pk.eyJ shape
+    matches = extract_identifiers(f'<script>mapboxgl.accessToken = "{token}";</script>')
+    assert matches == {IdentifierMatch(vendor="Mapbox", identifier=token)}
+
+
+def test_sentry_capture_does_not_span_lines():
+    # One @sentry.io occurrence must not reach back across newlines to an
+    # unrelated earlier URL and swallow everything in between.
+    text = 'src="https://cdn.example.com/app.js"\nvar dsn = "https://abc123@sentry.io/42";'
+    matches = extract_identifiers(text)
+    assert matches == {IdentifierMatch(vendor="Sentry", identifier="abc123@sentry.io/42")}
+
+
+def test_pipe_in_capture_value_is_not_matched():
+    # A pipe is the OOI reference separator; a value containing one must not
+    # become an Identifier (natural-key safety).
+    assert extract_identifiers('analytics.load("foo|bar")') == set()
+    assert extract_identifiers('"projectId": "my|project"') == set()

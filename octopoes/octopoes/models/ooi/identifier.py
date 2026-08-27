@@ -54,8 +54,11 @@ class IdentifierInstance(OOI):
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        parts = reference.natural_key.split("|", 2)
-        vendor = parts[0]
-        identifier = parts[1]
-        location = Reference.from_str(parts[2])
-        return f"IdentifierInstance {identifier} by {vendor} @ {location.human_readable}"
+        # The natural key is <full location reference>|<vendor name>|<value>, so
+        # the identifier fields pop off the end and the remainder is the
+        # location reference (the Finding convention for abstract references).
+        parts = reference.natural_key.split("|")
+        value = parts.pop()
+        vendor_name = parts.pop()
+        location = Reference.from_str("|".join(parts))
+        return f"IdentifierInstance {value} by {vendor_name} @ {location.human_readable}"

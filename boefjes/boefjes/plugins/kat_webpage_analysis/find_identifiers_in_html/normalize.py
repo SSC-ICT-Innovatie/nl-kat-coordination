@@ -8,6 +8,9 @@ from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 
+# Free-text capture groups exclude whitespace and the pipe character: a
+# newline would let a match greedily span unrelated page content, and a
+# pipe is the OOI reference separator, so it must never enter a natural key.
 IDENTIFIER_PATTERNS = {
     "GoogleTagManager": [re.compile(r"\bGTM-[A-Z0-9]+\b")],
     "GoogleAnalytics": [re.compile(r"\bUA-\d+-\d+\b"), re.compile(r"\bG-[A-Z0-9]{6,}\b")],
@@ -20,17 +23,17 @@ IDENTIFIER_PATTERNS = {
     "Hubspot": [re.compile(r"portalId\s*[:=]\s*['\"]?(\d+)", re.I)],
     "Marketo": [re.compile(r"munchkinId\s*[:=]\s*['\"]([A-Z0-9-]+)", re.I)],
     "Intercom": [re.compile(r"app_id\s*[:=]\s*['\"]([a-z0-9]+)", re.I)],
-    "Segment": [re.compile(r"analytics\.load\(\s*['\"]([^'\"]+)['\"]", re.I)],
-    "Sentry": [re.compile(r"https://([^@]+@sentry\.io/\d+)", re.I)],
+    "Segment": [re.compile(r"analytics\.load\(\s*['\"]([^'\"|\s]+)['\"]", re.I)],
+    "Sentry": [re.compile(r"https://([^@|\s]+@sentry\.io/\d+)", re.I)],
     "GoogleMapsApiKey": [re.compile(r"AIza[0-9A-Za-z\-_]{20,}")],
     "Mapbox": [re.compile(r"\bpk\.eyJ[A-Za-z0-9._\-]+")],
-    "FirebaseProjectId": [re.compile(r'"projectId"\s*:\s*"([^"]+)"', re.I)],
+    "FirebaseProjectId": [re.compile(r'"projectId"\s*:\s*"([^"|\s]+)"', re.I)],
     "Matomo": [re.compile(r"setSiteId['\"]?\s*,\s*['\"](\d+)['\"]", re.I)],
     "Crisp": [re.compile(r"CRISP_WEBSITE_ID\s*=\s*['\"]([a-f0-9\-]+)", re.I)],
     "Drift": [re.compile(r"drift\.load\(\s*['\"]([a-z0-9]+)['\"]", re.I)],
-    "TawkTo": [re.compile(r"embed\.tawk\.to/([^/]+)/", re.I)],  # codespell:ignore tawk
+    "TawkTo": [re.compile(r"embed\.tawk\.to/([^/|\s]+)/", re.I)],  # codespell:ignore tawk
     "Zendesk": [re.compile(r"https://([a-z0-9\-]+)\.zendesk\.com", re.I)],
-    "Tealium": [re.compile(r"utag/([^/]+)/([^/]+)/", re.I)],
+    "Tealium": [re.compile(r"utag/([^/|\s]+)/([^/|\s]+)/", re.I)],
 }
 
 
