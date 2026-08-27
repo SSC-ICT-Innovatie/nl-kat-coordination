@@ -399,3 +399,12 @@ def test_dns_loc_gpos_records(normalizer_runner):
     types = {o.object_type for o in oois}
     assert "DNSLOCRecord" in types  # and "DNSGPOSRecord" with a GPOS section
     assert "GeographicPoint" in types
+
+    loc = next(o for o in oois if o.object_type == "DNSLOCRecord")
+    assert loc.altitude == -2400.0  # -24m in centimeters
+    assert loc.size == 3000.0 and loc.horizontal_precision == 1000000.0 and loc.vertical_precision == 1000.0
+
+    gpos = next(o for o in oois if o.object_type == "DNSGPOSRecord")
+    assert gpos.altitude == 1000.0  # 10.0m in centimeters
+
+    assert sum(o.object_type == "GeographicPoint" for o in oois) == 2

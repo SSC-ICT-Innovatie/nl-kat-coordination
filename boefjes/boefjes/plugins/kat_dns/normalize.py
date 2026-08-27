@@ -140,24 +140,20 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
                 if isinstance(rr, LOC | GPOS):
                     default_args.update(
-                        {
-                            "value": rr.to_text(),
-                            "latitude": rr.float_latitude,  # property, no ()
-                            "longitude": rr.float_longitude,  # property, no ()
-                        }
+                        {"value": rr.to_text(), "latitude": rr.float_latitude, "longitude": rr.float_longitude}
                     )
                     if isinstance(rr, LOC):
                         default_args.update(
                             {
-                                "altitude": rr.altitude * 100,  # cm; converted from meters
-                                "horizontal_precision": rr.horizontal_precision,  # attribute, no ()
-                                "vertical_precision": rr.vertical_precision,  # attribute, no ()
-                                "size": rr.size,  # attribute, no ()
+                                "altitude": rr.altitude,
+                                "horizontal_precision": rr.horizontal_precision,
+                                "vertical_precision": rr.vertical_precision,
+                                "size": rr.size,
                             }
                         )
                         location_record = register_record(DNSLOCRecord(**default_args))
                     else:
-                        default_args["altitude"] = rr.float_altitude  # GPOS property, no ()
+                        default_args["altitude"] = rr.float_altitude * 100  # cm; converted from meters
                         location_record = register_record(DNSGPOSRecord(**default_args))
 
                     geo_point = {
