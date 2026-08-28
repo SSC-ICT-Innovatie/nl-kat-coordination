@@ -1,0 +1,40 @@
+{
+  "headers": [
+    "age",
+    "cf-ray",
+    "date",
+    "request-id",
+    "server-timing",
+    "traceparent",
+    "tracestate",
+    "x-amz-cf-id",
+    "x-amzn-trace-id",
+    "x-azure-ref",
+    "x-correlation-id",
+    "x-request-id",
+    "x-timer",
+    "x-vercel-id"
+  ],
+  "cookies": [
+    "_fbp",
+    "_ga",
+    "_gat*",
+    "_gid",
+    "_session_id",
+    "__cf_bm",
+    "__cfduid",
+    "asp.net_sessionid",
+    "aspsessionid*",
+    "awsalb",
+    "awsalbcors",
+    "bigipserver*",
+    "connect.sid",
+    "csrftoken",
+    "jsessionid",
+    "laravel_session",
+    "phpsessid",
+    "sessionid",
+    "session_id",
+    "xsrf-token"
+  ]
+}

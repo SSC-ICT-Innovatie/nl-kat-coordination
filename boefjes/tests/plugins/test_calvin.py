@@ -8,7 +8,7 @@ def test_parse_user_changed(normalizer_runner):
     output = normalizer_runner.run(meta, get_dummy_data("user-changed.json"))
 
     assert len(output.declarations) == 8
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "application": Application(name="organisation/env/app").reference,
         "event_id": '{"client_environment_app":"organisation/env/app","log_user_user_id":1234}-1655979300000',
         "event_title": "UC: User privilege monitoring",
@@ -33,7 +33,7 @@ def test_parse_user_changed(normalizer_runner):
         "severity": "MEDIUM",
     }
 
-    assert output.declarations[-1].ooi.dict() == {
+    assert output.declarations[-1].ooi.model_dump() == {
         "application": Application(name="organisation/env/app").reference,
         "event_id": '{"client_environment_app":"organisation/env/app","log_user_user_id":1234}-1658825100000',
         "event_title": "UC: User privilege monitoring",
@@ -64,7 +64,7 @@ def test_parse_admin_login_failure(normalizer_runner):
     output = normalizer_runner.run(meta, get_dummy_data("user-login-admin-failure.json"))
 
     assert len(output.declarations) == 8
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "application": Application(name="organisation/env/app").reference,
         "event_id": '{"client_environment_app":"organisation/env/app","log_user_user_id":1234}-1659618600000',
         "event_title": "UC: Detect brute force login attempts for an admin account",
@@ -97,7 +97,7 @@ def test_parse_user_login_failure(normalizer_runner):
     output = normalizer_runner.run(meta, get_dummy_data("user-login-failure.json"))
 
     assert len(output.declarations) == 8
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "application": Application(name="organisation/env/app").reference,
         "event_id": '{"client_environment_app":"organisation/env/app","log_user_user_id":1234}-1658998200000',
         "event_title": "UC: Detects attempts to guess passwords",

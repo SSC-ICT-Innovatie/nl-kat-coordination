@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.utils.html import format_html, format_html_join
+from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
 
 
@@ -33,7 +34,7 @@ def get_password_validators_help_texts():
     min_length_upper = str(validators.get("min_length_upper", ""))
     if min_length_upper:
         min_length_upper += _(" upper case letters")
-    extra_information = format_html(
+    extra_information = mark_safe(
         "For more information on making a secure password, see: "
         "<a target='_blank' href='https://veiliginternetten.nl/mijn-wachtwoord-123456/'>"
         "Veilig internetten - Wat is een sterk wachtwoord?</a>"

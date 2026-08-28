@@ -56,7 +56,7 @@ class SQLMetaDataRepository(MetaDataRepository):
         return to_boefje_meta(boefje_meta_in_db)
 
     def get_boefje_meta(self, query_filter: BoefjeMetaFilter) -> list[BoefjeMeta]:
-        logger.debug("Querying boefje meta: %s", query_filter.model_dump_json())
+        logger.debug("Querying boefje meta: %s", query_filter.model_dump(mode="json"))
 
         query = self.session.query(BoefjeMetaInDB).filter(BoefjeMetaInDB.organization == query_filter.organization)
 
@@ -103,7 +103,7 @@ class SQLMetaDataRepository(MetaDataRepository):
         return results
 
     def get_normalizer_meta(self, query_filter: NormalizerMetaFilter) -> list[NormalizerMeta]:
-        logger.debug("Querying normalizer meta: %s", query_filter.model_dump_json())
+        logger.debug("Querying normalizer meta: %s", query_filter.model_dump(mode="json"))
 
         query = self.session.query(NormalizerMetaInDB)
 
@@ -151,14 +151,14 @@ class SQLMetaDataRepository(MetaDataRepository):
         return raw_file_in_db.id
 
     def get_raw(self, query_filter: RawDataFilter) -> list[RawDataMeta]:
-        logger.debug("Querying raw data: %s", query_filter.model_dump_json())
+        logger.debug("Querying raw data: %s", query_filter.model_dump(mode="json"))
         query = self.session.query(RawFileInDB)
         query = query_filter.apply(query)
 
         return [to_raw_meta(raw_file_in_db) for raw_file_in_db in query]
 
     def get_raws(self, query_filter: RawDataFilter) -> list[tuple[uuid.UUID, RawData]]:
-        logger.debug("Querying raw data: %s", query_filter.model_dump_json())
+        logger.debug("Querying raw data: %s", query_filter.model_dump(mode="json"))
         query = self.session.query(RawFileInDB)
         query = query_filter.apply(query)
 
@@ -203,7 +203,7 @@ class SQLMetaDataRepository(MetaDataRepository):
         return {organization_id: count for organization_id, count in query}
 
     def get_raw_file_count_per_mime_type(self, query_filter: RawDataFilter) -> dict[str, int]:
-        logger.debug("Querying count raw data per mime type: %s", query_filter.model_dump_json())
+        logger.debug("Querying count raw data per mime type: %s", query_filter.model_dump(mode="json"))
         query = self.session.query(func.unnest(RawFileInDB.mime_types), func.count()).group_by(
             func.unnest(RawFileInDB.mime_types)
         )

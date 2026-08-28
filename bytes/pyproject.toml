@@ -1,15 +1,15 @@
 [project]
 name = "bytes"
 version = "0.0.1.dev1"
-description = "KAT's forensic data store"
-authors = [{ name = "MinVWS", email = "maintainer@openkat.nl" }]
+description = "OpenKAT's forensic data store"
+authors = [{ name = "Stichting Librekat", email = "maintainer@librekat.nl" }]
+license = { text = "EUPL-1.2" }
 requires-python = ">=3.10"
-license = "EUPL-1.2"
 dependencies = [
     "alembic>=1.8.1,<2",
     "cachetools>6",
     "passlib[bcrypt]>=1.7.4,<2",
-    "pika>=1.3.1,<2",
+    "aio-pika>=9.5,<10",
     "prometheus-client>=0.16.0,<0.17",
     "psycopg2-binary>=2.9.10",
     "pydantic>=2.7.1,<3",
@@ -24,8 +24,8 @@ dependencies = [
     "opentelemetry-instrumentation-httpx",
     "opentelemetry-instrumentation",
     "opentelemetry-instrumentation-dbapi",
-    "pydantic-settings>=2.2.1,<3",
-    "python-multipart>=0.0.20",
+    "pydantic-settings>=2.14.2,<3",
+    "python-multipart>=0.0.31",
     "httpx>=0.28.1,<0.29",
     "opentelemetry-api",
     "opentelemetry-exporter-otlp-proto-common",
@@ -33,12 +33,20 @@ dependencies = [
     "opentelemetry-proto",
     "opentelemetry-semantic-conventions",
     "opentelemetry-util-http",
-    "pyjwt>=2.8.0,<3",
+    "pyjwt>=2.13.0",
     "fastapi-slim>=0.115.2",
     "structlog>=25.2.0,<26",
-    "cryptography>45",
-    "boto3>=1.40",
+    "cryptography>=50.0.0",
+    "boto3>=1.42.70,<3",
     "bcrypt<5",
+    "requests>=2.33.0,<3",
+    "pygments>=2.20.0",
+    "pyasn1>=0.6.4",
+    "wrapt>=2.1.2",
+    "mako>=1.3.12",
+    "urllib3>=2.7.0",
+    "idna>=3.15",
+    "starlette>=1.3.1",
 ]
 
 [tool.uv]
@@ -46,7 +54,7 @@ package = false
 
 [dependency-groups]
 dev = [
-    "pytest>=8.3.5,<9",
+    "pytest>=9.0.3,<10",
     "pytest-env>=1.1.5,<2",
     "pytest-cov>=7",
 ]

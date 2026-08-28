@@ -9,7 +9,7 @@
             {% endif %}
         </div>
         <div>
-            {% if not ooi_past_due %}
+            {% if not historic_view %}
                 {% if not ooi|is_finding and not ooi|is_finding_type %}
                     <div class="horizontal-view {% if related %}toolbar{% endif %}">
                         <a href="{% ooi_url "ooi_add_related" ooi.primary_key organization.code %}"

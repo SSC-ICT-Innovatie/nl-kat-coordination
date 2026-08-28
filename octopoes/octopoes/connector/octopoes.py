@@ -21,7 +21,7 @@ from octopoes.models.origin import Origin, OriginParameter, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
-from octopoes.models.types import OOIType, concrete_type_by_name
+from octopoes.models.types import OOIType, type_by_name
 from octopoes.types import AFFIRMATION_CREATED, DECLARATION_CREATED, OBJECT_DELETED, OBSERVATION_CREATED, ORIGIN_DELETED
 
 QueryTypeAdapter = TypeAdapter(OOIType | str)
@@ -50,7 +50,7 @@ class OctopoesAPIConnector:
 
     def __init__(self, base_uri: str, client: str, timeout: int = 30):
         self.base_uri = base_uri
-        self.client = client
+        self.client = client  # commonly referred to as 'organization' within OpenKAT
         self.session = httpx.Client(
             base_url=base_uri, timeout=timeout, event_hooks={"response": [self._verify_response]}
         )
@@ -66,7 +66,7 @@ class OctopoesAPIConnector:
                 data = response.json()
                 raise ObjectNotFoundException(data["detail"]) from error
             if 500 <= response.status_code < 600:
-                data = response.text
+                data = response.content  # handles unicode issues
                 raise RemoteException(value=data) from error
             raise
         except json.decoder.JSONDecodeError as error:
@@ -74,6 +74,9 @@ class OctopoesAPIConnector:
 
     def root_health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self.session.get("/health").content)
+
+    def organizations_health(self) -> ServiceHealth:
+        return ServiceHealth.model_validate_json(self.session.get("/health/organizations").content)
 
     def health(self) -> ServiceHealth:
         return ServiceHealth.model_validate_json(self.session.get(f"/{self.client}/health").content)
@@ -132,7 +135,7 @@ class OctopoesAPIConnector:
                 raise ValidationError(
                     f"JSON from Octopoes for `{reference}`@{valid_time}  did not contain 'object_type' property."
                 )
-            objecttype: type[OOI] = concrete_type_by_name(objecttypename)
+            objecttype: type[OOI] = type_by_name(objecttypename)
             instance: OOIType = objecttype.model_validate(objectjson)
             return instance
         except ValidationError as error:
@@ -170,13 +173,21 @@ class OctopoesAPIConnector:
         return TransactionRecordTypeAdapter.validate_json(res.content)
 
     def get_tree(
-        self, reference: Reference, valid_time: datetime, types: set[type[OOI]] | set[str] | None = None, depth: int = 1
+        self,
+        reference: Reference,
+        valid_time: datetime,
+        types: set[type[OOI]] | set[str] | None = None,
+        depth: int = 1,
+        with_scan_profiles: bool | None = True,
     ) -> ReferenceTree:
         params: dict[str, str | int | list[str]] = {
             "reference": str(reference),
             "depth": depth,
             "valid_time": str(valid_time),
+            "with_scan_profiles": "false",
         }
+        if with_scan_profiles:
+            params["with_scan_profiles"] = "true"
         if types:
             params["types"] = [t.__name__ if hasattr(t, "__name__") else t for t in types if t]
         res = self.session.get(f"/{self.client}/tree", params=params)
@@ -222,12 +233,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/observations",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            content=observation.model_dump_json(),
-        )
+        self.session.post(f"/{self.client}/observations", params=params, json=observation.model_dump(mode="json"))
 
         self.logger.info("Saved observation", observation=observation, event_code=OBSERVATION_CREATED, sync=sync)
 
@@ -235,12 +241,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/declarations",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            content=declaration.model_dump_json(),
-        )
+        self.session.post(f"/{self.client}/declarations", params=params, json=declaration.model_dump(mode="json"))
 
         self.logger.info("Saved declaration", declaration=declaration, event_code=DECLARATION_CREATED, sync=sync)
 
@@ -250,9 +251,8 @@ class OctopoesAPIConnector:
             params["sync"] = "true"
         self.session.post(
             f"/{self.client}/declarations/save_many",
-            headers={"Content-Type": "application/json"},
             params=params,
-            content=DeclarationsTypeAdapter.dump_json(declarations),
+            json=DeclarationsTypeAdapter.dump_python(declarations, mode="json"),
         )
 
         self.logger.info("Saved %s declarations", len(declarations), event_code=DECLARATION_CREATED, sync=sync)
@@ -261,12 +261,7 @@ class OctopoesAPIConnector:
         params = {}
         if sync:
             params["sync"] = "true"
-        self.session.post(
-            f"/{self.client}/affirmations",
-            headers={"Content-Type": "application/json"},
-            params=params,
-            content=affirmation.model_dump_json(),
-        )
+        self.session.post(f"/{self.client}/affirmations", params=params, json=affirmation.model_dump(mode="json"))
 
         self.logger.info("Saved affirmation", affirmation=affirmation, event_code=AFFIRMATION_CREATED, sync=sync)
 
@@ -274,12 +269,7 @@ class OctopoesAPIConnector:
         params = {"valid_time": str(valid_time)}
         if sync:
             params["sync"] = "true"
-        self.session.put(
-            f"/{self.client}/scan_profiles",
-            params=params,
-            headers={"Content-Type": "application/json"},
-            content=scan_profile.model_dump_json(),
-        )
+        self.session.put(f"/{self.client}/scan_profiles", params=params, json=scan_profile.model_dump(mode="json"))
 
         self.logger.info("Saved Scan profile", scan_profile=scan_profile, valid_time=valid_time, sync=sync)
 
@@ -292,7 +282,7 @@ class OctopoesAPIConnector:
         self.session.post(
             f"/{self.client}/scan_profiles/save_many",
             params=params,
-            json=[json.loads(scan_profile.model_dump_json()) for scan_profile in scan_profiles],
+            json=[scan_profile.model_dump(mode="json") for scan_profile in scan_profiles],
         )
 
     def delete(self, reference: Reference, valid_time: datetime, sync: bool = False) -> None:
@@ -413,8 +403,12 @@ class OctopoesAPIConnector:
 
         return HydratedReportTypeAdapter.validate_json(res.content)
 
-    def load_objects_bulk(self, references: set[Reference], valid_time: datetime) -> dict[Reference, OOIType]:
-        params = {"valid_time": str(valid_time)}
+    def load_objects_bulk(
+        self, references: set[Reference], valid_time: datetime, with_scan_profiles: bool | None = True
+    ) -> dict[Reference, OOIType]:
+        params = {"valid_time": str(valid_time), "with_scan_profiles": "false"}
+        if with_scan_profiles:
+            params["with_scan_profiles"] = "true"
         res = self.session.post(
             f"/{self.client}/objects/load_bulk", params=params, json=[str(ref) for ref in references]
         )
@@ -471,5 +465,5 @@ class OctopoesAPIConnector:
 
         params = {"valid_time": str(valid_time)}
         self.session.post(
-            f"/{self.client}/origins/migrate", params=params, json=[json.loads(x.model_dump_json()) for x in origins]
+            f"/{self.client}/origins/migrate", params=params, json=[x.model_dump(mode="json") for x in origins]
         )

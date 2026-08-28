@@ -1,11 +1,10 @@
 import json
 from collections import defaultdict
-from datetime import datetime
 
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from jsonschema.validators import Draft202012Validator
-from katalogus.client import Boefje
+from katalogus.client import Boefje, KATalogusError
 from reports.report_types.helpers import get_report_types_for_ooi
 from tools.forms.ooi import PossibleBoefjesFilterForm
 from tools.forms.scheduler import OOIDetailTaskFilterForm
@@ -15,10 +14,10 @@ from octopoes.models import Reference
 from octopoes.models.ooi.question import Question
 from rocky.views.ooi_detail_related_object import OOIFindingManager, OOIRelatedObjectManager
 from rocky.views.ooi_view import BaseOOIDetailView
-from rocky.views.tasks import TaskListView
+from rocky.views.tasks import OOIDetailTaskListView
 
 
-class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, TaskListView):
+class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, OOIDetailTaskListView):
     template_name = "oois/ooi_detail.html"
     task_filter_form = OOIDetailTaskFilterForm
     task_type = "boefje"
@@ -71,13 +70,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         ooi = self.get_single_ooi(pk=ooi_id)
         self.run_boefje(boefje, ooi)
 
-    def get_task_filters(self) -> dict[str, str | datetime | None]:
-        filters = super().get_task_filters()
-        filters["filters"]["filters"].append(
-            {"column": "data", "field": "input_ooi", "operator": "==", "value": str(self.ooi)}
-        )
-        return filters
-
     def get_boefjes_filter_form(self):
         return PossibleBoefjesFilterForm(self.request.GET)
 
@@ -109,7 +101,11 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
         context["ooi"] = self.ooi
 
-        enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
+        try:
+            enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
+        except KATalogusError:
+            messages.error(self.request, "Could not get enabled boefjes from KATalogus, request failed")
+            enabled_boefjes = []
         ooi_boefjes = self.get_boefjes_for_ooi(enabled_boefjes)
 
         filter_form = self.get_boefjes_filter_form()
@@ -138,7 +134,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             context["inference_origin_params"] = inference_origin_params
         else:
             context["inference_origin_params"] = None
-        context["member"] = self.organization_member
 
         # TODO: generic solution to render ooi fields properly: https://github.com/minvws/nl-kat-coordination/issues/145
         context["object_details"] = format_display(self.get_ooi_properties(self.ooi), ignore=["json_schema"])
@@ -151,14 +146,12 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             except Exception:
                 context["current_config"] = None
 
-        context["ooi_past_due"] = context["observed_at"].date() < datetime.utcnow().date()
-        context["related"] = self.get_related_objects(context["observed_at"])
+        context["related"] = self.get_related_objects(self.observed_at)
 
         context["count_findings_per_severity"] = dict(self.count_findings_per_severity())
         context["severity_summary_totals"] = sum(context["count_findings_per_severity"].values())
 
         context["possible_boefjes_filter_form"] = self.get_boefjes_filter_form()
-        context["organization_indemnification"] = self.indemnification_present
 
         context["possible_reports"] = [
             report.class_attributes() for report in get_report_types_for_ooi(self.ooi.primary_key)
@@ -172,6 +165,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
                     "primary_key": section.reference,
                     "human_readable": Reference.from_str(section.reference).human_readable,
                     "level": section.level,
+                    "given": section.inherited_level,
                 }
                 for section in clearance_level_inheritance
             ]

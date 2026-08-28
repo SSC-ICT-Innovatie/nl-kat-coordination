@@ -1,5 +1,7 @@
+import json
 import uuid
 from datetime import datetime
+from unittest import mock
 
 import pika
 
@@ -75,14 +77,22 @@ def test_event_manager_create_empty_scan_profile(mocker, empty_scan_profile):
         task_id="1754a4c8-f0b8-42c8-b294-5706ce23a47d",
     )
 
-    channel_mock.basic_publish.assert_called_once_with(
-        "",
-        "scan_profile_mutations",
-        b'{"operation":"create","primary_key":"test|reference","value":{"primary_key":"test|reference",'
-        b'"object_type":"test","scan_profile":{"scan_profile_type":"empty","reference":"test|reference",'
-        b'"level":0,"user_id":null}},"client_id":"test"}',
-        properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-    )
+    call_args = channel_mock.basic_publish.call_args
+
+    actual_body = json.loads(call_args.kwargs["body"])
+
+    expected_body = {
+        "operation": "create",
+        "primary_key": "test|reference",
+        "value": {
+            "primary_key": "test|reference",
+            "object_type": "test",
+            "scan_profile": {"scan_profile_type": "empty", "reference": "test|reference", "level": 0, "user_id": None},
+        },
+        "client_id": "test",
+    }
+
+    assert actual_body == expected_body
 
 
 def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profile):
@@ -123,18 +133,36 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
     )
 
     assert channel_mock.basic_publish.call_count == 1
-    channel_mock.basic_publish.asset_has_calls(
-        mocker.call(
-            "",
-            "scan_profile_mutations",
-            b'{"operation": "create", "primary_key": "test|reference", '
-            b'"value": {"primary_key": "test|reference", '
-            b'"object_type": "test", '
-            b'"scan_profile": {"scan_profile_type": "declared", "reference": "test|reference",\
-            "level": 2, "user_id": None}}, "client_id": "test"}',
-            properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-        )
+    channel_mock.basic_publish.assert_has_calls(
+        [
+            mock.call(
+                exchange="",
+                routing_key="scan_profile_mutations",
+                body=mock.ANY,
+                properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
+            )
+        ]
     )
+
+    actual_body = json.loads(channel_mock.basic_publish.call_args[1]["body"])
+
+    expected_body = {
+        "operation": "create",
+        "primary_key": "test|reference",
+        "value": {
+            "primary_key": "test|reference",
+            "object_type": "test",
+            "scan_profile": {
+                "scan_profile_type": "declared",
+                "reference": "test|reference",
+                "level": 2,
+                "user_id": None,
+            },
+        },
+        "client_id": "test",
+    }
+
+    assert actual_body == expected_body
 
 
 def test_event_manager_delete_empty_scan_profile(mocker, empty_scan_profile):
@@ -169,9 +197,15 @@ def test_event_manager_delete_empty_scan_profile(mocker, empty_scan_profile):
         task_id="1754a4c8-f0b8-42c8-b294-5706ce23a47d",
     )
 
-    channel_mock.basic_publish.assert_called_once_with(
-        "",
-        "scan_profile_mutations",
-        b'{"operation":"delete","primary_key":"test|reference","value":null,"client_id":"test"}',
-        properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-    )
+    channel_mock.basic_publish.assert_called_once()
+
+    args, kwargs = channel_mock.basic_publish.call_args
+
+    assert kwargs["exchange"] == ""
+    assert kwargs["routing_key"] == "scan_profile_mutations"
+
+    actual_body = json.loads(kwargs["body"])
+
+    assert actual_body == {"operation": "delete", "primary_key": "test|reference", "value": None, "client_id": "test"}
+
+    assert kwargs["properties"] == pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent)

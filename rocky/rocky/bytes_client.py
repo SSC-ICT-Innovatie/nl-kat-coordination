@@ -1,8 +1,9 @@
 import json
 import uuid
 from base64 import b64decode, b64encode
-from collections.abc import Sequence, Set
+from collections.abc import Generator, Sequence, Set
 from datetime import datetime, timezone
+from functools import cached_property
 from typing import Any
 
 import httpx
@@ -16,13 +17,41 @@ from rocky.scheduler import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawD
 logger = structlog.get_logger("bytes_client")
 
 
+class NoAuth(httpx.Auth):
+    def auth_flow(self, request):
+        yield request
+
+
+class TokenAuth(httpx.Auth):
+    def __init__(self, client: "BytesClient"):
+        self.client = client
+
+    def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        # Attach token
+        request.headers["Authorization"] = f"bearer {self.client.token}"
+
+        response = yield request
+
+        # If unauthorized, refresh token and retry once
+        if response.status_code in (401, 403):
+            logger.info("Bytes token expired or invalid, refreshing and retrying request")
+            self.client._invalidate_token()
+
+            # Try to get a new token (may raise)
+            request.headers["Authorization"] = f"bearer {self.client.token}"
+
+            yield request  # retry once
+
+
 class BytesClient:
     # More than 100 raw files per Boefje run is very unlikely at this stage, but eventually we can start paginating
     RAW_FILES_LIMIT = 100
 
     def __init__(self, base_url: str, username: str, password: str, organization: str | None):
         self.credentials = {"username": username, "password": password}
-        self.session = httpx.Client(base_url=base_url, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT)
+        self.session = httpx.Client(
+            base_url=base_url, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT, auth=TokenAuth(self)
+        )
         self.organization = organization
 
     def health(self) -> ServiceHealth:
@@ -33,16 +62,12 @@ class BytesClient:
 
     @staticmethod
     def raw_from_declarations(declarations: list[Declaration]) -> bytes:
-        json_string = f"[{','.join([declaration.model_dump_json() for declaration in declarations])}]"
-
-        return json_string.encode("utf-8")
+        return json.dumps([d.model_dump(mode="json") for d in declarations]).encode("utf-8")
 
     def add_manual_proof(
         self, normalizer_id: uuid.UUID, raw: bytes, manual_mime_types: Set[str] = frozenset({"manual/ooi"})
     ) -> None:
         """Per convention for a generic normalizer, we add a raw list of declarations, not a single declaration"""
-
-        self.login()
 
         boefje_meta = BoefjeMeta(
             id=uuid.uuid4(),
@@ -80,8 +105,6 @@ class BytesClient:
         input_dict: dict | None = None,
         valid_time: datetime | None = None,
     ) -> str:
-        self.login()
-
         boefje_meta = BoefjeMeta(
             id=uuid.uuid4(),
             boefje=Boefje(id="manual"),
@@ -101,14 +124,14 @@ class BytesClient:
 
     def _save_boefje_meta(self, boefje_meta: BoefjeMeta) -> None:
         response = self.session.post(
-            "/bytes/boefje_meta", content=boefje_meta.model_dump_json(), headers={"content-type": "application/json"}
+            "/bytes/boefje_meta", json=boefje_meta.model_dump(mode="json"), headers={"content-type": "application/json"}
         )
         response.raise_for_status()
 
     def _save_normalizer_meta(self, normalizer_meta: NormalizerMeta) -> None:
         response = self.session.post(
             "/bytes/normalizer_meta",
-            content=normalizer_meta.model_dump_json(),
+            json=normalizer_meta.model_dump(mode="json"),
             headers={"content-type": "application/json"},
         )
 
@@ -145,7 +168,7 @@ class BytesClient:
         response = self.session.get("/bytes/raws", params=params)
         response.raise_for_status()
 
-        return [(file["name"], b64decode(file["content"])) for file in response.json().get("files", [])]
+        return [(rawfile["name"], b64decode(rawfile["content"])) for rawfile in response.json().get("files", [])]
 
     def get_raws_all(self, raw_ids: list[str]) -> dict[str, dict[str, Any]]:
         params: dict[str, str | int | list[str]] = {"limit": len(raw_ids), "raw_ids": raw_ids}
@@ -154,8 +177,8 @@ class BytesClient:
         response.raise_for_status()
         try:
             return {
-                file["name"]: json.loads(b64decode(file["content"]).decode("utf-8"))
-                for file in response.json().get("files", [])
+                rawfile["name"]: json.loads(b64decode(rawfile["content"]).decode("utf-8"))
+                for rawfile in response.json().get("files", [])
             }
         except httpx.ReadTimeout:
             return {}
@@ -199,17 +222,23 @@ class BytesClient:
 
         return response.json()
 
-    def login(self):
-        self.session.headers.update(self._authorization_header())
+    @cached_property
+    def token(self) -> str:
+        return self._get_token()
 
-    def _authorization_header(self) -> dict[str, str]:
-        return {"Authorization": f"bearer {self._get_token()}"}
+    def _invalidate_token(self):
+        if "token" in self.__dict__:
+            del self.__dict__["token"]
 
     def _get_token(self) -> str:
+        # this request should not try to use the auth provider, as that would cause a loop
         response = self.session.post(
-            "/token", data=self.credentials, headers={"content-type": "application/x-www-form-urlencoded"}
+            "/token",
+            data=self.credentials,
+            headers={"content-type": "application/x-www-form-urlencoded"},
+            auth=NoAuth(),
         )
-
+        response.raise_for_status()  # fail loudly on bad login
         return response.json()["access_token"]
 
 

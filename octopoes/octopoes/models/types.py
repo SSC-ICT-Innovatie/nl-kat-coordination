@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 from functools import cache
-from typing import TypeVar
+from typing import TypeAlias, TypeVar
 
 from pydantic.fields import FieldInfo
 
@@ -21,6 +21,8 @@ from octopoes.models.ooi.dns.records import (
     DNSARecord,
     DNSCAARecord,
     DNSCNAMERecord,
+    DNSGPOSRecord,
+    DNSLOCRecord,
     DNSMXRecord,
     DNSNSRecord,
     DNSPTRRecord,
@@ -28,6 +30,7 @@ from octopoes.models.ooi.dns.records import (
     DNSTXTRecord,
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname, ResolvedHostname
+from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.email_security import (
     DKIMExists,
     DKIMKey,
@@ -51,6 +54,7 @@ from octopoes.models.ooi.findings import (
     SnykFindingType,
 )
 from octopoes.models.ooi.geography import GeographicPoint
+from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 from octopoes.models.ooi.monitoring import Application, Incident
 from octopoes.models.ooi.network import (
     AutonomousSystem,
@@ -72,6 +76,7 @@ from octopoes.models.ooi.web import (
     URL,
     APIDesignRule,
     APIDesignRuleResult,
+    Cookie,
     HostnameHTTPURL,
     HTTPHeader,
     HTTPHeaderHostname,
@@ -83,11 +88,11 @@ from octopoes.models.ooi.web import (
     Website,
 )
 
-CertificateType = (
+CertificateType: TypeAlias = (
     X509Certificate | SubjectAlternativeNameHostname | SubjectAlternativeNameIP | SubjectAlternativeNameQualifier
 )
-DnsType = DNSZone | Hostname
-DnsRecordType = (
+DnsType: TypeAlias = DNSZone | Hostname
+DnsRecordType: TypeAlias = (
     DNSARecord
     | DNSAAAARecord
     | DNSTXTRecord
@@ -97,10 +102,12 @@ DnsRecordType = (
     | DNSSOARecord
     | DNSCNAMERecord
     | DNSCAARecord
+    | DNSLOCRecord
+    | DNSGPOSRecord
     | ResolvedHostname
     | NXDOMAIN
 )
-ConcreteFindingTypeType = (
+ConcreteFindingTypeType: TypeAlias = (
     ADRFindingType
     | KATFindingType
     | CVEFindingType
@@ -109,12 +116,16 @@ ConcreteFindingTypeType = (
     | CAPECFindingType
     | SnykFindingType
 )
-FindingTypeType = FindingType | ConcreteFindingTypeType
-ConcreteNetworkType = Network | IPAddressV4 | IPAddressV6 | AutonomousSystem | IPV4NetBlock | IPV6NetBlock | IPPort
-NetworkType = ConcreteNetworkType | IPAddress
-ServiceType = Service | IPService | TLSCipher
-SoftwareType = Software | SoftwareInstance
-WebType = (
+EmailAddressType: TypeAlias = EmailAddress | EmailAddressInstance
+FindingTypeType: TypeAlias = FindingType | ConcreteFindingTypeType
+IdentifierType: TypeAlias = Identifier | IdentifierVendor | IdentifierInstance
+ConcreteNetworkType: TypeAlias = (
+    Network | IPAddressV4 | IPAddressV6 | AutonomousSystem | IPV4NetBlock | IPV6NetBlock | IPPort
+)
+NetworkType: TypeAlias = ConcreteNetworkType | IPAddress
+ServiceType: TypeAlias = Service | IPService | TLSCipher
+SoftwareType: TypeAlias = Software | SoftwareInstance
+WebType: TypeAlias = (
     Website
     | URL
     | HostnameHTTPURL
@@ -123,13 +134,14 @@ WebType = (
     | HTTPHeader
     | HTTPHeaderURL
     | HTTPHeaderHostname
+    | Cookie
     | ImageMetadata
     | RESTAPI
     | APIDesignRule
     | APIDesignRuleResult
     | SecurityTXT
 )
-EmailSecurityType = (
+EmailSecurityType: TypeAlias = (
     DNSSPFRecord
     | DNSSPFMechanismIP
     | DNSSPFMechanismHostname
@@ -139,12 +151,12 @@ EmailSecurityType = (
     | DKIMSelector
     | DKIMKey
 )
-MonitoringType = Application | Incident
-ConfigType = Config
-ReportsType = ReportData
-ScanType = ExternalScan
+MonitoringType: TypeAlias = Application | Incident
+ConfigType: TypeAlias = Config
+ReportsType: TypeAlias = ReportData
+ScanType: TypeAlias = ExternalScan
 
-ConcreteOOIType = (
+ConcreteOOIType: TypeAlias = (
     CertificateType
     | DnsType
     | DnsRecordType
@@ -170,10 +182,12 @@ ConcreteOOIType = (
     | AssetReport
     | GeographicPoint
     | ReportRecipe
+    | EmailAddressType
+    | IdentifierType
 )
 
-OOIType = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
-BITOOIType = ConcreteOOIType | NetworkType | FindingTypeType
+OOIType: TypeAlias = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
+BITOOIType: TypeAlias = ConcreteOOIType | NetworkType | FindingTypeType
 
 
 def get_all_types(cls_: type[OOI]) -> Iterator[type[OOI]]:

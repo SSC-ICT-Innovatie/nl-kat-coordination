@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from copy import deepcopy
 
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -19,7 +19,7 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
     def get_tree_dict(self):
         if self._tree_dict is None:
-            tree = self.get_ooi_tree()
+            tree = self.get_ooi_tree(with_scan_profiles=False, types=self.request.GET.getlist("ooi_type", None))
             self._tree_dict = create_object_tree_item_from_ref(tree.root, tree.store)
 
         return self._tree_dict
@@ -27,9 +27,6 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
     def get_filtered_tree(self, tree_dict: dict) -> dict:
         filtered_types = self.request.GET.getlist("ooi_type", [])
         return filter_ooi_tree(tree_dict, filtered_types)
-
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
 
     def count_active_filters(self):
         count_depth_filter = len(self.request.GET.getlist("depth", []))
@@ -61,7 +58,6 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
         context["tree"] = self.get_filtered_tree(self.get_tree_dict())
         context["tree_view"] = self.request.GET.get("view", "condensed")
-        context["observed_at_form"] = self.get_connector_form()
         context["active_filters_counter"] = self.count_active_filters()
         return context
 
@@ -76,9 +72,13 @@ class OOISummaryView(OOITreeView):
 class OOIGraphView(OOITreeView):
     template_name = "graph-d3.html"
 
-    def get_filtered_tree(self, tree_dict: dict) -> dict:
-        filtered_tree = super().get_filtered_tree(tree_dict)
-        return hydrate_tree(filtered_tree, self.organization.code)
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Only the graph template needs the hydrated fields (display_name, overlay_data,
+        # graph_url), so build them on a dedicated, deep-copied tree. The shared `tree`
+        # context used by the tree/summary tabs stays filter-only and unhydrated.
+        context["graph_tree"] = hydrate_tree(deepcopy(context["tree"]), self.organization.code)
+        return context
 
     def get_last_breadcrumb(self):
         return {

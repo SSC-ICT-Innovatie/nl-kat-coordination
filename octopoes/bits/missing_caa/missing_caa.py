@@ -15,7 +15,7 @@ def run(input_ooi: Hostname, additional_oois: list[DNSCAARecord | NXDOMAIN], con
 
     if any(nxdomains):
         return
-    # only report finding when there is no SPF record
+    # only report finding when there is no CAA record
     if (
         not tldextract.extract(input_ooi.name).subdomain
         and tldextract.extract(input_ooi.name).domain

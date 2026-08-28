@@ -1,0 +1,59 @@
+[role="tablist"] {
+  min-width: 80vw;
+}
+
+[role="tablist"] .button-container {
+  /* Alignment */
+  display: flex;
+  flex-direction: row;
+  padding: var(--spacing-grid-050);
+  box-sizing: border-box;
+  border-radius: var(--border-radius-s);
+  margin-top: 0;
+  line-height: 1.5rem;
+  border: 1px solid var(--colors-purrple-300);
+  gap: var(--spacing-grid-100);
+  overflow: auto;
+}
+
+[role="tab"],
+[role="tab"]:focus,
+[role="tab"]:hover {
+  padding: var(--spacing-grid-050) var(--spacing-grid-100);
+  border-radius: var(--border-radius-s);
+  background-color: var(--colors-white);
+  box-sizing: border-box;
+  border: 0;
+  margin: 2px;
+
+  /* Text and icon styling */
+  text-decoration: none;
+  font-weight: normal;
+  white-space: nowrap;
+  color: var(--colors-grey-900);
+
+  /* Behaviour */
+  cursor: pointer;
+  overflow-wrap: break-word;
+}
+
+[role="tab"]:hover {
+  background-color: var(--colors-purrple-300);
+}
+
+[role="tab"][aria-selected="true"] {
+  font-weight: bold;
+  background-color: var(--colors-purrple-200);
+}
+
+[role="tabpanel"] {
+  padding: 5px;
+  border: 1px solid var(--colors-grey-900);
+  border-radius: var(--border-radius-s);
+  overflow: auto;
+  margin-top: -10px;
+}
+
+[role="tabpanel"] > pre:only-child {
+  margin: -5px;
+}

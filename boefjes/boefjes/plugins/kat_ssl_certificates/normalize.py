@@ -115,8 +115,8 @@ def read_certificates(
             ]
         except x509.ExtensionNotFound:
             subject_alternative_names = []
-        valid_from = cert.not_valid_before.isoformat()
-        valid_until = cert.not_valid_after.isoformat()
+        valid_from = cert.not_valid_before_utc.isoformat()
+        valid_until = cert.not_valid_after_utc.isoformat()
         pk_size = cert.public_key().key_size
         logging.info("Parsing certificate of type %s", type(cert.public_key()))
         if isinstance(cert.public_key(), rsa.RSAPublicKey):

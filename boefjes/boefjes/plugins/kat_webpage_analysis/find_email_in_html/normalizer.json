@@ -1,0 +1,13 @@
+{
+  "id": "kat_find_emailaddress_in_html",
+  "name": "Webpage analysis find email-addresses in html",
+  "description": "Parses websites to find email-addresses.",
+  "consumes": [
+    "text/html"
+  ],
+  "produces": [
+    "EmailAddress",
+    "EmailAddressInstance",
+    "Hostname"
+  ]
+}
