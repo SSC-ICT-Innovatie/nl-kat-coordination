@@ -75,7 +75,7 @@ class DNSMXRecord(DNSRecord):
 
 
 class DNSTXTRecord(DNSRecord):
-    """Represents the DNS TXT riecord.
+    """Represents the DNS TXT record.
 
     Example value
     -------------
@@ -133,6 +133,7 @@ class DNSSOARecord(DNSRecord):
     dns_record_type: Literal["SOA"] = "SOA"
 
     soa_hostname: Reference = ReferenceField(Hostname)
+    rname: str | None = None
     serial: int | None = None
     retry: int | None = None
     refresh: int | None = None

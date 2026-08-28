@@ -30,6 +30,7 @@ from octopoes.models.ooi.dns.records import (
     DNSTXTRecord,
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname, ResolvedHostname
+from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.email_security import (
     DKIMExists,
     DKIMKey,
@@ -53,6 +54,7 @@ from octopoes.models.ooi.findings import (
     SnykFindingType,
 )
 from octopoes.models.ooi.geography import GeographicPoint
+from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 from octopoes.models.ooi.monitoring import Application, Incident
 from octopoes.models.ooi.network import (
     AutonomousSystem,
@@ -114,7 +116,9 @@ ConcreteFindingTypeType: TypeAlias = (
     | CAPECFindingType
     | SnykFindingType
 )
+EmailAddressType: TypeAlias = EmailAddress | EmailAddressInstance
 FindingTypeType: TypeAlias = FindingType | ConcreteFindingTypeType
+IdentifierType: TypeAlias = Identifier | IdentifierVendor | IdentifierInstance
 ConcreteNetworkType: TypeAlias = (
     Network | IPAddressV4 | IPAddressV6 | AutonomousSystem | IPV4NetBlock | IPV6NetBlock | IPPort
 )
@@ -178,6 +182,8 @@ ConcreteOOIType: TypeAlias = (
     | AssetReport
     | GeographicPoint
     | ReportRecipe
+    | EmailAddressType
+    | IdentifierType
 )
 
 OOIType: TypeAlias = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType
