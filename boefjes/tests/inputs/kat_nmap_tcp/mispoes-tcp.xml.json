@@ -1,0 +1,9 @@
+{
+  "object_type": "IPAddressV4",
+  "primary_key": "IPAddressV4|internet|134.209.85.72",
+  "address": "134.209.85.72",
+  "network": {
+    "name": "internet"
+  },
+  "netblock": "None"
+}
