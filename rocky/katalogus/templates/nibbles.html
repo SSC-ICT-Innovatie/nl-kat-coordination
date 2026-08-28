@@ -1,0 +1,58 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content" tabindex="-1" class="katalogus">
+        <section>
+            {% include "partials/katalogus_header.html" %}
+            {% include "partials/plugins_navigation.html" with active="nibbles" %}
+
+            <div class="fifty-fifty">
+                <div>
+                    <h2>Nibbles</h2>
+                    <p>
+                        {% blocktranslate trimmed %}
+                            Nibbles are the new bits.
+                        {% endblocktranslate %}
+                    </p>
+                    <p class="de-emphasized">
+                        <strong>{{ object_list|length }}</strong> Nibble{{ object_list|pluralize:"s" }} {% translate "available" %}
+                    </p>
+                </div>
+            </div>
+            {% include "partials/katalogus_filter.html" with form=form %}
+            {% include "partials/katalogus_toolbar.html" %}
+
+            <div class="content">
+                <ul>
+                    {% for nibble in object_list %}
+                        <li>
+                            {{ nibble }} -
+                            {% if nibble in enabled_nibbles %}
+                                Enabled
+                                <form method="post"
+                                      class="inline"
+                                      action="{% url 'nibbles_toggle' organization.code nibble 'disable' %}?view_type={{ view_type }}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="button ghost">Disable</button>
+                                </form>
+                            {% else %}
+                                Disabled
+                                <form method="post"
+                                      class="inline"
+                                      action="{% url 'nibbles_toggle' organization.code nibble 'enable' %}?view_type={{ view_type }}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="button ghost">Enable</button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

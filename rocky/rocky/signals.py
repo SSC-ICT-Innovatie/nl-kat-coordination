@@ -123,6 +123,11 @@ def organization_post_save(sender, instance, created, *args, **kwargs):
         run_findings_dashboard(instance, octopoes_client)
 
     try:
+        octopoes_client.register_nibbles()
+    except Exception:
+        logger.exception("Could not register nibbles for organization %s", sender)
+
+    try:
         valid_time = datetime.datetime.now(datetime.timezone.utc)
         octopoes_client.save_declaration(Declaration(ooi=Network(name="internet"), valid_time=valid_time))
     except Exception:

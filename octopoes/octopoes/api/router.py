@@ -603,7 +603,7 @@ def nibbles_update(
     valid_time: datetime = Depends(extract_valid_time), octopoes: OctopoesService = Depends(octopoes_service)
 ) -> list[str]:
     octopoes.nibbler.update_nibbles(valid_time)
-    return nibbles_list(octopoes)
+    return octopoes.nibbler.list_nibbles()
 
 
 @router.get("/nibbles/disable", tags=["nibbles"])
@@ -624,7 +624,7 @@ def nibbles_toggle(
     state: bool, nibble_ids: list[str] = Query(), octopoes: OctopoesService = Depends(octopoes_service)
 ) -> list[str]:
     octopoes.nibbler.toggle_nibbles(nibble_ids, state, datetime.now())
-    return nibbles_list_enabled(octopoes)
+    return octopoes.nibbler.list_nibbles()
 
 
 @router.get("/nibbles/checksum", tags=["nibbles"])

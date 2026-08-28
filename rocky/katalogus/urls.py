@@ -10,6 +10,7 @@ from katalogus.views.katalogus import (
     NormalizerListView,
 )
 from katalogus.views.katalogus_settings import ConfirmCloneSettingsView, KATalogusSettingsView
+from katalogus.views.nibbles import NibblesToggleView, NibblesView
 from katalogus.views.plugin_detail import BoefjeDetailView, NormalizerDetailView, PluginCoverImgView
 from katalogus.views.plugin_enable_disable import PluginEnableDisableView
 from katalogus.views.plugin_settings_add import PluginSettingsAddView
@@ -30,6 +31,8 @@ urlpatterns = [
     path("plugins/normalizers/<view_type>/", NormalizerListView.as_view(), name="normalizers_list"),
     path("plugins/all/<view_type>/", KATalogusView.as_view(), name="all_plugins_list"),
     path("plugins/about-plugins/", AboutPluginsView.as_view(), name="about_plugins"),
+    path("plugins/nibbles/<view_type>/", NibblesView.as_view(), name="nibbles_list"),
+    path("plugins/nibbles/<nibble_id>/<state>/", NibblesToggleView.as_view(), name="nibbles_toggle"),
     path("plugins/boefje/<plugin_id>/", BoefjeDetailView.as_view(), name="boefje_detail"),
     path("plugins/boefje/<plugin_id>/edit/", EditBoefjeView.as_view(), name="edit_boefje"),
     path("plugins/normalizer/<plugin_id>/", NormalizerDetailView.as_view(), name="normalizer_detail"),

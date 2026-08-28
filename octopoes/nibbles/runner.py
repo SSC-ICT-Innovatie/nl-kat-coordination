@@ -111,7 +111,7 @@ class NibblesRunner:
         self.nibble_repository = nibble_repository
         self.cache: dict[OOI, dict[str, dict[tuple[Any, ...], tuple[set[OOI], bool]]]] = {}
         self.nibbles: dict[str, NibbleDefinition] = get_nibble_definitions()
-        self.federated: bool = False
+        self.federated: bool = True
 
     def update_nibbles(self, valid_time: datetime, new_nibbles: dict[str, NibbleDefinition] = get_nibble_definitions()):
         old_checksums = {nibble.id: nibble._checksum for nibble in self.nibbles.values()}
