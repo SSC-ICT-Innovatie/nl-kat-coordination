@@ -21,6 +21,8 @@ from octopoes.models.ooi.dns.records import (
     DNSARecord,
     DNSCAARecord,
     DNSCNAMERecord,
+    DNSGPOSRecord,
+    DNSLOCRecord,
     DNSMXRecord,
     DNSNSRecord,
     DNSPTRRecord,
@@ -52,6 +54,7 @@ from octopoes.models.ooi.findings import (
     SnykFindingType,
 )
 from octopoes.models.ooi.geography import GeographicPoint
+from octopoes.models.ooi.identifier import Identifier, IdentifierInstance, IdentifierVendor
 from octopoes.models.ooi.monitoring import Application, Incident
 from octopoes.models.ooi.network import (
     AutonomousSystem,
@@ -73,6 +76,7 @@ from octopoes.models.ooi.web import (
     URL,
     APIDesignRule,
     APIDesignRuleResult,
+    Cookie,
     HostnameHTTPURL,
     HTTPHeader,
     HTTPHeaderHostname,
@@ -98,6 +102,8 @@ DnsRecordType: TypeAlias = (
     | DNSSOARecord
     | DNSCNAMERecord
     | DNSCAARecord
+    | DNSLOCRecord
+    | DNSGPOSRecord
     | ResolvedHostname
     | NXDOMAIN
 )
@@ -112,6 +118,7 @@ ConcreteFindingTypeType: TypeAlias = (
 )
 EmailAddressType: TypeAlias = EmailAddress | EmailAddressInstance
 FindingTypeType: TypeAlias = FindingType | ConcreteFindingTypeType
+IdentifierType: TypeAlias = Identifier | IdentifierVendor | IdentifierInstance
 ConcreteNetworkType: TypeAlias = (
     Network | IPAddressV4 | IPAddressV6 | AutonomousSystem | IPV4NetBlock | IPV6NetBlock | IPPort
 )
@@ -127,6 +134,7 @@ WebType: TypeAlias = (
     | HTTPHeader
     | HTTPHeaderURL
     | HTTPHeaderHostname
+    | Cookie
     | ImageMetadata
     | RESTAPI
     | APIDesignRule
@@ -175,6 +183,7 @@ ConcreteOOIType: TypeAlias = (
     | GeographicPoint
     | ReportRecipe
     | EmailAddressType
+    | IdentifierType
 )
 
 OOIType: TypeAlias = ConcreteOOIType | ConcreteNetworkType | ConcreteFindingTypeType

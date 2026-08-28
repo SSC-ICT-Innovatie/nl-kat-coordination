@@ -1,0 +1,65 @@
+{
+  "id": "645fd349-6d62-43dd-8cfe-d3ab03c9e4b7",
+  "raw_data": {
+    "id": "04a20ad7-79a9-4043-88e4-ff5a44f2c23b",
+    "boefje_meta": {
+      "id": "f41900c9-956d-43df-bd79-620b04bc6a7f",
+      "boefje": {
+        "id": "webpage-analysis"
+      },
+      "organization": "_dev",
+      "input_ooi": "HTTPResource|internet|134.209.85.72|tcp|443|https|internet|mispo.es|https|internet|mispo.es|443|/",
+      "arguments": {
+        "input": {
+          "object_type": "HTTPResource",
+          "scan_profile": "reference=Reference('HTTPResource|internet|134.209.85.72|tcp|443|https|internet|mispo.es|https|internet|mispo.es|443|/') level=4 scan_profile_type='inherited'",
+          "primary_key": "HTTPResource|internet|134.209.85.72|tcp|443|https|internet|mispo.es|https|internet|mispo.es|443|/",
+          "website": {
+            "ip_service": {
+              "ip_port": {
+                "address": {
+                  "network": {
+                    "name": "internet"
+                  },
+                  "address": "134.209.85.72"
+                },
+                "protocol": "tcp",
+                "port": "443"
+              },
+              "service": {
+                "name": "https"
+              }
+            },
+            "hostname": {
+              "network": {
+                "name": "internet"
+              },
+              "name": "mispo.es"
+            }
+          },
+          "web_url": {
+            "scheme": "https",
+            "netloc": {
+              "network": {
+                "name": "internet"
+              },
+              "name": "mispo.es"
+            },
+            "port": "443",
+            "path": "/"
+          },
+          "redirects_to": "None"
+        }
+      }
+    },
+    "mime_types": [
+      {
+        "value": "text/html"
+      }
+    ]
+  },
+  "normalizer": {
+    "id": "kat_find_identifiers_in_html",
+    "version": null
+  }
+}
