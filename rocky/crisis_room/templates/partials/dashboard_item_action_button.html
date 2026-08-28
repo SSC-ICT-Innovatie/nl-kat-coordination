@@ -1,0 +1,78 @@
+{% load i18n %}
+{% load static %}
+
+<div class="dropdown">
+    <button type="button"
+            aria-label="{% translate "Options for dashboard items" %}"
+            aria-haspopup="listbox"
+            aria-controls="action-dropdown"
+            aria-expanded="false"
+            class="dropdown-button icon-only ti-dots-vertical"></button>
+    <div id="action-dropdown" class="dropdown-list">
+        <ul role="listbox" aria-labelledby="action-dropdown">
+            {% if dashboard_item.item.recipe %}
+                <li role="option">
+                    <button type="button"
+                            class="toggle-item-button"
+                            data-id="{{ dashboard_item.item.id }}">
+                        <span class="toggle-item"><i class="icon ti-eye"></i>{% translate "Show description" %}</span>
+                        <span class="toggle-item" data-show="off"><i class="icon ti-eye-off"></i>{% translate "Hide description" %}</span>
+                    </button>
+                </li>
+            {% endif %}
+            <form class="inline"
+                  method="post"
+                  action="{% url "update_dashboard_item" organization_code=organization.code %}">
+                {% csrf_token %}
+                <input type="hidden"
+                       name="dashboard_item"
+                       value="{{ dashboard_item.item.id }}">
+                <input type="hidden"
+                       name="dashboard"
+                       value="{{ dashboard_item.dashboard.id }}">
+                {% if dashboard_items|length > 1 and not forloop.first %}
+                    <li role="option">
+                        <button type="submit" name="move" value="up">
+                            <i class="icon ti-arrow-up"></i>{% translate "Position up" %}
+                        </button>
+                    </li>
+                {% endif %}
+                {% if dashboard_items|length > 1 and not forloop.last %}
+                    <li role="option">
+                        <button type="submit" name="move" value="down">
+                            <i class="icon ti-arrow-down"></i>{% translate "Position down" %}
+                        </button>
+                    </li>
+                {% endif %}
+            </form>
+            {% if dashboard_item.item.recipe %}
+                <form class="inline"
+                      method="post"
+                      action="{% url "report_history" organization_code=organization.code %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="dashboard" value="{{ dashboard.id }}">
+                    {% if dashboard_item.data.parent_report %}
+                        <input type="hidden"
+                               name="report_reference"
+                               value="{{ dashboard_item.data.parent_report.primary_key }}">
+                    {% else %}
+                        <input type="hidden"
+                               name="report_reference"
+                               value="{{ dashboard_item.data.report.primary_key }}">
+                    {% endif %}
+                    <li role="option">
+                        <button type="submit" name="action" value="rerun">
+                            <i class="icon ti-refresh"></i>{% translate "Rerun report" %}
+                        </button>
+                    </li>
+                </form>
+            {% endif %}
+            <li>
+                <a href="#delete-item-modal-{{ dashboard_item.item.id }}"
+                   data-modal-id="delete-item-modal-{{ dashboard_item.item.id }}"
+                   class="plain destructive"><i class="icon ti-trash"></i>{% translate "Delete item" %}
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>

@@ -8,7 +8,7 @@ from fastapi.responses import Response
 from httpx import codes
 from starlette.responses import JSONResponse
 
-from bytes.api.models import BoefjeOutput, File
+from bytes.api.models import BoefjeOutput, File, StatusEnum
 from bytes.auth import authenticate_token
 from bytes.config import get_settings
 from bytes.database.sql_meta_repository import MetaIntegrityError, ObjectNotFoundException, create_meta_data_repository
@@ -46,7 +46,11 @@ def get_boefje_meta_by_id(
     boefje_meta_id: UUID, meta_repository: MetaDataRepository = Depends(create_meta_data_repository)
 ) -> BoefjeMeta:
     with meta_repository:
-        meta = meta_repository.get_boefje_meta_by_id(boefje_meta_id)
+        try:
+            meta = meta_repository.get_boefje_meta_by_id(boefje_meta_id)
+        except ObjectNotFoundException as error:
+            raise HTTPException(status_code=codes.NOT_FOUND, detail="Boefje meta not found") from error
+
         logger.debug("Found meta: %s", meta)
 
         return meta
@@ -111,6 +115,17 @@ def get_normalizer_meta_by_id(
         raise HTTPException(status_code=codes.NOT_FOUND, detail="Normalizer meta not found") from error
 
 
+@router.get("/normalizer_metas", response_model=dict[str, NormalizerMeta], tags=[NORMALIZER_META_TAG])
+def get_normalizer_metas(
+    normalizer_metas: list[UUID] = Query(...),
+    limit: int = 100,
+    offset: int = 0,
+    meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
+) -> dict[str, NormalizerMeta]:
+    query_filter = NormalizerMetaFilter(limit=limit, offset=offset)
+    return meta_repository.get_normalizer_metas(normalizer_metas, query_filter)
+
+
 @router.get("/normalizer_meta", response_model=list[NormalizerMeta], tags=[NORMALIZER_META_TAG])
 def get_normalizer_meta(
     organization: str,
@@ -146,7 +161,7 @@ def get_normalizer_meta(
 
 
 @router.post("/raw", tags=[RAW_TAG])
-def create_raw(
+async def create_raw(
     boefje_meta_id: UUID,
     boefje_output: BoefjeOutput,
     meta_repository: MetaDataRepository = Depends(create_meta_data_repository),
@@ -166,6 +181,7 @@ def create_raw(
 
         if parsed_mime_types in mime_types_by_id.values():
             # Set the id for this file using the precomputed dict that maps existing primary keys to the mime-type set.
+            # We do this since a boefje_meta should have unique raw files based on the mime-types, so this deduplicates.
             raw_ids[raw.name] = list(mime_types_by_id.keys())[list(mime_types_by_id.values()).index(parsed_mime_types)]
 
             continue
@@ -189,12 +205,10 @@ def create_raw(
                 organization=meta.organization,
                 raw_data=RawDataMeta(id=raw_id, boefje_meta=raw_data.boefje_meta, mime_types=raw_data.mime_types),
             )
-            event_manager.publish(event)
+            await event_manager.publish(event)
         except Exception as error:
             logger.exception("Error saving raw data")
             raise HTTPException(status_code=codes.INTERNAL_SERVER_ERROR, detail="Could not save raw data") from error
-
-        all_parsed_mime_types.append(parsed_mime_types)
 
     return raw_ids
 
@@ -271,9 +285,17 @@ def get_raws(
     )
 
     raws = meta_repository.get_raws(query_filter)
+    status = StatusEnum.COMPLETED
+
+    if len(raws) == 1 and {"error/boefje"} in raws[0][1].mime_types:
+        status = StatusEnum.FAILED
 
     return BoefjeOutput(
-        files=[File(name=raw_id, content=b64encode(raw.value), tags=raw.mime_types) for raw_id, raw in raws]
+        status=status,
+        files=[
+            File(name=str(raw_id), content=b64encode(raw.value).decode(), tags=[m.value for m in raw.mime_types])
+            for raw_id, raw in raws
+        ],
     )
 
 

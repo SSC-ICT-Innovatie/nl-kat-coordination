@@ -1,14 +1,14 @@
 {% load i18n %}
 
 {% if show_introduction %}
-    <p>
+    <p class="toggle-item" data-show="off">
         {% blocktranslate %}
             This overview shows the total number of findings per
             severity that have been identified for this organization.
         {% endblocktranslate %}
     </p>
 {% endif %}
-<div class="horizontal-scroll">
+<div>
     <table>
         <caption class="visually-hidden">{% translate "Total per severity overview" %}</caption>
         <thead>
@@ -21,56 +21,56 @@
         <tbody>
             <tr>
                 <td>
-                    <span class="critical">Critical</span>
+                    <span class="critical">{% translate "Critical" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.critical }}</td>
                 <td class="number">{{ data.total_by_severity.critical }}</td>
             </tr>
             <tr>
                 <td>
-                    <span class="high">High</span>
+                    <span class="high">{% translate "High" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.high }}</td>
                 <td class="number">{{ data.total_by_severity.high }}</td>
             </tr>
             <tr>
                 <td>
-                    <span class="medium">Medium</span>
+                    <span class="medium">{% translate "Medium" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.medium }}</td>
                 <td class="number">{{ data.total_by_severity.medium }}</td>
             </tr>
             <tr>
                 <td>
-                    <span class="low">Low</span>
+                    <span class="low">{% translate "Low" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.low }}</td>
                 <td class="number">{{ data.total_by_severity.low }}</td>
             </tr>
             <tr>
                 <td>
-                    <span class="recommendation">Recommendation</span>
+                    <span class="recommendation">{% translate "Recommendation" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.recommendation }}</td>
                 <td class="number">{{ data.total_by_severity.recommendation }}</td>
             </tr>
             <tr>
                 <td>
-                    <span class="pending">Pending</span>
+                    <span class="pending">{% translate "Pending" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.pending }}</td>
                 <td class="number">{{ data.total_by_severity.pending }}</td>
             </tr>
             <tr>
                 <td>
-                    <span class="unknown">Unknown</span>
+                    <span class="unknown">{% translate "Unknown" %}</span>
                 </td>
                 <td class="number">{{ data.total_by_severity_per_finding_type.unknown }}</td>
                 <td class="number">{{ data.total_by_severity.unknown }}</td>
             </tr>
             <tfoot>
                 <tr>
-                    <td>Total</td>
+                    <td>{% translate "Total" %}</td>
                     <td class="number">{{ data.total_finding_types }}</td>
                     <td class="number">{{ data.total_occurrences }}</td>
                 </tr>

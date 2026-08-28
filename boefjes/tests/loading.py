@@ -3,12 +3,30 @@ from datetime import timezone
 from uuid import UUID
 
 from boefjes.config import BASE_DIR
-from boefjes.job_models import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawDataMeta
+from boefjes.worker.interfaces import Task, TaskStatus
+from boefjes.worker.job_models import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawDataMeta
 
 
 def get_dummy_data(filename: str) -> bytes:
     path = BASE_DIR.parent / "tests" / "examples" / filename
     return path.read_bytes()
+
+
+def get_task(
+    task_id: UUID = UUID("a64d755b-6c23-44ab-8de6-8d144c448ab3"), boefje_id: str = "kat_test.main"
+) -> BoefjeMeta:
+    return Task(
+        id=task_id,
+        data=get_boefje_meta(boefje_id=boefje_id),
+        schedule_id="test",
+        scheduler_id="test",
+        priority=1,
+        status=TaskStatus.RUNNING,
+        type="boefje",
+        organisation="test",
+        created_at=datetime.datetime(1000, 10, 10, 10, 10, 10, tzinfo=timezone.utc),
+        modified_at=datetime.datetime(1000, 10, 10, 10, 10, 11, tzinfo=timezone.utc),
+    )
 
 
 def get_boefje_meta(

@@ -25,7 +25,7 @@
                         </dd>
                     </div>
                     <div>
-                        <dt>{% translate "E-mail address" %}</dt>
+                        <dt>{% translate "Email address" %}</dt>
                         <dd>
                             {{ organization_member.user }}
                         </dd>
@@ -63,11 +63,9 @@
                         <div>
                             {% if tcl < 0 %}
                                 <p>
-                                    {% blocktranslate trimmed %}
-                                        You don't have any clearance to scan objects.
-                                        <br>
-                                        Get in contact with the admin to give you the necessary clearance level.
-                                    {% endblocktranslate %}
+                                    {% translate "You don't have any clearance to scan objects." %}
+                                    <br>
+                                    {% translate "Get in contact with the admin to give you the necessary clearance level." %}
                                 </p>
                             {% elif tcl >= 0 and tcl == acl %}
                                 <p>

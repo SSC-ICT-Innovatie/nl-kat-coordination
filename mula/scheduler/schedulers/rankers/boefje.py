@@ -33,8 +33,14 @@ class BoefjeRanker(Ranker):
         if obj.latest_task is None or not obj.latest_task:
             return 2
 
-        # Make sure that we don't have tasks that are still in the grace period
-        time_since_grace_period = ((datetime.now(timezone.utc) - obj.latest_task.modified_at) - grace_period).seconds
+        # Make sure that we don't have tasks that are still in the grace period.
+        # Use total_seconds() rather than .seconds: the latter only returns the
+        # H:M:S portion of a timedelta (0..86399) and drops the days, which
+        # made both the `< 0` and `>= max_days_in_seconds` branches unreachable
+        # and inverted the decay curve for tasks older than one day.
+        time_since_grace_period = (
+            (datetime.now(timezone.utc) - obj.latest_task.modified_at) - grace_period
+        ).total_seconds()
         if time_since_grace_period < 0:
             return -1
 

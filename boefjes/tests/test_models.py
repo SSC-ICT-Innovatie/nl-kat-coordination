@@ -1,5 +1,5 @@
-from boefjes.models import RunOn
 from boefjes.sql.db_models import RunOnDB
+from boefjes.worker.models import RunOn
 
 
 def test_run_on():

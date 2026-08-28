@@ -20,6 +20,8 @@
             <li {% if view == "report_tasks" %}aria-current="page"{% endif %}>
                 {% if organization %}
                     <a href="{% url 'reports_task_list' organization.code %}">{% translate "Reports" %}</a>
+                {% else %}
+                    <a href="{% url 'all_reports_task_list' %}">{% translate "Reports" %}</a>
                 {% endif %}
             </li>
         </ul>

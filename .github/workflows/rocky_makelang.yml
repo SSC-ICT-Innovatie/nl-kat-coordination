@@ -21,13 +21,12 @@ jobs:
       contents: read
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python
-        uses: actions/setup-python@v5
-        id: py311
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
-          python-version: 3.11
+          python-version: 3.13
           cache: pip
 
       - name: Install GNU gettext utilities
@@ -40,7 +39,7 @@ jobs:
         working-directory: ./rocky
 
       - name: Install Octopoes
-        run: pip install wheel && cd octopoes && python setup.py bdist_wheel && pip install dist/octopoes*.whl
+        run: pip install wheel setuptools && cd octopoes && python setup.py bdist_wheel && pip install dist/octopoes*.whl
 
       - name: Generate the .pot file if source strings changed
         run: make lang

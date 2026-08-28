@@ -2,7 +2,6 @@
 
 {% load i18n %}
 {% load static %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
@@ -32,14 +31,8 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {{ ooi_types|json_script:"ooi-types" }}
-    {{ tree|json_script:"tree-data" }}
-    {% compress js %}
-        <script src="{% static "js/stringHelpers.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "dist/imports/graph.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
-    {% compress css %}
-        <link href="{% static "dist/imports/graph.css" %}" rel="stylesheet">
-    {% endcompress %}
+    {{ graph_tree|json_script:"tree-data" }}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "dist/imports/graph.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <link href="{% static "dist/imports/graph.css" %}" rel="stylesheet">
 {% endblock html_at_end_body %}

@@ -1,0 +1,2 @@
+ALTER TABLE boefje ADD COLUMN deduplicate BOOLEAN DEFAULT 'true' NOT NULL;
+ALTER TABLE organisation ADD COLUMN deduplicate BOOLEAN DEFAULT 'true' NOT NULL;

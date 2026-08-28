@@ -37,7 +37,7 @@ def remove_ignored_params(url: str, ignored_params: list[str]) -> str:
 
 
 def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
-    network = Network(name="internet")
+    network = Network(name=input_ooi.reference.tokenized.resource.web_url.netloc.network.name)
 
     if input_ooi.key.lower() == "location":
         ignored_url_params = get_ignored_url_params(config, "ignored_url_parameters", [])

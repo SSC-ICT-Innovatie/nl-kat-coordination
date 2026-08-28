@@ -22,7 +22,7 @@ This Nmap has the following hardcoded options:
 
 ### Input OOIs
 
-Nmap expects an IpAddress as input which can be of type IpAddressV4 or IpAddressV6.
+Nmap expects an IpAddress or NetBlock as input which, can be of type IpAddressV4, IpAddressV6, IPV4NetBlock or IPV6NetBlock.
 
 ### Output OOIs
 
@@ -44,10 +44,6 @@ Nmap outputs the following OOIs:
   "organization": "_dev",
   "arguments": {
     "host": "1.1.1.1"
-  },
-  "dispatches": {
-    "normalizers": ["kat_nmap.normalize"],
-    "boefjes": []
   }
 }
 ```

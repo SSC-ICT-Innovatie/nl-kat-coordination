@@ -26,9 +26,8 @@ class Reference(str):
     def class_type(self) -> type[OOI]:
         from octopoes.models.types import type_by_name
 
-        object_type, natural_key = self.parse(self)
-        ooi_class = type_by_name(object_type)
-        return ooi_class
+        object_type, _ = self.parse(self)
+        return type_by_name(object_type)
 
     @property
     def tokenized(self) -> PrimaryKeyToken:
@@ -215,10 +214,11 @@ class OOI(BaseModel):
 
     def serialize(self) -> SerializedOOI:
         serialized_oois = {}
+        model_fields = self.__class__.model_fields
         for key, value in self:
-            if key not in self.model_fields:
+            if key not in model_fields:
                 continue
-            serialized_oois[key] = self._serialize_value(value, self.model_fields[key].is_required())
+            serialized_oois[key] = self._serialize_value(value, model_fields[key].is_required())
         return serialized_oois
 
     def _serialize_value(self, value: Any, required: bool) -> SerializedOOIValue:
@@ -238,7 +238,7 @@ class OOI(BaseModel):
             return value
         return str(value)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash(self.primary_key)
 
 

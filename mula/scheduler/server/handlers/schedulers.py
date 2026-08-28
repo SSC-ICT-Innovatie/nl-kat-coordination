@@ -17,7 +17,7 @@ class SchedulerAPI:
 
         self.api.add_api_route(
             path="/schedulers",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET"],
             response_model=list[schemas.Scheduler],
             status_code=status.HTTP_200_OK,
@@ -51,7 +51,7 @@ class SchedulerAPI:
             description="Pop a task from a scheduler",
         )
 
-    def list(self) -> list[schemas.Scheduler]:
+    def get_paged(self) -> list[schemas.Scheduler]:
         return [schemas.Scheduler(**s.dict()) for s in self.schedulers.values()]
 
     def get(self, scheduler_id: str) -> schemas.Scheduler:
@@ -65,7 +65,7 @@ class SchedulerAPI:
         self,
         request: fastapi.Request,
         scheduler_id: str,
-        limit: int = 1,
+        limit: int | None = None,
         filters: storage.filters.FilterRequest | None = None,
     ) -> schemas.TaskPop:
         s = self.schedulers.get(scheduler_id)
@@ -74,7 +74,7 @@ class SchedulerAPI:
 
         results = s.pop_item_from_queue(limit=limit, filters=filters)
 
-        return schemas.TaskPop(results=[schemas.Task(**item.dict()) for item in results])
+        return schemas.TaskPop(results=[schemas.Task(**item.model_dump()) for item in results])
 
     def push(self, scheduler_id: str, item: schemas.TaskPush) -> schemas.Task:
         s = self.schedulers.get(scheduler_id)

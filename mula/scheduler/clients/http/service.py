@@ -1,3 +1,4 @@
+import time
 import urllib.parse
 from collections.abc import MutableMapping
 from typing import Any
@@ -63,11 +64,11 @@ class HTTPService(Connector):
         self.logger: structlog.BoundLogger = structlog.getLogger(self.__class__.__name__)
         self.host: str = host
         self.timeout: int = timeout
-        self.retries: int = retries
         self.pool_connections: int = pool_connections
+        self.retries: int = retries
+        self.source: str = source
         transport = HTTPTransport(retries=self.retries, limits=Limits(max_connections=self.pool_connections))
         self.session = httpx.Client(transport=transport, timeout=self.timeout)
-        self.source: str = source
 
         if self.source:
             self.session.headers["User-Agent"] = self.source
@@ -86,7 +87,9 @@ class HTTPService(Connector):
         Returns:
             A request.Response object
         """
-        response = self.session.get(url, headers=self.headers, params=params, timeout=self.timeout)
+        response = self._request_with_backoff(
+            method="GET", url=url, headers=self.headers, params=params, timeout=self.timeout
+        )
         self.logger.debug("Made GET request to %s.", url, name=self.name, url=url)
 
         response.raise_for_status()
@@ -105,12 +108,30 @@ class HTTPService(Connector):
         Returns:
             A request.Response object
         """
-        response = self.session.post(url, headers=self.headers, params=params, data=payload, timeout=self.timeout)
+        response = self._request_with_backoff(
+            method="POST", url=url, headers=self.headers, params=params, data=payload, timeout=self.timeout
+        )
         self.logger.debug("Made POST request to %s.", url, name=self.name, url=url, payload=payload)
 
         response.raise_for_status()
 
         return response
+
+    def _request_with_backoff(self, method: str, url: str, **kwargs: Any) -> httpx.Response:
+        for i in range(1, self.retries + 1):
+            try:
+                response = self.session.request(method, url, **kwargs)
+                response.raise_for_status()
+                return response
+            except httpx.RequestError as exc:
+                if i == self.retries:
+                    raise exc
+
+                self.logger.warning("Retrying %s request to %s (attempt %d/%d)", method, url, i, self.retries)
+                delay = min(2**i, 60)  # Exponential backoff with a max delay of 60 seconds
+                time.sleep(delay)
+
+        raise RuntimeError("Request failed after maximum retries")
 
     @property
     def headers(self) -> MutableMapping[str, str]:

@@ -1,21 +1,8 @@
-import docker
-
-from boefjes.job_models import BoefjeMeta
-
-ADR_VALIDATOR_REPOSITORY = "registry.gitlab.com/commonground/don/adr-validator"
-ADR_VALIDATOR_VERSION = "0.2.0"
+import subprocess
 
 
-def run_adr_validator(url: str) -> str:
-    client = docker.from_env()
-    image = f"{ADR_VALIDATOR_REPOSITORY}:{ADR_VALIDATOR_VERSION}"
-    args = ("-format", "json", url)
-
-    return client.containers.run(image, args, remove=True, read_only=True)
-
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ooi = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ooi = boefje_meta["arguments"]["input"]
     api_url = input_ooi["api_url"]
 
     hostname = api_url["netloc"]["name"]
@@ -23,7 +10,9 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
     scheme = api_url["scheme"]
 
     url = f"{scheme}://{hostname}{path}"
+    cmd = ["/usr/local/bin/adr-validator", "-format", "json", url]
 
-    output = run_adr_validator(url)
+    output = subprocess.run(cmd, capture_output=True)
+    output.check_returncode()
 
-    return [(set(), output)]
+    return [({"openkat/adr-validator-output"}, output.stdout.decode())]

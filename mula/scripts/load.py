@@ -20,8 +20,7 @@ katalogus_client = httpx.Client(base_url=KATALOGUS_API)
 scheduler_client = httpx.Client(base_url=SCHEDULER_API)
 
 
-def run(org_num: int = 1):
-    # Create organisations
+def create_organisations(org_num: int = 1) -> list[dict[str, Any]]:
     orgs: list[dict[str, Any]] = []
     for n in range(0, org_num):
         org = {"id": f"org-{n}", "name": f"Organisation {n}"}
@@ -53,23 +52,11 @@ def run(org_num: int = 1):
 
         logger.info("Created organisation %s", org)
 
-        # Enable boefjes for organisation
-        boefjes = ("dns-records", "dns-sec", "dns-zone")
-        for boefje_id in boefjes:
-            resp_enable_boefje = katalogus_client.patch(
-                url=f"/v1/organisations/{org.get('id')}/plugins/{boefje_id}", json={"enabled": True}, timeout=30
-            )
+    return orgs
 
-            try:
-                resp_enable_boefje.raise_for_status()
-            except httpx.HTTPError:
-                logger.info("Error enabling boefje %s", boefje_id)
-                raise
 
-            logger.info("Enabled boefje %s", boefje_id)
-
+def create_oois(orgs: list[dict[str, Any]], ooi_num: int = 10) -> None:
     declarations: list[dict[str, Any]] = []
-
     # Check if data file exists
     if not Path("data.csv").exists():
         logger.info("data.csv file not found")
@@ -99,8 +86,10 @@ def run(org_num: int = 1):
             }
             declarations.append(declaration)
 
+    ooi_num = max(1, min(ooi_num, len(declarations)))
+
     for org in orgs:
-        for declaration in declarations[:10]:
+        for declaration in declarations[:ooi_num]:
             resp_octopoes_decl = octopoes_client.post(f"/{org.get('id')}/declarations", json=declaration, timeout=30)
 
             try:
@@ -133,6 +122,39 @@ def run(org_num: int = 1):
             logger.info("Org %s created scan profile %s", org.get("id"), declaration.get("ooi").get("scan_profile"))
 
 
+def enable_boefjes(orgs: list[dict[str, Any]], boefjes_str: str = "dns-records,dns-zone") -> None:
+    boefjes = [boefje.strip() for boefje in boefjes_str.split(",")]
+    if not boefjes:
+        logger.info("No boefjes specified to enable")
+        return
+
+    for org in orgs:
+        # Enable boefjes for organisation
+        for boefje_id in boefjes:
+            resp_enable_boefje = katalogus_client.patch(
+                url=f"/v1/organisations/{org.get('id')}/plugins/{boefje_id}", json={"enabled": True}, timeout=30
+            )
+
+            try:
+                resp_enable_boefje.raise_for_status()
+            except httpx.HTTPError:
+                logger.info("Error enabling boefje %s", boefje_id)
+                raise
+
+            logger.info("Enabled boefje %s", boefje_id)
+
+
+def run(org_num: int = 1, ooi_num: int = 10, boefjes_str: str = "dns-records,dns-zone") -> None:
+    # Create organisations
+    orgs = create_organisations(org_num=org_num)
+
+    # Create OOIs
+    create_oois(orgs=orgs, ooi_num=ooi_num)
+
+    # Enable boefjes
+    enable_boefjes(orgs=orgs, boefjes_str=boefjes_str)
+
+
 if __name__ == "__main__":
     # Setup command line interface
     parser = argparse.ArgumentParser(description="Load test the scheduler")
@@ -140,7 +162,13 @@ if __name__ == "__main__":
     # Add arguments
     parser.add_argument("--orgs", type=int, default=1, help="Number of organisations to create")
 
+    parser.add_argument("--oois", type=int, default=10, help="Number of OOIs to create per organisation")
+
+    parser.add_argument(
+        "--boefjes", type=str, default="dns-records,dns-zone", help="Comma-separated list of boefjes to enable"
+    )
+
     # Parse arguments
     args = parser.parse_args()
 
-    run(org_num=args.orgs)
+    run(org_num=args.orgs, ooi_num=args.oois, boefjes_str=args.boefjes)

@@ -3,37 +3,36 @@
 {% load i18n %}
 {% load static %}
 {% load ooi_extra %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div>
-                {% if ooi_past_due %}
-                    {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
+            {% if historic_view %}
+                {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
 
-                {% endif %}
-                {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
+            {% endif %}
+            {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
 
-            </div>
             <div>
                 {% include "oois/ooi_detail_object.html" with ooi=ooi object_details=object_details %}
 
                 {% if is_question %}
+                    {% if current_config %}
+                        {% include "partials/current_config.html" with config=current_config %}
+
+                    {% endif %}
                     {% include "forms/json_schema_form.html" with json_schema=ooi.json_schema %}
 
                 {% endif %}
             </div>
-            <div>
-                {% include "oois/ooi_detail_origins_declarations.html" %}
-                {% include "oois/ooi_detail_origins_observations.html" %}
-                {% include "oois/ooi_detail_origins_inference.html" %}
-                {% include "partials/ooi_detail_related_object.html" with query=mandatory_fields ooi_past_due=ooi_past_due related=related ooi=ooi %}
-                {% include "tasks/ooi_detail_task_list.html" %}
+            {% include "oois/ooi_detail_origins_declarations.html" %}
+            {% include "oois/ooi_detail_origins_observations.html" %}
+            {% include "oois/ooi_detail_origins_inference.html" %}
+            {% include "partials/ooi_detail_related_object.html" with query=mandatory_fields ooi_past_due=ooi_past_due related=related ooi=ooi %}
+            {% include "tasks/ooi_detail_task_list.html" %}
 
-            </div>
             {% if not ooi|is_finding and not ooi|is_finding_type %}
                 <div>
                     {% include "oois/ooi_detail_findings_overview.html" with severity_summary=findings_severity_summary severity_summary_totals=severity_summary_totals %}
@@ -59,7 +58,7 @@
                         </form>
                     </div>
                 </div>
-                {% if not organization_indemnification %}
+                {% if not indemnification_present %}
                     <p class="warning"
                        role="group"
                        aria-label="{% translate "indemnification warning" %}">
@@ -82,12 +81,12 @@
                         {% endblocktranslate %}
                     </p>
                 {% endif %}
-                {% if member.max_clearance_level < ooi.scan_profile.level %}
+                {% if organization_member.max_clearance_level < ooi.scan_profile.level %}
                     <p class="warning"
                        role="group"
                        aria-label="{% translate "Scan warning" %}">
                         {% url "account_detail" organization.code as account_details %}
-                        {% blocktranslate trimmed with member_clearance_level=member.max_clearance_level boefje_scan_level=ooi.scan_profile.level %}
+                        {% blocktranslate trimmed with member_clearance_level=organization_member.max_clearance_level boefje_scan_level=ooi.scan_profile.level %}
                             <strong>Warning:</strong>
                             You are not allowed to scan this OOI. Your maximum clearance level is {{ member_clearance_level }} and this OOI has level {{ boefje_scan_level }}.
                             Go to your <a href="{{ account_details }}">account details</a> to manage your clearance level.
@@ -118,7 +117,7 @@
 
                                         </td>
                                         <td class="nowrap">
-                                            {% if not organization_indemnification or not perms.tools.can_scan_organization or member.max_clearance_level < ooi.scan_profile.level %}
+                                            {% if not indemnification_present or not perms.tools.can_scan_organization or organization_member.max_clearance_level < ooi.scan_profile.level %}
                                                 {% translate "Unable to start scan. See the warning for more details." %}
                                             {% elif ooi.scan_profile.level < boefje.scan_level.value %}
                                                 <button type="button" class="disabled">{% translate "Start scan" %}</button>
@@ -143,8 +142,8 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/jsonSchemaToForm.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

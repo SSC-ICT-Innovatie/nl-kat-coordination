@@ -1,4 +1,5 @@
-table td .icon {
+table td .icon,
+table th .icon {
   &::before {
     position: static;
     font-family: var(--icon-font-family);
@@ -22,6 +23,8 @@ table td .icon {
       margin-left: 0;
     }
   }
+
+  /* Icon Id's from https://tabler.io/ */
 
   &.warning {
     &::before {
@@ -67,7 +70,7 @@ table td .icon {
 
   &.failed {
     &::before {
-      content: "\ea6a"; // $ti-icon-circle-x
+      content: "\ea05"; // $ti-icon-alert-circle
       color: var(--color-alert-negative);
     }
   }
@@ -81,14 +84,14 @@ table td .icon {
 
   &.running {
     &::before {
-      content: "\ed27"; // $ti-icon-circle-dashed (should become ti-icon-progress, when we have it)
+      content: "\fa0d"; // $ti-icon-progress
       color: var(--color-alert-informative);
     }
   }
 
   &.dispatched {
     &::before {
-      content: "\ed27"; // $ti-icon-circle-dashed (should become ti-icon-progress, when we have it)
+      content: "\fd5d"; // $ti-icon-send-2
       color: var(--color-alert-informative);
     }
   }
@@ -96,21 +99,56 @@ table td .icon {
   &.queued {
     &::before {
       content: "\ea70"; // $ti-icon-clock
-      color: var(--color-alert-warning);
+      color: var(--color-alert-informative);
     }
   }
 
   &.pending {
     &::before {
-      content: "\ea70"; // $ti-icon-clock
-      color: var(--color-alert-warning);
+      content: "\eca3"; // $ti-icon-loader
+      color: var(--color-alert-informative);
     }
   }
 
   &.cancelled {
     &::before {
-      content: "\ea05"; // $ti-icon-alert-circle
+      content: "\ea6a"; // $ti-icon-alert-circle-x
+      color: var(--colors-grey-900);
+    }
+  }
+
+  &.timeout {
+    &::before {
+      content: "\ea70"; // $ti-icon-clock
       color: var(--color-alert-negative);
+    }
+  }
+
+  &.stopschedule {
+    &::before {
+      content: "\ea6a"; // $ti-icon-on-off
+      color: var(--color-alert-negative);
+    }
+  }
+
+  &.search {
+    &::before {
+      content: "\eb1c"; // $ti-icon-search
+      color: var(--color-alert-informative);
+    }
+  }
+
+  &.filter {
+    &::before {
+      content: "\eaa5"; // $ti-icon-filter
+      color: var(--color-alert-informative);
+    }
+  }
+
+  &.filteradd {
+    &::before {
+      content: "\fa02"; // $ti-icon-filter-plus
+      color: var(--color-alert-informative);
     }
   }
 }

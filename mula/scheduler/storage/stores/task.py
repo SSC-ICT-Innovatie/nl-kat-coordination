@@ -1,12 +1,14 @@
 from datetime import datetime, timedelta, timezone
 
-from sqlalchemy import exc, func
+from sqlalchemy import desc, exc, func
 
 from scheduler import models
 from scheduler.storage import DBConn
 from scheduler.storage.errors import StorageError, exception_handler
 from scheduler.storage.filters import FilterRequest, apply_filter
 from scheduler.storage.utils import retry
+
+MAX_LIMIT = 500
 
 
 class TaskStore:
@@ -20,6 +22,7 @@ class TaskStore:
     def get_tasks(
         self,
         scheduler_id: str | None = None,
+        organisation: str | None = None,
         task_type: str | None = None,
         status: str | None = None,
         min_created_at: datetime | None = None,
@@ -27,12 +30,21 @@ class TaskStore:
         filters: FilterRequest | None = None,
         offset: int = 0,
         limit: int = 100,
-    ) -> tuple[list[models.Task], int]:
+        max_pages: int = 6,
+        allow_partial_count: bool = False,
+    ) -> tuple[list[models.Task], int, bool]:
+        offset = max(offset, 0)
+        limit = min(max(limit, 0), MAX_LIMIT)
+        is_partial_count = False
+
         with self.dbconn.session.begin() as session:
             query = session.query(models.TaskDB)
 
             if scheduler_id is not None:
                 query = query.filter(models.TaskDB.scheduler_id == scheduler_id)
+
+            if organisation is not None:
+                query = query.filter(models.TaskDB.organisation == organisation)
 
             if task_type is not None:
                 query = query.filter(models.TaskDB.type == task_type)
@@ -50,14 +62,32 @@ class TaskStore:
                 query = apply_filter(models.TaskDB, query, filters)
 
             try:
-                count = query.count()
+                # if limit == 0, we dont know the page size, and thus cannot perform a bounded query
+                if limit == 0:
+                    return [], query.count(), False
+
+                if allow_partial_count:
+                    max_pages = min(max(max_pages, 1), 20)
+                    max_count = offset + (max_pages * limit) + 1
+
+                    bounded_query = query.order_by(None).with_entities(models.TaskDB.id).limit(max_count)
+                    count = session.query(func.count()).select_from(bounded_query.subquery()).scalar()
+                    # When is_partial_count=True, count represents
+                    # a lower bound sufficient for pagination UI generation,
+                    # not the exact total number of matching records.
+                    is_partial_count = count == max_count
+                else:
+                    count = query.count()
+            except exc.ProgrammingError as e:
+                raise StorageError(f"Could not produce count over query: {e}") from e
+
+            try:
                 tasks_orm = query.order_by(models.TaskDB.created_at.desc()).offset(offset).limit(limit).all()
             except exc.ProgrammingError as e:
                 raise StorageError(f"Invalid filter: {e}") from e
 
             tasks = [models.Task.model_validate(task_orm) for task_orm in tasks_orm]
-
-            return tasks, count
+            return tasks, count, is_partial_count
 
     @retry()
     @exception_handler
@@ -137,28 +167,29 @@ class TaskStore:
     @retry()
     @exception_handler
     def get_status_count_per_hour(
-        self, scheduler_id: str | None = None, organisation_id: str | None = None
+        self, scheduler_id: str | None = None, organisation_ids: list[str] | None = None
     ) -> dict[str, dict[str, int]] | None:
         with self.dbconn.session.begin() as session:
             query = (
                 session.query(
                     func.DATE_TRUNC("hour", models.TaskDB.modified_at).label("hour"),
                     models.TaskDB.status,
-                    func.count(models.TaskDB.id).label("count"),
+                    func.count().label("count"),
                 )
                 .filter(models.TaskDB.modified_at >= datetime.now(timezone.utc) - timedelta(hours=24))
                 .group_by("hour", models.TaskDB.status)
-                .order_by("hour", models.TaskDB.status)
+                .order_by(desc("hour"), models.TaskDB.status)
             )
 
             if scheduler_id is not None:
                 query = query.filter(models.TaskDB.scheduler_id == scheduler_id)
 
-            if organisation_id is not None:
-                query = query.filter(models.TaskDB.organisation == organisation_id)
+            if organisation_ids is not None:
+                query = query.filter(models.TaskDB.organisation.in_(organisation_ids))
 
             results = query.all()
 
+            # We rely on the dict insertion order
             response: dict[str, dict[str, int]] = {}
             for row in results:
                 date, status, task_count = row
@@ -172,7 +203,7 @@ class TaskStore:
     @retry()
     @exception_handler
     def get_status_counts(
-        self, scheduler_id: str | None = None, organisation_id: str | None = None
+        self, scheduler_id: str | None = None, organisation_ids: list[str] | None = None
     ) -> dict[str, int] | None:
         with self.dbconn.session.begin() as session:
             query = (
@@ -184,8 +215,8 @@ class TaskStore:
             if scheduler_id is not None:
                 query = query.filter(models.TaskDB.scheduler_id == scheduler_id)
 
-            if organisation_id is not None:
-                query = query.filter(models.TaskDB.organisation == organisation_id)
+            if organisation_ids is not None:
+                query = query.filter(models.TaskDB.organisation.in_(organisation_ids))
 
             results = query.all()
 

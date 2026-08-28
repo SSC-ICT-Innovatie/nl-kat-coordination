@@ -3,9 +3,10 @@ from pathlib import Path
 
 from pydantic import AnyUrl
 
-from boefjes.job_models import NormalizerMeta, NormalizerResults
-from boefjes.local import LocalNormalizerJobRunner
-from boefjes.local_repository import LocalPluginRepository
+from boefjes.local.runner import LocalNormalizerJobRunner
+from boefjes.normalizer_models import NormalizerResults
+from boefjes.worker.job_models import NormalizerMeta
+from boefjes.worker.repository import LocalPluginRepository
 from octopoes.models import Reference
 from tests.loading import get_dummy_data
 
@@ -47,14 +48,14 @@ def test_parse_manual_declarations(normalizer_runner):
     assert len(output.declarations) == 2
     assert len(output.observations) == 0
 
-    assert output.declarations[0].ooi.dict() == {
+    assert output.declarations[0].ooi.model_dump() == {
         "name": "net1",
         "object_type": "Network",
         "primary_key": "Network|net1",
         "scan_profile": None,
         "user_id": None,
     }
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "name": "net2",
         "object_type": "Network",
         "primary_key": "Network|net2",
@@ -67,7 +68,7 @@ def test_parse_manual_hostname_csv(normalizer_runner):
     meta, output, runner = check_network_created(normalizer_runner, 0)
 
     assert len(output.declarations) == 2
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "dns_zone": None,
         "name": "example.com",
         "network": Reference("Network|internet"),
@@ -81,7 +82,7 @@ def test_parse_manual_hostname_csv(normalizer_runner):
     meta, output, runner = check_network_created(normalizer_runner, 1)
 
     assert len(output.declarations) == 2
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "dns_zone": None,
         "name": "example.net",
         "network": Reference("Network|internet"),
@@ -134,7 +135,7 @@ def test_parse_url_csv(normalizer_runner):
 
     meta, output, runner = check_network_created(normalizer_runner, 5)
     assert len(output.declarations) == 2
-    assert output.declarations[1].ooi.dict() == {
+    assert output.declarations[1].ooi.model_dump() == {
         "network": Reference("Network|internet"),
         "object_type": "URL",
         "primary_key": "URL|internet|https://example.com/",
@@ -154,7 +155,7 @@ def check_network_created(
     output = normalizer_runner.run(meta, CSV_EXAMPLES[csv_idx])
 
     assert len(output.observations) == 0
-    assert output.declarations[0].ooi.dict() == {
+    assert output.declarations[0].ooi.model_dump() == {
         "name": "internet",
         "object_type": "Network",
         "primary_key": "Network|internet",

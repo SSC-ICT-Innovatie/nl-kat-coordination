@@ -1,7 +1,4 @@
-from functools import cache
-
-import pika
-import pika.exceptions
+import aio_pika
 import structlog
 
 from bytes.config import get_settings
@@ -10,46 +7,36 @@ from bytes.events.manager import EventManager
 
 logger = structlog.get_logger(__name__)
 
+_event_manager: EventManager | None = None
+
 
 class RabbitMQEventManager(EventManager):
     def __init__(self, queue_uri: str):
         self.queue_uri = queue_uri
-        self.connection = pika.BlockingConnection(pika.URLParameters(self.queue_uri))
-        self.channel = self.connection.channel()
-        logger.info("Connected to RabbitMQ")
+        self._channel: aio_pika.abc.AbstractChannel | None = None
+        self._connection: aio_pika.abc.AbstractRobustConnection | None = None
 
-    def publish(self, event: Event) -> None:
-        self._check_connection()
+    async def _get_channel(self) -> aio_pika.abc.AbstractChannel:
+        if self._connection is None or self._connection.is_closed:
+            self._connection = await aio_pika.connect_robust(self.queue_uri)
+            self._channel = None
+            logger.info("Connected to RabbitMQ")
 
+        if self._channel is None or self._channel.is_closed:
+            self._channel = await self._connection.channel()
+
+        return self._channel
+
+    async def publish(self, event: Event) -> None:
         event_data = event.model_dump_json()
         logger.debug("Publishing event: %s", event_data)
         queue_name = self._queue_name(event)
 
-        try:
-            self.channel.queue_declare(queue_name, durable=True)
-        except pika.exceptions.AMQPError as e:
-            logger.info("Channel error %s, recreating channel", e)
-            self._check_connection()
-            self.channel.queue_declare(queue_name, durable=True)
-
-        try:
-            self.channel.basic_publish("", queue_name, event_data.encode())
-        except pika.exceptions.AMQPError:
-            logger.info("RabbitMQ connection was closed: retrying with a new connection.")
-            self._check_connection()
-            self.channel.basic_publish("", queue_name, event_data.encode())
+        channel = await self._get_channel()
+        await channel.declare_queue(queue_name, durable=True)
+        await channel.default_exchange.publish(aio_pika.Message(body=event_data.encode()), routing_key=queue_name)
 
         logger.info("Published event [event_id=%s] to queue %s", event.event_id, queue_name)
-
-    def _check_connection(self) -> None:
-        if self.connection.is_closed:
-            self.connection = pika.BlockingConnection(pika.URLParameters(self.queue_uri))
-            self.channel = self.connection.channel()
-            logger.warning("Reconnected to RabbitMQ because connection was closed")
-
-        if self.channel.is_closed:
-            self.channel = self.connection.channel()
-            logger.warning("Recreated RabbitMQ channel because channel was closed")
 
     @staticmethod
     def _queue_name(event: Event) -> str:
@@ -57,15 +44,21 @@ class RabbitMQEventManager(EventManager):
 
 
 class NullManager(EventManager):
-    def publish(self, event: Event) -> None:
+    async def publish(self, event: Event) -> None:
         pass
 
 
-@cache
 def create_event_manager() -> EventManager:
+    global _event_manager
+
+    if _event_manager is not None:
+        return _event_manager
+
     settings = get_settings()
 
     if settings.queue_uri:
-        return RabbitMQEventManager(str(settings.queue_uri))
+        _event_manager = RabbitMQEventManager(str(settings.queue_uri))
+    else:
+        _event_manager = NullManager()
 
-    return NullManager()
+    return _event_manager

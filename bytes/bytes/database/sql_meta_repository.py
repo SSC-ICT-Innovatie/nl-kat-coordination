@@ -56,7 +56,7 @@ class SQLMetaDataRepository(MetaDataRepository):
         return to_boefje_meta(boefje_meta_in_db)
 
     def get_boefje_meta(self, query_filter: BoefjeMetaFilter) -> list[BoefjeMeta]:
-        logger.debug("Querying boefje meta: %s", query_filter.model_dump_json())
+        logger.debug("Querying boefje meta: %s", query_filter.model_dump(mode="json"))
 
         query = self.session.query(BoefjeMetaInDB).filter(BoefjeMetaInDB.organization == query_filter.organization)
 
@@ -85,8 +85,25 @@ class SQLMetaDataRepository(MetaDataRepository):
 
         return to_normalizer_meta(normalizer_meta_in_db)
 
+    def get_normalizer_metas(
+        self, normalizer_metas: list[uuid.UUID], query_filter: NormalizerMetaFilter | None = None
+    ) -> dict[str, NormalizerMeta]:
+        query = self.session.query(NormalizerMetaInDB)
+        meta_ids = [str(normalizer_meta_id) for normalizer_meta_id in normalizer_metas]
+        query = query.filter(NormalizerMetaInDB.id.in_(meta_ids))
+        query = query.order_by(NormalizerMetaInDB.started_at.asc())
+        if query_filter:
+            if query_filter.offset:
+                query = query.offset(query_filter.offset)
+            if query_filter.limit:
+                query = query.limit(query_filter.limit)
+        results: dict[str, NormalizerMeta] = {}
+        for normalizer_meta in query:
+            results[str(normalizer_meta.id)] = to_normalizer_meta(normalizer_meta)
+        return results
+
     def get_normalizer_meta(self, query_filter: NormalizerMetaFilter) -> list[NormalizerMeta]:
-        logger.debug("Querying normalizer meta: %s", query_filter.model_dump_json())
+        logger.debug("Querying normalizer meta: %s", query_filter.model_dump(mode="json"))
 
         query = self.session.query(NormalizerMetaInDB)
 
@@ -134,14 +151,14 @@ class SQLMetaDataRepository(MetaDataRepository):
         return raw_file_in_db.id
 
     def get_raw(self, query_filter: RawDataFilter) -> list[RawDataMeta]:
-        logger.debug("Querying raw data: %s", query_filter.model_dump_json())
+        logger.debug("Querying raw data: %s", query_filter.model_dump(mode="json"))
         query = self.session.query(RawFileInDB)
         query = query_filter.apply(query)
 
         return [to_raw_meta(raw_file_in_db) for raw_file_in_db in query]
 
     def get_raws(self, query_filter: RawDataFilter) -> list[tuple[uuid.UUID, RawData]]:
-        logger.debug("Querying raw data: %s", query_filter.model_dump_json())
+        logger.debug("Querying raw data: %s", query_filter.model_dump(mode="json"))
         query = self.session.query(RawFileInDB)
         query = query_filter.apply(query)
 
@@ -186,7 +203,7 @@ class SQLMetaDataRepository(MetaDataRepository):
         return {organization_id: count for organization_id, count in query}
 
     def get_raw_file_count_per_mime_type(self, query_filter: RawDataFilter) -> dict[str, int]:
-        logger.debug("Querying count raw data per mime type: %s", query_filter.model_dump_json())
+        logger.debug("Querying count raw data per mime type: %s", query_filter.model_dump(mode="json"))
         query = self.session.query(func.unnest(RawFileInDB.mime_types), func.count()).group_by(
             func.unnest(RawFileInDB.mime_types)
         )
@@ -227,9 +244,9 @@ def create_meta_data_repository() -> Iterator[MetaDataRepository]:
     try:
         yield repository
     except Exception as error:
-        logger.exception("An error occurred during the session.")
+        logger.debug("An error occurred during the session.")
         session.rollback()
-        logger.warning("Rolled back session.")
+        logger.debug("Rolled back session.")
 
         raise error
     finally:

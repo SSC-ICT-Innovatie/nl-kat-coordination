@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from time import sleep
 from typing import Literal
 
 from django.forms import Form
@@ -10,26 +9,25 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
 from pydantic import ValidationError
-from tools.forms.base import BaseRockyForm, ObservedAtForm
+from tools.forms.base import BaseRockyForm
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES, ClearanceFilterForm, OOIForm, OrderByObjectTypeForm
 from tools.ooi_helpers import create_ooi
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
 
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
-from octopoes.models import OOI, ScanLevel, ScanProfileType
+from octopoes.models import OOI, ScanProfileType
 from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
-from octopoes.models.types import get_collapsed_types, type_by_name
+from octopoes.models.types import get_collapsed_types
 from rocky.paginator import RockyPaginator
-from rocky.views.mixins import ConnectorFormMixin, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
+from rocky.views.mixins import OBJECT_LIST_COLUMNS, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
 
 
-class OOIFilterView(ConnectorFormMixin, OctopoesView):
+class OOIFilterView(OctopoesView):
     """
     Shows filter options with different filter forms and handles filter requests for OOIs.
     """
 
-    connector_form_class = ObservedAtForm
     ooi_types = get_collapsed_types().difference(
         {Finding, FindingType, BaseReport, Report, ReportRecipe, AssetReport, ReportData, HydratedReport}
     )
@@ -43,12 +41,9 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
         self.clearance_types = request.GET.getlist("clearance_type", [])
         self.search_string = request.GET.get("search", "")
 
-    def count_observed_at_filter(self) -> int:
-        return 1 if datetime.now(timezone.utc).date() != self.observed_at.date() else 0
-
     def get_active_filters(self) -> dict[str, str]:
         active_filters = {}
-        if self.count_observed_at_filter() > 0:
+        if self.is_historic_view:
             active_filters[_("Observed_at: ")] = self.observed_at.strftime("%Y-%m-%d")
         if self.filtered_ooi_types:
             active_filters[_("OOI types: ")] = ", ".join(self.filtered_ooi_types)
@@ -61,28 +56,30 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
             active_filters[_("Searching for: ")] = self.search_string
         return active_filters
 
-    def count_active_filters(self):
+    @property
+    def count_active_filters(self) -> int:
         return (
             len(self.filtered_ooi_types)
             + len(self.clearance_levels)
             + len(self.clearance_types)
             + self.count_observed_at_filter()
+            + (1 if self.search_string else 0)
         )
 
-    def get_ooi_scan_levels(self) -> set[ScanLevel]:
+    def get_ooi_scan_levels(self) -> set[int] | set:
         if not self.clearance_levels:
-            return self.scan_levels
-        return {ScanLevel(int(cl)) for cl in self.clearance_levels}
+            return set()
+        return {int(cl) for cl in self.clearance_levels}
 
-    def get_ooi_profile_types(self) -> set[ScanProfileType]:
+    def get_ooi_scan_profile_types(self) -> set[ScanProfileType] | set:
         if not self.clearance_types:
-            return self.scan_profile_types
-        return {ScanProfileType(ct) for ct in self.clearance_types}
+            return set()
+        return set(self.clearance_types)
 
-    def get_ooi_types(self) -> set[type[OOI]]:
+    def get_ooi_types(self) -> set[type[OOI]] | set[str]:
         if not self.filtered_ooi_types:
             return self.ooi_types
-        return {type_by_name(t) for t in self.filtered_ooi_types if t not in _EXCLUDED_OOI_TYPES}
+        return {t for t in self.filtered_ooi_types if t not in _EXCLUDED_OOI_TYPES}
 
     @property
     def order_by(self) -> Literal["object_type", "scan_level"]:
@@ -97,7 +94,7 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
             "valid_time": self.observed_at,
             "ooi_types": self.get_ooi_types(),
             "scan_level": self.get_ooi_scan_levels(),
-            "scan_profile_type": self.get_ooi_profile_types(),
+            "scan_profile_type": self.get_ooi_scan_profile_types(),
             "search_string": self.search_string,
             "order_by": self.order_by,
             "asc_desc": self.sorting_order,
@@ -105,27 +102,26 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["observed_at"] = self.observed_at
-        context["observed_at_form"] = self.get_connector_form()
         context["order_by"] = self.order_by
         context["order_by_form"] = OrderByObjectTypeForm(self.request.GET)
 
         context["sorting_order"] = self.sorting_order
         context["sorting_order_class"] = "ascending" if self.sorting_order == "asc" else "descending"
+        context["search_string"] = self.search_string
         context["ooi_types_selection"] = self.filtered_ooi_types
         context["clearance_levels_selection"] = self.clearance_levels
         context["clearance_level_filter_form"] = ClearanceFilterForm(self.request.GET)
         context["clearance_types_selection"] = self.clearance_types
         context["active_filters"] = self.get_active_filters()
-        context["active_filters_counter"] = self.count_active_filters()
 
+        context["active_filters_counter"] = self.count_active_filters
         return context
 
 
 class BaseOOIListView(OOIFilterView, ListView):
     paginate_by = 150
     context_object_name = "ooi_list"
-    paginator = RockyPaginator
+    paginator_class = RockyPaginator
 
     def get_queryset(self) -> OOIList:
         return OOIList(self.octopoes_api_connector, **self.get_queryset_params())
@@ -134,26 +130,26 @@ class BaseOOIListView(OOIFilterView, ListView):
         context = super().get_context_data(**kwargs)
         context["mandatory_fields"] = get_mandatory_fields(self.request)
         context["total_oois"] = len(self.object_list)
+        context["table_columns"] = OBJECT_LIST_COLUMNS
         return context
 
 
-class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin, ConnectorFormMixin):
-    connector_form_class = ObservedAtForm
-
+class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         tree = self.tree
         self.ooi = tree.store[tree.root.reference]
 
+    @property
     def get_current_ooi(self) -> OOI | None:
         """
         Some OOIs have an old valid time, this will fetch the latest OOI for today.
         """
         now = datetime.now(timezone.utc)
-        if self.observed_at.date() == now.date():
+        if not self.is_historic_view:
             return self.ooi
         try:
-            return self.get_ooi_tree(self.get_ooi_id(), observed_at=now).store[self.get_ooi_id()]
+            return self.get_single_ooi(self.get_ooi_id(), observed_at=now)
         except Http404:
             return None
 
@@ -161,11 +157,8 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin, ConnectorFormMixin
         context = super().get_context_data(**kwargs)
 
         context["ooi"] = self.ooi
-        context["ooi_current"] = self.get_current_ooi()
+        context["ooi_current"] = self.get_current_ooi
         context["mandatory_fields"] = get_mandatory_fields(self.request)
-        context["observed_at"] = self.observed_at
-        context["observed_at_form"] = self.get_connector_form()
-
         return context
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
@@ -222,7 +215,6 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             create_ooi(
                 self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
             )
-            sleep(1)
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:
             for error in exception.errors():

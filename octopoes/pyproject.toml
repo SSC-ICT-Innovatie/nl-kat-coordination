@@ -1,61 +1,68 @@
-[tool.poetry]
+[project]
 name = "octopoes"
 version = "0.0.1.dev1"
-description = "KAT's knowledge graph engine"
-authors = ["MinVWS <maintainer@openkat.nl>"]
-license = "EUPL"
+description = "OpenKAT's knowledge graph engine"
+authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
+requires-python = ">=3.10"
+license = { text = "EUPL-1.2" }
+dependencies = [
+    "pydantic>=2.7.1,<3",
+    "uvicorn>=0.29.0,<0.30",
+    "pika>=1.3.1,<2",
+    "PyYAML~=6.0",
+    "dnspython>=2.6.1,<3",
+    "kombu>=5.2.4,<6",
+    "celery>=5.2.7,<6",
+    "pyparsing>=3.0.9,<4",
+    "tldextract>5",
+    "opentelemetry-sdk",
+    "opentelemetry-instrumentation",
+    "opentelemetry-exporter-otlp-proto-grpc",
+    "opentelemetry-instrumentation-fastapi",
+    "opentelemetry-instrumentation-psycopg2",
+    "opentelemetry-instrumentation-httpx",
+    "sqlalchemy==1.4.48",
+    "jsonschema>=4.18.0,<5",
+    "pydantic-settings>=2.14.2,<3",
+    "httpx>=0.28.1,<0.29",
+    "link-shorteners>=1.11.0,<2",
+    "opentelemetry-api",
+    "opentelemetry-exporter-otlp-proto-common",
+    "opentelemetry-instrumentation-asgi",
+    "opentelemetry-instrumentation-dbapi",
+    "opentelemetry-proto",
+    "opentelemetry-semantic-conventions",
+    "opentelemetry-util-http",
+    "fastapi-slim>=0.115.2",
+    "structlog>=25.2.0,<26",
+    "asgiref>=3.8.1,<4",
+    "setuptools>80,<82",
+    "requests>=2.33.0,<3",
+    "pygments>=2.20.0",
+    "wrapt>=2.1.2",
+    "attrs>=26.1.0",
+    "urllib3>=2.7.0",
+    "idna>=3.15",
+    "webob>=1.8.10",
+    "starlette>=1.3.1",
+    "soupsieve>=2.8.4",
+]
 
-[build-system]
-requires = ["setuptools>=62.2", "wheel"]
-build-backend = "setuptools.build_meta:__legacy__"
+[dependency-groups]
+dev = [
+    "robotframework>=7.2.2,<8",
+    "robotframework-requests>=0.9.7,<0.10",
+    "robotframework-httplibrary>=0.4.2,<0.5",
+    "pytest>=9.0.2,<10",
+    "pytest-cov>=7",
+    "pytest-mock>=3.14.0,<4",
+    "pytest-env>=1.1.5,<2",
+    "pytest-timeout>=2.4.0,<3",
+    "pytest-httpx>=0.35.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.10"
-pydantic = "^2.7.1"
-uvicorn = "^0.29.0"
-pika = "^1.3.1"
-PyYAML = "^6.0"
-dnspython = "^2.6.1"
-kombu = "^5.2.4"
-celery = "^5.2.7"
-pyparsing = "^3.0.9"
-packaging = "^23.0"
-tldextract = "^3.4.0"
-opentelemetry-sdk = "^1.29.0"
-opentelemetry-instrumentation = "^0.50b0"
-opentelemetry-exporter-otlp-proto-grpc = "^1.29.0"
-opentelemetry-instrumentation-fastapi = "^0.50b0"
-opentelemetry-instrumentation-psycopg2 = "^0.50b0"
-opentelemetry-instrumentation-httpx = "^0.50b0"
-sqlalchemy = "1.4.48"
-jsonschema = "^4.18.0"
-pydantic-settings = "^2.2.1"
-httpx = "^0.27.0"
-# required by disallowed-csp-hostnames bit
-link-shorteners = "^1.11.0"
-opentelemetry-api = "^1.29.0"
-opentelemetry-exporter-otlp-proto-common = "^1.29.0"
-opentelemetry-instrumentation-asgi = "^0.50b0"
-opentelemetry-instrumentation-dbapi = "^0.50b0"
-opentelemetry-proto = "^1.29.0"
-opentelemetry-semantic-conventions = "^0.50b0"
-opentelemetry-util-http = "^0.50b0"
-
-fastapi-slim = "^0.115.2"
-structlog = "^25.2.0"
-asgiref = "^3.8.1"
-setuptools = "^75.8.0"
-
-[tool.poetry.group.dev.dependencies]
-robotframework = "^7.0"
-robotframework-requests = "^0.9.3"
-robotframework-httplibrary = "^0.4.2"
-pytest = "^8.3.5"
-pytest-cov = "^6.0.0"
-pytest-mock = "^3.14.0"
-pytest-env = "^1.1.3"
-pytest-timeout = "^2.3.1"
-pytest-httpx = "^0.30.0"
+[tool.uv]
+package = false
 
 [tool.coverage.run]
 relative_files = true
@@ -63,7 +70,7 @@ relative_files = true
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report xml --cov-branch --cov-report=term-missing:skip-covered"
 env = [
-    "D:XTDB_URI=http://testxtdb:3000",
+    "D:XTDB_URI=http://xtdb:3000",
     "D:QUEUE_URI=amqp://placeholder",
     "D:KATALOGUS_API=http://placeholder:8000",
 ]

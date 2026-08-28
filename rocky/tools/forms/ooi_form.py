@@ -6,7 +6,7 @@ from typing import Any, Literal, TypedDict, Union, get_args, get_origin
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from pydantic import AnyUrl
+from pydantic import AnyUrl, JsonValue
 from pydantic.fields import FieldInfo
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
@@ -14,7 +14,8 @@ from octopoes.models import OOI
 from octopoes.models.ooi.question import Question
 from octopoes.models.types import get_collapsed_types, get_relations
 from tools.enums import SCAN_LEVEL
-from tools.forms.base import BaseRockyForm, CheckboxGroup
+from tools.forms.base import BaseRockyForm, ObservedAtForm
+from tools.forms.findings import FindingSearchForm, FindingSeverityMultiSelectForm, MutedFindingSelectionForm
 from tools.forms.settings import CLEARANCE_TYPE_CHOICES
 
 
@@ -45,18 +46,11 @@ class OOIForm(BaseRockyForm):
             # if annotation is an Union, get the first non-optional type
             optional_type = get_args(annotation)[0] if get_origin(annotation) == Union else None
 
-            if name == "primary_key":
-                continue
-
-            if name == "user_id":
+            if name in ("primary_key", "user_id", "scan_profile"):
                 continue
 
             # skip literals
             if hasattr(annotation, "__origin__") and annotation.__origin__ == Literal:
-                continue
-
-            # skip scan_profile
-            if name == "scan_profile":
                 continue
 
             if hidden_ooi_fields and name in hidden_ooi_fields:
@@ -70,7 +64,12 @@ class OOIForm(BaseRockyForm):
                 fields[name] = generate_ip_field(field)
             elif annotation == AnyUrl:
                 fields[name] = generate_url_field(field)
-            elif annotation is dict or annotation == list[str] or annotation == dict[str, Any]:
+            elif (
+                annotation is dict
+                or annotation == list[str]
+                or annotation == dict[str, Any]
+                or annotation == dict[str, JsonValue]
+            ):
                 fields[name] = forms.JSONField(**default_attrs)
             elif annotation is int or (hasattr(annotation, "__args__") and int in annotation.__args__):
                 fields[name] = forms.IntegerField(**default_attrs)
@@ -128,12 +127,15 @@ def generate_select_ooi_field(
     oois = api_connector.list_objects({related_ooi_type}, datetime.now(timezone.utc)).items
     select_options.extend([(ooi.primary_key, ooi.primary_key) for ooi in oois])
 
+    if field.is_required() and len(oois) == 1:
+        initial = oois[0].primary_key
+
     if is_multiselect:
         return forms.MultipleChoiceField(
             widget=forms.SelectMultiple(), choices=select_options, initial=initial, **default_attrs
         )
 
-    return forms.CharField(widget=forms.Select(choices=select_options), **default_attrs)
+    return forms.CharField(widget=forms.Select(choices=select_options), initial=initial, **default_attrs)
 
 
 def generate_select_ooi_type(name: str, enumeration: type[Enum], field: FieldInfo) -> forms.fields.Field:
@@ -156,7 +158,8 @@ def generate_url_field(field: FieldInfo) -> forms.fields.Field:
     default_attrs = default_field_options("", field)
     if default_attrs.get("label") == "raw":
         default_attrs.update({"label": "URL"})
-    field = forms.URLField(**default_attrs)
+    attrs = {"assume_scheme": "https", **default_attrs}
+    field = forms.URLField(**attrs)
     field.widget.attrs.update({"placeholder": "https://example.org"})
     return field
 
@@ -171,12 +174,17 @@ def default_field_options(name: str, field_info: FieldInfo) -> DefaultFieldOptio
 
 
 class ClearanceFilterForm(BaseRockyForm):
-    clearance_level = forms.CharField(
-        label=_("Filter by clearance level"), widget=CheckboxGroup(choices=SCAN_LEVEL.choices), required=False
+    clearance_level = forms.MultipleChoiceField(
+        label=_("Filter by clearance level"),
+        choices=SCAN_LEVEL.choices,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
     )
-
-    clearance_type = forms.CharField(
-        label=_("Filter by clearance type"), widget=CheckboxGroup(choices=CLEARANCE_TYPE_CHOICES), required=False
+    clearance_type = forms.MultipleChoiceField(
+        label=_("Filter by clearance type"),
+        choices=CLEARANCE_TYPE_CHOICES,
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
     )
 
 
@@ -214,3 +222,53 @@ class OOISearchForm(BaseRockyForm):
 
 class OrderByObjectTypeForm(BaseRockyForm):
     order_by = forms.CharField(widget=forms.HiddenInput(attrs={"value": "object_type"}), required=False)
+
+
+class CustomMultipleHiddenInput(forms.MultipleHiddenInput):
+    def format_value(self, value):
+        if isinstance(value, str):
+            return [value]
+        return super().format_value(value)
+
+    def render(self, name, value, attrs=None, renderer=None):
+        # Custom render logic if needed
+        value = self.format_value(value)
+        return super().render(name, value, attrs, renderer=renderer)
+
+
+class OOIFilterForm(OOISearchForm, ClearanceFilterForm, OOITypeMultiCheckboxForm, ObservedAtForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["observed_at"].widget = forms.HiddenInput()
+        self.fields["ooi_type"].widget = CustomMultipleHiddenInput()
+        self.fields["clearance_level"].widget = CustomMultipleHiddenInput()
+        self.fields["clearance_type"].widget = CustomMultipleHiddenInput()
+        self.fields["search"].widget = forms.HiddenInput()
+
+    def get_query(self) -> dict[str, Any]:
+        observed_at = self.cleaned_data.get("observed_at")
+        return {
+            "observed_at": observed_at.strftime("%Y-%m-%d") if observed_at else None,
+            "ooi_type": self.cleaned_data.get("ooi_type", []),
+            "clearance_level": self.cleaned_data.get("clearance_level", []),
+            "clearance_type": self.cleaned_data.get("clearance_type", []),
+            "search": self.cleaned_data.get("search", ""),
+        }
+
+
+class FindingFilterForm(FindingSearchForm, MutedFindingSelectionForm, FindingSeverityMultiSelectForm, ObservedAtForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["observed_at"].widget = forms.HiddenInput()
+        self.fields["muted_findings"].widget = forms.HiddenInput()
+        self.fields["severity"].widget = CustomMultipleHiddenInput()
+        self.fields["search"].widget = forms.HiddenInput()
+
+    def get_query(self) -> dict[str, Any]:
+        observed_at = self.cleaned_data.get("observed_at")
+        return {
+            "observed_at": observed_at.strftime("%Y-%m-%d") if observed_at else None,
+            "severity": self.cleaned_data.get("severity"),
+            "muted_findings": self.cleaned_data.get("muted_findings", "non-muted"),
+            "search": self.cleaned_data.get("search", ""),
+        }

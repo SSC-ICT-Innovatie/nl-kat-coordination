@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import quote
+from uuid import UUID
 
 from fastapi.testclient import TestClient
 from scheduler import config, models, server, storage, utils
@@ -206,12 +207,12 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update the item
         updated_item = schemas.TaskPush(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.data["name"] = "updated-name"
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", data=updated_item.model_dump_json()
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(mode="json")
         )
 
         # The queue should still have one item
@@ -231,12 +232,12 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update the item
         updated_item = schemas.TaskPush(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.data["name"] = "updated-name"
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", data=updated_item.model_dump_json()
+            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(mode="json")
         )
         self.assertEqual(response.status_code, 201)
 
@@ -319,12 +320,13 @@ class APISchedulerEndpointTestCase(APITemplateTestCase):
 
         # Update priority of the item
         updated_item = schemas.Task(**initial_item)
-        updated_item.id = response.json().get("id")
+        updated_item.id = UUID(response.json().get("id"))
         updated_item.priority = 2
 
         # Try to update the item through the api
         response = self.client.post(
-            f"/schedulers/{self.scheduler.scheduler_id}/push", json=updated_item.model_dump(exclude_none=True)
+            f"/schedulers/{self.scheduler.scheduler_id}/push",
+            json=updated_item.model_dump(mode="json", exclude_none=True),
         )
         self.assertEqual(response.status_code, 201)
 
@@ -626,6 +628,30 @@ class APITasksEndpointTestCase(APITemplateTestCase):
         self.assertEqual(200, response.status_code)
         self.assertEqual(2, response.json()["count"])
         self.assertEqual(2, len(response.json()["results"]))
+
+    def test_get_tasks_bounded_partial_count(self):
+        # With a real count (2) below the cap the response count is exact and not flagged partial.
+        response = self.client.get("/tasks?limit=10&allow_partial_count=true")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json()["count"])
+        self.assertFalse(response.json()["is_partial_count"])
+
+        # max_count = offset(0) + max_pages(1) * limit(1) + 1 = 2, real count 2 >= 2 -> partial.
+        response = self.client.get("/tasks?limit=1&max_pages=1&allow_partial_count=true")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json()["count"])
+        self.assertTrue(response.json()["is_partial_count"])
+
+    def test_get_tasks_stats_filtered_by_organisation_ids(self):
+        # organisation_ids must bind as a query parameter (fastapi.Query), not a request body,
+        # so a matching org returns the two setUp tasks and a non-matching org returns none.
+        matching = self.client.get(f"/tasks/stats?organisation_ids={self.organisation.id}")
+        self.assertEqual(200, matching.status_code)
+        self.assertEqual(2, sum(hour.get("total", 0) for hour in matching.json().values()))
+
+        other = self.client.get("/tasks/stats?organisation_ids=non-existent-org")
+        self.assertEqual(200, other.status_code)
+        self.assertEqual(0, sum(hour.get("total", 0) for hour in (other.json() or {}).values()))
 
     def test_get_task(self):
         # First add a task
@@ -978,6 +1004,17 @@ class APIScheduleEndpointTestCase(APITemplateTestCase):
         self.assertEqual(1, response.json()["count"])
         self.assertEqual(1, len(response.json()["results"]))
         self.assertEqual(str(self.first_schedule.id), response.json()["results"][0]["id"])
+
+    def test_list_schedules_organisation(self):
+        response = self.client.get(f"/schedules?organisation={self.organisation.id}")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json()["count"])
+        self.assertEqual(2, len(response.json()["results"]))
+
+        response = self.client.get(f"/schedules?organisation={uuid.uuid4()}")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(0, response.json()["count"])
+        self.assertEqual(0, len(response.json()["results"]))
 
     def test_post_schedule(self):
         item = functions.create_task(self.scheduler.scheduler_id, self.organisation.id)

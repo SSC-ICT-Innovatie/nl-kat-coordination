@@ -1,0 +1,30 @@
+{% load i18n %}
+
+{% component "modal" modal_id="mute-findings-modal" size="dialog-medium" %}
+{% fill "header" %}
+{% translate "Mute finding" %}
+{% endfill %}
+{% fill "content" %}
+<p>{% translate "You are muting the selected findings." %}</p>
+<form method="post" id="new-dashboard-item-form">
+    {% csrf_token %}
+    <fieldset>
+        <div>
+            <label for="id_reason">{% translate "Reason:" %}</label>
+            <div>
+                <textarea name="reason" cols="5" rows="3" id="id_reason"></textarea>
+            </div>
+            <div>
+                <label for="id_end_valid_time">{% translate "Expires by (UTC):" %}</label>
+                <input type="datetime-local" name="end_valid_time" id="id_end_valid_time">
+            </div>
+        </div>
+    </fieldset>
+</form>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button type="submit" form="finding-list-form">{% translate "Mute findings" %}</button>
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

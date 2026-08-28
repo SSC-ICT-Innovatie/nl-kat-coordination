@@ -6,7 +6,7 @@ import pytest
 from httpx import HTTPError
 from prometheus_client.parser import text_string_to_metric_families
 
-from bytes.api.models import BoefjeOutput, File
+from bytes.api.models import BoefjeOutput, File, StatusEnum
 from bytes.models import MimeType
 from bytes.rabbitmq import RabbitMQEventManager
 from bytes.repositories.meta_repository import BoefjeMetaFilter, NormalizerMetaFilter, RawDataFilter
@@ -131,7 +131,8 @@ def test_filtered_boefje_meta(bytes_api_client: BytesAPIClient) -> None:
     assert second_boefje_meta == retrieved_boefje_metas[0]
 
 
-def test_normalizer_meta(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
+@pytest.mark.anyio
+async def test_normalizer_meta(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -198,6 +199,40 @@ def test_filtered_normalizer_meta(bytes_api_client: BytesAPIClient) -> None:
     assert second_normalizer_meta == retrieved_normalizer_metas[0]
 
 
+def test_get_normalizer_metas_by_uuid_list(bytes_api_client: BytesAPIClient) -> None:
+    # The /bytes/normalizer_metas endpoint (plural) takes a list of UUIDs and
+    # returns a dict {uuid: NormalizerMeta}.
+    boefje_meta = get_boefje_meta()
+    bytes_api_client.save_boefje_meta(boefje_meta)
+
+    raw = get_raw_data()
+    raw_id = bytes_api_client.save_raw(boefje_meta.id, raw.value, [m.value for m in raw.mime_types])
+
+    first = get_normalizer_meta(raw_id)
+    bytes_api_client.save_normalizer_meta(first)
+
+    second = get_normalizer_meta(raw_id)
+    second.id = uuid.uuid4()
+    bytes_api_client.save_normalizer_meta(second)
+
+    # An unrelated third one — should NOT be in the response.
+    third = get_normalizer_meta(raw_id)
+    third.id = uuid.uuid4()
+    bytes_api_client.save_normalizer_meta(third)
+
+    normalizer_metas = bytes_api_client.get_normalizer_metas([first.id, second.id])
+
+    assert set(normalizer_metas.keys()) == {str(first.id), str(second.id)}
+    assert str(third.id) not in normalizer_metas
+    assert normalizer_metas[str(first.id)].id == first.id
+    assert normalizer_metas[str(second.id)].id == second.id
+    assert normalizer_metas[str(first.id)].normalizer.id == first.normalizer.id
+
+
+def test_get_normalizer_metas_unknown_uuid_returns_empty(bytes_api_client: BytesAPIClient) -> None:
+    assert bytes_api_client.get_normalizer_metas([uuid.uuid4()]) == {}
+
+
 def test_normalizer_meta_pointing_to_raw_id(bytes_api_client: BytesAPIClient) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
@@ -216,7 +251,8 @@ def test_normalizer_meta_pointing_to_raw_id(bytes_api_client: BytesAPIClient) ->
     assert normalizer_meta == retrieved_normalizer_meta
 
 
-def test_raw(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
+@pytest.mark.anyio
+async def test_raw(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -227,13 +263,18 @@ def test_raw(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManag
 
     assert retrieved_raw == raw
 
-    method, properties, body = event_manager.connection.channel().basic_get("raw_file_received")
-    event_manager.connection.channel().basic_ack(method.delivery_tag)
+    channel = await event_manager._get_channel()
+    queue = await channel.declare_queue("raw_file_received", durable=True)
+    message = await queue.get()
 
-    assert str(boefje_meta.id) in body.decode()
+    assert message is not None
+    await message.ack()
+
+    assert str(boefje_meta.id) in message.body.decode()
 
 
-def test_raw_big(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
+@pytest.mark.anyio
+async def test_raw_big(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventManager) -> None:
     boefje_meta = get_boefje_meta()
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -244,10 +285,14 @@ def test_raw_big(bytes_api_client: BytesAPIClient, event_manager: RabbitMQEventM
 
     assert retrieved_raw == raw
 
-    method, properties, body = event_manager.connection.channel().basic_get("raw_file_received")
-    event_manager.connection.channel().basic_ack(method.delivery_tag)
+    channel = await event_manager._get_channel()
+    queue = await channel.declare_queue("raw_file_received", durable=True)
+    message = await queue.get()
 
-    assert str(boefje_meta.id) in body.decode()
+    assert message is not None
+    await message.ack()
+
+    assert str(boefje_meta.id) in message.body.decode()
 
 
 def test_save_raw_with_one_mime_type(bytes_api_client: BytesAPIClient) -> None:
@@ -419,10 +464,11 @@ def test_save_multiple_raw_files(bytes_api_client: BytesAPIClient) -> None:
     first_raw = b"first"
     second_raw = b"second"
     boefje_output = BoefjeOutput(
+        status=StatusEnum.COMPLETED,
         files=[
             File(name="first", content=b64encode(first_raw).decode(), tags=[]),
             File(name="second", content=b64encode(second_raw).decode(), tags=["mime", "type"]),
-        ]
+        ],
     )
 
     ids = bytes_api_client.save_raws(boefje_meta.id, boefje_output)

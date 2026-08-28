@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 from enum import Enum
+from functools import cache
 
 from pyparsing import Literal, Opt, ParseException, Word, alphas
 
 from octopoes.models import OOI
-from octopoes.models.types import get_concrete_types, get_relation, get_relations, to_concrete, type_by_name
+from octopoes.models.types import (
+    OOITYPE_BY_NAME,
+    OOIType,
+    get_concrete_types,
+    get_relation,
+    get_relations,
+    to_concrete,
+    type_by_name,
+)
 
 type_intersection_grammar = Literal("[") + "is" + Word(alphas) + "]"
 
@@ -25,8 +34,12 @@ class Segment:
         self.property_name = property_name
         self.target_type = target_type
 
+    def __hash__(self):
+        """Hashing for cache usage"""
+        return hash("".join((str(self.source_type), str(self.direction), self.property_name, str(self.target_type))))
+
     @classmethod
-    def parse_step(cls, step: str) -> tuple[Direction, str, type[OOI] | None]:
+    def parse_step(cls, step: str) -> tuple[Direction, str, type[OOIType] | None]:
         try:
             parsed_step = incoming_step_grammar.parse_string(step)
             incoming, property_name, _, _, target_type, _ = parsed_step
@@ -88,6 +101,7 @@ class Segment:
             self.source_type == other.source_type
             and self.direction == other.direction
             and self.property_name == other.property_name
+            and self.target_type == other.target_type
         )
 
     def __str__(self) -> str:
@@ -143,12 +157,32 @@ class Path:
     def __repr__(self) -> str:
         return str(self)
 
+    def path_can_inherit_level(self, required_level: int) -> bool:
+        max_inheritance_level = get_max_scan_level_inheritance(self.segments[0])
 
-def get_paths_to_neighours(source_type: type[OOI]) -> set[Path]:
-    relation_paths = set()
+        return max_inheritance_level is not None and max_inheritance_level >= required_level
+
+
+def get_paths_to_neighbours(source_type: type[OOI]) -> set[Path]:
+    """
+    Public API: safely caches paths using string keys.
+    """
+    return _cached_paths_to_neighbours(source_type.__name__)
+
+
+@cache
+def _cached_paths_to_neighbours(cls_name: str) -> set[Path]:
+    """
+    Internal cached function. Only takes hashable arguments (str).
+    """
+    source_type = OOITYPE_BY_NAME[cls_name]  # resolve class from name
+    relation_paths: set[Path] = set()
+
+    # OUTGOING paths from source_type
     for property_name, related_type in get_relations(source_type).items():
         relation_paths.add(Path([Segment(source_type, Direction.OUTGOING, property_name, related_type)]))
 
+    # INCOMING paths from all concrete types pointing to source_type
     for other_type in get_concrete_types():
         for property_name, related_type in get_relations(other_type).items():
             if source_type in to_concrete({related_type}):
@@ -157,29 +191,29 @@ def get_paths_to_neighours(source_type: type[OOI]) -> set[Path]:
     return relation_paths
 
 
+@cache
 def get_max_scan_level_inheritance(segment: Segment) -> int | None:
+    """Return the maximum level transferable while tracing inheritance."""
     if segment.direction == Direction.INCOMING:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
 
-        return segment.target_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_issue_scan_level", None
-        )
-    else:
-        return segment.source_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_inherit_scan_level", None
-        )
+        field = segment.target_type.model_fields[segment.property_name]
+        return (field.json_schema_extra or {}).get("max_issue_scan_level")
+
+    field = segment.source_type.model_fields[segment.property_name]
+    return (field.json_schema_extra or {}).get("max_inherit_scan_level")
 
 
+@cache
 def get_max_scan_level_issuance(segment: Segment) -> int | None:
+    """Return the maximum level transferable while tracing issuance."""
     if segment.direction == Direction.INCOMING:
         if segment.target_type is None:
             raise ValueError("Direction cannot be incoming if target type is None")
 
-        return segment.target_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_inherit_scan_level", None
-        )
-    else:
-        return segment.source_type.model_fields[segment.property_name].json_schema_extra.get(
-            "max_issue_scan_level", None
-        )
+        field = segment.target_type.model_fields[segment.property_name]
+        return (field.json_schema_extra or {}).get("max_inherit_scan_level")
+
+    field = segment.source_type.model_fields[segment.property_name]
+    return (field.json_schema_extra or {}).get("max_issue_scan_level")

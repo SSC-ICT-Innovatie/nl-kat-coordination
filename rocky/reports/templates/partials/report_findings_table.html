@@ -3,8 +3,8 @@
 {% load ooi_extra %}
 
 {% if show_introduction %}
-    <p>
-        {% blocktranslate %}
+    <p class="toggle-item" data-show="off">
+        {% blocktranslate trimmed %}
             This table provides an overview of the identified findings on the scanned
             systems. For each finding type it shows the risk level, the number of occurrences
             and the first known occurrence of the finding. The risk level may be different for your specific environment.
@@ -14,7 +14,7 @@
     </p>
 {% endif %}
 {% if finding_types %}
-    <div class="horizontal-scroll">
+    <div>
         <table>
             <caption class="visually-hidden">{% translate "Other findings found" %}</caption>
             <thead>
@@ -23,7 +23,7 @@
                     <th scope="col">{% translate "Finding types" %}</th>
                     <th scope="col">{% translate "Occurrences" %}</th>
                     <th scope="col">{% translate "First known occurrence" %}</th>
-                    {% if is_dashboard_findings %}
+                    {% if is_crisis_room %}
                         <th scope="col">{% translate "Open in report" %}</th>
                     {% else %}
                         <th scope="col" class="visually-hidden actions">{% translate "Details" %}</th>
@@ -39,9 +39,9 @@
                         <td>{{ info.finding_type.id }}</td>
                         <td>{{ info.occurrences|length }}</td>
                         <td>{{ info.occurrences|get_first_seen }}</td>
-                        {% if is_dashboard_findings %}
+                        {% if is_crisis_room %}
                             <td class="number">
-                                <a href="{% url "view_report" organization.code %}?report_id={{ report.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
+                                <a href="{% url "view_report" dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
                             </td>
                         {% else %}
                             <td class="actions sticky-cell">
@@ -54,23 +54,25 @@
                             </td>
                         {% endif %}
                     </tr>
-                    {% if not is_dashboard_findings %}
+                    {% if not is_crisis_room %}
                         <tr class="expando-row">
                             <td colspan="5">
-                                <h4 class="heading-normal">{% translate "Description" %}</h4>
+                                <h5>{% translate "Description" %}</h5>
                                 <p>{{ info.finding_type.description }}</p>
-                                <h4 class="heading-normal">{% translate "Source" %}</h4>
+                                <h5>{% translate "Source" %}</h5>
                                 {% if info.finding_type.source %}
-                                    <a href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
+                                    <a class="nowrap" href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
                                 {% else %}
                                     <p>{{ info.finding_type.source }}</p>
                                 {% endif %}
-                                <h4 class="heading-normal">{% translate "Impact" %}</h4>
+                                <h5>{% translate "Impact" %}</h5>
                                 <p>{{ info.finding_type.impact }}</p>
-                                <h4 class="heading-normal">{% translate "Recommendation" %}</h4>
+                                <h5>{% translate "Recommendation" %}</h5>
                                 <p>{{ info.finding_type.recommendation }}</p>
-                                <h4 class="heading-normal">{% translate "Findings" %}</h4>
-                                <table class="nowrap">
+                                <div>
+                                    <h5>{% translate "Findings" %}</h5>
+                                </div>
+                                <table>
                                     <caption class="visually-hidden">{% translate "Findings overview" %}</caption>
                                     <thead>
                                         <tr>
@@ -96,7 +98,7 @@
             </tbody>
         </table>
     </div>
-{% elif is_dashboard_findings %}
+{% elif is_crisis_room or is_dashboard_item %}
     <p>{% translate "No critical and high findings have been identified for this organization." %}</p>
 {% else %}
     <p>{% translate "No findings have been identified for this organization." %}</p>

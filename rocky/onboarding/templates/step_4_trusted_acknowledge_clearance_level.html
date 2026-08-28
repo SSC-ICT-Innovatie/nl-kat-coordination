@@ -1,0 +1,82 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "User clearance level" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        The user clearance level specifies the maximum scan level for security scans and the
+                        maximum clearance level you can assign to objects (e.g. a URL).
+                    {% endblocktranslate %}
+                </p>
+                <h3>{% translate "Trusted clearance level" %}</h3>
+                <p>
+                    {% blocktranslate trimmed %}
+                        The administrator assigns a maximum user clearance level to each user.
+                        This will make sure that only trusted users can start more aggressive scans.
+                    {% endblocktranslate %}
+                </p>
+                <h3>{% translate "Accepted clearance level" %}</h3>
+                <p>
+                    {% blocktranslate trimmed %}
+                        A user must accept a clearance level, before they perform actions in OpenKAT. Here you may accept the maximum trusted clearance level, as assigned by your administrator. On your user settings page you can choose to lower your accepted clearance level after completing the onboarding.
+                    {% endblocktranslate %}
+                </p>
+                <h3>{% translate "What is my clearance level?" %}</h3>
+                {% with tcl=organization_member.trusted_clearance_level acl=organization_member.acknowledged_clearance_level %}
+                    {% if tcl < dns_report_least_clearance_level or tcl < 0 %}
+                        <p>
+                            {% blocktranslate trimmed %}
+                                Unfortunately you cannot continue the onboarding.
+                            </br>
+                            Your administrator has trusted you with a clearance level of <strong>L{{ tcl }}</strong>.
+                        </br>
+                        You need at least a clearance level of <strong>L{{ dns_report_least_clearance_level }}</strong> to scan <strong>{{ ooi }}</strong>
+                    </br>
+                    Contact your administrator to receive a higher clearance.
+                {% endblocktranslate %}
+            </p>
+            <a href="{% url "complete_onboarding" organization.code %}"
+               class="button ghost">{% translate "Skip onboarding" %}</a>
+        {% elif tcl != acl %}
+            <p>
+                {% blocktranslate trimmed %}
+                    Your administrator has trusted you with a clearance level of <strong>L{{ tcl }}</strong>.
+                </br>
+                You must first accept this clearance level to continue.
+            {% endblocktranslate %}
+        </p>
+        {% blocktranslate asvar btn_text_accept_tcl trimmed %}
+            Accept level L{{ tcl }} clearance and responsibility
+        {% endblocktranslate %}
+        {% include "partials/single_action_form.html" with btn_text=btn_text_accept_tcl action="accept_clearance" key="member_id" value=member.id btn_class="button" %}
+
+        <a href="{% url "complete_onboarding" organization.code %}"
+           class="button ghost">{% translate "Skip onboarding" %}</a>
+    {% else %}
+        <p>
+            {% blocktranslate trimmed %}
+                Your administrator has <strong>trusted</strong> you with a clearance level of <strong>L{{ tcl }}</strong>.
+            {% endblocktranslate %}
+        </p>
+        <div class="button-container">
+            <a href="{% url "step_5_add_scan_ooi" ooi_type="URL" organization_code=organization.code %}"
+               class="button">{% translate "Continue" %}</a>
+            <a href="{% url "complete_onboarding" organization.code %}"
+               class="button ghost">{% translate "Skip onboarding" %}</a>
+        </div>
+    {% endif %}
+{% endwith %}
+</div>
+</section>
+</main>
+{% endblock content %}

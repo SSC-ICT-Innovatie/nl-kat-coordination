@@ -1,28 +1,21 @@
-import docker
-
-from boefjes.job_models import BoefjeMeta
-
-NUCLEI_IMAGE = "projectdiscovery/nuclei:v3.2.4"
+import subprocess
 
 
-def verify_hostname_meta(input_ooi):
-    # if the input object is HostnameHTTPURL then the hostname is located in netloc
-    if "netloc" in input_ooi and "name" in input_ooi["netloc"]:
-        netloc_name = input_ooi["netloc"]["name"]
-        port = input_ooi["port"]
-        return f"{netloc_name}:{port}"
-    else:
-        # otherwise the Hostname input object is used
-        return input_ooi["name"]
+def get_target_url(input_ooi: dict) -> str:
+    """Extract scan target hostname from input OOI."""
+    return input_ooi["name"]
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    client = docker.from_env()
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    url = get_target_url(boefje_meta["arguments"]["input"])
+    cmd = ["/usr/local/bin/nuclei"] + boefje_meta["arguments"]["oci_arguments"] + ["-u", url]
 
-    # Checks if the url is of object HostnameHTTPURL or Hostname
-    url = verify_hostname_meta(boefje_meta.arguments["input"])
-    output = client.containers.run(
-        NUCLEI_IMAGE, ["-t", "/root/nuclei-templates/http/cves/", "-u", url, "-jsonl"], remove=True
-    )
+    output = subprocess.run(cmd, capture_output=True)
 
-    return [(set(), output)]
+    if output.returncode != 0:
+        # nuclei reports why it gave up on stderr ("no templates provided for
+        # scan", an unknown flag, ...). check_returncode() drops that, leaving
+        # only an exit code for whoever reads the failed task.
+        raise RuntimeError(f"nuclei exited with code {output.returncode}: {output.stderr.decode().strip()}")
+
+    return [({"openkat/nuclei-output"}, output.stdout.decode())]

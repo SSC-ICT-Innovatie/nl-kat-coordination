@@ -1,1 +1,7 @@
-{{ field }}
+{% load rocky %}
+
+{% if field|is_multiple_hidden %}
+    {% for val in field.value %}<input type="hidden" name="{{ field.name }}" value="{{ val|escape }}" />{% endfor %}
+{% else %}
+    {{ field }}
+{% endif %}

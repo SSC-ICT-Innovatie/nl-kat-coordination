@@ -9,11 +9,9 @@
     <main id="main-content">
         <section>
             <div>
-                <h1>{% translate "KAT-alogus Settings" %}</h1>
+                <h1>{% translate "KAT-alogus settings" %}</h1>
                 {% if not settings %}
-                    <p class="emphasized">
-                        {% translate "There are currently no settings defined. Add settings at plugin detail page." %}
-                    </p>
+                    <p>{% translate "There are currently no settings defined. Add settings at the plugin detail page." %}</p>
                     <a class="button" href="{% url 'katalogus' organization.code %}">{% translate "Go back" %}</a>
                 {% else %}
                     <p class="emphasized">{% translate "This is an overview of the latest settings of all plugins." %}</p>

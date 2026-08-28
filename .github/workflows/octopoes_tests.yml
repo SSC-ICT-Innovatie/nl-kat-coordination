@@ -27,10 +27,10 @@ jobs:
     runs-on: ubuntu-24.04
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Python ${{ matrix.version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
         with:
           python-version: ${{ matrix.version }}
           cache: "pip" # caching pip dependencies
@@ -40,15 +40,8 @@ jobs:
         working-directory: ./octopoes
 
       - name: Run unit tests
-        run: pytest --cov-report=xml
+        run: pytest
         working-directory: ./octopoes
-
-      - if: ${{ matrix.version == '3.11' }}
-        name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: octopoes/coverage.xml
 
       - name: Run integration tests
         run: DOCKER_BUILDKIT=1 make itest build_args='--build-arg PYTHON_VERSION=${{ matrix.version }}'

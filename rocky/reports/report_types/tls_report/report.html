@@ -1,17 +1,15 @@
 {% load i18n %}
 
-{% if generate_report %}
-    <p>
-        {% blocktranslate trimmed %}
-            The TLS Report shows which TLS protocols and ciphers were identified
-            on the host for the provided port.
-        {% endblocktranslate %}
-    </p>
-{% endif %}
+<p class="toggle-item" data-show="off">
+    {% blocktranslate trimmed %}
+        The TLS Report shows which TLS protocols and ciphers were identified
+        on the host for the provided port.
+    {% endblocktranslate %}
+</p>
 {% for ip_service, data in data.items %}
     <h3>Ciphers for {{ data.input_ooi|human_readable }}</h3>
     {% if data.suites %}
-        <p>
+        <p class="toggle-item" data-show="off">
             {% blocktranslate trimmed %}
                 The table below provides an overview of the identified TLS
                 protocols and ciphers, including a status suggestion.

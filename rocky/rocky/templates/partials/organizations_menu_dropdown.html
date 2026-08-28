@@ -20,7 +20,7 @@
                 {% for org in organizations_including_blocked %}
                     {% if organization.code != org.code %}
                         <li>
-                            <a href="{% url "organization_crisis_room" org.code %}">{{ org.name }}</a>
+                            <a href="{% url "organization_crisis_room_landing" org.code %}">{{ org.name }}</a>
                         </li>
                     {% endif %}
                 {% endfor %}

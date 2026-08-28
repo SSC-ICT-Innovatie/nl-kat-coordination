@@ -8,14 +8,14 @@ import requests
 from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 from requests import Session
 
-from boefjes.job_models import BoefjeMeta
+# TODO: refactor
 from boefjes.plugins.kat_webpage_analysis.har.requests import create_har_object
 
 ALLOWED_CONTENT_TYPES = mimetypes.types_map.values()
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     useragent = getenv("USERAGENT", default="OpenKAT")
 
     uri = get_uri(input_)
@@ -43,10 +43,7 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
             uri = urlunsplit([url_parts.scheme, url_parts.netloc, url_parts.path, url_parts.query, url_parts.fragment])
 
     body_mimetypes = {"openkat-http/body"}
-    try:
-        response = do_request(hostname, session, uri, useragent)
-    except requests.exceptions.RequestException as request_error:
-        return [({"openkat-http/error"}, str(request_error))]
+    response = do_request(hostname, session, uri, useragent)
 
     if "content-type" in response.headers:
         content_type = response.headers["content-type"]
@@ -63,9 +60,22 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
 
     return [
         ({"application/json+har"}, har.encode()),
-        ({"openkat-http/headers"}, json.dumps(dict(response.headers))),
+        ({"openkat-http/headers"}, json.dumps(get_header_pairs(response))),
         (body_mimetypes, response.content),
     ]
+
+
+def get_header_pairs(response) -> list[list[str]]:
+    # A list of [name, value] pairs instead of a dict: a dict collapses repeated
+    # headers (requests joins multiple Set-Cookie values with ", ", which is
+    # ambiguous because Expires dates also contain commas — RFC 6265 requires one
+    # cookie per Set-Cookie header). The urllib3 HTTPHeaderDict on response.raw
+    # still has the individual headers.
+    raw_headers = getattr(response.raw, "headers", None)
+    if raw_headers is None:
+        return [[key, value] for key, value in response.headers.items()]
+
+    return [[key, value] for key in dict.fromkeys(raw_headers) for value in raw_headers.getlist(key)]
 
 
 def do_request(hostname: str, session: Session, uri: str, useragent: str):

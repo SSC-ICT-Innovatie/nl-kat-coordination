@@ -3,8 +3,8 @@ import os
 
 import pytest
 
-from boefjes.models import Boefje, Normalizer, Organisation
 from boefjes.storage.interfaces import ConfigNotFound, OrganisationNotFound, PluginNotFound, StorageError
+from boefjes.worker.models import Boefje, BoefjeConfig, Normalizer, Organisation
 
 pytestmark = pytest.mark.skipif(os.environ.get("CI") != "1", reason="Needs a CI database.")
 
@@ -48,8 +48,8 @@ def test_settings_storage(plugin_storage, organisation_storage, config_storage):
 
     with config_storage as settings_storage:
         settings_storage.upsert(organisation_id, plugin_id, {"TEST_SETTING": "123.9", "TEST_SETTING2": 13})
-    with config_storage as settings_storage:
         returned_settings = settings_storage.get_all_settings(organisation_id, plugin_id)
+
     assert returned_settings["TEST_SETTING"] == "123.9"
     assert returned_settings["TEST_SETTING2"] == 13
 
@@ -58,9 +58,7 @@ def test_settings_storage(plugin_storage, organisation_storage, config_storage):
 
     with config_storage as settings_storage:
         assert settings_storage.get_all_settings(org.id, plugin_id) == {"TEST_SETTING": "123.9", "TEST_SETTING2": 13}
-    with config_storage:
         assert config_storage.get_all_settings(org.id, "wrong") == {}
-    with config_storage:
         assert config_storage.get_all_settings("wrong", plugin_id) == {}
 
     with config_storage as settings_storage:
@@ -72,8 +70,47 @@ def test_settings_storage(plugin_storage, organisation_storage, config_storage):
     with pytest.raises(StorageError), config_storage as settings_storage:
         settings_storage.upsert(organisation_id, 65 * "a", {"TEST_SETTING": "123.9"})
 
+    # Test getting configs
+    org2 = Organisation(id="test2", name="Test2")
+    with organisation_storage as storage:
+        storage.create(org2)
 
-def test_settings_storage_values_field_limits(plugin_storage, organisation_storage, config_storage):
+    with config_storage as settings_storage:
+        settings_storage.upsert(organisation_id, plugin_id, {"TEST_SETTING": "123.9", "TEST_SETTING2": 12})
+        settings_storage.upsert(org2.id, plugin_id, {"TEST_SETTING2": 12, "TEST_SETTING": "123.9"})
+
+    config1 = BoefjeConfig(
+        id=6,
+        settings={"TEST_SETTING": "123.9", "TEST_SETTING2": 12},
+        enabled=False,
+        boefje_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        organisation_id="test",
+    )
+    config2 = BoefjeConfig(
+        id=7,
+        settings={"TEST_SETTING": "123.9", "TEST_SETTING2": 12},
+        enabled=False,
+        boefje_id="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        organisation_id="test2",
+    )
+    config2_with_duplicates = config2.model_copy(update={"duplicates": [config1]})
+
+    with config_storage as settings_storage:
+        assert settings_storage.list_boefje_configs(0, 10) == [config1, config2]
+        assert settings_storage.list_boefje_configs(1, 10) == [config2]
+        assert settings_storage.list_boefje_configs(2, 10) == []
+        assert settings_storage.list_boefje_configs(0, 1) == [config1]
+        assert settings_storage.list_boefje_configs(0, 10, organisation_id=org2.id, with_duplicates=True) == [config2]
+        assert settings_storage.list_boefje_configs(0, 10, organisation_id=org.id, with_duplicates=True) == [config1]
+        assert settings_storage.list_boefje_configs(0, 10, enabled=True, with_duplicates=True) == []
+        assert settings_storage.list_boefje_configs(0, 10, enabled=False, with_duplicates=True) == [config1, config2]
+        assert settings_storage.list_boefje_configs(0, 10, boefje_id="b", with_duplicates=True) == []
+        assert settings_storage.list_boefje_configs(
+            0, 10, boefje_id=config2.boefje_id, organisation_id=org2.id, with_duplicates=True
+        ) == [config2_with_duplicates]
+
+
+def test_settings_storage_values_respect_field_limits(plugin_storage, organisation_storage, config_storage):
     organisation_id = "test"
     plugin_id = 64 * "a"
 

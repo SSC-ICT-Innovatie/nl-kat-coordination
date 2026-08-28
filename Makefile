@@ -5,8 +5,9 @@ SHELL := bash
 # use HIDE to run commands invisibly, unless VERBOSE defined
 HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
+export OPENKAT_VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo development)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian-build-image ubuntu-build-image docs
+.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian12-build-image debian13-build-image ubuntu22.04-build-image ubuntu24.04-build-image docs upgraderequirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -26,7 +27,7 @@ endef
 # Build and bring up all containers (default target)
 kat: env-if-empty build up
 	@echo
-	@echo "The KAT frontend is running at http://localhost:8000,"
+	@echo "The OpenKAT frontend is running at http://localhost:8000,"
 	@echo "An initial superuser has been created"
 	@echo "The username is stored in DJANGO_SUPERUSER_EMAIL in the .env-default file."
 	@echo "run 'grep 'DJANGO_SUPERUSER_EMAIL' .env-defaults' to find it."
@@ -34,7 +35,7 @@ kat: env-if-empty build up
 	@echo "run 'grep 'DJANGO_SUPERUSER_PASSWORD' .env' to find it."
 	@echo
 	@echo "WARNING: This is a development environment, do not use in production!"
-	@echo "See https://docs.openkat.nl/installation-and-deployment/containers.html for production"
+	@echo "See https://docs.openkat.nl/installation-and-deployment/production-docker-environment.html for production"
 	@echo "installation instructions."
 
 # Remove containers, update using git pull and bring up containers
@@ -70,7 +71,7 @@ pull:
 	docker compose pull
 
 # Upgrade to the latest release without losing persistent data. Usage: `make upgrade version=v1.5.0` (version is optional)
-VERSION?=$(shell curl -sSf "https://api.github.com/repos/minvws/nl-kat-coordination/tags" | jq -r '[.[].name | select(. | contains("rc") | not)][0]')
+VERSION?=$(shell curl -sSf "https://api.github.com/repos/SSC-ICT-Innovatie/nl-kat-coordination/tags" | jq -r '[.[].name | select(. | contains("rc") | not)][0]')
 upgrade: down fetch
 	git checkout $(VERSION)
 	make kat
@@ -101,13 +102,21 @@ endif
 	make -C rocky build
 	make -C boefjes build
 
-# Build Debian 11 build image
+# Build Debian 12 build image
 debian12-build-image:
 	docker build -t kat-debian12-build-image packaging/debian12
 
 # Build Ubuntu 22.04 build image
 ubuntu22.04-build-image:
 	docker build -t kat-ubuntu22.04-build-image packaging/ubuntu22.04
+
+# Build Debian 13 build image
+debian13-build-image:
+	docker build -t kat-debian13-build-image packaging/debian13
+
+# Build Ubuntu 24.04 build image
+ubuntu24.04-build-image:
+	docker build -t kat-ubuntu24.04-build-image packaging/ubuntu24.04
 
 CHECKSUM_CMD = $(if $(filter $(UNAME), Darwin), shasum -a 256, sha256sum --quiet)
 
@@ -126,31 +135,30 @@ docs:
 	PYTHONPATH=$(PYTHONPATH):boefjes/:bytes/:mula/:octopoes/ sphinx-build -b html --fail-on-warning docs/source docs/_build
 
 
-poetry-dependencies:
+upgraderequirements:
+	@echo "Upgrading all required dependencies using uv..."
 	files=$$(find . -name pyproject.toml -maxdepth 2); \
 	for path in $$files; do \
 		project_dir=$$(dirname $$path); \
 		echo "Processing $$path..."; \
-		poetry check --lock -C $$project_dir; \
+		uv lock --project $$project_dir --upgrade; \
+		echo "New Lock file generated. Use \`make requirements\` to update requirements files..."
+	done
+
+requirements:
+	@echo "Generating requirements.txt files for all projects and uv lock based on pyproject.toml"
+	files=$$(find . -name pyproject.toml -maxdepth 2); \
+	for path in $$files; do \
+		project_dir=$$(dirname $$path); \
+		echo "Processing $$path..."; \
+                uv sync --project $$project_dir; \
+		uv lock --project $$project_dir --check; \
 		echo "Exporting main dependencies..."; \
-		poetry export -C $$project_dir --only main -f requirements.txt -o $$project_dir/requirements.txt; \
-		if grep -q "tool.poetry.group.dev.dependencies" $$path; then \
+		uv export --project $$project_dir --no-default-groups --format requirements-txt -o $$project_dir/requirements.txt; \
+		if grep -q "\[dependency-groups\]" $$path && grep -q "dev =" $$path; then \
 			echo "Exporting dev dependencies..."; \
-			poetry export -C $$project_dir --with dev -f requirements.txt -o $$project_dir/requirements-dev.txt; \
+			uv export --project $$project_dir --group dev --format requirements-txt -o $$project_dir/requirements-dev.txt; \
 		else \
 			echo "No dev group, skipping requirements-dev.txt..."; \
 		fi; \
-	done
-
-fix-poetry-merge-conflict:
-	for path in `git diff --diff-filter=U --name-only | grep "poetry.lock" | cut -d / -f 1`; do \
-		echo $$path; \
-		git restore --staged $$path/poetry.lock $$path/requirements*; \
-		git checkout --theirs $$path/poetry.lock $$path/requirements*; \
-		poetry lock --no-update -C $$path; \
-		poetry export -C $$path --only main -f requirements.txt -o $$path/requirements.txt; \
-		if grep -q "tool.poetry.group.dev.dependencies" $$path/pyproject.toml; then \
-			poetry export -C $$path --with dev -f requirements.txt -o $$path/requirements-dev.txt; \
-		fi; \
-		git add $$path/poetry.lock $$path/requirements*; \
 	done

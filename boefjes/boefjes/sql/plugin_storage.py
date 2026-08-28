@@ -4,11 +4,11 @@ import structlog
 from sqlalchemy.orm import Session
 
 from boefjes.config import Settings, settings
-from boefjes.models import Boefje, Normalizer, PluginType
 from boefjes.sql.db import ObjectNotFoundException, session_managed_iterator
 from boefjes.sql.db_models import BoefjeInDB, NormalizerInDB, RunOnDB
 from boefjes.sql.session import SessionMixin
 from boefjes.storage.interfaces import NotAllowed, PluginNotFound, PluginStorage
+from boefjes.worker.models import Boefje, Normalizer, PluginType
 
 logger = structlog.get_logger(__name__)
 
@@ -35,7 +35,7 @@ class SQLPluginStorage(SessionMixin, PluginStorage):
         return self.to_normalizer(instance)
 
     def create_boefje(self, boefje: Boefje) -> None:
-        logger.info("Saving plugin: %s", boefje.model_dump_json())
+        logger.info("Saving plugin: %s", boefje.model_dump(mode="json"))
 
         boefje_in_db = self.to_boefje_in_db(boefje)
         self.session.add(boefje_in_db)
@@ -53,7 +53,7 @@ class SQLPluginStorage(SessionMixin, PluginStorage):
         self.session.merge(self.to_boefje_in_db(boefje, instance.id))
 
     def create_normalizer(self, normalizer: Normalizer) -> None:
-        logger.info("Saving plugin: %s", normalizer.model_dump_json())
+        logger.info("Saving plugin: %s", normalizer.model_dump(mode="json"))
 
         normalizer_in_db = self.to_normalizer_in_db(normalizer)
         self.session.add(normalizer_in_db)
@@ -115,6 +115,7 @@ class SQLPluginStorage(SessionMixin, PluginStorage):
             oci_arguments=boefje.oci_arguments,
             version=boefje.version,
             static=boefje.static,
+            deduplicate=boefje.deduplicate,
         )
 
         if pk is not None:
@@ -159,6 +160,7 @@ class SQLPluginStorage(SessionMixin, PluginStorage):
             oci_arguments=boefje_in_db.oci_arguments,
             version=boefje_in_db.version,
             static=boefje_in_db.static,
+            deduplicate=boefje_in_db.deduplicate,
         )
 
     @staticmethod

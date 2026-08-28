@@ -5,7 +5,7 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-octopoes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-octopoes \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -18,12 +18,38 @@ ubuntu22.04:
 	docker run --rm \
 	--env PKG_NAME=kat-octopoes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-octopoes \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
 	--workdir /app \
 	kat-ubuntu22.04-build-image \
+	packaging/scripts/build-debian-package.sh
+
+debian13:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-octopoes \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--workdir /app \
+	kat-debian13-build-image \
+	packaging/scripts/build-debian-package.sh
+
+ubuntu24.04:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-octopoes \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--workdir /app \
+	kat-ubuntu24.04-build-image \
 	packaging/scripts/build-debian-package.sh
 
 format:
@@ -50,6 +76,12 @@ rtest:
 	docker compose --project-directory . -f .ci/docker-compose.yml up -d --build ci_octopoes ci_octopoes_api_worker
 	sleep 2
 	robot -d reports tests/robot
+
+ctest:
+	docker compose --project-directory . -f .ci/docker-compose.yml kill
+	docker compose --project-directory . -f .ci/docker-compose.yml down --remove-orphans
+	docker compose --project-directory . -f .ci/docker-compose.yml build $(build_args)
+	docker compose --project-directory . -f .ci/docker-compose.yml run --rm octopoes_pytest
 
 itest:
 	docker compose --project-directory . -f .ci/docker-compose.yml kill

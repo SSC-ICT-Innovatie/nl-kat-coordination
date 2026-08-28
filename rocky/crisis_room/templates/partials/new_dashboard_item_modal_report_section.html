@@ -1,0 +1,70 @@
+{% load i18n %}
+
+{% component "modal" modal_id=modal_id size="dialog-medium" %}
+{% fill "header" %}
+{% translate "Add report section to dashboard" %}
+{% endfill %}
+{% fill "content" %}
+{% if recipe_ooi.cron_expression and add_dashboard_item_form.dashboard|length > 1 %}
+    <form method="post" id="new-dashboard-item-form-{{ modal_id }}">
+        {% csrf_token %}
+        {% include "partials/form/form_errors.html" with form=add_dashboard_item_form %}
+        {% include "partials/form/fieldset.html" with fields=add_dashboard_item_form form_view="horizontal" %}
+
+        <input type="hidden" name="recipe_id" value="{{ recipe_ooi.recipe_id }}">
+        <input type="hidden" name="source" value="{{ report_pk }}">
+        <input type="hidden" name="template" value="{{ template }}">
+    </form>
+{% elif recipe_ooi.cron_expression %}
+    <div class="message">
+        <div class="explanation"
+             role="group"
+             aria-label="{% translate "explanation" %}">
+            <div>
+                <span>{% translate "You do not have a custom dashboard yet" %}</span>
+                <p>
+                    {% blocktranslate trimmed %}
+                        In order to add this report section to a dashboard,
+                        you first need to create a dashboard. Please create a
+                        dashboard in the crisis room of your organization.
+                    {% endblocktranslate %}
+                </p>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="message">
+        <div class="explanation"
+             role="group"
+             aria-label="{% translate "explanation" %}">
+            <div>
+                <span>{% translate "Report must be scheduled for dashboard items" %}</span>
+                <p>
+                    {% blocktranslate trimmed %}
+                        In order for dashboard information to be updated on a regular basis
+                        instead of showing static data, the report should be scheduled.
+                        The frequency of the schedules recurrence determines how fresh
+                        the data on the dashboard will be.
+                    {% endblocktranslate %}
+                </p>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endfill %}
+{% fill "footer_buttons" %}
+{% if recipe_ooi.cron_expression and add_dashboard_item_form.dashboard|length > 1 %}
+    <button type="submit"
+            form="new-dashboard-item-form-{{ modal_id }}"
+            class="submit">{% translate "Add to dashboard" %}</button>
+{% elif recipe_ooi.cron_expression %}
+    <a class="button"
+       href="{% url "organization_crisis_room_landing" organization.code %}">{% translate "Go to crisis room" %}</a>
+{% else %}
+    <a class="button"
+       href="{% ooi_url "ooi_edit" recipe_ooi organization.code %}">{% translate "Edit report recipe" %}</a>
+{% endif %}
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

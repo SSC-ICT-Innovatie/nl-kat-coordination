@@ -180,22 +180,22 @@ class MultiOrganizationReport(MultiReport):
                     "total_finding_types": 0,
                     "total_occurrences": 0,
                 }
+            if aggregate_data["findings"]:
+                for finding_type_with_occurrences in aggregate_data["findings"]["finding_types"]:
+                    finding_type = finding_type_with_occurrences["finding_type"]
+                    finding_type_id = finding_type["id"]
+                    occurrences = finding_type_with_occurrences["occurrences"]
+                    severity = finding_type["risk_severity"]
 
-            for finding_type_with_occurrences in aggregate_data["findings"]["finding_types"]:
-                finding_type = finding_type_with_occurrences["finding_type"]
-                finding_type_id = finding_type["id"]
-                occurrences = finding_type_with_occurrences["occurrences"]
-                severity = finding_type["risk_severity"]
-
-                if finding_type_id not in findings["finding_types"]:
-                    findings["finding_types"][finding_type_id] = {
-                        "finding_type": finding_type,
-                        "occurrences": occurrences,
-                    }
-                    findings["summary"]["total_by_severity_per_finding_type"][severity] += 1
-                    findings["summary"]["total_finding_types"] += 1
-                else:
-                    findings["finding_types"][finding_type_id]["occurrences"].extend(occurrences)
+                    if finding_type_id not in findings["finding_types"]:
+                        findings["finding_types"][finding_type_id] = {
+                            "finding_type": finding_type,
+                            "occurrences": occurrences,
+                        }
+                        findings["summary"]["total_by_severity_per_finding_type"][severity] += 1
+                        findings["summary"]["total_finding_types"] += 1
+                    else:
+                        findings["finding_types"][finding_type_id]["occurrences"].extend(occurrences)
 
             # Get metrics per organization for best and worst security score
             ## Safe Connections

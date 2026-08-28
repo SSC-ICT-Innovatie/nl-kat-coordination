@@ -12,9 +12,21 @@ def join_csv(values: Iterable[Any]) -> str:
 
 def str_val(val):
     if isinstance(val, str):
-        val = val.replace('"', '\\"')
+        val = edn_escape(val)
         return f'"{val}"'
     return val
+
+
+def edn_escape(s: str) -> str:
+    return (
+        s.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
+        .replace("\b", "\\b")
+        .replace("\f", "\\f")
+    )
 
 
 def generate_pull_query(

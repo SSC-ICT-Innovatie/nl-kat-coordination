@@ -451,5 +451,8 @@ docs/source/_static/mermaid.min.js
 /boefjes/boefjes/plugins/kat_rpki/bgp.jsonl
 /boefjes/boefjes/plugins/kat_rpki/bgp-meta.json
 
+# ignore test tmp files
+/boefjes/tests/modules/**/boefje.json.tmp
+
 *.pstat
 **/.cache*

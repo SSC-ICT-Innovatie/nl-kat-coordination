@@ -1,11 +1,10 @@
 import json
 from collections import defaultdict
-from datetime import datetime
 
 from django.contrib import messages
 from django.utils.translation import gettext_lazy as _
 from jsonschema.validators import Draft202012Validator
-from katalogus.client import Boefje
+from katalogus.client import Boefje, KATalogusError
 from reports.report_types.helpers import get_report_types_for_ooi
 from tools.forms.ooi import PossibleBoefjesFilterForm
 from tools.forms.scheduler import OOIDetailTaskFilterForm
@@ -15,10 +14,10 @@ from octopoes.models import Reference
 from octopoes.models.ooi.question import Question
 from rocky.views.ooi_detail_related_object import OOIFindingManager, OOIRelatedObjectManager
 from rocky.views.ooi_view import BaseOOIDetailView
-from rocky.views.tasks import TaskListView
+from rocky.views.tasks import OOIDetailTaskListView
 
 
-class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, TaskListView):
+class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManager, OOIDetailTaskListView):
     template_name = "oois/ooi_detail.html"
     task_filter_form = OOIDetailTaskFilterForm
     task_type = "boefje"
@@ -26,18 +25,23 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
     def post(self, request, *args, **kwargs):
         if self.action == self.CHANGE_CLEARANCE_LEVEL:
             self.set_clearance_level()
-        if self.action == self.SUBMIT_ANSWER:
+        elif self.action == self.SUBMIT_ANSWER:
             self.answer_ooi_questions()
-        if self.action == self.START_SCAN:
+        elif self.action == self.START_SCAN:
             self.start_boefje_scan()
         return super().post(request, *args, **kwargs)
 
     def set_clearance_level(self) -> None:
         if not self.indemnification_present:
-            return self.indemnification_error()
-        else:
-            clearance_level = int(self.request.POST.get("level"))
+            self.indemnification_error()
+            return
+        try:
+            clearance_level = int(self.request.POST["level"])
             self.can_raise_clearance_level(self.ooi, clearance_level)  # returns appropriate messages
+        except (ValueError, KeyError):
+            messages.error(
+                self.request, _("Cannot set clearance level. It must be provided and must be a valid number.")
+            )
 
     def answer_ooi_questions(self) -> None:
         if not isinstance(self.ooi, Question):
@@ -61,17 +65,10 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
     def start_boefje_scan(self) -> None:
         boefje_id = self.request.POST.get("boefje_id")
-        boefje = self.get_katalogus().get_plugin(boefje_id)
+        boefje = self.katalogus_client.get_plugin(boefje_id)
         ooi_id = self.request.GET.get("ooi_id")
         ooi = self.get_single_ooi(pk=ooi_id)
         self.run_boefje(boefje, ooi)
-
-    def get_task_filters(self) -> dict[str, str | datetime | None]:
-        filters = super().get_task_filters()
-        filters["filters"]["filters"].append(
-            {"column": "data", "field": "input_ooi", "operator": "==", "value": str(self.ooi)}
-        )
-        return filters
 
     def get_boefjes_filter_form(self):
         return PossibleBoefjesFilterForm(self.request.GET)
@@ -104,7 +101,11 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
         context["ooi"] = self.ooi
 
-        enabled_boefjes = self.get_katalogus().get_enabled_boefjes()
+        try:
+            enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
+        except KATalogusError:
+            messages.error(self.request, "Could not get enabled boefjes from KATalogus, request failed")
+            enabled_boefjes = []
         ooi_boefjes = self.get_boefjes_for_ooi(enabled_boefjes)
 
         filter_form = self.get_boefjes_filter_form()
@@ -117,7 +118,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         else:
             context["boefjes"] = ooi_boefjes
 
-        context.update(self.get_origins(self.ooi.reference, self.organization))
+        context.update(self.get_origins(self.ooi.reference))
         if context["inferences"]:
             inference_params = self.octopoes_api_connector.list_origin_parameters(
                 {inference.origin.id for inference in context["inferences"]}, self.observed_at
@@ -133,21 +134,24 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             context["inference_origin_params"] = inference_origin_params
         else:
             context["inference_origin_params"] = None
-        context["member"] = self.organization_member
 
         # TODO: generic solution to render ooi fields properly: https://github.com/minvws/nl-kat-coordination/issues/145
         context["object_details"] = format_display(self.get_ooi_properties(self.ooi), ignore=["json_schema"])
         context["ooi_types"] = self.get_ooi_types_input_values(self.ooi)
 
         context["is_question"] = isinstance(self.ooi, Question)
-        context["ooi_past_due"] = context["observed_at"].date() < datetime.utcnow().date()
-        context["related"] = self.get_related_objects(context["observed_at"])
+        if isinstance(self.ooi, Question):
+            try:
+                context["current_config"] = self.get_ooi(self.ooi.config_pk).config
+            except Exception:
+                context["current_config"] = None
+
+        context["related"] = self.get_related_objects(self.observed_at)
 
         context["count_findings_per_severity"] = dict(self.count_findings_per_severity())
         context["severity_summary_totals"] = sum(context["count_findings_per_severity"].values())
 
         context["possible_boefjes_filter_form"] = self.get_boefjes_filter_form()
-        context["organization_indemnification"] = self.indemnification_present
 
         context["possible_reports"] = [
             report.class_attributes() for report in get_report_types_for_ooi(self.ooi.primary_key)
@@ -161,6 +165,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
                     "primary_key": section.reference,
                     "human_readable": Reference.from_str(section.reference).human_readable,
                     "level": section.level,
+                    "given": section.inherited_level,
                 }
                 for section in clearance_level_inheritance
             ]

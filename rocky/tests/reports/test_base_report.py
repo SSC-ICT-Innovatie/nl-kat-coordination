@@ -8,7 +8,7 @@ from tests.conftest import setup_request
 
 
 def test_aggregate_report_select_oois(rf, client_member, mock_organization_view_octopoes, mocker, listed_hostnames):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     kwargs = {"organization_code": client_member.organization.code}
     url = reverse("aggregate_report_select_oois", kwargs=kwargs)
     request = rf.get(url)
@@ -23,7 +23,7 @@ def test_aggregate_report_select_oois(rf, client_member, mock_organization_view_
     response = OOISelectionAggregateReportView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().list_objects.call_count == 2
+    assert mock_organization_view_octopoes().list_objects.call_count == 1
 
     assertContains(response, "Showing " + str(len(listed_hostnames)) + " of " + str(len(listed_hostnames)) + " objects")
     assertContains(response, "Hostname")
@@ -33,7 +33,7 @@ def test_aggregate_report_select_oois(rf, client_member, mock_organization_view_
 def test_aggregate_report_select_oois_empty_list(
     rf, client_member, mock_organization_view_octopoes, mocker, listed_hostnames
 ):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     kwargs = {"organization_code": client_member.organization.code}
     url = reverse("aggregate_report_select_oois", kwargs=kwargs)
     request = rf.get(url)
@@ -54,7 +54,7 @@ def test_aggregate_report_select_oois_empty_list(
 def test_aggregate_report_choose_report_types(
     rf, client_member, mock_organization_view_octopoes, mocker, listed_hostnames, valid_time
 ):
-    mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
     kwargs = {"organization_code": client_member.organization.code}
     url = reverse("aggregate_report_select_report_types", kwargs=kwargs)
 

@@ -16,7 +16,7 @@ You need the following things to install OpenKAT:
 
 - A computer with a Linux installation. In this document we use Ubuntu, but on many other distributions it works in a similar way. Later we will also add instructions for macOS.
 - Docker. If you don't already have this, install it first.
-- OpenKAT's `GitHub repository <https://github.com/minvws/nl-kat-coordination/>`_.
+- OpenKAT's `GitHub repository <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/>`_.
 
 Before installing
 -----------------
@@ -75,7 +75,7 @@ Default installation
 
 .. code-block:: sh
 
-	$ git clone https://github.com/minvws/nl-kat-coordination.git
+	$ git clone https://github.com/SSC-ICT-Innovatie/nl-kat-coordination.git
 
 - Go to the folder:
 
@@ -113,7 +113,7 @@ Using http works only when connecting to localhost due to the security flags on 
 Specific builds
 ***************
 
-If you want to create a specific build, you have a number of options. You can also look in the `Makefile <https://github.com/minvws/nl-kat-coordination/blob/main/Makefile>`_.
+If you want to create a specific build, you have a number of options. You can also look in the `Makefile <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/blob/main/Makefile>`_.
 
 Updates
 -------
@@ -141,9 +141,25 @@ This removes all Docker containers and volumes, and then brings up the container
 
 Optionally, first remove the ``.env`` file (``rm .env``) before running ``make env`` and ``make reset`` to also reset all configuration in environment variables. This should also resolve issues such as database authentication errors (``password authentication failed``).
 
-OpenTelemetry
+Observability
 =============
+
+OpenTelemetry
+-------------
 
 OpenTelemetry is a way to trace requests through the system. It is used to find out where a request is going wrong and to instrument performance problems. OpenTelemetry is not enabled by default, but can be enabled by uncommenting the environment variable ``SPAN_EXPORT_GRPC_ENDPOINT`` in the ``.env`` file.
 
+Jaeger: Distributed Tracing
+---------------------------
+
 The `Jaeger <https://www.jaegertracing.io>`_ tracing system is used to view the traces. It can be enabled by enabling the `Docker Compose profile <https://docs.docker.com/compose/profiles/#enable-profiles>`_, for example by running ``docker-compose --profile jaeger up -d`` or using ``export COMPOSE_PROFILES=jaeger`` and then running Make as usual. The Jaeger UI can then be found at http://localhost:16686.
+
+Pyroscope: Continuous Profiling
+-------------------------------
+
+Pyroscope is a continuous profiling tool that helps you understand the performance of your applications. It collects and visualizes profiling data, allowing you to identify performance bottlenecks and optimize resource usage. You'll be able to see how much CPU time is spent in different parts of your code, which functions are taking the most time, and how memory is being used over time.
+
+1. Start openkat
+2. ``docker compose --profile monitoring up -d``
+3. Check http://localhost:4040/ for pyroscope to see if it is working
+4. Check http://localhost:4000/a/grafana-pyroscope-app/explore to see if it is working

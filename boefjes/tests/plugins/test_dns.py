@@ -4,7 +4,14 @@ from ipaddress import IPv4Address, IPv6Address
 import pytest
 from pydantic import BaseModel
 
-from boefjes.job_models import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, ObservationsWithoutInputOOI, RawDataMeta
+from boefjes.worker.job_models import (
+    Boefje,
+    BoefjeMeta,
+    Normalizer,
+    NormalizerMeta,
+    ObservationsWithoutInputOOI,
+    RawDataMeta,
+)
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.records import (
     DNSAAAARecord,
@@ -365,3 +372,40 @@ def test_exception_raised_no_input_ooi(normalizer_runner):
 
     with pytest.raises(ObservationsWithoutInputOOI):
         normalizer_runner.run(meta, get_dummy_data("inputs/dns-result-example.nl.json"))
+
+
+def test_dns_normalizer_skips_ede_options(normalizer_runner):
+    # Regression test for #5312: when a resolver returns an Extended DNS Error, the
+    # response block carries an `option EDE ...` header line that from_text does # codespell-ignore
+    # not recognise (UnknownHeaderField), which aborted the whole normalizer.
+    # The NS block in this raw carries that EDE option; it must be parsed, not crash. # codespell-ignore
+    meta = NormalizerMeta.model_validate_json(get_dummy_data("dns-normalize.json"))
+
+    results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-result-openkat.nl-ede.json"))
+
+    ns_values = {str(r.value) for r in results.observations[0].results if isinstance(r, DNSNSRecord)}
+    assert ns_values == {
+        "ns0.rijksoverheidnl.com.",
+        "ns1.rijksoverheidnl.nl.",
+        "ns2.rijksoverheidnl.eu.",
+        "ns3.rijksoverheidnl.org.",
+    }
+
+
+def test_dns_loc_gpos_records(normalizer_runner):
+    meta = NormalizerMeta.model_validate_json(get_dummy_data("dns-normalize.json"))
+    results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-results-loc.example.nl.json"))
+    oois = results.observations[0].results
+    types = {o.object_type for o in oois}
+    assert "DNSLOCRecord" in types
+    assert "DNSGPOSRecord" in types
+    assert "GeographicPoint" in types
+
+    loc = next(o for o in oois if o.object_type == "DNSLOCRecord")
+    assert loc.altitude == -2400.0  # -24m in centimeters
+    assert loc.size == 3000.0 and loc.horizontal_precision == 1000000.0 and loc.vertical_precision == 1000.0
+
+    gpos = next(o for o in oois if o.object_type == "DNSGPOSRecord")
+    assert gpos.altitude == 1000.0  # 10.0m in centimeters
+
+    assert sum(o.object_type == "GeographicPoint" for o in oois) == 2

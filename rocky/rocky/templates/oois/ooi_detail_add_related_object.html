@@ -7,7 +7,7 @@
     {% translate type as display_type %}
     {% include "header.html" %}
 
-    {% if not ooi_past_due and ooi_types %}
+    {% if not historic_view and ooi_types %}
         <main id="main-content">
             <section>
                 <div>

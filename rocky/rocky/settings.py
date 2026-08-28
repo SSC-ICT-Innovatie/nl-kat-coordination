@@ -10,14 +10,18 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import json
+import logging.config
 import re
 from pathlib import Path
 
 import environ
 import structlog
+from csp.constants import NONE, SELF
 from django.conf import locale
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _
+from django.views.debug import SafeExceptionReporterFilter
 
 from rocky.otel import OpenTelemetryHelper
 
@@ -44,6 +48,18 @@ BYTES_API = env.url("BYTES_API").geturl()
 BYTES_USERNAME = env("BYTES_USERNAME")
 BYTES_PASSWORD = env("BYTES_PASSWORD")
 
+# See these Django release notes: https://docs.djangoproject.com/en/dev/releases/3.1/#error-reporting
+HIDDEN_DEFAULT = "API|TOKEN|KEY|SECRET|PASS|SIGNATURE|HTTP_COOKIE"
+HIDDEN_ADDITIONAL = "ROCKY|BOEFJES|BYTES|MULA|SCHEDULER|OCTOPOES|RABBITMQ_|_URI"
+
+
+class SaferExceptionReporterFilter(SafeExceptionReporterFilter):
+    hidden_settings = re.compile(f"{HIDDEN_DEFAULT}|{HIDDEN_ADDITIONAL}", flags=re.I)
+
+
+DEFAULT_EXCEPTION_REPORTER_FILTER = "rocky.settings.SaferExceptionReporterFilter"
+
+
 ROCKY_REPORT_PERMALINKS = env.bool("ROCKY_REPORT_PERMALINKS", True)
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -55,23 +71,45 @@ LOGGING_FORMAT = env("LOGGING_FORMAT", default="text")
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
-    "formatters": {
-        "json_formatter": {"()": structlog.stdlib.ProcessorFormatter, "processor": structlog.processors.JSONRenderer()},
-        "plain_console": {
-            "()": structlog.stdlib.ProcessorFormatter,
-            "processor": structlog.dev.ConsoleRenderer(
-                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
-            ),
-        },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": ("json_formatter" if LOGGING_FORMAT == "json" else "plain_console"),
-        }
-    },
+    "formatters": {"default": {"format": "%(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "default"}},
     "loggers": {"root": {"handlers": ["console"], "level": env("LOG_LEVEL", default="INFO").upper()}},
 }
+
+
+def configure_logging(logging_settings):
+    log_cfg = env("ROCKY_LOG_CFG", default="")
+    if log_cfg:
+        with Path(log_cfg).open() as f:
+            logging.config.dictConfig(json.load(f))
+    else:
+        logging.config.dictConfig(logging_settings)
+
+
+structlog.configure(
+    processors=[
+        structlog.contextvars.merge_contextvars,
+        structlog.processors.add_log_level,
+        structlog.processors.StackInfoRenderer(),
+        structlog.dev.set_exc_info,
+        structlog.stdlib.PositionalArgumentsFormatter(),
+        structlog.processors.TimeStamper("iso", utc=False),
+        (
+            structlog.dev.ConsoleRenderer(
+                colors=True, pad_level=False, exception_formatter=structlog.dev.plain_traceback
+            )
+            if LOGGING_FORMAT == "text"
+            else structlog.processors.JSONRenderer()
+        ),
+    ],
+    context_class=dict,
+    logger_factory=structlog.stdlib.LoggerFactory(),
+    wrapper_class=structlog.stdlib.BoundLogger,
+    cache_logger_on_first_use=True,
+)
+
+
+LOGGING_CONFIG = "rocky.settings.configure_logging"
 
 # Make sure this header can never be set by an attacker, see also the security
 # warning at https://docs.djangoproject.com/en/4.2/howto/auth-remote-user/
@@ -156,7 +194,6 @@ INSTALLED_APPS = [
     "django_password_validators.password_history",
     "rest_framework",
     "tagulous",
-    "compressor",
     "reports",
     "knox",
     # "drf_standardized_errors",
@@ -170,7 +207,6 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "rocky.middleware.auth_token.AuthTokenMiddleware",
     "django_structlog.middlewares.RequestMiddleware",
 ]
 
@@ -244,12 +280,19 @@ except ImproperlyConfigured:
 DATABASES = {"default": POSTGRES_DB}
 
 if env.bool("POSTGRES_SSL_ENABLED", False):
-    DATABASES["default"]["OPTIONS"] = {
-        "sslmode": env("POSTGRES_SSL_MODE"),
-        "sslrootcert": env.path("POSTGRES_SSL_ROOTCERT"),
-        "sslcert": env.path("POSTGRES_SSL_CERT"),
-        "sslkey": env.path("POSTGRES_SSL_KEY"),
-    }
+    DATABASES["default"]["OPTIONS"] = {"sslmode": env("POSTGRES_SSL_MODE", default="require")}
+
+    POSTGRES_SSL_CERT = env.path("POSTGRES_SSL_CERT", default="")
+    POSTGRES_SSL_KEY = env.path("POSTGRES_SSL_KEY", default="")
+
+    if POSTGRES_SSL_CERT and POSTGRES_SSL_KEY:
+        DATABASES["default"]["OPTIONS"]["sslcert"] = POSTGRES_SSL_CERT
+        DATABASES["default"]["OPTIONS"]["sslkey"] = POSTGRES_SSL_KEY
+
+    POSTGRES_SSL_ROOTCERT = env.path("POSTGRES_SSL_ROOTCERT", default="")
+    if POSTGRES_SSL_ROOTCERT:
+        DATABASES["default"]["OPTIONS"]["sslrootcert"] = POSTGRES_SSL_ROOTCERT
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -313,26 +356,7 @@ STATICFILES_DIRS = (BASE_DIR / "assets", BASE_DIR / "components")
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-    "compressor.finders.CompressorFinder",
 ]
-COMPRESS_ENABLED = env.bool("COMPRESS_ENABLED", True)
-COMPRESS_OFFLINE = True
-COMPRESS_STORAGE = "compressor.storage.BrotliCompressorFileStorage"
-
-STORAGES = {"staticfiles": {"BACKEND": "rocky.storage.RockyStaticFilesStorage"}}
-
-_IMMUTABLE_FILE_TEST_PATTERN = re.compile(r"^.+\.[0-9a-f]{12}\..+$")
-
-
-def immutable_file_test(path, url):
-    # Match filename with 12 hex digits before the extension e.g.
-    # app.db8f2edc0c8a.js. Configuring this is necessary because whitenoise
-    # doesn't automatically detect the django-compressor files as immutable.
-    return _IMMUTABLE_FILE_TEST_PATTERN.match(url)
-
-
-WHITENOISE_IMMUTABLE_FILE_TEST = immutable_file_test
-WHITENOISE_KEEP_ONLY_HASHED_FILES = False
 
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "crisis_room"
@@ -397,15 +421,19 @@ if CSP_HEADER:
     MIDDLEWARE += ["csp.middleware.CSPMiddleware"]
     INSTALLED_APPS += ["csp"]
 
-CSP_DEFAULT_SRC = ["'none'"]
-CSP_IMG_SRC = ["'self'"]
-CSP_FONT_SRC = ["'self'"]
-CSP_STYLE_SRC = ["'self'"]
-CSP_FRAME_ANCESTORS = ["'none'"]
-CSP_BASE_URI = ["'none'"]
-CSP_FORM_ACTION = ["'self'"]
-CSP_INCLUDE_NONCE_IN = ["script-src"]
-CSP_CONNECT_SRC = ["'self'"]
+    CONTENT_SECURITY_POLICY = {
+        "DIRECTIVES": {
+            "default-src": [NONE],
+            "img-src": [SELF],
+            "font-src": [SELF],
+            "style-src": [SELF],
+            "frame-ancestors": [NONE],
+            "base-uri": [NONE],
+            "form-action": [SELF],
+            "connect-src": [SELF],
+            "script-src": [SELF],
+        }
+    }
 
 # Turn on the browsable API by default if DEBUG is True, but disable by default in production
 BROWSABLE_API = env.bool("BROWSABLE_API", DEBUG)
@@ -467,23 +495,6 @@ WEASYPRINT_BASEURL = env("WEASYPRINT_BASEURL", default="http://127.0.0.1:8000/")
 
 KNOX_TOKEN_MODEL = "account.AuthToken"
 
-FORMS_URLFIELD_ASSUME_HTTPS = True
-
-structlog.configure(
-    processors=[
-        structlog.contextvars.merge_contextvars,
-        structlog.processors.add_log_level,
-        structlog.processors.StackInfoRenderer(),
-        structlog.dev.set_exc_info,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper("iso", utc=False),
-        structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
-    ],
-    context_class=dict,
-    logger_factory=structlog.stdlib.LoggerFactory(),
-    wrapper_class=structlog.stdlib.BoundLogger,
-    cache_logger_on_first_use=True,
-)
 
 # Number of workers to run for the report queue
 POOL_SIZE = env.int("POOL_SIZE", default=2)
@@ -500,3 +511,5 @@ WORKER_HEARTBEAT = env.int("WORKER_HEARTBEAT", default=5)
 SILENCED_SYSTEM_CHECKS = ["staticfiles.W004"]
 
 ROCKY_OUTGOING_REQUEST_TIMEOUT = env.int("ROCKY_OUTGOING_REQUEST_TIMEOUT", default=30)
+
+ASSET_REPORTS = env.bool("ASSET_REPORTS", default=True)

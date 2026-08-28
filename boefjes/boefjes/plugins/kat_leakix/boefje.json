@@ -7,5 +7,13 @@
     "IPAddressV6",
     "Hostname"
   ],
-  "scan_level": 1
+  "environment_keys": [
+    "LEAKIX_API",
+    "LEAKIX_SEARCH_MODE"
+  ],
+  "scan_level": 1,
+  "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
+  "oci_arguments": [
+    "kat_leakix.main"
+  ]
 }

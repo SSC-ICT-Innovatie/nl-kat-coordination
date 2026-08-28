@@ -37,8 +37,8 @@ MEMBER_UPLOAD_COLUMNS = [
     "acknowledged_clearance_level",
 ]
 CSV_CRITERIA = [
-    _("Add column titles. Followed by each object on a new line."),
-    _("The columns are: ") + ", ".join(MEMBER_UPLOAD_COLUMNS),
+    _("Add column titles, followed by each object on a new line."),
+    _("The columns are: ") + ",".join(f"'{column}'" for column in MEMBER_UPLOAD_COLUMNS),
     _("Clearance levels should be between -1 and 4."),
     _("Account type can be one of: ") + f"'{GROUP_CLIENT}', '{GROUP_ADMIN}' and '{GROUP_REDTEAM}'",
 ]
@@ -48,7 +48,7 @@ class OrganizationMemberAddAccountTypeView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
     """
-    View to create a new member starting with choosing the account type.
+    View to create a new member. Step 1: choose an account type.
     """
 
     template_name = "organizations/organization_member_add_account_type.html"
@@ -73,7 +73,7 @@ class OrganizationMemberAddAccountTypeView(
                 "url": reverse(
                     "organization_member_add_account_type", kwargs={"organization_code": self.organization.code}
                 ),
-                "text": _("Add Account Type"),
+                "text": _("Add member"),
             }
         )
         return breadcrumbs
@@ -83,7 +83,7 @@ class OrganizationMemberAddView(
     OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
 ):
     """
-    View to create a new member.
+    View to create a new member. Step 2: account setup.
     """
 
     template_name = "organizations/organization_member_add.html"
@@ -118,18 +118,8 @@ class OrganizationMemberAddView(
                     "url": reverse(
                         "organization_member_add_account_type", kwargs={"organization_code": self.organization.code}
                     ),
-                    "text": _("Add Account Type"),
-                },
-                {
-                    "url": reverse(
-                        "organization_member_add",
-                        kwargs={
-                            "organization_code": self.organization.code,
-                            "account_type": self.kwargs["account_type"],
-                        },
-                    ),
-                    "text": _("Add Member"),
-                },
+                    "text": _("Add member"),
+                }
             ]
         )
         return breadcrumbs
@@ -146,7 +136,13 @@ class DownloadMembersTemplateView(OrganizationPermissionRequiredMixin, Organizat
         return FileResponse(io.BytesIO(template.encode()), filename=f"{self.organization}_organization_members.csv")
 
 
-class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
+class MembersUploadView(
+    OrganizationPermissionRequiredMixin, OrganizationMemberBreadcrumbsMixin, OrganizationView, FormView
+):
+    """
+    View to upload multiple new members with a CSV file.
+    """
+
     template_name = "organizations/organization_member_upload.html"
     form_class = UploadCSVForm
     permission_required = "tools.add_organizationmember"
@@ -240,6 +236,18 @@ class MembersUploadView(OrganizationPermissionRequiredMixin, OrganizationView, F
                 use_https=self.request.is_secure(),
                 request=self.request,
             )
+
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
+        breadcrumbs = super().build_breadcrumbs()
+        breadcrumbs.extend(
+            [
+                {
+                    "url": reverse("organization_member_upload", kwargs={"organization_code": self.organization.code}),
+                    "text": _("Add members"),
+                }
+            ]
+        )
+        return breadcrumbs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from functools import cached_property
 
+import structlog
 import structlog.contextvars
 from django.conf import settings
 from django.contrib import messages
@@ -24,6 +25,8 @@ from rocky.exceptions import (
     TrustedClearanceLevelTooLowException,
 )
 from rocky.scheduler import SchedulerClient, scheduler_client
+
+logger = structlog.get_logger(__name__)
 
 
 # There are modified versions of PermLookupDict and PermWrapper from
@@ -72,6 +75,14 @@ class OrganizationPermWrapper:
         return self[app_label][perm_name]
 
 
+class UnboundOrganizationView(ContextMixin, View):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+
+    def get_user_organizations(self) -> list[str]:
+        return [org.code for org in self.request.user.organizations]
+
+
 class OrganizationView(ContextMixin, View):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -84,8 +95,6 @@ class OrganizationView(ContextMixin, View):
             self.organization = Organization.objects.get(code=organization_code)
         except Organization.DoesNotExist:
             raise Http404()
-
-        self.indemnification_present = Indemnification.objects.filter(organization=self.organization).exists()
 
         try:
             self.organization_member = OrganizationMember.objects.get(
@@ -111,12 +120,22 @@ class OrganizationView(ContextMixin, View):
         if self.organization_member.blocked:
             raise PermissionDenied()
 
-        self.octopoes_api_connector = OctopoesAPIConnector(
-            settings.OCTOPOES_API, organization_code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
-        )
-        self.bytes_client = get_bytes_client(organization_code)
+    @cached_property
+    def indemnification_present(self):
+        return Indemnification.objects.filter(organization=self.organization).exists()
 
-    def get_katalogus(self) -> KATalogus:
+    @cached_property
+    def octopoes_api_connector(self) -> OctopoesAPIConnector:
+        return OctopoesAPIConnector(
+            settings.OCTOPOES_API, self.organization.code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
+        )
+
+    @cached_property
+    def bytes_client(self) -> BytesClient:
+        return get_bytes_client(self.organization.code)
+
+    @cached_property
+    def katalogus_client(self) -> KATalogus:
         return get_katalogus(self.organization_member)
 
     def get_context_data(self, **kwargs):
@@ -131,7 +150,7 @@ class OrganizationView(ContextMixin, View):
     def indemnification_error(self):
         return messages.error(self.request, f"Indemnification not present at organization {self.organization}.")
 
-    @property
+    @cached_property
     def may_update_clearance_level(self) -> bool:
         if not self.indemnification_present:
             return False
@@ -155,7 +174,9 @@ class OrganizationView(ContextMixin, View):
         self.octopoes_api_connector.save_scan_profile(
             DeclaredScanProfile(reference=ooi_reference, level=ScanLevel(level), user_id=self.request.user.id),
             datetime.now(timezone.utc),
+            sync=True,
         )
+        logger.info("Declared scan profile created", event_code="800010", ooi=ooi_reference, level=level)
 
         return True
 
@@ -167,14 +188,16 @@ class OrganizationView(ContextMixin, View):
                 for reference in ooi_references
             ],
             datetime.now(timezone.utc),
+            sync=True,
         )
+        logger.info("Declared scan profiles created", event_code="800010", ooi_count=len(ooi_references), level=level)
 
         return True
 
     def can_raise_clearance_level(self, ooi: OOI, level: int) -> bool:
         try:
             self.raise_clearance_level(ooi.reference, level)
-            messages.success(self.request, _("Clearance level has been set"))
+            messages.success(self.request, _("Clearance level has been set."))
             return True
         except IndemnificationNotPresentException:
             messages.error(

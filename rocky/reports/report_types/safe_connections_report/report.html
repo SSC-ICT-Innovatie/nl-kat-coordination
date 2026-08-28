@@ -2,7 +2,7 @@
 
 {% if type %}
     <h4 id="safe-connections-{{ type }}">{{ type }} {% translate "server" %}</h4>
-    <p>
+    <p class="toggle-item" data-show="off">
         {% blocktranslate trimmed %}
             This table shows which checks were performed. Following that, the compliance
             issues, if any, are shown for each {{ type }} Server.
@@ -10,10 +10,10 @@
     </p>
 {% endif %}
 {% if data.sc_ips %}
-    {% if generate_report %}
-        <p>
+    {% if show_introduction %}
+        <p class="toggle-item" data-show="off">
             {% blocktranslate trimmed %}
-                The secure connections report provides an overview of the performed
+                The Safe Connections report provides an overview of the performed
                 checks with regard to encrypted communication channels such as HTTPS.
                 The table below gives an overview of the available checks including
                 whether the system passed the performed checks. The risk level and

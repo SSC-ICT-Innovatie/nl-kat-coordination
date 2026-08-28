@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from dns.message import from_text
 from dns.rdtypes.ANY.PTR import PTR
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.records import DNSPTRRecord
 from octopoes.models.ooi.dns.zone import Hostname

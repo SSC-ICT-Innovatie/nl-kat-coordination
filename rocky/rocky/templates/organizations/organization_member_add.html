@@ -8,11 +8,17 @@
 
     <main id="main-content">
         <section>
+            {% include "organizations/organization_member_add_header.html" %}
+
             <div>
-                <h1>{{ view.kwargs.account_type|capfirst }}{% translate " member account setup" %}</h1>
+                <a class="button ghost"
+                   href="{% url "organization_member_add_account_type" organization_code=organization.code %}">
+                    <span class="icon ti-chevron-left" aria-hidden="true"></span>
+                    {% translate "Change account type" %}
+                </a>
+                <h2>{{ view.kwargs.account_type|capfirst }} account setup</h2>
                 <form novalidate  method="post" class="help">
                     {% csrf_token %}
-                    {% translate "Member details" as fieldset_legend %}
                     {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
 
                     <button type="submit">{% translate "Submit" %}</button>

@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal
 
-from pydantic import AnyUrl
+from pydantic import AnyUrl, ValidationError
 
 from octopoes.models import OOI, PrimaryKeyToken, Reference
 from octopoes.models.ooi.certificate import X509Certificate
@@ -24,8 +24,12 @@ def format_web_url_token(token: PrimaryKeyToken) -> str:
 class Website(OOI):
     object_type: Literal["Website"] = "Website"
 
-    ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
-    hostname: Reference = ReferenceField(Hostname, max_inherit_scan_level=4)
+    ip_service: Reference = ReferenceField(
+        IPService, max_issue_scan_level=0, max_inherit_scan_level=1
+    )  # this means any co-hosted websites on a given IP are included
+    hostname: Reference = ReferenceField(
+        Hostname, max_inherit_scan_level=4
+    )  # any website using the same hostname is included and allowed.
     certificate: Reference | None = ReferenceField(X509Certificate, default=None, max_issue_scan_level=1)
 
     _natural_key_attrs = ["ip_service", "hostname"]
@@ -137,6 +141,46 @@ class HTTPHeader(OOI):
         return f"{reference.tokenized.key} @ {web_url} @ {address}"
 
 
+class Cookie(OOI):
+    """A cookie slot observed via a Set-Cookie response header.
+
+    Identity is name + domain + path — deliberately not the value: session
+    tokens change on every request (we hold no cookie jar), so keying on the
+    value would mint a new object per observation. The raw value is not stored
+    at all; only a coarse size bucket is kept as a performance signal.
+    See https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/213.
+    """
+
+    object_type: Literal["Cookie"] = "Cookie"
+
+    name: str
+    domain: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
+    path: str = "/"
+
+    secure_only: bool = False
+    http_only: bool = False
+    same_site: str | None = None
+    # https://datatracker.ietf.org/doc/html/rfc6265#section-5.3 p6
+    host_only: bool = True
+    # https://datatracker.ietf.org/doc/html/rfc6265#section-5.3 p3
+    persistent: bool = False
+    # Relative lifetime bucket ("session", "<1d", "<30d", ">30d", ">400d") instead of
+    # the absolute Expires date, which changes every response for rolling sessions.
+    lifetime: str | None = None
+    # Coarse value-size bucket ("<1KB", "1-4KB", ">4KB"); the raw value is never stored.
+    value_size: str | None = None
+
+    _natural_key_attrs = ["name", "domain", "path"]
+    _information_value = ["name"]
+    _reverse_relation_names = {"domain": "cookies"}
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        t = reference.tokenized
+
+        return f"Cookie {t.name} @ {t.domain.name}{t.path}"
+
+
 class URL(OOI):
     object_type: Literal["URL"] = "URL"
 
@@ -228,8 +272,10 @@ class ImageMetadata(OOI):
             address = t.resource.website.ip_service.ip_port.address.address
 
             return f"{web_url} @ {address}"
-        except IndexError:
-            # try parsing reference as a HostnameHTTPURL instead
+        except (IndexError, ValidationError):
+            # The resource is a HostnameHTTPURL, not an HTTPResource: its primary key
+            # has too few tokens for the HTTPResource token tree, which raises
+            # IndexError on the old tokenizer and ValidationError on the pydantic one.
             tokenized = HostnameHTTPURL.get_tokenized_primary_key(reference.natural_key)
             port = f":{tokenized.port}" if tokenized.port else ""
             return f"{tokenized.scheme}://{tokenized.netloc.name}{port}{tokenized.path}"

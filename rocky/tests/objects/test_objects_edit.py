@@ -30,7 +30,7 @@ def test_ooi_edit_report_recipe_get(rf, client_member, mock_organization_view_oc
 
 
 def test_ooi_edit_report_recipe_post(
-    rf, client_member, mock_organization_view_octopoes, report_recipe, mocker, mock_scheduler
+    rf, client_member, mock_organization_view_octopoes, report_recipe, mocker, mock_scheduler, mock_bytes_client
 ):
     mock_organization_view_octopoes().get.return_value = report_recipe
     mocker.patch("rocky.views.ooi_view.create_ooi")

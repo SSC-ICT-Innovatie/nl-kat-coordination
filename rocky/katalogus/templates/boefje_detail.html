@@ -2,14 +2,13 @@
 
 {% load static %}
 {% load i18n %}
-{% load compress %}
 
 {% block content %}
     {% include "header.html" %}
 
     <main id="main-content">
         <section>
-            <div class="two-thirds-one-third">
+            <div class="introduction">
                 <div>
                     <h1>{{ plugin.name }}</h1>
                     {% if plugin.description %}<p class="emphasized">{{ plugin.description }}</p>{% endif %}
@@ -99,8 +98,8 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {% compress js %}
-        <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-        <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
-    {% endcompress %}
+    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/autoSubmit.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/taskDetails.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    <script src="{% static "js/tabs.js" %}" nonce="{{ request.csp_nonce }}"></script>
 {% endblock html_at_end_body %}

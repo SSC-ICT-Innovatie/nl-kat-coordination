@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 from typing import Any
-from urllib import parse
 
 from account.models import KATUser
 from django import template
@@ -13,11 +12,6 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from tools.view_helpers import get_ooi_url
 
 register = template.Library()
-
-
-@register.filter
-def get_encoded_dict(data_dict: dict) -> str:
-    return parse.urlencode(data_dict)
 
 
 @register.filter

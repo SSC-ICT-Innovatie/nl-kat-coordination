@@ -2,7 +2,7 @@ import json
 from json import JSONDecodeError
 
 import tagulous.admin
-from crisis_room.models import Dashboard, DashboardData
+from crisis_room.models import Dashboard, DashboardItem
 from django.contrib import admin, messages
 from django.db.models import JSONField
 from django.forms import widgets
@@ -46,7 +46,11 @@ class OOIInformationAdmin(admin.ModelAdmin):
 
 
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ["name", "code", "tags"]
+    list_display = ["name", "code", "display_tags"]
+
+    @admin.display(description="tags")
+    def display_tags(self, obj):
+        return str(obj.tags)
 
     def add_view(self, request, *args, **kwargs):
         try:
@@ -87,7 +91,7 @@ class OrganizationTagAdmin(admin.ModelAdmin):
     pass
 
 
-@admin.register(DashboardData)
+@admin.register(DashboardItem)
 class DahboardDataAdmin(admin.ModelAdmin):
     pass
 

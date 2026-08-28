@@ -118,6 +118,10 @@ class AppContext:
 
         self.logger: structlog.BoundLogger = structlog.get_logger(__name__)
 
+        # Set the logging level
+        if self.config.debug:
+            self.logger.setLevel(logging.DEBUG)
+
         # Services
         katalogus_service = clients.Katalogus(
             host=remove_trailing_slash(str(self.config.host_katalogus)),
@@ -140,7 +144,6 @@ class AppContext:
             source=f"scheduler/{scheduler.__version__}",
             timeout=self.config.octopoes_request_timeout,
             pool_connections=self.config.octopoes_pool_connections,
-            orgs=katalogus_service.get_organisations(),
         )
 
         # Register external services, SimpleNamespace allows us to use dot

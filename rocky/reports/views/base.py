@@ -7,6 +7,7 @@ from uuid import uuid4
 
 import structlog
 from account.mixins import OrganizationView
+from crisis_room.forms import AddReportSectionDashboardItemForm
 from django.conf import settings
 from django.contrib import messages
 from django.forms import Form
@@ -39,7 +40,7 @@ from reports.report_types.helpers import (
 )
 from reports.report_types.multi_organization_report.report import MultiOrganizationReport
 from reports.utils import JSONEncoder, debug_json_keys
-from rocky.views.mixins import ObservedAtMixin, OOIList
+from rocky.views.mixins import AddDashboardItemFormMixin, ObservedAtMixin, OOIList
 from rocky.views.ooi_view import BaseOOIListView, OOIFilterView
 from rocky.views.scheduler import SchedulerView
 
@@ -170,14 +171,14 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
     def get_total_oois(self):
         return len(self.selected_oois)
 
-    def get_report_ooi_types(self):
+    def get_report_ooi_types(self) -> set[type[OOI]]:
         if self.report_type == AggregateOrganisationReport:
             return get_ooi_types_from_aggregate_report(AggregateOrganisationReport)
         if self.report_type == MultiOrganizationReport:
             return MultiOrganizationReport.input_ooi_types
         return get_ooi_types_with_report()
 
-    def get_ooi_types(self):
+    def get_ooi_types(self) -> set[type[OOI]]:
         ooi_types = self.get_report_ooi_types()
         if self.filtered_ooi_types:
             return {type_by_name(t) for t in self.filtered_ooi_types if type_by_name(t) in ooi_types}
@@ -190,7 +191,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
                 valid_time=self.observed_at,
                 limit=OOIList.HARD_LIMIT,
                 scan_level=self.get_ooi_scan_levels(),
-                scan_profile_type=self.get_ooi_profile_types(),
+                scan_profile_type=self.get_ooi_scan_profile_types(),
             ).items
 
         return list(
@@ -276,7 +277,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
             query = {
                 "ooi_types": [t.__name__ for t in self.get_ooi_types()],
                 "scan_level": self.get_ooi_scan_levels(),
-                "scan_type": self.get_ooi_profile_types(),
+                "scan_type": self.get_ooi_scan_profile_types(),
                 "search_string": self.search_string,
                 "order_by": self.order_by,
                 "asc_desc": self.sorting_order,
@@ -402,7 +403,7 @@ class ReportPluginView(BaseReportView, TemplateView):
         self.plugins = None
 
         try:
-            self.plugins = hydrate_plugins(self.get_report_types(), self.get_katalogus())
+            self.plugins = hydrate_plugins(self.get_report_types(), self.katalogus_client)
         except KATalogusError as error:
             messages.error(self.request, error.message)
 
@@ -538,11 +539,13 @@ class SaveReportView(BaseReportView, SchedulerView, FormView):
         return redirect(reverse("scheduled_reports", kwargs={"organization_code": self.organization.code}))
 
 
-class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
+class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboardItemFormMixin):
     """
     This will display reports using report_id from reports history.
     Will fetch Report OOI and recreate report with data saved in bytes.
     """
+
+    add_dashboard_item_form = AddReportSectionDashboardItemForm
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -550,6 +553,9 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
         self.report_ooi = self.get_report_ooi()
         self.report_data, self.input_oois, self.report_types, self.plugins = self.get_report_data()
         self.recipe_ooi = self.get_recipe_ooi(self.report_ooi.report_recipe)
+
+    def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
+        return self.add_to_dashboard()
 
     def get(self, request, *args, **kwargs):
         if "json" in self.request.GET and self.request.GET["json"] == "true":
@@ -604,7 +610,11 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
         return ["generate_report.html"]
 
     def get_asset_reports(self) -> list[AssetReport]:
-        return self.octopoes_api_connector.get_report(self.report_ooi.reference, self.observed_at).input_oois
+        return [
+            report
+            for report in self.octopoes_api_connector.get_report(self.report_ooi.reference, self.observed_at).input_oois
+            if isinstance(report, AssetReport)
+        ]
 
     def get_input_oois(self, ooi_pks: list[str]) -> list[OOIType]:
         return list(
@@ -619,7 +629,7 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
         plugin_ids_required = plugins_dict["required"]
         plugin_ids_optional = plugins_dict["optional"]
 
-        katalogus_plugins = self.get_katalogus().get_plugins(ids=plugin_ids_required + plugin_ids_optional)
+        katalogus_plugins = self.katalogus_client.get_plugins(ids=plugin_ids_required + plugin_ids_optional)
         for plugin in katalogus_plugins:
             if plugin.id in plugin_ids_required:
                 plugins["required"].append(plugin)
@@ -645,8 +655,6 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
         return report_types
 
     def get_report_data_from_bytes(self, reports: list[ReportOOI]) -> list[tuple[str, dict[str, Any]]]:
-        self.bytes_client.login()
-
         bytes_datas = self.bytes_client.get_raws(
             self.organization.code, raw_ids=[report.data_raw_id for report in reports]
         )
@@ -682,7 +690,10 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
         report_data = self.get_report_data_from_bytes([self.report_ooi])[0][1]
         report_types = self.get_report_types(report_data["input_data"]["report_types"])
         plugins = self.get_plugins(report_data["input_data"]["plugins"])
-        oois = self.get_input_oois(list({asset_ooi.input_ooi for asset_ooi in self.report_ooi.input_oois}))
+        if settings.ASSET_REPORTS:
+            oois = self.get_input_oois(list({asset_ooi.input_ooi for asset_ooi in self.report_ooi.input_oois}))
+        else:
+            oois = self.get_input_oois(list({input_ooi for input_ooi in self.report_ooi.input_oois}))
 
         return report_data, oois, report_types, plugins
 
@@ -726,9 +737,7 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView):
         context["report_data"] = self.report_data
         context["report_ooi"] = self.report_ooi
         context["recipe_ooi"] = self.recipe_ooi
-
         context["oois"] = self.input_oois
-
         context["report_types"] = self.report_types
         context["plugins"] = self.plugins
         context["report_download_json_url"] = url_with_querystring(
