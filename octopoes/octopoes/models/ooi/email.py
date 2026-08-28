@@ -35,15 +35,17 @@ class EmailAddressInstance(OOI):
     # if an address has a scan level, this glue record can have the same
     location: Reference = ReferenceField(OOI, max_inherit_scan_level=4)
 
-    _reverse_relation_names = {"EmailAddress": "locations", "location": "emailaddresses"}
+    _reverse_relation_names = {"emailaddress": "locations", "location": "emailaddresses"}
 
     @property
     def natural_key(self) -> str:
-        return f"{self.emailaddress.natural_key}|{self.location.natural_key}"
+        return f"{str(self.location)}|{self.emailaddress.natural_key}"
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        parts = reference.split("|", 1)
-        emailaddress = parts[0]
-        location = Reference.from_str(parts[1])
-        return f"EmailAddress {emailaddress} used @ {location.human_readable}"
+        parts = reference.natural_key.split("|")
+        localpart = parts.pop()
+        domain_network = parts.pop()
+        domain_name = parts.pop()
+        location = Reference.from_str("|".join(parts))
+        return f"{localpart}@{domain_name} on {domain_network} used @ {location.human_readable}"
