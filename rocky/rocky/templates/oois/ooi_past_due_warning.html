@@ -4,27 +4,21 @@
     <div>
         <h2>
             {% if ooi_current %}
-                {% translate "This object is past due" %}
+                {% translate "You are looking at a historic view of this object." %}
             {% else %}
-                {% translate "This object is past due and has been deleted" %}
+                {% translate "You are looking at a historic view of this object which has been deleted in the current timeline" %}
             {% endif %}
         </h2>
-        <p>{% translate "This object is past due. You are viewing the object state in a past state." %}</p>
-        <ul>
-            {% if ooi_current %}
-                <li>{% translate "You will not be able to add Findings or other OOI's to past due objects." %}</li>
-                <li>
-                    <a href="{% ooi_url 'ooi_detail' ooi_current.primary_key organization.code %}"
-                       title="{% blocktranslate with name=ooi_current.human_readable %}Show details for {{ name }}{% endblocktranslate %}">{% translate "View the current state" %}</a>
-                </li>
-            {% else %}
-                <li>
-                    {% blocktranslate trimmed %}
-                        You will not be able to add Findings or other OOI's, this object has been deleted
-                        and is no longer available.
-                    {% endblocktranslate %}
-                </li>
-            {% endif %}
-        </ul>
+        {% if ooi_current %}
+            <a href="{% ooi_url 'ooi_detail' ooi_current.primary_key organization.code %}"
+               title="{% blocktranslate with name=ooi_current.human_readable %}Show details for {{ name }}{% endblocktranslate %}">{% translate "View the current state" %}</a>
+        {% else %}
+            <p>
+                {% blocktranslate trimmed %}
+                    You will not be able to add Findings or other OOI's, this object has been deleted
+                    and is no longer available.
+                {% endblocktranslate %}
+            </p>
+        {% endif %}
     </div>
 </div>
