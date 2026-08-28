@@ -44,8 +44,8 @@ class EmailAddressInstance(OOI):
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         parts = reference.natural_key.split("|")
-        localpart = parts.pop()
-        domain_network = parts.pop()
-        domain_name = parts.pop()
+        domain_name = parts.pop()  # 'example.com'
+        domain_network = parts.pop()  # 'internet'
+        localpart = parts.pop()  # 'info'
         location = Reference.from_str("|".join(parts))
         return f"{localpart}@{domain_name} on {domain_network} used @ {location.human_readable}"
