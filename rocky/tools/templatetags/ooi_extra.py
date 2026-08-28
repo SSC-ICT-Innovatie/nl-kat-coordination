@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from typing import Any
-from urllib import parse
+from urllib.parse import urlencode
 
 from account.models import KATUser
 from django import template
@@ -13,11 +13,6 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from tools.view_helpers import get_ooi_url
 
 register = template.Library()
-
-
-@register.filter
-def get_encoded_dict(data_dict: dict) -> str:
-    return parse.urlencode(data_dict)
 
 
 @register.filter
@@ -122,3 +117,8 @@ def get_user_full_name(ooi: OOI) -> str:
         return KATUser.objects.get(id=ooi.user_id).get_full_name()
     except ObjectDoesNotExist:
         return _("Unknown user")
+
+
+@register.filter
+def urlencode_query(query_string: str) -> str:
+    return urlencode(json.loads(query_string), doseq=True)

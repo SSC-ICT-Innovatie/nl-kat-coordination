@@ -1,0 +1,27 @@
+{% load i18n %}
+
+{% with modal_id="delete-item-modal-"|add:item_id form_id="delete-item-form-"|add:item_id %}
+    <form id={{ form_id }} method="post" action="{% url "delete_dashboard_item" organization_code=organization.code %}">
+        {% csrf_token %}
+        <input type="hidden" name="dashboard_item" value="{{ name }}">
+        <input type="hidden" name="dashboard" value="{{ item_id }}">
+    </form>
+    {% component "modal" modal_id=modal_id size="dialog-small" %}
+    {% fill "header" %}
+    {% translate "Delete item" %}
+{% endfill %}
+{% fill "content" %}
+<p>
+    {% blocktranslate trimmed with name=name %}
+        Are you sure you want to delete '{{ name }}' from this dashboard?
+    {% endblocktranslate %}
+</p>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button form={{ form_id }} type="submit" class="destructive">{% translate "Delete" %}
+</button>
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}
+{% endwith %}

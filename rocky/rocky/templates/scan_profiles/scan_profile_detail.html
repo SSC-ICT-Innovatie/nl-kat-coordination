@@ -26,7 +26,9 @@
                     <p>{{ ooi.scan_profile.human_readable }}, {{ ooi.scan_profile.scan_profile_type }}</p>
                 {% endif %}
                 {% if ooi.scan_profile.scan_profile_type == "declared" %}
-                    <p class="explanation">
+                    <p class="explanation"
+                       role="group"
+                       aria-label="{% translate "Declared clearance level explanation" %}">
                         <span>{% translate "Declared:" %}</span>
                         {% blocktranslate with scan_level=ooi.scan_profile.human_readable trimmed %}
                             This means that this object will be scanned by Boefjes with scan level
@@ -37,28 +39,57 @@
                             of objects that inherit from this clearance level will also be recalculated.
                         {% endblocktranslate %}
                     </p>
-                    {% if organization_member.max_clearance_level > -1 and organization_indemnification %}
+                    {% if indemnification_present and organization_member.max_clearance_level >= ooi.scan_profile.level and perms.tools.can_set_clearance_level %}
                         <div class="horizontal-view">
                             <a href="{% ooi_url "scan_profile_reset" ooi.reference organization.code query=mandatory_fields %}"
                                class="button">{% translate "Set clearance level to inherit" %}</a>
                         </div>
                     {% endif %}
                 {% elif ooi.scan_profile.scan_profile_type == "empty" %}
-                    <p class="explanation">
+                    <p class="explanation"
+                       role="group"
+                       aria-label="{% translate "Empty clearance level explanation" %}">
                         <span>{% translate "Empty:" %}</span>
                         {% blocktranslate trimmed %}
                             This object has a clearance level of "L0". This means that this object will not be scanned by any Boefje until that
                             Boefje is run manually for this object again. Objects with a clearance level higher than "L0" will be scanned automatically by Boefjes with
                             corresponding scan levels.
                         {% endblocktranslate %}
-                        {% include "partials/explanations.html" %}
-
                     </p>
                 {% elif ooi.scan_profile.scan_profile_type == "inherited" %}
                     {% include "partials/explanations.html" %}
 
                 {% endif %}
-                {% if organization_member.max_clearance_level > -1 and organization_indemnification %}
+                {% if not indemnification_present %}
+                    <p class="warning"
+                       role="group"
+                       aria-label="{% translate "Indemnification warning" %}">
+                        {% url "organization_settings" organization.code as organization_settings %}
+                        <strong>{% translate "Warning" %}</strong>: {% translate "Indemnification is not set for this organization." %}
+                        {% translate "Go to the" %} <a href="{{ organization_settings }}">{% translate "organization settings page" %}</a> {% translate "to add one." %}
+                    </p>
+                {% endif %}
+                {% if not perms.tools.can_set_clearance_level %}
+                    <p class="warning"
+                       role="group"
+                       aria-label="{% translate "Set clearance level warning" %}">
+                        <strong>{% translate "Warning" %}</strong>:
+                        {% translate "You don't have permissions to set clearance level. Contact your administrator." %}
+                    </p>
+                {% endif %}
+                {% if organization_member.max_clearance_level < ooi.scan_profile.level %}
+                    <p class="warning"
+                       role="group"
+                       aria-label="{% translate "Scan warning" %}">
+                        <strong>{% translate "Warning" %}</strong>:
+                        {% blocktranslate trimmed with member_clearance_level=member.max_clearance_level boefje_scan_level=ooi.scan_profile.level %}
+                            You are not allowed to set the clearance level of this OOI. Your maximum clearance level is {{ member_clearance_level }} and this OOI has level {{ boefje_scan_level }}.
+                        {% endblocktranslate %}
+                        {% url "account_detail" organization.code as account_details %}
+                        {% translate "Go to your" %} <a href="{{ account_details }}">{% translate "account details" %}</a> {% translate "to manage your clearance level." %}
+                    </p>
+                {% endif %}
+                {% if indemnification_present and organization_member.max_clearance_level >= ooi.scan_profile.level and perms.tools.can_set_clearance_level %}
                     <h2>{% translate "Set clearance level" %}</h2>
                     <form id="set_clearance_level"
                           novalidate
@@ -67,7 +98,7 @@
                           class="help">
                         {% csrf_token %}
                         <input type="hidden" name="action" value="change_clearance_level">
-                        {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+                        {% include "partials/form/fieldset.html" with fields=form %}
 
                         <button type="submit">{% translate "Set clearance level" %}</button>
                     </form>

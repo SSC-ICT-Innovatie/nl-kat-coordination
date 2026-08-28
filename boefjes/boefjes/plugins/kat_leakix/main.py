@@ -5,11 +5,9 @@ from urllib.parse import quote_plus
 
 import requests
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    pk = boefje_meta.input_ooi
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    pk = boefje_meta["input_ooi"]
     if not pk:
         raise Exception("LeakIX boefje requires an input OOI")
 

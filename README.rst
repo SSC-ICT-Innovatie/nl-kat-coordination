@@ -6,7 +6,7 @@ OpenKAT aims to monitor, record and analyze the status of information systems. T
 
 OpenKAT scans, collects, analyzes and reports in an ongoing process:
 
-.. image:: docs/source/introduction/img/flowopenkat.png
+.. image:: docs/source/basics/img/flowopenkat.png
   :alt: flow of OpenKAT
 
 OpenKAT scans networks, finds vulnerabilities and creates accessible reports. It integrates the most widely used network tools and scanning software into a modular framework, accesses external databases such as shodan, and combines the information from all these sources into clear reports. It also includes lots of cat hair.

@@ -7,6 +7,8 @@
     {% include "header.html" %}
 
     <main id="main-content" tabindex="-1" class="katalogus">
+        {% include "partials/no_enabling_permission_message.html" %}
+
         <section>
             {% include "partials/katalogus_header.html" %}
             {% include "partials/plugins_navigation.html" with active="normalizers" %}

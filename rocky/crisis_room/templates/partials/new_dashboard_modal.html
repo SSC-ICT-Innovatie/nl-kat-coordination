@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% component "modal" modal_id="new-dashboard" size="dialog-small" %}
+{% fill "header" %}
+{% translate "Add dashboard" %}
+{% endfill %}
+{% fill "content" %}
+<form id="new-dashboard-form"
+      method="post"
+      action="{% url "add_dashboard" organization_code=organization.code %}">
+    {% csrf_token %}
+    {% include "partials/form/fieldset.html" with fields=add_dashboard_form %}
+
+</form>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button type="submit" form="new-dashboard-form" class="submit">{% translate "Add dashboard" %}</button>
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

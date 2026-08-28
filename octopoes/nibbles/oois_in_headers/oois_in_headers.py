@@ -37,7 +37,7 @@ def remove_ignored_params(url: str, ignored_params: list[str]) -> str:
 
 
 def nibble(input_ooi: HTTPHeader, config: Config | None) -> Iterator[OOI]:
-    network = Network(name="internet")
+    network = Network(name=input_ooi.reference.tokenized.resource.web_url.netloc.network.name)
 
     if input_ooi.key.lower() == "location":
         ignored_url_params = get_ignored_url_params(config.config if config else {}, "ignored_url_parameters", [])

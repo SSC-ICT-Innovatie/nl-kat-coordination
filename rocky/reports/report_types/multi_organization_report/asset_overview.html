@@ -33,32 +33,34 @@
                 </tbody>
             </table>
         </div>
-        <div class="horizontal-scroll">
-            <table>
-                <caption class="visually-hidden">{% translate "Assets with most critical vulnerabilities" %}</caption>
-                <thead>
-                    <tr>
-                        <th scope="col">{% translate "Asset" %}</th>
-                        <th scope="col">{% translate "Vulnerability" %}</th>
-                        <th scope="col">{% translate "Organisation" %}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for asset_vulnerability in report_data.asset_vulnerabilities %}
+        {% if report_data.asset_vulnerabilities %}
+            <div class="horizontal-scroll">
+                <table>
+                    <caption class="visually-hidden">{% translate "Assets with most critical vulnerabilities" %}</caption>
+                    <thead>
                         <tr>
-                            <td>{{ asset_vulnerability.asset }}</td>
-                            <td>
-                                {% if asset_vulnerability.vulnerabilities %}
-                                    {{ asset_vulnerability.vulnerabilities|join:", " }}
-                                {% else %}
-                                    {% translate "No vulnerabilities found." %}
-                                {% endif %}
-                            </td>
-                            <td>{% translate "Organisation" %} {{ asset_vulnerability.organisation }}</td>
+                            <th scope="col">{% translate "Asset" %}</th>
+                            <th scope="col">{% translate "Vulnerability" %}</th>
+                            <th scope="col">{% translate "Organisation" %}</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                    </thead>
+                    <tbody>
+                        {% for asset_vulnerability in report_data.asset_vulnerabilities %}
+                            <tr>
+                                <td>{{ asset_vulnerability.asset|human_readable }}</td>
+                                <td>
+                                    {% if asset_vulnerability.vulnerabilities %}
+                                        {{ asset_vulnerability.vulnerabilities|join:", " }}
+                                    {% else %}
+                                        {% translate "No vulnerabilities found." %}
+                                    {% endif %}
+                                </td>
+                                <td>{{ asset_vulnerability.organisation }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endif %}
     </div>
 </section>

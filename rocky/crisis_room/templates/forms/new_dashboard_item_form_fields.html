@@ -1,0 +1,14 @@
+{% if object_list_filters_query %}
+    {% for name, values in object_list_filters_query.items %}
+        {% for value in values %}
+            {% if value %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endif %}
+        {% endfor %}
+    {% endfor %}
+{% endif %}
+{% if finding_list_filters_query %}
+    {% for name, values in finding_list_filters_query.items %}
+        {% for value in values %}
+            {% if value %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endif %}
+        {% endfor %}
+    {% endfor %}
+{% endif %}

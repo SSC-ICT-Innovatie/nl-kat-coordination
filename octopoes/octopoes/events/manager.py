@@ -97,35 +97,6 @@ class EventManager:
         if not isinstance(event, ScanProfileDBEvent):
             return
 
-        # There doesn't seem to be an easy way to tell mypy when old_data or new_data is None.
-        incremented = (event.operation_type == OperationType.CREATE and event.new_data.level > 0) or (  # type: ignore[union-attr]
-            event.operation_type == OperationType.UPDATE
-            and event.old_data
-            and event.new_data.level > event.old_data.level  # type: ignore[union-attr]
-        )
-
-        if incremented:
-            ooi = json.dumps(
-                {
-                    "primary_key": event.reference,
-                    "object_type": event.reference.class_,
-                    "scan_profile": event.new_data.model_dump(),  # type: ignore[union-attr]
-                }
-            )
-
-            self.channel.basic_publish(
-                "",
-                f"{event.client}__scan_profile_increments",
-                ooi.encode(),
-                properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-            )
-
-            logger.debug(
-                "Published scan_profile_increment [primary_key=%s] [level=%s]",
-                format_id_short(event.primary_key),
-                event.new_data.level,  # type: ignore[union-attr]
-            )
-
         # publish mutations
         mutation = ScanProfileMutation(
             operation=event.operation_type, primary_key=event.primary_key, client_id=event.client
@@ -167,5 +138,4 @@ class EventManager:
 
     def _connect(self) -> None:
         self.channel = self.channel_factory(self.queue_uri)
-        self.channel.queue_declare(queue=f"{self.client}__scan_profile_increments", durable=True)
         self.channel.queue_declare(queue="scan_profile_mutations", durable=True)

@@ -14,8 +14,8 @@ from psycopg2._json import Json
 from psycopg2.extensions import register_adapter
 from psycopg2.extras import execute_values
 
-from boefjes.local_repository import get_local_repository
-from boefjes.models import Boefje, Normalizer
+from boefjes.worker.models import Boefje, Normalizer
+from boefjes.worker.repository import get_local_repository
 
 # revision identifiers, used by Alembic.
 revision = "f9de6eb7824b"

@@ -1,0 +1,27 @@
+{% load i18n %}
+{% load static %}
+{% load compress %}
+{% load component_tags %}
+
+<div>
+    <h1>{% translate "Crisis room" %}</h1>
+    <nav class="tabs" aria-label="{% translate "Crisis room navigation" %}">
+        <ul>
+            {% for dashboard in dashboards %}
+                <li {% if active == dashboard.name %}aria-current="page"{% endif %}>
+                    <a href="{% url "organization_crisis_room" organization_code=dashboard.organization.code id=dashboard.id %}">{{ dashboard.name }}</a>
+                </li>
+            {% endfor %}
+            {% if organization_member.can_add_dashboard %}
+                <li>
+                    <a href="#new-dashboard">+ {% translate "Add dashboard" %}</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% include "partials/new_dashboard_modal.html" %}
+
+</div>
+{% block html_at_end_body %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+{% endblock html_at_end_body %}

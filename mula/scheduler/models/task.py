@@ -110,6 +110,7 @@ class BoefjeTask(BaseModel):
     boefje: Boefje
     input_ooi: str | None = None
     organization: str
+    deduplication_key: uuid.UUID | None = None
 
     dispatches: list[Normalizer] = Field(default_factory=list)
 

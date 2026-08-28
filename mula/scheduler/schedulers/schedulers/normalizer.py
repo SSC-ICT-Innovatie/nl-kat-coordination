@@ -4,9 +4,9 @@ from typing import Any, Literal
 
 from opentelemetry import trace
 from pydantic import ValidationError
+from typing_extensions import override
 
 from scheduler import clients, context, models
-from scheduler.clients.errors import ExternalServiceError
 from scheduler.schedulers import Scheduler, rankers
 from scheduler.schedulers.errors import exception_handler
 
@@ -92,8 +92,8 @@ class NormalizerScheduler(Scheduler):
         # Get all unique normalizers for the mime types of the raw data
         normalizers: dict[str, models.Plugin] = {}
         for mime_type in latest_raw_data.raw_data.mime_types:
-            normalizers_by_mime_type = self.get_normalizers_for_mime_type(
-                mime_type.get("value"), latest_raw_data.organization
+            normalizers_by_mime_type = self.ctx.services.katalogus.get_normalizers_by_org_id_and_type(
+                latest_raw_data.organization, mime_type.get("value")
             )
 
             self.logger.debug(
@@ -178,6 +178,7 @@ class NormalizerScheduler(Scheduler):
             caller=caller,
         )
 
+    @override
     def push_item_to_queue(self, item: models.Task, create_schedule: bool = True) -> models.Task:
         """Some normalizer scheduler specific logic before pushing the item to the
         queue.
@@ -249,28 +250,3 @@ class NormalizerScheduler(Scheduler):
             True if the raw data contains errors, False otherwise.
         """
         return any(mime_type.get("value", "").startswith("error/") for mime_type in raw_data.mime_types)
-
-    def get_normalizers_for_mime_type(self, mime_type: str, organisation: str) -> list[models.Plugin]:
-        """Get available normalizers for a given mime type.
-
-        Args:
-            mime_type : The mime type to get normalizers for.
-
-        Returns:
-            A list of Plugins of type normalizer for the given mime type.
-        """
-        try:
-            normalizers = self.ctx.services.katalogus.get_normalizers_by_org_id_and_type(organisation, mime_type)
-        except ExternalServiceError:
-            self.logger.error(
-                "Failed to get normalizers for mime type %s",
-                mime_type,
-                mime_type=mime_type,
-                scheduler_id=self.scheduler_id,
-            )
-            return []
-
-        if normalizers is None:
-            return []
-
-        return normalizers

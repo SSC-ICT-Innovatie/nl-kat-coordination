@@ -13,7 +13,7 @@ def test_expiring_cert_simple_success():
         serial_number="abc123",
     )
 
-    results = list(nibble(certificate))
+    results = list(nibble(certificate, None))
 
     assert len(results) == 0
 
@@ -26,7 +26,7 @@ def test_expiring_cert_simple_expired():
         serial_number="abc123",
     )
 
-    results = list(nibble(certificate))
+    results = list(nibble(certificate, None))
 
     assert len(results) == 2
 
@@ -40,6 +40,6 @@ def test_expiring_cert_simple_expires_soon():
         expires_in=timedelta(days=2),
     )
 
-    results = list(nibble(certificate))
+    results = list(nibble(certificate, None))
 
     assert len(results) == 2

@@ -20,7 +20,7 @@
                     <th scope="col">{% translate "Report type" %}</th>
                     <th scope="col">{% translate "Scheduled for" %}</th>
                     <th scope="col">{% translate "Recurrence" %}</th>
-                    <th scope="col">{% translate "Schedule status" %}</th>
+                    <th class="nowrap" scope="col">{% translate "Schedule status" %}</th>
                     <th scope="col">{% translate "Details" %}</th>
                 </tr>
             </thead>
@@ -117,21 +117,36 @@
                                 <div class="horizontal-view toolbar">
                                     <div class="button-container">
                                         {% if schedule.enabled %}
-                                            {% include "report_overview/modal_partials/enable_disable_schedule_modal.html" with modal_id="disable-schedule-modal-"|add:schedule.schedule_id %}
-
                                             <a class="button ghost"
                                                href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
-                                            <a class="button ghost destructive"
-                                               href="#disable-schedule-modal-{{ schedule.schedule_id }}">{% translate "Disable schedule" %}</a>
+                                            {% if perms.tools.can_enable_disable_schedule %}
+                                                <a class="button ghost destructive"
+                                                   href="#disable-schedule-modal-{{ schedule.recipe.recipe_id }}">{% translate "Disable schedule" %}</a>
+                                                {% include "report_overview/modal_partials/enable_disable_schedule_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
+
+                                            {% endif %}
                                         {% else %}
-                                            <a class="button"
-                                               href="{% url "enable_disable_scheduled_reports" organization.code %}?schedule_id={{ schedule.schedule_id }}">{% translate "Enable schedule" %}</a>
+                                            {% if perms.tools.can_enable_disable_schedule %}
+                                                <form class="inline"
+                                                      method="post"
+                                                      action="{% url "enable_disable_scheduled_reports" organization.code %}">
+                                                    {% csrf_token %}
+                                                    <input type="hidden"
+                                                           name="recipe_id"
+                                                           value="{{ schedule.recipe.recipe_id }}" />
+                                                    <input type="hidden"
+                                                           name="report_name_format"
+                                                           value="{{ schedule.recipe.report_name_format }}" />
+                                                    <button type="submit">{% translate "Enable schedule" %}</button>
+                                                </form>
+                                            {% endif %}
                                             <a class="button ghost"
                                                href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
                                         {% endif %}
-                                        {% include "report_schedules/delete_recipe_modal.html" with schedule_id=schedule.schedule_id recipe_id=schedule.recipe.primary_key %}
+                                        {% include "report_schedules/delete_recipe_modal.html" with recipe_id=schedule.recipe.recipe_id|stringformat:"s" recipe_name=schedule.recipe.report_name_format %}
 
-                                        <a class="button ghost destructive" href="#delete-recipe-modal">{% translate "Delete" %}</a>
+                                        <a class="button ghost destructive"
+                                           href="#delete-recipe-modal-{{ schedule.recipe.recipe_id }}">{% translate "Delete" %}</a>
                                     </div>
                                 </div>
                             </td>

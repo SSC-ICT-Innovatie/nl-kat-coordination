@@ -147,7 +147,11 @@ def save_report_data(
         manual_mime_types={"openkat/report"},
     )
 
-    report_type_name = str(get_report_by_id(recipe.report_type).name)
+    report_type_name = str(
+        get_report_by_id(
+            recipe.report_type if len(recipe.asset_report_types) > 1 else recipe.asset_report_types[0]
+        ).name
+    )
     report_name = observed_at.strftime(
         Template(recipe.report_name_format).safe_substitute(oois_count=str(len(oois)), report_type=report_type_name)
     )

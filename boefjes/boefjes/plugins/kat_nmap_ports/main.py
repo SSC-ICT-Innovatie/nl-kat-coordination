@@ -4,8 +4,6 @@ from os import getenv
 
 import docker
 
-from boefjes.job_models import BoefjeMeta
-
 NMAP_IMAGE = "instrumentisto/nmap:latest"
 NMAP_VALID_PORTS = re.compile(
     "\\s*([TUSP]:)?(\\d+|[a-z*?]+|(\\[?\\d*-\\d*\\]?))(,(([TUSP]:)|\\s)?(\\d+|[a-z*?]+|(\\[?\\d*-\\d*\\]?)))*"
@@ -57,8 +55,11 @@ def validate_ports(ports: str | None) -> str:
     return ports
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     """Build Nmap arguments and return results to normalizer."""
     return [
-        (set(), run_nmap(build_nmap_arguments(host=boefje_meta.arguments["input"]["address"], ports=getenv("PORTS"))))
+        (
+            set(),
+            run_nmap(build_nmap_arguments(host=boefje_meta["arguments"]["input"]["address"], ports=getenv("PORTS"))),
+        )
     ]

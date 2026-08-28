@@ -1,28 +1,31 @@
 {% load i18n %}
 
-{% component 'modal' size='dialog-small' modal_id='delete-recipe-modal' %}
-{% fill 'header' %}{% translate "Delete report recipe" %}{% endfill %}
-{% fill 'content' %}
-<p>
-    {% blocktranslate trimmed %}
-        Deleting this report recipe means it will be permanently deleted.
-        It will not be possible anymore to see or enable the schedule.
-        You will find previously generated reports in the report history tab.
-    {% endblocktranslate %}
-</p>
-<form id="delete-form" class="inline" method="post">
-    {% csrf_token %}
-    <input type="hidden" name="schedule_id" value="{{ schedule_id }}" />
-    <input type="hidden" name="report_recipe" value="{{ recipe_id }}" />
-</form>
+{% with form_id="delete-form-"|add:recipe_id %}
+    {% component "modal" size="dialog-small" modal_id="delete-recipe-modal-"|add:recipe_id %}
+    {% fill "header" %}{% translate "Delete report recipe" %}{% endfill %}
+    {% fill "content" %}
+    <p>
+        {% blocktranslate trimmed with name=recipe_name %}
+            Are you sure you want to delete report recipe "{{ name }}"?
+        {% endblocktranslate %}
+    </p>
+    <p>
+        {% blocktranslate trimmed %}
+            Deleting this report recipe means it will be permanently deleted.
+            It will not be possible anymore to see or enable the schedule.
+            You will find previously generated reports in the report history tab.
+        {% endblocktranslate %}
+    </p>
+    <form id={{ form_id }} class="inline" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="recipe_id" value="{{ recipe_id }}" />
+    </form>
 {% endfill %}
 {% fill "footer_buttons" %}
-<button type="submit"
-        form="delete-form"
-        class="destructive"
-        name="action"
-        value="delete">{% translate "Delete report recipe" %}</button>
+<button type="submit" form={{ form_id }} class="destructive">{% translate "Delete report recipe" %}
+</button>
 <button class="ghost close-modal-button">{% translate "Cancel" %}</button>
 {% endfill %}
 {% endcomponent %}
 {% component_css_dependencies %}
+{% endwith %}

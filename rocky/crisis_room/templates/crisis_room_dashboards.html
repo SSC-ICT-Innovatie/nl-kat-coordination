@@ -23,12 +23,12 @@
                         <h3>{{ organization.name }} {% translate "dashboards" %}</h3>
                         {% if organization_dashboards %}
                             {% for dashboards in organization_dashboards %}
-                                {% for dashboard_data, report in dashboards.items %}
+                                {% for dashboard_item, report in dashboards.items %}
                                     {% if report %}
                                         <section>
                                             <div>
-                                                <h4>{{ dashboard_data }}</h4>
-                                                {% include dashboard_data.template with data=report.1 is_dashboard="yes" %}
+                                                <h4 id="dashboard_{{ dashboard_item|slugify }}">{{ dashboard_item }}</h4>
+                                                {% include dashboard_item.template with data=report.1 is_dashboard="yes" %}
 
                                             </div>
                                         </section>

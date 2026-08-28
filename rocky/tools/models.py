@@ -98,7 +98,9 @@ class Organization(models.Model):
             ("can_set_katalogus_settings", "Can set KAT-alogus settings"),
             ("can_recalculate_bits", "Can recalculate bits"),
             ("can_access_all_organizations", "Can access all organizations"),
+            ("can_enable_disable_schedule", "Can enable or disable schedules"),
         )
+        ordering = ["name"]
 
     def get_absolute_url(self):
         return reverse("organization_settings", args=[self.pk])
@@ -186,6 +188,53 @@ class OrganizationMember(models.Model):
 
     def has_clearance_level(self, level: int) -> bool:
         return level <= self.max_clearance_level
+
+    @property
+    def can_add_dashboard(self):
+        return self.has_perm("crisis_room.add_dashboard")
+
+    @property
+    def can_change_dashboard(self):
+        return self.has_perm("crisis_room.change_dashboard")
+
+    @property
+    def can_delete_dashboard(self):
+        return self.has_perm("crisis_room.delete_dashboard")
+
+    @property
+    def can_reposition_dashboard_item(self):
+        return self.has_perm("crisis_room.change_dashboarditem_position")
+
+    @property
+    def can_add_dashboard_item(self):
+        return self.has_perm("crisis_room.add_dashboarditem")
+
+    @property
+    def can_delete_dashboard_item(self):
+        return self.has_perm("crisis_room.delete_dashboarditem")
+
+    @property
+    def can_change_dashboard_item(self):
+        return self.has_perm("crisis_room.change_dashboarditem")
+
+    @property
+    def can_modify_dashboard(self) -> bool:
+        """If you can add, you might as well change and delete a dashboard."""
+        return self.has_perms(
+            ["crisis_room.add_dashboard", "crisis_room.change_dashboard", "crisis_room.delete_dashboard"]
+        )
+
+    @property
+    def can_modify_dashboard_item(self) -> bool:
+        """If you can add, you might as well change and delete a dashboard items."""
+        return self.has_perms(
+            [
+                "crisis_room.add_dashboarditem",
+                "crisis_room.change_dashboarditem",
+                "crisis_room.delete_dashboarditem",
+                "crisis_room.change_dashboarditem_position",
+            ]
+        )
 
     class Meta:
         unique_together = ["user", "organization"]

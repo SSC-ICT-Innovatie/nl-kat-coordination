@@ -12,10 +12,13 @@ from pathlib import Path
 import requests
 from netaddr import IPAddress, IPNetwork
 
-from boefjes.job_models import BoefjeMeta
-
 # Paths and URLs for RPKI
 BASE_PATH = Path(getenv("OPENKAT_CACHE_PATH", Path(__file__).parent))
+
+if BASE_PATH.name != Path(__file__).parent.name:
+    BASE_PATH = BASE_PATH / Path(__file__).parent.name
+    BASE_PATH.mkdir(exist_ok=True)
+
 RPKI_PATH = BASE_PATH / "rpki.json"
 RPKI_META_PATH = BASE_PATH / "rpki-meta.json"
 RPKI_SOURCE_URL = "https://console.rpki-client.org/vrps.json"
@@ -29,8 +32,8 @@ BGP_SOURCE_URL = "https://bgp.tools/table.jsonl"
 RPKI_CACHE_TIMEOUT = 1800  # in seconds
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     ip = input_["address"]
     hash_algorithm = getenv("HASHFUNC", "sha256")
 
@@ -39,13 +42,13 @@ def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
         return [(set(), json.dumps("IP address is private, no need for RPKI validation"))]
 
     # RPKI cache check and refresh
-    if not RPKI_PATH.exists() or cache_out_of_date(RPKI_META_PATH):
+    if not RPKI_PATH.exists() or not RPKI_META_PATH.exists() or cache_out_of_date(RPKI_META_PATH):
         rpki_json, rpki_meta = refresh_cache(RPKI_SOURCE_URL, RPKI_PATH, RPKI_META_PATH, hash_algorithm)
     else:
         rpki_json = load_json(RPKI_PATH)
         rpki_meta = load_json(RPKI_META_PATH)
 
-    if not BGP_PATH.exists() or cache_out_of_date(BGP_META_PATH):
+    if not BGP_PATH.exists() or not BGP_META_PATH.exists() or cache_out_of_date(BGP_META_PATH):
         bgp_data, bgp_meta = refresh_cache(
             BGP_SOURCE_URL, BGP_PATH, BGP_META_PATH, hash_algorithm, file_extension="jsonl"
         )

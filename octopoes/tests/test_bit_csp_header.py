@@ -1,4 +1,4 @@
-from bits.check_csp_header.check_csp_header import run
+from nibbles.check_csp_header.check_csp_header import nibble
 
 from octopoes.models.ooi.web import HTTPHeader
 
@@ -19,13 +19,12 @@ def test_check_csp_headers(http_resource_https):
     # Iterate over headers and execute `run` function for each adding the content type header for xss capability check
     for key, value in headers_to_test:
         result = list(
-            run(
-                resource=http_resource_https,
-                additional_oois=[
+            nibble(
+                http_resource_https,
+                [
                     HTTPHeader(resource=http_resource_https.reference, key="Content-Type", value="text/html"),
                     HTTPHeader(resource=http_resource_https.reference, key=key, value=value),
                 ],
-                config={},
             )
         )
         results.append(result)
@@ -129,13 +128,12 @@ def test_check_csp_headers_non_xss_capable(http_resource_https):
     # Iterate over headers and execute `run` function for each adding the content type header for xss capability check
     for key, value in headers_to_test:
         result = list(
-            run(
-                resource=http_resource_https,
-                additional_oois=[
+            nibble(
+                http_resource_https,
+                [
                     HTTPHeader(resource=http_resource_https.reference, key="Content-Type", value="text/plain"),
                     HTTPHeader(resource=http_resource_https.reference, key=key, value=value),
                 ],
-                config={},
             )
         )
         results.append(result)

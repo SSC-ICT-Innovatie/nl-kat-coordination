@@ -12,6 +12,7 @@ Contains references to the documentations of the Basics of OpenKAT
    scan-levels-and-indemnification
    objects
    boefjes
+   origin-types
    bits
    normalizers
    questions-and-configs

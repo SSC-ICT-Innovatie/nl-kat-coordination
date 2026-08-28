@@ -141,5 +141,9 @@
     "video/x-msvideo",
     "video/x-sgi-movie"
   ],
-  "scan_level": 2
+  "scan_level": 2,
+  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_arguments": [
+    "kat_webpage_analysis.main"
+  ]
 }

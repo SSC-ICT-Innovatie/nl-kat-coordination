@@ -1,12 +1,10 @@
-from datetime import datetime
 from ipaddress import ip_address
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
-import pytest
 from bits.definitions import BitDefinition
 
-from octopoes.events.events import OOIDBEvent, OperationType, OriginDBEvent, ScanProfileDBEvent
-from octopoes.models import EmptyScanProfile, Reference, ScanLevel
+from octopoes.events.events import OOIDBEvent, OperationType, OriginDBEvent
+from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddress, IPAddressV4, Network
 from octopoes.models.origin import Origin, OriginType
@@ -82,40 +80,3 @@ def test_on_update_origin(octopoes_service, valid_time):
     octopoes_service.ooi_repository.delete_if_exists.assert_called_once_with(
         Reference.from_str("IPAddress|internet|1.1.1.1"), valid_time
     )
-
-
-@pytest.mark.parametrize("new_data", [EmptyScanProfile(reference="test|reference"), None])
-@pytest.mark.parametrize("old_data", [EmptyScanProfile(reference="test|reference"), None])
-def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner: MagicMock):
-    octopoes_service.origin_repository.list_origins.return_value = [
-        Origin(
-            origin_type=OriginType.INFERENCE,
-            method="check-csp-header",
-            source=Reference.from_str("Hostname|internet|example.com"),
-        )
-    ]
-    octopoes_service.scan_profile_repository.get.return_value = Mock(level=ScanLevel.L2)
-    octopoes_service.ooi_repository.get.return_value = Mock()
-    octopoes_service.origin_parameter_repository.list_by_origin.return_value = {}
-    octopoes_service.ooi_repository.load_bulk.return_value = {}
-    octopoes_service.nibbler = Mock()
-    octopoes_service.nibbler.infer.return_value = {}
-
-    mock_oois = [Mock(reference="test1"), Mock(reference="test2")]
-    bit_runner().run.return_value = mock_oois
-
-    valid_time = datetime(2023, 1, 1)
-    event = ScanProfileDBEvent(
-        operation_type=OperationType.CREATE,
-        valid_time=valid_time,
-        old_data=old_data,
-        new_data=new_data,
-        reference="test|reference",
-        client="_dev",
-    )
-
-    octopoes_service.process_event(event)
-
-    assert octopoes_service.ooi_repository.save.call_count == 2
-    octopoes_service.ooi_repository.save.assert_any_call(mock_oois[0], valid_time=valid_time, end_valid_time=None)
-    octopoes_service.ooi_repository.save.assert_any_call(mock_oois[1], valid_time=valid_time, end_valid_time=None)

@@ -207,6 +207,6 @@ def get_info(ooi_type: str, natural_key: str) -> dict:
                 "information updated": datetime.datetime.now().strftime("%d-%m-%Y %H:%M:%S"),
             }
     except httpx.HTTPError as error:
-        logger.error("Getting OOI information for %s %s failed due to http error: ", ooi_type, natural_key, error)
+        logger.error("Getting OOI information for %s %s failed due to http error: %s", ooi_type, natural_key, error)
         raise InformationUpdateError()
     return {"description": "No source available."}

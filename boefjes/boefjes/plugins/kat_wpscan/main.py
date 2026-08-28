@@ -4,13 +4,11 @@ from os import getenv
 
 import docker
 
-from boefjes.job_models import BoefjeMeta
-
 WPSCAN_IMAGE = "wpscanteam/wpscan:latest"
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     info_mimetype = {"info/boefje"}
 
     if input_["software"]["name"] != "WordPress":

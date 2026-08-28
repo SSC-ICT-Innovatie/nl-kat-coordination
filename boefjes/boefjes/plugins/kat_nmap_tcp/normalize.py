@@ -4,7 +4,7 @@ from collections.abc import Iterable, Iterator
 from libnmap.objects import NmapHost, NmapService
 from libnmap.parser import NmapParser
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
 from octopoes.models.ooi.service import IPService, Service

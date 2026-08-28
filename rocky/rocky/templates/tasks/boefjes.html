@@ -46,7 +46,7 @@
                                 <tr data-task-id="{{ task.id }}">
                                     {% if not organization.code %}
                                         <td>
-                                            <a href="{% url "organization_crisis_room" task.data.organization %}">{{ task.data.organization }}</a>
+                                            <a href="{% url "organization_crisis_room_landing" task.data.organization %}">{{ task.data.organization }}</a>
                                         </td>
                                     {% endif %}
                                     <td>

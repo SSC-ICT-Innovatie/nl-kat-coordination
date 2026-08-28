@@ -407,11 +407,19 @@
     "impact": "Users may not connect over a secured connection to your server.",
     "recommendation": "Check if redirection is setup properly."
   },
+  "KAT-CERTIFICATE-EXPIRING-VERY-SOON": {
+    "name":"SSL/TLS certificate expiring very soon",
+    "description": "TLS certificate is expiring soon.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
+    "risk": "medium",
+    "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
+    "recommendation": "Update the certificate to expire on a date further in the future."
+  },
   "KAT-CERTIFICATE-EXPIRING-SOON": {
     "name":"SSL/TLS certificate expiring soon",
     "description": "TLS certificate is expiring soon.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1.2.5",
-    "risk": "medium",
+    "risk": "recommendation",
     "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service.",
     "recommendation": "Update the certificate to expire on a date further in the future."
   },
@@ -613,5 +621,13 @@
     "risk": "recommendation",
     "impact": "Depending on what software is outdated this can be critical.",
     "recommendation": "Inspect the software version, determine if additional measures need to be taken and install updates to reduce the attack surface."
+  },
+  "KAT-NO-MX": {
+    "name":"No MX record found",
+    "description":"The domain does not have a mail server record configured, or it is misconfigured.",
+    "source": "https://datatracker.ietf.org/doc/rfc7505/",
+    "risk": "recommendation",
+    "impact": "Misconfigured or incorrect MX records can result in e-mail attacks like phishing, spam and spoofing. If there is no MX record present, the A record of the hostname can be used as potential e-mail server",
+    "recommendation": "Verify if the domain should have a MX record and/or if it is still up to date. If the domain doesn't require an MX record, configure a null MX record to prevent e-mail attacks."
   }
 }

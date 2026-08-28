@@ -8,18 +8,23 @@
 
     <main id="main-content">
         <section>
-            <div class="layout-form">
-                <h1>{% translate "Upload a csv file with members for organisation" %} "{{ organization }}"</h1>
-                <p class="emphasized">
-                    <a href="{% url 'download_organization_member_template' organization_code=organization.code %}">
-                        {% translate "Download the template" %}
-                    </a>
-                    {% translate "or create a csv file with the following criteria" %}
+            <div>
+                <h1>{% translate "Add members" %}</h1>
+                <p>
+                    {% url 'download_organization_member_template' organization_code=organization.code as download_url %}
+                    {% blocktranslate trimmed with download_url=download_url %}
+                        To upload multiple members at once, you can upload a CSV file
+                        or you can <a href="{{ download_url }}">download the template</a>.
+                    {% endblocktranslate %}
                 </p>
-                <p>{% translate "These are the criteria for CSV upload:" %}</p>
-                <ul>
-                    {% for criterion in criteria %}<li>{{ criterion }}</li>{% endfor %}
-                </ul>
+            </div>
+            <div>
+                <p>
+                    {% translate "To create a custom CSV file, make sure it meets the following criteria:" %}
+                    <ul>
+                        {% for criterion in criteria %}<li>{{ criterion }}</li>{% endfor %}
+                    </ul>
+                </p>
                 <form novalidate method="post" class="help" enctype="multipart/form-data">
                     {% csrf_token %}
                     {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}

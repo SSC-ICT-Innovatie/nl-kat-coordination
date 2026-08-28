@@ -1,0 +1,74 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+{% load ooi_extra %}
+{% load compress %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            {% include "tasks/partials/tasks_overview_header.html" %}
+            {% include "tasks/partials/tab_navigation.html" with view="report_tasks" %}
+
+            {% if not task_list %}
+                <div>
+                    <h2>{% translate "Reports" %}</h2>
+                    <p>{% translate "There are no tasks for reports." %}</p>
+                </div>
+                {% include "tasks/partials/task_filter.html" %}
+
+            {% else %}
+                <div>
+                    <h2>{% translate "Reports" %}</h2>
+                    <p>{% translate "List of tasks for reports." %}</p>
+                    <div class="horizontal-scroll sticky-column">
+                        {% include "tasks/partials/task_filter.html" %}
+
+                        <table class="nowrap">
+                            <caption class="visually-hidden">{% translate "Reports:" %}</caption>
+                            <thead>
+                                <tr>
+                                    {% if not organization.code %}
+                                        <th scope="col">{% translate "Organization Code" %}</th>
+                                    {% endif %}
+                                    <th scope="col" class="nowrap">{% translate "Status" %}</th>
+                                    <th scope="col">{% translate "Recipe ID" %}</th>
+                                    <th scope="col" class="nowrap">{% translate "Creation date" %}</th>
+                                    <th scope="col" class="nowrap">{% translate "Modified date" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for report_task in task_list %}
+                                    {% with recipe_pk="ReportRecipe|"|add:report_task.data.report_recipe_id %}
+                                        <tr>
+                                            {% if not organization.code %}
+                                                <td>
+                                                    <a href="{% url "organization_crisis_room_landing" report_task.data.organisation_id %}">{{ report_task.data.organisation_id }}</a>
+                                                </td>
+                                            {% endif %}
+                                            <td>
+                                                <i class="icon {{ report_task.status.value }}"></i>{{ report_task.status.value|capfirst }}
+                                            </td>
+                                            <td>
+                                                <a href="{% ooi_url "ooi_detail" recipe_pk report_task.data.organisation_id query=ooi.mandatory_fields observed_at=report_task.created_at|date:'c' %}">{{ report_task.data.report_recipe_id }}</a>
+                                            </td>
+                                            <td>{{ report_task.created_at }}</td>
+                                            <td>{{ report_task.modified_at }}</td>
+                                        </tr>
+                                    {% endwith %}
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% include "partials/list_paginator.html" %}
+
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+        {% include "tasks/partials/stats.html" %}
+
+    </main>
+{% endblock content %}

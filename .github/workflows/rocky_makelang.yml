@@ -25,9 +25,8 @@ jobs:
 
       - name: Set up Python
         uses: actions/setup-python@v5
-        id: py311
         with:
-          python-version: 3.11
+          python-version: 3.13
           cache: pip
 
       - name: Install GNU gettext utilities
@@ -40,7 +39,7 @@ jobs:
         working-directory: ./rocky
 
       - name: Install Octopoes
-        run: pip install wheel && cd octopoes && python setup.py bdist_wheel && pip install dist/octopoes*.whl
+        run: pip install wheel setuptools && cd octopoes && python setup.py bdist_wheel && pip install dist/octopoes*.whl
 
       - name: Generate the .pot file if source strings changed
         run: make lang

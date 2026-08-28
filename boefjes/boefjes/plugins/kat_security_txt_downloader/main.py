@@ -7,11 +7,9 @@ from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 from requests import Session
 from requests.models import Response
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     netloc = input_["hostname"]["name"]
     scheme = input_["ip_service"]["service"]["name"]
     ip = input_["ip_service"]["ip_port"]["address"]["address"]

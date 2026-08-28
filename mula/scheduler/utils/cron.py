@@ -8,4 +8,4 @@ def next_run(expression: str, start_time: datetime | None = None) -> datetime:
         start_time = datetime.now(timezone.utc)
 
     cron = croniter(expression, start_time)
-    return cron.get_next(datetime)  # type: ignore
+    return cron.get_next(datetime)

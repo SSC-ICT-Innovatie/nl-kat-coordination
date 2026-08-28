@@ -11,7 +11,7 @@ def query(targets: list[Reference | None]) -> str:
                 :query {{
                     :find [(pull ?ip_port [*])(pull ?resolved_hostname [*])] :where [
                         [?ip_port :IPPort/address ?ip_address]
-                        (or [?ip_port :IPPort/port 443][?ip_port :IPPort/port 80])
+                        (or-join [?ip_port] [?ip_port :IPPort/port 443][?ip_port :IPPort/port 80])
                         [?resolved_hostname :ResolvedHostname/address ?ip_address]
                         {" ".join(statements)}
                     ]

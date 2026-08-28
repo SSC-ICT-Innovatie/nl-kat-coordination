@@ -12,7 +12,8 @@ from uuid import UUID
 
 import pytest
 import structlog
-from crisis_room.models import Dashboard, DashboardData
+from crisis_room.models import Dashboard, DashboardItem
+from crisis_room.views import DashboardItemView, DashboardService
 from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.messages.middleware import MessageMiddleware
@@ -129,6 +130,13 @@ def add_admin_group_permissions(member):
         Permission.objects.get(codename="can_delete_oois").id,
         Permission.objects.get(codename="add_indemnification").id,
         Permission.objects.get(codename="can_scan_organization").id,
+        Permission.objects.get(codename="add_dashboard").id,
+        Permission.objects.get(codename="change_dashboard").id,
+        Permission.objects.get(codename="delete_dashboard").id,
+        Permission.objects.get(codename="add_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem").id,
+        Permission.objects.get(codename="delete_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem_position").id,
     ]
     group.permissions.set(admin_permissions)
 
@@ -136,6 +144,7 @@ def add_admin_group_permissions(member):
 def add_redteam_group_permissions(member):
     group = Group.objects.get(name=GROUP_REDTEAM)
     member.groups.add(group)
+
     redteam_permissions = [
         Permission.objects.get(codename="can_scan_organization").id,
         Permission.objects.get(codename="can_enable_disable_boefje").id,
@@ -144,6 +153,13 @@ def add_redteam_group_permissions(member):
         Permission.objects.get(codename="can_mute_findings").id,
         Permission.objects.get(codename="can_view_katalogus_settings").id,
         Permission.objects.get(codename="can_set_katalogus_settings").id,
+        Permission.objects.get(codename="add_dashboard").id,
+        Permission.objects.get(codename="change_dashboard").id,
+        Permission.objects.get(codename="delete_dashboard").id,
+        Permission.objects.get(codename="add_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem").id,
+        Permission.objects.get(codename="delete_dashboarditem").id,
+        Permission.objects.get(codename="change_dashboarditem_position").id,
     ]
     group.permissions.set(redteam_permissions)
 
@@ -153,6 +169,7 @@ def add_client_group_permissions(member):
     member.groups.add(group)
     client_permissions = [Permission.objects.get(codename="can_scan_organization").id]
     group.permissions.set(client_permissions)
+    member.user.user_permissions.set(client_permissions)
 
 
 @pytest.fixture(autouse=True)
@@ -1872,24 +1889,20 @@ def reports_task_list():
 
 
 @pytest.fixture
-def dashboard_data(client_member, client_member_b):
+def findings_dashboard_item(client_member, client_member_b):
     # make sure that no dashboards exist to test this particular set
-    Dashboard.objects.all().delete()  # deleting dashboard deletes DashboardData as well
+    Dashboard.objects.all().delete()  # deleting dashboard deletes DashboardItem as well
 
     recipe_id_a = "7ebcdb32-e7f2-4c2d-840a-d7b8e6b37616"
     recipe_id_b = "c41bbf9a-7102-4b6b-b256-b3036e106316"
 
-    dashboard_a = Dashboard.objects.create(
-        name="Crisis Room Findings Dashboard", organization=client_member.organization
-    )
-    dashboard_data_a = DashboardData.objects.create(dashboard=dashboard_a, recipe=recipe_id_a, findings_dashboard=True)
+    dashboard_a = Dashboard.objects.create(name="Findings Dashboard", organization=client_member.organization)
+    dashboard_b = Dashboard.objects.create(name="Findings Dashboard", organization=client_member_b.organization)
 
-    dashboard_b = Dashboard.objects.create(
-        name="Crisis Room Findings Dashboard", organization=client_member_b.organization
-    )
-    dashboard_data_b = DashboardData.objects.create(dashboard=dashboard_b, recipe=recipe_id_b, findings_dashboard=True)
+    dashboard_item_a = DashboardItem.objects.create(dashboard=dashboard_a, recipe=recipe_id_a, findings_dashboard=True)
+    dashboard_item_b = DashboardItem.objects.create(dashboard=dashboard_b, recipe=recipe_id_b, findings_dashboard=True)
 
-    return [dashboard_data_a, dashboard_data_b]
+    return [dashboard_item_a, dashboard_item_b]
 
 
 @pytest.fixture
@@ -1958,206 +1971,224 @@ def findings_reports(client_member, client_member_b):
         has_parent=False,
     )
 
-    return {UUID(recipe_id_a): report_a, UUID(recipe_id_b): report_b}
+    return {recipe_id_a: report_a, recipe_id_b: report_b}
 
 
 @pytest.fixture
-def findings_report_bytes_data():
+def findings_reports_data():
     bytes_raw_id_a = "62258c3d-89b2-4fde-a2e0-d78715a174e6"
     bytes_raw_id_b = "1b887350-0afb-4786-b587-4323cd8e4180"
 
-    return {
-        bytes_raw_id_a: {
-            "systems": {"services": {}},
-            "services": {},
-            "recommendations": [],
-            "recommendation_counts": {},
-            "open_ports": {},
-            "ipv6": {},
-            "vulnerabilities": {},
-            "findings": {
-                "finding_types": [],
-                "summary": {
-                    "total_by_severity_per_finding_type": {
-                        "critical": 0,
-                        "high": 0,
-                        "medium": 3,
-                        "low": 1,
-                        "recommendation": 0,
-                        "pending": 0,
-                        "unknown": 0,
-                    },
-                    "total_by_severity": {
-                        "critical": 0,
-                        "high": 0,
-                        "medium": 4,
-                        "low": 3,
-                        "recommendation": 0,
-                        "pending": 0,
-                        "unknown": 0,
-                    },
-                    "total_finding_types": 4,
-                    "total_occurrences": 7,
+    report_data_a = {
+        "systems": {"services": {}},
+        "services": {},
+        "recommendations": [],
+        "recommendation_counts": {},
+        "open_ports": {},
+        "ipv6": {},
+        "vulnerabilities": {},
+        "findings": {
+            "finding_types": [],
+            "summary": {
+                "total_by_severity_per_finding_type": {
+                    "critical": 0,
+                    "high": 0,
+                    "medium": 3,
+                    "low": 1,
+                    "recommendation": 0,
+                    "pending": 0,
+                    "unknown": 0,
                 },
-            },
-            "basic_security": {
-                "rpki": {},
-                "system_specific": {"Mail": [], "Web": [], "DNS": []},
-                "safe_connections": {},
-                "summary": {},
-            },
-            "summary": {"critical_vulnerabilities": 0, "ips_scanned": 0, "hostnames_scanned": 0, "terms_in_report": ""},
-            "total_findings": 0,
-            "total_systems": 0,
-            "total_hostnames": 0,
-            "total_systems_basic_security": 0,
-            "health": [
-                {"service": "rocky", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {"service": "octopoes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {
-                    "service": "xtdb",
-                    "healthy": True,
-                    "version": "1.24.4",
-                    "additional": {
-                        "version": "1.24.4",
-                        "revision": "b46e92df67699cb25f3b21a61742c79da564b3b0",
-                        "indexVersion": 22,
-                        "consumerState": None,
-                        "kvStore": "xtdb.rocksdb.RocksKv",
-                        "estimateNumKeys": 56338,
-                        "size": 93781419,
-                    },
-                    "results": [],
+                "total_by_severity": {
+                    "critical": 0,
+                    "high": 0,
+                    "medium": 4,
+                    "low": 3,
+                    "recommendation": 0,
+                    "pending": 0,
+                    "unknown": 0,
                 },
-                {
-                    "service": "katalogus",
-                    "healthy": True,
-                    "version": "0.0.1-development",
-                    "additional": None,
-                    "results": [],
-                },
-                {"service": "scheduler", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {"service": "bytes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {"service": "keiko", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-            ],
-            "config_oois": [],
-            "input_data": {
-                "input_oois": ["Hostname|internet|mispo.es"],
-                "report_types": ["systems-report", "findings-report"],
-                "plugins": {
-                    "required": [
-                        "nmap",
-                        "webpage-analysis",
-                        "ssl-certificates",
-                        "nmap-udp",
-                        "ssl-version",
-                        "testssl-sh-ciphers",
-                        "dns-records",
-                    ],
-                    "optional": ["leakix", "snyk", "service_banner", "shodan"],
-                },
+                "total_finding_types": 4,
+                "total_occurrences": 7,
             },
         },
-        bytes_raw_id_b: {
-            "systems": {"services": {}},
-            "services": {},
-            "recommendations": [],
-            "recommendation_counts": {},
-            "open_ports": {},
-            "ipv6": {},
-            "vulnerabilities": {},
-            "findings": {
-                "finding_types": [],
-                "summary": {
-                    "total_by_severity_per_finding_type": {
-                        "critical": 1,
-                        "high": 2,
-                        "medium": 4,
-                        "low": 2,
-                        "recommendation": 1,
-                        "pending": 1,
-                        "unknown": 1,
-                    },
-                    "total_by_severity": {
-                        "critical": 3,
-                        "high": 3,
-                        "medium": 5,
-                        "low": 3,
-                        "recommendation": 1,
-                        "pending": 1,
-                        "unknown": 1,
-                    },
-                    "total_finding_types": 12,
-                    "total_occurrences": 17,
-                },
-            },
-            "basic_security": {
-                "rpki": {},
-                "system_specific": {"Mail": [], "Web": [], "DNS": []},
-                "safe_connections": {},
-                "summary": {},
-            },
-            "summary": {"critical_vulnerabilities": 0, "ips_scanned": 0, "hostnames_scanned": 0, "terms_in_report": ""},
-            "total_findings": 0,
-            "total_systems": 0,
-            "total_hostnames": 0,
-            "total_systems_basic_security": 0,
-            "health": [
-                {"service": "rocky", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {"service": "octopoes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {
-                    "service": "xtdb",
-                    "healthy": True,
+        "basic_security": {
+            "rpki": {},
+            "system_specific": {"Mail": [], "Web": [], "DNS": []},
+            "safe_connections": {},
+            "summary": {},
+        },
+        "summary": {"critical_vulnerabilities": 0, "ips_scanned": 0, "hostnames_scanned": 0, "terms_in_report": ""},
+        "total_findings": 0,
+        "total_systems": 0,
+        "total_hostnames": 0,
+        "total_systems_basic_security": 0,
+        "health": [
+            {"service": "rocky", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {"service": "octopoes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {
+                "service": "xtdb",
+                "healthy": True,
+                "version": "1.24.4",
+                "additional": {
                     "version": "1.24.4",
-                    "additional": {
-                        "version": "1.24.4",
-                        "revision": "b46e92df67699cb25f3b21a61742c79da564b3b0",
-                        "indexVersion": 22,
-                        "consumerState": None,
-                        "kvStore": "xtdb.rocksdb.RocksKv",
-                        "estimateNumKeys": 54693,
-                        "size": 91850532,
-                    },
-                    "results": [],
+                    "revision": "b46e92df67699cb25f3b21a61742c79da564b3b0",
+                    "indexVersion": 22,
+                    "consumerState": None,
+                    "kvStore": "xtdb.rocksdb.RocksKv",
+                    "estimateNumKeys": 56338,
+                    "size": 93781419,
                 },
-                {
-                    "service": "katalogus",
-                    "healthy": True,
-                    "version": "0.0.1-development",
-                    "additional": None,
-                    "results": [],
-                },
-                {"service": "scheduler", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {"service": "bytes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-                {"service": "keiko", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
-            ],
-            "config_oois": [],
-            "input_data": {
-                "input_oois": ["Hostname|internet|mispo.es"],
-                "report_types": ["systems-report", "findings-report"],
-                "plugins": {
-                    "required": [
-                        "nmap",
-                        "webpage-analysis",
-                        "ssl-certificates",
-                        "nmap-udp",
-                        "ssl-version",
-                        "testssl-sh-ciphers",
-                        "dns-records",
-                    ],
-                    "optional": ["leakix", "snyk", "service_banner", "shodan"],
-                },
+                "results": [],
+            },
+            {
+                "service": "katalogus",
+                "healthy": True,
+                "version": "0.0.1-development",
+                "additional": None,
+                "results": [],
+            },
+            {"service": "scheduler", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {"service": "bytes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {"service": "keiko", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+        ],
+        "config_oois": [],
+        "input_data": {
+            "input_oois": ["Hostname|internet|mispo.es"],
+            "report_types": ["systems-report", "findings-report"],
+            "plugins": {
+                "required": [
+                    "nmap",
+                    "webpage-analysis",
+                    "ssl-certificates",
+                    "nmap-udp",
+                    "ssl-version",
+                    "testssl-sh-ciphers",
+                    "dns-records",
+                ],
+                "optional": ["leakix", "snyk", "service_banner", "shodan"],
             },
         },
     }
 
+    report_data_b = {
+        "systems": {"services": {}},
+        "services": {},
+        "recommendations": [],
+        "recommendation_counts": {},
+        "open_ports": {},
+        "ipv6": {},
+        "vulnerabilities": {},
+        "findings": {
+            "finding_types": [],
+            "summary": {
+                "total_by_severity_per_finding_type": {
+                    "critical": 1,
+                    "high": 2,
+                    "medium": 4,
+                    "low": 2,
+                    "recommendation": 1,
+                    "pending": 1,
+                    "unknown": 1,
+                },
+                "total_by_severity": {
+                    "critical": 3,
+                    "high": 3,
+                    "medium": 5,
+                    "low": 3,
+                    "recommendation": 1,
+                    "pending": 1,
+                    "unknown": 1,
+                },
+                "total_finding_types": 12,
+                "total_occurrences": 17,
+            },
+        },
+        "basic_security": {
+            "rpki": {},
+            "system_specific": {"Mail": [], "Web": [], "DNS": []},
+            "safe_connections": {},
+            "summary": {},
+        },
+        "summary": {"critical_vulnerabilities": 0, "ips_scanned": 0, "hostnames_scanned": 0, "terms_in_report": ""},
+        "total_findings": 0,
+        "total_systems": 0,
+        "total_hostnames": 0,
+        "total_systems_basic_security": 0,
+        "health": [
+            {"service": "rocky", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {"service": "octopoes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {
+                "service": "xtdb",
+                "healthy": True,
+                "version": "1.24.4",
+                "additional": {
+                    "version": "1.24.4",
+                    "revision": "b46e92df67699cb25f3b21a61742c79da564b3b0",
+                    "indexVersion": 22,
+                    "consumerState": None,
+                    "kvStore": "xtdb.rocksdb.RocksKv",
+                    "estimateNumKeys": 54693,
+                    "size": 91850532,
+                },
+                "results": [],
+            },
+            {
+                "service": "katalogus",
+                "healthy": True,
+                "version": "0.0.1-development",
+                "additional": None,
+                "results": [],
+            },
+            {"service": "scheduler", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {"service": "bytes", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+            {"service": "keiko", "healthy": True, "version": "0.0.1.dev1", "additional": None, "results": []},
+        ],
+        "config_oois": [],
+        "input_data": {
+            "input_oois": ["Hostname|internet|mispo.es"],
+            "report_types": ["systems-report", "findings-report"],
+            "plugins": {
+                "required": [
+                    "nmap",
+                    "webpage-analysis",
+                    "ssl-certificates",
+                    "nmap-udp",
+                    "ssl-version",
+                    "testssl-sh-ciphers",
+                    "dns-records",
+                ],
+                "optional": ["leakix", "snyk", "service_banner", "shodan"],
+            },
+        },
+    }
+
+    return {bytes_raw_id_a: report_data_a, bytes_raw_id_b: report_data_b}
+
 
 @pytest.fixture
-def findings_dashboard_mock_data(findings_reports, findings_report_bytes_data):
+def findings_results(mocker, findings_dashboard_item, findings_reports, findings_reports_data):
+    octopoes_client = mocker.patch("crisis_room.views.OctopoesAPIConnector")
+    bytes_client = mocker.patch("crisis_room.views.get_bytes_client")
+
+    octopoes_client().bulk_list_reports.return_value = findings_reports
+    bytes_client().get_raws_all.return_value = findings_reports_data
+
+    return DashboardService().get_dashboard_items(findings_dashboard_item)
+
+
+@pytest.fixture
+def expected_findings_results(findings_dashboard_item, findings_reports, findings_reports_data):
     findings_dashboard = []
 
-    for recipe_id, report in findings_reports.items():
-        findings_dashboard.append({"report": report, "report_data": findings_report_bytes_data[report.data_raw_id]})
+    for index, data in enumerate(findings_dashboard_item):
+        dashboard_item = DashboardItemView()
+        dashboard_item.item = data
+        report = findings_reports[data.recipe]
+        report_data = findings_reports_data[report.data_raw_id]
+
+        dashboard_item.data = {"report": report, "report_data": report_data | {"highest_risk_level": ""}}
+        findings_dashboard.append(dashboard_item)
 
     return findings_dashboard
 
@@ -2215,3 +2246,109 @@ def scheduled_reports_list():
             modified_at=datetime(2025, 2, 12, 16, 1, 19, 951925),
         )
     ]
+
+
+@pytest.fixture
+def dashboard_items(redteam_member):
+    # first delete to test that no other dashboard and items exists
+    Dashboard.objects.all().delete()
+
+    dashboard = Dashboard.objects.create(name="Test", organization=redteam_member.organization)
+    dashboard_item_1 = DashboardItem.objects.create(
+        dashboard=dashboard,
+        name="URLs",
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["URL"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
+        settings={
+            "size": "1",
+            "columns": {
+                "object": "Object",
+                "object_type": "Type",
+                "clearance_type": "Clearance type",
+                "clearance_level": "Clearance level",
+            },
+        },
+        display_in_dashboard=True,
+    )
+    dashboard_item_2 = DashboardItem.objects.create(
+        dashboard=dashboard,
+        name="Hostnames",
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["Hostname"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
+        settings={
+            "size": "1",
+            "columns": {
+                "object": "Object",
+                "object_type": "Type",
+                "clearance_type": "Clearance type",
+                "clearance_level": "Clearance level",
+            },
+        },
+        display_in_dashboard=True,
+    )
+    dashboard_item_3 = DashboardItem.objects.create(
+        dashboard=dashboard,
+        name="IPs",
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["IPAddress"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
+        settings={
+            "size": "1",
+            "columns": {
+                "object": "Object",
+                "object_type": "Type",
+                "clearance_type": "Clearance type",
+                "clearance_level": "Clearance level",
+            },
+        },
+        display_in_dashboard=True,
+    )
+    dashboard_item_4 = DashboardItem.objects.create(
+        dashboard=dashboard,
+        name="Networks",
+        source="object_list",
+        query='{"observed_at":"2015-06-06", "ooi_type": ["Network"], "clearance_level": [], "clearance_type": [],'
+        '"search": "", "order_by": "object_type", "sorting_order": "asc", "limit": 20}',
+        settings={
+            "size": "1",
+            "columns": {
+                "object": "Object",
+                "object_type": "Type",
+                "clearance_type": "Clearance type",
+                "clearance_level": "Clearance level",
+            },
+        },
+        display_in_dashboard=True,
+    )
+    return [dashboard_item_1, dashboard_item_2, dashboard_item_3, dashboard_item_4]
+
+
+@pytest.fixture
+def dashboard_items_from_findings_list(redteam_member):
+    # first delete to test that no other dashboard and items exists
+    Dashboard.objects.all().delete()
+
+    dashboard = Dashboard.objects.create(name="Test", organization=redteam_member.organization)
+
+    dashboard_item_1 = DashboardItem.objects.create(
+        dashboard=dashboard,
+        name="Medium severity findings",
+        source="findings_list",
+        query='{"observed_at":"2015-06-06", "order_by": "score", "asc_desc": "asc", "limit": 5,'
+        '"severities": ["medium"], "exclude_muted": true, "only_muted": false, "search_string": ""}',
+        settings={
+            "size": "2",
+            "columns": {
+                "tree": "Tree",
+                "graph": "Graph",
+                "finding": "Finding",
+                "location": "Location",
+                "severity": "Severity",
+            },
+        },
+        display_in_dashboard=True,
+    )
+
+    return [dashboard_item_1]

@@ -5,5 +5,9 @@
   "consumes": [
     "Hostname"
   ],
-  "scan_level": 3
+  "scan_level": 3,
+  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_arguments": [
+    "kat_fierce.main"
+  ]
 }

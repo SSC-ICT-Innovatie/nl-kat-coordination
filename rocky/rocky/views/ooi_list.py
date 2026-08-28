@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from enum import Enum
 from typing import Any
 
+from crisis_room.forms import AddObjectListDashboardItemForm
 from django.contrib import messages
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -31,17 +32,25 @@ from rocky.views.ooi_view import BaseOOIListView
 class PageActions(Enum):
     DELETE = "delete"
     UPDATE_SCAN_PROFILE = "update-scan-profile"
+    ADD_TO_DASHBOARD = "add_to_dashboard"
 
 
 class OOIListView(BaseOOIListView, OctopoesView):
     breadcrumbs = [{"url": reverse_lazy("ooi_list"), "text": gettext_lazy("Objects")}]
     template_name = "oois/ooi_list.html"
+    add_object_to_dashboard_form = AddObjectListDashboardItemForm
+
+    def get_add_dashboard_item_form(self):
+        data = self.request.POST if self.request.POST else None
+
+        return AddObjectListDashboardItemForm(organization=self.organization, data=data)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["ooi_type_form"] = OOITypeMultiCheckboxForm(self.request.GET)
         context["ooi_search_form"] = OOISearchForm(self.request.GET)
+        context["object_list_settings_form"] = self.get_add_dashboard_item_form()
         context["mandatory_fields"] = get_mandatory_fields(self.request, params=["observed_at"])
         context["member"] = self.organization_member
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
@@ -62,11 +71,11 @@ class OOIListView(BaseOOIListView, OctopoesView):
     def post(self, request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         """Perform bulk action on selected oois."""
         selected_oois = request.POST.getlist("ooi")
-        if not selected_oois:
+        action = request.POST.get("action")
+
+        if not selected_oois and action != PageActions.ADD_TO_DASHBOARD.value:
             messages.add_message(request, messages.ERROR, _("No OOIs selected."))
             return self.get(request, status=422, *args, **kwargs)
-
-        action = request.POST.get("action")
 
         if action == PageActions.DELETE.value:
             return self._delete_oois(selected_oois, request, *args, **kwargs)
@@ -80,8 +89,26 @@ class OOIListView(BaseOOIListView, OctopoesView):
                 return self._set_oois_to_inherit(selected_oois, request, *args, **kwargs)
             return self._set_scan_profiles(selected_oois, level, request, *args, **kwargs)
 
+        if action == PageActions.ADD_TO_DASHBOARD.value:
+            return self.add_to_dashboard(request, *args, **kwargs)
+
         messages.add_message(request, messages.ERROR, _("Unknown action."))
         return self.get(request, status=404, *args, **kwargs)
+
+    def add_to_dashboard(self, request, *args, **kwargs) -> HttpResponse:
+        form = self.get_add_dashboard_item_form()
+
+        if form.is_valid():
+            dashboard_id = form.cleaned_data.get("dashboard")
+            messages.success(self.request, _("Dashboard item has been added."))
+
+            return redirect(
+                reverse(
+                    "organization_crisis_room", kwargs={"organization_code": self.organization.code, "id": dashboard_id}
+                )
+            )
+
+        return self.get(request, *args, **kwargs)
 
     def _set_scan_profiles(
         self, selected_oois: list[str], level: CUSTOM_SCAN_LEVEL, request: HttpRequest, *args: Any, **kwargs: Any

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "/bit/expiring-certificate",
+  "type": "object",
+  "default": {},
+  "required": [],
+  "properties": {
+    "expiring-soon-in-days": {
+      "description": "Days before the certificate expires to be considered as expiring soon (informational).",
+      "type": "integer",
+      "default": 30
+    },
+    "expiring-very-soon-in-days": {
+      "description": "Days before the certificate expires to be considered as expiring very soon (medium finding).",
+      "type": "integer",
+      "default": 30
+    },
+    "in_percentage": {
+      "description": "Do you want the threshold to be calculated as a percentage of the total duration of certificates? Default is in days.",
+      "type": "boolean",
+      "default": false
+    }
+  }
+}

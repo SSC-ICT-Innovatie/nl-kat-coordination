@@ -97,7 +97,7 @@ class OOIAddView(BaseOOIFormView):
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
                 "url": reverse("ooi_add_type_select", kwargs={"organization_code": self.organization.code}),
-                "text": _("Type select"),
+                "text": _("Add object"),
             },
             {
                 "url": reverse(

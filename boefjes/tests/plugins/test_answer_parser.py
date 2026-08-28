@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from boefjes.job_models import NormalizerMeta
+from boefjes.worker.job_models import NormalizerMeta
 from tests.loading import get_dummy_data
 
 

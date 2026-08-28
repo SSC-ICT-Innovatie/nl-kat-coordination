@@ -285,6 +285,7 @@ def test_onboarding_ooi_detail_scan(
     member = request.getfixturevalue(member)
 
     mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
     mock_organization_view_octopoes().get.return_value = url
     mock_bytes_client().upload_raw.return_value = "raw_id"
 
@@ -310,6 +311,7 @@ def test_onboarding_ooi_detail_scan_create_report_schedule(
     member = request.getfixturevalue(member)
 
     mocker.patch("account.mixins.OrganizationView.get_katalogus")
+    mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
     mock_organization_view_octopoes().get.return_value = url
     mock_bytes_client().upload_raw.return_value = "raw_id"
 

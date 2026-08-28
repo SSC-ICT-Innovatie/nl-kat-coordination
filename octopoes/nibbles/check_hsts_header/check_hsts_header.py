@@ -7,8 +7,8 @@ from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import HTTPHeader
 
 
-def nibble(input_ooi: HTTPHeader, config: Config | None) -> Iterator[OOI]:
-    header = input_ooi
+def nibble(header: HTTPHeader, config: Config | None) -> Iterator[OOI]:
+    # TODO: probably this can be done in EDN
     if header.key.lower() != "strict-transport-security":
         return
 

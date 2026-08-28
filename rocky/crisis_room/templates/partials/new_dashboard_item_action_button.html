@@ -1,0 +1,25 @@
+{% load i18n %}
+{% load static %}
+{% load ooi_extra %}
+
+<div class="dropdown">
+    <button aria-label="{% translate "Actions for adding dashboard items" %}"
+            aria-controls="add-item-dropdown"
+            aria-expanded="false"
+            class="dropdown-button ghost">
+        {% translate "Add item" %}
+        <span class="icon ti-chevron-down" aria-hidden="true"></span>
+    </button>
+    <div id="add-item-dropdown"
+         class="dropdown-list"
+         aria-labelledby="add-item-dropdown-button">
+        <ul>
+            <li>
+                <a href="{% url "ooi_list" organization_code=organization.code %}">{% translate "Objects" %}</a>
+            </li>
+            <li>
+                <a href="{% url "finding_list" organization_code=organization.code %}">{% translate "Findings" %}</a>
+            </li>
+        </ul>
+    </div>
+</div>

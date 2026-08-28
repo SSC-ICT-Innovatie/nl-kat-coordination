@@ -7,5 +7,9 @@
     "IPAddressV6",
     "Hostname"
   ],
-  "scan_level": 1
+  "scan_level": 1,
+  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_arguments": [
+    "kat_leakix.main"
+  ]
 }

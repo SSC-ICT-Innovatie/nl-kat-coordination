@@ -25,7 +25,7 @@ from tanimachi.wappalyzer import (
     is_html,
 )
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from boefjes.plugins.kat_wappalyzer.utils import replace_cpe_version
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname

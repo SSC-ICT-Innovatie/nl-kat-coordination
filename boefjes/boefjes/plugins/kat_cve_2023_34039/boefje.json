@@ -5,5 +5,9 @@
   "consumes": [
     "IPService"
   ],
-  "scan_level": 4
+  "scan_level": 4,
+  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_arguments": [
+    "kat_cve_2023_34039.main"
+  ]
 }

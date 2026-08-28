@@ -39,7 +39,7 @@
                             </li>
                         {% else %}
                             <li>
-                                {% url "organization_crisis_room" organization.code as index_url %}
+                                {% url "organization_crisis_room_landing" organization.code as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url == request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Crisis room" %}</a>
                             </li>

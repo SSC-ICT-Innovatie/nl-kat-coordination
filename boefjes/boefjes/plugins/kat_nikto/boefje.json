@@ -10,6 +10,6 @@
     "USERAGENT"
   ],
   "scan_level": 3,
-  "oci_image": "openkat/nikto",
+  "oci_image": "ghcr.io/minvws/openkat/nikto:latest",
   "oci_arguments": []
 }

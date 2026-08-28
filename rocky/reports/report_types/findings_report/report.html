@@ -24,11 +24,11 @@
                 </tr>
             </thead>
             <tbody>
-                {% for dashboard_data in organizations_dashboards %}
-                    {% with findings=dashboard_data.report_data.findings %}
+                {% for dashboard_item in dashboard_items %}
+                    {% with findings=dashboard_item.data.report_data.findings %}
                         <tr>
                             <td>
-                                <a href="{% url "organization_crisis_room" dashboard_data.report.organization_code %}">{{ dashboard_data.report.organization_name }}</a>
+                                <a href="{% url 'organization_crisis_room_landing' organization_code=dashboard_item.item.dashboard.organization.code %}">{{ dashboard_item.item.dashboard.organization.name }}</a>
                             </td>
                             <td>
                                 {% if findings.summary.total_finding_types %}
@@ -45,8 +45,8 @@
                                 {% endif %}
                             </td>
                             <td>
-                                {% if dashboard_data.report_data.highest_risk_level %}
-                                    <span class="{{ dashboard_data.report_data.highest_risk_level }}">{{ dashboard_data.report_data.highest_risk_level|capfirst }}</span>
+                                {% if dashboard_item.data.report_data.highest_risk_level %}
+                                    <span class="{{ dashboard_item.data.report_data.highest_risk_level }}">{{ dashboard_item.data.report_data.highest_risk_level|capfirst }}</span>
                                 {% else %}
                                     -
                                 {% endif %}
@@ -92,7 +92,7 @@
                                             {% endblocktranslate %}
                                         </p>
                                     </div>
-                                    {% include "partials/report_findings_table.html" with finding_types=findings.finding_types %}
+                                    {% include "partials/report_findings_table.html" with finding_types=findings.finding_types report=dashboard_item.report %}
 
                                 {% else %}
                                     <p>{% translate "No findings have been identified. Check report for more details." %}</p>
@@ -100,11 +100,11 @@
                                 <div class="horizontal-view toolbar">
                                     <div class="button-container">
                                         <a class="button"
-                                           href="{% url "view_report" dashboard_data.report.organization_code %}?report_id={{ dashboard_data.report.primary_key }}#findings-table">
+                                           href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}#findings-table">
                                             {% translate "View findings report" %}
                                         </a>
                                         <a class="button ghost"
-                                           href="{% ooi_url "ooi_edit" dashboard_data.report.report_recipe dashboard_data.report.organization_code %}">
+                                           href="{% ooi_url "ooi_edit" dashboard_item.data.report.report_recipe dashboard_item.data.report.organization_code %}">
                                             <span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}
                                         </a>
                                     </div>
@@ -117,14 +117,41 @@
         </table>
     </div>
 {% elif is_dashboard %}
-    <div class="horizontal-scroll">
-        <h5>{% translate "Findings overview" %}</h5>
-        {% include "partials/report_severity_totals_table.html" with show_introduction="yes" data=data.findings.summary %}
+    {% if data.report_data.findings %}
+        <div>
+            <div>
+                <h3>{% translate "Findings overview" %}</h3>
+                {% include "partials/report_severity_totals_table.html" with show_introduction="yes" data=data.report_data.findings.summary %}
 
-        <h5>{% translate "Findings" %}</h5>
-        {% include "partials/report_findings_table.html" with show_introduction="yes" finding_types=data.findings.finding_types %}
+            </div>
+            <div>
+                <h3>
+                    {% with total=findings.summary.total_by_severity_per_finding_type %}
+                        {% translate "Critical and high findings" %}
+                    {% endwith %}
+                </h3>
+                <p>
+                    {% blocktranslate %}
+                This table shows the top 25 critical and high findings that have
+                been identified for this organization, grouped by finding types.
+                A table with all the identified findings can be found in the Findings Report.
+            {% endblocktranslate %}
+                </p>
+            </div>
+            {% include "partials/report_findings_table.html" with finding_types=data.report_data.findings.finding_types is_dashboard="yes" %}
 
-    </div>
+        </div>
+    {% else %}
+        <div>
+            <h3>{% translate "Findings overview" %}</h3>
+            <p>
+                {% blocktranslate %}
+                    No findings have been identified yet. As soon as they have been
+                    identified, they will be shown on this page.
+                {% endblocktranslate %}
+            </p>
+        </div>
+    {% endif %}
 {% else %}
     <div class="horizontal-scroll">
         <h3 id="findings-overview">{% translate "Findings overview" %}</h3>

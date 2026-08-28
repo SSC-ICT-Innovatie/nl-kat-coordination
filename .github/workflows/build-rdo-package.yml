@@ -21,7 +21,7 @@ jobs:
       packages: write
     strategy:
       matrix:
-        python_version: ["3.10", "3.11"]
+        python_version: ["3.11"]
 
     # Generic bits
     steps:

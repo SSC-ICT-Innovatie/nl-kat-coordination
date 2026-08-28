@@ -1,0 +1,28 @@
+{% load i18n %}
+{% load static %}
+{% load ooi_extra %}
+
+<p>
+    {% blocktranslate trimmed with organization.name as organization_name %}
+        An overview of all findings OpenKAT found for organization <strong>{{ organization_name }}</strong>.
+        Each finding relates to an object. Click a finding for additional information.
+    {% endblocktranslate %}
+</p>
+<div class="horizontal-scroll">
+    <p class="de-emphasized">
+        {% blocktranslate with length=data.finding_list|length trimmed %}
+            Showing {{ length }} findings
+        {% endblocktranslate %}
+    </p>
+    {% include "partials/dashboard_finding_list_table.html" %}
+
+    <div class="toolbar">
+        {% with params=dashboard_item.query|urlencode_query %}
+            <a class="button ghost"
+               href="{% url "finding_list" organization_code=organization.code %}?{{ params }}">
+                {% translate "Go to findings" %}
+                <span class="icon ti-chevron-right" aria-hidden="true"></span>
+            </a>
+        {% endwith %}
+    </div>
+</div>

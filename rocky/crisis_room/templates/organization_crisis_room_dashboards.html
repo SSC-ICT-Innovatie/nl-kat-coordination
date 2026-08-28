@@ -1,0 +1,142 @@
+{% load i18n %}
+{% load static %}
+
+{% if dashboard %}
+    <div>
+        <div class="fifty-fifty">
+            <div class="horizontal-view">
+                <h2>{{ dashboard.name }}</h2>
+                {% if organization_member.can_delete_dashboard %}
+                    <div class="dropdown">
+                        <button id="action-dropdown-button"
+                                type="button"
+                                aria-label="{% translate "Options for dashboard" %}"
+                                aria-haspopup="menu"
+                                aria-controls="action-dropdown"
+                                aria-expanded="false"
+                                class="icon-only ti-dots-vertical dropdown-button"></button>
+                        <div id="action-dropdown"
+                             class="dropdown-list"
+                             role="menu"
+                             aria-labelledby="action-dropdown-button">
+                            <ul role="presentation">
+                                <li>
+                                    <a href="#delete-dashboard-modal" class="plain destructive">
+                                        <i class="icon ti-trash"></i>{% translate "Delete dashboard" %}
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            {% if organization_member.can_add_dashboard and not dashboard_items.0.item.findings_dashboard %}
+                <div class="toolbar">
+                    {% include "partials/new_dashboard_item_action_button.html" %}
+
+                </div>
+            {% endif %}
+        </div>
+        {% if dashboard_items %}
+            <div class="dashboard">
+                {% for dashboard_item in dashboard_items %}
+                    {% if dashboard_item.item.findings_dashboard %}
+                        {% include dashboard_items.0.item.template with dashboard_item=dashboard_items.0.item data=dashboard_items.0.data is_dashboard="yes" %}
+
+                    {% else %}
+                        <section class="width-{{ dashboard_item.item.settings.size }}">
+                            {% if organization_member.can_delete_dashboard_item %}
+                                {% include "partials/delete_dashboard_item_modal.html" with name=dashboard_item.item.name item_id=dashboard_item.item.id|stringformat:"s" %}
+
+                            {% endif %}
+                            <div class="dashboard-item">
+                                <div class="horizontal-view">
+                                    <h3 id="dashboard-item-{{ dashboard_item.item.name|slugify }}">{{ dashboard_item.item.name }}</h3>
+                                    <span class="label system-tag color-grey">
+                                        {% if dashboard_item.item.source == "object_list" %}
+                                            {% translate "Object list" %}
+                                        {% elif dashboard_item.item.source == "finding_list" %}
+                                            {% translate "Finding list" %}
+                                        {% endif %}
+                                    </span>
+                                    {% if organization_member.can_modify_dashboard_item %}
+                                        <div class="dropdown">
+                                            <button type="button"
+                                                    aria-label="{% translate "Options for dashboard items" %}"
+                                                    aria-haspopup="listbox"
+                                                    aria-controls="action-dropdown"
+                                                    aria-expanded="false"
+                                                    class="dropdown-button icon-only ti-dots-vertical"></button>
+                                            <div id="action-dropdown" class="dropdown-list">
+                                                <ul role="listbox" aria-labelledby="action-dropdown">
+                                                    <form class="inline"
+                                                          method="post"
+                                                          action="{% url "update_dashboard_item" organization_code=organization.code %}">
+                                                        {% csrf_token %}
+                                                        <input type="hidden"
+                                                               name="dashboard_item"
+                                                               value="{{ dashboard_item.item.id }}">
+                                                        <input type="hidden"
+                                                               name="dashboard"
+                                                               value="{{ dashboard_item.dashboard.id }}">
+                                                        {% if dashboard_items|length > 1 and not forloop.first %}
+                                                            <li role="option">
+                                                                <button type="submit" name="move" value="up">
+                                                                    <i class="icon ti-arrow-up"></i>{% translate "Position up" %}
+                                                                </button>
+                                                            </li>
+                                                        {% endif %}
+                                                        {% if dashboard_items|length > 1 and not forloop.last %}
+                                                            <li role="option">
+                                                                <button type="submit" name="move" value="down">
+                                                                    <i class="icon ti-arrow-down"></i>{% translate "Position down" %}
+                                                                </button>
+                                                            </li>
+                                                        {% endif %}
+                                                        <li>
+                                                            <a href="#delete-item-modal-{{ dashboard_item.item.id }}"
+                                                               data-modal-id="delete-item-modal-{{ dashboard_item.item.id }}"
+                                                               class="plain destructive"><i class="icon ti-trash"></i>{% translate "Delete item" %}
+                                                            </a>
+                                                        </li>
+                                                    </form>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                {% include dashboard_item.item.template with dashboard_item=dashboard_item.item data=dashboard_item.data is_dashboard="yes" %}
+
+                            </div>
+                        </section>
+                    {% endif %}
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="centered">
+                <img src="{% static "img/fishbone.svg" %}" alt="Fishbone image">
+                <p>
+                    {% blocktranslate trimmed %}
+                        There are no dashboard items added yet. You can add
+                        dashboard items via the objects and findings page.
+                    {% endblocktranslate %}
+                </p>
+                <div class="button-container">
+                    <a class="button ghost"
+                       href="{% url "ooi_list" organization_code=organization.code %}">{% translate "Add objects" %}</a>
+                    <a class="button ghost"
+                       href="{% url "finding_list" organization_code=organization.code %}">{% translate "Add findings" %}</a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% if organization_member.can_delete_dashboard %}
+        {% include "partials/delete_dashboard_modal.html" %}
+
+    {% endif %}
+{% else %}
+    <p>{% translate "Dashboard does not exist. Choose an existing dashboard or create a new one." %}</p>
+{% endif %}
+{% block html_at_end_body %}
+    <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
+{% endblock html_at_end_body %}

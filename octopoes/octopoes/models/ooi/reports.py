@@ -85,7 +85,6 @@ class HydratedReport(BaseReport):
     def to_report(self) -> Report:
         as_dict = self.model_dump(exclude={"input_oois", "object_type"})
         as_dict["input_oois"] = [input_ooi.reference for input_ooi in self.input_oois]
-
         return Report.model_validate(as_dict)
 
 

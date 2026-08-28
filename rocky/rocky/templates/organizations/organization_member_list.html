@@ -14,7 +14,7 @@
                     <h1>{% translate "Members" %}</h1>
                     <p>
                         {% blocktranslate with organization_name=organization.name trimmed %}
-                            An overview of members of <strong>{{ organization_name }}</strong>.
+                            An overview of members of <strong>{{ organization_name }}</strong>
                         {% endblocktranslate %}
                     </p>
                 </div>
@@ -30,7 +30,7 @@
                                         <a href="{% url "organization_member_add_account_type" organization.code %}"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Manually" %}</a>
                                     </li>
                                     <li>
-                                        <a href="{% url "organization_member_upload" organization.code %}"><span class="icon ti-file-type-csv" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
+                                        <a href="{% url "organization_member_upload" organization.code %}"><span class="icon ti-file-upload" aria-hidden="true"></span>{% translate "Upload a CSV" %}</a>
                                     </li>
                                 </ul>
                             </div>
@@ -83,14 +83,10 @@
                                             {% if member.user.is_superuser %}
                                                 <span class="icon positive">{% translate "Active" %}</span>&nbsp;{% translate "Active" %}
                                             {% else %}
-                                                {% if member.blocked %}
-                                                    <span class="icon negative">{% translate "Blocked" %}</span>&nbsp;{% translate "Blocked" %}
-                                                {% else %}
-                                                    {% if member.status == 'active' %}
-                                                        <span class="icon positive">{% translate "Active" %}</span>&nbsp;{% translate "Active" %}
-                                                    {% elif member.status == 'new' %}
-                                                        <span class="icon neutral">{% translate "New" %}</span>&nbsp;{% translate "New" %}
-                                                    {% endif %}
+                                                {% if member.status == 'active' %}
+                                                    <span class="icon positive">{% translate "Active" %}</span>&nbsp;{% translate "Active" %}
+                                                {% elif member.status == 'new' %}
+                                                    <span class="icon neutral">{% translate "New" %}</span>&nbsp;{% translate "New" %}
                                                 {% endif %}
                                             {% endif %}
                                         </td>

@@ -4,6 +4,7 @@
 {% load static %}
 {% load ooi_extra %}
 {% load compress %}
+{% load component_tags %}
 
 {% block content %}
     {% include "header.html" %}
@@ -24,10 +25,21 @@
                         {% endblocktranslate %}
                     </p>
                 </div>
-                {% include "partials/ooi_list_toolbar.html" %}
+                <div class="horizontal-view toolbar">
+                    {% include "partials/ooi_list_toolbar.html" %}
 
+                </div>
             </div>
             <div>
+                {% include "partials/new_dashboard_item_modal.html" with item_type="objects" template="partials/dashboard_ooi_list.html" source="object_list" %}
+
+                <div class="toolbar">
+                    {% if organization_member.can_add_dashboard_item and organization_member.can_change_dashboard %}
+                        <a href="#new-dashboard-item-modal"
+                           class="button ghost"
+                           data-modal-id="new-dashboard-item-modal">{% translate "Add to dashboard" %}</a>
+                    {% endif %}
+                </div>
                 {% include "partials/ooi_list_filters.html" %}
 
                 <div class="toolbar">
@@ -51,7 +63,7 @@
                                 <th>
                                     <input class="toggle-all" data-toggle-target="ooi" type="checkbox">
                                 </th>
-                                <th>{% translate "Object" %}</th>
+                                <th>{{ table_columns.object }}</th>
                                 <th scope="col"
                                     class="sortable"
                                     {% if order_by == "object_type" %}aria-sort="{{ sorting_order_class }}"{% endif %}>
@@ -59,7 +71,7 @@
                                             name="order_by"
                                             value="object_type"
                                             class="sort">
-                                        {% translate "Type" %}
+                                        {{ table_columns.object_type }}
                                         <span aria-hidden="true"
                                               class="icon ti-{% if order_by == "object_type" and sorting_order == "asc" %}chevron-up{% elif order_by == "object_type" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                     </button>
@@ -71,12 +83,12 @@
                                             name="order_by"
                                             value="scan_level"
                                             lass="sort">
-                                        {% translate "Clearance level" %}
+                                        {{ table_columns.clearance_level }}
                                         <span aria-hidden="true"
                                               class="icon ti-{% if order_by == "scan_level" and sorting_order == "asc" %}chevron-up{% elif order_by == "scan_level" and sorting_order == "desc" %}chevron-down{% else %}direction{% endif %}"></span>
                                     </button>
                                 </th>
-                                <th>{% translate "Clearance type" %}</th>
+                                <th>{{ table_columns.clearance_type }}</th>
                             </thead>
                             <tbody>
                                 {% for object in ooi_list %}
@@ -133,5 +145,6 @@
     {{ block.super }}
     {% compress js %}
         <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
+        <script src="{% static "modal/script.js" %}" nonce="{{ request.csp_nonce }}" type="module"></script>
     {% endcompress %}
 {% endblock html_at_end_body %}

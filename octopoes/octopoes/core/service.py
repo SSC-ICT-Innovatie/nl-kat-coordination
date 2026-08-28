@@ -79,7 +79,7 @@ class OctopoesService:
         self.origin_repository = origin_repository
         self.origin_parameter_repository = origin_parameter_repository
         self.scan_profile_repository = scan_profile_repository
-        self.nibbler = NibblesRunner(ooi_repository, origin_repository, nibble_repository)
+        self.nibbler = NibblesRunner(ooi_repository, origin_repository, scan_profile_repository, nibble_repository)
         self.session = session
 
     @overload
@@ -131,8 +131,8 @@ class OctopoesService:
         self,
         types: set[type[OOI]],
         valid_time: datetime,
-        limit: int = DEFAULT_LIMIT,
         offset: int = DEFAULT_OFFSET,
+        limit: int = DEFAULT_LIMIT,
         scan_levels: set[ScanLevel] = DEFAULT_SCAN_LEVEL_FILTER,
         scan_profile_types: set[ScanProfileType] = DEFAULT_SCAN_PROFILE_TYPE_FILTER,
         search_string: str | None = None,
@@ -140,7 +140,7 @@ class OctopoesService:
         asc_desc: Literal["asc", "desc"] = "asc",
     ) -> Paginated[OOI]:
         paginated = self.ooi_repository.list_oois(
-            types, valid_time, limit, offset, scan_levels, scan_profile_types, search_string, order_by, asc_desc
+            types, valid_time, offset, limit, scan_levels, scan_profile_types, search_string, order_by, asc_desc
         )
         self._populate_scan_profiles(paginated.items, valid_time)
         return paginated
@@ -177,7 +177,8 @@ class OctopoesService:
 
         # When an Origin is saved while the source OOI does not exist, reject saving the results
         try:
-            self.ooi_repository.get(origin.source, valid_time)
+            if origin.source is not None:
+                self.ooi_repository.get(origin.source, valid_time)
         except ObjectNotFoundException:
             if (
                 origin.origin_type not in [OriginType.DECLARATION, OriginType.AFFIRMATION, OriginType.NIBBLET]
@@ -201,7 +202,8 @@ class OctopoesService:
             )
         ):
             logger.debug("Affirmation source %s seems dangling, deleting", origin.source)
-            self.ooi_repository.delete_if_exists(origin.source, valid_time)
+            if origin.source is not None:
+                self.ooi_repository.delete_if_exists(origin.source, valid_time)
             return
 
         for ooi in oois:
@@ -228,16 +230,22 @@ class OctopoesService:
             self.save_origin(origin, [], valid_time)
             return
 
-        try:
-            level = self.scan_profile_repository.get(origin.source, valid_time).level.value
-        except ObjectNotFoundException:
+        if origin.source:
+            try:
+                level = self.scan_profile_repository.get(origin.source, valid_time).level.value
+            except ObjectNotFoundException:
+                level = 0
+        else:
             level = 0
 
         if level < bit_definition.min_scan_level:
             self.save_origin(origin, [], valid_time)
             return
 
-        source = self.ooi_repository.get(origin.source, valid_time)
+        if origin.source:
+            source = self.ooi_repository.get(origin.source, valid_time)
+        else:
+            return
 
         parameters_references = self.origin_parameter_repository.list_by_origin({origin.id}, valid_time)
         parameters = self.ooi_repository.load_bulk_as_list({x.reference for x in parameters_references}, valid_time)
@@ -392,6 +400,31 @@ class OctopoesService:
         )
         logger.info("Recalculated scan profiles")
 
+    def nibblet_phantomize_result(self, origin: Origin, valid_time: datetime) -> None:
+        if (
+            origin.origin_type == OriginType.NIBBLET
+            and origin.phantom_result is not None
+            and not origin.phantom_result
+            and origin.result
+        ):
+            refs = set(origin.result)
+            origin.phantom_result = self.ooi_repository.load_bulk_as_list(refs, valid_time)
+            origin.result = []
+            self.origin_repository.save(origin, valid_time)
+
+    def nibblet_dephantomize_result(self, origin: Origin, valid_time: datetime) -> None:
+        if (
+            origin.origin_type == OriginType.NIBBLET
+            and origin.phantom_result is not None
+            and origin.phantom_result
+            and not origin.result
+        ):
+            origin.result = [result.reference for result in origin.phantom_result]
+            for ooi in origin.phantom_result:
+                self.ooi_repository.save(ooi, valid_time)
+            origin.phantom_result = []
+            self.origin_repository.save(origin, valid_time)
+
     def process_event(self, event: DBEvent) -> None:
         # handle event
         event_handler_name = f"_on_{event.operation_type.value}_{event.entity_type}"
@@ -419,12 +452,6 @@ class OctopoesService:
             self.scan_profile_repository.save(
                 None, EmptyScanProfile(reference=ooi.reference), valid_time=event.valid_time
             )
-
-        # The nibble part of inferring
-        try:
-            self.nibbler.infer([self.ooi_repository.get(ooi.reference, event.valid_time)], event.valid_time)
-        except ObjectNotFoundException:
-            logger.info("OOI not found for inference")
 
         # analyze bit definitions
         bit_definitions = get_bit_definitions()
@@ -454,15 +481,15 @@ class OctopoesService:
                         origin_parameter = OriginParameter(origin_id=origin.id, reference=ooi.reference)
                         self.origin_parameter_repository.save(origin_parameter, event.valid_time)
 
+        # The nibble part of inferring
+        try:
+            self.nibbler.infer([self.ooi_repository.get(ooi.reference, event.valid_time)], event.valid_time)
+        except ObjectNotFoundException:
+            logger.info("OOI not found for inference")
+
     def _on_update_ooi(self, event: OOIDBEvent) -> None:
         if event.new_data is None:
             raise ValueError("Update event new_data should not be None")
-
-        # The nibble part of inferring
-        try:
-            self.nibbler.infer([self.ooi_repository.get(event.new_data.reference, event.valid_time)], event.valid_time)
-        except ObjectNotFoundException:
-            logger.info("OOI not found for inference")
 
         if isinstance(event.new_data, Config):
             relevant_bit_ids = [
@@ -481,11 +508,30 @@ class OctopoesService:
         for inference_origin in inference_origins:
             self._run_inference(inference_origin, event.valid_time)
 
+        # The nibble part of inferring
+        try:
+            self.nibbler.infer([self.ooi_repository.get(event.new_data.reference, event.valid_time)], event.valid_time)
+        except ObjectNotFoundException:
+            logger.info("OOI not found for inference")
+
     def _on_delete_ooi(self, event: OOIDBEvent) -> None:
         if event.old_data is None:
             raise ValueError("Update event old_data should not be None")
 
         reference = event.old_data.reference
+
+        # get parameters involved if reference is also optional
+        parameters = self.ooi_repository.load_bulk_as_list(
+            {
+                ref
+                for origin in self.origin_repository.list_origins(
+                    event.valid_time, origin_type=OriginType.NIBBLET, optional_references=[reference]
+                )
+                for ref in (origin.parameters_references if origin.parameters_references else [])
+                if ref is not None
+            },
+            event.valid_time,
+        )
 
         # delete related origins to which it is a source
         origins = self.origin_repository.list_origins(event.valid_time, source=reference)
@@ -506,6 +552,10 @@ class OctopoesService:
             self.scan_profile_repository.delete(scan_profile, event.valid_time)
         except ObjectNotFoundException:
             pass
+
+        # process objects that interfered with deleted optional
+        if parameters:
+            self.nibbler.infer(parameters, event.valid_time)
 
     # Origin events
     def _on_create_origin(self, event: OriginDBEvent) -> None:
@@ -558,10 +608,33 @@ class OctopoesService:
             pass
 
     def _run_inferences(self, event: ScanProfileDBEvent) -> None:
-        inference_origins = self.origin_repository.list_origins(event.valid_time, source=event.reference)
-        inference_origins = [o for o in inference_origins if o.origin_type == OriginType.INFERENCE]
+        inference_origins = self.origin_repository.list_origins(
+            event.valid_time, origin_type=OriginType.INFERENCE, source=event.reference
+        )
         for inference_origin in inference_origins:
             self._run_inference(inference_origin, event.valid_time)
+        if event.new_data:
+            nibblets = self.origin_repository.list_nibblets_by_parameter(event.reference, event.valid_time)
+            for nibblet in nibblets:
+                if (
+                    self.nibbler.nibbles[nibblet.method].has_scan_levels()
+                    and nibblet.parameters_references is not None
+                    and nibblet.optional_references is not None
+                ):
+                    targets = [
+                        ref or opt for ref, opt in zip(nibblet.parameters_references, nibblet.optional_references)
+                    ]
+                    scan_profiles = self.scan_profile_repository.get_bulk(
+                        {target for target in targets if target is not None}, event.valid_time
+                    )
+                    scan_levels = [
+                        next(sp.level for sp in scan_profiles if sp.reference == target) if target else ScanLevel.L0
+                        for target in targets
+                    ]
+                    if self.nibbler.nibbles[nibblet.method].check_scan_levels(scan_levels):
+                        self.nibblet_dephantomize_result(nibblet, event.valid_time)
+                    else:
+                        self.nibblet_phantomize_result(nibblet, event.valid_time)
 
     # Scan profile events
     def _on_create_scan_profile(self, event: ScanProfileDBEvent) -> None:

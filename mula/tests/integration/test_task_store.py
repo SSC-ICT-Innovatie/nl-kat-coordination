@@ -224,8 +224,10 @@ class StoreTestCase(unittest.TestCase):
 
         # Assert
         self.assertEqual(len(results), 3)
-        self.assertEqual(results.get(keys[0]).get("dispatched"), 2)
-        self.assertEqual(results.get(keys[0]).get("total"), 2)
+        self.assertEqual(results.get(keys[0]).get("queued"), 2)
+        self.assertEqual(results.get(keys[0]).get("failed"), 2)
+        self.assertEqual(results.get(keys[0]).get("total"), 4)
         self.assertEqual(results.get(keys[1]).get("completed"), 2)
         self.assertEqual(results.get(keys[1]).get("total"), 2)
-        self.assertEqual(results.get(keys[2]).get("queued"), 2)
+        self.assertEqual(results.get(keys[2]).get("dispatched"), 2)
+        self.assertEqual(results.get(keys[2]).get("total"), 2)

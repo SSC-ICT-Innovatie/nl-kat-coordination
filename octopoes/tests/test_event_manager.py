@@ -122,16 +122,8 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
         task_id="1754a4c8-f0b8-42c8-b294-5706ce23a47d",
     )
 
-    assert channel_mock.basic_publish.call_count == 2
+    assert channel_mock.basic_publish.call_count == 1
     channel_mock.basic_publish.asset_has_calls(
-        mocker.call(
-            "",
-            "test__scan_profile_increments",
-            b'{"primary_key": "test|reference", "object_type": "test",'
-            b'"scan_profile": {"scan_profile_type": "declared", "reference": "test|reference",\
-            "level": 2, "user_id": None}}',
-            properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-        ),
         mocker.call(
             "",
             "scan_profile_mutations",
@@ -141,7 +133,7 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
             b'"scan_profile": {"scan_profile_type": "declared", "reference": "test|reference",\
             "level": 2, "user_id": None}}, "client_id": "test"}',
             properties=pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent),
-        ),
+        )
     )
 
 

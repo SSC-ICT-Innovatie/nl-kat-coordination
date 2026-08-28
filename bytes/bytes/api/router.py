@@ -166,6 +166,7 @@ def create_raw(
 
         if parsed_mime_types in mime_types_by_id.values():
             # Set the id for this file using the precomputed dict that maps existing primary keys to the mime-type set.
+            # We do this since a boefje_meta should have unique raw files based on the mime-types, so this deduplicates.
             raw_ids[raw.name] = list(mime_types_by_id.keys())[list(mime_types_by_id.values()).index(parsed_mime_types)]
 
             continue

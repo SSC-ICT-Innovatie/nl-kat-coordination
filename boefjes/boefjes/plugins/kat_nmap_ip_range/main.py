@@ -4,8 +4,6 @@ from os import getenv
 
 import docker
 
-from boefjes.job_models import BoefjeMeta
-
 NMAP_IMAGE = "instrumentisto/nmap:latest"
 TOP_PORTS_MAX = 65535
 TOP_PORTS_MIN = 1
@@ -32,10 +30,10 @@ def build_nmap_arguments(ip_range: IPv6Network | IPv4Network, top_ports: int, pr
     return args
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     """Build Nmap arguments and return results to normalizer."""
     ip_range = ip_network(
-        f"{boefje_meta.arguments['input']['start_ip']['address']}/{str(boefje_meta.arguments['input']['mask'])}"
+        f"{boefje_meta['arguments']['input']['start_ip']['address']}/{str(boefje_meta['arguments']['input']['mask'])}"
     )
 
     min_mask = int(getenv("MIN_VLSM_IPV4", 22))

@@ -1,6 +1,6 @@
 import datetime
 
-from crisis_room.management.commands.dashboards import get_or_create_default_dashboard
+from crisis_room.management.commands.dashboards import run_findings_dashboard
 from django.conf import settings
 from django.contrib.admin.models import LogEntry
 from django.contrib.auth.signals import user_logged_in, user_logged_out, user_login_failed
@@ -100,6 +100,7 @@ def organization_pre_save(sender, instance, *args, **kwargs):
         if not katalogus_client.organization_exists(instance.code):
             katalogus_client.create_organization(instance)
     except Exception as e:
+        logger.error("Failed creating organization in the Katalogus: %s", e)
         raise KATalogusException("Failed creating organization in the Katalogus") from e
 
     try:
@@ -119,7 +120,7 @@ def organization_post_save(sender, instance, created, *args, **kwargs):
 
     # will trigger only when new organization is created, not for updating.
     if created:
-        get_or_create_default_dashboard(instance, octopoes_client)
+        run_findings_dashboard(instance, octopoes_client)
 
     try:
         octopoes_client.register_nibbles()

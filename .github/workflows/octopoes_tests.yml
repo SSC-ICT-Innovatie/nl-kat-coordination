@@ -40,15 +40,8 @@ jobs:
         working-directory: ./octopoes
 
       - name: Run unit tests
-        run: pytest --cov-report=xml
+        run: pytest
         working-directory: ./octopoes
-
-      - if: ${{ matrix.version == '3.11' }}
-        name: Upload coverage as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage
-          path: octopoes/coverage.xml
 
       - name: Run integration tests
         run: DOCKER_BUILDKIT=1 make itest build_args='--build-arg PYTHON_VERSION=${{ matrix.version }}'

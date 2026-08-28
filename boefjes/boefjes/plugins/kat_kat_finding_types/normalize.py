@@ -2,7 +2,7 @@ import json
 import logging
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerAffirmation, NormalizerOutput
+from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models.ooi.findings import KATFindingType, RiskLevelSeverity
 
 logger = logging.getLogger(__name__)
@@ -22,7 +22,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     data = json.loads(raw)
 
     finding_type_information = data[kat_finding_type_id]
-    logger.info(finding_type_information["risk"].lower())
     risk_severity = RiskLevelSeverity(finding_type_information["risk"].lower())
 
     risk_score = SEVERITY_SCORE_LOOKUP[risk_severity]

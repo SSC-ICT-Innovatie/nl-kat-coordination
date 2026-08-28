@@ -1,24 +1,28 @@
 {% load i18n %}
 
-{% component "modal" size="dialog-small" modal_id=modal_id %}
-{% fill "header" %}
-{% translate "Disable schedule" %}
+{% with form_id="disable-form-"|add:recipe_id %}
+    {% component "modal" size="dialog-small" modal_id="disable-schedule-modal-"|add:recipe_id %}
+    {% fill "header" %}
+    {% translate "Disable schedule" %}
 {% endfill %}
 {% fill "content" %}
-<form id="content-form"  class="horizontal-view"  action=""  method="post">
+<p>
+    {% blocktranslate with report_name=recipe_name trimmed %}
+        Are you sure you want to disable the schedule for <strong>{{ report_name }}</strong>?
+        The recipe will still exist and the schedule can be enabled later on.
+    {% endblocktranslate %}
+</p>
+<form id={{ form_id }} class="inline" method="post" action="{% url "enable_disable_scheduled_reports" organization.code %}">
     {% csrf_token %}
-    <p>
-        {% blocktranslate with report_name=schedule.recipe.report_name_format trimmed %}
-            Are you sure you want to disable the schedule for {{ report_name }}?
-            The recipe will still exist and the schedule can be enabled later on.
-        {% endblocktranslate %}
-    </p>
+    <input type="hidden" name="recipe_id" value="{{ recipe_id }}" />
+    <input type="hidden" name="report_name_format" value="{{ recipe_name }}" />
 </form>
 {% endfill %}
 {% fill "footer_buttons" %}
-<a class="button destructive"
-   href="{% url "enable_disable_scheduled_reports" organization.code %}?schedule_id={{ schedule.schedule_id }}">{% translate "Disable schedule" %}</a>
+<button type="submit" form={{ form_id }} class="destructive">{% translate "Disable schedule" %}
+</button>
 <button class="ghost close-modal-button">{% translate "Cancel" %}</button>
 {% endfill %}
 {% endcomponent %}
 {% component_css_dependencies %}
+{% endwith %}

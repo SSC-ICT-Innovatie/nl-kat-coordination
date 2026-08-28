@@ -20,12 +20,9 @@
 {% else %}
     <span class="de-emphasized">
         {% if plugin.enabled %}
-            {% translate "This plugin is enabled." %}
+            <span class="label system-tag color-2">{% translate "Enabled" %}</span>
         {% else %}
-            {% translate "This plugin is disabled." %}
+            <span class="label system-tag color-3">{% translate "Disabled" %}</span>
         {% endif %}
-        {% blocktranslate trimmed with plugin=plugin.type %}
-            You don't have permission to enable or disable {{ plugin }}s.
-        {% endblocktranslate %}
     </span>
 {% endif %}

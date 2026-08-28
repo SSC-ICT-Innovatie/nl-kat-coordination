@@ -1,13 +1,11 @@
 import docker
 
-from boefjes.job_models import BoefjeMeta
-
 OPENSSL_IMAGE = "alpine/openssl:latest"
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     client = docker.from_env()
-    input_ = boefje_meta.arguments["input"]
+    input_ = boefje_meta["arguments"]["input"]
     hostname = input_["hostname"]["name"]
     scheme = input_["ip_service"]["service"]["name"]
     ip_address = input_["ip_service"]["ip_port"]["address"]["address"]

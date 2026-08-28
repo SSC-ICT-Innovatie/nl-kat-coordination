@@ -10,8 +10,9 @@ from nibbles.runner import NibblesRunner, nibble_hasher
 
 from octopoes.core.service import OctopoesService
 from octopoes.events.events import OOIDBEvent, OperationType, OriginDBEvent
-from octopoes.models import OOI, Reference
+from octopoes.models import OOI, Reference, ScanLevel
 from octopoes.models.ooi.config import Config
+from octopoes.models.ooi.dns.zone import DNSZone, Hostname
 from octopoes.models.ooi.findings import Finding, FindingType, KATFindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import URL
@@ -50,6 +51,7 @@ def test_url_classification_nibble(xtdb_octopoes_service: OctopoesService, event
     nibbler = NibblesRunner(
         xtdb_octopoes_service.ooi_repository,
         xtdb_octopoes_service.origin_repository,
+        xtdb_octopoes_service.nibbler.scan_profile_repository,
         xtdb_octopoes_service.nibbler.nibble_repository,
     )
     nibble = xtdb_octopoes_service.nibbler.nibbles["url_classification"]
@@ -85,6 +87,7 @@ find_network_url_params = [
 find_network_url_nibble = NibbleDefinition(
     id="find_network_url",
     signature=find_network_url_params,
+    # This Nibble's query is not endorsed for production (but nice for testing)
     query="""
     {
         :query {
@@ -106,6 +109,7 @@ def test_find_network_url_nibble(xtdb_octopoes_service: OctopoesService, event_m
     nibbler = NibblesRunner(
         xtdb_octopoes_service.ooi_repository,
         xtdb_octopoes_service.origin_repository,
+        xtdb_octopoes_service.nibbler.scan_profile_repository,
         xtdb_octopoes_service.nibbler.nibble_repository,
     )
     xtdb_octopoes_service.nibbler.disable()
@@ -160,9 +164,11 @@ def test_max_length_config_nibble(xtdb_octopoes_service: OctopoesService, event_
     nibbler = NibblesRunner(
         xtdb_octopoes_service.ooi_repository,
         xtdb_octopoes_service.origin_repository,
+        xtdb_octopoes_service.nibbler.scan_profile_repository,
         xtdb_octopoes_service.nibbler.nibble_repository,
     )
     nibble = xtdb_octopoes_service.nibbler.nibbles["max_url_length_config"]
+    nibble.enabled = True
     nibbler.nibbles = {"max_url_length_config": nibble}
     xtdb_octopoes_service.nibbler.disable()
     network = Network(name="internet")
@@ -289,6 +295,7 @@ def test_parent_type_in_nibble_signature(
     nibbler = NibblesRunner(
         xtdb_octopoes_service.ooi_repository,
         xtdb_octopoes_service.origin_repository,
+        xtdb_octopoes_service.nibbler.scan_profile_repository,
         xtdb_octopoes_service.nibbler.nibble_repository,
     )
     xtdb_octopoes_service.nibbler.disable()
@@ -347,6 +354,7 @@ def test_nibbles_update(xtdb_octopoes_service: OctopoesService, event_manager: M
 
 
 def test_nibble_states(xtdb_octopoes_service: OctopoesService, valid_time: datetime):
+    xtdb_octopoes_service.nibbler.nibbles["max_url_length_config"].enabled = True
     nibble_inis = [nibble._ini for nibble in xtdb_octopoes_service.nibbler.nibbles.values()]
     xtdb_octopoes_service.nibbler.register()
     xtdb_nibble_inis = {ni["id"]: ni for ni in xtdb_octopoes_service.nibbler.nibble_repository.get_all(valid_time)}
@@ -372,6 +380,7 @@ def test_nibble_states(xtdb_octopoes_service: OctopoesService, valid_time: datet
 def test_nibble_origin_deletion_propagation(
     xtdb_octopoes_service: OctopoesService, event_manager: Mock, valid_time: datetime
 ):
+    xtdb_octopoes_service.nibbler.nibbles["max_url_length_config"].enabled = True
     network = Network(name="internet")
     xtdb_octopoes_service.ooi_repository.save(network, valid_time)
     url = URL(network=network.reference, raw="https://mispo.es/")
@@ -401,3 +410,181 @@ def test_nibble_origin_deletion_propagation(
 
     assert xtdb_octopoes_service.ooi_repository.list_oois({OOI}, valid_time).count == 1
     assert xtdb_octopoes_service.ooi_repository.list_oois({OOI}, valid_time).items == [config]
+
+
+def dnszone_dummy(dnszone: DNSZone) -> list[DNSZone | Hostname] | None:
+    if len(dnszone.hostname.tokenized.name) < MAX_NETWORK_NAME_LENGTH:
+        new_name = dnszone.hostname.tokenized.name + "l"
+        hostname = Hostname(network=Network(name=dnszone.hostname.tokenized.network.name).reference, name=new_name)
+        yield hostname
+        yield DNSZone(hostname=hostname.reference, parent=dnszone.reference)
+
+
+dnszone_dummy_params = [NibbleParameter(object_type=DNSZone)]
+dnszone_dummy_nibble = NibbleDefinition(id="dummy", signature=dnszone_dummy_params)
+dnszone_dummy_nibble._payload = getattr(sys.modules[__name__], "dnszone_dummy")
+
+
+def test_min_scan_level_dummy_nibble(xtdb_octopoes_service: OctopoesService, event_manager: Mock, valid_time: datetime):
+    def new_scan_level_by_type(ooi_types: set[type[OOI]], scan_level: ScanLevel):
+        for ooi in xtdb_octopoes_service.ooi_repository.list_oois_by_object_types(ooi_types, valid_time):
+            try:
+                sp = xtdb_octopoes_service.scan_profile_repository.get(ooi.reference, valid_time)
+            except Exception:
+                sp = None
+            if sp:
+                spnew = sp.model_copy()
+                spnew.level = scan_level
+                xtdb_octopoes_service.scan_profile_repository.save(sp, spnew, valid_time)
+        event_manager.complete_process_events(xtdb_octopoes_service)
+
+    xtdb_octopoes_service.nibbler.nibbles = {dnszone_dummy_nibble.id: dnszone_dummy_nibble}
+    xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].signature[0].min_scan_level = ScanLevel.L1
+    assert not xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].check_scan_levels([])
+    assert not xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].check_scan_levels([ScanLevel.L0])
+    assert xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].check_scan_levels([ScanLevel.L1])
+    assert xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].check_scan_levels([ScanLevel.L2])
+    assert xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].check_scan_levels([ScanLevel.L3])
+    assert xtdb_octopoes_service.nibbler.nibbles[dnszone_dummy_nibble.id].check_scan_levels([ScanLevel.L4])
+    network = Network(name="internet")
+    hostname = Hostname(network=network.reference, name="openkat.nl")
+    dnszone = DNSZone(hostname=hostname.reference)
+    xtdb_octopoes_service.ooi_repository.save(network, valid_time)
+    xtdb_octopoes_service.ooi_repository.save(hostname, valid_time)
+    xtdb_octopoes_service.ooi_repository.save(dnszone, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+    assert xtdb_octopoes_service.ooi_repository.list_oois({DNSZone}, valid_time).count == 1
+
+    for scan_level, count in [
+        (ScanLevel.L1, 2),
+        (ScanLevel.L1, 3),
+        (ScanLevel.L0, 1),
+        (ScanLevel.L2, 2),
+        (ScanLevel.L2, 3),
+        (ScanLevel.L1, 4),
+    ]:
+        new_scan_level_by_type({DNSZone}, scan_level)
+        assert xtdb_octopoes_service.ooi_repository.list_oois({DNSZone}, valid_time).count == count
+
+
+def find_network_url_fixed(network: Network, url: URL) -> Iterator[OOI]:
+    if len(network.name) == len(str(url.raw)):
+        yield Finding(
+            finding_type=KATFindingType(id="Network and URL have same name length").reference,
+            ooi=network.reference,
+            proof=url.reference,
+        )
+
+
+def find_network_url_nibble_fixed_query(targets: list[Reference | None]) -> str:
+    sgn = "".join(str(int(isinstance(target, Reference))) for target in targets)
+    if sgn == "10":
+        return f"""
+        {{
+            :query {{
+                :find [(pull ?network [*]) (pull ?url [*])]
+                :where [
+                    [?network :object_type "Network" ] [?network :Network/primary_key "{str(targets[0])}"]
+                    [?url :object_type "URL" ]
+                    [?url :URL/network ?network]
+                ]
+            }}
+        }}
+        """
+    elif sgn == "01":
+        return f"""
+        {{
+            :query {{
+                :find [(pull ?network [*]) (pull ?url [*])]
+                :where [
+                    [?network :object_type "Network" ]
+                    [?url :object_type "URL" ] [?url :URL/primary_key "{str(targets[1])}"]
+                    [?url :URL/network ?network]
+                ]
+            }}
+        }}
+        """
+    elif sgn == "11":
+        return f"""
+        {{
+            :query {{
+                :find [(pull ?network [*]) (pull ?url [*])]
+                :where [
+                    [?network :object_type "Network" ] [?network :Network/primary_key "{str(targets[0])}"]
+                    [?url :object_type "URL" ] [?url :URL/primary_key "{str(targets[1])}"]
+                ]
+            }}
+        }}
+        """
+    else:
+        return """
+        {{
+            :query {{
+                :find [(pull ?network [*]) (pull ?url [*])]
+                :where [
+                    [?network :object_type "Network" ]
+                    [?url :object_type "URL" ]
+                    [?url :URL/network ?network]
+                ]
+            }}
+        }}
+        """
+
+
+find_network_url_fixed_params = [
+    NibbleParameter(object_type=Network, parser="[*][?object_type == 'Network'][]"),
+    NibbleParameter(object_type=URL, parser="[*][?object_type == 'URL'][]"),
+]
+find_network_url_nibble_fixed = NibbleDefinition(
+    id="find_network_url_fixed", signature=find_network_url_params, query=find_network_url_nibble_fixed_query
+)
+find_network_url_nibble_fixed._payload = getattr(sys.modules[__name__], "find_network_url")
+
+
+def test_nibbles_update_with_scan_level(
+    xtdb_octopoes_service: OctopoesService, event_manager: Mock, valid_time: datetime
+):
+    def new_scan_level_by_reference(reference: Reference, scan_level: ScanLevel):
+        sp = xtdb_octopoes_service.scan_profile_repository.get(reference, valid_time)
+        spnew = sp.model_copy()
+        spnew.level = scan_level
+        xtdb_octopoes_service.scan_profile_repository.save(sp, spnew, valid_time)
+        event_manager.complete_process_events(xtdb_octopoes_service)
+
+    xtdb_octopoes_service.nibbler.nibbles = {find_network_url_nibble_fixed.id: find_network_url_nibble_fixed}
+    xtdb_octopoes_service.nibbler.nibbles[find_network_url_nibble_fixed.id].signature[0].min_scan_level = ScanLevel.L1
+    xtdb_octopoes_service.nibbler.nibbles[find_network_url_nibble_fixed.id].signature[1].min_scan_level = ScanLevel.L2
+
+    network1 = Network(name="internetverbinding")
+    xtdb_octopoes_service.ooi_repository.save(network1, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+    network2 = Network(name="internet")
+    xtdb_octopoes_service.ooi_repository.save(network2, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+    url1 = URL(network=network1.reference, raw="https://potato.ls/")
+    xtdb_octopoes_service.ooi_repository.save(url1, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+    url2 = URL(network=network2.reference, raw="https://mispo.es/")
+    xtdb_octopoes_service.ooi_repository.save(url2, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+
+    xtdb_url1 = xtdb_octopoes_service.ooi_repository.get(url1.reference, valid_time)
+    xtdb_url2 = xtdb_octopoes_service.ooi_repository.get(url2.reference, valid_time)
+
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 0
+
+    new_scan_level_by_reference(network1.reference, ScanLevel.L1)
+    new_scan_level_by_reference(network2.reference, ScanLevel.L1)
+
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 0
+
+    new_scan_level_by_reference(xtdb_url1.reference, ScanLevel.L1)
+    new_scan_level_by_reference(xtdb_url2.reference, ScanLevel.L1)
+
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 0
+
+    new_scan_level_by_reference(xtdb_url1.reference, ScanLevel.L2)
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 1
+
+    new_scan_level_by_reference(xtdb_url2.reference, ScanLevel.L2)
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 1

@@ -1,0 +1,27 @@
+{% load i18n %}
+
+<form id="delete-dashboard-form"
+      method="post"
+      action="{% url "delete_dashboard" organization_code=organization.code %}">
+    {% csrf_token %}
+    <input type="hidden" name="dashboard_name" value="{{ dashboard.name }}">
+    <input type="hidden" name="dashboard_id" value="{{ dashboard.id }}">
+</form>
+{% component "modal" modal_id="delete-dashboard-modal" size="dialog-small" %}
+{% fill "header" %}
+{% translate "Delete dashboard" %}
+{% endfill %}
+{% fill "content" %}
+<p>
+    {% blocktranslate trimmed with dashboard=dashboard.name %}
+        Are you sure you want to delete dashboard '{{ dashboard }}'?
+        All the items on the dashboard will be deleted as well.
+    {% endblocktranslate %}
+</p>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button type="submit" form="delete-dashboard-form" class="destructive">{% translate "Delete" %}</button>
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

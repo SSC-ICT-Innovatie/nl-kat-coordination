@@ -36,7 +36,7 @@ The table below gives an overview of the 12 reports available. It also describes
      - Normal
    * - Findings
      - Shows all the finding types and their occurrences.
-     - Hostname, IPAddressV4, IPAddressv6
+     - Hostname, IPAddressV4, IPAddressv6, URL
      -
      -
      - Normal

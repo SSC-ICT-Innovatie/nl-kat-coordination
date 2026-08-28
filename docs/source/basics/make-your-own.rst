@@ -174,7 +174,7 @@ The boefje itself imports the shodan api module, assigns an IP address to it and
 	from os import getenv
 	from ipaddress import ip_address
 
-	from boefjes.job_models import BoefjeMeta
+	from boefjes.worker.job_models import BoefjeMeta
 
 
 	def run(boefje_meta: BoefjeMeta) -> List[Tuple[set, Union[bytes, str]]]:
@@ -243,7 +243,7 @@ fill and yield the actual objects. (of valid object-types that are subclassed fr
  from octopoes.models.ooi.findings import CVEFindingType, Finding
  from octopoes.models.ooi.network import IPPort, Protocol, PortState
 
- from boefjes.job_models import NormalizerOutput
+ from boefjes.normalizer_models import NormalizerOutput
 
  def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     results = json.loads(raw)

@@ -3,6 +3,7 @@
 import datetime
 import json
 import logging
+import re
 
 import click
 from xtdb_client import XTDBClient
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 @click.group(context_settings={"help_option_names": ["-h", "--help"], "max_content_width": 120, "show_default": True})
-@click.option("-n", "--node", default="0", help="XTDB node")
+@click.option("-n", "--node", default="0", help="XTDB node, or Organization code")
 @click.option("-u", "--url", default="http://localhost:3000", help="XTDB server base url")
 @click.option("-t", "--timeout", type=int, default=5000, help="XTDB request timeout (in ms)")
 @click.option("-v", "--verbosity", count=True, help="Increase the verbosity level")
@@ -44,7 +45,7 @@ def status(ctx: click.Context):
 
 
 @cli.command(help='EDN Query (default: "{:query {:find [ ?var ] :where [[?var :xt/id ]]}}")')
-@click.option("--tx-id", type=int, help="In UTC, defaulting to latest transaction id (integer)")
+@click.option("--tx-id", type=int, help="Defaulting to latest transaction id (integer)")
 @click.option("--tx-time", type=click.DateTime(), help="In UTC, defaulting to latest transaction time (date)")
 @click.option("--valid-time", type=click.DateTime(), help="In UTC, defaulting to now (date)")
 @click.argument("edn", required=False)
@@ -81,7 +82,7 @@ def list_values(ctx: click.Context):
 
 
 @cli.command(help="Returns the document map for a particular entity.")
-@click.option("--tx-id", type=int, help="In UTC, defaulting to latest transaction id (integer)")
+@click.option("--tx-id", type=int, help="Defaulting to latest transaction id (integer)")
 @click.option("--tx-time", type=click.DateTime(), help="In UTC, defaulting to latest transaction time (date)")
 @click.option("--valid-time", type=click.DateTime(), help="In UTC, defaulting to now (date)")
 @click.argument("key")
@@ -119,7 +120,7 @@ def history(ctx: click.Context, key: str, with_corrections: bool, with_docs: boo
 
 
 @cli.command(help="Returns the transaction details for an entity - returns a map containing the tx-id and tx-time.")
-@click.option("--tx-id", type=int, help="In UTC, defaulting to the latest transaction id (integer)")
+@click.option("--tx-id", type=int, help="Defaulting to the latest transaction id (integer)")
 @click.option("--tx-time", type=click.DateTime(), help="In UTC, defaulting to the latest transaction time (date)")
 @click.option("--valid-time", type=click.DateTime(), help="In UTC, defaulting to now (date)")
 @click.argument("key")
@@ -269,20 +270,33 @@ def slowest_queries(ctx: click.Context):
     click.echo(json.dumps(client.slowest_queries()))
 
 
+@cli.command(
+    help="""Deletes all OOI's of the given type with an evict. (OOITypes are Case sensitive).
+    This does not remove the associated Origins or References and might leave your database in an unknown state for
+    some related objects."""
+)
+@click.option("--ooitype", help="The type of OOI to evict")
+@click.pass_context
+def evict_all_of_type(ctx: click.Context, ooitype: str):
+    client: XTDBClient = ctx.obj["client"]
+    ooitype = re.sub(r"[^a-zA-Z0-9]", "", ooitype)  # sanitize the object type.
+    if not ooitype:
+        return
+    oois = client.query(f'{{:query {{:find [ ?var ] :where [[?var :object_type "{ooitype}" ]]}}}}')
+    # the query has double brackets due to fstring parsing
+    transactions = []
+
+    for ooi in oois:
+        transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
+
+    client.submit_tx(transactions)
+    click.echo(f"Evicted all OOIs of type {ooitype}")
+
+
 @cli.command(help="Deletes all reports with an evict.")
 @click.pass_context
 def evict_all_reports(ctx: click.Context):
-    client: XTDBClient = ctx.obj["client"]
-
-    reports = client.query('{:query {:find [ ?var ] :where [[?var :object_type "Report" ]]}}')
-
-    transactions = []
-
-    for report in reports:
-        transactions.append(("evict", report[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
-
-    client.submit_tx(transactions)
-    click.echo("Evicted reports")
+    ctx.invoke(evict_all_of_type, ooitype="Report")
 
 
 if __name__ == "__main__":

@@ -16,11 +16,9 @@ https://summoning.team/blog/vmware-vrealize-network-insight-ssh-key-rce-cve-2023
 
 import os
 
-from boefjes.job_models import BoefjeMeta
 
-
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, str | bytes]]:
-    input_ = boefje_meta.arguments["input"]  # input is IPService
+def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
+    input_ = boefje_meta["arguments"]["input"]  # input is IPService
     ip_port = input_["ip_port"]
     if input_["service"]["name"] != "ssh":
         return [({"info/boefje"}, "Skipping because service is not an ssh service")]

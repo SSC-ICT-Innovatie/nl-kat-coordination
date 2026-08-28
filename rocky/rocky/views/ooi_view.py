@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
 from time import sleep
-from typing import Literal
+from typing import Any, Literal
 
 from django.forms import Form
 from django.http import Http404
+from django.http.request import QueryDict
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -21,7 +22,14 @@ from octopoes.models.ooi.findings import Finding, FindingType
 from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.types import get_collapsed_types, type_by_name
 from rocky.paginator import RockyPaginator
-from rocky.views.mixins import ConnectorFormMixin, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
+from rocky.views.mixins import (
+    OBJECT_LIST_COLUMNS,
+    ConnectorFormMixin,
+    OctopoesView,
+    OOIList,
+    SingleOOIMixin,
+    SingleOOITreeMixin,
+)
 
 
 class OOIFilterView(ConnectorFormMixin, OctopoesView):
@@ -61,12 +69,14 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
             active_filters[_("Searching for: ")] = self.search_string
         return active_filters
 
-    def count_active_filters(self):
+    @property
+    def count_active_filters(self) -> int:
         return (
             len(self.filtered_ooi_types)
             + len(self.clearance_levels)
             + len(self.clearance_types)
             + self.count_observed_at_filter()
+            + (1 if self.search_string else 0)
         )
 
     def get_ooi_scan_levels(self) -> set[ScanLevel]:
@@ -103,6 +113,21 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
             "asc_desc": self.sorting_order,
         }
 
+    def get_filters_query(self) -> dict[str, Any]:
+        qdict = QueryDict(mutable=True)
+        qdict.update(
+            {
+                "observed_at": self.observed_at.strftime("%Y-%m-%d"),
+                "search": self.request.GET.get("search", ""),
+                "order_by": self.order_by,
+                "sorting_order": self.sorting_order,
+            }
+        )
+        qdict.setlist("ooi_type", self.request.GET.getlist("ooi_type"))
+        qdict.setlist("clearance_level", self.request.GET.getlist("clearance_level"))
+        qdict.setlist("clearance_type", self.request.GET.getlist("clearance_type"))
+        return {k: qdict.getlist(k) for k in qdict}
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["observed_at"] = self.observed_at
@@ -112,12 +137,14 @@ class OOIFilterView(ConnectorFormMixin, OctopoesView):
 
         context["sorting_order"] = self.sorting_order
         context["sorting_order_class"] = "ascending" if self.sorting_order == "asc" else "descending"
+        context["search_string"] = self.search_string
         context["ooi_types_selection"] = self.filtered_ooi_types
         context["clearance_levels_selection"] = self.clearance_levels
         context["clearance_level_filter_form"] = ClearanceFilterForm(self.request.GET)
         context["clearance_types_selection"] = self.clearance_types
         context["active_filters"] = self.get_active_filters()
-        context["active_filters_counter"] = self.count_active_filters()
+        context["object_list_filters_query"] = self.get_filters_query()
+        context["active_filters_counter"] = self.count_active_filters
 
         return context
 
@@ -134,6 +161,7 @@ class BaseOOIListView(OOIFilterView, ListView):
         context = super().get_context_data(**kwargs)
         context["mandatory_fields"] = get_mandatory_fields(self.request)
         context["total_oois"] = len(self.object_list)
+        context["table_columns"] = OBJECT_LIST_COLUMNS
         return context
 
 

@@ -75,6 +75,7 @@ class ScheduleAPI:
         self,
         request: fastapi.Request,
         scheduler_id: str | None = None,
+        organisation: str | None = None,
         schedule_hash: str | None = None,
         enabled: bool | None = None,
         offset: int = 0,
@@ -92,6 +93,7 @@ class ScheduleAPI:
 
         results, count = self.ctx.datastores.schedule_store.get_schedules(
             scheduler_id=scheduler_id,
+            organisation=organisation,
             schedule_hash=schedule_hash,
             enabled=enabled,
             min_deadline_at=min_deadline_at,

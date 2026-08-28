@@ -21,8 +21,8 @@ def migration_f9de6eb7824b(local_repository) -> Session:
     engine = get_engine()
     session = sessionmaker(bind=engine)()
 
-    dns_records = local_repository.by_id("dns-records")
-    nmap_udp = local_repository.by_id("nmap-udp")
+    dns_records = local_repository.by_id("dns-records").boefje
+    nmap_udp = local_repository.by_id("nmap-udp").boefje
     entries = [
         (
             boefje.id,
@@ -69,8 +69,8 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             ["Hostname"],
             ["boefje/dns-records"],
             ["RECORD_TYPES", "REMOTE_NS"],
-            None,
-            [],
+            "ghcr.io/minvws/openkat/generic:latest",
+            ["kat_dns.main"],
             None,
             False,
         ),
@@ -141,8 +141,8 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
             ["Hostname"],
             ["boefje/dns-records"],
             ["RECORD_TYPES", "REMOTE_NS"],
-            None,
-            [],
+            "ghcr.io/minvws/openkat/generic:latest",
+            ["kat_dns.main"],
             None,
             False,
             schema_dns,

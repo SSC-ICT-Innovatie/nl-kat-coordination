@@ -12,7 +12,7 @@ import sqlalchemy as sa
 from alembic import op
 from sqlalchemy import text
 
-from boefjes.local_repository import get_local_repository
+from boefjes.worker.repository import get_local_repository
 
 # revision identifiers, used by Alembic.
 revision = "5be152459a7b"

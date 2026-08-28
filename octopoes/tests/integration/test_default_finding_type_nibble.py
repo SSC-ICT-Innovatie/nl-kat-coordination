@@ -9,6 +9,7 @@ from nibbles.missing_spf.nibble import NIBBLE as missing_spf_nibble
 from nibbles.runner import NibblesRunner
 
 from octopoes.core.service import OctopoesService
+from octopoes.models import ScanLevel
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import Network
@@ -25,6 +26,7 @@ def test_default_findingtype_risk_simple(
     nibbler = NibblesRunner(
         xtdb_octopoes_service.ooi_repository,
         xtdb_octopoes_service.origin_repository,
+        xtdb_octopoes_service.nibbler.scan_profile_repository,
         xtdb_octopoes_service.nibbler.nibble_repository,
     )
     xtdb_octopoes_service.nibbler.disable()
@@ -60,6 +62,7 @@ def test_default_findingtype_risk_should_not_go_back_to_pending(
     nibbler = NibblesRunner(
         xtdb_octopoes_service.ooi_repository,
         xtdb_octopoes_service.origin_repository,
+        xtdb_octopoes_service.nibbler.scan_profile_repository,
         xtdb_octopoes_service.nibbler.nibble_repository,
     )
     xtdb_octopoes_service.nibbler.disable()
@@ -67,6 +70,7 @@ def test_default_findingtype_risk_should_not_go_back_to_pending(
         default_findingtype_risk_nibble.id: default_findingtype_risk_nibble,
         missing_spf_nibble.id: missing_spf_nibble,
     }
+    nibbler.nibbles[missing_spf_nibble.id].signature[0].min_scan_level = ScanLevel.L0
 
     network = Network(name="internet")
     xtdb_octopoes_service.ooi_repository.save(network, valid_time)

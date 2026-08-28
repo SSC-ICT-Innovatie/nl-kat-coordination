@@ -65,7 +65,7 @@ class SchedulerAPI:
         self,
         request: fastapi.Request,
         scheduler_id: str,
-        limit: int = 1,
+        limit: int | None = None,
         filters: storage.filters.FilterRequest | None = None,
     ) -> schemas.TaskPop:
         s = self.schedulers.get(scheduler_id)

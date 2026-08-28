@@ -10,7 +10,7 @@ import structlog
 from pydantic import BaseModel
 from xxhash import xxh3_128_hexdigest as xxh3
 
-from octopoes.models import OOI, Reference
+from octopoes.models import OOI, Reference, ScanLevel
 
 NIBBLES_DIR = Path(__file__).parent
 NIBBLE_ATTR_NAME = "NIBBLE"
@@ -23,6 +23,7 @@ class NibbleParameter(BaseModel):
     parser: str = "[]"
     optional: bool = False
     additional: set[type[OOI]] = set()
+    min_scan_level: ScanLevel | None = None
 
     def __eq__(self, other):
         if isinstance(other, NibbleParameter):
@@ -69,6 +70,18 @@ class NibbleDefinition(BaseModel):
     @property
     def triggers(self) -> set[type[OOI]]:
         return set.union(*[sgn.triggers for sgn in self.signature]) | self.additional
+
+    def has_scan_levels(self) -> bool:
+        return any(param.min_scan_level is not None for param in self.signature)
+
+    def check_scan_levels(self, scan_levels: list[ScanLevel]) -> bool:
+        if scan_levels:
+            return all(
+                param.min_scan_level is None or level >= param.min_scan_level
+                for param, level in zip(self.signature, scan_levels)
+            )
+        else:
+            return not self.has_scan_levels()
 
 
 def get_nibble_definitions() -> dict[str, NibbleDefinition]:

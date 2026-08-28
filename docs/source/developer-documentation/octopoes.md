@@ -307,12 +307,21 @@ The XTDB-cli tool can be found in the following folder:
 https://github.com/minvws/nl-kat-coordination/tree/main/octopoes/tools
 ```
 
-It is recommended to create a virtual environment and install the developer-requirements (in the octopoes folder) within this virtual environment.
+It is recommended to create a virtual environment and install the developer-requirements (in the octopoes folder) within this virtual environment. You could also execute the xtdb-cli commands from within the `octopoes_api` container if you are using a Dockerized setup.
 
 The XTDB-cli tool can be queried as shown below.
 
-```
+From the environment:
+
+```bash
 $ ./xtdb-cli.py -h
+```
+
+Or from inside the container, using a new `octopoes_api` container instance:
+
+```bash
+$ docker compose run --rm octopoes_api tools/xtdb-cli.py -h
+
 Usage: xtdb-cli.py [OPTIONS] COMMAND [ARGS]...
 
 This help functionality explains how to query XTDB using the xtdb-cli tool. The help functionality for all default XTDB commands was copied from the official XTDB docs for the HTTP implementation. Not all optional parameters as available on the HTTP docs may be implemented.
@@ -336,7 +345,7 @@ Commands:
  latest-submitted-tx  Returns the latest transaction to have been submitted to this cluster.
  list-keys            List all keys in node
  list-values          List all values in node
- query                EDN Query (default: "{:query {:find [ ?var ] :where [[?var :xt/id ]]}}")
+ query                EDN Query (default: "{:query {:find [ ?var ] :where [[?var :xt/id]]}}")
  recent-queries       Returns a list of recently completed/failed queries.
  slowest-queries      Returns a list of slowest completed/failed queries ran on the node.
  status               Returns the current status information of the node
@@ -349,22 +358,25 @@ Commands:
 
 The help file for the commands can be queried as shown below.
 
-```
+```bash
+
 $ ./xtdb-cli.py history -h
 Usage: xtdb-cli.py history [OPTIONS] KEY
 
- Returns the history of a particular entity.
+Returns the history of a particular entity.
 
 Options:
  --with-docs         Includes the documents in the response sequence, under the doc key (boolean, default: false)
  --with-corrections  Includes bitemporal corrections in the response, inline, sorted by valid-time then tx-id
                      (boolean, default: false)
  -h, --help          Show this message and exit.
-```
-
-The output below gives an example for querying the XTDB database for an organisation called 'MyOrganisationName'. This is the organisation name, not the organisation code and can be found in the organisation overview at: `http://127.0.0.1:8000/en/organizations/`.
 
 ```
+
+The output below gives an example for querying the XTDB database for an organisation called 'MyOrganisationName'. This is the organisation code, not the organisation name and can be found in the organisation overview at: `http://127.0.0.1:8000/en/organizations/` listed in the code column.
+
+```bash
+
 $ ./xtdb-cli.py -n MyOrganisationName attribute-stats |jq .
 {
  "DNSSOARecord/serial": 14,
@@ -379,6 +391,35 @@ $ ./xtdb-cli.py -n MyOrganisationName attribute-stats |jq .
  "DNSMXRecord/value":
  ....
  }
+
+```
+
+#### Examples
+
+In these examples we supply the Dockerized calls, expecting the server to be available on localhost:3000 and we use an organization or `node` that's called 'test'
+
+```bash
+
+# list all network OOIs
+
+$ docker compose run --rm octopoes_api tools/xtdb-cli.py --url http://crux:3000 --node test query '{:query {:find [ ?var ] :where [[?var :object_type "Network"]]}}'
+
+# list all IPAddressV4 objects
+
+$ docker compose run --rm octopoes_api tools/xtdb-cli.py --url http://crux:3000 --node test query '{:query {:find [ ?var ] :where [[?var :object_type "IPAddressV4"]]}}'
+
+# show the transaction (or TxId's and their timestamps) of a single OOI (A findingType in this case)
+
+$ docker compose run --rm octopoes_api tools/xtdb-cli.py --url http://crux:3000 --node test history 'KATFindingType|KAT-WEBSERVER-NO-IPV6'
+
+# show the Contents of a single OOI (A FindingType in this case)
+
+$ docker compose run --rm octopoes_api tools/xtdb-cli.py --url http://crux:3000 --node test entity 'KATFindingType|KAT-WEBSERVER-NO-IPV6'
+
+# the same, but now return the most recent) metadata for that object
+
+$ docker compose run --rm octopoes_api tools/xtdb-cli.py --url http://crux:3000 --node test entity-tx 'KATFindingType|KAT-WEBSERVER-NO-IPV6'
+
 ```
 
 ### XTDB analyze bits tool
@@ -392,23 +433,31 @@ This tooling can be used when you are developing bits (business rules). It outpu
 Enable the `GATHER_BIT_METRICS` setting in the following file. The flag is at the bottom of the file. Change `GATHER_BIT_METRICS=False` to `GATHER_BIT_METRICS=True`.
 
 ```
+
 octopoes/octopoes/config/settings.py
+
 ```
 
 Run a `make reset` in your KAT instance to enable the setting:
 
-```
+```bash
+
 make reset
+
 ```
 
 Create some data by adding a hostname, enable some boefjes, etc. This will allow the bit metrics to be gathered. You can query the bit metrics using the following commands. The `node` is the name of your organisation. In this example the organisation name is 'aa'.
 
-```
+```bash
+
 python3 octopoes/tools/analyze-bit-metric.py --node "aa" raw |jq
-```
 
 ```
+
+```bash
+
 python3 octopoes/tools/xtdb-cli.py -n "aa" history --with-docs "BIT_METRIC" |jq
+
 ```
 
 If you want to query the XTDB database directly, you can use the XTDB-tool. This is explained on the following page: https://docs.openkat.nl/developer_documentation/octopoes.html#xtdb-cli-tool.

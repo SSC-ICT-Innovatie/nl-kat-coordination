@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 
@@ -18,6 +18,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     # [S] self sig OK; [B] bogus; [T] trusted; [U] unsigned
     if result_line.startswith("[U]"):
+        if f"No DS record found for {ooi_ref.human_readable}., but valid CNAME" in result:
+            # hostname is a cname to another point, drill does not follow the cname.
+            return
         ft = KATFindingType(id="KAT-NO-DNSSEC")
         finding = Finding(
             finding_type=ft.reference,

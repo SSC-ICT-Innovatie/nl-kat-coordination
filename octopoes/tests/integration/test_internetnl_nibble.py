@@ -21,6 +21,7 @@ if os.environ.get("CI") != "1":
     pytest.skip("Needs XTDB multinode container.", allow_module_level=True)
 
 STATIC_IP = ".".join((4 * "1 ").split())
+internetnl.enabled = True
 
 
 def test_internetnl_nibble(xtdb_octopoes_service: OctopoesService, event_manager: Mock, valid_time: datetime):
@@ -139,7 +140,7 @@ def test_internetnl_nibble_query(xtdb_octopoes_service: OctopoesService, event_m
                 for obj in search(internetnl.signature[1].parser, result)
             }.pop()
         )
-        == 6
+        == 3
     )
 
     edn = query([Reference.from_str("Hostname|internet|www.x1.xyz"), None])
@@ -160,5 +161,5 @@ def test_internetnl_nibble_query(xtdb_octopoes_service: OctopoesService, event_m
                 for obj in search(internetnl.signature[1].parser, result)
             }.pop()
         )
-        == 2
+        == 1
     )

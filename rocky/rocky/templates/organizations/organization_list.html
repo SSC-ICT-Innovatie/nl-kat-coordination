@@ -43,10 +43,10 @@
                                 {% for organization in object_list %}
                                     <tr>
                                         <td>
-                                            <a href="{% url 'organization_crisis_room' organization_code=organization.code %}">{{ organization.name }}</a>
+                                            <a href="{% url 'organization_crisis_room_landing' organization_code=organization.code %}">{{ organization.name }}</a>
                                         </td>
                                         <td>
-                                            <a href="{% url 'organization_crisis_room' organization_code=organization.code %}">{{ organization.code }}</a>
+                                            <a href="{% url 'organization_crisis_room_landing' organization_code=organization.code %}">{{ organization.code }}</a>
                                         </td>
                                         <td>
                                             {% include "organizations/organization_tags.html" %}

@@ -9,5 +9,5 @@ from octopoes.models.ooi.web import URL
 def nibble(ip_port: IPPort, resolved_hostname: ResolvedHostname) -> Iterator[OOI]:
     yield URL(
         network=Network(name=resolved_hostname.hostname.tokenized.network.name).reference,
-        raw=f"https://{resolved_hostname.hostname.tokenized.name}/",
+        raw=f"{'https' if ip_port.port == 443 else 'http'}://{resolved_hostname.hostname.tokenized.name}/",
     )

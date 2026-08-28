@@ -153,11 +153,13 @@ class BytesClient:
 
         response = self.session.get("/bytes/raws", params=params)
         response.raise_for_status()
-
-        return {
-            file["name"]: json.loads(b64decode(file["content"]).decode("utf-8"))
-            for file in response.json().get("files", [])
-        }
+        try:
+            return {
+                file["name"]: json.loads(b64decode(file["content"]).decode("utf-8"))
+                for file in response.json().get("files", [])
+            }
+        except httpx.ReadTimeout:
+            return {}
 
     def get_raw_metas(self, boefje_meta_id: uuid.UUID, organization_code: str) -> list:
         # More than 100 raw files per Boefje run is very unlikely at this stage, but eventually we can start paginating

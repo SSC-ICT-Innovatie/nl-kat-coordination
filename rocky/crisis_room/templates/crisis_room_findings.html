@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{% if organizations_dashboards %}
+{% if dashboard_items %}
     {% if organizations_findings_summary and organizations_findings_summary.total_finding_types != 0 %}
         <section>
             <div>
@@ -37,19 +37,23 @@
             </div>
         </section>
     {% else %}
-        <h3>{% translate "Findings overview" %}</h3>
-        <p>
-            {% blocktranslate %}
-                No findings have been identified yet. As soon as they have been
-                identified, they will be shown on this page.
-            {% endblocktranslate %}
-        </p>
+        <section>
+            <h3>{% translate "Findings overview" %}</h3>
+            <p>
+                {% blocktranslate %}
+                    No findings have been identified yet. As soon as they have been
+                    identified, they will be shown on this page.
+                {% endblocktranslate %}
+            </p>
+        </section>
     {% endif %}
 {% else %}
-    <p>
-        {% blocktranslate %}
-            There are no organizations yet. After creating an organization,
-            the identified findings will be shown here.
-        {% endblocktranslate %}
-    </p>
+    <section>
+        <p>
+            {% blocktranslate %}
+                There are no organizations yet. After creating an organization,
+                the identified findings will be shown here.
+            {% endblocktranslate %}
+        </p>
+    </section>
 {% endif %}

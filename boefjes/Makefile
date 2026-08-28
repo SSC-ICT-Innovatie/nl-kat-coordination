@@ -35,14 +35,17 @@ help: ## Show this help.
 
 build: images
 
-images:  # Build the images for the containerized boefjes
-  # Dns-records is disabled for now, see the discussion in https://github.com/minvws/nl-kat-coordination/pull/2709
-	# docker build -f images/base.Dockerfile -t ghcr.io/minvws/openkat/dns-records --build-arg BOEFJE_PATH=./boefjes/plugins/kat_dns .
-	docker build -f ./boefjes/plugins/kat_dnssec/boefje.Dockerfile -t ghcr.io/minvws/openkat/dns-sec:latest .
-	docker build -f ./boefjes/plugins/kat_nmap_tcp/boefje.Dockerfile -t ghcr.io/minvws/openkat/nmap:latest  .
-	docker build -f ./boefjes/plugins/kat_nikto/boefje.Dockerfile -t openkat/nikto .
-	docker build -f ./boefjes/plugins/kat_export_http/boefje.Dockerfile -t ghcr.io/minvws/openkat/export-http:latest .
+base-image:
+	docker build -f **/base.Dockerfile -t openkat/boefje-base:latest .
 
+export REGISTRY=ghcr.io/minvws/openkat
+
+images: base-image # Build the images for the containerized boefjes
+	docker build -f */*/kat_dnssec/boefje.Dockerfile -t $(REGISTRY)/dns-sec:latest -t openkat/dns-sec .
+	docker build -f */*/kat_nmap_tcp/boefje.Dockerfile -t $(REGISTRY)/nmap:latest -t openkat/nmap .
+	docker build -f */*/kat_export_http/boefje.Dockerfile -t $(REGISTRY)/export-http:latest -t openkat/export-http .
+	docker build -f */*/kat_nikto/boefje.Dockerfile -t $(REGISTRY)/nikto:latest .
+	docker build -f */generic.Dockerfile -t $(REGISTRY)/generic:latest -t openkat/generic .
 
 ##
 ##|------------------------------------------------------------------------|

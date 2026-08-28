@@ -1,0 +1,33 @@
+{% load i18n %}
+
+{% component "modal" modal_id="new-dashboard-item-modal" size="dialog-medium" %}
+{% fill "header" %}
+{% blocktranslate with item_type=item_type %}
+            Add {{ item_type }} to dashboard
+        {% endblocktranslate %}
+{% endfill %}
+{% fill "content" %}
+<p>
+    {% blocktranslate with item_type=item_type %}
+        Add these {{ item_type }} with the selected filters
+        to the dashboard of your choice.
+    {% endblocktranslate %}
+</p>
+<form method="post" id="new-dashboard-item-form">
+    {% csrf_token %}
+    {% include "partials/form/form_errors.html" with form=object_list_settings_form %}
+    {% include "forms/new_dashboard_item_form_fields.html" %}
+    {% include "partials/form/fieldset.html" with fields=object_list_settings_form form_view="horizontal" %}
+
+</form>
+{% endfill %}
+{% fill "footer_buttons" %}
+<button type="submit"
+        form="new-dashboard-item-form"
+        class="submit"
+        name="action"
+        value="add_to_dashboard">{% translate "Add to dashboard" %}</button>
+<button class="ghost close-modal-button">{% translate "Cancel" %}</button>
+{% endfill %}
+{% endcomponent %}
+{% component_css_dependencies %}

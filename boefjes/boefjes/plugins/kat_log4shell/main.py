@@ -9,16 +9,14 @@ import requests
 import urllib3
 import validators
 
-from boefjes.job_models import BoefjeMeta
-
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 logging.basicConfig(level=logging.INFO)
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     host = input_["name"]
-    identifier = boefje_meta.id
+    identifier = boefje_meta["id"]
     schemes = ["http", "https"]
     timeout = 15
 

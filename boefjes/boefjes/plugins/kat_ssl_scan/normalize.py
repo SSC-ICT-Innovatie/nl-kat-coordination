@@ -2,7 +2,7 @@ from collections.abc import Iterable
 
 import defusedxml.ElementTree as ET
 
-from boefjes.job_models import NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import Finding, KATFindingType
 

@@ -6,5 +6,9 @@
     "ADRFindingType"
   ],
   "scan_level": 0,
-  "enabled": true
+  "enabled": true,
+  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_arguments": [
+    "kat_adr_finding_types.main"
+  ]
 }

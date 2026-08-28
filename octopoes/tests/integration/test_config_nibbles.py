@@ -266,3 +266,46 @@ def test_retrieve(xtdb_octopoes_service: OctopoesService, event_manager: Mock, v
     retrieved = xtdb_octopoes_service.nibbler.retrieve(["config_nibble_test"], valid_time)
     assert len(retrieved) == 1
     assert retrieved["config_nibble_test"][0] == [xtdb_url, xtdb_config]
+
+
+def test_nibble_origin_deletion_propagation_with_optional(
+    xtdb_octopoes_service: OctopoesService, event_manager: Mock, valid_time: datetime
+):
+    global counter
+    counter = 0
+    xtdb_octopoes_service.nibbler.nibbles = {"config_nibble_test": config_nibble}
+
+    network = Network(name="internet")
+    url = URL(network=network.reference, raw="https://mispo.es/")
+    config = Config(ooi=network.reference, bit_id="config_nibble_test", config={str(url.raw): None})
+
+    xtdb_octopoes_service.ooi_repository.save(network, valid_time)
+    xtdb_octopoes_service.ooi_repository.save(url, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 0
+    assert xtdb_octopoes_service.ooi_repository.list_oois({KATFindingType}, valid_time).count == 0
+    assert counter == 1
+
+    xtdb_octopoes_service.ooi_repository.save(config, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 1
+    assert xtdb_octopoes_service.ooi_repository.list_oois({KATFindingType}, valid_time).count == 1
+    assert counter == 2
+
+    xtdb_octopoes_service.ooi_repository.delete(config.reference, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 0
+    assert xtdb_octopoes_service.ooi_repository.list_oois({KATFindingType}, valid_time).count == 0
+    assert counter == 4
+
+    xtdb_octopoes_service.ooi_repository.delete(url.reference, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+
+    xtdb_octopoes_service.ooi_repository.save(url, valid_time)
+    xtdb_octopoes_service.ooi_repository.save(config, valid_time)
+    event_manager.complete_process_events(xtdb_octopoes_service)
+
+    assert xtdb_octopoes_service.ooi_repository.list_oois({Finding}, valid_time).count == 1
+    assert xtdb_octopoes_service.ooi_repository.list_oois({KATFindingType}, valid_time).count == 1
+    assert counter == 6

@@ -1,0 +1,26 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            {% include "organization_crisis_room_header.html" with active=dashboard.name %}
+
+            {% if dashboards %}
+                {% include "organization_crisis_room_dashboards.html" %}
+
+            {% else %}
+                <p>
+                    {% blocktranslate trimmed %}
+                        There are no dashboards yet.
+                        Click on "Add dashboard" to create a new dashboard.
+                    {% endblocktranslate %}
+                </p>
+            {% endif %}
+        </section>
+    </main>
+{% endblock content %}

@@ -5,5 +5,10 @@
   "consumes": [
     "Network"
   ],
-  "scan_level": 0
+  "scan_level": 0,
+  "oci_image": "ghcr.io/minvws/openkat/generic:latest",
+  "oci_arguments": [
+    "kat_external_db.main"
+  ],
+  "deduplicate": false
 }

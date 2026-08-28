@@ -77,13 +77,7 @@ How does it work?
 
 Select the organization to which the new users will be added. On the members page click the Add member(s) menu and select Upload a CSV. This takes you to the CSV upload page.
 
-.. image:: img/csvupload.png
-  :alt: CSV upload page
-
 Download the template file, fill in the data of the users you want to add and upload them into the system. The new users will be added to the organization of your choice.
-
-.. image:: img/csvformat.png
-  :alt: CSV format
 
 How should I prepare the CSV file?
 **********************************

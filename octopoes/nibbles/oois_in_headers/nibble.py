@@ -1,106 +1,75 @@
 from nibbles.definitions import NibbleDefinition, NibbleParameter
 from octopoes.models import Reference
 from octopoes.models.ooi.config import Config
-from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import HTTPHeader
 
 
 def query(targets: list[Reference | None]) -> str:
+    def pull(statements: list[str]) -> str:
+        return f"""
+            {{
+                :query {{
+                    :find [(pull ?var [*])] :where [
+                        {" ".join(statements)}
+
+                        (or-join [?var ?header]
+                            [?var :HTTPHeader/primary_key ?header]
+                            (and
+                                [?header :HTTPHeader/resource ?resource]
+                                [?resource :HTTPResource/web_url ?url]
+                                [?url :HostnameHTTPURL/network ?network]
+                                [?var :Config/ooi ?network]
+                                [?var :Config/bit_id "oois-in-headers"]
+                            )
+                        )
+                    ]
+                }}
+            }}
+        """
+
     sgn = "".join(str(int(isinstance(target, Reference))) for target in targets)
     if sgn == "10":
-        network = str(Network(name=targets[0].split("|")[1]).reference) if targets[0] is not None else ""
-        return f"""
-                    {{
-                        :query {{
-                            :find [(pull ?header [*]) (pull ?config [*])] :where [
-
-                                [?header :object_type "HTTPHeader"]
-                                [?header :HTTPHeader/primary_key "{str(targets[0])}"]
-
-                                (or
-                                    (and
-                                        [?config :Config/ooi "{network}"]
-                                        [?config :Config/bit_id "oois-in-headers"]
-                                    )
-                                    (and
-                                        [(identity nil) ?config]
-                                    )
-                                )
-
-                            ]
-                        }}
-                    }}
+        return pull(
+            [
+                f"""
+                    [?header :HTTPHeader/primary_key "{str(targets[0])}"]
                 """
+            ]
+        )
     elif sgn == "01":
-        network = str(Network(name=targets[1].split("|")[1]).reference) if targets[1] is not None else ""
-        return f"""
-                    {{
-                        :query {{
-                            :find [(pull ?header [*]) (pull ?config [*])] :where [
-
-                                [?config :object_type "Config"]
-                                [?config :Config/primary_key "{str(targets[1])}"]
-                                [?config :Config/bit_id "oois-in-headers"]
-
-                                (or
-                                    (and
-                                        [?header :HTTPHeader/resource ?resource]
-                                        [?resource :HTTPResource/web_url ?url]
-                                        [?url :HostnameHTTPURL/network "{network}"]
-                                    )
-                                    (and
-                                        [(identity nil) ?header]
-                                        [(identity nil) ?resource]
-                                        [(identity nil) ?url]
-                                    )
-                                )
-
-                            ]
-                        }}
-                    }}
+        return pull(
+            [
+                f"""
+                    [?config :Config/primary_key "{str(targets[1])}"]
+                    [?config :Config/ooi ?network]
+                    [?hostname :Hostname/network ?network]
+                    [?url :HostnameHTTPURL/network ?network]
+                    [?resource :HTTPResource/web_url ?url]
+                    [?header :HTTPHeader/resource ?resource]
                 """
+            ]
+        )
     elif sgn == "11":
         return f"""
-                   {{
-                       :query {{
-                           :find [(pull ?header [*]) (pull ?config [*])] :where [
-                                [?header :object_type "HTTPHeader"]
-                                [?header :HTTPHeader/primary_key "{str(targets[0])}"]
-                                [?config :object_type "Config"]
-                                [?config :Config/primary_key "{str(targets[1])}"]
-                                [?config :Config/bit_id "oois-in-headers"]
-                              ]
-                         }}
-                    }}
-                """
+            {{
+                :query {{
+                    :find [(pull ?var [*])] :where [
+                        (or-join [?var]
+                            [?var :HTTPHeader/primary_key "{str(targets[0])}"]
+                            [?var :Config/primary_key "{str(targets[1])}"]
+                        )
+                    ]
+                 }}
+            }}
+        """
     else:
-        return """
-                    {
-                        :query {
-                            :find [(pull ?header [*]) (pull ?config [*])] :where [
-
-                                [?header :object_type "HTTPHeader"]
-
-                                (or
-                                    (and
-                                        [?header :HTTPHeader/resource ?resource]
-                                        [?resource :HTTPResource/web_url ?url]
-                                        [?url :HostnameHTTPURL/network ?network]
-                                        [?config :Config/ooi ?network]
-                                        [?config :Config/bit_id "oois-in-headers"]
-                                    )
-                                    (and
-                                        [(identity nil) ?resource]
-                                        [(identity nil) ?url]
-                                        [(identity nil) ?network]
-                                        [(identity nil) ?config]
-                                    )
-                                )
-
-                            ]
-                        }
-                    }
+        return pull(
+            [
                 """
+                    [?header :HTTPHeader/object_type "HTTPHeader"]
+                """
+            ]
+        )
 
 
 NIBBLE = NibbleDefinition(

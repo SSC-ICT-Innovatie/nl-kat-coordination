@@ -1,7 +1,7 @@
 import json
 from collections.abc import Iterable
 
-from boefjes.job_models import NormalizerDeclaration, NormalizerOutput
+from boefjes.normalizer_models import NormalizerDeclaration, NormalizerOutput
 from octopoes.models.ooi.monitoring import Application, Incident
 
 

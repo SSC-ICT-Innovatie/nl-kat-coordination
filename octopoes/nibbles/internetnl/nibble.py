@@ -3,7 +3,7 @@ from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname, Network
 from octopoes.models.ooi.findings import Finding
 
-finding_types = [
+FINDING_TYPES = [
     "KAT-WEBSERVER-NO-IPV6",
     "KAT-NAMESERVER-NO-TWO-IPV6",
     "KAT-NO-DNSSEC",
@@ -22,7 +22,7 @@ finding_types = [
 
 
 def or_finding_types() -> str:
-    clauses = "".join([f'[?finding :Finding/finding_type "{ft}"]' for ft in finding_types])
+    clauses = "".join([f'[?finding :Finding/finding_type "KATFindingType|{ft}"]' for ft in FINDING_TYPES])
     return f"(or {clauses})"
 
 
@@ -67,31 +67,28 @@ def query(targets: list[Reference | None]) -> str:
         """
     ]
 
-    null_query = '{:query {:find [(pull ?var [])] :where [[?var :object_type ""]]}}'
+    null_query = '{:query {:find [(pull ?var [])] :where [[?var :null ""][?var :null "NULL"]]}}'
     sgn = "".join(str(int(isinstance(target, Reference))) for target in targets)
-    ref_query = ["[?hostname :Hostname/primary_key]"]
+    ref_query = []
     if sgn.startswith("1"):
         ref_query = [f'[?hostname :Hostname/primary_key "{str(targets[0])}"]']
     elif sgn.endswith("1"):
         ref = str(targets[1]).split("|")
-        if ref[-1] == "KAT-INTERNETNL":
-            return null_query
+        tokens = ref[1:-1]
+        target_reference = Reference.from_str("|".join(tokens))
+        if tokens[0] == "Hostname":
+            hostname = target_reference.tokenized
+        elif tokens[0] in {"HostnameHTTPURL", "Website"}:
+            hostname = target_reference.tokenized.hostname
+        elif tokens[0] == "HTTPResource":
+            hostname = target_reference.tokenized.website.hostname
+        elif tokens[0] == "HTTPHeader":
+            hostname = target_reference.tokenized.resource.website.hostname
         else:
-            tokens = ref[1:-1]
-            target_reference = Reference.from_str("|".join(tokens))
-            if tokens[0] == "Hostname":
-                hostname = target_reference.tokenized
-            elif tokens[0] in {"HostnameHTTPURL", "Website"}:
-                hostname = target_reference.tokenized.hostname
-            elif tokens[0] == "HTTPResource":
-                hostname = target_reference.tokenized.website.hostname
-            elif tokens[0] == "HTTPHeader":
-                hostname = target_reference.tokenized.resource.website.hostname
-            else:
-                return null_query
-            hostname_pk = Hostname(name=hostname.name, network=Network(name=hostname.network.name).reference).reference
-            ref_query = [f'[?hostname :Hostname/primary_key "{str(hostname_pk)}"]']
-    return pull(ref_query + base_query)
+            return null_query
+        hostname_pk = Hostname(name=hostname.name, network=Network(name=hostname.network.name).reference).reference
+        ref_query = [f'[?hostname :Hostname/primary_key "{str(hostname_pk)}"]']
+    return pull(ref_query + [or_finding_types()] + base_query)
 
 
 NIBBLE = NibbleDefinition(
@@ -101,4 +98,5 @@ NIBBLE = NibbleDefinition(
         NibbleParameter(object_type=list[Finding], parser="[[*][?object_type == 'Finding'][]]", additional={Finding}),
     ],
     query=query,
+    enabled=False,
 )

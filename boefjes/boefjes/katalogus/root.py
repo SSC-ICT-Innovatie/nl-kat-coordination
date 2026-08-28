@@ -14,7 +14,7 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from pydantic import BaseModel, Field
 
 from boefjes.config import settings
-from boefjes.katalogus import organisations, plugins
+from boefjes.katalogus import configs, organisations, plugins
 from boefjes.katalogus import settings as settings_router
 from boefjes.katalogus.version import __version__
 from boefjes.logging import configure_logging
@@ -44,6 +44,7 @@ router = APIRouter()
 router.include_router(organisations.router)
 router.include_router(plugins.router)
 router.include_router(settings_router.router)
+router.include_router(configs.router)
 
 
 app.include_router(router, prefix="/v1")

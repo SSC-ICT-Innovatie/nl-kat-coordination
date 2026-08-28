@@ -1,7 +1,5 @@
 import docker
 
-from boefjes.job_models import BoefjeMeta
-
 NUCLEI_IMAGE = "projectdiscovery/nuclei:v3.2.4"
 
 
@@ -16,11 +14,11 @@ def verify_hostname_meta(input_ooi):
         return input_ooi["name"]
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     client = docker.from_env()
 
     # Checks if the url is of object HostnameHTTPURL or Hostname
-    url = verify_hostname_meta(boefje_meta.arguments["input"])
+    url = verify_hostname_meta(boefje_meta["arguments"]["input"])
     output = client.containers.run(
         NUCLEI_IMAGE, ["-t", "/root/nuclei-templates/http/exposed-panels/", "-u", url, "-jsonl"], remove=True
     )

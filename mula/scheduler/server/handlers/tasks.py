@@ -56,6 +56,7 @@ class TaskAPI:
         self,
         request: fastapi.Request,
         scheduler_id: str | None = None,
+        organisation: str | None = None,
         task_type: str | None = None,
         status: str | None = None,
         offset: int = 0,
@@ -69,6 +70,7 @@ class TaskAPI:
 
         results, count = self.ctx.datastores.task_store.get_tasks(
             scheduler_id=scheduler_id,
+            organisation=organisation,
             task_type=task_type,
             status=status,
             offset=offset,

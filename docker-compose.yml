@@ -243,29 +243,66 @@ services:
     profiles:
       - monitoring
     restart: unless-stopped
-    image: docker.io/jaegertracing/all-in-one:1.48
-    environment:
-      COLLECTOR_ZIPKIN_HOST_PORT: 9411
-      COLLECTOR_OTLP_ENABLED: "true"
-      SPAN_STORAGE_TYPE: badger
-      BADGER_EPHEMERAL: "false"
-      BADGER_DIRECTORY_VALUE: /badger/data
-      BADGER_DIRECTORY_KEY: /badger/key
+    image: docker.io/jaegertracing/jaeger:2.4.0
     volumes:
-      - jaeger-data:/badger
+      - ./monitoring/jaeger.yml:/etc/jaeger/config.yml
+    command: ["--config", "/etc/jaeger/config.yml"]
     ports:
       - "127.0.0.1:16686:16686"
+      - "127.0.0.1:8888:8888"
+      - "127.0.0.1:8889:8889"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
 
   prometheus:
     profiles:
       - monitoring
     restart: unless-stopped
-    image: docker.io/prom/prometheus:v2.50.1
+    image: docker.io/prom/prometheus:v3.2.1
     ports:
       - "127.0.0.1:9090:9090"
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
       - prometheus-data:/prometheus
+
+  pyroscope:
+    profiles:
+      - monitoring
+    image: docker.io/grafana/pyroscope:1.13.2
+    ports:
+      - "127.0.0.1:4040:4040"
+
+  alloy:
+    profiles:
+      - monitoring
+    image: docker.io/grafana/alloy:v1.7.5
+    user: root
+    privileged: true
+    pid: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./monitoring/config.alloy:/config.alloy
+    ports:
+      - "127.0.0.1:12345:12345"
+    command:
+      - run
+      - /config.alloy
+      - --storage.path=/tmp/alloy
+      - --server.http.listen-addr=0.0.0.0:12345
+
+  grafana:
+    profiles:
+      - monitoring
+    image: grafana/grafana:11.6.0
+    environment:
+      - GF_INSTALL_PLUGINS=grafana-pyroscope-app
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./monitoring/grafana-provisioning:/etc/grafana/provisioning
+    ports:
+      - "127.0.0.1:4000:3000"
 
 networks:
   default:

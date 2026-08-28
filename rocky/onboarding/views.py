@@ -4,6 +4,7 @@ from typing import Any
 from account.forms import MemberRegistrationForm, OnboardingOrganizationUpdateForm, OrganizationForm
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from account.views import OOIClearanceMixin
+from crisis_room.management.commands.dashboards import run_findings_dashboard
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -332,6 +333,7 @@ class OnboardingSetupScanOOIDetailView(
         report_recipe = self.create_report_recipe(report_name_format, parent_report_type, None)
 
         self.create_report_schedule(report_recipe, datetime.now(timezone.utc) + timedelta(minutes=2))
+        run_findings_dashboard(self.organization)
 
         return redirect(
             reverse("step_report", kwargs={"organization_code": self.organization.code})

@@ -23,9 +23,12 @@ rankers.
 | Name       | Version   | Description         |
 | ---------- | --------- | ------------------- |
 | Python     | ^3.10     |                     |
-| FastAPI    | ^0.1115.2 | Used for api server |
+| FastAPI    | ^0.115.12 | Used for api server |
 | SQLAlchemy | ^2.0.23   |                     |
-| pydantic   | ^2.7.2    |                     |
+| pydantic   | ^2.11.3   |                     |
+| uvicorn    | ^0.29.0   |                     |
+
+The scheduler uses PostgreSQL as its database.
 
 ### External services
 
@@ -44,31 +47,33 @@ The scheduler interfaces with the following services:
 .
 ├── docs/                           # additional documentation
 ├── scheduler/                      # scheduler python module
-│   ├── clients/                    # external service clients
-│   │   ├── amqp/                   # rabbitmq clients
-│   │   └── http/                   # http clients
-│   ├── context/                    # shared application context, and configuration
-│   ├── models/                     # internal model definitions
-│   ├── schedulers/                 # schedulers
-│   │   ├── queue/                  # priority queue
-│   │   ├── rankers/                # priority/score calculations
-│   │   └── schedulers/             # schedulers implementations
-│   ├── server/                     # http rest api server
-│   ├── storage/                    # data abstraction layer
-│   │   ├── migrations/             # database migrations
-│   │   └── stores/                 # data stores
-│   ├── utils/                      # common utility functions
+│   ├── clients/                    # external service clients
+│   │   ├── amqp/                   # amqp clients
+│   │   ├── http/                   # http api clients
+│   │   ├── __init__.py
+│   │   ├── connector.py
+│   │   └── errors.py
+│   ├── config/                     # application settings configuration
+│   ├── context/                    # shared application context
+│   ├── models/                     # internal model definitions
+│   ├── schedulers/                 # schedulers
+│   │   ├── queue/                  # priority queue implementation
+│   │   ├── rankers/                # rankers for tasks
+│   │   ├── schedulers/
+│   │   │   ├── __init__.py
+│   │   │   ├── boefje.py           # boefje scheduler implementation
+│   │   │   ├── normalizer.py       # normalizer scheduler implementation
+│   │   │   └── report.py           # report scheduler implementation
+│   │   ├── __init__.py
+│   │   └── scheduler.py            # abstract base class for schedulers
+│   ├── storage/                    # data abstraction layer
+│   ├── server/                     # http rest api server
+│   ├── utils/                      # common utility functions
 │   ├── __init__.py
 │   ├── __main__.py
-│   ├── app.py                      # OpenKAT scheduler app implementation
+│   ├── app.py                      # openkat scheduler app implementation
 │   └── version.py                  # version information
 └─── tests/                         # test suite
-    ├── factories/                  # factories for test data
-    ├── integration/                # integration tests
-    ├── mocks/                      # mocks for testing
-    ├── simulation/                 # simulation tests
-    ├── unit/                       # unit tests
-    └── utils/                      # utility functions for tests
 ```
 
 ## Running / Developing
@@ -121,4 +126,41 @@ $ make file=test_file.py utest
 
 # Individually test a function
 $ make file=test_file.py function='test_function' utest
+```
+
+## Scripts
+
+The scheduler comes with a few scripts that can be used to interact with the
+scheduler. These scripts are located in the `scripts/` directory and can be
+check its documentation. These scripts are a collection of scripts that are
+used for various testing and benchmarking purposes.
+
+## `load.py`
+
+Allows to create multiple organisations and with a supplied `data.csv` file
+create objects on which a select number of boefjes will be performed upon.
+
+```shell
+docker build -t mula_scripts .
+docker run -it --rm --network=host mula_scripts load.py \
+    --orgs {number-of-orgs} \
+    --oois {number-of-oois} \
+    --boefjes {comma-separated-list-of-boefjes}
+```
+
+## `benchmark.py`
+
+Allows to benchmark the operations of the Scheduler. When running the `load.py`
+the benchmark script can run along side it to measure the performance of the
+Scheduler.
+
+It will check:
+
+- Errors in the logs
+- Task stats (how many are queued, running, etc.)
+- CPU and memory usage
+
+```shell
+docker build -t mula_scripts .
+docker run -it --rm --network=host mula_scripts benchmark.py --container {container-id-of-scheduler}
 ```

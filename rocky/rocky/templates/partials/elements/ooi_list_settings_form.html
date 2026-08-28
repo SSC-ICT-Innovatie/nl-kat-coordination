@@ -7,7 +7,7 @@
     {% if ooi_id %}<input type="hidden" name="ooi_id" value="{{ ooi_id }}" />{% endif %}
     {% include "partials/form/field_hidden_from_list.html" with list=mandatory_fields form=observed_at_form %}
     {% include "partials/form/fieldset.html" with fields=observed_at_form %}
-    {% include "partials/form/fieldset.html" with fields=ooi_type_form custom_class="column-2 checkbox-list" %}
+    {% include "partials/form/fieldset.html" with fields=ooi_type_form custom_class="column-4 checkbox-list" %}
 
     {% if ooi_type_form.fields.ooi_type.choices|length > 4 %}
         <button type="button"

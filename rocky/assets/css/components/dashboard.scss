@@ -1,0 +1,32 @@
+.dashboard {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  flex-direction: row;
+  gap: 32px;
+
+  > section {
+    border: 1px solid #b4b4b4;
+    border-radius: 16px;
+    padding: 24px;
+    gap: 0;
+    margin: 0;
+
+    &.width-1 {
+      width: 100%;
+    }
+
+    &.width-2 {
+      width: calc(50% - 1rem);
+    }
+  }
+
+  &-item {
+    width: 100%;
+    gap: 24px;
+
+    .horizontal-scroll {
+      padding-bottom: 1rem;
+    }
+  }
+}

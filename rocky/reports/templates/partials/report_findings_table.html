@@ -14,7 +14,7 @@
     </p>
 {% endif %}
 {% if finding_types %}
-    <div class="horizontal-scroll">
+    <div>
         <table>
             <caption class="visually-hidden">{% translate "Other findings found" %}</caption>
             <thead>
@@ -41,7 +41,7 @@
                         <td>{{ info.occurrences|get_first_seen }}</td>
                         {% if is_dashboard_findings %}
                             <td class="number">
-                                <a href="{% url "view_report" organization.code %}?report_id={{ report.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
+                                <a href="{% url "view_report" dashboard_item.item.dashboard.organization.code %}?report_id={{ dashboard_item.data.report }}#{{ info.finding_type.id }}"><span class="icon ti-arrow-right"></span></a>
                             </td>
                         {% else %}
                             <td class="actions sticky-cell">
@@ -61,7 +61,7 @@
                                 <p>{{ info.finding_type.description }}</p>
                                 <h4 class="heading-normal">{% translate "Source" %}</h4>
                                 {% if info.finding_type.source %}
-                                    <a href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
+                                    <a class="nowrap" href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
                                 {% else %}
                                     <p>{{ info.finding_type.source }}</p>
                                 {% endif %}
@@ -70,7 +70,7 @@
                                 <h4 class="heading-normal">{% translate "Recommendation" %}</h4>
                                 <p>{{ info.finding_type.recommendation }}</p>
                                 <h4 class="heading-normal">{% translate "Findings" %}</h4>
-                                <table class="nowrap">
+                                <table>
                                     <caption class="visually-hidden">{% translate "Findings overview" %}</caption>
                                     <thead>
                                         <tr>
@@ -96,7 +96,7 @@
             </tbody>
         </table>
     </div>
-{% elif is_dashboard_findings %}
+{% elif is_dashboard_findings or is_dashboard %}
     <p>{% translate "No critical and high findings have been identified for this organization." %}</p>
 {% else %}
     <p>{% translate "No findings have been identified for this organization." %}</p>

@@ -93,18 +93,19 @@ def test_add_organization_submit_success(rf, superuser_member, mocker, mock_mode
     static_device_log, static_token_log = logs[5], logs[6]
     superuser_organization_log = logs[7]
 
-    dashboard_log, dashboard_log_data_created, dashboard_log_data_updated = logs[8], logs[9], logs[10]
+    dashboard_log, schedule_created, dashboard_log_data_created, recipe_created = logs[8], logs[9], logs[10], logs[11]
 
-    superuser_indemnification = logs[11]
-    superuser_organization_member = logs[12]
+    superuser_indemnification = logs[12]
+    superuser_organization_member = logs[13]
 
-    this_organization = logs[13]
-    this_organization_dashboard = logs[14]
-    this_organization_dashboard_data_created = logs[15]
-    this_organization_dashboard_data_updated = logs[16]
+    this_organization = logs[14]
+    this_organization_dashboard = logs[15]
+    this_organization_schedule_created = logs[16]
+    this_organization_dashboard_item_created = logs[17]
+    this_organization_recipe_created = logs[18]
+    this_organization_organization_member_created = logs[19]
 
-    this_organization_organization_member_created = logs[17]
-    this_organization_organization_member_updated = logs[18]
+    this_organization_organization_member_updated = logs[20]
 
     # groups are created
     assert group_client_log["event"] == "%s %s created"
@@ -124,8 +125,9 @@ def test_add_organization_submit_success(rf, superuser_member, mocker, mock_mode
 
     # dashboard and dashboard data created and updated
     assert dashboard_log["event"] == "%s %s created"
+    assert schedule_created["event"] == "Schedule created for recipe: %s"
     assert dashboard_log_data_created["event"] == "%s %s created"
-    assert dashboard_log_data_updated["event"] == "%s %s updated"
+    assert recipe_created["event"] == "New reecipe with id: %s has been created and scheduled."
 
     # create indemnification for superuser
     assert superuser_indemnification["event"] == "%s %s created"
@@ -142,8 +144,9 @@ def test_add_organization_submit_success(rf, superuser_member, mocker, mock_mode
 
     # dashboard and dashboard data created and updated for this test (when org is created)
     assert this_organization_dashboard["event"] == "%s %s created"
-    assert this_organization_dashboard_data_created["event"] == "%s %s created"
-    assert this_organization_dashboard_data_updated["event"] == "%s %s updated"
+    assert this_organization_schedule_created["event"] == "Schedule created for recipe: %s"
+    assert this_organization_dashboard_item_created["event"] == "%s %s created"
+    assert this_organization_recipe_created["event"] == "New reecipe with id: %s has been created and scheduled."
 
     # member created and updated for this org
     assert this_organization_organization_member_created["event"] == "%s %s created"
@@ -235,30 +238,24 @@ def test_organization_member_list(rf, admin_member):
 
 def test_organization_filtered_member_list(rf, superuser_member, new_member, blocked_member):
     # Test with only filter option blocked status "blocked"
-    request = setup_request(rf.get("organization_member_list", {"blocked_status": "blocked"}), superuser_member.user)
+    request = setup_request(rf.get("organization_member_list", {"blocked": "blocked"}), superuser_member.user)
     response = OrganizationMemberListView.as_view()(request, organization_code=superuser_member.organization.code)
 
     assertNotContains(response, new_member.user.full_name)
     assertNotContains(response, blocked_member.user.full_name)
-    assertContains(response, 'class="icon negative"')
-    assertNotContains(response, 'class="icon neutral"')
-    assertNotContains(response, 'class="icon positive"')
 
     # Test with only filter option status "new" checked
-    request2 = setup_request(rf.get("organization_member_list", {"client_status": "new"}), superuser_member.user)
+    request2 = setup_request(rf.get("organization_member_list", {"status": "new"}), superuser_member.user)
     response2 = OrganizationMemberListView.as_view()(request2, organization_code=superuser_member.organization.code)
 
     assertNotContains(response2, new_member.user.full_name)
     assertNotContains(response2, blocked_member.user.full_name)
     assertContains(response2, 'class="icon neutral"')
-    assertNotContains(response2, 'class="icon negative"')
     assertNotContains(response2, 'class="icon positive"')
 
     # Test with every filter option checked (new, active, blocked and unblocked)
     request3 = setup_request(
-        rf.get(
-            "organization_member_list", {"client_status": ["new", "active"], "blocked_status": ["blocked", "unblocked"]}
-        ),
+        rf.get("organization_member_list", {"status": ["new", "active"], "blocked": ["blocked", "unblocked"]}),
         superuser_member.user,
     )
     response3 = OrganizationMemberListView.as_view()(request3, organization_code=superuser_member.organization.code)
@@ -269,7 +266,6 @@ def test_organization_filtered_member_list(rf, superuser_member, new_member, blo
     assertNotContains(response3, blocked_member.user.full_name)
 
     assertContains(response3, 'class="icon neutral"')
-    assertContains(response3, 'class="icon negative"')
     assertContains(response3, 'class="icon positive"')
 
 

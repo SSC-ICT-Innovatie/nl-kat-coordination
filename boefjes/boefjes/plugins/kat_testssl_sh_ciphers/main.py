@@ -6,14 +6,13 @@ import docker
 from docker.errors import APIError
 from requests.exceptions import RequestException
 
-from boefjes.job_models import BoefjeMeta
 from boefjes.plugins.helpers import get_file_from_container
 
 SSL_TEST_IMAGE = "drwetter/testssl.sh:3.2"
 
 
-def run(boefje_meta: BoefjeMeta) -> list[tuple[set, bytes | str]]:
-    input_ = boefje_meta.arguments["input"]
+def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
+    input_ = boefje_meta["arguments"]["input"]
     ip_port = input_["ip_port"]["port"]
     address = input_["ip_port"]["address"]["address"]
 

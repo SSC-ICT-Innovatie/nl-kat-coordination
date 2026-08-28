@@ -5,23 +5,83 @@ Crisis Room
 In OpenKAT we differentiate two Crisis Rooms:
 
 - **Single Organization Crisis Room:** a Crisis Room for each organization separately
-- **General Crisis Room:** one general Crisis Room with for all organizations
+- **General Crisis Room:** one general Crisis Room for all the organizations
 
 
 Single Organization Crisis Room
 ===============================
 
 This page shows a Crisis Room for each organization separately.
-Currently, this Crisis Room shows the top 10 most severe Findings.
-In the future it will serve as a dashboard which can be customized by the user.
+Here, a user can create it's own dashboards.
+
+Findings Dashboard
+------------------
+There is always one default dashboard, the 'Findings Dashboard'.*
+This section shows all the findings that have been identified for the selected organization.
+These findings are shown in a table, grouped by finding types.
+
+*\*Note: if you don't see the Findings Dashboard, please read the section 'Automatically Create Dashboards For All Organizations'.*
+
+Custom Dashboards
+-----------------
+By clicking on the 'Add Dashboard' button, a new dashboard will be created.
+Each dashboard can contain a maximum of 16 dashboard items.
+
+There are three types of dashboard items:
+
+- **Object list:** a copy of the object list, with applied filters
+- **Findings list:** a copy of the findings list, with applied filters
+- **Report section:** a copy of a specific part of a report
+
+Currently, only the object list and findings list are implemented. The report section will follow soon.
+
+The dashboard items can be moved up/downwards and can be deleted.
+
+Adding A New Dashboard Item
+---------------------------
+To add a new dashboard item to a dashboard:
+
+- Go to the Objects or Findings page
+- Filter the table as you prefer (the same filters will be applied to the table in the dashboard item)
+- Click on the 'Add to dashboard' button, this opens a modal
+- Choose the settings as you prefer
+- Click on the 'Add to dashboard' button
+
+The following settings can be set:
+
+- **Dashboard:** Select the dashboard to which you want to add the dashboard item.
+- **Name:** Give the dashboard item a name.
+- **List sorting by:** This is how the table in the dashboard item will be sorted.
+- **Number of rows in list:** Choose how many objects/findings you wish to show in the dashboard item.
+- **Dashboard item size:** A dashboard item can be full or half width. Two half width items will be displayed next to each other.
+- **Show table columns:** Select at least one column you want to show in the dashboard item.
+
+Permissions
+-----------
+There are several permissions for the crisis room.
+All users have the permission to:
+
+- View dashboards and dashboard items
+- Change the position of dashboard items
+
+Additionally, admins and redteamers have permission to:
+
+- Create new dashboards
+- Add new items to a dashboard
+- Change dashboards
+- Change dashboard items
+- Delete dashboards
+- Delete dashboard items
 
 
 General Crisis Room
 ===================
 
-This page shows the Crisis Room for all organizations.
+This page shows the Crisis Room for all organizations.*
 Currently, this Crisis Room only shows the Findings, but in the future it will also show dashboards,
 which can be customized by the user.
+
+*\*Note: if you don't see a general Crisis Room, please read the section 'Automatically Create Dashboards For All Organizations'.*
 
 Findings
 --------
@@ -43,16 +103,19 @@ The default settings for this report recipe are:
 It is possible to update the report recipe*. To do this:
 
 - Go to "Reports"- Click on the tab "Scheduled"
-- Look for the "Criris Room Aggregate Report"
+- Look for the "Crisis Room Aggregate Report"
 - Open the row
 - Click on "Edit report recipe"
 
 *\*Note: if you want to update the report recipe, you have to do this for every organization.*
 
-Create a Findings Dashboard for Your Organization
-=================================================
 
-OpenKAT automates the process of creating findings dashboards for your organization.
+Automatically Create Dashboards For All Organizations
+=====================================================
+
+OpenKAT automatically creates the default report recipe for you, as can be read in the previous section.
+If you already have an OpenKAT installation, with existing organizations, you have to do this manually.
+Please follow the following steps. You only have to do this once and all your organizations will be updated.
 
 Steps to Create a Findings Dashboard in Development:
 ----------------------------------------------------

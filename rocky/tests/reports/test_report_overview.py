@@ -9,7 +9,7 @@ from octopoes.models.pagination import Paginated
 from tests.conftest import setup_request
 
 
-def test_report_overview_show_reports(rf, client_member, mock_organization_view_octopoes, report_list):
+def test_report_overview_show_reports(rf, redteam_member, mock_organization_view_octopoes, report_list):
     """
     Will send the selected oois to the report type selection page.
     """
@@ -17,7 +17,7 @@ def test_report_overview_show_reports(rf, client_member, mock_organization_view_
     mock_organization_view_octopoes().list_reports.return_value = report_list
 
     response = ReportHistoryView.as_view()(
-        setup_request(rf.get("report_history"), client_member.user), organization_code=client_member.organization.code
+        setup_request(rf.get("report_history"), redteam_member.user), organization_code=redteam_member.organization.code
     )
 
     assert response.status_code == 200
@@ -26,7 +26,7 @@ def test_report_overview_show_reports(rf, client_member, mock_organization_view_
 
 
 def test_report_overview_rename_reports(
-    rf, client_member, mock_organization_view_octopoes, mock_bytes_client, report_list
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client, report_list
 ):
     """
     Renames a report
@@ -46,10 +46,10 @@ def test_report_overview_rename_reports(
         rf.post(
             "report_history", {"action": "rename", "report_name": new_name, "report_reference": report.primary_key}
         ),
-        client_member.user,
+        redteam_member.user,
     )
 
-    response = ReportHistoryView.as_view()(request, organization_code=client_member.organization.code)
+    response = ReportHistoryView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 200
     assert list(request._messages)[0].message == "Reports successfully renamed."
@@ -88,7 +88,27 @@ def test_report_overview_rename_non_existant_report(rf, client_member, mock_orga
     )
 
 
-def test_report_overview_delete_reports(rf, client_member, mock_organization_view_octopoes, report_list):
+def test_report_overview_delete_reports(rf, redteam_member, mock_organization_view_octopoes, report_list):
+    """
+    Deletes a report
+    """
+
+    mock_organization_view_octopoes().list_reports.return_value = report_list
+    report = report_list.items[0]
+    mock_organization_view_octopoes().get.return_value = report
+
+    request = setup_request(
+        rf.post("report_history", {"action": "delete", "report_reference": report.primary_key}), redteam_member.user
+    )
+
+    response = ReportHistoryView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+
+    assert list(request._messages)[0].message == "Deletion successful."
+
+
+def test_report_overview_delete_reports_no_permission(rf, client_member, mock_organization_view_octopoes, report_list):
     """
     Deletes a report
     """
@@ -105,7 +125,7 @@ def test_report_overview_delete_reports(rf, client_member, mock_organization_vie
 
     assert response.status_code == 200
 
-    assert list(request._messages)[0].message == "Deletion successful."
+    assert list(request._messages)[0].message == "Not enough permissions"
 
 
 def test_report_overview_rerun_reports(

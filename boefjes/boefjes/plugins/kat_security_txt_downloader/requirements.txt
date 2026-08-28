@@ -1,0 +1,3 @@
+forcediphttpsadapter == 1.1.0
+urllib3 == 2.5.0
+sectxt == 0.9.0
