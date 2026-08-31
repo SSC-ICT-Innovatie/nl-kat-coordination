@@ -10,7 +10,7 @@
             {% endif %}
         </h2>
         {% if ooi_current %}
-            <a href="{% app_url 'ooi_detail' ooi=ooi_current.primary_key %}"
+            <a href="{{ now_url }}"
                title="{% blocktranslate with name=ooi_current.human_readable %}Show details for {{ name }}{% endblocktranslate %}">{% translate "View the current state" %}</a>
         {% else %}
             <p>

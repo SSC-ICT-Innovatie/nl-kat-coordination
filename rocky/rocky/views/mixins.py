@@ -153,10 +153,7 @@ class ObservedAtMixin(ContextMixin, View):
     @cached_property
     def now_url(self) -> str:
         """The current url, but with any temporal context reset to now"""
-        kwargs = self.request.resolver_match.kwargs.copy()
-        kwargs["temporal_context"] = "now"
-
-        return reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+        return self.get_temporal_url(None)
 
     def get_temporal_url(self, observed_at: datetime | None) -> str:
         kwargs = self.request.resolver_match.kwargs.copy()
@@ -173,7 +170,7 @@ class ObservedAtMixin(ContextMixin, View):
         ages = (1, 3, 7, 14, 30)
         urls = []
         try:
-            urls.append({"label": _("Now"), "url": self.get_temporal_url(None)})
+            urls.append({"label": _("Now"), "url": self.now_url})
         except NoReverseMatch:
             kwargs = self.request.resolver_match.kwargs.copy()
             if "temporal_context" in kwargs:
@@ -203,6 +200,7 @@ class ObservedAtMixin(ContextMixin, View):
         context["temporal_context"] = self.temporal_context
         context["historic_view"] = self.is_historic_view
         context["temporal_navigation"] = self.temporal_navigation
+        context["now_url"] = self.now_url
         return context
 
     def count_observed_at_filter(self) -> int:
