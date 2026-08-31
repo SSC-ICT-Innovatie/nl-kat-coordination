@@ -29,7 +29,7 @@ def app_url(context, viewname, *args, **kwargs):
     else:
         organization = context.get("organization")
         if organization is not None:
-            kwargs.setdefault("organization_code", str(organization))
+            kwargs.setdefault("organization_code", organization.code)
 
     temporal_context = context.get("temporal_context", "now")
     if "temporal_context" in kwargs:

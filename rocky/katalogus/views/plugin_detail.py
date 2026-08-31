@@ -141,11 +141,11 @@ class BoefjeDetailView(PluginDetailView):
         context["select_ooi_filter_form"] = SelectOOIFilterForm
         if "show_all" in self.request.GET:
             context["select_oois_form"] = SelectOOIForm(
-                oois=self.get_form_consumable_oois(), organization_code=self.organization.code
+                oois=self.get_form_consumable_oois(), organization=self.organization
             )
         else:
             context["select_oois_form"] = SelectOOIForm(
-                oois=self.get_form_filtered_consumable_oois(), organization_code=self.organization.code
+                oois=self.get_form_filtered_consumable_oois(), organization=self.organization
             )
 
         context["breadcrumbs"].append(
