@@ -101,6 +101,32 @@ def test_hashing_record_survives_a_piped_value():
     assert record.reference.tokenized.value != "a|b|c"  # hashed, not the raw value
 
 
+def test_hashing_record_value_that_also_occurs_in_the_hostname_only_hashes_the_value():
+    # key.replace() used to rewrite every occurrence, so a value like "com" also mangled the "com"
+    # inside "example.com". Only the value's own (trailing) slot must be hashed.
+    from octopoes.models.ooi.dns.records import DNSTXTRecord
+    from octopoes.models.ooi.dns.zone import Hostname
+    from octopoes.models.ooi.network import Network
+
+    hostname = Hostname(network=Network(name="internet").reference, name="example.com")
+    record = DNSTXTRecord(hostname=hostname.reference, value="com")
+
+    assert record.primary_key.startswith("DNSTXTRecord|internet|example.com|")  # hostname intact
+    assert not record.primary_key.endswith("|com")  # the value slot is hashed, not the literal
+
+
+def test_non_numeric_version_is_rejected_not_stringified():
+    import pytest
+    from pydantic import ValidationError
+
+    # A numeric version is coerced, but a structurally wrong value must surface as an error instead of
+    # being stored as "['1.0']" / "True".
+    with pytest.raises(ValidationError):
+        Software(name="Foo", version=["1.0"])
+    with pytest.raises(ValidationError):
+        Software(name="Foo", version=True)
+
+
 def test_hashing_record_with_empty_value_is_not_corrupted():
     # An empty value must not turn the hash-replace into a no-op that mangles the key (Jan's guard).
     from octopoes.models.ooi.dns.records import DNSTXTRecord

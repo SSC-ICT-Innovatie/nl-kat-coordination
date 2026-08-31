@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from enum import Enum, IntEnum
 from typing import Any, ClassVar, Literal, TypeAlias, TypeVar
 
@@ -161,6 +162,21 @@ class OOI(BaseModel):
         every current and future OOI type instead of relying on a per-field validator.
         """
         return value.replace("|", "%7C")
+
+    @staticmethod
+    def _natural_key_with_hashed_value(key: str, value: str) -> str:
+        """Return ``key`` with ``value`` replaced by its SHA-1 hash, so a record whose value is
+        arbitrarily long or structured still yields a bounded key. ``value`` is matched in its escaped
+        form (the builder escapes it) and only its last occurrence is replaced, so a short value that
+        also occurs inside an earlier reference part (e.g. the hostname) is not corrupted. An empty
+        value is left as is, since replacing it would be a no-op that mangles the key.
+        """
+        if not value:
+            return key
+        head, separator, tail = key.rpartition(OOI._escape_natural_key_part(value))
+        if not separator:
+            return key
+        return f"{head}{hashlib.sha1(value.encode()).hexdigest()}{tail}"
 
     @property
     def natural_key(self) -> str:

@@ -1,4 +1,3 @@
-import hashlib
 from enum import Enum
 from typing import Literal
 
@@ -87,12 +86,7 @@ class DNSTXTRecord(DNSRecord):
 
     @property
     def natural_key(self) -> str:
-        # See DNSLocation.natural_key: replace the escaped value with its hash, guarding empty values.
-        key = super().natural_key
-        if not self.value:
-            return key
-        sha = hashlib.sha1(self.value.encode("UTF-8")).hexdigest()
-        return key.replace(self._escape_natural_key_part(self.value), sha)
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
 
     _reverse_relation_names = {"hostname": "dns_txt_records"}
 
@@ -235,13 +229,7 @@ class DNSLocation(DNSRecord):
 
     @property
     def natural_key(self) -> str:
-        # The value is hashed into the key; super().natural_key now escapes it, so replace the escaped
-        # form. An empty value would make replace() a no-op that corrupts the key, so guard against it.
-        key = super().natural_key
-        if not self.value:
-            return key
-        sha = hashlib.sha1(self.value.encode()).hexdigest()
-        return key.replace(self._escape_natural_key_part(self.value), sha)
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
 
 
 class DNSGPOSRecord(DNSLocation):
