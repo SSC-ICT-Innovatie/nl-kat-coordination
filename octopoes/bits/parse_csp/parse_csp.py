@@ -50,6 +50,8 @@ def run(input_ooi: HTTPHeader, additional_oois: list, config: dict[str, Any]) ->
         description = "List of CSP parsing issues:\n" + "\n".join(
             f" {index + 1}. {finding}" for index, finding in enumerate(findings)
         )
-        finding_type = KATFindingType(id="KAT-CSP-VULNERABILITIES")
+        # A dedicated finding type, so these syntactic findings don't share a primary key with the
+        # policy findings that check-csp-policy emits on the same header (which would clobber each other).
+        finding_type = KATFindingType(id="KAT-CSP-INVALID")
         yield finding_type
         yield Finding(finding_type=finding_type.reference, ooi=input_ooi.reference, description=description)

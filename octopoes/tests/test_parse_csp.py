@@ -41,7 +41,7 @@ def test_directive_without_value_yields_finding():
     results = list(run(header, [], {}))
 
     assert any(isinstance(o, CSPDirective) and o.name == "script-src" for o in results)
-    assert KATFindingType(id="KAT-CSP-VULNERABILITIES") in results
+    assert KATFindingType(id="KAT-CSP-INVALID") in results
     finding = next(o for o in results if isinstance(o, Finding))
     assert "has no value" in finding.description
     assert finding.ooi == header.reference

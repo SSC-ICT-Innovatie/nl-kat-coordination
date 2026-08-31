@@ -99,7 +99,7 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
     octopoes_service.origin_repository.get = MagicMock(
         return_value=Origin(
             origin_type=OriginType.INFERENCE,
-            method="check-csp-header",
+            method="https-redirect",
             source=Reference.from_str("Hostname|internet|example.com"),
         )
     )
