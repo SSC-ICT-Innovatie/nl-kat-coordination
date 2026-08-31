@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Literal
 
-from pydantic import AnyUrl, ValidationError, field_validator
+from pydantic import AnyUrl, ValidationError
 
 from octopoes.models import OOI, PrimaryKeyToken, Reference
 from octopoes.models.ooi.certificate import X509Certificate
@@ -121,18 +121,6 @@ class HTTPHeader(OOI):
     key: str
     value: str
 
-    @field_validator("key", mode="before")
-    @classmethod
-    def sanitize_natural_key_part(cls, value: object) -> object:
-        """Keep the natural-key separator out of key material (issue #5299).
-
-        RFC 7230 allows "|" in header names (tchar), and the server fully
-        controls them, so an unescaped one corrupts the primary key.
-        """
-        if isinstance(value, str):
-            return value.replace("|", "%7C")
-        return value
-
     _natural_key_attrs = ["resource", "key"]
     _information_value = ["key"]
     _reverse_relation_names = {"url": "http_headers"}
@@ -198,18 +186,6 @@ class URL(OOI):
 
     network: Reference = ReferenceField(Network)
     raw: AnyUrl
-
-    @field_validator("raw", mode="before")
-    @classmethod
-    def sanitize_natural_key_part(cls, value: object) -> object:
-        """Keep the natural-key separator out of key material (issue #5299).
-
-        A raw pipe is valid in a URL but corrupts the primary key; %7C is its
-        proper percent-encoding, so the URL stays semantically equivalent.
-        """
-        if isinstance(value, str):
-            return value.replace("|", "%7C")
-        return value
 
     web_url: Reference | None = ReferenceField(WebURL, max_issue_scan_level=2, default=None)
 

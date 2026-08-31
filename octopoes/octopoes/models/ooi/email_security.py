@@ -29,9 +29,14 @@ class DNSSPFRecord(OOI):
 
     @property
     def natural_key(self) -> str:
-        sha = hashlib.sha1(self.value.encode("UTF-8")).hexdigest()
+        # The value is hashed into the key so an arbitrarily long/structured record still yields a
+        # bounded key. super().natural_key now escapes the value, so we replace the escaped form; an
+        # empty value would turn replace() into a no-op that corrupts the key, so guard against it.
         key = super().natural_key
-        return key.replace(self.value, sha)
+        if not self.value:
+            return key
+        sha = hashlib.sha1(self.value.encode("UTF-8")).hexdigest()
+        return key.replace(self._escape_natural_key_part(self.value), sha)
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:

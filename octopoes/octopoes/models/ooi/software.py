@@ -15,21 +15,19 @@ class Software(OOI):
 
     @field_validator("name", "version", "cpe", mode="before")
     @classmethod
-    def sanitize_natural_key_part(cls, value: object) -> str | None:
-        """Keep the natural-key separator out of key material (issue #5299).
+    def coerce_to_string(cls, value: object) -> str | None:
+        """Coerce non-string key material to a string.
 
-        These fields are fed by banner/API output that scanned hosts control.
-        A pipe is the OOI reference separator, so an unescaped one corrupts
-        the primary key of this Software and of every SoftwareInstance built
-        on it (TypeNotFound when the reference is re-parsed). External APIs
-        also deliver numeric versions (e.g. shodan), which would otherwise
-        fail validation and abort the whole scan's normalization.
+        External APIs (e.g. shodan, censys, binaryedge) deliver numeric versions, which would
+        otherwise fail field validation and abort the whole scan's normalization. The
+        reference-separator escaping (issue #5299) now lives in OOI.natural_key, so it is
+        deliberately not repeated here — the stored value stays as delivered.
         """
         if value is None:
             return None
         if not isinstance(value, str):
-            value = str(value)
-        return value.replace("|", "%7C")
+            return str(value)
+        return value
 
     _natural_key_attrs = ["name", "version", "cpe"]
     _information_value = ["name"]
