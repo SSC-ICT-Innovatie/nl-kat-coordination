@@ -13,11 +13,6 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
     template_name = "oois/ooi_edit.html"
     task_type = "report"
 
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.ooi = self.get_ooi()
-        self.ooi_class = self.get_ooi_class()
-
     def get_initial(self):
         initial = super().get_initial()
 
@@ -78,7 +73,7 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
             }
         )
 
-        context["type"] = self.ooi_class.get_ooi_type()
+        context["type"] = self.get_ooi_class().get_ooi_type()
         context["ooi_human_readable"] = self.ooi.human_readable
         context["breadcrumbs"] = breadcrumb_list
 
