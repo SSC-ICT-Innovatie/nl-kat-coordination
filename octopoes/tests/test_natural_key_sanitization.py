@@ -75,6 +75,33 @@ def test_percent_encoding_in_url_is_not_double_encoded():
     assert url.primary_key == "URL|internet|https://example.com/a%20b"
 
 
+def test_documented_collision_raw_pipe_versus_literal_percent_7c():
+    # Documented limitation of |-only escaping (chosen over a %-first escaper to avoid re-keying every
+    # existing URL, see PR #5349): a value with a raw "|" and a value with a literal "%7C" both escape
+    # to the same key part. Two distinct externally-supplied values therefore collapse onto one primary
+    # key. This is a value-collision only — it cannot corrupt the key STRUCTURE (the separator count is
+    # unchanged), so it can never re-introduce the #5299 parsing break; it is recorded here on purpose.
+    raw_pipe = Software(name="x", version="a|b")
+    literal_7c = Software(name="x", version="a%7Cb")
+
+    assert raw_pipe.version != literal_7c.version  # the stored values differ...
+    assert raw_pipe.primary_key == literal_7c.primary_key  # ...but the keys collide
+
+
+def test_documented_collision_is_semantically_correct_for_urls():
+    # For a URL the collision above is actually the right behaviour: "%7C" is the percent-encoding of
+    # "|", so `.../a|b` and `.../a%7Cb` are the same URL and sharing a primary key is correct. This is
+    # the reason |-only was preferred over %-escaping, which would instead mangle the URL's own encoding.
+    from octopoes.models.ooi.network import Network
+    from octopoes.models.ooi.web import URL
+
+    network = Network(name="internet").reference
+    raw_pipe = URL(network=network, raw="https://example.com/a|b")
+    percent_encoded = URL(network=network, raw="https://example.com/a%7Cb")
+
+    assert raw_pipe.primary_key == percent_encoded.primary_key
+
+
 def test_pipe_in_http_header_key_is_escaped():
     from octopoes.models.ooi.web import HTTPHeader
 
