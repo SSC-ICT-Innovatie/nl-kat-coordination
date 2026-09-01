@@ -166,6 +166,32 @@ def test_hashing_record_with_empty_value_is_not_corrupted():
     assert record.primary_key == "DNSTXTRecord|internet|example.com|"
 
 
+def test_reference_held_in_a_plain_string_field_is_not_escaped():
+    # AssetReport.input_ooi is a plain `str` that holds a full OOI reference, so its pipes are
+    # structural and must survive into the key unescaped. Regression guard for the report-runner break:
+    # the base leaf-escaping used to corrupt the embedded reference (Hostname|... -> Hostname%7C...).
+    import datetime
+
+    from octopoes.models.ooi.reports import AssetReport
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+    report = AssetReport(
+        name="r",
+        date_generated=now,
+        reference_date=now,
+        organization_code="test",
+        organization_name="Test",
+        organization_tags=[],
+        data_raw_id="raw",
+        observed_at=now,
+        report_recipe=Reference.from_str("ReportRecipe|abc"),
+        report_type="dns-report",
+        input_ooi="Hostname|test|a.example.com",
+    )
+
+    assert report.primary_key == "AssetReport|Hostname|test|a.example.com|dns-report"
+
+
 def test_every_concrete_type_uses_the_base_escaper():
     # No concrete OOI type may weaken the sanitisation by shadowing the escaper with a no-op; the
     # single-spot guarantee (issue #5299) depends on every type sharing the base implementation.
