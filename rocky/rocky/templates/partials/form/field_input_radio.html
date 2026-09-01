@@ -9,7 +9,7 @@
     </label>
     {% for choice in field %}
         <div class="radio">
-            <input type="radio" name="{{ field.name }}" value="{{ choice.data.value }}" {% for key, value in choice.data.attrs.items %}{{ key }}="{{ value }}"{% endfor %} {% if field.initial == choice.data.value %}checked="True"{% endif %}>
+            <input type="radio" name="{{ field.name }}" value="{{ choice.data.value }}" {% for key, value in choice.data.attrs.items %}{{ key }}="{{ value }}"{% endfor %}>
             <label for="id_{{ field.name }}_{{ forloop.counter0 }}">
                 {% if choice.data.attrs.radio_paws %}
                     {% include "partials/scan_level_indicator.html" with value=choice.data.value custom_class=choice.data.attrs.class %}

@@ -6,7 +6,6 @@ from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
 from tools.forms.finding_type import FindingAddForm
-from tools.view_helpers import get_ooi_url
 
 from octopoes.api.models import Declaration
 from octopoes.models import Reference
@@ -20,7 +19,6 @@ from octopoes.models.ooi.findings import (
     RetireJSFindingType,
     SnykFindingType,
 )
-from octopoes.models.types import OOI_TYPES
 from rocky.bytes_client import BytesClient
 from rocky.views.ooi_view import BaseOOIFormView
 
@@ -83,17 +81,11 @@ class FindingAddView(BaseOOIFormView):
         return context
 
     def get_form_kwargs(self):
-        kwargs = {
-            "connector": self.octopoes_api_connector,
-            "ooi_list": self.get_ooi_options(),
-            "date": self.temporal_context,
-        }
+        kwargs = {"connector": self.octopoes_api_connector, "observed_at": self.observed_at, "ooi_id": self.ooi_id}
         kwargs.update(super().get_form_kwargs())
 
         if "ooi_class" in kwargs:
             del kwargs["ooi_class"]
-        if "date" in kwargs:
-            del kwargs["date"]
 
         return kwargs
 
@@ -140,14 +132,13 @@ class FindingAddView(BaseOOIFormView):
 
         self.octopoes_api_connector.save_many_declarations(proof, sync=True)
 
-        return redirect(get_ooi_url("ooi_detail", ooi_id, self.organization.code))
-
-    def get_ooi_options(self) -> list[tuple[str, str]]:
-        # Query to render form options
-        ooi_set = set(OOI_TYPES.values()).difference({Finding, FindingType})
-        objects = self.octopoes_api_connector.list_objects(ooi_set, valid_time=datetime.now(timezone.utc)).items
-
-        # generate options
-        options = [(o.primary_key, o.get_ooi_type()) for o in objects]
-
-        return options
+        return redirect(
+            reverse(
+                "ooi_detail",
+                kwargs={
+                    "ooi": ooi_id,
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                },
+            )
+        )

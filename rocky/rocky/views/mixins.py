@@ -550,14 +550,15 @@ class SingleOOIMixin(OctopoesView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-
         self.ooi_id = urllib.parse.unquote(kwargs["ooi"])
 
     @cached_property
     def ooi(self):
+        """Property of the OOI as requested in the url"""
         return self.get_single_ooi(self.ooi_id)
 
     def get_ooi(self, pk: str | None = None) -> OOI:
+        """Helper method to fetch a single OOI by its PK"""
         if pk is None:
             pk = self.ooi_id
 

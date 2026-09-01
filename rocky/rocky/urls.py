@@ -82,7 +82,6 @@ urlpatterns += i18n_patterns(
     ),
     path("<organization_code>/<temporal_context>/findings", FindingListView.as_view(), name="finding_list"),
     path("<organization_code>/<temporal_context>/findings/<ooi>", FindingListView.as_view(), name="finding_list"),
-    path("<organization_code>/<temporal_context>/findings/add/", FindingAddView.as_view(), name="finding_add"),
     path("<organization_code>/<temporal_context>/findings/<ooi>/add/", FindingAddView.as_view(), name="finding_add"),
     path("<organization_code>/<temporal_context>/findings/<ooi>/mute/", MuteFindingView.as_view(), name="finding_mute"),
     path(
