@@ -7370,6 +7370,10 @@ msgid "Dashboard item has been added."
 msgstr ""
 
 #: rocky/views/ooi_add.py
+msgid "Type select"
+msgstr ""
+
+#: rocky/views/ooi_add.py
 #, python-format
 msgid "Add %(ooi_type)s"
 msgstr ""
