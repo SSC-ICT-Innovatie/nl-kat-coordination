@@ -3,7 +3,7 @@ import subprocess
 
 # ldns exit code for LDNS_STATUS_NETWORK_ERR ("Could not send or receive, because of network error").
 # drill -T queries the root and authoritative nameservers directly, so this is what drill exits with
-# when the scanner's network only allows DNS through a local resolver.
+# when those direct queries go unanswered, whatever the cause (connectivity, routing, egress filtering).
 LDNS_NETWORK_ERR = 20
 
 
@@ -18,9 +18,10 @@ def run_drill(domain: str, record_type: str) -> bytes:
             message += f": {stderr}"
         if output.returncode == LDNS_NETWORK_ERR:
             message += (
-                ". DNSSEC tracing (drill -T) queries the root and authoritative nameservers directly, "
-                "so outbound UDP and TCP port 53 to arbitrary hosts must be allowed; "
-                "a resolver-only egress policy is not enough."
+                ". DNSSEC tracing (drill -T) queries the root and authoritative nameservers directly and "
+                "got no answer. This points at a connectivity problem rather than the domain's DNSSEC state: "
+                "for example local network loss, a routing problem towards the nameservers, or an egress "
+                "policy that only allows DNS through a local resolver."
             )
         raise RuntimeError(message)
 

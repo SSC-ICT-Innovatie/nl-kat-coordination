@@ -31,7 +31,7 @@ def test_boefje_drill_network_error_gives_clear_message(monkeypatch):
         fake_drill(20, stderr=b"Error sending query: Could not send or receive, because of network error\n"),
     )
 
-    with pytest.raises(RuntimeError, match="outbound UDP and TCP port 53"):
+    with pytest.raises(RuntimeError, match="connectivity problem rather than the domain's DNSSEC state"):
         dnssec_main.run({"arguments": {"input": {"name": "example.org"}}})
 
 
