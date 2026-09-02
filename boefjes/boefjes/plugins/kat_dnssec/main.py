@@ -1,12 +1,29 @@
 import re
 import subprocess
 
+# ldns exit code for LDNS_STATUS_NETWORK_ERR ("Could not send or receive, because of network error").
+# drill -T queries the root and authoritative nameservers directly, so this is what drill exits with
+# when those direct queries go unanswered, whatever the cause (connectivity, routing, egress filtering).
+LDNS_NETWORK_ERR = 20
+
 
 def run_drill(domain: str, record_type: str) -> bytes:
     cmd = ["/usr/bin/drill", "-DT", domain, record_type]
 
     output = subprocess.run(cmd, capture_output=True)
-    output.check_returncode()
+    if output.returncode != 0:
+        stderr = output.stderr.decode(errors="replace").strip()
+        message = f"drill exited with status {output.returncode} for {domain} ({record_type})"
+        if stderr:
+            message += f": {stderr}"
+        if output.returncode == LDNS_NETWORK_ERR:
+            message += (
+                ". DNSSEC tracing (drill -T) queries the root and authoritative nameservers directly and "
+                "got no answer. This points at a connectivity problem rather than the domain's DNSSEC state: "
+                "for example local network loss, a routing problem towards the nameservers, or an egress "
+                "policy that only allows DNS through a local resolver."
+            )
+        raise RuntimeError(message)
 
     return output.stdout
 
