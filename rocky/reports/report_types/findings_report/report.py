@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
+from octopoes.models.ooi.findings import RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from octopoes.models.ooi.web import URL
 from reports.report_types.definitions import Report, ReportPlugins
@@ -46,17 +46,16 @@ class FindingsReport(Report):
             total_by_severity[severity] = 0
             total_by_severity_per_finding_type[severity] = 0
 
-        tree = self.octopoes_api_connector.get_tree(
-            reference, depth=TREE_DEPTH, types={Finding}, valid_time=valid_time
-        ).store
-
-        findings = [ooi for ooi in tree.values() if ooi.ooi_type == "Finding"]
-        all_finding_types = self.octopoes_api_connector.list_objects(types={FindingType}, valid_time=valid_time).items
+        # list_findings_by_ooi collects findings on the input OOI *and its descendants* (e.g. a CVE on
+        # an HTTPHeader); get_tree(types={Finding}) dropped those after #5088 (see #5202). The response
+        # bundles the associated finding types, so we no longer list all finding types separately.
+        findings_by_ooi = self.octopoes_api_connector.list_findings_by_ooi(reference, valid_time, depth=TREE_DEPTH)
+        findings = findings_by_ooi.findings
+        finding_types_by_id = {finding_type.id: finding_type for finding_type in findings_by_ooi.finding_types}
 
         for finding in findings:
-            try:
-                finding_type = next(filter(lambda x: x.id == finding.finding_type.tokenized.id, all_finding_types))
-            except StopIteration:
+            finding_type = finding_types_by_id.get(finding.finding_type.tokenized.id)
+            if finding_type is None:
                 continue
 
             if finding_type.risk_severity is None:
