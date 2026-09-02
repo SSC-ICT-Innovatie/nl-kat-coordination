@@ -604,15 +604,17 @@ class XTDBOOIRepository(OOIRepository):
     def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> list[Finding]:
         """Return all Findings reachable from ``reference`` within ``depth`` reference hops.
 
-        This materialises the subtree *without* a search_types filter and returns the finding leaves.
-        Building the full tree (rather than ``get_tree(search_types={Finding})``) sidesteps the #5088
-        pruning that dropped findings on descendant OOIs (e.g. a CVE on an HTTPHeader several hops down)
-        - see #5202 - while reusing the bounded, indexed per-level tree query that scales on real graphs.
+        Uses ``get_tree(search_types={Finding})``: ``_get_tree_level`` keeps intermediate levels
+        unfiltered, so a finding at any depth <= ``depth`` is still reached, while the path-preserving
+        filter (#5213, restoring the pre-#5088 ``filter_children`` semantics) keeps only the branches that
+        lead to a finding. The finding set is identical to loading the whole subtree, but only the
+        finding-paths are loaded instead of every descendant OOI - see #5202.
 
-        ``depth`` is clamped to ``MAX_FINDINGS_BY_OOI_DEPTH`` to bound the traversal.
+        ``depth`` is clamped to ``MAX_FINDINGS_BY_OOI_DEPTH``; the default of 9 matches
+        ``findings_report.TREE_DEPTH`` and is intentionally below that clamp ceiling.
         """
         depth = max(1, min(depth, MAX_FINDINGS_BY_OOI_DEPTH))
-        tree = self.get_tree(reference, valid_time, depth=depth, include_scan_levels=False)
+        tree = self.get_tree(reference, valid_time, search_types={Finding}, depth=depth, include_scan_levels=False)
         return [ooi for ooi in tree.store.values() if isinstance(ooi, Finding)]
 
     def _get_related_objects(

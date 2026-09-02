@@ -1353,7 +1353,7 @@ class MockOctopoesAPIConnector:
     def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> FindingsByOOIResponse:
         store = self.tree[reference].store
         findings = [ooi for ooi in store.values() if isinstance(ooi, Finding)]
-        finding_types = [ooi for ooi in getattr(self, "oois", {}).values() if isinstance(ooi, FindingType)]
+        finding_types = [ooi for ooi in self.oois.values() if isinstance(ooi, FindingType)]
         return FindingsByOOIResponse(findings=findings, finding_types=finding_types)
 
     def query(
