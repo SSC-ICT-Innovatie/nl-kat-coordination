@@ -1,0 +1,9 @@
+{
+  "id": "CVE-2025-2855",
+  "name": "CVE-2025-2855 - CrushFTP exploit",
+  "description": "ProjectDiscovery has published a technical breakdown of CVE-2025-2825, a critical authentication bypass flaw in CrushFTP—a widely used enterprise-grade file transfer server. The vulnerability, affecting versions 10.0.0 through 10.8.3 and 11.0.0 through 11.3.0, allows an unauthenticated attacker to gain full access to the server, all thanks to a mishandled S3-style authorization mechanism.",
+  "consumes": [
+    "IPService"
+  ],
+  "scan_level": 4
+}
