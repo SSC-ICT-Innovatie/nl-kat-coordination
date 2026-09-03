@@ -183,11 +183,40 @@ def test_step_2a_organization_select_forbidden_for_non_superuser(rf, redteam_mem
         )
 
 
+def test_step_2a_organization_select_excludes_non_member_orgs(rf, superuser_member, organization_b):
+    """The selection list only offers organizations the user actually has an
+    (unblocked) membership in — not every organization in the database."""
+    request = setup_request(rf.get("step_2a_organization_select"), superuser_member.user)
+    response = OnboardingOrganizationSelectView.as_view()(request)
+    assert response.status_code == 200
+    assertContains(response, superuser_member.organization.name)
+    assertNotContains(response, organization_b.name)
+
+
+def test_step_2a_organization_select_excludes_blocked_orgs(rf, superuser_member, organization_b):
+    """A blocked membership must not appear in the selection list."""
+    from tools.models import OrganizationMember
+
+    OrganizationMember.objects.create(
+        user=superuser_member.user,
+        organization=organization_b,
+        status=OrganizationMember.STATUSES.ACTIVE,
+        trusted_clearance_level=4,
+        acknowledged_clearance_level=4,
+        blocked=True,
+    )
+    request = setup_request(rf.get("step_2a_organization_select"), superuser_member.user)
+    response = OnboardingOrganizationSelectView.as_view()(request)
+    assertContains(response, superuser_member.organization.name)
+    assertNotContains(response, organization_b.name)
+
+
 def test_onboarding_middleware_superuser_with_orgs_redirects_to_select(
     rf, superuser_member, organization_b, mock_models_katalogus
 ):
     """The onboarding middleware sends a superuser who is already a member of an
-    organization to the selection page, not the registration introduction."""
+    organization to the setup page (which branches to select or step 2b),
+    not the registration introduction."""
     from tools.models import OrganizationMember
 
     OrganizationMember.objects.create(
@@ -202,7 +231,7 @@ def test_onboarding_middleware_superuser_with_orgs_redirects_to_select(
     c.force_login(superuser_member.user)
     response = c.get("/crisis-room/")
     assert response.status_code == 302
-    assert response.headers["Location"] == reverse("step_2a_organization_select")
+    assert response.headers["Location"] == reverse("step_2a_organization_setup")
 
 
 def test_step_2b_onboarding_organization_update(rf, superuser_member, admin_member, redteam_member, client_member):
