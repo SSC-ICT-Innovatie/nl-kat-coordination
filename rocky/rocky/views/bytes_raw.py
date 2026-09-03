@@ -17,12 +17,27 @@ logger = structlog.get_logger(__name__)
 
 RAW_FILE_LIMIT = 1024 * 1024
 
+# Fields in boefje_meta that may contain secrets and must not be exposed in
+# downloads. See #4508.
+SENSITIVE_BOEFJE_META_FIELDS = ("environment",)
+
+
+def _strip_sensitive_fields(raw_metas: list[dict]) -> None:
+    """Remove sensitive fields (e.g. environment with secrets) from boefje_meta
+    in-place, so they are not leaked via raw meta downloads (#4508)."""
+    for raw_meta in raw_metas:
+        boefje_meta = raw_meta.get("boefje_meta")
+        if isinstance(boefje_meta, dict):
+            for field in SENSITIVE_BOEFJE_META_FIELDS:
+                boefje_meta.pop(field, None)
+
 
 class BytesRawView(OrganizationView):
     def get(self, request, **kwargs):
         boefje_meta_id = kwargs["boefje_meta_id"]
         try:
             raw_metas = self.bytes_client.get_raw_metas(boefje_meta_id, self.organization.code)
+            _strip_sensitive_fields(raw_metas)
             is_json_format = request.GET.get("format") == "json"
             if is_json_format:
                 size_limit = int(request.GET.get("size_limit", RAW_FILE_LIMIT))

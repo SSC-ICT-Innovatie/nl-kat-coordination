@@ -1,3 +1,7 @@
+import io
+import json
+import zipfile
+
 import pytest
 from django.http import Http404
 from pytest_django.asserts import assertContains
@@ -120,3 +124,42 @@ def test_download_task_no_raw(rf, client_member, mock_bytes_client, bytes_raw_me
 
     assert response.status_code == 302
     assert list(request._messages)[0].message == "The task does not have any raw data."
+
+
+def test_download_task_strips_environment_from_meta(
+    rf, client_member, mock_bytes_client, bytes_raw_metas, bytes_get_raw
+):
+    """The raw meta download must not leak boefje environment secrets (#4508)."""
+    raw_metas = bytes_raw_metas
+    raw_metas[0]["boefje_meta"]["environment"] = {"SECRET_KEY": "super-secret-value"}
+    mock_bytes_client().get_raw.return_value = bytes_get_raw
+    mock_bytes_client().get_raw_metas.return_value = raw_metas
+
+    request = setup_request(rf.get("bytes_raw"), client_member.user)
+    response = BytesRawView.as_view()(
+        request, organization_code=client_member.organization.code, boefje_meta_id=raw_metas[0]["id"]
+    )
+
+    assert response.status_code == 200
+    zf = zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content)))
+    meta_json = json.loads(zf.read(f"raw_meta_{raw_metas[0]['id']}.json"))
+    assert "environment" not in meta_json["boefje_meta"]
+
+
+def test_download_task_json_format_strips_environment(
+    rf, client_member, mock_bytes_client, bytes_raw_metas, bytes_get_raw
+):
+    """The JSON format response must also not leak boefje environment secrets (#4508)."""
+    raw_metas = bytes_raw_metas
+    raw_metas[0]["boefje_meta"]["environment"] = {"SECRET_KEY": "super-secret-value"}
+    mock_bytes_client().get_raw.return_value = bytes_get_raw
+    mock_bytes_client().get_raw_metas.return_value = raw_metas
+
+    request = setup_request(rf.get("/bytes?format=json"), client_member.user)
+    response = BytesRawView.as_view()(
+        request, organization_code=client_member.organization.code, boefje_meta_id=raw_metas[0]["id"]
+    )
+
+    assert response.status_code == 200
+    data = json.loads(response.content)
+    assert "environment" not in data[0]["boefje_meta"]
