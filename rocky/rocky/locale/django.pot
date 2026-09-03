@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 13:50+0000\n"
+"POT-Creation-Date: 2026-09-20 09:15+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4161,7 +4161,8 @@ msgid "Low"
 msgstr ""
 
 #: reports/templates/partials/report_severity_totals_table.html
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Pending"
 msgstr ""
 
@@ -4613,13 +4614,13 @@ msgstr ""
 
 #: reports/views/report_overview.py
 msgid ""
-"Schedule disabled successfully. '{}' will not be generated automatically "
-"until the schedule is enabled again."
+"Schedule enabled successfully. '{}' will be generated according to schedule."
 msgstr ""
 
 #: reports/views/report_overview.py
 msgid ""
-"Schedule enabled successfully. '{}' will be generated according to schedule."
+"Schedule disabled successfully. '{}' will not be generated automatically "
+"until the schedule is enabled again."
 msgstr ""
 
 #: reports/views/report_overview.py
@@ -4938,27 +4939,33 @@ msgstr ""
 msgid "To"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Cancelled"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Completed"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Dispatched"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Failed"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Queued"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Running"
 msgstr ""
 
