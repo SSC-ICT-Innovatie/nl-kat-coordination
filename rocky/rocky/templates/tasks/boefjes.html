@@ -62,7 +62,7 @@
                                     <td>
                                         <i class="icon {{ task.status.value }}"></i>
                                         <a href="{{ request.path }}?status={{ task.status.value }}"
-                                           title="{% translate "Filter on this status" %}">{{ task.status.value|capfirst }}</a>
+                                           title="{% translate "Filter on this status" %}">{{ task.status.label }}</a>
                                         <a href="{{ request.path }}{% querystring status=task.status.value %}"
                                            title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
                                     </td>
