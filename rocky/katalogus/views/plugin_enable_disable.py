@@ -38,10 +38,7 @@ class PluginEnableDisableView(SinglePluginView):
         # Clearance refusal: strip the fragment so the user lands at the top
         # of the page where the error message is visible, not at the plugin
         # tile where the message is off-screen.
-        if (
-            self.organization_member.trusted_clearance_level
-            != self.organization_member.acknowledged_clearance_level
-        ):
+        if self.organization_member.trusted_clearance_level != self.organization_member.acknowledged_clearance_level:
             member_clearance_level_text = _(
                 "You have not acknowledged your clearance level. "
                 "Go to your profile page to acknowledge your clearance level."
