@@ -17,19 +17,44 @@ logger = structlog.get_logger(__name__)
 
 RAW_FILE_LIMIT = 1024 * 1024
 
-# Fields in boefje_meta that may contain secrets and must not be exposed in
-# downloads. See #4508.
-SENSITIVE_BOEFJE_META_FIELDS = ("environment",)
+_HASH_NOTE = (
+    "Secret fields have been removed from the boefje metadata in this download.\n"
+    "As a result, the hash of the metadata JSON will not match the hash stored\n"
+    "in Bytes. The raw file data itself is unmodified and its hash is intact.\n"
+)
 
 
-def _strip_sensitive_fields(raw_metas: list[dict]) -> None:
-    """Remove sensitive fields (e.g. environment with secrets) from boefje_meta
-    in-place, so they are not leaked via raw meta downloads (#4508)."""
+def _strip_secret_fields(raw_metas: list[dict], katalogus_client) -> None:
+    """Remove secret fields from boefje_meta.environment using the boefje
+    schema's ``secret`` list, so they are not leaked via raw meta downloads
+    (#4508). Falls back to removing the entire environment if the schema
+    cannot be fetched — fail-closed for security."""
+    schema_cache: dict[str, set[str] | None] = {}
+
     for raw_meta in raw_metas:
         boefje_meta = raw_meta.get("boefje_meta")
-        if isinstance(boefje_meta, dict):
-            for field in SENSITIVE_BOEFJE_META_FIELDS:
-                boefje_meta.pop(field, None)
+        if not isinstance(boefje_meta, dict):
+            continue
+        environment = boefje_meta.get("environment")
+        if not isinstance(environment, dict) or not environment:
+            continue
+
+        boefje_id = boefje_meta.get("boefje", {}).get("id", "")
+        if boefje_id not in schema_cache:
+            try:
+                plugin = katalogus_client.get_plugin(boefje_id)
+                schema = getattr(plugin, "boefje_schema", None) or {}
+                schema_cache[boefje_id] = set(schema.get("secret", []))
+            except Exception:
+                logger.exception("Failed to fetch boefje schema, stripping entire environment")
+                schema_cache[boefje_id] = None  # fail closed
+
+        secrets = schema_cache[boefje_id]
+        if secrets is None:
+            boefje_meta.pop("environment", None)
+        else:
+            for key in secrets:
+                environment.pop(key, None)
 
 
 class BytesRawView(OrganizationView):
@@ -37,7 +62,7 @@ class BytesRawView(OrganizationView):
         boefje_meta_id = kwargs["boefje_meta_id"]
         try:
             raw_metas = self.bytes_client.get_raw_metas(boefje_meta_id, self.organization.code)
-            _strip_sensitive_fields(raw_metas)
+            _strip_secret_fields(raw_metas, self.katalogus_client)
             is_json_format = request.GET.get("format") == "json"
             if is_json_format:
                 size_limit = int(request.GET.get("size_limit", RAW_FILE_LIMIT))
@@ -78,6 +103,7 @@ def zip_data(raws: dict[str, bytes], raw_metas: list[dict]) -> BytesIO:
     zf_buffer = BytesIO()
 
     with zipfile.ZipFile(zf_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("NOTE.txt", _HASH_NOTE)
         for raw_meta in raw_metas:
             zf.writestr(raw_meta["id"], raws[raw_meta["id"]])
             zf.writestr(f"raw_meta_{raw_meta['id']}.json", json.dumps(raw_meta))
