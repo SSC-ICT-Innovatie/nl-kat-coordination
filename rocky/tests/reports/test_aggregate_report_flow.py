@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from pytest_django.asserts import assertContains
 from reports.views.aggregate_report import (
@@ -361,8 +362,9 @@ def test_json_download_aggregate_report_with_organization_tags(
     which raised TypeError. Tags should be serialized as their names, matching
     the form the report runner itself uses.
     """
-    client_member.organization.tags = ["tag-a", "tag-b"]
-    client_member.organization.save()
+    with patch("katalogus.client.KATalogusClient"), patch("rocky.signals.OctopoesAPIConnector"):
+        client_member.organization.tags = ["tag-a", "tag-b"]
+        client_member.organization.save()
 
     mock_organization_view_octopoes().get_report.return_value = get_aggregate_report_ooi
     mock_bytes_client().get_raws.return_value = [
