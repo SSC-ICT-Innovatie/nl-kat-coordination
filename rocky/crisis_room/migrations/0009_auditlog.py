@@ -52,9 +52,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "ordering": ["-created_at"],
-                "indexes": [
-                    models.Index(fields=["organization", "-created_at"], name="audit_log_org_created_idx")
-                ],
+                "indexes": [models.Index(fields=["organization", "-created_at"], name="audit_log_org_created_idx")],
             },
         )
     ]
