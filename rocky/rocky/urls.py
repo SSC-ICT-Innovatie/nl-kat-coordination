@@ -11,7 +11,7 @@ from rocky.views.bytes_raw import BytesRawView
 from rocky.views.finding_add import FindingAddView
 from rocky.views.finding_list import FindingListView
 from rocky.views.finding_type_add import FindingTypeAddView
-from rocky.views.health import Health, HealthChecks
+from rocky.views.health import GlobalHealthView, Health, HealthChecks
 from rocky.views.indemnification_add import IndemnificationAddView
 from rocky.views.landing_page import LandingPageView
 from rocky.views.ooi_add import OOIAddTypeSelectView, OOIAddView
@@ -62,6 +62,7 @@ router.register(r"report-recipe", ReportRecipeViewSet, basename="report-recipe")
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/v1/", include(router.urls)),
+    path("api/v1/health", GlobalHealthView.as_view(), name="global_health"),
     path("<organization_code>/health/", Health.as_view(), name="health"),
     path("", include(tf_urls)),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
