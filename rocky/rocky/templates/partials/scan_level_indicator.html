@@ -3,7 +3,8 @@
 
 {% if value < 0 %}{{ choice.choice_label }}{% endif %}
 {% if value >= 0 %}
-    <ul class="level-indicator l{{ value }} {{ custom_class }}">
+    <ul class="level-indicator l{{ value }} {{ custom_class }}"
+        aria-label="{% blocktranslate trimmed with level=value %}Clearance level {{ level }}{% endblocktranslate %}">
         {% get_scan_levels as scan_levels %}
         {% for level in scan_levels %}<li></li>{% endfor %}
     </ul>
