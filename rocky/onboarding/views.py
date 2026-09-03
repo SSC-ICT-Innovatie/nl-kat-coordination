@@ -89,13 +89,14 @@ class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegis
     permission_required = "tools.add_organization"
 
     def get(self, request, *args, **kwargs):
-        members = OrganizationMember.objects.filter(user=self.request.user, blocked=False)
-        if members.count() > 1:
-            return redirect(reverse("step_2a_organization_select"))
-        if member := members.first():
-            return redirect(
-                reverse("step_2b_organization_update", kwargs={"organization_code": member.organization.code})
-            )
+        if not request.GET.get("new"):
+            members = OrganizationMember.objects.filter(user=self.request.user, blocked=False)
+            if members.count() > 1:
+                return redirect(reverse("step_2a_organization_select"))
+            if member := members.first():
+                return redirect(
+                    reverse("step_2b_organization_update", kwargs={"organization_code": member.organization.code})
+                )
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -143,7 +144,7 @@ class OnboardingOrganizationSelectView(PermissionRequiredMixin, IntroductionRegi
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
         kwargs["organizations"] = Organization.objects.filter(
-            id__in=[org.id for org in self.request.user.organizations]
+            members__user=self.request.user, members__blocked=False
         )
         return kwargs
 

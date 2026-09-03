@@ -59,7 +59,7 @@ class OrganizationSelectForm(forms.Form):
         queryset=Organization.objects.none(),
         label=_("Organization"),
         empty_label=_("--- Select an organization ---"),
-        error_messages={"organization": {"required": _("Please select an organization to proceed.")}},
+        error_messages={"required": _("Please select an organization to proceed.")},
         widget=forms.Select(attrs={"aria-describedby": _("explanation-organization-select")}),
     )
 

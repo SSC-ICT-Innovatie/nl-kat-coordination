@@ -31,9 +31,10 @@ def OnboardingMiddleware(get_response):
                 if request.user.is_superuser:
                     # Superusers already member of one or more organizations get to
                     # pick which one to onboard in, instead of being forced to create
-                    # a new organization.
-                    if OrganizationMember.objects.filter(user=request.user, blocked=False).count() > 0:
-                        return redirect(reverse("step_2a_organization_select"))
+                    # a new organization. The setup view handles the branching:
+                    # single org → step 2b, multiple orgs → select page.
+                    if OrganizationMember.objects.filter(user=request.user, blocked=False).exists():
+                        return redirect(reverse("step_2a_organization_setup"))
                     return redirect(reverse("step_1_introduction_registration"))
 
                 # Members with these permissions can run a full DNS-report onboarding.
