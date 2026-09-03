@@ -128,3 +128,33 @@ def test_on_create_scan_profile(octopoes_service, new_data, old_data, bit_runner
     assert octopoes_service.ooi_repository.save.call_count == 2
     octopoes_service.ooi_repository.save.assert_any_call(mock_oois[0], valid_time=valid_time, end_valid_time=None)
     octopoes_service.ooi_repository.save.assert_any_call(mock_oois[1], valid_time=valid_time, end_valid_time=None)
+
+
+@patch("octopoes.core.service.get_bit_definitions", mocked_bit_definitions)
+def test_recalculate_bits_deletes_origins_of_removed_bits(octopoes_service, valid_time):
+    network = Network(name="internet")
+    hostname = Hostname(network=network.reference, name="example.com")
+    removed_origin = Origin(origin_type=OriginType.INFERENCE, method="removed-bit", source=network.reference)
+    kept_origin = Origin(origin_type=OriginType.INFERENCE, method="fake-hostname-bit", source=hostname.reference)
+    stale_parameter = Mock(origin_id=removed_origin.id)
+
+    octopoes_service.ooi_repository.list_oois_by_object_types = MagicMock(return_value=[])
+    octopoes_service.origin_repository.list_origins = MagicMock(return_value=[removed_origin, kept_origin])
+    octopoes_service.origin_repository.delete = MagicMock()
+    octopoes_service.origin_parameter_repository.list_by_origin = MagicMock(return_value=[stale_parameter])
+    octopoes_service.origin_parameter_repository.delete = MagicMock()
+    octopoes_service._run_inference = MagicMock()
+
+    octopoes_service.recalculate_bits()
+
+    # the origin of the bit that no longer exists is deleted, together with its parameters,
+    # so _on_delete_origin garbage-collects its results
+    deleted_origins = [call.args[0] for call in octopoes_service.origin_repository.delete.call_args_list]
+    assert deleted_origins == [removed_origin]
+    octopoes_service.origin_parameter_repository.list_by_origin.assert_called_once()
+    octopoes_service.origin_parameter_repository.delete.assert_called_once()
+    assert octopoes_service.origin_parameter_repository.delete.call_args.args[0] is stale_parameter
+
+    # the origin of the still-existing bit is rerun, not deleted
+    rerun_origins = [call.args[0] for call in octopoes_service._run_inference.call_args_list]
+    assert rerun_origins == [kept_origin]
