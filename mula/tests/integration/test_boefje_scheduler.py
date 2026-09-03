@@ -1151,6 +1151,104 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         popped_items = self.scheduler.pop_item_from_queue()
         self.assertEqual(1, len(popped_items))
 
+    @mock.patch("scheduler.schedulers.schedulers.boefje.monotonic", side_effect=[0, 0.5, 1.1])
+    def test_pop_respects_rate_limit_across_organisations(self, _mock_monotonic):
+        group = "api.example.com"
+        self.mock_get_plugin.return_value = PluginFactory()
+        boefjes = [
+            BoefjeFactory(id="limited-1", rate_limit_interval=1, rate_limit_group=group),
+            BoefjeFactory(id="limited-2", rate_limit_interval=1, rate_limit_group=group),
+            BoefjeFactory(id="unlimited"),
+        ]
+
+        for index, boefje in enumerate(boefjes):
+            boefje_task = models.BoefjeTask(
+                boefje=boefje, input_ooi=f"IPAddressV4|internet|192.0.2.{index}", organization=OrganisationFactory().id
+            )
+            self.scheduler.push_item_to_queue(
+                models.Task(
+                    scheduler_id=self.scheduler.scheduler_id,
+                    organisation=boefje_task.organization,
+                    priority=1,
+                    type=models.BoefjeTask.type,
+                    hash=boefje_task.hash,
+                    data=boefje_task.model_dump(),
+                )
+            )
+
+        self.assertEqual("limited-1", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        self.assertEqual("unlimited", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        self.assertEqual("limited-2", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+
+    def test_resolve_rate_limit_group_template(self):
+        ooi = OOIFactory(
+            primary_key="IPAddressV4|internet|192.0.2.5", object_type="IPAddressV4", scan_profile=ScanProfileFactory()
+        )
+
+        static = BoefjeFactory(id="static", rate_limit_interval=1, rate_limit_group="api.shodan.io")
+        self.scheduler.resolve_rate_limit_group(static, ooi.primary_key)
+        self.assertEqual("api.shodan.io", static.rate_limit_group)
+
+        templated = BoefjeFactory(id="templated", rate_limit_interval=1, rate_limit_group="{input_ooi}")
+        self.scheduler.resolve_rate_limit_group(templated, ooi.primary_key)
+        self.assertEqual("IPAddressV4|internet|192.0.2.5", templated.rate_limit_group)
+
+        prefixed = BoefjeFactory(id="prefixed", rate_limit_interval=1, rate_limit_group="shodan:{object_type}")
+        self.scheduler.resolve_rate_limit_group(prefixed, ooi.primary_key)
+        self.assertEqual("shodan:IPAddressV4", prefixed.rate_limit_group)
+
+        # A static group still resolves without an input OOI.
+        no_ooi_static = BoefjeFactory(id="no-ooi-static", rate_limit_interval=1, rate_limit_group="api.shodan.io")
+        self.scheduler.resolve_rate_limit_group(no_ooi_static, None)
+        self.assertEqual("api.shodan.io", no_ooi_static.rate_limit_group)
+
+        # A templated group without an input OOI cannot be resolved -> rate limit disabled.
+        no_ooi_template = BoefjeFactory(id="no-ooi-template", rate_limit_interval=1, rate_limit_group="{input_ooi}")
+        self.scheduler.resolve_rate_limit_group(no_ooi_template, None)
+        self.assertIsNone(no_ooi_template.rate_limit_interval)
+        self.assertIsNone(no_ooi_template.rate_limit_group)
+
+        # An unresolvable OOI property disables rate limiting for this task (full OOI property
+        # resolution is a follow-up, see #1317).
+        unresolvable = BoefjeFactory(id="unresolvable", rate_limit_interval=1, rate_limit_group="{address}")
+        self.scheduler.resolve_rate_limit_group(unresolvable, ooi.primary_key)
+        self.assertIsNone(unresolvable.rate_limit_interval)
+        self.assertIsNone(unresolvable.rate_limit_group)
+
+    @mock.patch("scheduler.schedulers.schedulers.boefje.monotonic", side_effect=[0, 0.5, 1.1])
+    def test_pop_respects_rate_limit_grouped_by_input_ooi(self, _mock_monotonic):
+        self.mock_get_plugin.return_value = PluginFactory()
+        shared_ip = "IPAddressV4|internet|192.0.2.5"
+        boefjes = [
+            BoefjeFactory(id="by-ip-1", rate_limit_interval=1, rate_limit_group="{input_ooi}"),
+            BoefjeFactory(id="by-ip-2", rate_limit_interval=1, rate_limit_group="{input_ooi}"),
+            BoefjeFactory(id="by-other-ip", rate_limit_interval=1, rate_limit_group="{input_ooi}"),
+        ]
+        inputs = [shared_ip, shared_ip, "IPAddressV4|internet|192.0.2.9"]
+
+        for boefje, input_ooi in zip(boefjes, inputs):
+            ooi = OOIFactory(primary_key=input_ooi, object_type="IPAddressV4", scan_profile=ScanProfileFactory())
+            self.scheduler.resolve_rate_limit_group(boefje, ooi.primary_key)
+            boefje_task = models.BoefjeTask(boefje=boefje, input_ooi=input_ooi, organization=OrganisationFactory().id)
+            self.scheduler.push_item_to_queue(
+                models.Task(
+                    scheduler_id=self.scheduler.scheduler_id,
+                    organisation=boefje_task.organization,
+                    priority=1,
+                    type=models.BoefjeTask.type,
+                    hash=boefje_task.hash,
+                    data=boefje_task.model_dump(),
+                )
+            )
+
+        # by-ip-1 is popped first and rate-limits the shared_ip group.
+        self.assertEqual("by-ip-1", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        # by-other-ip has a different group, so it is not rate-limited.
+        self.assertEqual("by-other-ip", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+        # by-ip-2 shares the shared_ip group; it was skipped on the second pop because the group
+        # was still rate-limited, and is only popped once the interval has elapsed.
+        self.assertEqual("by-ip-2", self.scheduler.pop_item_from_queue()[0].data["boefje"]["id"])
+
     def test_pop_deduplication(self):
         # Arrange
         scan_profile = ScanProfileFactory(level=0)
@@ -1191,6 +1289,39 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         for item in popped_items:
             # Assert: the deduplication_key of the items should be the same
             self.assertEqual(str(dkey), item.data.get("deduplication_key"))
+
+    def test_pop_dedup_batch_with_rate_limit_pops_full_batch(self):
+        """A deduplicated batch with a rate-limited boefje should pop all
+        tasks, not just one — the batch shares one boefje and thus one
+        rate-limit group, so one worker run serves all orgs."""
+        scan_profile = ScanProfileFactory(level=0)
+        ooi = OOIFactory(scan_profile=scan_profile)
+        self.mock_get_plugin.return_value = PluginFactory(
+            scan_level=0, consumes=[ooi.object_type], rate_limit_interval=1, rate_limit_group="api.example.com"
+        )
+        boefje = BoefjeFactory(rate_limit_interval=1, rate_limit_group="api.example.com")
+        dkey = uuid.uuid4()
+        for org in [self.organisation.id, OrganisationFactory().id, OrganisationFactory().id]:
+            boefje_task = models.BoefjeTask(
+                boefje=models.Boefje.model_validate(boefje.model_dump()),
+                input_ooi=ooi.primary_key,
+                organization=org,
+                deduplication_key=dkey.hex,
+            )
+            self.scheduler.push_item_to_queue(
+                models.Task(
+                    scheduler_id=self.scheduler.scheduler_id,
+                    organisation=self.organisation.id,
+                    priority=1,
+                    type=models.BoefjeTask.type,
+                    hash=boefje_task.hash,
+                    data=boefje_task.model_dump(),
+                    created_at=datetime.now(timezone.utc),
+                    modified_at=datetime.now(timezone.utc),
+                )
+            )
+        # One deduplicated batch = one worker run = one API call for all three orgs.
+        self.assertEqual(3, len(self.scheduler.pop_item_from_queue()))
 
     def test_pop_deduplication_different_deduplication_key(self):
         # Arrange

@@ -50,11 +50,18 @@ class PriorityQueueStore:
             return self._pop_with_session(session, scheduler_id, limit, filters)
 
     def pop_boefje(
-        self, scheduler_id: str | None = None, limit: int | None = None, filters: FilterRequest | None = None
+        self,
+        scheduler_id: str | None = None,
+        limit: int | None = None,
+        filters: FilterRequest | None = None,
+        excluded_rate_limit_groups: set[str] | None = None,
     ) -> list[models.Task]:
         """Custom pop method for the `BoefjeScheduler`"""
         with self.dbconn.session() as session:
             query = self.build_pop_query(session, scheduler_id, filters)
+            if excluded_rate_limit_groups:
+                rate_limit_group = models.TaskDB.data["boefje"]["rate_limit_group"].astext
+                query = query.filter(rate_limit_group.is_(None) | rate_limit_group.notin_(excluded_rate_limit_groups))
 
             try:
                 dkey_tasks = (
@@ -67,13 +74,19 @@ class PriorityQueueStore:
                     # default pop. We explicitly limit to 1 for the boefje
                     # scheduler, when there are no tasks with a deduplication
                     # key.
-                    return self._pop_with_session(session, scheduler_id, limit=1, filters=filters)
+                    item_orm = query.order_by(models.TaskDB.priority.asc(), models.TaskDB.created_at.asc()).first()
+                    return [models.Task.model_validate(item_orm)] if item_orm else []
 
                 # Get the first task with a deduplication key
                 first_dkey = dkey_tasks[0].data["deduplication_key"]
 
                 # Fresh query to avoid issues with the previous query
                 query = self.build_pop_query(session, scheduler_id, filters)
+                if excluded_rate_limit_groups:
+                    rate_limit_group = models.TaskDB.data["boefje"]["rate_limit_group"].astext
+                    query = query.filter(
+                        rate_limit_group.is_(None) | rate_limit_group.notin_(excluded_rate_limit_groups)
+                    )
 
                 # Filter the query to only include tasks with the same deduplication key
                 item_orm = (
