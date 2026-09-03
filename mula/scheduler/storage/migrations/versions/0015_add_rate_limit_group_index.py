@@ -20,10 +20,7 @@ def upgrade():
     op.create_index(
         "ix_tasks_rate_limit_group",
         "tasks",
-        [
-            "scheduler_id",
-            sa.literal_column("(data -> 'boefje' ->> 'rate_limit_group')"),
-        ],
+        ["scheduler_id", sa.literal_column("(data -> 'boefje' ->> 'rate_limit_group')")],
         unique=False,
     )
 
