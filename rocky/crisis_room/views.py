@@ -9,6 +9,7 @@ from account.mixins import OrganizationView
 from django.conf import settings
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
 from django.db import IntegrityError
 from django.db.models.manager import BaseManager
 from django.http import HttpResponse
@@ -16,6 +17,7 @@ from django.http.request import HttpRequest
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.text import slugify
+from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from httpx import HTTPStatusError, ReadTimeout
@@ -24,7 +26,7 @@ from reports.report_types.findings_report.report import SEVERITY_OPTIONS
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES
 
 from crisis_room.forms import AddDashboardForm
-from crisis_room.models import MAX_POSITION, Dashboard, DashboardItem
+from crisis_room.models import MAX_POSITION, AuditLog, Dashboard, DashboardItem
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference, ScanLevel, ScanProfileType
@@ -329,6 +331,22 @@ class CrisisRoomView(TemplateView):
         return context
 
 
+class AuditLogView(TemplateView):
+    """Recent user actions for every organization the user may access."""
+
+    template_name = "audit_log.html"
+    paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        page_number = self.request.GET.get("page", 1)
+        logs = AuditLog.objects.filter(organization__in=self.request.user.organizations).select_related("organization")
+        paginator = Paginator(logs, self.paginate_by)
+        context["audit_logs"] = paginator.page(page_number)
+        context["breadcrumbs"] = [{"url": reverse("crisis_room_audit_log"), "text": _("Activity log")}]
+        return context
+
+
 class OrganizationsCrisisRoomLandingView(OrganizationView, TemplateView):
     template_name = "organization_crisis_room.html"
 
@@ -347,6 +365,30 @@ class OrganizationsCrisisRoomLandingView(OrganizationView, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["add_dashboard_form"] = AddDashboardForm
+        return context
+
+
+class OrganizationAuditLogView(OrganizationView, TemplateView):
+    """Recent user actions for one organization."""
+
+    template_name = "audit_log.html"
+    paginate_by = 50
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["dashboards"] = Dashboard.objects.filter(organization=self.organization)
+        page_number = self.request.GET.get("page", 1)
+        logs = AuditLog.objects.filter(organization=self.organization)
+        paginator = Paginator(logs, self.paginate_by)
+        context["audit_logs"] = paginator.page(page_number)
+        context["breadcrumbs"] = [
+            {
+                "url": reverse(
+                    "organization_crisis_room_audit_log", kwargs={"organization_code": self.organization.code}
+                ),
+                "text": _("Activity log"),
+            }
+        ]
         return context
 
 

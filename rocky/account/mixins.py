@@ -3,6 +3,7 @@ from functools import cached_property
 
 import structlog
 import structlog.contextvars
+from crisis_room.models import AuditLog
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.mixins import PermissionRequiredMixin
@@ -177,6 +178,13 @@ class OrganizationView(ContextMixin, View):
             sync=True,
         )
         logger.info("Declared scan profile created", event_code="800010", ooi=ooi_reference, level=level)
+        AuditLog.record(
+            user=self.request.user,
+            organization=self.organization,
+            action=AuditLog.Action.CLEARANCE_LEVEL_CHANGED,
+            object_type=ooi_reference.class_,
+            object_pk=ooi_reference,
+        )
 
         return True
 
@@ -191,6 +199,13 @@ class OrganizationView(ContextMixin, View):
             sync=True,
         )
         logger.info("Declared scan profiles created", event_code="800010", ooi_count=len(ooi_references), level=level)
+        AuditLog.record(
+            user=self.request.user,
+            organization=self.organization,
+            action=AuditLog.Action.CLEARANCE_LEVEL_CHANGED,
+            object_type="OOI",
+            object_label=str(_("%(count)s objects to L%(level)s")) % {"count": len(ooi_references), "level": level},
+        )
 
         return True
 

@@ -9,6 +9,9 @@
                 <a href="{% url "organization_crisis_room" organization_code=dashboard.organization.code id=dashboard.id %}">{{ dashboard.name }}</a>
             </li>
         {% endfor %}
+        <li {% if active == "activity" %}aria-current="page"{% endif %}>
+            <a href="{% url 'organization_crisis_room_audit_log' organization.code %}">{% translate "Activity log" %}</a>
+        </li>
         {% if organization_member.can_add_dashboard %}
             <li>
                 <a href="#new-dashboard">+ {% translate "Add dashboard" %}</a>

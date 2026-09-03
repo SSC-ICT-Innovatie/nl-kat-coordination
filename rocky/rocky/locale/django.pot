@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 11:17+0000\n"
+"POT-Creation-Date: 2026-09-03 09:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -254,6 +254,11 @@ msgid "Backup token"
 msgstr ""
 
 #: account/mixins.py
+#, python-format
+msgid "%(count)s objects to L%(level)s"
+msgstr ""
+
+#: account/mixins.py
 msgid "Clearance level has been set."
 msgstr ""
 
@@ -346,7 +351,7 @@ msgstr ""
 msgid "Member type"
 msgstr ""
 
-#: account/templates/account_detail.html
+#: account/templates/account_detail.html crisis_room/templates/audit_log.html
 #: crisis_room/templates/partials/crisis_room_findings_table.html
 #: rocky/templates/tasks/normalizers.html
 msgid "Organization"
@@ -665,6 +670,46 @@ msgid "Finding (Z-A)"
 msgstr ""
 
 #: crisis_room/models.py
+msgid "Set indemnification"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Added object"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Updated object"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Deleted object"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Changed clearance level"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Enabled plugin"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Disabled plugin"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Changed plugin settings"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "Deleted plugin settings"
+msgstr ""
+
+#: crisis_room/models.py
+msgid "System"
+msgstr ""
+
+#: crisis_room/models.py
 msgid "Findings Dashboard"
 msgstr ""
 
@@ -707,10 +752,48 @@ msgstr ""
 msgid "Max dashboard items reached."
 msgstr ""
 
-#: crisis_room/templates/crisis_room.html
+#: crisis_room/templates/audit_log.html crisis_room/templates/crisis_room.html
 #: crisis_room/templates/organization_crisis_room.html
 #: rocky/templates/header.html
 msgid "Crisis room"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+#: crisis_room/templates/crisis_room_header.html
+#: crisis_room/templates/organization_crisis_room_header.html
+#: crisis_room/views.py
+msgid "Activity log"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+msgid "Recent recorded user actions are shown below."
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+msgid "Recent user actions"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+msgid "Date and time"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+msgid "User"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+msgid "Action"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+#: katalogus/templates/change_clearance_level.html
+#: reports/templates/report_overview/report_history_table.html
+#: reports/templates/summary/ooi_selection.html rocky/views/mixins.py
+msgid "Object"
+msgstr ""
+
+#: crisis_room/templates/audit_log.html
+msgid "No user actions have been recorded yet."
 msgstr ""
 
 #: crisis_room/templates/crisis_room.html
@@ -1602,12 +1685,6 @@ msgstr ""
 #: reports/report_types/aggregate_organisation_report/appendix.html
 #: reports/templates/summary/report_asset_overview.html
 msgid "Selected objects"
-msgstr ""
-
-#: katalogus/templates/change_clearance_level.html
-#: reports/templates/report_overview/report_history_table.html
-#: reports/templates/summary/ooi_selection.html rocky/views/mixins.py
-msgid "Object"
 msgstr ""
 
 #: katalogus/templates/change_clearance_level.html
@@ -5829,7 +5906,7 @@ msgstr ""
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
-#: rocky/templates/partials/ooi_list_toolbar.html rocky/views/ooi_add.py
+#: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Add object"
 msgstr ""
 
@@ -7256,6 +7333,10 @@ msgstr ""
 
 #: rocky/views/health.py
 msgid "Beautified"
+msgstr ""
+
+#: rocky/views/indemnification_add.py
+msgid "Scanning indemnification"
 msgstr ""
 
 #: rocky/views/indemnification_add.py
