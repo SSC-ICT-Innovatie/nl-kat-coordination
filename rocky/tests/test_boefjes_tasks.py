@@ -1,6 +1,7 @@
 import pytest
 from django.http import Http404
-from pytest_django.asserts import assertContains
+from django.utils.translation import override
+from pytest_django.asserts import assertContains, assertNotContains
 
 from rocky.scheduler import SchedulerTooManyRequestError
 from rocky.views.bytes_raw import BytesRawView
@@ -29,6 +30,17 @@ def test_tasks_view_simple(rf, client_member, mock_scheduler, mock_scheduler_cli
     response = BoefjesTaskListView.as_view()(request, organization_code=client_member.organization.code)
 
     assertContains(response, "Completed")
+
+
+def test_tasks_view_status_translated(rf, client_member, mock_scheduler, mock_scheduler_client_task_list):
+    """#4234: the status label in the task list rows must follow the active language,
+    matching the status filter dropdown (which is translated via ChoiceField labels)."""
+    request = setup_request(rf.get("boefjes_task_list"), client_member.user)
+    response = BoefjesTaskListView.as_view()(request, organization_code=client_member.organization.code)
+
+    with override("nl"):
+        assertContains(response, "Voltooid")
+        assertNotContains(response, ">Completed<")
 
 
 def test_reschedule_task(rf, client_member, mock_scheduler, task):
