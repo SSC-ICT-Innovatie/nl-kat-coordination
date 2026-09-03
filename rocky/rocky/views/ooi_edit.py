@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from enum import Enum
-from urllib.parse import quote
 
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
@@ -66,7 +65,7 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
                     kwargs={
                         "organization_code": self.organization.code,
                         "temporal_context": self.temporal_context,
-                        "ooi": quote(self.ooi.primary_key, safe=""),
+                        "ooi": self.ooi,
                     },
                 ),
                 "text": _("Edit"),

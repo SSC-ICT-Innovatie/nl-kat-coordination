@@ -1,7 +1,6 @@
 import json
 from datetime import datetime, timezone
 from typing import Any
-from urllib.parse import quote
 
 from account.models import KATUser
 from django import template
@@ -24,27 +23,23 @@ def app_url(context, viewname, *args, **kwargs):
     Both can be nulled by setting them to None, or overwritten by setting them
     to any other value."""
     if "organization" in kwargs and kwargs["organization"] is None:
-        # specified to be uset by None
+        # explicit removal requested
         del kwargs["organization"]
     else:
         organization = context.get("organization")
         if organization is not None:
             kwargs.setdefault("organization_code", organization.code)
 
-    temporal_context = context.get("temporal_context", "now")
+    temporal_context = context.get("observed_at", "now")
     if "temporal_context" in kwargs:
         if kwargs["temporal_context"] is None:
+            # explicit removal requested
             del kwargs["temporal_context"]
-        elif kwargs["temporal_context"] != "now":
-            # prefix the given date with 'at-'
-            urldate = parse_observed_at(kwargs["temporal_context"]).strftime("%Y-%m-%d %H:%M:%S.%f")
-            kwargs["temporal_context"] = f"at-{urldate}"
     elif temporal_context is not None:
         kwargs.setdefault("temporal_context", temporal_context)
 
-    if "ooi" in kwargs:
-        kwargs["ooi"] = quote(str(kwargs["ooi"]), safe="")
-
+    if "ooi" in kwargs and not isinstance(kwargs["ooi"], str):
+        kwargs["ooi"] = str(kwargs["ooi"])
     return reverse(viewname, args=args, kwargs=kwargs)
 
 

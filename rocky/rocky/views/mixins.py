@@ -5,7 +5,6 @@ from datetime import datetime, timedelta, timezone
 from functools import cached_property
 from operator import attrgetter
 from typing import Literal, TypedDict, cast
-from urllib.parse import quote
 
 import structlog
 from account.mixins import OrganizationView
@@ -106,48 +105,25 @@ class ObservedAtMixin(ContextMixin, View):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-
-        temporal_context = kwargs.get("temporal_context", "now")
-        self.raw_temporal_context: str | None = None
-        if temporal_context != "now":
-            self.raw_temporal_context = (
-                temporal_context.removeprefix("at-") if temporal_context.startswith("at-") else temporal_context
-            )
+        self.temporal_context: datetime | None = kwargs.get("temporal_context")
 
     @cached_property
     def is_historic_view(self) -> bool:
         """Are we dealing with a historic view? or are we looking at the 'now'"""
-        return self.raw_temporal_context is not None
+        return self.temporal_context is not None
 
     @cached_property
     def observed_at(self) -> datetime:
-        """Property that holds the datetime, useful when constrcuting queries"""
-        observed_at = self.raw_temporal_context
-        # handle empty input
-        if observed_at is not None:
-            # handle date only input
-            try:
-                # returning 23:59 of date_object in UTC timezone
-                return datetime.combine(
-                    datetime.strptime(observed_at, "%Y-%m-%d"), datetime.max.time(), tzinfo=timezone.utc
-                )
-            except ValueError:
-                pass
-            # handle iso format input
-            try:
-                parsed = datetime.fromisoformat(observed_at)
-                if parsed.tzinfo is None:
-                    parsed = parsed.replace(tzinfo=timezone.utc)
-                return parsed
-            except ValueError:
-                messages.error(self.request, _("Can not parse date, falling back to show current date."))
+        """Property that holds the datetime, useful when constructing queries"""
+        if self.temporal_context is not None:
+            return self.temporal_context
         return datetime.now(timezone.utc)
 
     @cached_property
-    def temporal_context(self) -> str:
-        """Property that holds the temporal context as used in urls / routes"""
+    def temporal_string(self) -> str:
+        """Property that holds the temporal context as a string"""
         if self.is_historic_view:
-            return f"at-{self.observed_at.strftime('%Y-%m-%d %H:%M:%S.%f')}"
+            return str(self.temporal_context)
         return "now"
 
     @cached_property
@@ -157,12 +133,7 @@ class ObservedAtMixin(ContextMixin, View):
 
     def get_temporal_url(self, observed_at: datetime | None) -> str:
         kwargs = self.request.resolver_match.kwargs.copy()
-
-        if observed_at is None:
-            kwargs["temporal_context"] = "now"
-        else:
-            kwargs["temporal_context"] = f"at-{observed_at.strftime('%Y-%m-%d %H:%M:%S.%f')}"
-
+        kwargs["temporal_context"] = observed_at
         return reverse(self.request.resolver_match.view_name, kwargs=kwargs)
 
     @cached_property
@@ -195,7 +166,6 @@ class ObservedAtMixin(ContextMixin, View):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["observed_at_form"] = self.get_connector_form()
         context["observed_at"] = self.observed_at
         context["temporal_context"] = self.temporal_context
         context["historic_view"] = self.is_historic_view
@@ -590,7 +560,7 @@ class SingleOOIMixin(OctopoesView):
                     kwargs={
                         "organization_code": self.organization.code,
                         "temporal_context": self.temporal_context,
-                        "ooi": quote(self.ooi.primary_key, safe=""),
+                        "ooi": self.ooi,
                     },
                 ),
                 "text": self.ooi.human_readable,

@@ -85,8 +85,6 @@ class UnboundOrganizationView(ContextMixin, View):
 
 class OrganizationView(ContextMixin, View):
     def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-
         organization_code = kwargs["organization_code"]
         # bind organization_code to log context
         structlog.contextvars.bind_contextvars(organization_code=organization_code)
@@ -97,20 +95,18 @@ class OrganizationView(ContextMixin, View):
             raise Http404()
 
         try:
-            self.organization_member = OrganizationMember.objects.get(
-                user=self.request.user, organization=self.organization
-            )
+            self.organization_member = OrganizationMember.objects.get(user=request.user, organization=self.organization)
         except OrganizationMember.DoesNotExist:
-            if self.request.user.is_superuser:
+            if request.user.is_superuser:
                 clearance_level = 4
-            elif self.request.user.has_perm("tools.can_access_all_organizations"):
+            elif request.user.has_perm("tools.can_access_all_organizations"):
                 clearance_level = -1
             else:
                 raise Http404()
 
             # Only the Python object is created, it is not saved to the database.
             self.organization_member = OrganizationMember(
-                user=self.request.user,
+                user=request.user,
                 organization=self.organization,
                 status=OrganizationMember.STATUSES.ACTIVE,
                 trusted_clearance_level=clearance_level,
@@ -119,6 +115,7 @@ class OrganizationView(ContextMixin, View):
 
         if self.organization_member.blocked:
             raise PermissionDenied()
+        super().setup(request, *args, **kwargs)
 
     @cached_property
     def indemnification_present(self):

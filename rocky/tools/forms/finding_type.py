@@ -1,4 +1,3 @@
-from datetime import datetime, timezone
 from typing import Any
 
 from django import forms
@@ -6,9 +5,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import Reference
-from octopoes.models.exception import ObjectNotFoundException
-from tools.forms.base import BaseRockyForm, DataListInput, DateTimeInput
+from tools.forms.base import BaseRockyForm, DateTimeInput
 from tools.forms.settings import (
     FINDING_DATETIME_HELP_TEXT,
     FINDING_TYPE_IDS_HELP_TEXT,
@@ -79,9 +76,7 @@ class FindingTypeAddForm(BaseRockyForm):
 
 
 class FindingAddForm(BaseRockyForm):
-    ooi_id = forms.CharField(
-        label="OOI", widget=DataListInput(attrs={"placeholder": _("Click to select one of the available options")})
-    )
+    ooi_id = forms.CharField(label="OOI")
     finding_type_ids = forms.CharField(
         label=_("Finding types"),
         widget=forms.Textarea(
@@ -111,28 +106,16 @@ CVE-2021-00000""",
     date = forms.DateTimeField(
         label=_("Date/Time (UTC)"),
         widget=DateTimeInput(format="%Y-%m-%dT%H:%M"),
-        initial=lambda: datetime.now(tz=timezone.utc),
+        initial=None,
         help_text=FINDING_DATETIME_HELP_TEXT,
     )
 
-    def __init__(self, connector: OctopoesAPIConnector, ooi_list: list[tuple[str, str]], *args: Any, **kwargs: Any):
+    def __init__(self, connector: OctopoesAPIConnector, *args: Any, **kwargs: Any):
         self.octopoes_connector = connector
+        self.observed_at = kwargs["observed_at"]
+        self.ooi_id = kwargs["ooi_id"]
+        del kwargs["observed_at"]
+        del kwargs["ooi_id"]
         super().__init__(*args, **kwargs)
-        self.set_choices_for_widget("ooi_id", ooi_list)
-
-    def clean_date(self):
-        data = self.cleaned_data["date"]
-
-        # date should not be in the future
-        if data > datetime.now(tz=timezone.utc):
-            raise ValidationError(_("Doc! I'm from the future, I'm here to take you back!"))
-
-        return data
-
-    def clean_ooi_id(self):
-        try:
-            data = self.cleaned_data["ooi_id"]
-            self.octopoes_connector.get(Reference.from_str(data), datetime.now(timezone.utc))
-            return data
-        except ObjectNotFoundException:
-            raise ValidationError(_("OOI doesn't exist"))
+        self.set_choices_for_widget("ooi_id", self.ooi_id)
+        self.set_choices_for_widget("date", self.observed_at)

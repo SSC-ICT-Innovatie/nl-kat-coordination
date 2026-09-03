@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 from typing import Literal
-from urllib.parse import quote
 
 from django.forms import Form
 from django.http import Http404
@@ -183,7 +182,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
                 "url": reverse(
                     "ooi_detail",
                     kwargs={
-                        "ooi": quote(self.ooi.primary_key, safe=""),
+                        "ooi": self.ooi,
                         "organization_code": self.organization.code,
                         "temporal_context": self.temporal_context,
                     },
@@ -223,9 +222,7 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             if end_valid_time is not None:
                 end_valid_time = end_valid_time.replace(tzinfo=timezone.utc)
             new_ooi = self.ooi_class.model_validate(form.cleaned_data)
-            create_ooi(
-                self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
-            )
+            create_ooi(self.octopoes_api_connector, self.bytes_client, new_ooi, self.observed_at, end_valid_time)
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:
             for error in exception.errors():
@@ -238,11 +235,7 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
     def get_ooi_success_url(self, ooi: OOI) -> str:
         return reverse(
             "ooi_detail",
-            kwargs={
-                "ooi": quote(ooi.primary_key, safe=""),
-                "organization_code": self.organization.code,
-                "temporal_context": self.temporal_context,
-            },
+            kwargs={"ooi": ooi, "organization_code": self.organization.code, "temporal_context": self.temporal_context},
         )
 
     def get_readonly_fields(self) -> list:

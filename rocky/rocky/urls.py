@@ -1,9 +1,10 @@
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
-from django.urls import include, path
+from django.urls import include, path, register_converter
 from django.views.generic.base import TemplateView
 from reports.viewsets import ReportRecipeViewSet, ReportViewSet
 from rest_framework import routers
+from tools import urlconverters
 from tools.viewsets import OrganizationViewSet
 from two_factor.urls import urlpatterns as tf_urls
 
@@ -59,6 +60,9 @@ router.register(r"organization", OrganizationViewSet)
 router.register(r"report", ReportViewSet, basename="report")
 router.register(r"report-recipe", ReportRecipeViewSet, basename="report-recipe")
 
+register_converter(urlconverters.TemporalContextConverter, "tc")
+register_converter(urlconverters.OOIReferenceConverter, "ooi")
+
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/v1/", include(router.urls)),
@@ -80,25 +84,41 @@ urlpatterns += i18n_patterns(
     path(
         "<organization_code>/settings/indemnifications/", IndemnificationAddView.as_view(), name="indemnification_add"
     ),
-    path("<organization_code>/<temporal_context>/findings", FindingListView.as_view(), name="finding_list"),
-    path("<organization_code>/<temporal_context>/findings/<ooi>", FindingListView.as_view(), name="finding_list"),
-    path("<organization_code>/<temporal_context>/findings/<ooi>/add/", FindingAddView.as_view(), name="finding_add"),
-    path("<organization_code>/<temporal_context>/findings/<ooi>/mute/", MuteFindingView.as_view(), name="finding_mute"),
+    path("<organization_code>/<tc:temporal_context>/findings", FindingListView.as_view(), name="finding_list"),
     path(
-        "<organization_code>/<temporal_context>/findings/mute/bulk/",
+        "<organization_code>/<tc:temporal_context>/findings/mute/bulk/",
         MuteFindingsBulkView.as_view(),
         name="finding_mute_bulk",
     ),
     path(
-        "<organization_code>/<temporal_context>/findings/finding_type/add/",
+        "<organization_code>/<tc:temporal_context>/findings/<ooi:ooi>", FindingListView.as_view(), name="finding_list"
+    ),
+    path(
+        "<organization_code>/<tc:temporal_context>/findings/<ooi:ooi>/add/",
+        FindingAddView.as_view(),
+        name="finding_add",
+    ),
+    path(
+        "<organization_code>/<tc:temporal_context>/findings/<ooi:ooi>/mute/",
+        MuteFindingView.as_view(),
+        name="finding_mute",
+    ),
+    path(
+        "<organization_code>/<tc:temporal_context>/finding_type/add/",
         FindingTypeAddView.as_view(),
         name="finding_type_add",
     ),
-    path("<organization_code>/<temporal_context>/objects/<ooi>/graph/", OOIGraphView.as_view(), name="ooi_graph"),
-    path("<organization_code>/<temporal_context>/objects/<ooi>/summary/", OOISummaryView.as_view(), name="ooi_summary"),
-    path("<organization_code>/<temporal_context>/objects/<ooi>/tree/", OOITreeView.as_view(), name="ooi_tree"),
     path(
-        "<organization_code>/<temporal_context>/objects/<ooi>/findings/",
+        "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/graph/", OOIGraphView.as_view(), name="ooi_graph"
+    ),
+    path(
+        "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/summary/",
+        OOISummaryView.as_view(),
+        name="ooi_summary",
+    ),
+    path("<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/tree/", OOITreeView.as_view(), name="ooi_tree"),
+    path(
+        "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/findings/",
         OOIFindingListView.as_view(),
         name="ooi_findings",
     ),
@@ -129,37 +149,40 @@ urlpatterns += i18n_patterns(
         name="organization_member_edit",
     ),
     path("<organization_code>/health/v1/", HealthChecks.as_view(), name="health_beautified"),
-    path("<organization_code>/<temporal_context>/objects/", OOIListView.as_view(), name="ooi_list"),
+    path("<organization_code>/<tc:temporal_context>/objects/", OOIListView.as_view(), name="ooi_list"),
     path(
-        "<organization_code>/<temporal_context>/objects/add/",
+        "<organization_code>/<tc:temporal_context>/objects/add/",
         OOIAddTypeSelectView.as_view(),
         name="ooi_add_type_select",
     ),
+    path("<organization_code>/<tc:temporal_context>/objects/add/<ooi_type>", OOIAddView.as_view(), name="ooi_add"),
     path(
-        "<organization_code>/<temporal_context>/objects/<ooi>/add-related/",
+        "<organization_code>/<tc:temporal_context>/objects/export", OOIListExportView.as_view(), name="ooi_list_export"
+    ),
+    path(
+        "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/add-related/",
         OOIRelatedObjectAddView.as_view(),
         name="ooi_add_related",
     ),
-    path("<organization_code>/<temporal_context>/objects/add/<ooi_type>/", OOIAddView.as_view(), name="ooi_add"),
-    path("<organization_code>/<temporal_context>/objects/<ooi>/edit/", OOIEditView.as_view(), name="ooi_edit"),
-    path("<organization_code>/<temporal_context>/objects/<ooi>/delete", OOIDeleteView.as_view(), name="ooi_delete"),
-    path("<organization_code>/<temporal_context>/objects/<ooi>/detail", OOIDetailView.as_view(), name="ooi_detail"),
-    path("<organization_code>/<temporal_context>/objects/export", OOIListExportView.as_view(), name="ooi_list_export"),
+    path("<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/edit", OOIEditView.as_view(), name="ooi_edit"),
     path(
-        "<organization_code>/<temporal_context>/objects/<ooi>/scan-profile/",
+        "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/delete", OOIDeleteView.as_view(), name="ooi_delete"
+    ),
+    path(
+        "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/scan-profile/",
         ScanProfileDetailView.as_view(),
         name="scan_profile_detail",
     ),
-    path("<organization_code>/<temporal_context>/objects/scans/", ScanListView.as_view(), name="scan_list"),
-    path("<organization_code>/<temporal_context>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),
-    path("<organization_code>/<temporal_context>/objects/upload/raw/", UploadRaw.as_view(), name="upload_raw"),
+    path("<organization_code>/<tc:temporal_context>/objects/scans/", ScanListView.as_view(), name="scan_list"),
+    path("<organization_code>/<tc:temporal_context>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),
+    path("<organization_code>/<tc:temporal_context>/objects/upload/raw/", UploadRaw.as_view(), name="upload_raw"),
     path(
-        "<organization_code>/<temporal_context>/objects/upload/raw/<mime_type>",
+        "<organization_code>/<tc:temporal_context>/objects/upload/raw/<mime_type>",
         UploadRaw.as_view(),
         name="upload_raw_typed",
     ),
+    path("<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>", OOIDetailView.as_view(), name="ooi_detail"),
     path("<organization_code>/tasks/", BoefjesTaskListView.as_view(), name="task_list"),
-    path("<organization_code>/<temporal_context>/tasks/", BoefjesTaskListView.as_view(), name="task_list"),
     path("<organization_code>/tasks/boefjes", BoefjesTaskListView.as_view(), name="boefjes_task_list"),
     path("<organization_code>/tasks/boefjes/<task_id>", BoefjeTaskDetailView.as_view(), name="boefje_task_view"),
     path("<organization_code>/tasks/normalizers", NormalizersTaskListView.as_view(), name="normalizers_task_list"),
@@ -170,5 +193,5 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/tasks/<task_id>/download/", DownloadTaskDetail.as_view(), name="download_task_meta"),
     path("<organization_code>/bytes/<boefje_meta_id>/raw", BytesRawView.as_view(), name="bytes_raw"),
     path("<organization_code>/kat-alogus/", include("katalogus.urls"), name="katalogus"),
-    path("<organization_code>/<temporal_context>/reports/", include("reports.urls"), name="reports"),
+    path("<organization_code>/<tc:temporal_context>/reports/", include("reports.urls"), name="reports"),
 )

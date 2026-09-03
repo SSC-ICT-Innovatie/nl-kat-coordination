@@ -1,5 +1,3 @@
-from urllib.parse import quote
-
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
@@ -55,7 +53,7 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
                 kwargs={
                     "organization_code": self.organization.code,
                     "temporal_context": self.temporal_context,
-                    "ooi": quote(self.ooi.primary_key, safe=""),
+                    "ooi": self.ooi,
                 },
             ),
             "text": _("Tree Visualisation"),
@@ -80,7 +78,7 @@ class OOISummaryView(OOITreeView):
                 kwargs={
                     "organization_code": self.organization.code,
                     "temporal_context": self.temporal_context,
-                    "ooi": quote(self.ooi.primary_key, safe=""),
+                    "ooi": self.ooi,
                 },
             ),
             "text": _("Summary"),
@@ -101,7 +99,7 @@ class OOIGraphView(OOITreeView):
                 kwargs={
                     "organization_code": self.organization.code,
                     "temporal_context": self.temporal_context,
-                    "ooi": quote(self.ooi.primary_key, safe=""),
+                    "ooi": self.ooi,
                 },
             ),
             "text": _("Graph Visualisation"),
@@ -126,11 +124,7 @@ def hydrate_branch(branch: dict, organization_code: str, temporal_context) -> di
     branch["display_name"] = branch["human_readable"]
     branch["graph_url"] = reverse(
         "ooi_graph",
-        kwargs={
-            "organization_code": organization_code,
-            "temporal_context": temporal_context,
-            "ooi": quote(branch["id"], safe=""),
-        },
+        kwargs={"organization_code": organization_code, "temporal_context": temporal_context, "ooi": branch["id"]},
     )
     if branch.get("children"):
         branch["children"] = [

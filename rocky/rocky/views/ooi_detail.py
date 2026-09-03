@@ -96,9 +96,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context["ooi"] = self.ooi
-
         try:
             enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
         except KATalogusError:

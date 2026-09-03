@@ -16,6 +16,8 @@ class BaseRockyModelForm(forms.ModelForm):
 
 class BaseRockyForm(forms.Form):
     def __init__(self, *args, **kwargs):
+        if "temporal_context" in kwargs:
+            del kwargs["temporal_context"]
         super().__init__(*args, **kwargs)
         self.label_suffix = ""  # Removes : as label suffix
 
