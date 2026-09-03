@@ -147,3 +147,70 @@ def test_finding_is_anchored_to_the_csp_header():
     finding = next(o for o in results if isinstance(o, Finding))
     assert finding.ooi == csp_header.reference
     assert KATFindingType(id="KAT-CSP-VULNERABILITIES") in results
+
+
+STRICT_WITH_HOSTS = {
+    "default-src": ["'self'"],
+    "base-uri": ["'self'"],
+    "frame-ancestors": ["'none'"],
+    "style-src": ["https://cdn.example.com", "https://fonts.trusted.example/css/"],
+}
+
+
+def test_no_allowlist_config_accepts_any_host():
+    results, _ = _run(STRICT_WITH_HOSTS)
+
+    assert not any(isinstance(o, Finding) for o in results)
+
+
+def test_allowlist_reports_hosts_outside_it():
+    description = _description(_run(STRICT_WITH_HOSTS, config={"allowed_hosts": "cdn.example.com"})[0])
+
+    assert "CSP source host(s) not in the configured allowlist: fonts.trusted.example." in description
+
+
+def test_allowlist_accepts_exact_and_wildcard_entries():
+    results, _ = _run(STRICT_WITH_HOSTS, config={"allowed_hosts": "cdn.example.com,*.trusted.example"})
+
+    assert not any(isinstance(o, Finding) for o in results)
+
+
+def test_allowlist_ignores_keywords_schemes_and_nonces():
+    mapping = {
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "frame-ancestors": ["'none'"],
+        "img-src": ["data:"],
+        "script-src": ["'nonce-r4nd0m'", "'sha256-abc123'"],
+    }
+
+    results, _ = _run(mapping, config={"allowed_hosts": "cdn.example.com"})
+
+    assert not any(isinstance(o, Finding) for o in results)
+
+
+def test_allowlist_strips_scheme_port_and_path_and_ignores_case():
+    mapping = {
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "frame-ancestors": ["'none'"],
+        "style-src": ["https://CDN.Example.com:8443/styles/"],
+    }
+
+    results, _ = _run(mapping, config={"allowed_hosts": "cdn.example.com"})
+
+    assert not any(isinstance(o, Finding) for o in results)
+
+
+def test_allowlist_leaves_wildcard_sources_to_the_wildcard_check():
+    mapping = {
+        "default-src": ["'self'"],
+        "base-uri": ["'self'"],
+        "frame-ancestors": ["'none'"],
+        "style-src": ["*.evil.example"],
+    }
+
+    description = _description(_run(mapping, config={"allowed_hosts": "cdn.example.com"})[0])
+
+    assert "wildcard" in description
+    assert "allowlist" not in description
