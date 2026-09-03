@@ -13,6 +13,18 @@ from reports.report_types.definitions import Report, ReportPlugins
 TREE_DEPTH = 9
 SEVERITY_OPTIONS = [severity.value for severity in RiskLevelSeverity]
 
+# Software is _traversable=False, so get_tree prunes at Software and never
+# reaches findings bound to it. These query paths supplement the tree by
+# collecting findings on Software reachable from the input OOI.
+_SOFTWARE_FINDING_PATHS = {
+    Hostname: "Hostname.<netloc [is HostnameHTTPURL].<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+    IPAddressV4: "IPAddressV4.<address [is ResolvedHostname].hostname.<netloc [is HostnameHTTPURL]"
+    ".<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+    IPAddressV6: "IPAddressV6.<address [is ResolvedHostname].hostname.<netloc [is HostnameHTTPURL]"
+    ".<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+    URL: "URL.web_url[is HostnameHTTPURL].<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+}
+
 
 class FindingsReport(Report):
     id = "findings-report"
@@ -51,6 +63,17 @@ class FindingsReport(Report):
         ).store
 
         findings = [ooi for ooi in tree.values() if ooi.ooi_type == "Finding"]
+
+        # Software is non-traversable, so get_tree never reaches findings bound
+        # to Software. Query them separately and merge.
+        software_path = _SOFTWARE_FINDING_PATHS.get(reference.class_type)
+        if software_path:
+            findings.extend(
+                f
+                for f in self.octopoes_api_connector.query(software_path, valid_time, reference)
+                if isinstance(f, Finding)
+            )
+
         all_finding_types = self.octopoes_api_connector.list_objects(types={FindingType}, valid_time=valid_time).items
 
         for finding in findings:
