@@ -2,6 +2,7 @@ from typing import Any
 
 import structlog
 from account.mixins import OrganizationView
+from django.conf import settings
 from django.http import HttpRequest, JsonResponse
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
@@ -22,6 +23,19 @@ class Health(OrganizationView, View):
     def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
         octopoes_connector = self.octopoes_api_connector
         rocky_health = get_rocky_health(self.organization.code, octopoes_connector)
+        return JsonResponse(rocky_health.model_dump())
+
+
+class GlobalHealthView(View):
+    """Non-org-scoped health endpoint for monitoring and load balancers (#4231).
+
+    Checks all backing services without requiring an organization context.
+    Octopoes is checked via its root health endpoint, which does not need
+    a specific organization.
+    """
+
+    def get(self, request: HttpRequest, *args: Any, **kwargs: Any) -> JsonResponse:
+        rocky_health = get_rocky_health_global()
         return JsonResponse(rocky_health.model_dump())
 
 
@@ -48,7 +62,19 @@ def get_octopoes_health(octopoes_api_connector: OctopoesAPIConnector) -> Service
     return octopoes_health
 
 
-def get_scheduler_health(organization_code: str) -> ServiceHealth:
+def get_octopoes_root_health() -> ServiceHealth:
+    try:
+        connector = OctopoesAPIConnector(settings.OCTOPOES_API, "", timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT)
+        octopoes_health = ServiceHealth.model_validate(connector.root_health().model_dump())
+    except HTTPError:
+        logger.exception("Error while retrieving Octopoes root health state")
+        octopoes_health = ServiceHealth(
+            service="octopoes", healthy=False, additional="Could not connect to Octopoes. Service is possibly down"
+        )
+    return octopoes_health
+
+
+def get_scheduler_health(organization_code: str | None = None) -> ServiceHealth:
     try:
         scheduler_health = scheduler_client(organization_code).health()
     except SchedulerError:
@@ -75,6 +101,18 @@ def get_rocky_health(organization_code: str, octopoes_api_connector: OctopoesAPI
         service="rocky", healthy=services_healthy, version=__version__, results=services, additional=additional
     )
     return rocky_health
+
+
+def get_rocky_health_global() -> ServiceHealth:
+    services = [get_octopoes_root_health(), get_katalogus_health(), get_scheduler_health(), get_bytes_health()]
+
+    services_healthy = all(service.healthy for service in services)
+    additional = None
+    if not services_healthy:
+        additional = "Rocky will not function properly. Not all services are healthy."
+    return ServiceHealth(
+        service="rocky", healthy=services_healthy, version=__version__, results=services, additional=additional
+    )
 
 
 def flatten_health(health_: ServiceHealth) -> list[ServiceHealth]:
