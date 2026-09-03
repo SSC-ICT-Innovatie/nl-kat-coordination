@@ -143,9 +143,7 @@ class OnboardingOrganizationSelectView(PermissionRequiredMixin, IntroductionRegi
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs["organizations"] = Organization.objects.filter(
-            members__user=self.request.user, members__blocked=False
-        )
+        kwargs["organizations"] = Organization.objects.filter(members__user=self.request.user, members__blocked=False)
         return kwargs
 
     def get_context_data(self, **kwargs):

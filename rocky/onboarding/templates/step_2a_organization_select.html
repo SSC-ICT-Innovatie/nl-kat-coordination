@@ -29,7 +29,8 @@
                     <button type="submit">{% translate "Continue" %}</button>
                 </form>
                 {% if may_create_organization %}
-                    <a class="button ghost" href="{% url "step_2a_organization_setup" %}?new=1">{% translate "Or create a new organization" %}</a>
+                    <a class="button ghost"
+                       href="{% url "step_2a_organization_setup" %}?new=1">{% translate "Or create a new organization" %}</a>
                 {% endif %}
             </div>
         </section>
