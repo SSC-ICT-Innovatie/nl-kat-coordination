@@ -35,10 +35,9 @@ def test_tasks_view_simple(rf, client_member, mock_scheduler, mock_scheduler_cli
 def test_tasks_view_status_translated(rf, client_member, mock_scheduler, mock_scheduler_client_task_list):
     """#4234: the status label in the task list rows must follow the active language,
     matching the status filter dropdown (which is translated via ChoiceField labels)."""
-    request = setup_request(rf.get("boefjes_task_list"), client_member.user)
-    response = BoefjesTaskListView.as_view()(request, organization_code=client_member.organization.code)
-
     with override("nl"):
+        request = setup_request(rf.get("boefjes_task_list"), client_member.user)
+        response = BoefjesTaskListView.as_view()(request, organization_code=client_member.organization.code)
         assertContains(response, "Voltooid")
         assertNotContains(response, ">Completed<")
 
