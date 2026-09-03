@@ -1,0 +1,38 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+{% load static %}
+
+{% block content %}
+    {% include "header.html" with view_type="onboarding" %}
+
+    <main id="main-content">
+        <section>
+            {% include "partials/onboarding_header.html" %}
+
+            <div>
+                <h2>{% translate "Select an organization" %}</h2>
+                <p>
+                    {% blocktranslate trimmed %}
+                        You are already a member of one or more organizations.
+                        Select an existing organization to continue the onboarding in.
+                    {% endblocktranslate %}
+                </p>
+                <form novalidate
+                      action="{% url "step_2a_organization_select" %}"
+                      method="post"
+                      class="help layout-form">
+                    {% csrf_token %}
+                    {% translate "Organization" as fieldset_legend %}
+                    {% include "partials/form/fieldset.html" with legend=fieldset_legend fields=form %}
+
+                    <button type="submit">{% translate "Continue" %}</button>
+                </form>
+                {% if may_create_organization %}
+                    <a class="button ghost"
+                       href="{% url "step_2a_organization_setup" %}?new=1">{% translate "Or create a new organization" %}</a>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+{% endblock content %}
