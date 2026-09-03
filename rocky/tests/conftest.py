@@ -1340,6 +1340,7 @@ class MockOctopoesAPIConnector:
 
     def __init__(self, valid_time: datetime):
         self.valid_time = valid_time
+        self.queries = {}
 
     def get(self, reference: Reference, valid_time: datetime | None = None) -> OOI:
         return self.oois[reference]
@@ -1352,15 +1353,16 @@ class MockOctopoesAPIConnector:
     def query(
         self, path: str, valid_time: datetime, source: Reference | str | None = None, offset: int = 0, limit: int = 50
     ) -> list[OOI]:
-        return self.queries[path][source]
+        return self.queries.get(path, {}).get(source, [])
 
     def query_many(
         self, path: str, valid_time: datetime, sources: list[OOI | Reference | str]
     ) -> list[tuple[str, OOIType]]:
         result = []
+        path_queries = self.queries.get(path, {})
 
         for source in sources:
-            for ooi in self.queries[path][str(source)]:
+            for ooi in path_queries.get(str(source), []):
                 result.append((str(source), ooi))
 
         return result
