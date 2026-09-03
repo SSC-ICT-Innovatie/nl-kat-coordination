@@ -1,10 +1,21 @@
 import pytest
+from django.contrib.messages import get_messages
 from django.core.exceptions import PermissionDenied
+from django.db import transaction
 from django.http import Http404
+from django.test import Client
+from django.urls import reverse
+from django_otp import DEVICE_ID_SESSION_KEY
 from pytest_django.asserts import assertContains, assertNotContains
 
 from rocky.views.organization_member_add import OrganizationMemberAddAccountTypeView, OrganizationMemberAddView
 from rocky.views.organization_member_edit import OrganizationMemberEditView
+from rocky.views.organization_member_superuser import (
+    SUPERUSER_ACCESS_GRANTED_EVENT_CODE,
+    SUPERUSER_ACCESS_REVOKED_EVENT_CODE,
+    GrantSuperuserAccessView,
+    RevokeSuperuserAccessView,
+)
 from tests.conftest import setup_request
 
 
@@ -157,6 +168,376 @@ def test_admin_edits_redteamer_to_block(rf, admin_member, redteam_member):
 
     redteam_member.refresh_from_db()
     assert redteam_member.blocked is True
+
+
+def test_superuser_sees_grant_superuser_action(rf, superuser_member, admin_member):
+    request = setup_request(rf.get("organization_member_edit"), superuser_member.user)
+    response = OrganizationMemberEditView.as_view()(
+        request, organization_code=admin_member.organization.code, pk=admin_member.id
+    )
+
+    assertContains(response, "Global account access")
+    assertContains(
+        response,
+        reverse(
+            "organization_member_grant_superuser",
+            kwargs={"organization_code": admin_member.organization.code, "pk": admin_member.id},
+        ),
+    )
+
+
+def test_admin_does_not_see_grant_superuser_action(rf, admin_member, redteam_member):
+    request = setup_request(rf.get("organization_member_edit"), admin_member.user)
+    response = OrganizationMemberEditView.as_view()(
+        request, organization_code=redteam_member.organization.code, pk=redteam_member.id
+    )
+
+    assertNotContains(response, "Global account access")
+    assertNotContains(response, "Grant superuser access")
+
+
+def test_superuser_can_view_grant_superuser_confirmation(rf, superuser_member, admin_member):
+    request = setup_request(rf.get("organization_member_grant_superuser"), superuser_member.user)
+    response = GrantSuperuserAccessView.as_view()(
+        request, organization_code=admin_member.organization.code, pk=admin_member.id
+    )
+
+    assertContains(response, "Grant superuser access")
+    assertContains(response, admin_member.user.email)
+    assertContains(response, "unrestricted access to every organization")
+    assertContains(response, "can be revoked again from the same member edit page")
+    assertContains(response, reverse("admin:account_katuser_change", args=[admin_member.user.id]))
+    assertContains(response, "csrfmiddlewaretoken")
+
+
+def test_superuser_can_grant_superuser_access(
+    rf, superuser_member, admin_member, log_output, django_capture_on_commit_callbacks
+):
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_grant_superuser"), superuser_member.user)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = GrantSuperuserAccessView.as_view()(
+            request, organization_code=admin_member.organization.code, pk=admin_member.id
+        )
+
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "organization_member_list", kwargs={"organization_code": admin_member.organization.code}
+    )
+
+    admin_member.user.refresh_from_db()
+    assert admin_member.user.is_superuser is True
+    assert admin_member.user.is_staff is True
+
+    audit_log = log_output.entries[-1]
+    assert audit_log["event"] == "Superuser access granted"
+    assert audit_log["event_code"] == SUPERUSER_ACCESS_GRANTED_EVENT_CODE
+    assert audit_log["actor_id"] == superuser_member.user.id
+    assert audit_log["target_id"] == admin_member.user.id
+    assert audit_log["previous_is_superuser"] is False
+    assert audit_log["previous_is_staff"] is False
+    assert audit_log["is_superuser"] is True
+    assert audit_log["is_staff"] is True
+    assert audit_log["changed_at"]
+
+
+def test_grant_superuser_access_does_not_log_a_rolled_back_change(
+    rf, superuser_member, admin_member, log_output, django_capture_on_commit_callbacks
+):
+    """A rolled-back grant emits no audit log: the view registers its log via
+    ``transaction.on_commit()``, and Django drops on_commit callbacks when the
+    enclosing transaction rolls back, so the logger must never fire."""
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_grant_superuser"), superuser_member.user)
+
+    with django_capture_on_commit_callbacks(execute=True), transaction.atomic():
+        GrantSuperuserAccessView.as_view()(
+            request, organization_code=admin_member.organization.code, pk=admin_member.id
+        )
+        # Force the enclosing transaction to roll back instead of committing.
+        transaction.set_rollback(True)
+
+    admin_member.user.refresh_from_db()
+    assert admin_member.user.is_superuser is False
+    assert admin_member.user.is_staff is False
+    assert not any(entry.get("event") == "Superuser access granted" for entry in log_output.entries)
+
+
+@pytest.mark.parametrize("actor_fixture", ["admin_member", "redteam_member", "client_member"])
+def test_non_superusers_cannot_grant_superuser_access(rf, request, actor_fixture, redteam_member):
+    actor = request.getfixturevalue(actor_fixture)
+    view_request = setup_request(rf.post("organization_member_grant_superuser"), actor.user)
+
+    with pytest.raises(PermissionDenied):
+        GrantSuperuserAccessView.as_view()(
+            view_request, organization_code=redteam_member.organization.code, pk=redteam_member.id
+        )
+
+    redteam_member.user.refresh_from_db()
+    assert redteam_member.user.is_superuser is False
+    assert redteam_member.user.is_staff is False
+
+
+def test_non_superuser_cannot_determine_if_grant_target_exists(rf, admin_member, redteam_member):
+    existing_target = setup_request(rf.post("organization_member_grant_superuser"), admin_member.user)
+    missing_target = setup_request(rf.post("organization_member_grant_superuser"), admin_member.user)
+
+    with pytest.raises(PermissionDenied):
+        GrantSuperuserAccessView.as_view()(
+            existing_target, organization_code=redteam_member.organization.code, pk=redteam_member.id
+        )
+
+    with pytest.raises(PermissionDenied):
+        GrantSuperuserAccessView.as_view()(
+            missing_target, organization_code=redteam_member.organization.code, pk=redteam_member.id + 100_000
+        )
+
+
+def test_grant_superuser_access_is_idempotent(rf, superuser_member, superuser_member_b, log_output):
+    superuser_member_b.user.is_staff = True
+    superuser_member_b.user.save(update_fields=["is_staff"])
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_grant_superuser"), superuser_member.user)
+    response = GrantSuperuserAccessView.as_view()(
+        request, organization_code=superuser_member_b.organization.code, pk=superuser_member_b.id
+    )
+
+    assert response.status_code == 302
+    superuser_member_b.user.refresh_from_db()
+    assert superuser_member_b.user.is_superuser is True
+    assert superuser_member_b.user.is_staff is True
+    assert [str(message) for message in get_messages(request)] == [
+        f"{superuser_member_b.user.email} already has superuser access."
+    ]
+    assert not any(entry.get("event") == "Superuser access granted" for entry in log_output.entries)
+
+
+def test_inactive_user_cannot_be_granted_superuser_access(rf, superuser_member, admin_member):
+    admin_member.user.is_active = False
+    admin_member.user.save(update_fields=["is_active"])
+    request = setup_request(rf.post("organization_member_grant_superuser"), superuser_member.user)
+
+    response = GrantSuperuserAccessView.as_view()(
+        request, organization_code=admin_member.organization.code, pk=admin_member.id
+    )
+
+    assert response.status_code == 302
+    admin_member.user.refresh_from_db()
+    assert admin_member.user.is_superuser is False
+    assert admin_member.user.is_staff is False
+    assert [str(message) for message in get_messages(request)] == [
+        f"{admin_member.user.email} is inactive and cannot be granted superuser access."
+    ]
+
+
+def test_grant_superuser_access_requires_csrf(superuser_member, client_member):
+    superuser_member.onboarded = True
+    superuser_member.save(update_fields=["onboarded"])
+    csrf_client = Client(enforce_csrf_checks=True)
+    csrf_client.force_login(superuser_member.user)
+    session = csrf_client.session
+    session[DEVICE_ID_SESSION_KEY] = superuser_member.user.staticdevice_set.get().persistent_id
+    session.save()
+    url = reverse(
+        "organization_member_grant_superuser",
+        kwargs={"organization_code": client_member.organization.code, "pk": client_member.id},
+    )
+
+    response = csrf_client.get(url)
+    assert response.status_code == 200
+
+    response = csrf_client.post(url)
+    assert response.status_code == 403
+    client_member.user.refresh_from_db()
+    assert client_member.user.is_superuser is False
+    assert client_member.user.is_staff is False
+
+    response = csrf_client.post(url, {"csrfmiddlewaretoken": csrf_client.cookies["csrftoken"].value})
+    assert response.status_code == 302
+    client_member.user.refresh_from_db()
+    assert client_member.user.is_superuser is True
+    assert client_member.user.is_staff is True
+
+
+def test_superuser_sees_revoke_superuser_action(rf, superuser_member, superuser_member_b):
+    request = setup_request(rf.get("organization_member_edit"), superuser_member.user)
+    response = OrganizationMemberEditView.as_view()(
+        request, organization_code=superuser_member_b.organization.code, pk=superuser_member_b.id
+    )
+
+    assertContains(response, "Global account access")
+    assertContains(
+        response,
+        reverse(
+            "organization_member_revoke_superuser",
+            kwargs={"organization_code": superuser_member_b.organization.code, "pk": superuser_member_b.id},
+        ),
+    )
+    assertNotContains(response, "Grant superuser access")
+
+
+def test_superuser_can_view_revoke_superuser_confirmation(rf, superuser_member, superuser_member_b):
+    request = setup_request(rf.get("organization_member_revoke_superuser"), superuser_member.user)
+    response = RevokeSuperuserAccessView.as_view()(
+        request, organization_code=superuser_member_b.organization.code, pk=superuser_member_b.id
+    )
+
+    assertContains(response, "Revoke superuser access")
+    assertContains(response, superuser_member_b.user.email.lower())
+    assertContains(response, "unrestricted access to every organization")
+    assertContains(response, "csrfmiddlewaretoken")
+
+
+def test_superuser_can_revoke_superuser_access(
+    rf, superuser_member, superuser_member_b, log_output, django_capture_on_commit_callbacks
+):
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_revoke_superuser"), superuser_member.user)
+    with django_capture_on_commit_callbacks(execute=True):
+        response = RevokeSuperuserAccessView.as_view()(
+            request, organization_code=superuser_member_b.organization.code, pk=superuser_member_b.id
+        )
+
+    assert response.status_code == 302
+    assert response.url == reverse(
+        "organization_member_list", kwargs={"organization_code": superuser_member_b.organization.code}
+    )
+
+    superuser_member_b.user.refresh_from_db()
+    assert superuser_member_b.user.is_superuser is False
+    assert superuser_member_b.user.is_staff is False
+
+    audit_log = log_output.entries[-1]
+    assert audit_log["event"] == "Superuser access revoked"
+    assert audit_log["event_code"] == SUPERUSER_ACCESS_REVOKED_EVENT_CODE
+    assert audit_log["actor_id"] == superuser_member.user.id
+    assert audit_log["target_id"] == superuser_member_b.user.id
+    assert audit_log["previous_is_superuser"] is True
+    assert audit_log["is_superuser"] is False
+    assert audit_log["is_staff"] is False
+    assert audit_log["changed_at"]
+
+
+def test_revoke_superuser_access_does_not_log_a_rolled_back_change(
+    rf, superuser_member, superuser_member_b, log_output, django_capture_on_commit_callbacks
+):
+    """A rolled-back revoke emits no audit log: on_commit callbacks are dropped
+    when the enclosing transaction rolls back, so the logger never fires."""
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_revoke_superuser"), superuser_member.user)
+
+    with django_capture_on_commit_callbacks(execute=True), transaction.atomic():
+        RevokeSuperuserAccessView.as_view()(
+            request, organization_code=superuser_member_b.organization.code, pk=superuser_member_b.id
+        )
+        transaction.set_rollback(True)
+
+    superuser_member_b.user.refresh_from_db()
+    assert superuser_member_b.user.is_superuser is True
+    assert not any(entry.get("event") == "Superuser access revoked" for entry in log_output.entries)
+
+
+def test_revoke_superuser_access_is_idempotent(rf, superuser_member, admin_member, log_output):
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_revoke_superuser"), superuser_member.user)
+    response = RevokeSuperuserAccessView.as_view()(
+        request, organization_code=admin_member.organization.code, pk=admin_member.id
+    )
+
+    assert response.status_code == 302
+    admin_member.user.refresh_from_db()
+    assert admin_member.user.is_superuser is False
+    assert admin_member.user.is_staff is False
+    assert [str(message) for message in get_messages(request)] == [
+        f"{admin_member.user.email} does not have superuser access."
+    ]
+    assert not any(entry.get("event") == "Superuser access revoked" for entry in log_output.entries)
+
+
+def test_revoke_warns_when_account_has_staff_access_without_superuser(rf, superuser_member, admin_member, log_output):
+    """An account with Django administration access but no superuser access is
+    not silently left as-is: Rocky points out the retained staff access so the
+    actor does not believe the revoke closed the administrative loop."""
+    admin_member.user.is_staff = True
+    admin_member.user.save(update_fields=["is_staff"])
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_revoke_superuser"), superuser_member.user)
+    response = RevokeSuperuserAccessView.as_view()(
+        request, organization_code=admin_member.organization.code, pk=admin_member.id
+    )
+
+    assert response.status_code == 302
+    admin_member.user.refresh_from_db()
+    assert admin_member.user.is_superuser is False
+    # is_staff is untouched: this flow only manages the superuser grant, not
+    # staff access set independently via Django administration.
+    assert admin_member.user.is_staff is True
+    assert [str(message) for message in get_messages(request)] == [
+        f"{admin_member.user.email} does not have superuser access but still has Django administration access; "
+        f"revoke that via Django administration."
+    ]
+    assert not any(entry.get("event") == "Superuser access revoked" for entry in log_output.entries)
+
+
+def test_revoke_refuses_last_active_superuser(rf, superuser_member, log_output):
+    """Revoking the only active superuser would lock out the installation, so
+    Rocky refuses and leaves the account unchanged."""
+    log_output.entries.clear()
+    request = setup_request(rf.post("organization_member_revoke_superuser"), superuser_member.user)
+    response = RevokeSuperuserAccessView.as_view()(
+        request, organization_code=superuser_member.organization.code, pk=superuser_member.id
+    )
+
+    assert response.status_code == 302
+    superuser_member.user.refresh_from_db()
+    assert superuser_member.user.is_superuser is True
+    assert any(
+        "would leave this installation without any active superuser" in str(message)
+        for message in get_messages(request)
+    )
+    assert not any(entry.get("event") == "Superuser access revoked" for entry in log_output.entries)
+
+
+@pytest.mark.parametrize("actor_fixture", ["admin_member", "redteam_member", "client_member"])
+def test_non_superusers_cannot_revoke_superuser_access(rf, request, actor_fixture, superuser_member):
+    actor = request.getfixturevalue(actor_fixture)
+    view_request = setup_request(rf.post("organization_member_revoke_superuser"), actor.user)
+
+    with pytest.raises(PermissionDenied):
+        RevokeSuperuserAccessView.as_view()(
+            view_request, organization_code=superuser_member.organization.code, pk=superuser_member.id
+        )
+
+    superuser_member.user.refresh_from_db()
+    assert superuser_member.user.is_superuser is True
+
+
+def test_revoke_superuser_access_requires_csrf(superuser_member, superuser_member_b):
+    superuser_member.onboarded = True
+    superuser_member.save(update_fields=["onboarded"])
+    csrf_client = Client(enforce_csrf_checks=True)
+    csrf_client.force_login(superuser_member.user)
+    session = csrf_client.session
+    session[DEVICE_ID_SESSION_KEY] = superuser_member.user.staticdevice_set.get().persistent_id
+    session.save()
+    url = reverse(
+        "organization_member_revoke_superuser",
+        kwargs={"organization_code": superuser_member_b.organization.code, "pk": superuser_member_b.id},
+    )
+
+    response = csrf_client.get(url)
+    assert response.status_code == 200
+
+    response = csrf_client.post(url)
+    assert response.status_code == 403
+    superuser_member_b.user.refresh_from_db()
+    assert superuser_member_b.user.is_superuser is True
+
+    response = csrf_client.post(url, {"csrfmiddlewaretoken": csrf_client.cookies["csrftoken"].value})
+    assert response.status_code == 302
+    superuser_member_b.user.refresh_from_db()
+    assert superuser_member_b.user.is_superuser is False
+    assert superuser_member_b.user.is_staff is False
 
 
 def test_account_type_view_existence(rf, admin_member):

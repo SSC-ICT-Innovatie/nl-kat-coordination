@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-12 11:17+0000\n"
+"POT-Creation-Date: 2026-08-19 13:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -589,6 +589,8 @@ msgstr ""
 #: rocky/templates/oois/ooi_mute_finding.html
 #: rocky/templates/organizations/organization_edit.html
 #: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
 #: rocky/templates/partials/delete_ooi_modal.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
 #: rocky/templates/partials/mute_findings_modal.html
@@ -5223,6 +5225,7 @@ msgstr ""
 #: tools/view_helpers.py rocky/templates/header.html
 #: rocky/templates/organizations/organization_member_list.html
 #: rocky/views/organization_member_edit.py
+#: rocky/views/organization_member_superuser.py
 msgid "Members"
 msgstr ""
 
@@ -6278,11 +6281,62 @@ msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
 #: rocky/views/organization_member_edit.py
+#: rocky/views/organization_member_superuser.py
 msgid "Edit member"
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_edit.html
 msgid "Save member"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+msgid "Global account access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+msgid ""
+"Superuser access applies to every organization and all administrative "
+"functionality in this OpenKAT installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+#: rocky/views/organization_member_superuser.py
+msgid "Revoke superuser access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_edit.html
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#: rocky/views/organization_member_superuser.py
+msgid "Grant superuser access"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+#, python-format
+msgid ""
+"You are about to grant <strong>%(email)s</strong> unrestricted access to "
+"every organization and all administrative functionality in this OpenKAT "
+"installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid "This is a global account permission, not an organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid ""
+"Superuser access can be revoked again from the same member edit page, or via "
+"Django administration."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid "Open this account in Django administration"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_grant_superuser.html
+msgid ""
+"Only continue when this person is authorized to administer the entire "
+"installation."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
@@ -6324,6 +6378,29 @@ msgstr ""
 
 #: rocky/templates/organizations/organization_member_list.html
 msgid "Super user"
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+#, python-format
+msgid ""
+"You are about to revoke <strong>%(email)s</strong>'s unrestricted access to "
+"every organization and all administrative functionality in this OpenKAT "
+"installation."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid "This removes a global account permission, not an organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid ""
+"The account will keep its organization membership and organization role."
+msgstr ""
+
+#: rocky/templates/organizations/organization_member_revoke_superuser.html
+msgid ""
+"Only continue when this person should no longer administer the entire "
+"installation."
 msgstr ""
 
 #: rocky/templates/organizations/organization_member_upload.html
@@ -7522,6 +7599,46 @@ msgstr ""
 #: rocky/views/organization_member_list.py
 #, python-format
 msgid "Unblocked member %s successfully."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s is inactive and cannot be granted superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s already has superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "Superuser access granted to %(email)s."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid ""
+"%(email)s does not have superuser access but still has Django administration "
+"access; revoke that via Django administration."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "%(email)s does not have superuser access."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid ""
+"Revoking superuser access from %(email)s would leave this installation "
+"without any active superuser. Promote another account first, or revoke it "
+"via Django administration."
+msgstr ""
+
+#: rocky/views/organization_member_superuser.py
+#, python-format
+msgid "Superuser access revoked from %(email)s."
 msgstr ""
 
 #: rocky/views/organization_settings.py

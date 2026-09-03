@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div>
+                <h1>{% translate "Revoke superuser access" %}</h1>
+                <div class="warning" role="alert">
+                    <p>
+                        {% blocktranslate with email=member.user.email trimmed %}
+                            You are about to revoke <strong>{{ email }}</strong>'s unrestricted access to every
+                            organization and all administrative functionality in this OpenKAT installation.
+                        {% endblocktranslate %}
+                    </p>
+                    <p>
+                        {% translate "This removes a global account permission, not an organization role." %}
+                        {% translate "The account will keep its organization membership and organization role." %}
+                    </p>
+                </div>
+                <p>{% translate "Only continue when this person should no longer administer the entire installation." %}</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="button-container">
+                        <button type="submit" class="destructive">{% translate "Revoke superuser access" %}</button>
+                        <a class="button ghost"
+                           href="{% url 'organization_member_edit' organization.code member.id %}">{% translate "Cancel" %}</a>
+                    </div>
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}
