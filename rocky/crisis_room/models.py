@@ -11,7 +11,7 @@ from django.db.models.query_utils import Q
 from django.db.models.signals import post_delete, pre_save
 from django.dispatch import receiver
 from django.utils.translation import gettext_lazy as _
-from octopoes.models.reference import Reference
+from octopoes.models import Reference
 from tools.models import Organization
 from tools.view_helpers import get_ooi_url
 

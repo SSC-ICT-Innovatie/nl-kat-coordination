@@ -21,8 +21,10 @@ def test_organization_audit_log(rf, client_member):
     assertContains(response, "Activity log")
     assertContains(response, client_member.user.email)
     assertContains(response, "Added object")
+    # The label is inferred from the stored PK at read time.
+    assertContains(response, "internet")
     # The URL is constructed at read time from the stored PK.
-    assertContains(response, "Network|internet")
+    assertContains(response, "ooi_id=Network")
 
 
 def test_general_audit_log_only_shows_accessible_organizations(rf, client_member, organization_b):
