@@ -615,15 +615,24 @@ class BoefjeScheduler(Scheduler):
         # Only stamp when the task doesn't already carry rate-limit fields —
         # scheduler-internal paths have already resolved the group template by
         # this point and must not be overwritten with the unresolved template.
+        # Best-effort: if the katalogus is unavailable or returns unexpected
+        # data, the task proceeds without rate limiting.
         if not boefje_task.boefje.rate_limit_interval:
-            plugin = self.ctx.services.katalogus.get_plugin_by_id_and_org_id(
-                boefje_task.boefje.id, boefje_task.organization
-            )
-            if plugin is not None and plugin.rate_limit_interval:
-                boefje_task.boefje.rate_limit_interval = plugin.rate_limit_interval
-                boefje_task.boefje.rate_limit_group = plugin.rate_limit_group
-                self.resolve_rate_limit_group(boefje_task.boefje, boefje_task.input_ooi)
-                item.data = boefje_task.model_dump()
+            try:
+                plugin = self.ctx.services.katalogus.get_plugin_by_id_and_org_id(
+                    boefje_task.boefje.id, boefje_task.organization
+                )
+                if plugin is not None and isinstance(plugin.rate_limit_interval, (int, float)) and plugin.rate_limit_interval:
+                    boefje_task.boefje.rate_limit_interval = plugin.rate_limit_interval
+                    boefje_task.boefje.rate_limit_group = plugin.rate_limit_group
+                    self.resolve_rate_limit_group(boefje_task.boefje, boefje_task.input_ooi)
+                    item.data = boefje_task.model_dump()
+            except Exception:
+                logger.warning(
+                    "Failed to stamp rate-limit fields for boefje %s; "
+                    "task will proceed without rate limiting",
+                    boefje_task.boefje.id,
+                )
 
         # Check if id's are unique and correctly set. Same id's are necessary
         # for the task runner.
