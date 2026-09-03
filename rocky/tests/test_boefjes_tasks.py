@@ -1,3 +1,7 @@
+import io
+import json
+import zipfile
+
 import pytest
 from django.http import Http404
 from pytest_django.asserts import assertContains
@@ -120,3 +124,101 @@ def test_download_task_no_raw(rf, client_member, mock_bytes_client, bytes_raw_me
 
     assert response.status_code == 302
     assert list(request._messages)[0].message == "The task does not have any raw data."
+
+
+def test_download_task_strips_secret_fields_from_meta(
+    rf, client_member, mock_bytes_client, mock_mixins_katalogus, bytes_raw_metas, bytes_get_raw, plugin_details
+):
+    """The raw meta download must not leak boefje secret fields (#4508)."""
+    raw_metas = bytes_raw_metas
+    raw_metas[0]["boefje_meta"]["environment"] = {"SECRET_KEY": "super-secret-value", "NON_SECRET": "ok"}
+    mock_bytes_client().get_raw.return_value = bytes_get_raw
+    mock_bytes_client().get_raw_metas.return_value = raw_metas
+
+    plugin_details.boefje_schema = {"secret": ["SECRET_KEY"]}
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
+
+    request = setup_request(rf.get("bytes_raw"), client_member.user)
+    response = BytesRawView.as_view()(
+        request, organization_code=client_member.organization.code, boefje_meta_id=raw_metas[0]["id"]
+    )
+
+    assert response.status_code == 200
+    zf = zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content)))
+    meta_json = json.loads(zf.read(f"raw_meta_{raw_metas[0]['id']}.json"))
+    env = meta_json["boefje_meta"]["environment"]
+    assert "SECRET_KEY" not in env
+    assert env["NON_SECRET"] == "ok"
+    # NOTE.txt should explain the hash mismatch
+    assert b"hash" in zf.read("NOTE.txt")
+
+
+def test_download_task_json_format_strips_secret_fields(
+    rf, client_member, mock_bytes_client, mock_mixins_katalogus, bytes_raw_metas, bytes_get_raw, plugin_details
+):
+    """The JSON format response must also not leak boefje secret fields (#4508)."""
+    raw_metas = bytes_raw_metas
+    raw_metas[0]["boefje_meta"]["environment"] = {"SECRET_KEY": "super-secret-value", "NON_SECRET": "ok"}
+    mock_bytes_client().get_raw.return_value = bytes_get_raw
+    mock_bytes_client().get_raw_metas.return_value = raw_metas
+
+    plugin_details.boefje_schema = {"secret": ["SECRET_KEY"]}
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
+
+    request = setup_request(rf.get("/bytes?format=json"), client_member.user)
+    response = BytesRawView.as_view()(
+        request, organization_code=client_member.organization.code, boefje_meta_id=raw_metas[0]["id"]
+    )
+
+    assert response.status_code == 200
+    data = json.loads(response.content)
+    env = data[0]["boefje_meta"]["environment"]
+    assert "SECRET_KEY" not in env
+    assert env["NON_SECRET"] == "ok"
+
+
+def test_download_task_strips_entire_environment_on_schema_fetch_failure(
+    rf, client_member, mock_bytes_client, mock_mixins_katalogus, bytes_raw_metas, bytes_get_raw
+):
+    """If the boefje schema cannot be fetched, the entire environment is
+    stripped — fail-closed for security (#4508)."""
+    raw_metas = bytes_raw_metas
+    raw_metas[0]["boefje_meta"]["environment"] = {"SECRET_KEY": "super-secret-value"}
+    mock_bytes_client().get_raw.return_value = bytes_get_raw
+    mock_bytes_client().get_raw_metas.return_value = raw_metas
+
+    mock_mixins_katalogus.get_plugin.side_effect = Exception("katalogus down")
+
+    request = setup_request(rf.get("bytes_raw"), client_member.user)
+    response = BytesRawView.as_view()(
+        request, organization_code=client_member.organization.code, boefje_meta_id=raw_metas[0]["id"]
+    )
+
+    assert response.status_code == 200
+    zf = zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content)))
+    meta_json = json.loads(zf.read(f"raw_meta_{raw_metas[0]['id']}.json"))
+    assert "environment" not in meta_json["boefje_meta"]
+
+
+def test_download_task_keeps_environment_when_no_secrets_in_schema(
+    rf, client_member, mock_bytes_client, mock_mixins_katalogus, bytes_raw_metas, bytes_get_raw, plugin_details
+):
+    """If the boefje schema defines no secret fields, the environment is
+    kept intact (#4508)."""
+    raw_metas = bytes_raw_metas
+    raw_metas[0]["boefje_meta"]["environment"] = {"API_KEY": "not-secret"}
+    mock_bytes_client().get_raw.return_value = bytes_get_raw
+    mock_bytes_client().get_raw_metas.return_value = raw_metas
+
+    plugin_details.boefje_schema = {"secret": []}
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
+
+    request = setup_request(rf.get("bytes_raw"), client_member.user)
+    response = BytesRawView.as_view()(
+        request, organization_code=client_member.organization.code, boefje_meta_id=raw_metas[0]["id"]
+    )
+
+    assert response.status_code == 200
+    zf = zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content)))
+    meta_json = json.loads(zf.read(f"raw_meta_{raw_metas[0]['id']}.json"))
+    assert meta_json["boefje_meta"]["environment"] == {"API_KEY": "not-secret"}
