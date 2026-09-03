@@ -8,6 +8,7 @@ from boefjes.normalizer_models import (
     NormalizerDeclaration,
     NormalizerObservation,
     NormalizerOutput,
+    NormalizerRawFile,
     NormalizerResults,
 )
 from boefjes.worker.interfaces import JobRuntimeError
@@ -48,6 +49,7 @@ class LocalNormalizerJobRunner(NormalizerJobRunner):
         declarations = []
         affirmations = []
         scan_profiles = []
+        raw_files = []
 
         for result in results:
             match result:
@@ -59,6 +61,8 @@ class LocalNormalizerJobRunner(NormalizerJobRunner):
                     affirmations.append(result)
                 case DeclaredScanProfile():
                     scan_profiles.append(result)
+                case NormalizerRawFile():
+                    raw_files.append(result)
                 case _:
                     raise InvalidReturnValueNormalizer(
                         f"Normalizer returned object of incorrect type: {result.__class__.__name__}"
@@ -77,5 +81,9 @@ class LocalNormalizerJobRunner(NormalizerJobRunner):
             observations = []
 
         return NormalizerResults(
-            observations=observations, declarations=declarations, affirmations=affirmations, scan_profiles=scan_profiles
+            observations=observations,
+            declarations=declarations,
+            affirmations=affirmations,
+            scan_profiles=scan_profiles,
+            raw_files=raw_files,
         )
