@@ -4,8 +4,8 @@ from unittest import mock
 from boefjes.plugins.kat_snyk.main import run as run_boefje
 from boefjes.plugins.kat_snyk.normalize import run
 from boefjes.worker.job_models import BoefjeMeta
-from octopoes.models.ooi.findings import SnykFindingType
-from octopoes.models.types import CVEFindingType, Finding, Software
+from octopoes.models.ooi.findings import KATFindingType, RiskLevelSeverity, SnykFindingType
+from octopoes.models.types import CVEFindingType, Finding
 from tests.loading import get_dummy_data
 
 input_ooi = {"primary_key": "Software|lodash|1.1.0|", "name": "lodash", "version": "1.1.0"}
@@ -17,80 +17,73 @@ def test_snyk_no_findings():
 
 def test_snyk_findings():
     oois = list(run(input_ooi, get_dummy_data("inputs/snyk-result-findings.json")))
-    software = Software(name="lodash", version="1.1.0")
 
-    snyk_finding_data = [
-        ("SNYK-JS-LODASH-590103", "Prototype Pollution"),
-        ("SNYK-JS-LODASH-608086", "Prototype Pollution"),
-    ]
-    cve_finding_data = [
-        ("CVE-2018-16487", "Prototype Pollution"),
-        ("CVE-2018-3721", "Prototype Pollution"),
-        ("CVE-2019-1010266", "Regular Expression Denial of Service (ReDoS)"),
-        ("CVE-2019-10744", "Prototype Pollution"),
-        ("CVE-2020-28500", "Regular Expression Denial of Service (ReDoS)"),
-        ("CVE-2020-8203", "Prototype Pollution"),
-        ("CVE-2021-23337", "Command Injection"),
-    ]
+    # Two CVE findings + one Snyk finding + one KAT-SOFTWARE-UPDATE-AVAILABLE
+    cve_fts = [o for o in oois if isinstance(o, CVEFindingType)]
+    snyk_fts = [o for o in oois if isinstance(o, SnykFindingType)]
+    kat_fts = [o for o in oois if isinstance(o, KATFindingType)]
+    findings = [o for o in oois if isinstance(o, Finding)]
 
-    snyk_findingtypes = []
-    snyk_findings = []
-    cve_findingtypes = []
-    cve_findings = []
+    assert len(cve_fts) == 2
+    assert len(snyk_fts) == 1
+    assert len(kat_fts) == 1
+    assert kat_fts[0].id == "KAT-SOFTWARE-UPDATE-AVAILABLE"
+    # 3 vuln findings + 1 update finding = 4 Finding objects
+    assert len(findings) == 4
 
-    for finding in snyk_finding_data:
-        snyk_ft = SnykFindingType(id=finding[0])
-        snyk_findingtypes.append(snyk_ft)
-        snyk_findings.append(Finding(finding_type=snyk_ft.reference, ooi=software.reference, description=finding[1]))
 
-    for finding in cve_finding_data:
-        cve_ft = CVEFindingType(id=finding[0])
-        cve_findingtypes.append(cve_ft)
-        cve_findings.append(Finding(finding_type=cve_ft.reference, ooi=software.reference, description=finding[1]))
+def test_snyk_findings_severity_set():
+    """Verify that severity and cvss_score are set on finding types."""
+    oois = list(run(input_ooi, get_dummy_data("inputs/snyk-result-findings.json")))
 
-    # noinspection PyTypeChecker
-    expected = snyk_findingtypes + snyk_findings + cve_findingtypes + cve_findings
+    cve_fts = [o for o in oois if isinstance(o, CVEFindingType)]
+    assert len(cve_fts) == 2
 
-    assert len(expected) == len(oois)
+    high_cve = next(ft for ft in cve_fts if ft.id == "CVE-2026-4800")
+    assert high_cve.risk_severity == RiskLevelSeverity.HIGH
+    assert high_cve.risk_score == 8.6
+
+    medium_cve = next(ft for ft in cve_fts if ft.id == "CVE-2026-2950")
+    assert medium_cve.risk_severity == RiskLevelSeverity.MEDIUM
+    assert medium_cve.risk_score == 6.9
+
+    snyk_fts = [o for o in oois if isinstance(o, SnykFindingType)]
+    assert len(snyk_fts) == 1
+    assert snyk_fts[0].risk_severity == RiskLevelSeverity.HIGH
+    assert snyk_fts[0].risk_score == 7.4
 
 
 def test_snyk_html_parser(mocker):
+    """Test that the boefje correctly parses the Nuxt SSR data from snyk.io."""
     mock_get = mocker.patch("boefjes.plugins.kat_snyk.main.requests.get")
     boefje_meta = BoefjeMeta.model_validate_json(get_dummy_data("snyk-job.json"))
 
-    # Mock the first GET request
-    mock_first_get = mock.Mock()
-    mock_first_get.content = get_dummy_data("snyk-vuln.html")
-
-    # Mock the next GET request
-    mock_second_get = mock.Mock()
-    mock_second_get.content = get_dummy_data("snyk-vuln2.html")
-
-    # Mock the next 7 GET requests
-    mock_third_get = mock.Mock()
-    mock_third_get.content = get_dummy_data("snyk-vuln3.html")
-
-    mock_get.side_effect = [mock_first_get] + [mock_second_get] + [mock_third_get] * 7
+    mock_response = mock.Mock()
+    mock_response.text = get_dummy_data("snyk-vuln-nuxt.html").decode()
+    mock_get.return_value = mock_response
 
     mime_types, result = run_boefje(boefje_meta.model_dump())[0]
 
     output = json.loads(result)
 
-    assert output["table_versions"] == []
-    assert output["table_vulnerabilities"] == [
-        {
-            "Vuln_href": "SNYK-JS-LODASH-1018905",
-            "Vuln_text": "Regular Expression Denial of Service (ReDoS)",
-            "Vuln_versions": "<4.17.21",
-        },
-        {"Vuln_href": "SNYK-JS-LODASH-608086", "Vuln_text": "Prototype Pollution", "Vuln_versions": "<4.17.17"},
-        {"Vuln_href": "SNYK-JS-LODASH-450202", "Vuln_text": "Prototype Pollution", "Vuln_versions": "<4.17.12"},
-        {
-            "Vuln_href": "SNYK-JS-LODASH-73639",
-            "Vuln_text": "Regular Expression Denial of Service (ReDoS)",
-            "Vuln_versions": "<4.17.11",
-        },
-        {"Vuln_href": "SNYK-JS-LODASH-73638", "Vuln_text": "Prototype Pollution", "Vuln_versions": "<4.17.11"},
-        {"Vuln_href": "npm:lodash:20180130", "Vuln_text": "Prototype Pollution", "Vuln_versions": "<4.17.5"},
-    ]
-    assert output["cve_vulnerabilities"] == [{"cve_code": "CVE-2021-23337", "Vuln_text": "Command Injection"}]
+    assert len(output["vulnerabilities"]) == 12
+    assert output["latest_version"] == "4.18.1"
+
+    # Check that severity is preserved
+    vuln = output["vulnerabilities"][0]
+    assert vuln["severity"] == "high"
+    assert vuln["cvss_score"] == 8.6
+    assert vuln["cve"] == "CVE-2026-4800"
+    assert vuln["affected_versions"] == "<4.18.1"
+
+
+def test_snyk_ecosystem_from_cpe():
+    """Test that the ecosystem is derived from CPE when available."""
+    from boefjes.plugins.kat_snyk.main import _ecosystem_from_cpe
+
+    assert _ecosystem_from_cpe(None) == "npm"
+    assert _ecosystem_from_cpe("cpe:2.3:a:lodash:lodash:1.0:*:*:*:*:node.js:*:*") == "npm"
+    assert _ecosystem_from_cpe("cpe:2.3:a:django:django:1.0:*:*:*:*:python:*:*") == "pip"
+    assert _ecosystem_from_cpe("cpe:2.3:a:spring:spring:1.0:*:*:*:*:java:*:*") == "maven"
+    assert _ecosystem_from_cpe("cpe:2.3:a:rails:rails:1.0:*:*:*:*:ruby:*:*") == "rubygems"
+    assert _ecosystem_from_cpe("cpe:2.3:a:unknown:pkg:1.0:*:*:*:*:*:*:*") == "npm"
