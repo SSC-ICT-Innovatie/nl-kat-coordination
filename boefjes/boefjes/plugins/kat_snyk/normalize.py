@@ -5,9 +5,16 @@ from collections.abc import Iterable
 from boefjes.normalizer_models import NormalizerOutput
 from boefjes.plugins.kat_snyk import check_version
 from octopoes.models import Reference
-from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType, SnykFindingType
+from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType, RiskLevelSeverity, SnykFindingType
 
 logger = logging.getLogger(__name__)
+
+_SEVERITY_MAP = {
+    "critical": RiskLevelSeverity.CRITICAL,
+    "high": RiskLevelSeverity.HIGH,
+    "medium": RiskLevelSeverity.MEDIUM,
+    "low": RiskLevelSeverity.LOW,
+}
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
@@ -22,22 +29,27 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         software_name = input_ooi["name"]
         software_version = input_ooi["version"]
 
-    if not results["table_versions"] and not results["table_vulnerabilities"] and not results["cve_vulnerabilities"]:
-        logger.warning("Couldn't find software %s in the SNYK vulnerability database", software_name)
+    vulnerabilities = results.get("vulnerabilities", [])
+    latest_version = results.get("latest_version")
+
+    if not vulnerabilities:
+        if not latest_version:
+            logger.warning("Couldn't find software %s in the SNYK vulnerability database", software_name)
         return
-    elif not results["table_vulnerabilities"] and not results["cve_vulnerabilities"]:
-        # no vulnerabilities found
-        return
+
     if software_version:
-        for vuln in results["table_vulnerabilities"]:
-            snyk_ft = SnykFindingType(id=vuln.get("Vuln_href"))
-            yield snyk_ft
-            yield Finding(finding_type=snyk_ft.reference, ooi=pk_ooi, description=vuln.get("Vuln_text"))
-        for vuln in results["cve_vulnerabilities"]:
-            cve_ft = CVEFindingType(id=vuln.get("cve_code"))
-            yield cve_ft
-            yield Finding(finding_type=cve_ft.reference, ooi=pk_ooi, description=vuln.get("Vuln_text"))
-    if not software_version and (results["table_vulnerabilities"] or results["cve_vulnerabilities"]):
+        for vuln in vulnerabilities:
+            severity = _SEVERITY_MAP.get(vuln.get("severity", "").lower())
+            cvss_score = vuln.get("cvss_score")
+
+            cve = vuln.get("cve")
+            if cve and cve.startswith("CVE-"):
+                ft = CVEFindingType(id=cve, risk_severity=severity, risk_score=cvss_score)
+            else:
+                ft = SnykFindingType(id=vuln["id"], risk_severity=severity, risk_score=cvss_score)
+            yield ft
+            yield Finding(finding_type=ft.reference, ooi=pk_ooi, description=vuln["title"])
+    else:
         kat_ooi = KATFindingType(id="KAT-SOFTWARE-VERSION-NOT-FOUND")
         yield kat_ooi
         yield Finding(
@@ -48,11 +60,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         )
 
     # Check for latest version
-    latest_version = ""
-    for version in results["table_versions"]:
-        if version.get("is_latest"):
-            latest_version = version.get("Version_text")
-
     if software_version and latest_version and check_version.check_version_in(software_version, f"<{latest_version}"):
         kat_ooi = KATFindingType(id="KAT-SOFTWARE-UPDATE-AVAILABLE")
         yield kat_ooi
