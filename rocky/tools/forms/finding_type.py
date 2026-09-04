@@ -117,5 +117,5 @@ CVE-2021-00000""",
         del kwargs["observed_at"]
         del kwargs["ooi_id"]
         super().__init__(*args, **kwargs)
-        self.set_choices_for_widget("ooi_id", self.ooi_id)
-        self.set_choices_for_widget("date", self.observed_at)
+        self.fields["ooi_id"].initial = self.ooi_id
+        self.fields["date"].initial = self.observed_at

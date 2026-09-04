@@ -46,10 +46,6 @@ class FindingAddView(BaseOOIFormView):
     template_name = "findings/finding_add.html"
     form_class = FindingAddForm
 
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.initial = {"ooi_id": kwargs["ooi"]}
-
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 

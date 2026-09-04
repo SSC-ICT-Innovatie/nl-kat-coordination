@@ -10,7 +10,6 @@ from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import OOI, Reference, ScanLevel
 from octopoes.models.ooi.findings import Finding, FindingType
-from tools.view_helpers import get_ooi_url
 
 register = template.Library()
 
@@ -30,7 +29,7 @@ def app_url(context, viewname, *args, **kwargs):
         if organization is not None:
             kwargs.setdefault("organization_code", organization.code)
 
-    temporal_context = context.get("observed_at", "now")
+    temporal_context = context.get("temporal_context")
     if "temporal_context" in kwargs:
         if kwargs["temporal_context"] is None:
             # explicit removal requested
@@ -82,11 +81,6 @@ def ooi_types_to_strings(ooi_types: set[type[OOI]]) -> list["str"]:
 @register.filter()
 def get_type(x: Any) -> Any:
     return type(x)
-
-
-@register.simple_tag()
-def ooi_url(routename: str, ooi_id: str, organization_code: str, **kwargs: str) -> str:
-    return get_ooi_url(routename, ooi_id, organization_code, **kwargs)
 
 
 @register.filter()

@@ -57,12 +57,12 @@ urlpatterns = [
         name="step_9_choose_report_type",
     ),
     path(  # Step 9a
-        "<organization_code>/step/setup-scan/ooi/detail/",
+        "<organization_code>/step/setup-scan/<ooi:ooi>/detail/",
         views.OnboardingCreateReportRecipe.as_view(),
         name="step_9a_setup_scan_ooi_detail",
     ),
     path(  # Step 10
-        "<organization_code>/step/report/", views.OnboardingReportView.as_view(), name="step_10_report"
+        "<organization_code>/step/report/<ooi:ooi>", views.OnboardingReportView.as_view(), name="step_10_report"
     ),
     path(
         "<organization_code>/step/complete-onboarding/", views.CompleteOnboarding.as_view(), name="complete_onboarding"

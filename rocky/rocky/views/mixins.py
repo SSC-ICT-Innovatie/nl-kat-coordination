@@ -1,4 +1,3 @@
-import urllib.parse
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
@@ -520,7 +519,7 @@ class SingleOOIMixin(OctopoesView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.ooi_id = urllib.parse.unquote(kwargs["ooi"])
+        self.ooi_id = kwargs["ooi"]
 
     @cached_property
     def ooi(self):

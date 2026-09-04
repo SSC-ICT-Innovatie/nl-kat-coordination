@@ -8,7 +8,6 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
 from tools.forms.finding_type import FindingTypeAddForm
 from tools.models import OOIInformation
-from tools.view_helpers import get_ooi_url
 
 from octopoes.api.models import Declaration
 from octopoes.models.ooi.findings import KATFindingType
@@ -24,11 +23,17 @@ class FindingTypeAddView(OrganizationView, FormView):
 
         context["breadcrumbs"] = [
             {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Findings"),
             },
             {
-                "url": reverse("finding_type_add", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_type_add",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Add finding type"),
             },
         ]
@@ -61,4 +66,13 @@ class FindingTypeAddView(OrganizationView, FormView):
         self.bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations([declaration]))
         self.api_connector.save_declaration(declaration, sync=True)
 
-        return redirect(get_ooi_url("ooi_detail", finding_type.primary_key, self.organization.code))
+        return redirect(
+            reverse(
+                "ooi_detail",
+                kwargs={
+                    "organization_code": self.organization.code,
+                    "ooi": finding_type,
+                    "temporal_context": self.temporal_context,
+                },
+            )
+        )

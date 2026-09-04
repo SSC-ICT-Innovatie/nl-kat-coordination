@@ -15,7 +15,7 @@ from httpx import HTTPError
 from tools.enums import CUSTOM_SCAN_LEVEL, SCAN_LEVEL
 from tools.forms.ooi import SetClearanceLevelForm
 from tools.forms.ooi_form import OOISearchForm, OOITypeMultiCheckboxForm
-from tools.view_helpers import get_mandatory_fields
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields
 
 from octopoes.connector import RemoteException
 from octopoes.models import EmptyScanProfile, Reference, ScanProfileType
@@ -35,10 +35,20 @@ class PageActions(Enum):
     ADD_TO_DASHBOARD = "add_to_dashboard"
 
 
-class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
-    breadcrumbs = [{"url": reverse_lazy("ooi_list"), "text": gettext_lazy("Objects")}]
+class OOIListView(BreadcrumbsMixin, BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
     template_name = "oois/ooi_list.html"
     add_dashboard_item_form = AddObjectListDashboardItemForm
+
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
+        return [
+            {
+                "url": reverse_lazy(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": gettext_lazy("Objects"),
+            }
+        ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -48,16 +58,6 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         context["edit_clearance_level_form"] = SetClearanceLevelForm
         context["mandatory_fields"] = get_mandatory_fields(self.request, params=["observed_at"])
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
-        context["breadcrumbs"] = [
-            {
-                "url": reverse(
-                    "ooi_list",
-                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
-                ),
-                "text": _("Objects"),
-            }
-        ]
-
         return context
 
     def get(self, request: HttpRequest, *args: Any, status: int = 200, **kwargs: Any) -> HttpResponse:
@@ -150,12 +150,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             messages.SUCCESS,
             _("Successfully set scan profile to %s for %d OOIs.") % (level.name, len(selected_oois)),
         )
-        return redirect(
-            reverse(
-                "ooi_list",
-                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
-            )
-        )
+        return redirect(self.self.breadcrumbs[0]["url"])
 
     def _set_oois_to_inherit(
         self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any
@@ -180,12 +175,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         messages.add_message(
             request, messages.SUCCESS, _("Successfully set %d OOI(s) clearance level to inherit.") % len(selected_oois)
         )
-        return redirect(
-            reverse(
-                "ooi_list",
-                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
-            )
-        )
+        return redirect(self.self.breadcrumbs[0]["url"])
 
     def _delete_oois(self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         connector = self.octopoes_api_connector
@@ -208,12 +198,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             _("Successfully deleted %d ooi(s). Note: Bits can recreate objects automatically.") % len(selected_oois),
         )
 
-        return redirect(
-            reverse(
-                "ooi_list",
-                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
-            )
-        )
+        return redirect(self.self.breadcrumbs[0]["url"])
 
 
 class OOIListExportView(BaseOOIListView):

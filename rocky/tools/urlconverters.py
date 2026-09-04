@@ -28,4 +28,4 @@ class OOIReferenceConverter:
         return value
 
     def to_url(self, value):
-        return value
+        return str(value)  # we might be dealing with an OOI instance

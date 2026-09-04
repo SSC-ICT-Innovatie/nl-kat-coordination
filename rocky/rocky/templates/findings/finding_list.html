@@ -123,26 +123,26 @@
                                         </td>
                                         <td>
                                             {% if hydrated_finding.finding_type.name %}
-                                                <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}"
+                                                <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.primary_key %}"
                                                    title="{% blocktranslate trimmed with finding=hydrated_finding.finding_type.name %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding_type.name }}</a>
                                             {% else %}
-                                                <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}"
+                                                <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.primary_key %}"
                                                    title="{% blocktranslate trimmed with finding=hydrated_finding.finding.finding_type %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding.finding_type.human_readable }}</a>
                                             {% endif %}
                                         </td>
                                         <td>
-                                            <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.ooi temporal_context=observed_at %}"
+                                            <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding.ooi %}"
                                                title="{% blocktranslate trimmed with finding=hydrated_finding.finding.primary_key %} Show details for {{ finding }} {% endblocktranslate %}">{{ hydrated_finding.finding.ooi.human_readable }}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to tree view of {{ hydrated_finding.finding.human_readable }}"
                                                class="icon ti-subtask button"
-                                               href="{% app_url 'ooi_tree' ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}">{% translate "Tree" %}</a>
+                                               href="{% app_url 'ooi_tree' ooi=hydrated_finding.finding.primary_key %}">{% translate "Tree" %}</a>
                                         </td>
                                         <td class="actions">
                                             <a aria-label="Navigate to graph view of {{ hydrated_finding.finding.human_readable }}"
                                                class="icon ti-affiliate button"
-                                               href="{% app_url 'ooi_graph' ooi=hydrated_finding.finding.primary_key temporal_context=observed_at %}">{% translate "Graph" %}</a>
+                                               href="{% app_url 'ooi_graph' ooi=hydrated_finding.finding.primary_key %}">{% translate "Graph" %}</a>
                                         </td>
                                         <td class="actions sticky-cell">
                                             <button type="button"
@@ -161,14 +161,14 @@
                                                     <div>
                                                         <dt>{% translate "Finding type" %}</dt>
                                                         <dd>
-                                                            <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding_type temporal_context=observed_at %}"
+                                                            <a href="{% app_url "ooi_detail" ooi=hydrated_finding.finding_type %}"
                                                                title="{% blocktranslate trimmed with finding_type=hydrated_finding.finding_type.human_readable %} Show details for {{ finding_type }} {% endblocktranslate %}">{{ hydrated_finding.finding_type.human_readable }}</a>
                                                         </dd>
                                                     </div>
                                                     <div>
                                                         <dt>{% translate "OOI type" %}</dt>
                                                         <dd>
-                                                            <a href="{% app_url "ooi_list" temporal_context=observed_at %}?ooi_type={{ hydrated_finding.ooi.object_type }}"
+                                                            <a href="{% app_url "ooi_list" %}?ooi_type={{ hydrated_finding.ooi.object_type }}"
                                                                title="{% blocktranslate trimmed with ooi_type=hydrated_finding.ooi.object_type %} Show {{ ooi_type }} objects {% endblocktranslate %}">{{ hydrated_finding.ooi.object_type }}</a>
                                                         </dd>
                                                     </div>

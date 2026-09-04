@@ -5,10 +5,11 @@ import structlog
 from django.contrib import messages
 from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
+from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
 from tools.forms.ooi import SetClearanceLevelForm
-from tools.view_helpers import get_mandatory_fields, get_ooi_url
+from tools.view_helpers import get_mandatory_fields
 
 from octopoes.models import DeclaredScanProfile, EmptyScanProfile, ScanProfileType
 from rocky.views.ooi_detail import OOIDetailView
@@ -56,4 +57,13 @@ class ScanProfileDetailView(FormView, OOIDetailView):
             messages.error(
                 self.request, _("Cannot set clearance level. The clearance type must be inherited or declared.")
             )
-        return redirect(get_ooi_url("scan_profile_detail", self.ooi.primary_key, self.organization.code))
+        return redirect(
+            reverse(
+                "scan_profile_detail",
+                kwargs={
+                    "ooi": self.ooi,
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                },
+            )
+        )
