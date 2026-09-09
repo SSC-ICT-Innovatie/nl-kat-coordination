@@ -14,9 +14,10 @@ class PluginEnableDisableView(SinglePluginView):
     def post(self, request, *args, **kwargs):
         plugin_state = kwargs["plugin_state"]
         fallback_url = reverse("katalogus", kwargs={"organization_code": self.organization.code})
-        redirect_url = request.POST.get("current_url") or fallback_url
-
-        if not url_has_allowed_host_and_scheme(redirect_url, allowed_hosts={request.get_host()}):
+        current_url = request.POST.get("current_url", "")
+        if current_url and url_has_allowed_host_and_scheme(current_url, allowed_hosts=None):
+            redirect_url = current_url
+        else:
             redirect_url = fallback_url
 
         if plugin_state == "True":
