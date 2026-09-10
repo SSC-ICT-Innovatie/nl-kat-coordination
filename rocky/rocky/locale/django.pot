@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 09:10+0000\n"
+"POT-Creation-Date: 2026-09-10 09:11+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -4238,7 +4238,8 @@ msgid "Low"
 msgstr ""
 
 #: reports/templates/partials/report_severity_totals_table.html
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Pending"
 msgstr ""
 
@@ -5015,27 +5016,33 @@ msgstr ""
 msgid "To"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Cancelled"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Completed"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Dispatched"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Failed"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Queued"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Running"
 msgstr ""
 
@@ -6815,6 +6822,16 @@ msgstr ""
 
 #: rocky/templates/partials/pagination.html
 msgid "last"
+msgstr ""
+
+#: rocky/templates/partials/scan_level_indicator.html
+#, python-format
+msgid "Scan level %(level)s"
+msgstr ""
+
+#: rocky/templates/partials/scan_level_indicator.html
+#, python-format
+msgid "Clearance level %(level)s"
 msgstr ""
 
 #: rocky/templates/partials/secondary-menu.html
