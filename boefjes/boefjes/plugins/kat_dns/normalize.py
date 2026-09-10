@@ -109,9 +109,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     register_record(DNSAAAARecord(address=ipv6.reference, **default_args))
 
                 if isinstance(rr, TXT):
-                    # TODO: concatenated txt records should be handled better
-                    # see https://www.rfc-editor.org/rfc/rfc1035 3.3.14
-                    default_args["value"] = str(rr).strip('"').replace('" "', "")
+                    # Concatenate TXT character-strings per RFC 1035 3.3.14:
+                    # multiple strings are concatenated without separators.
+                    default_args["value"] = "".join(s.decode() if isinstance(s, bytes) else s for s in rr.strings)
                     register_record(DNSTXTRecord(**default_args))
 
                 if isinstance(rr, MX):
