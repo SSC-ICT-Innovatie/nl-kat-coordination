@@ -65,14 +65,16 @@ class FindingsReport(Report):
         findings = [ooi for ooi in tree.values() if ooi.ooi_type == "Finding"]
 
         # Software is non-traversable, so get_tree never reaches findings bound
-        # to Software. Query them separately and merge.
+        # to Software. Query them separately and merge, deduplicating by reference
+        # because SoftwareInstance.software is many-to-one: multiple instances of
+        # the same Software (http + https, shared hosting) yield the same Finding.
         software_path = _SOFTWARE_FINDING_PATHS.get(reference.class_type)
         if software_path:
-            findings.extend(
-                f
-                for f in self.octopoes_api_connector.query(software_path, valid_time, reference)
-                if isinstance(f, Finding)
-            )
+            seen = {f.reference for f in findings}
+            for f in self.octopoes_api_connector.query(software_path, valid_time, reference):
+                if isinstance(f, Finding) and f.reference not in seen:
+                    seen.add(f.reference)
+                    findings.append(f)
 
         all_finding_types = self.octopoes_api_connector.list_objects(types={FindingType}, valid_time=valid_time).items
 
