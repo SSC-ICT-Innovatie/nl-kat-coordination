@@ -54,16 +54,22 @@ class AuditLog(models.Model):
         object_type: str = "",
         object_label: str = "",
         object_pk: str = "",
-    ) -> "AuditLog":
-        return cls.objects.create(
-            organization=organization,
-            actor=user if user.is_authenticated else None,
-            actor_label=user.get_username() if user.is_authenticated else str(_("System")),
-            action=action,
-            object_type=object_type,
-            object_label=object_label,
-            object_pk=object_pk,
-        )
+    ) -> "AuditLog | None":
+        """Best-effort audit logging: a failure here must never break the
+        primary action it records."""
+        try:
+            return cls.objects.create(
+                organization=organization,
+                actor=user if user.is_authenticated else None,
+                actor_label=user.get_username() if user.is_authenticated else str(_("System")),
+                action=action,
+                object_type=object_type,
+                object_label=object_label,
+                object_pk=object_pk,
+            )
+        except Exception:
+            logger.exception("Failed to record audit log entry", action=action)
+            return None
 
     def get_object_label(self) -> str:
         """Infer the display label from the stored PK for OOI actions;
@@ -76,11 +82,15 @@ class AuditLog(models.Model):
         return self.object_label
 
     def get_object_url(self) -> str:
-        """Construct the detail URL at read time from the stored PK."""
+        """Construct the detail URL at read time from the stored PK.
+        Include the event's created_at as valid_time so the link points to
+        the object state at the time of the event."""
         if not self.object_pk:
             return ""
         try:
-            return get_ooi_url("ooi_detail", self.object_pk, self.organization.code)
+            return get_ooi_url(
+                "ooi_detail", self.object_pk, self.organization.code, valid_time=self.created_at.isoformat()
+            )
         except Exception:
             return ""
 

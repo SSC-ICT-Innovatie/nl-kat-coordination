@@ -219,7 +219,7 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             AuditLog.record(
                 user=self.request.user,
                 organization=self.organization,
-                action=(AuditLog.Action.OBJECT_UPDATED if hasattr(self, "ooi") else AuditLog.Action.OBJECT_ADDED),
+                action=AuditLog.Action.OBJECT_UPDATED if getattr(self, "ooi", None) else AuditLog.Action.OBJECT_ADDED,
                 object_type=new_ooi.get_ooi_type(),
                 object_pk=new_ooi.primary_key,
             )

@@ -6829,6 +6829,16 @@ msgstr ""
 msgid "last"
 msgstr ""
 
+#: rocky/templates/partials/scan_level_indicator.html
+#, python-format
+msgid "Scan level %(level)s"
+msgstr ""
+
+#: rocky/templates/partials/scan_level_indicator.html
+#, python-format
+msgid "Clearance level %(level)s"
+msgstr ""
+
 #: rocky/templates/partials/secondary-menu.html
 msgid "User navigation"
 msgstr ""
