@@ -160,6 +160,26 @@ def get_system_env_settings_for_boefje(allowed_keys: list[str]) -> dict:
     return {key: value for key, value in boefje_env_variables().items() if key in allowed_keys}
 
 
+def _coerce_value(value: Any, schema_type: str) -> Any:
+    """Coerce a string env value to the type the JSON schema expects.
+
+    Environment variables are always strings, but a boefje schema may declare
+    a field as ``integer``, ``number`` or ``boolean``.  Without coercion the
+    subsequent ``jsonschema.validate`` call rejects the string (issue #3827).
+    Values that are already the right type (e.g. from the katalogus API) are
+    returned unchanged.
+    """
+    if not isinstance(value, str):
+        return value
+    if schema_type == "integer":
+        return int(value)
+    if schema_type == "number":
+        return float(value)
+    if schema_type == "boolean":
+        return value.lower() in ("true", "1", "yes")
+    return value
+
+
 def get_environment_settings(boefje_meta: BoefjeMeta, schema: dict | None = None) -> dict[str, str]:
     try:
         katalogus_api = str(settings.katalogus_api).rstrip("/")
@@ -171,7 +191,8 @@ def get_environment_settings(boefje_meta: BoefjeMeta, schema: dict | None = None
         logger.exception("Error getting environment settings")
         raise
 
-    allowed_keys = schema.get("properties", []) if schema else []
+    properties = schema.get("properties", {}) if schema else {}
+    allowed_keys = list(properties)
     new_env = get_system_env_settings_for_boefje(allowed_keys)
 
     settings_from_katalogus = response.json()
@@ -179,6 +200,14 @@ def get_environment_settings(boefje_meta: BoefjeMeta, schema: dict | None = None
     for key, value in settings_from_katalogus.items():
         if key in allowed_keys:
             new_env[key] = value
+
+    # Environment variables are always strings, but the schema may require
+    # integer/number/boolean. Coerce before validation so env-based settings
+    # pass the schema check (issue #3827).
+    for key, value in new_env.items():
+        prop_schema = properties.get(key, {})
+        if isinstance(prop_schema, dict) and "type" in prop_schema:
+            new_env[key] = _coerce_value(value, prop_schema["type"])
 
     # The schema, besides dictating that a boefje cannot run if it is not matched, also provides an extra safeguard:
     # it is possible to inject code if arguments are passed that "escape" the call to a tool. Hence, we should enforce
