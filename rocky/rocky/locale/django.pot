@@ -2189,6 +2189,10 @@ msgstr ""
 msgid "Please enter a valid URL starting with 'http://' or 'https://'."
 msgstr ""
 
+#: onboarding/forms.py onboarding/views.py
+msgid "The onboarding DNS report requires a hostname, not an IP address."
+msgstr ""
+
 #: onboarding/templates/partials/onboarding_header.html
 msgid "Onboarding"
 msgstr ""
