@@ -341,7 +341,7 @@ LANG_INFO = locale.LANG_INFO.copy()
 LANG_INFO.update(EXTRA_LANG_INFO)
 locale.LANG_INFO = LANG_INFO
 
-LANGUAGES = [("en", "en"), ("nl", "nl"), ("pap", "pap"), ("it", "it"), ("fy", "fy")]
+LANGUAGES = [("en", "en"), ("nl", "nl"), ("pap", "pap"), ("it", "it"), ("fy", "fy"), ("pl", "pl")]
 
 if env.bool("PIRATE", False):
     LANGUAGE_CODE = "en@pirate"
