@@ -562,7 +562,7 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
             response = {
                 "organization_code": self.organization.code,
                 "organization_name": self.organization.name,
-                "organization_tags": list(self.organization.tags.all()),
+                "organization_tags": [tag.name for tag in self.organization.tags.all()],
                 "data": self.report_data,
             }
 

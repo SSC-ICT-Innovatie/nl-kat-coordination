@@ -49,7 +49,7 @@
                                                 </td>
                                             {% endif %}
                                             <td>
-                                                <i class="icon {{ report_task.status.value }}"></i>{{ report_task.status.value|capfirst }}
+                                                <i class="icon {{ report_task.status.value }}"></i>{{ report_task.status.label }}
                                             </td>
                                             <td>
                                                 <a href="{% ooi_url "ooi_detail" recipe_pk report_task.data.organisation_id query=ooi.mandatory_fields observed_at=report_task.created_at|date:'c' %}">{{ report_task.data.report_recipe_id }}</a>
