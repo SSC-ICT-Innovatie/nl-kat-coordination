@@ -23,6 +23,28 @@ var formattypes = {
   textarea: ["textarea"],
 };
 
+function escapeHtml(unsafe) {
+  if (unsafe == null) return "";
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function addLinks(safestring) {
+  const urlRegex = /https?:\/\/[^\s]+/gi;
+
+  return safestring.replace(urlRegex, function (url) {
+    let href = url;
+    if (url.startsWith("www.")) {
+      href = "http://" + url; // add scheme so link works
+    }
+    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  });
+}
+
 function loadform(className) {
   let schemafields = document.querySelectorAll("." + className);
   schemafields.forEach((schemafield) => {
@@ -81,17 +103,22 @@ function renderobject(original, path, schema) {
   let fieldset = document.createElement("fieldset");
   for (fieldname in schema["properties"]) {
     let legend = document.createElement("legend");
-    legend.innerText = fieldname;
-    fieldset.appendChild(legend);
+    legend.innerText =
+      "description" in schema.properties[fieldname]
+        ? schema.properties[fieldname].description
+        : fieldname;
+
     childoriginal =
       original && original[fieldname] ? original[fieldname] : false;
     childschema = schema["properties"][fieldname];
     subpath = path + "_" + fieldname;
     if (schema["properties"][fieldname]["type"] == "array") {
+      fieldset.appendChild(legend);
       fieldset.appendChild(
         renderarray(childoriginal, subpath, fieldname, childschema),
       );
     } else if (schema["properties"][fieldname]["type"] == "object") {
+      fieldset.appendChild(legend);
       fieldset.appendChild(renderobject(childoriginal, subpath, childschema));
     } else {
       fieldset.appendChild(
@@ -292,14 +319,23 @@ function renderfield(required, originalvalue, path, name, field) {
       input.max = field["exclusiveMaximum"] - 1;
     }
   }
+
   if (field["type"] == "boolean" && field["default"]) {
     input.checked = field["default"];
+  } else if (field["type"] == "boolean" && originalvalue) {
+    input.checked = originalvalue;
   }
+
   if (field["default"]) {
     input.value = field["default"];
     input.placeholder = field["default"];
-  } else if (field["description"]) {
-    input.placeholder = field["description"];
+  }
+  let descriptionfield = null;
+  if (field["description"]) {
+    descriptionfield = document.createElement("p");
+    descriptionfield.id = name + "-description";
+    descriptionfield.classList.add("nota-bene");
+    descriptionfield.innerHTML = addLinks(escapeHtml(field["description"]));
   }
   if (field["minLength"]) {
     input.minlength = parseInt(field["minLength"]);
@@ -309,10 +345,15 @@ function renderfield(required, originalvalue, path, name, field) {
   }
   let label = document.createElement("label");
   label.htmlFor = input.id;
+  label.innerHTML = required
+    ? `${escapeHtml(name)} <span class="nota-bene" aria-hidden="">(Required)</span>`
+    : escapeHtml(name);
 
   let div = document.createElement("div");
   div.appendChild(label);
-
+  if (descriptionfield) {
+    div.appendChild(descriptionfield);
+  }
   if (field["examples"]) {
     let datalist = document.createElement("datalist");
     for (let index = 0; index < field["examples"].length; ++index) {
@@ -326,7 +367,7 @@ function renderfield(required, originalvalue, path, name, field) {
     input.list = input.id + "listoptions";
   }
 
-  if (originalvalue) {
+  if (field["type"] != "boolean" && originalvalue) {
     input.value = originalvalue;
   }
   div.appendChild(input);
