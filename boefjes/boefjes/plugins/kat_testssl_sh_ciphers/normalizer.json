@@ -6,6 +6,8 @@
     "openkat/testssl-sh-ciphers-output"
   ],
   "produces": [
-    "TLSCipher"
+    "TLSCipher",
+    "KATFindingType",
+    "Finding"
   ]
 }
