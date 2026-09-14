@@ -68,6 +68,11 @@ class BoefjeScheduler(Scheduler):
 
         self.ranker = rankers.BoefjeRankerTimeBased(self.ctx)
 
+        # ponytail: cache indemnification status per organisation with a TTL, so a
+        # change in indemnification takes up to this many seconds to take effect.
+        self._indemnification_cache: dict[str, tuple[bool, float]] = {}
+        self._indemnification_cache_ttl: float = 60.0
+
     def run(self) -> None:
         """The run method is called when the scheduler is started. It will
         start the listeners and the scheduling loops in separate threads. It
@@ -153,7 +158,7 @@ class BoefjeScheduler(Scheduler):
         # Create tasks for the boefjes
         boefje_tasks = []
         for boefje in boefjes:
-            if not self.has_boefje_permission_to_run(boefje, ooi):
+            if not self.has_boefje_permission_to_run(boefje, ooi, organisation_id=mutation.client_id):
                 self.logger.debug(
                     "Boefje not allowed to run on ooi",
                     boefje_id=boefje.id,
@@ -403,7 +408,7 @@ class BoefjeScheduler(Scheduler):
                         # boefje is not allowed to scan an ooi?
 
                         # Boefje allowed to scan ooi?
-                        if not self.has_boefje_permission_to_run(plugin, ooi):
+                        if not self.has_boefje_permission_to_run(plugin, ooi, organisation_id=schedule.organisation):
                             self.logger.info(
                                 "Boefje not allowed to scan ooi, skipping and disabling schedule",
                                 boefje_id=boefje_task.boefje.id,
@@ -565,16 +570,55 @@ class BoefjeScheduler(Scheduler):
 
         return super().push_item_to_queue(item=item, create_schedule=create_schedule)
 
-    def has_boefje_permission_to_run(self, boefje: models.Plugin, ooi: models.OOI) -> bool:
+    def has_organisation_indemnification(self, organisation_id: str) -> bool:
+        """Check whether an organisation has indemnification set.
+
+        Without indemnification, boefjes are not allowed to run. The result is
+        cached for a short period to avoid querying the KAT-alogus on every
+        boefje task.
+
+        Args:
+            organisation_id: The organisation id to check.
+
+        Returns:
+            True if the organisation has indemnification, False otherwise.
+        """
+        import time
+
+        now = time.monotonic()
+        cached = self._indemnification_cache.get(organisation_id)
+        if cached is not None and now - cached[1] < self._indemnification_cache_ttl:
+            return cached[0]
+
+        organisation = self.ctx.services.katalogus.get_organisation(organisation_id)
+        has_indemnification = organisation.indemnification if organisation is not None else True
+
+        self._indemnification_cache[organisation_id] = (has_indemnification, now)
+        return has_indemnification
+
+    def has_boefje_permission_to_run(
+        self, boefje: models.Plugin, ooi: models.OOI, organisation_id: str | None = None
+    ) -> bool:
         """Checks whether a boefje is allowed to run on an ooi.
 
         Args:
             boefje: The boefje to check.
             ooi: The ooi to check.
+            organisation_id: The organisation the boefje would run for. When
+                provided, the organisation must have indemnification set.
 
         Returns:
             True if the boefje is allowed to run on the ooi, False otherwise.
         """
+        if organisation_id is not None and not self.has_organisation_indemnification(organisation_id):
+            self.logger.info(
+                "Organisation has no indemnification, boefje not allowed to run",
+                boefje_id=boefje.id,
+                organisation_id=organisation_id,
+                scheduler_id=self.scheduler_id,
+            )
+            return False
+
         if boefje.enabled is False:
             self.logger.debug(
                 "Boefje: %s is disabled", boefje.name, boefje_id=boefje.id, scheduler_id=self.scheduler_id
@@ -828,7 +872,7 @@ class BoefjeScheduler(Scheduler):
                 continue
 
             ooi = orgs[config.organisation_id]
-            if not self.has_boefje_permission_to_run(boefje, ooi):
+            if not self.has_boefje_permission_to_run(boefje, ooi, organisation_id=config.organisation_id):
                 self.logger.debug(
                     "Boefje not allowed to run on ooi",
                     boefje_id=boefje_task.boefje.id,
