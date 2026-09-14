@@ -310,11 +310,15 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
         return report_recipe
 
     def get_input_data(self) -> dict[str, Any]:
+        plugin_union = report_plugins_union(self.get_report_types())
+        all_plugin_ids = list(plugin_union["required"] | plugin_union["optional"])
+        plugin_states = {p.id: p.enabled for p in self.katalogus_client.get_plugins(ids=all_plugin_ids)} if all_plugin_ids else {}
         return {
             "input_data": {
                 "input_oois": self.get_ooi_pks(),
                 "report_types": self.get_report_type_ids(),
-                "plugins": report_plugins_union(self.get_report_types()),
+                "plugins": plugin_union,
+                "plugin_states": plugin_states,
             }
         }
 
@@ -628,9 +632,12 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
 
         plugin_ids_required = plugins_dict["required"]
         plugin_ids_optional = plugins_dict["optional"]
+        plugin_states = plugins_dict.get("plugin_states", {})
 
         katalogus_plugins = self.katalogus_client.get_plugins(ids=plugin_ids_required + plugin_ids_optional)
         for plugin in katalogus_plugins:
+            if plugin.id in plugin_states:
+                plugin.enabled = plugin_states[plugin.id]
             if plugin.id in plugin_ids_required:
                 plugins["required"].append(plugin)
             if plugin.id in plugin_ids_optional:
