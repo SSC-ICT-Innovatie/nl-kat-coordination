@@ -52,6 +52,14 @@ class RPKIReport(Report):
                 number_of_valid -= 1 if invalid else 0
                 number_of_compliant -= 1 if not (exists and not invalid) else 0
 
+            # If no IP has any RPKI finding at all, the RPKI plugin is likely
+            # disabled. Without findings we cannot distinguish "all valid" from
+            # "not scanned", so flag it for the template to warn about.
+            any_findings = any(
+                finding_types_by_source.get(ip, [])
+                for ip in ips
+            )
+
             result[input_ooi] = {
                 "input_ooi": input_ooi,
                 "rpki_ips": rpki_ips,
@@ -59,6 +67,7 @@ class RPKIReport(Report):
                 "number_of_compliant": number_of_compliant,
                 "number_of_valid": number_of_valid,
                 "number_of_ips": number_of_ips,
+                "plugin_likely_disabled": number_of_ips > 0 and not any_findings,
             }
 
         return result
