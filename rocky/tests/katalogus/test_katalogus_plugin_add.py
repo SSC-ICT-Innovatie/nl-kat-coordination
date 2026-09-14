@@ -150,6 +150,43 @@ def test_plugin_settings_add_error_message_about_integer_too_big(
     assertContains(response, "1000 is greater than the maximum of 200")
 
 
+def test_plugin_settings_clear_all_removes_existing_settings(
+    rf, superuser_member, mock_mixins_katalogus, plugin_details, plugin_schema_no_required
+):
+    """Submitting an empty form when settings exist should delete them (#3386)."""
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
+    mock_mixins_katalogus.get_plugin_schema.return_value = plugin_schema_no_required
+    mock_mixins_katalogus.get_plugin_settings.return_value = {"TEST_PROPERTY": "abc"}
+
+    request = setup_request(rf.post("plugin_settings_add", data={}), superuser_member.user)
+    response = PluginSettingsAddView.as_view()(
+        request, organization_code=superuser_member.organization.code, plugin_type="boefje", plugin_id="test-plugin"
+    )
+
+    assert response.status_code == 302
+    mock_mixins_katalogus.delete_plugin_settings.assert_called_once_with("test-plugin")
+    mock_mixins_katalogus.upsert_plugin_settings.assert_not_called()
+    assert list(request._messages).pop().message == "Cleared settings for 'TestBoefje'"
+
+
+def test_plugin_settings_empty_form_no_existing_settings_warns(
+    rf, superuser_member, mock_mixins_katalogus, plugin_details, plugin_schema_no_required
+):
+    """Submitting an empty form when no settings exist should warn, not delete."""
+    mock_mixins_katalogus.get_plugin.return_value = plugin_details
+    mock_mixins_katalogus.get_plugin_schema.return_value = plugin_schema_no_required
+    mock_mixins_katalogus.get_plugin_settings.return_value = {}
+
+    request = setup_request(rf.post("plugin_settings_add", data={}), superuser_member.user)
+    response = PluginSettingsAddView.as_view()(
+        request, organization_code=superuser_member.organization.code, plugin_type="boefje", plugin_id="test-plugin"
+    )
+
+    assert response.status_code == 302
+    mock_mixins_katalogus.delete_plugin_settings.assert_not_called()
+    assert list(request._messages).pop().message == "No changes to the settings added: no form data present"
+
+
 def test_plugin_single_settings_add_view_no_schema(rf, superuser_member, mock_mixins_katalogus, plugin_details):
     plugin_details.boefje_schema = None
     mock_mixins_katalogus.get_plugin.return_value = plugin_details
