@@ -28,12 +28,12 @@
                                 </span>
                                 {% if dashboard_item.item.recipe and dashboard_item.item.source %}
                                     <a class="header-group-item dashboard-item-link"
-                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.parent_report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s:u" }}">
+                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.parent_report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s.u" }}">
                                         <span class="date">{{ dashboard_item.data.report.reference_date }}</span> <span class="name">{{ dashboard_item.data.parent_report.name }}</span>
                                     </a>
                                 {% elif dashboard_item.item.recipe %}
                                     <a class="header-group-item dashboard-item-link"
-                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s:u" }}">
+                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}&observed_at={{ dashboard_item.data.report.observed_at|date:"Y-m-d H:i:s.u" }}">
                                         <span class="date">{{ dashboard_item.data.report.reference_date }}</span> <span class="name">{{ dashboard_item.data.report.name }}</span>
                                     </a>
                                 {% endif %}
