@@ -61,7 +61,5 @@ def run(input_ooi: IPPort, additional_oois: list, config: dict[str, Any]) -> Ite
         ft = KATFindingType(id="KAT-INSECURE-PROTOCOL")
         yield ft
         yield Finding(
-            finding_type=ft.reference,
-            ooi=input_ooi.reference,
-            description=f"Port {port}/tcp: {INSECURE_PORTS[port]}.",
+            finding_type=ft.reference, ooi=input_ooi.reference, description=f"Port {port}/tcp: {INSECURE_PORTS[port]}."
         )

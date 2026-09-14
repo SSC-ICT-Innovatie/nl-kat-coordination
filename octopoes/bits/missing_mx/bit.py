@@ -1,5 +1,5 @@
 from bits.definitions import BitDefinition, BitParameterDefinition
-from octopoes.models.ooi.dns.records import DNSMXRecord, NXDOMAIN
+from octopoes.models.ooi.dns.records import NXDOMAIN, DNSMXRecord
 from octopoes.models.ooi.dns.zone import Hostname
 
 BIT = BitDefinition(

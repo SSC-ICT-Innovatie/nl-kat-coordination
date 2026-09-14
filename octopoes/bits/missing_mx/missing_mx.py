@@ -4,7 +4,7 @@ from typing import Any
 import tldextract
 
 from octopoes.models import OOI
-from octopoes.models.ooi.dns.records import DNSMXRecord, NXDOMAIN
+from octopoes.models.ooi.dns.records import NXDOMAIN, DNSMXRecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType
 

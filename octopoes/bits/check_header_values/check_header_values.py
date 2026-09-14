@@ -55,7 +55,10 @@ def _check_xfo(headers: dict[str, HTTPHeader], issues: list[str]) -> None:
     if value not in VALID_XFO:
         # ALLOW-FROM is deprecated and poorly supported
         if value.startswith("allow-from"):
-            issues.append("X-Frame-Options uses deprecated ALLOW-FROM directive; use Content-Security-Policy frame-ancestors instead")
+            issues.append(
+                "X-Frame-Options uses deprecated ALLOW-FROM directive; "
+                "use Content-Security-Policy frame-ancestors instead"
+            )
         else:
             issues.append(f"X-Frame-Options has invalid value '{xfo.value}'; expected DENY or SAMEORIGIN")
 
@@ -74,9 +77,14 @@ def _check_referrer(headers: dict[str, HTTPHeader], issues: list[str]) -> None:
         return
     value = ref.value.strip().lower()
     if value not in VALID_REFERRER:
-        issues.append(f"Referrer-Policy has invalid value '{ref.value}'; expected one of {', '.join(sorted(VALID_REFERRER))}")
+        issues.append(
+            f"Referrer-Policy has invalid value '{ref.value}'; expected one of {', '.join(sorted(VALID_REFERRER))}"
+        )
     elif value in WEAK_REFERRER:
-        issues.append(f"Referrer-Policy value '{value}' leaks referrer information to third parties; consider 'no-referrer' or 'strict-origin-when-cross-origin'")
+        issues.append(
+            f"Referrer-Policy value '{value}' leaks referrer information to third parties; "
+            "consider 'no-referrer' or 'strict-origin-when-cross-origin'"
+        )
 
 
 def _check_permissions_policy(headers: dict[str, HTTPHeader], issues: list[str]) -> None:
