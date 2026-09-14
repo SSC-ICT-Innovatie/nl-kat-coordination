@@ -132,3 +132,28 @@ def test_upload_csv(
 
     messages = list(request._messages)
     assert "successfully added" in messages[0].message
+
+
+def test_upload_csv_ipaddress_autodetect(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """IPAddress object type should accept a mix of IPv4 and IPv6 in one file."""
+    example_input = b"""address,network
+1.1.1.1,internet
+FE80:CD00:0000:0CDE:1257:0000:211E:729C,internet"""
+    example_file = BytesIO(example_input)
+    example_file.name = "IPAddress.csv"
+
+    request = setup_request(
+        rf.post("upload_csv", {"object_type": "IPAddress", "csv_file": example_file}), redteam_member.user
+    )
+    response = UploadCSV.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    assert mock_organization_view_octopoes().save_many_declarations.call_count == 1
+
+    declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
+    ip_types = {decl.ooi.object_type for decl in declarations if hasattr(decl.ooi, "address")}
+    assert "IPAddressV4" in ip_types
+    assert "IPAddressV6" in ip_types
+
+    messages = list(request._messages)
+    assert "successfully added" in messages[0].message
