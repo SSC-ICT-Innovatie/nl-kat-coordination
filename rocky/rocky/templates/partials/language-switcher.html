@@ -34,5 +34,6 @@
           method="post"
           class="inline">
         {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}" />
     </form>
 </div>
