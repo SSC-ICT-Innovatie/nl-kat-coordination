@@ -1,5 +1,13 @@
 import subprocess
 
+# nuclei exits 1 when it finds no vulnerabilities or when no templates are
+# available for the scan. These are not real errors — the scan ran fine, there
+# was just nothing to report.
+_BENIGN_STDERR_MARKERS = (
+    "No results found",
+    "no templates provided for scan",
+)
+
 
 def get_target_url(input_ooi: dict) -> str:
     """Extract scan target hostname from input OOI."""
@@ -13,9 +21,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     output = subprocess.run(cmd, capture_output=True)
 
     if output.returncode != 0:
+        stderr = output.stderr.decode().strip()
+
+        if any(marker in stderr for marker in _BENIGN_STDERR_MARKERS):
+            return [({"openkat/nuclei-output"}, "")]
+
         # nuclei reports why it gave up on stderr ("no templates provided for
         # scan", an unknown flag, ...). check_returncode() drops that, leaving
         # only an exit code for whoever reads the failed task.
-        raise RuntimeError(f"nuclei exited with code {output.returncode}: {output.stderr.decode().strip()}")
+        raise RuntimeError(f"nuclei exited with code {output.returncode}: {stderr}")
 
     return [({"openkat/nuclei-output"}, output.stdout.decode())]
