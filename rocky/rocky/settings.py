@@ -131,6 +131,12 @@ TWOFACTOR_ENABLED = env.bool("TWOFACTOR_ENABLED", not REMOTE_USER_HEADER)
 # https://docs.djangoproject.com/en/4.2/ref/settings/#allowed-hosts
 ALLOWED_HOSTS = env.list("DJANGO_ALLOWED_HOSTS", default=["*"])
 
+# Report generation can submit a large number of form fields (one checkbox per
+# OOI per report type). Django's default of 1000 is too low for organisations
+# with many objects. Set to None to disable the limit entirely.
+# https://docs.djangoproject.com/en/4.2/ref/settings/#data-upload-max-number-fields
+DATA_UPLOAD_MAX_NUMBER_FIELDS = None
+
 SPAN_EXPORT_GRPC_ENDPOINT = env("SPAN_EXPORT_GRPC_ENDPOINT", default=None)
 if SPAN_EXPORT_GRPC_ENDPOINT is not None:
     OpenTelemetryHelper.setup_instrumentation(SPAN_EXPORT_GRPC_ENDPOINT)
