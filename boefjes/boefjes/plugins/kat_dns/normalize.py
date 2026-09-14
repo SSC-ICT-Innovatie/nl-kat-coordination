@@ -175,8 +175,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     # DKIM
     dkim_results = results["dkim_response"]
-    if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"] and dkim_results.split("\n")[2] == "rcode NOERROR":
-        yield DKIMExists(hostname=input_hostname.reference)
+    if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"]:
+        try:
+            dkim_response = from_text(dkim_results)
+            if dkim_response.rcode() == 0:  # NOERROR
+                yield DKIMExists(hostname=input_hostname.reference)
+        except Exception:  # noqa: S110 - malformed DKIM response should not crash the normalizer
+            pass
 
     # DMARC
     dmarc_results = results["dmarc_response"]
