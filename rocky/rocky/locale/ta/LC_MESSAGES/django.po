@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-03-28 14:22+0000\n"
 "PO-Revision-Date: 2025-08-22 09:39+0000\n"
 "Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Tamil <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -3225,8 +3225,8 @@ msgstr ""
 "ஏற்றுக்கொள்ளப்பட்ட தரமாகும், இது மருத்துவ படங்கள் மற்றும் தொடர்புடைய தரவுகளின் தகவல்தொடர்பு "
 "மற்றும் தொடர்புடைய தரவுகளான மருத்துவ இமேசிங் உபகரணங்கள், பட காப்பக மற்றும் செய்தி "
 "தொடர்பு அமைப்புகள் (பிஏசி) மற்றும் கதிரியக்க செய்தி அமைப்புகள் (RIS) போன்றவற்றில் "
-"இயங்குதளத்தையும் நிலைத்தன்மையையும் உறுதி செய்கிறது. டிகாம் சேவையகங்கள் எக்ச்-கதிர்கள், சி."
-"டி ச்கேன் மற்றும் எம்.ஆர்.ஐ போன்ற நோயாளிகளின் சார்ந்த மருத்துவ படங்களை சேமித்து "
+"இயங்குதளத்தையும் நிலைத்தன்மையையும் உறுதி செய்கிறது. டிகாம் சேவையகங்கள் எக்ச்-கதிர்கள், "
+"சி.டி ச்கேன் மற்றும் எம்.ஆர்.ஐ போன்ற நோயாளிகளின் சார்ந்த மருத்துவ படங்களை சேமித்து "
 "நிர்வகிக்கின்றன, இது தரப்படுத்தப்பட்ட வடிவமைப்பைப் பயன்படுத்துகிறது."
 
 #: reports/report_types/aggregate_organisation_report/vulnerabilities.html
@@ -3577,12 +3577,12 @@ msgid ""
 "environment."
 msgstr ""
 "அடையாளம் காணப்பட்ட டொமைன் பெயர் சேவையகங்களுக்கு (டி.என்.எச்) எதிராக நிகழ்த்தப்பட்ட இணக்க "
-"காசோலைகளின் கண்ணோட்டத்தை பெயர் சேவையக அறிக்கை வழங்குகிறது. இணக்க காசோலைகள் டி.என்.எச்."
-"எச்.இ.சியின் இருப்பு மற்றும் செல்லுபடியாகும் தன்மையையும், தேவையற்ற துறைமுகங்கள் எதுவும் "
-"திறந்தவை என்று அடையாளம் காணப்படவில்லை என்பதையும் சரிபார்க்கின்றன. கணினி நிகழ்த்தப்பட்ட "
-"காசோலைகளை கடந்து சென்றதா என்பது உட்பட கிடைக்கக்கூடிய காசோலைகளின் கண்ணோட்டத்தை கீழேயுள்ள "
-"அட்டவணை வழங்குகிறது. ஒரு சிக்கல் ஏன் அடையாளம் காணப்பட்டது என்பதற்கான இடர் நிலை மற்றும் "
-"பகுத்தறிவு கூட காட்டப்பட்டுள்ளது. உங்கள் குறிப்பிட்ட சூழலுக்கு இடர் நிலை "
+"காசோலைகளின் கண்ணோட்டத்தை பெயர் சேவையக அறிக்கை வழங்குகிறது. இணக்க காசோலைகள் "
+"டி.என்.எச்.எச்.இ.சியின் இருப்பு மற்றும் செல்லுபடியாகும் தன்மையையும், தேவையற்ற துறைமுகங்கள் "
+"எதுவும் திறந்தவை என்று அடையாளம் காணப்படவில்லை என்பதையும் சரிபார்க்கின்றன. கணினி "
+"நிகழ்த்தப்பட்ட காசோலைகளை கடந்து சென்றதா என்பது உட்பட கிடைக்கக்கூடிய காசோலைகளின் "
+"கண்ணோட்டத்தை கீழேயுள்ள அட்டவணை வழங்குகிறது. ஒரு சிக்கல் ஏன் அடையாளம் காணப்பட்டது என்பதற்கான "
+"இடர் நிலை மற்றும் பகுத்தறிவு கூட காட்டப்பட்டுள்ளது. உங்கள் குறிப்பிட்ட சூழலுக்கு இடர் நிலை "
 "வேறுபட்டிருக்கலாம்."
 
 #: reports/report_types/name_server_report/report.html
@@ -3856,8 +3856,8 @@ msgid ""
 "details."
 msgstr ""
 "தேர்ந்தெடுக்கப்பட்ட அமைப்புகளில் அடையாளம் காணப்பட்ட அனைத்து அடையாளம் காணப்பட்ட சி.வி.இ "
-"பாதிப்புகளின் கண்ணோட்டத்தை பாதிப்பு அறிக்கை வழங்குகிறது. ஒவ்வொரு சி.வி.இ அட்டவணை சி.வி."
-"இ மதிப்பெண், நிகழ்வுகளின் எண்ணிக்கை மற்றும் சி.வி.இ விவரங்களைக் காட்டுகிறது."
+"பாதிப்புகளின் கண்ணோட்டத்தை பாதிப்பு அறிக்கை வழங்குகிறது. ஒவ்வொரு சி.வி.இ அட்டவணை "
+"சி.வி.இ மதிப்பெண், நிகழ்வுகளின் எண்ணிக்கை மற்றும் சி.வி.இ விவரங்களைக் காட்டுகிறது."
 
 #: reports/report_types/vulnerability_report/report.html
 msgid "vulnerabilities on this system"
@@ -4917,8 +4917,8 @@ msgstr "தொடர குறைந்தது ஒரு அறிக்கை
 
 #: reports/views/mixins.py
 msgid ""
-"No data could be found for %(report_types). Object(s) did not exist on "
-"%(date)s."
+"No data could be found for %(report_types). Object(s) did not exist on %"
+"(date)s."
 msgstr "%(date)sு தரவு எதுவும் கிடைக்கவில்லை. பொருள் (கள்) %(தேதி) களில் இல்லை."
 
 #: reports/views/multi_report.py
@@ -5030,10 +5030,6 @@ msgstr "3: ஏற்றுமதி அமைப்பு"
 #: tools/forms/base.py
 msgid "Date"
 msgstr "திகதி"
-
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr "தேர்ந்தெடுக்கப்பட்ட தேதி எதிர்காலத்தில் உள்ளது. வேறு தேதியைத் தேர்ந்தெடுக்கவும்."
 
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
@@ -5314,6 +5310,10 @@ msgstr "இயங்கும்"
 msgid "Search by object name"
 msgstr "பொருள் பெயரால் தேடுங்கள்"
 
+#: tools/forms/scheduler.py
+msgid "The selected date is in the future. Please select a different date."
+msgstr "தேர்ந்தெடுக்கப்பட்ட தேதி எதிர்காலத்தில் உள்ளது. வேறு தேதியைத் தேர்ந்தெடுக்கவும்."
+
 #: tools/forms/settings.py
 msgid "--- Show all ----"
 msgstr "--- அனைத்தையும் காட்டு ----"
@@ -5414,9 +5414,9 @@ msgid ""
 "used as the basis for a form for the user. When the user enables this Boefje "
 "they can get the option to give extra information. For example, it can "
 "contain an API key that the script requires.</p> <p>More information about "
-"what the schema.json file looks like can be found <a href='https://docs."
-"openkat.nl/developer_documentation/development_tutorial/creating_a_boefje."
-"html'> here</a>.</p> "
+"what the schema.json file looks like can be found <a href='https://"
+"docs.openkat.nl/developer_documentation/development_tutorial/"
+"creating_a_boefje.html'> here</a>.</p> "
 msgstr ""
 "<p> உங்கள் போஃப்சேவுக்கு வேறு ஏதேனும் அமைப்புகள் தேவைப்பட்டால், இவற்றை ஒரு சாதொபொகு "
 "திட்டமாகச் சேர்க்கவும், இல்லையெனில், புலத்தைக் காலியாக அல்லது 'சுழியம்' விடுங்கள். </p> "
@@ -5447,8 +5447,9 @@ msgid ""
 "</p> "
 msgstr ""
 "<p> உங்கள் போஃப்சேவுக்கு இசைவு நிலையைத் தேர்ந்தெடுக்கவும். வெவ்வேறு இசைவு நிலைகளைப் "
-"பற்றிய கூடுதல் தகவலுக்கு, <a href='https://docs.openkat.nl/manual/usermanual."
-"html#scan-levels-clearance-indemnities'> ஆவணங்களில் </a> காணலாம்.</p> "
+"பற்றிய கூடுதல் தகவலுக்கு, <a href='https://docs.openkat.nl/manual/"
+"usermanual.html#scan-levels-clearance-indemnities'> ஆவணங்களில் </a> காணலாம்.</"
+"p> "
 
 #: tools/forms/settings.py
 msgid ""
@@ -5979,8 +5980,8 @@ msgid "Add finding"
 msgstr "கண்டுபிடிப்பைச் சேர்க்கவும்"
 
 #: rocky/templates/findings/finding_list.html
-msgid "Findings @ "
-msgstr "கண்டுபிடிப்புகள் @ "
+msgid "Findings "
+msgstr ""
 
 #: rocky/templates/findings/finding_list.html
 #, python-format
@@ -6655,9 +6656,9 @@ msgid ""
 "target=\"_blank\" rel=\"noopener\">documentation</a>."
 msgstr ""
 "அமைப்பின் புதிய உறுப்பினரை உருவாக்குதல் <strong>%(organization)s </strong>. "
-"வெவ்வேறு கணக்கு வகைகளைப் பற்றிய விரிவான தகவலுக்கு, <a href=\"https://docs.openkat."
-"nl/basics/users-and-organisations.html#users\" target=\"_blank\" "
-"rel=\"noopener\">ஆவணங்கள் </a> ஐ சரிபார்."
+"வெவ்வேறு கணக்கு வகைகளைப் பற்றிய விரிவான தகவலுக்கு, <a href=\"https://"
+"docs.openkat.nl/basics/users-and-organisations.html#users\" "
+"target=\"_blank\" rel=\"noopener\">ஆவணங்கள் </a> ஐ சரிபார்."
 
 #: rocky/templates/organizations/organization_member_edit.html
 #: rocky/views/organization_member_edit.py
@@ -6865,8 +6866,20 @@ msgid "OOI"
 msgstr "ஓய்"
 
 #: rocky/templates/partials/explanations.html
+msgid "This OOI"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
 msgstr "தோற்றம்"
+
+#: rocky/templates/partials/explanations.html
+msgid "declared"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
+msgstr ""
 
 #: rocky/templates/partials/explanations.html
 msgid "Show clearance level inheritance"
@@ -6971,6 +6984,10 @@ msgid "Page"
 msgstr "பக்கம்"
 
 #: rocky/templates/partials/list_paginator.html
+msgid "Current"
+msgstr ""
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr "ஐந்து பக்கங்கள் முன்னோக்கி"
 
@@ -7012,15 +7029,12 @@ msgid "Edit %(display_type)s"
 msgstr "திருத்து %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
-#, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
 msgstr ""
-"\"%(ooi)s\", பொருள் வகை \"%(type)s\" இன் கண்ணோட்டம். இது பொதுவான தகவல்களையும் "
-"அதனுடன் தொடர்புடைய பொருள்களையும் காட்டுகிறது. இது கூடுதல் தொடர்புடைய பொருள்களைச் "
-"சேர்ப்பதற்கான வாய்ப்பையும் வழங்குகிறது, அல்லது அவற்றுக்காக வருடு செய்யவும்."
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
+msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Scan for objects"
@@ -7302,8 +7316,16 @@ msgid "List of tasks"
 msgstr "பணிகளின் பட்டியல்"
 
 #: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
 msgid "Yielded objects"
 msgstr "விளைவித்த பொருள்கள்"
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files"
+msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
@@ -7670,6 +7692,20 @@ msgid "Can not parse date, falling back to show current date."
 msgstr "தேதியை அலச முடியாது, தற்போதைய தேதியைக் காட்ட மீண்டும் விழுகிறது."
 
 #: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
+msgstr ""
+
+#: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
 msgstr "டாச்போர்டில் உருப்படிகளைச் சேர்க்க உங்களுக்கு இசைவு இல்லை."
 
@@ -8024,6 +8060,19 @@ msgstr "மூல கோப்பை பைட்டுகளில் பதி
 #: rocky/views/upload_raw.py
 msgid "Raw file successfully added."
 msgstr "மூல கோப்பு வெற்றிகரமாக சேர்க்கப்பட்டது."
+
+#~ msgid "Findings @ "
+#~ msgstr "கண்டுபிடிப்புகள் @ "
+
+#, python-format
+#~ msgid ""
+#~ "An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
+#~ "information and its related objects. It also gives the possibility to add "
+#~ "additional related objects, or to scan for them."
+#~ msgstr ""
+#~ "\"%(ooi)s\", பொருள் வகை \"%(type)s\" இன் கண்ணோட்டம். இது பொதுவான தகவல்களையும் "
+#~ "அதனுடன் தொடர்புடைய பொருள்களையும் காட்டுகிறது. இது கூடுதல் தொடர்புடைய பொருள்களைச் "
+#~ "சேர்ப்பதற்கான வாய்ப்பையும் வழங்குகிறது, அல்லது அவற்றுக்காக வருடு செய்யவும்."
 
 #~ msgid "Clearance level has been set"
 #~ msgstr "இசைவு நிலை அமைக்கப்பட்டுள்ளது"
@@ -9433,9 +9482,9 @@ msgstr "மூல கோப்பு வெற்றிகரமாக சேர
 #~ "\n"
 #~ "                        You can create a new Boefje. If you want more "
 #~ "information on this,\n"
-#~ "                        you can check out the <a href=\"https://docs."
-#~ "openkat.nl/developer_documentation/development_tutorial/creating_a_boefje."
-#~ "html\">documentation</a>.\n"
+#~ "                        you can check out the <a href=\"https://"
+#~ "docs.openkat.nl/developer_documentation/development_tutorial/"
+#~ "creating_a_boefje.html\">documentation</a>.\n"
 #~ "                    "
 #~ msgstr ""
 #~ "\n"
@@ -9981,17 +10030,17 @@ msgstr "மூல கோப்பு வெற்றிகரமாக சேர
 #~ msgid ""
 #~ "To make the report names more descriptive, you can include placeholders "
 #~ "for the object name, the report type and/or the reference date. For "
-#~ "subreports and reports over a single object, use the placeholder "
-#~ "\"${ooi}\" for the object name, \"${report_type}\" for the report type "
-#~ "and use a <a href=\"https://strftime.org/\" target=\"_blank\" "
+#~ "subreports and reports over a single object, use the placeholder \"${ooi}"
+#~ "\" for the object name, \"${report_type}\" for the report type and use a "
+#~ "<a href=\"https://strftime.org/\" target=\"_blank\" "
 #~ "rel=\"noopener\">Python strftime code</a> for the reference date. For "
 #~ "reports over multiple objects, use \"${oois_count}\" for the number of "
 #~ "objects in the report."
 #~ msgstr ""
 #~ "அறிக்கை பெயர்களை மேலும் விளக்கமளிக்க, பொருள் பெயர், அறிக்கை வகை மற்றும்/அல்லது "
 #~ "குறிப்பு தேதிக்கான பிளேச்ஓல்டர்களை நீங்கள் சேர்க்கலாம். ஒரு பொருளின் மீது துணை "
-#~ "அறிக்கைகள் மற்றும் அறிக்கைகளுக்கு, அறிக்கை வகைக்கு \"${ooi}\" என்ற பொருளுக்கு "
-#~ "\"${report_type}\" என்ற ஒதுக்கிடத்தைப் பயன்படுத்தவும், <a href=\"https://"
+#~ "அறிக்கைகள் மற்றும் அறிக்கைகளுக்கு, அறிக்கை வகைக்கு \"${ooi}\" என்ற பொருளுக்கு \"$"
+#~ "{report_type}\" என்ற ஒதுக்கிடத்தைப் பயன்படுத்தவும், <a href=\"https://"
 #~ "strftime.org/\" target=\"_blank\" rel=\"noopener\"> பைதான் strftime "
 #~ "குறியீடு </a> குறிப்புத் தேதிக்கு. பல பொருள்களின் அறிக்கைகளுக்கு, அறிக்கையில் உள்ள "
 #~ "பொருட்களின் எண்ணிக்கையில் \"${oois_count}\" ஐப் பயன்படுத்தவும்."
