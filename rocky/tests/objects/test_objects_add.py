@@ -50,6 +50,34 @@ def test_add_bad_schema(rf, client_member):
     assertContains(response, "This field is required.")
 
 
+def test_add_config_ooi_with_empty_dict(rf, client_member, mock_organization_view_octopoes, mock_bytes_client):
+    """Regression test for #3933: Django's JSONField treats {} as an empty
+    value and rejects it for required fields, but {} is a valid
+    dict[str, JsonValue] for the Config model. A Config with an empty config
+    dict must be creatable through Rocky."""
+    mock_organization_view_octopoes().list_objects.return_value = Mock(items=[Mock(primary_key="Network|internet")])
+
+    request = setup_request(
+        rf.post(
+            "ooi_add",
+            {
+                "ooi_type": "Config",
+                "ooi": "Network|internet",
+                "bit_id": "test-bit",
+                "config": "{}",
+            },
+        ),
+        client_member.user,
+    )
+    response = OOIAddView.as_view()(
+        request, organization_code=client_member.organization.code, ooi_type="Config"
+    )
+
+    assert response.status_code == 302
+    assert response.url == "/en/test/objects/detail/?ooi_id=Config%7Cinternet%7Ctest-bit"
+    mock_bytes_client().add_manual_proof.assert_called_once()
+
+
 def _mock_connector_with_oois(primary_keys: list[str]) -> Mock:
     connector = Mock()
     connector.list_objects.return_value = Mock(items=[Mock(primary_key=pk) for pk in primary_keys])
