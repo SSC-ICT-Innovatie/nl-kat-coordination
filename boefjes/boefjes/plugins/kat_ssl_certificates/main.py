@@ -1,4 +1,5 @@
 import subprocess
+from ipaddress import ip_address as parse_ip
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -11,13 +12,21 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     if scheme != "https":
         return [({"openkat/deschedule"}, "Skipping check due to non-TLS scheme")]
 
+    # openssl s_client -host does not accept bare IPv6 addresses; wrap them in brackets
+    host = f"[{ip_address}]" if parse_ip(ip_address).version == 6 else ip_address
+
     cmd = (
         ["/usr/bin/openssl"]
         + boefje_meta["arguments"]["oci_arguments"]
-        + ["-host", ip_address, "-port", port, "-servername", hostname]
+        + ["-host", host, "-port", str(port), "-servername", hostname]
     )
 
     output = subprocess.run(cmd, capture_output=True)
-    output.check_returncode()
+
+    # A non-zero exit code usually means the connection failed (e.g. network
+    # unreachable). Return the stderr as output so the normalizer can handle
+    # it gracefully instead of crashing the task.
+    if output.returncode != 0 and not output.stdout:
+        return [({"openkat/ssl-certificates-output"}, output.stderr.decode())]
 
     return [({"openkat/ssl-certificates-output"}, output.stdout.decode())]
