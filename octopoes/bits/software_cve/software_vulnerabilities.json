@@ -1,0 +1,210 @@
+{
+  "log4j": {
+    "vulnerabilities": [
+      {
+        "below": "2.15.0",
+        "atOrAbove": "2.0.0",
+        "identifiers": {
+          "CVE": ["CVE-2021-44228"],
+          "summary": "Log4Shell: Remote Code Execution via JNDI lookup"
+        }
+      },
+      {
+        "below": "2.12.2",
+        "atOrAbove": "2.1.0",
+        "identifiers": {
+          "CVE": ["CVE-2021-44228"],
+          "summary": "Log4Shell: Remote Code Execution via JNDI lookup (2.1.x branch)"
+        }
+      }
+    ]
+  },
+  "openssl": {
+    "vulnerabilities": [
+      {
+        "below": "1.1.0g",
+        "atOrAbove": "1.1.0",
+        "identifiers": {
+          "CVE": ["CVE-2016-8610"],
+          "summary": "OpenSSL: Read after free in SSL_clear"
+        }
+      },
+      {
+        "below": "1.0.2n",
+        "atOrAbove": "1.0.2",
+        "identifiers": {
+          "CVE": ["CVE-2017-3735"],
+          "summary": "OpenSSL: bn_sqram8 overflow"
+        }
+      },
+      {
+        "below": "1.0.1t",
+        "atOrAbove": "1.0.1",
+        "identifiers": {
+          "CVE": ["CVE-2016-0800"],
+          "summary": "OpenSSL: DROWN attack"
+        }
+      },
+      {
+        "below": "3.0.8",
+        "atOrAbove": "3.0.0",
+        "identifiers": {
+          "CVE": ["CVE-2022-0778"],
+          "summary": "OpenSSL: Infinite loop in BN_mod_sqrt on invalid certificates"
+        }
+      }
+    ]
+  },
+  "apache": {
+    "vulnerabilities": [
+      {
+        "below": "2.4.51",
+        "atOrAbove": "2.4.0",
+        "identifiers": {
+          "CVE": ["CVE-2021-41773"],
+          "summary": "Apache: Path traversal and file disclosure"
+        }
+      }
+    ]
+  },
+  "nginx": {
+    "vulnerabilities": [
+      {
+        "below": "1.16.1",
+        "atOrAbove": "1.16.0",
+        "identifiers": {
+          "CVE": ["CVE-2019-9511"],
+          "summary": "Nginx: HTTP/2 data dribble DoS"
+        }
+      },
+      {
+        "below": "1.15.6",
+        "atOrAbove": "1.9.5",
+        "identifiers": {
+          "CVE": ["CVE-2018-16843"],
+          "summary": "Nginx: Excessive memory consumption with HTTP/2"
+        }
+      }
+    ]
+  },
+  "openssh": {
+    "vulnerabilities": [
+      {
+        "below": "7.5",
+        "atOrAbove": "5.0",
+        "identifiers": {
+          "CVE": ["CVE-2016-10708"],
+          "summary": "OpenSSH: Out of bounds read in client code"
+        }
+      },
+      {
+        "below": "7.4",
+        "atOrAbove": "5.0",
+        "identifiers": {
+          "CVE": ["CVE-2016-10009"],
+          "summary": "OpenSSH: Privilege escalation via Unix-domain socket forwarding"
+        }
+      },
+      {
+        "below": "9.8",
+        "atOrAbove": "8.5",
+        "identifiers": {
+          "CVE": ["CVE-2024-6387"],
+          "summary": "OpenSSH: RegreSSHion - RCE in sshd"
+        }
+      }
+    ]
+  },
+  "bind": {
+    "vulnerabilities": [
+      {
+        "below": "9.11.14",
+        "atOrAbove": "9.11.0",
+        "identifiers": {
+          "CVE": ["CVE-2019-6477"],
+          "summary": "BIND: TCP-pipelining DoS"
+        }
+      },
+      {
+        "below": "9.16.1",
+        "atOrAbove": "9.16.0",
+        "identifiers": {
+          "CVE": ["CVE-2020-8622"],
+          "summary": "BIND: Assertion failure in authoritative server"
+        }
+      }
+    ]
+  },
+  "postgresql": {
+    "vulnerabilities": [
+      {
+        "below": "13.1",
+        "atOrAbove": "13.0",
+        "identifiers": {
+          "CVE": ["CVE-2020-25694"],
+          "summary": "PostgreSQL: Memory disclosure via certain aggregate functions"
+        }
+      }
+    ]
+  },
+  "redis": {
+    "vulnerabilities": [
+      {
+        "below": "6.2.0",
+        "atOrAbove": "6.0.0",
+        "identifiers": {
+          "CVE": ["CVE-2021-32625"],
+          "summary": "Redis: Lua sandbox escape"
+        }
+      }
+    ]
+  },
+  "samba": {
+    "vulnerabilities": [
+      {
+        "below": "4.13.17",
+        "atOrAbove": "4.0.0",
+        "identifiers": {
+          "CVE": ["CVE-2022-3447"],
+          "summary": "Samba: Memory leak in Kerberos authentication"
+        }
+      }
+    ]
+  },
+  "wordpress": {
+    "vulnerabilities": [
+      {
+        "below": "5.5.1",
+        "atOrAbove": "5.0.0",
+        "identifiers": {
+          "CVE": ["CVE-2020-3635"],
+          "summary": "WordPress: XSS in file upload"
+        }
+      }
+    ]
+  },
+  "php": {
+    "vulnerabilities": [
+      {
+        "below": "7.4.3",
+        "atOrAbove": "7.4.0",
+        "identifiers": {
+          "CVE": ["CVE-2020-7065"],
+          "summary": "PHP: UAF in parsing unquoted cookies"
+        }
+      }
+    ]
+  },
+  "tomcat": {
+    "vulnerabilities": [
+      {
+        "below": "9.0.35",
+        "atOrAbove": "9.0.0",
+        "identifiers": {
+          "CVE": ["CVE-2020-9484"],
+          "summary": "Tomcat: RCE via session persistence"
+        }
+      }
+    ]
+  }
+}
