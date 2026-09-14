@@ -12,7 +12,7 @@ from httpx import HTTPError
 from katalogus.client import KATalogusClient, get_katalogus_client
 from katalogus.exceptions import KATalogusDownException, KATalogusException, KATalogusUnhealthyException
 from structlog import get_logger
-from tools.models import Organization
+from tools.models import Indemnification, Organization
 
 from octopoes.api.models import Declaration
 from octopoes.connector.octopoes import OctopoesAPIConnector
@@ -176,6 +176,29 @@ def organization_post_save(sender, instance, created, *args, **kwargs):
         octopoes_client.save_declaration(Declaration(ooi=Network(name="internet"), valid_time=valid_time))
     except Exception:
         logger.exception("Could not seed internet for organization %s", sender)
+
+
+@receiver(post_save, sender=Indemnification)
+def indemnification_post_save(sender, instance: Indemnification, created, *args, **kwargs):
+    _sync_indemnification(instance)
+
+
+@receiver(post_delete, sender=Indemnification)
+def indemnification_post_delete(sender, instance: Indemnification, *args, **kwargs):
+    _sync_indemnification(instance, indemnification=False)
+
+
+def _sync_indemnification(instance: Indemnification, indemnification: bool = True) -> None:
+    if instance.organization is None:
+        return
+
+    try:
+        katalogus_client = _get_healthy_katalogus()
+        katalogus_client.update_organization(instance.organization.code, indemnification)
+    except (KATalogusDownException, KATalogusUnhealthyException, KATalogusException):
+        logger.exception("Could not sync indemnification to KAT-alogus for organization %s", instance.organization.code)
+    except HTTPError:
+        logger.exception("Could not sync indemnification to KAT-alogus for organization %s", instance.organization.code)
 
 
 def _get_healthy_katalogus() -> KATalogusClient:

@@ -25,6 +25,7 @@ class Organisation(BaseModel):
     id: str
     name: str
     deduplicate: bool = True
+    indemnification: bool = False
 
 
 class Plugin(BaseModel):
