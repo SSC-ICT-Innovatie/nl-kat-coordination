@@ -1,4 +1,3 @@
-import datetime
 import ipaddress
 import logging
 import re
@@ -7,7 +6,6 @@ from collections.abc import Iterable
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.asymmetric import ec, rsa
-from dateutil.parser import parse
 
 from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models import Reference
@@ -139,8 +137,6 @@ def read_certificates(
             pk_number=pk_number,
             website=website_reference,
             serial_number=cert.serial_number.to_bytes(20, "big").hex(),
-            expires_in=parse(valid_until).astimezone(datetime.timezone.utc)
-            - datetime.datetime.now(datetime.timezone.utc),
         )
         # todo: alt names
         certificates.append(certificate)
