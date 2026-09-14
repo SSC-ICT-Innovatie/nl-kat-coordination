@@ -108,3 +108,17 @@ def test_ciphered_service():
     }
     assert len(oois) == 1
     assert oois[0].suites == expected_suites
+
+
+def test_scan_problem_yields_finding():
+    raw = (
+        b'[{"id":"scanProblem","ip":"134.209.85.72/134.209.85.72","port":"80",'
+        b'"severity":"FATAL","finding":"Can\'t connect to \'134.209.85.72\'"},'
+        b'{"id":"scanTime","ip":"134.209.85.72/134.209.85.72","port":"80",'
+        b'"severity":"WARN","finding":"Scan interrupted"}]'
+    )
+    oois = list(run(input_ooi, raw))
+
+    assert len(oois) == 2
+    assert oois[0].id == "KAT-SCAN-PROBLEM"
+    assert oois[1].description == "Can't connect to '134.209.85.72'"
