@@ -13,8 +13,14 @@ def feature_flags(request):
 
 
 def languages(request):
-    context = {"languages": [code for code, _ in settings.LANGUAGES]}
-    return context
+    current = getattr(request, "LANGUAGE_CODE", settings.LANGUAGE_CODE)
+    path = request.get_full_path()
+    if path.startswith(f"/{current}/"):
+        path = path[len(current) + 1 :]
+    else:
+        # Not a language-prefixed URL: link to the language root instead
+        path = "/"
+    return {"language_links": [(code, f"/{code}{path}") for code, _ in settings.LANGUAGES]}
 
 
 def organizations_including_blocked(request):
