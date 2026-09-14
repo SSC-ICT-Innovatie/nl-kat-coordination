@@ -37,7 +37,6 @@ def test_expiring_cert_simple_expires_soon():
         valid_from="2022-11-15T08:52:57",
         valid_until=str(datetime.now() + timedelta(days=2)),
         serial_number="abc123",
-        expires_in=timedelta(days=2),
     )
 
     results = list(run(certificate, [], {}))
