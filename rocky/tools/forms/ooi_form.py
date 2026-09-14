@@ -4,7 +4,9 @@ from inspect import isclass
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Literal, TypedDict, Union, get_args, get_origin
 
+from croniter import croniter
 from django import forms
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 from pydantic import AnyUrl, JsonValue
 from pydantic.fields import FieldInfo
@@ -34,6 +36,15 @@ class OOIForm(BaseRockyForm):
     def clean(self):
         super().clean()["user_id"] = self.user_id
         return {key: value for key, value in super().clean().items() if value}
+
+    def clean_cron_expression(self):
+        value = self.cleaned_data.get("cron_expression")
+        if value:
+            try:
+                croniter(value)
+            except (ValueError, KeyError) as error:
+                raise ValidationError(_("Invalid cron expression: %(error)s") % {"error": str(error)}) from error
+        return value
 
     def get_fields(self) -> dict[str, forms.fields.Field]:
         return self.generate_form_fields()
