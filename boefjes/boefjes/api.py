@@ -15,6 +15,7 @@ from boefjes.clients.bytes_client import BytesAPIClient
 from boefjes.clients.scheduler_client import SchedulerAPIClient
 from boefjes.config import settings
 from boefjes.dependencies.plugins import get_plugin_service
+from boefjes.job_handler import bytes_api_client
 from boefjes.worker.interfaces import BoefjeInput, BoefjeOutput, StatusEnum, Task, TaskStatus, WorkerManager
 from boefjes.worker.repository import _default_mime_types
 
@@ -53,7 +54,7 @@ def get_scheduler_client(plugin_service=Depends(get_plugin_service)):
 
 
 def get_bytes_client():
-    return BytesAPIClient(str(settings.bytes_api), username=settings.bytes_username, password=settings.bytes_password)
+    return bytes_api_client
 
 
 @app.get("/healthz")
