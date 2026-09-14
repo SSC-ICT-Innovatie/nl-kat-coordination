@@ -1,6 +1,7 @@
 import multiprocessing
 import uuid
 from datetime import datetime, timezone
+from functools import lru_cache
 from multiprocessing.context import ForkContext, ForkProcess
 from typing import Any
 from uuid import UUID
@@ -52,6 +53,7 @@ def get_scheduler_client(plugin_service=Depends(get_plugin_service)):
     return SchedulerAPIClient(plugin_service, str(settings.scheduler_api))
 
 
+@lru_cache(maxsize=1)
 def get_bytes_client():
     return BytesAPIClient(str(settings.bytes_api), username=settings.bytes_username, password=settings.bytes_password)
 

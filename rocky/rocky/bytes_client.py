@@ -3,7 +3,7 @@ import uuid
 from base64 import b64decode, b64encode
 from collections.abc import Generator, Sequence, Set
 from datetime import datetime, timezone
-from functools import cached_property
+from functools import cache, cached_property
 from typing import Any
 
 import httpx
@@ -242,5 +242,6 @@ class BytesClient:
         return response.json()["access_token"]
 
 
+@cache
 def get_bytes_client(organization: str | None) -> BytesClient:
     return BytesClient(settings.BYTES_API, settings.BYTES_USERNAME, settings.BYTES_PASSWORD, organization)

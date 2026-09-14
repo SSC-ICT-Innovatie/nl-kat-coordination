@@ -335,6 +335,16 @@ def mock_models_katalogus(mocker):
     return mocker.patch("katalogus.client.get_katalogus_client")
 
 
+@pytest.fixture(autouse=True)
+def _clear_bytes_client_cache():
+    """Clear the lru_cache on get_bytes_client so tests don't leak cached clients into each other."""
+    from rocky.bytes_client import get_bytes_client
+
+    get_bytes_client.cache_clear()
+    yield
+    get_bytes_client.cache_clear()
+
+
 @pytest.fixture
 def mock_bytes_client(mocker):
     return mocker.patch("rocky.bytes_client.BytesClient")
