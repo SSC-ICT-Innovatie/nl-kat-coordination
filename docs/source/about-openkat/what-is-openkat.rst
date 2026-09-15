@@ -2,7 +2,6 @@
 What is OpenKAT?
 ================
 
-Hallo
 
 Introduction
 ============
