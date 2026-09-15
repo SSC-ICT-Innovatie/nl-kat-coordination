@@ -9,7 +9,7 @@ from pydantic import TypeAdapter
 
 from octopoes.api.models import Declaration
 from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import OOI
+from octopoes.models import OOI, Reference
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.findings import (
     CAPECFindingType,
@@ -21,7 +21,8 @@ from octopoes.models.ooi.findings import (
     RetireJSFindingType,
     SnykFindingType,
 )
-from octopoes.models.tree import ReferenceNode
+from octopoes.models.ooi.software import SoftwareInstance
+from octopoes.models.tree import ReferenceNode, ReferenceTree
 from octopoes.models.types import OOI_TYPES, get_relations
 from rocky.bytes_client import BytesClient
 from tools.models import OOIInformation
@@ -273,3 +274,41 @@ def create_oois(
 
     bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations(declarations))
     api_connector.save_many_declarations(declarations, sync=True)
+
+
+# A CVE is a property of a software version, so its Finding hangs on the bare Software OOI
+# (#5321). Software is deliberately not traversable -- it is a shared node, and walking it would
+# fan out over every host running the same package -- so the object tree always stops at the
+# SoftwareInstance. These last two hops therefore have to be walked explicitly.
+SOFTWARE_FINDINGS_PATH = "SoftwareInstance.software.<ooi[is Finding]"
+
+# Every source ends up in the query string, so a host with hundreds of services would otherwise
+# build a request line past what the API server accepts.
+QUERY_MANY_CHUNK_SIZE = 50
+
+
+def collect_software_instances(tree: ReferenceTree) -> dict[Reference, Reference]:
+    """Map every SoftwareInstance in the tree to the OOI it is installed on."""
+    return {ooi.reference: ooi.ooi for ooi in tree.store.values() if isinstance(ooi, SoftwareInstance)}
+
+
+def findings_on_software(
+    api_connector: OctopoesAPIConnector, software_instances: dict[Reference, Reference], valid_time: datetime
+) -> list[tuple[Finding, Reference]]:
+    """Findings carried by the software behind these instances, each with the asset running it.
+
+    `software_instances` maps a SoftwareInstance to the OOI it is installed on, as returned by
+    `collect_software_instances`. The same finding can be reached through several instances -- one
+    package on two ports, say -- so it is reported once, for the first asset it was found on.
+    """
+    findings: dict[Reference, tuple[Finding, Reference]] = {}
+    sources = list(software_instances)
+
+    for start in range(0, len(sources), QUERY_MANY_CHUNK_SIZE):
+        chunk = sources[start : start + QUERY_MANY_CHUNK_SIZE]
+
+        for source, ooi in api_connector.query_many(SOFTWARE_FINDINGS_PATH, valid_time, chunk):
+            if isinstance(ooi, Finding) and ooi.reference not in findings:
+                findings[ooi.reference] = (ooi, software_instances[Reference.from_str(source)])
+
+    return list(findings.values())
