@@ -1,3 +1,6 @@
+import ipaddress
+from urllib.parse import urlparse
+
 from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
@@ -46,3 +49,15 @@ class OnboardingCreateObjectURLForm(forms.Form):
         help_text=_("Please enter a valid URL starting with 'http://' or 'https://'."),
         widget=forms.URLInput({"placeholder": "Enter your URL (e.g., https://example.com)"}),
     )
+
+    def clean_url(self):
+        # The onboarding flow runs a DNS report, which requires a hostname.
+        # An IP-address host (e.g. http://127.0.0.1) would crash later in
+        # get_ooi_pks with a KeyError, so reject it at the trust boundary.
+        url = self.cleaned_data["url"]
+        host = urlparse(url).hostname
+        try:
+            ipaddress.ip_address(host)
+        except ValueError:
+            return url
+        raise forms.ValidationError(_("The onboarding DNS report requires a hostname, not an IP address."))
