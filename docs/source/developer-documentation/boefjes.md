@@ -229,6 +229,12 @@ Both `run_boefje.py` and `run_normalizer.py` support the `--pdb` option to enter
 the standard Python Debugger when an exceptions happens or breakpoint is
 triggered.
 
+> **Note:** These tools require the Bytes, KATalogus, and Octopoes services to
+> be running. The input OOI must already exist in Octopoes for the organization.
+> `run_boefje.py` uses the KATalogus to hydrate the boefje metadata (e.g. OCI
+> image, environment variables), and `run_normalizer.py` fetches the raw data
+> from Bytes.
+
 If you are using the standard docker compose developer setup, you can use
 `docker compose exec` to execute the commands in the container. The boefje and
 normalizer containers use the same images and settings, so you can use both:
