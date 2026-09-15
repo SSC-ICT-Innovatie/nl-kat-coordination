@@ -7,6 +7,7 @@ from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
+from octopoes.models.ooi.software import SoftwareInstance
 from octopoes.models.ooi.web import URL
 from reports.report_types.definitions import Report, ReportPlugins
 
@@ -14,16 +15,26 @@ TREE_DEPTH = 9
 SEVERITY_OPTIONS = [severity.value for severity in RiskLevelSeverity]
 
 # Software is _traversable=False, so get_tree prunes at Software and never
-# reaches findings bound to it. These query paths supplement the tree by
-# collecting findings on Software reachable from the input OOI.
-_SOFTWARE_FINDING_PATHS = {
-    Hostname: "Hostname.<netloc [is HostnameHTTPURL].<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+# reaches findings bound to it. Query SoftwareInstances reachable from the
+# input OOI, then fetch findings per software — the dedup keys on the install
+# (the instance URL without path), not on the finding alone, so two distinct
+# installs on different ports that share the same Software each count.
+_SOFTWARE_INSTANCE_PATHS = {
+    Hostname: "Hostname.<netloc [is HostnameHTTPURL].<ooi [is SoftwareInstance]",
     IPAddressV4: "IPAddressV4.<address [is ResolvedHostname].hostname.<netloc [is HostnameHTTPURL]"
-    ".<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+    ".<ooi [is SoftwareInstance]",
     IPAddressV6: "IPAddressV6.<address [is ResolvedHostname].hostname.<netloc [is HostnameHTTPURL]"
-    ".<ooi [is SoftwareInstance].software.<ooi [is Finding]",
-    URL: "URL.web_url[is HostnameHTTPURL].<ooi [is SoftwareInstance].software.<ooi [is Finding]",
+    ".<ooi [is SoftwareInstance]",
+    URL: "URL.web_url[is HostnameHTTPURL].<ooi [is SoftwareInstance]",
 }
+
+_SOFTWARE_FINDING_PATH = "Software.<ooi [is Finding]"
+
+
+def _install_key(instance: SoftwareInstance) -> str:
+    """Identity of a software install: the URL without path, so :443 and
+    :8443 stay apart while /, /blog/, /wp-admin/ on the same port collapse."""
+    return str(instance.ooi).rsplit("|", 1)[0]
 
 
 class FindingsReport(Report):
@@ -64,17 +75,35 @@ class FindingsReport(Report):
 
         findings = [ooi for ooi in tree.values() if ooi.ooi_type == "Finding"]
 
-        # Software is non-traversable, so get_tree never reaches findings bound
-        # to Software. Query them separately and merge, deduplicating by reference
-        # because SoftwareInstance.software is many-to-one: multiple instances of
-        # the same Software (http + https, shared hosting) yield the same Finding.
-        software_path = _SOFTWARE_FINDING_PATHS.get(reference.class_type)
-        if software_path:
-            seen = {f.reference for f in findings}
-            for f in self.octopoes_api_connector.query(software_path, valid_time, reference):
-                if isinstance(f, Finding) and f.reference not in seen:
-                    seen.add(f.reference)
-                    findings.append(f)
+        # Software is non-traversable, so get_tree never reaches findings
+        # bound to Software. Query SoftwareInstances reachable from the
+        # input, fetch findings per software, and dedup by install — two
+        # distinct installs on different ports that share the same Software
+        # must each count, while one install reached via multiple paths
+        # (/, /blog/) must count once.
+        instance_path = _SOFTWARE_INSTANCE_PATHS.get(reference.class_type)
+        if instance_path:
+            instances = [
+                ooi
+                for ooi in self.octopoes_api_connector.query(instance_path, valid_time, reference)
+                if isinstance(ooi, SoftwareInstance)
+            ]
+            if instances:
+                software_refs = list({str(si.software) for si in instances})
+                sw_findings: dict[str, list[Finding]] = {}
+                for source_ref, ooi in self.octopoes_api_connector.query_many(
+                    _SOFTWARE_FINDING_PATH, valid_time, software_refs
+                ):
+                    if isinstance(ooi, Finding):
+                        sw_findings.setdefault(source_ref, []).append(ooi)
+
+                seen_installs: set[tuple[str, str]] = set()
+                for si in instances:
+                    for f in sw_findings.get(str(si.software), []):
+                        key = (str(f.reference), _install_key(si))
+                        if key not in seen_installs:
+                            seen_installs.add(key)
+                            findings.append(f)
 
         all_finding_types = self.octopoes_api_connector.list_objects(types={FindingType}, valid_time=valid_time).items
 
