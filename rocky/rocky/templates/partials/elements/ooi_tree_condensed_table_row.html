@@ -12,21 +12,21 @@
             {% if child_count|add:"0" > 0 %}<span class="tree-children-counter">{{ child_count }}</span>{% endif %}
         </td>
         <td class="indent-{{ object.tree_meta.depth }}">
-            <a href="{% ooi_url "ooi_detail" ooi_id organization.code query=mandatory_fields %}"
+            <a href="{% app_url "ooi_detail" ooi=object_id %}"
                title="{% blocktranslate %}Show details for {{ object_id }}, with {{ child_count }} children.{% endblocktranslate %}">
                 {{ object.human_readable }}
             </a>
         </td>
         <td>
-            <a href="{% ooi_url "ooi_tree" object.id organization.code ooi_type=object.ooi_type %}"
+            <a href="{% app_url "ooi_tree" ooi=object.id %}?ooi_type={{ object.ooi_type }}"
                title="{% blocktranslate %}Show tree for {{ object_id }} with only children of type {{ object_ooi_type }}{% endblocktranslate %}">{{ object.ooi_type }}</a>
         </td>
         <td class="actions">
-            <a href="{% ooi_url "ooi_tree" object.id organization.code query=mandatory_fields %}"
+            <a href="{% app_url "ooi_tree" ooi=object.id %}"
                class="icon ti-subtask button">{% translate "Tree" %}</a>
         </td>
         <td class="actions">
-            <a href="{% ooi_url "ooi_graph" object.id organization.code query=mandatory_fields %}"
+            <a href="{% app_url "ooi_graph" ooi=object.id %}"
                class="icon ti-affiliate button">{% translate "Graph" %}</a>
         </td>
     </tr>
@@ -45,7 +45,7 @@
                 {% if object.tree_meta.child_ids %}> {{ object.tree_meta.child_ids|join:' > ' }}{% endif %}
             </td>
             <td colspan="3">
-                <a href="{% ooi_url "ooi_tree" ooi_id organization.code query=mandatory_fields ooi_type=object.ooi_type %}"
+                <a href="{% app_url "ooi_tree" ooi=ooi_id %}?ooi_type={{ object.ooi_type }}"
                    title="{% blocktranslate %}Unfold {{ object_id }} with {{ child_count }} children{% endblocktranslate %}: {% if object.tree_meta.child_ids %}> {{ object.tree_meta.child_ids|join:"> " }}{% endif %}
                 ">{{ object.ooi_type }}
                 {% if object.tree_meta.child_ooi_types %}> {{ object.tree_meta.child_ooi_types|join:' > ' }}{% endif %}

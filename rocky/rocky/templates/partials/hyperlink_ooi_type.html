@@ -1,5 +1,5 @@
 {% load i18n %}
 {% load static %}
 
-<a href="{% ooi_url 'ooi_list' '' organization_code ooi_type=value.ooi_type query=mandatory_fields %} "
+<a href="{% app_url 'ooi_list' %}?ooi_type={{ value.ooi_type }}"
    title="{% blocktranslate trimmed with type=value.ooi_type %} Only show objects of type {{ type }} {% endblocktranslate %}">{{ value.ooi_type }}</a>

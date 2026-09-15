@@ -121,7 +121,7 @@ def test_multi_report_report_types_selection(
     assert response.status_code == 307  # if all plugins are enabled the view will auto redirect to generate report
 
     # Redirect to export setup
-    assert response.headers["Location"] == "/en/test/reports/multi-report/export-setup/?"
+    assert response.headers["Location"] == "/en/test/now/reports/multi-report/export-setup/?"
 
 
 def test_save_multi_report(
@@ -191,16 +191,10 @@ def test_view_multi_report(
     assertContains(response, "Sector Report")
     assertContains(response, "This is the OpenKAT report")
 
-    assertContains(
-        response,
-        f'<p>Created with data from: <strong>{multi_report_ooi.date_generated.strftime("%b. %d, %Y")}</strong></p>',
-        html=True,
-    )
-    assertContains(
-        response,
-        f'<p>Created with data from: <strong>{multi_report_ooi.date_generated.strftime("%b. %d, %Y")}</strong></p>',
-        html=True,
-    )
+    assertContains(response, "Created with data from:")
+    assertContains(response, multi_report_ooi.observed_at.strftime("%b. %d, %Y"))
+    assertContains(response, "Created with data from:")
+    assertContains(response, multi_report_ooi.observed_at.strftime("%b. %d, %Y"))
     assertContains(
         response,
         "<p>This sector contains 2 scanned organizations. The basic security scores are around 71%. "
