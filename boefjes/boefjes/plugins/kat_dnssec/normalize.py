@@ -18,7 +18,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     status_line = None
     in_domain_section = False
     for result_line in result.splitlines():
-        if result_line.startswith(f";; Domain: {domain}"):
+        if result_line.startswith(f";; Domain: {domain}."):
             in_domain_section = True
             continue
         if in_domain_section and result_line.startswith(("[U]", "[S]", "[B]", "[T]")):

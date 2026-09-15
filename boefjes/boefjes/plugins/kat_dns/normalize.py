@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv6Address
@@ -180,8 +181,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             dkim_response = from_text(dkim_results)
             if dkim_response.rcode() == 0:  # NOERROR
                 yield DKIMExists(hostname=input_hostname.reference)
-        except Exception:  # noqa: S110 - malformed DKIM response should not crash the normalizer
-            pass
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "Could not parse DKIM response for %s", input_hostname.name, exc_info=True
+            )
 
     # DMARC
     dmarc_results = results["dmarc_response"]

@@ -1,0 +1,12 @@
+;; Number of trusted keys: 1
+;; Domain: .
+[T] . 172800 IN DNSKEY 257 3 8 ;{id = 20326 (ksk), size = 2048b}
+;; Domain: nl.
+[T] nl. 3600 IN DNSKEY 257 3 13 ;{id = 17153 (ksk), size = 256b}
+;; Domain: signed.example.nl.
+[T] signed.example.nl. 3600 IN DNSKEY 257 3 13 ;{id = 11261 (ksk), size = 256b}
+[T] signed.example.nl.	3600	IN	CNAME	cdn.unsigned-provider.com.
+;; Domain: cdn.unsigned-provider.com.
+;; No DNSKEY record found for cdn.unsigned-provider.com.
+[U] cdn.unsigned-provider.com.	300	IN	A	203.0.113.10
+;;[S] self sig OK; [B] bogus; [T] trusted; [U] unsigned

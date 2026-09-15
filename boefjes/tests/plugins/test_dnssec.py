@@ -68,3 +68,14 @@ def test_dnssec_status_line_not_last_line():
     output = list(run(input_ooi.serialize(), get_dummy_data("inputs/dnssec-status-line-not-last-line.txt")))
 
     assert len(output) == 0
+
+
+def test_dnssec_signed_domain_with_unsigned_cname_target():
+    """A signed domain whose CNAME points at an unsigned host must not be
+    reported as KAT-NO-DNSSEC: the last [U] status line belongs to the CNAME
+    target, not to the queried domain (#4277)."""
+    input_ooi = Hostname(network=Network(name="internet").reference, name="signed.example.nl")
+
+    output = list(run(input_ooi.serialize(), get_dummy_data("inputs/dnssec-cname-to-unsigned.txt")))
+
+    assert len(output) == 0
