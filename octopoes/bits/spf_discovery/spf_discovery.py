@@ -20,8 +20,9 @@ def run(input_ooi: DNSTXTRecord, additional_oois: list, config: dict[str, Any]) 
     if input_ooi.value.lower().startswith("v=spf1 ") or input_ooi.value.lower() == "v=spf1":
         spf_value = input_ooi.value.replace("%{d}", input_ooi.hostname.tokenized.name)
 
-        # remove exists:%i mechanisms
-        spf_value = re.sub(r"exists:%{[^\s]+", "", spf_value)
+        # remove mechanisms that still contain macros we cannot resolve without a
+        # mail session (only %{d} is resolvable, and was substituted above)
+        spf_value = re.sub(r"\S*%\{[^}]*\}\S*", "", spf_value)
 
         parsed = parse(spf_value)
         # check if spf record passes the internet.nl parser

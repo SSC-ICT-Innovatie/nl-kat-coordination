@@ -1,4 +1,5 @@
 import binascii
+import contextlib
 import json
 import logging
 import uuid
@@ -18,6 +19,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.management import call_command
 from django.utils.translation import activate, deactivate
 from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.middleware import OTPMiddleware
@@ -53,6 +55,18 @@ LANG_LIST = [code for code, _ in settings.LANGUAGES]
 
 # Quiet faker locale messages down in tests.
 logging.getLogger("faker").setLevel(logging.INFO)
+
+
+@pytest.fixture(scope="session", autouse=True)
+def _compile_translations():
+    """Compile .mo files so translation tests work in CI.
+
+    The CI volume mount (..:/app/rocky) overwrites .mo files from the
+    Docker build because .mo files are gitignored. Without recompiling,
+    gettext_lazy strings render as English even inside override("nl").
+    """
+    with contextlib.suppress(Exception):  # gettext not installed, translation tests will fail
+        call_command("compilemessages", verbosity=0)
 
 
 # Copied from https://www.structlog.org/en/stable/testing.html
