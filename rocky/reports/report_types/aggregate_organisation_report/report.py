@@ -155,6 +155,9 @@ class AggregateOrganisationReport(AggregateReport):
                         else:
                             findings["finding_types"][finding_type_id]["occurrences"].extend(occurrences)
 
+                        findings["summary"]["total_by_severity"][severity] += len(occurrences)
+                        findings["summary"]["total_occurrences"] += len(occurrences)
+
         mail_report_data = self.collect_system_specific_data(data, services, SystemType.MAIL, MailReport.id)
         web_report_data = self.collect_system_specific_data(data, services, SystemType.WEB, WebSystemReport.id)
         dns_report_data = self.collect_system_specific_data(data, services, SystemType.DNS, NameServerSystemReport.id)
