@@ -258,6 +258,13 @@ def test_step_5_onboarding_form_rejects_ip_address():
     assert not form.is_valid()
     assert "IP address" in str(form.errors["url"])
 
+    # localhost never reaches DNS, so it must be rejected too — including a
+    # bare "localhost", which URLField expands to https://localhost
+    for localhost_url in ("localhost", "https://localhost:8443", "https://foo.localhost"):
+        form = OnboardingCreateObjectURLForm(data={"url": localhost_url})
+        assert not form.is_valid(), localhost_url
+        assert "localhost" in str(form.errors["url"])
+
     form = OnboardingCreateObjectURLForm(data={"url": "http://example.com"})
     assert form.is_valid()
 
@@ -400,20 +407,24 @@ def test_step_9a_onboarding_ooi_detail_scan_create_report_schedule(
     assert "recipe_id" in response.url
 
 
+@pytest.mark.parametrize(
+    "raw_url,web_url_ref",
+    [
+        ("http://127.0.0.1", "IPAddressHTTPURL|http|testnetwork|127.0.0.1|80|/"),
+        ("http://localhost", "HostnameHTTPURL|http|testnetwork|localhost|80|/"),
+    ],
+)
 def test_step_9a_onboarding_ip_address_url_no_crash(
-    rf, mocker, redteam_member, mock_bytes_client, mock_organization_view_octopoes, network
+    rf, mocker, redteam_member, mock_bytes_client, mock_organization_view_octopoes, network, raw_url, web_url_ref
 ):
     """#4043: a URL whose web_url netloc is an IP address (IPAddressHTTPURL)
-    must not crash get_ooi_pks with a KeyError. The report creation is aborted
-    with a user-friendly error instead of a 500."""
+    must not crash get_ooi_pks with a KeyError, and a localhost URL never
+    reaches DNS. The report creation is aborted with a user-friendly error
+    instead of a 500 or a useless report."""
     from octopoes.models import Reference
     from octopoes.models.ooi.web import URL
 
-    ip_url = URL(
-        network=network.reference,
-        raw="http://127.0.0.1",
-        web_url=Reference("IPAddressHTTPURL|http|testnetwork|127.0.0.1|80|/"),
-    )
+    ip_url = URL(network=network.reference, raw=raw_url, web_url=Reference(web_url_ref))
 
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
