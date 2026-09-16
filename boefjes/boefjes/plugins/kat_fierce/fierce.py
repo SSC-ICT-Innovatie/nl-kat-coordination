@@ -197,7 +197,9 @@ def find_nearby(resolver, ips, filter_func=None):
         }
 
     reversed_ips = {
-        k: v[0].to_text() for k, v in reversed_ips.items() if v is not None and len(v) > 0 and filter_func(v[0].to_text())
+        k: v[0].to_text()
+        for k, v in reversed_ips.items()
+        if v is not None and len(v) > 0 and filter_func(v[0].to_text())
     }
 
     return reversed_ips
