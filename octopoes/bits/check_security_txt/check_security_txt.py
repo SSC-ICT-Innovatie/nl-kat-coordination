@@ -21,7 +21,8 @@ def run(input_ooi: SecurityTXT, additional_oois: list, config: dict[str, Any]) -
     """Validate a security.txt file against RFC 9116.
 
     Checks for required fields (Contact, Expires), expired Expires dates,
-    missing recommended fields (Encryption, Acknowledgments), and unrecognized fields.
+    and missing recommended fields (Encryption). Unknown fields are ignored
+    per RFC 9116 §2.2.
     """
     content = input_ooi.security_txt
     if not content:
@@ -48,15 +49,10 @@ def run(input_ooi: SecurityTXT, additional_oois: list, config: dict[str, Any]) -
         except ValueError:
             issues.append(f"Expires date '{expires_str}' is not a valid ISO 8601 date")
 
-    # Recommended fields
+    # Recommended fields (informational — not required by RFC 9116)
     for field in RECOMMENDED_FIELDS:
         if field not in fields:
             issues.append(f"Recommended field '{field.capitalize()}' is missing")
-
-    # Unrecognized fields
-    for field in fields:
-        if field not in KNOWN_FIELDS:
-            issues.append(f"Unrecognized field '{field.capitalize()}' is present")
 
     if issues:
         description = "security.txt validation issues:\n" + "\n".join(f"  - {issue}" for issue in issues)

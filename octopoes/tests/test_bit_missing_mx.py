@@ -36,7 +36,9 @@ def test_domain_with_mx_clean():
 
 def test_null_mx_not_flagged():
     host = _hostname("example.com")
-    mx = _mx(host, value=".", preference=0)
+    # The DNS normalizer stores MX value as "preference target" (e.g. "0 ."),
+    # not just "." — the bit must parse the target part to detect a null MX.
+    mx = _mx(host, value="0 .", preference=0)
     assert _findings(host, [mx]) == []
 
 

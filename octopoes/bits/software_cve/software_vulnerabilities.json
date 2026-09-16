@@ -1,4 +1,5 @@
 {
+  "_comment": "Hand-curated CVE database. This is a snapshot — update periodically by cross-referencing with the NVD or the upstream project's security advisories. The long-term goal is to replace this with a feed from the existing CVE finding-type pipeline.",
   "log4j": {
     "vulnerabilities": [
       {

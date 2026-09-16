@@ -43,10 +43,11 @@ def test_missing_encryption_recommended():
     assert any("Encryption" in f.description for f in findings)
 
 
-def test_unrecognized_field():
+def test_unknown_field_ignored():
+    """RFC 9116 §2.2: unknown fields MUST be ignored, not flagged."""
     content = "Contact: mailto:security@example.com\nExpires: 2030-12-31T23:59:59.000Z\nBogus: value\n"
     findings = _findings(_sectxt(content))
-    assert any("Bogus" in f.description for f in findings)
+    assert findings == []
 
 
 def test_empty_content():

@@ -8,9 +8,21 @@ from octopoes.models.ooi.dns.records import NXDOMAIN, DNSMXRecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType
 
-# RFC 7505: a null MX record has value "." and preference 0, meaning the domain
+# RFC 7505: a null MX record has preference 0 and target ".", meaning the domain
 # explicitly does not accept mail. We should not flag such domains.
-NULL_MX_VALUE = "."
+# The DNS normalizer stores the value as "preference target" (e.g. "0 ."), so we
+# check whether the target part (after the first space) is ".".
+NULL_MX_TARGET = "."
+
+
+def _is_null_mx(mx: DNSMXRecord) -> bool:
+    """Check whether an MX record is a null MX (RFC 7505).
+
+    The DNS normalizer stores the value as "preference target" (e.g. "0 ."),
+    so we check whether the target part (after the first space) is ".".
+    """
+    parts = mx.value.strip().split(None, 1)
+    return len(parts) == 2 and parts[1].strip() == NULL_MX_TARGET
 
 
 def run(input_ooi: Hostname, additional_oois: list[DNSMXRecord | NXDOMAIN], config: dict[str, Any]) -> Iterator[OOI]:
@@ -31,8 +43,8 @@ def run(input_ooi: Hostname, additional_oois: list[DNSMXRecord | NXDOMAIN], conf
         return
 
     # A null MX record (RFC 7505) is a valid way to say "no email here"
-    has_mx = any(mx.value.strip() != NULL_MX_VALUE for mx in mx_records)
-    has_null_mx = any(mx.value.strip() == NULL_MX_VALUE for mx in mx_records)
+    has_mx = any(not _is_null_mx(mx) for mx in mx_records)
+    has_null_mx = any(_is_null_mx(mx) for mx in mx_records)
 
     if not has_mx and not has_null_mx:
         ft = KATFindingType(id="KAT-NO-MX")
