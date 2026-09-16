@@ -124,6 +124,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
                 "id": vuln["id"],
                 "title": vuln["title"],
                 "severity": vuln.get("severity"),
+                "cvss_score": vuln.get("cvssScore"),
                 "affected_versions": affected,
                 "cve": cve,
             }

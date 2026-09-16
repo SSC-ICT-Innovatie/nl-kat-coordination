@@ -51,6 +51,7 @@ def test_snyk_findings_severity_set():
     snyk_fts = [o for o in oois if isinstance(o, SnykFindingType)]
     assert len(snyk_fts) == 1
     assert snyk_fts[0].risk_severity == RiskLevelSeverity.HIGH
+    assert snyk_fts[0].risk_score == 7.4
 
 
 def test_snyk_html_parser(mocker):
@@ -74,6 +75,7 @@ def test_snyk_html_parser(mocker):
     assert vuln["severity"] == "high"
     assert vuln["cve"] == "CVE-2026-4800"
     assert vuln["affected_versions"] == "<4.18.1"
+    assert vuln["cvss_score"] is not None
 
 
 def test_snyk_ecosystem_from_cpe():
