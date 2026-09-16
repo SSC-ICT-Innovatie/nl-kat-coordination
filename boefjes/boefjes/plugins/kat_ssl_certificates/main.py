@@ -22,11 +22,6 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     )
 
     output = subprocess.run(cmd, capture_output=True)
-
-    # A non-zero exit code usually means the connection failed (e.g. network
-    # unreachable). Return the stderr as output so the normalizer can handle
-    # it gracefully instead of crashing the task.
-    if output.returncode != 0 and not output.stdout:
-        return [({"openkat/ssl-certificates-output"}, output.stderr.decode())]
+    output.check_returncode()
 
     return [({"openkat/ssl-certificates-output"}, output.stdout.decode())]
