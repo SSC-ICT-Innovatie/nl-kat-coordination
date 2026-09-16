@@ -109,7 +109,9 @@ function renderobject(original, path, schema) {
         : fieldname;
 
     childoriginal =
-      original && original[fieldname] ? original[fieldname] : false;
+      original && original[fieldname] !== undefined
+        ? original[fieldname]
+        : undefined;
     childschema = schema["properties"][fieldname];
     subpath = path + "_" + fieldname;
     if (schema["properties"][fieldname]["type"] == "array") {
@@ -155,7 +157,9 @@ function renderarray(original, path, name, schema) {
     if (schema["items"]["type"] == "array") {
       fieldset.appendChild(
         renderarray(
-          original && original[count] ? original[count] : false,
+          original && original[count] !== undefined
+            ? original[count]
+            : undefined,
           subpath,
           name,
           schema["items"],
@@ -164,7 +168,9 @@ function renderarray(original, path, name, schema) {
     } else if (schema["items"]["type"] == "object") {
       fieldset.appendChild(
         renderobject(
-          original && original[count] ? original[count] : false,
+          original && original[count] !== undefined
+            ? original[count]
+            : undefined,
           subpath,
           schema["items"],
         ),
@@ -174,7 +180,9 @@ function renderarray(original, path, name, schema) {
       fieldset.appendChild(
         renderfield(
           required,
-          original && original[count] ? original[count] : false,
+          original && original[count] !== undefined
+            ? original[count]
+            : undefined,
           subpath,
           null,
           schema["items"],
@@ -207,13 +215,13 @@ function renderarray(original, path, name, schema) {
       if (schema["items"]["type"] == "array") {
         subpath = path + "_" + fieldset.querySelectorAll("div").length;
         fieldset.insertBefore(
-          renderarray(false, subpath, name, schema["items"]),
+          renderarray(undefined, subpath, name, schema["items"]),
           morebutton,
         );
       } else if (schema["items"]["type"] == "object") {
         subpath = path + "_" + fieldset.querySelectorAll("fieldset").length;
         fieldset.insertBefore(
-          renderobject(false, subpath, schema["items"]),
+          renderobject(undefined, subpath, schema["items"]),
           morebutton,
         );
       } else {
@@ -221,7 +229,7 @@ function renderarray(original, path, name, schema) {
         fieldset.insertBefore(
           renderfield(
             schema["required"] && schema["required"].includes(name),
-            false,
+            undefined,
             subpath,
             null,
             schema["items"],
@@ -274,7 +282,7 @@ function renderfield(required, originalvalue, path, name, field) {
     field["enum"].forEach((fieldvalue) => {
       let value = document.createElement("option");
       value.value = fieldvalue;
-      if (originalvalue && originalvalue === fieldvalue) {
+      if (originalvalue === fieldvalue) {
         value.selected = true;
       }
       let valuetext = document.createTextNode(fieldvalue);
@@ -320,10 +328,11 @@ function renderfield(required, originalvalue, path, name, field) {
     }
   }
 
-  if (field["type"] == "boolean" && field["default"]) {
-    input.checked = field["default"];
-  } else if (field["type"] == "boolean" && originalvalue) {
-    input.checked = originalvalue;
+  if (field["type"] == "boolean") {
+    input.checked =
+      originalvalue !== undefined
+        ? Boolean(originalvalue)
+        : Boolean(field["default"]);
   }
 
   if (field["default"]) {
@@ -346,7 +355,7 @@ function renderfield(required, originalvalue, path, name, field) {
   let label = document.createElement("label");
   label.htmlFor = input.id;
   label.innerHTML = required
-    ? `${escapeHtml(name)} <span class="nota-bene" aria-hidden="">(Required)</span>`
+    ? `${escapeHtml(name)} <span class="nota-bene" aria-hidden="true">(Required)</span>`
     : escapeHtml(name);
 
   let div = document.createElement("div");
@@ -367,7 +376,7 @@ function renderfield(required, originalvalue, path, name, field) {
     input.list = input.id + "listoptions";
   }
 
-  if (field["type"] != "boolean" && originalvalue) {
+  if (field["type"] != "boolean" && originalvalue !== undefined) {
     input.value = originalvalue;
   }
   div.appendChild(input);
