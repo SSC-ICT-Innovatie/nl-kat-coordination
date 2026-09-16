@@ -51,13 +51,20 @@ class OnboardingCreateObjectURLForm(forms.Form):
     )
 
     def clean_url(self):
-        # The onboarding flow runs a DNS report, which requires a hostname.
-        # An IP-address host (e.g. http://127.0.0.1) would crash later in
-        # get_ooi_pks with a KeyError, so reject it at the trust boundary.
+        # The onboarding flow runs a DNS report, which requires a hostname that
+        # resolves via DNS. An IP-address host (e.g. http://127.0.0.1) would
+        # crash later in get_ooi_pks with a KeyError, and localhost never
+        # reaches DNS at all, so reject both at the trust boundary.
         url = self.cleaned_data["url"]
-        host = urlparse(url).hostname
+        host = (urlparse(url).hostname or "").rstrip(".")
         try:
             ipaddress.ip_address(host)
         except ValueError:
-            return url
-        raise forms.ValidationError(_("The onboarding DNS report requires a hostname, not an IP address."))
+            is_ip = False
+        else:
+            is_ip = True
+        if is_ip or host == "localhost" or host.endswith(".localhost"):
+            raise forms.ValidationError(
+                _("The onboarding DNS report requires a hostname, not an IP address or localhost.")
+            )
+        return url

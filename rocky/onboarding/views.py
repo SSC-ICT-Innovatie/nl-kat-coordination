@@ -403,10 +403,14 @@ class OnboardingCreateReportRecipe(
             try:
                 name = netloc["name"]
             except KeyError:
-                # IPAddressHTTPURL netloc has "address", not "name" — a DNS
-                # report cannot run on an IP address, so bail out with a clear
-                # message instead of crashing with a 500.
-                messages.error(self.request, _("The onboarding DNS report requires a hostname, not an IP address."))
+                name = None  # IPAddressHTTPURL netloc has "address", not "name"
+            if name is None or name == "localhost" or name.endswith(".localhost"):
+                # A DNS report cannot run on an IP address or localhost, so
+                # bail out with a clear message instead of crashing with a 500
+                # or producing an empty report.
+                messages.error(
+                    self.request, _("The onboarding DNS report requires a hostname, not an IP address or localhost.")
+                )
                 return []
             hostname_ooi = [Hostname(name=name, network=ooi.network)]
             return [hostname_ooi[0].primary_key]
