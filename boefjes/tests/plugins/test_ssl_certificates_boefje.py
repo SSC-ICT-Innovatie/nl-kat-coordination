@@ -66,6 +66,13 @@ def test_ipv4_address_not_wrapped(monkeypatch):
     assert captured["cmd"][idx + 1] == "192.0.2.1"
 
 
+def test_network_error_crashes_task(monkeypatch):
+    monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stderr=b"connect:errno=101\nNetwork unreachable\n"))
+
+    with pytest.raises(subprocess.CalledProcessError):
+        main.run(_meta("2001:610:2d8:401::33:18"))
+
+
 def test_success_returns_stdout(monkeypatch):
     monkeypatch.setattr(main.subprocess, "run", _fake_run(0, stdout=b"cert data here"))
 
