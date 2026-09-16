@@ -58,20 +58,10 @@ def test_add_config_ooi_with_empty_dict(rf, client_member, mock_organization_vie
     mock_organization_view_octopoes().list_objects.return_value = Mock(items=[Mock(primary_key="Network|internet")])
 
     request = setup_request(
-        rf.post(
-            "ooi_add",
-            {
-                "ooi_type": "Config",
-                "ooi": "Network|internet",
-                "bit_id": "test-bit",
-                "config": "{}",
-            },
-        ),
+        rf.post("ooi_add", {"ooi_type": "Config", "ooi": "Network|internet", "bit_id": "test-bit", "config": "{}"}),
         client_member.user,
     )
-    response = OOIAddView.as_view()(
-        request, organization_code=client_member.organization.code, ooi_type="Config"
-    )
+    response = OOIAddView.as_view()(request, organization_code=client_member.organization.code, ooi_type="Config")
 
     assert response.status_code == 302
     assert response.url == "/en/test/objects/detail/?ooi_id=Config%7Cinternet%7Ctest-bit"
