@@ -186,7 +186,17 @@ class RevokeSuperuserAccessView(SuperuserAccessView):
             }
             transaction.on_commit(lambda: logger.info("Superuser access revoked", **audit_event))
 
-        messages.success(request, _("Superuser access revoked from %(email)s.") % {"email": target_user.email})
+        if target_user.is_staff:
+            messages.success(
+                request,
+                _(
+                    "Superuser access revoked from %(email)s. The account retains Django administration "
+                    "access; revoke that via Django administration."
+                )
+                % {"email": target_user.email},
+            )
+        else:
+            messages.success(request, _("Superuser access revoked from %(email)s.") % {"email": target_user.email})
         if target_user.pk == request.user.pk:
             return HttpResponseRedirect(reverse("crisis_room"))
         return HttpResponseRedirect(self.get_success_url())

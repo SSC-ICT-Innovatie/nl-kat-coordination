@@ -453,6 +453,10 @@ def test_revoke_preserves_independently_set_staff_access(
     superuser_member_b.user.refresh_from_db()
     assert superuser_member_b.user.is_superuser is False
     assert superuser_member_b.user.is_staff is True
+    assert [str(message) for message in get_messages(request)] == [
+        f"Superuser access revoked from {superuser_member_b.user.email}. The account retains Django "
+        "administration access; revoke that via Django administration."
+    ]
 
 
 def test_revoke_superuser_access_does_not_log_a_rolled_back_change(
