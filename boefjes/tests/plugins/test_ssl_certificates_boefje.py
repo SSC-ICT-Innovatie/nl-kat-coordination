@@ -8,10 +8,7 @@ def _meta(ip: str, port: int = 443, scheme: str = "https") -> dict:
         "arguments": {
             "input": {
                 "hostname": {"name": "example.com"},
-                "ip_service": {
-                    "service": {"name": scheme},
-                    "ip_port": {"address": {"address": ip}, "port": port},
-                },
+                "ip_service": {"service": {"name": scheme}, "ip_port": {"address": {"address": ip}, "port": port}},
             },
             "oci_arguments": ["s_client", "-prexit", "-showcerts"],
         }
@@ -57,11 +54,7 @@ def test_ipv4_address_not_wrapped(monkeypatch):
 
 
 def test_network_error_returns_stderr_not_crash(monkeypatch):
-    monkeypatch.setattr(
-        main.subprocess,
-        "run",
-        _fake_run(1, stderr=b"connect:errno=101\nNetwork unreachable\n"),
-    )
+    monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stderr=b"connect:errno=101\nNetwork unreachable\n"))
 
     output = main.run(_meta("2001:610:2d8:401::33:18"))
 
