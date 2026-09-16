@@ -42,7 +42,7 @@
                         </td>
                         <td>{{ plugin.name }}</td>
                         <td>
-                            {% include "partials/scan_level_indicator.html" with value=plugin.scan_level custom_class="left" %}
+                            {% include "partials/scan_level_indicator.html" with value=plugin.scan_level custom_class="left" scan_level_label=True %}
 
                         </td>
                         <td class="actions">
