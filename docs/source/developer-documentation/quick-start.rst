@@ -54,4 +54,4 @@ Do *not* install Docker directly from the default Ubuntu repositories. This vers
 
 #. Open your browser and go to: `http://localhost:8000/en/login`. Login using the username `superuser@localhost` and the password you found using the previous step (everything after the equal sign `=`).
 
-#. Meowlations! You just installed OpenKAT. As this is your first time using OpenKAT, you will have to walk through the onboarding. This is explained in the user manual: :doc:`../../user-manual/getting-started/onboarding`
+#. Meowlations! You just installed OpenKAT. As this is your first time using OpenKAT, you will have to walk through the onboarding. This is explained in the user manual: :doc:`../user-manual/onboarding`

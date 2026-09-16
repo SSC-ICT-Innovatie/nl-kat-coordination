@@ -22,7 +22,7 @@ Using the filters you can show all muted findings, or both muted and non-muted f
 One or more findings can be selected. The textbox at the bottom allows for a description
 as to why this finding is muted (e.g. for audit purposes, or for review at a later point in time).
 Below the textbox the expiry date for the selected findings can be provided.
-Click the button 'Mute Findings' to mute the selected findings. 
+Click the button 'Mute Findings' to mute the selected findings.
 
 .. image:: img/findings-muted.png
   :alt: Mute findings

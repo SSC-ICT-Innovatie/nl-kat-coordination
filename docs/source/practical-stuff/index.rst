@@ -1,5 +1,5 @@
-About OpenKAT
-#################
+Practical stuff about OpenKAT
+#############################
 
 This section contains an introduction about OpenKAT. Here you can read what OpenKAT is, what it is used for and why it could be useful for you to use it.
 Besides this, you can also find the release notes here.
@@ -10,3 +10,4 @@ Besides this, you can also find the release notes here.
 
    history-openkat
    release-notes/index
+   what-is-openkat

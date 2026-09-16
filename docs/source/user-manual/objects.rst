@@ -14,10 +14,10 @@ The table gives an overview on the following items:
 
 - **Object:** this is the piece of data that was identified, such as a port, software version, hostname, etc.
 - **Object type:** this shows how this object is labelled.
-- **Clearance level:** this shows the clearance level of this object. See :doc:`../basic-concepts/scan-levels-and-indemnification` for more information.
-- **Clearance type:** this shows what kind of clearance level is set on the object. See :doc:`../basic-concepts/objects-and-recursion` for more information.
+- **Clearance level:** this shows the clearance level of this object. See :doc:`basic-concepts/scan-levels-and-indemnification` for more information.
+- **Clearance type:** this shows what kind of clearance level is set on the object. See :doc:`basic-concepts/objects-and-recursion` for more information.
 
-The objects can be filtered by object type, clearance level and clearance type. 
+The objects can be filtered by object type, clearance level and clearance type.
 The search functionality can also be used to search for specific objects, such as hostnames.
 
 More information on objects is provided by clicking on the object. This will give an overview page with all information for the specific object. The object details page is further described below.

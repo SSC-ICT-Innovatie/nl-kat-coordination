@@ -139,7 +139,7 @@ A simplified example is:
 
       Hostname
       |
-      +---- resolves to ----> IP address 
+      +---- resolves to ----> IP address
       |
       +---- exposes ----> Port
       |
@@ -228,7 +228,7 @@ For example, an organization may allow passive discovery for one environment whi
 See :doc:../user-manual/scan-levels-clearance-indemnities for more information.
 
 Scheduling with Mula
-----------
+--------------------
 
 OpenKAT needs to decide when information should be collected or refreshed.
 

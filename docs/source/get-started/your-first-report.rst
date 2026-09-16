@@ -40,7 +40,7 @@ The scan runs in the background. The plugins, also called Boefjes, collect infor
 
 .. note::
 
-The report is not available immediately. The plugins need time to collect and process the information.
+    **The report is not available immediately. The plugins need time to collect and process the information.**
 
 While you wait, you can explore the rest of OpenKAT. You can return to the report later through **Report History**.
 

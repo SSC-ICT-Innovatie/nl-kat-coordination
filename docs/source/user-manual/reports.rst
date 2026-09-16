@@ -208,7 +208,7 @@ And please note that enabling plugins during the report flow wizard will result 
 as the plugins will take some time before they have gathered and analyzed all data.
 Check the Tasks page to verify that all tasks have completed.
 
-If you need more help on generating a report, please check our step-by-step instructions :doc:`here <../getting-started/generate-report>`.
+If you need more help on generating a report, please check our step-by-step instructions :doc:`here <generate-report>`.
 
 
 Plugins

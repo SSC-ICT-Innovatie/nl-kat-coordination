@@ -1,7 +1,7 @@
 Onboarding
 ==========
 
-If you are using OpenKAT for the first time, you can go through the onboarding flow. 
+If you are using OpenKAT for the first time, you can go through the onboarding flow.
 The onboarding flow helps you start your first scan. The onboarding flow also introduces the basic concepts of adding an object, setting a clearance level, enabling plugins, starting various scans and creating a report.
 
 The onboarding consists of the following steps:

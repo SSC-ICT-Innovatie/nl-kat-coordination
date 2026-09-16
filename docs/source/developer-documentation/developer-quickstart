@@ -11,14 +11,14 @@ On the `Docker Engine installation overview <https://docs.docker.com/engine/inst
 
 Verification step
 -----------------
-If you can run the 'hello-world' Docker container succesfully, (last step from the Docker documentation) as shown by the command below, you can continue with the next section. 
+If you can run the 'hello-world' Docker container successfully, (last step from the Docker documentation) as shown by the command below, you can continue with the next section.
 
 .. code-block:: sh
 
  docker run hello-world
 
 
-If you cannot run the hello-world container without using `sudo`, you forgot the post-installation steps from the Docker website. 
+If you cannot run the hello-world container without using `sudo`, you forgot the post-installation steps from the Docker website.
 
 
 

@@ -1,7 +1,7 @@
 Use OpenKAT
 ===========
 
-This part of the guide explains the various pages and functionality that can be found within OpenKAT. 
+This part of the guide explains the various pages and functionality that can be found within OpenKAT.
 
 
 .. toctree::
@@ -21,4 +21,5 @@ This part of the guide explains the various pages and functionality that can be 
    settings
    user-settings
    start-scanning
+   onboarding
    basic-concepts/index
