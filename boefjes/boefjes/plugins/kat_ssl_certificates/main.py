@@ -18,6 +18,13 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     )
 
     output = subprocess.run(cmd, capture_output=True)
-    output.check_returncode()
+
+    # openssl exits non-zero when the TLS handshake fails (e.g. rc4.badssl.com),
+    # but still prints the received certificate chain. That output is valid and
+    # should be normalized. Only when no certificates were received is the
+    # failure transient (unreachable host, timeout): crash the task so the
+    # scheduler retries instead of normalizing an empty result.
+    if output.returncode != 0 and b"-----BEGIN CERTIFICATE-----" not in output.stdout:
+        output.check_returncode()
 
     return [({"openkat/ssl-certificates-output"}, output.stdout.decode())]
