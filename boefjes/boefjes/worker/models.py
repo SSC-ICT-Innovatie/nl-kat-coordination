@@ -6,7 +6,7 @@ from typing import Literal
 from croniter import croniter
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import Draft202012Validator
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 
 # This makes the RunOn sortable when in a list. This is convenient for e.g. the RunOnDB.from_run_ons method, that now
@@ -48,6 +48,8 @@ class Boefje(Plugin):
     boefje_schema: dict | None = None
     cron: str | None = None
     interval: int | None = None
+    rate_limit_interval: float | None = Field(default=None, gt=0)
+    rate_limit_group: str | None = None
     run_on: list[RunOn] | None = None
     runnable_hash: str | None = None
     oci_image: str | None = None
@@ -72,6 +74,12 @@ class Boefje(Plugin):
             croniter(cron)  # Raises a ValueError
 
         return cron
+
+    @model_validator(mode="after")
+    def rate_limit_has_group(self):
+        if self.rate_limit_interval is not None and not self.rate_limit_group:
+            raise ValueError("rate_limit_group is required when rate_limit_interval is set")
+        return self
 
     class Config:
         validate_assignment = True

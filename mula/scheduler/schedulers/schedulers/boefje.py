@@ -2,6 +2,7 @@ import uuid
 from collections.abc import Iterator
 from concurrent import futures
 from datetime import datetime, timedelta, timezone
+from time import monotonic
 from typing import Any, Literal
 
 from httpx import HTTPStatusError, ReadTimeout
@@ -29,13 +30,30 @@ class BoefjePQ(queue.PriorityQueue):
     their environment hash.
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # ponytail: per-process, not shared across mula replicas — two replicas
+        # can pop the same rate-limited group simultaneously. Ceiling: one
+        # replica. Upgrade: a shared TTL store (e.g. Redis) keyed by group.
+        self.rate_limit_deadlines: dict[str, float] = {}
+
     @queue.pq.with_lock
     def pop(self, limit: int | None = None, filters: filters.FilterRequest | None = None) -> list[models.Task]:
-        items = self.pq_store.pop_boefje(self.pq_id, limit=limit, filters=filters)
+        now = monotonic()
+        self.rate_limit_deadlines = {
+            group: deadline for group, deadline in self.rate_limit_deadlines.items() if deadline > now
+        }
+        items = self.pq_store.pop_boefje(
+            self.pq_id, limit=limit, filters=filters, excluded_rate_limit_groups=set(self.rate_limit_deadlines)
+        )
         if not items:
             return []
 
         self.pq_store.bulk_update_status(self.pq_id, [item.id for item in items], models.TaskStatus.DISPATCHED)
+
+        boefje = items[0].data["boefje"]
+        if (interval := boefje.get("rate_limit_interval")) and (group := boefje.get("rate_limit_group")):
+            self.rate_limit_deadlines[group] = now + interval
 
         return items
 
@@ -183,12 +201,12 @@ class BoefjeScheduler(Scheduler):
                 )
                 continue
 
+            boefje_copy = models.Boefje.model_validate(boefje.model_dump())
+            self.resolve_rate_limit_group(boefje_copy, ooi.primary_key if ooi else None)
             boefje_tasks.append(
                 (
                     models.BoefjeTask(
-                        boefje=models.Boefje.model_validate(boefje.model_dump()),
-                        input_ooi=ooi.primary_key if ooi else None,
-                        organization=mutation.client_id,
+                        boefje=boefje_copy, input_ooi=ooi.primary_key if ooi else None, organization=mutation.client_id
                     ),
                     create_schedule,
                 )
@@ -230,10 +248,10 @@ class BoefjeScheduler(Scheduler):
                 for boefje in new_boefjes:
                     try:
                         for ooi in self.get_oois_for_boefje(boefje, org.id):
+                            boefje_copy = models.Boefje.model_validate(boefje.model_dump())
+                            self.resolve_rate_limit_group(boefje_copy, ooi.primary_key)
                             boefje_task = models.BoefjeTask(
-                                boefje=models.Boefje.model_validate(boefje.model_dump()),
-                                input_ooi=ooi.primary_key,
-                                organization=org.id,
+                                boefje=boefje_copy, input_ooi=ooi.primary_key, organization=org.id
                             )
 
                             boefje_tasks.append((boefje_task, org.id))
@@ -416,8 +434,10 @@ class BoefjeScheduler(Scheduler):
                             self.ctx.datastores.schedule_store.update_schedule(schedule)
                             continue
 
+                    new_boefje_copy = models.Boefje.model_validate(plugin.model_dump())
+                    self.resolve_rate_limit_group(new_boefje_copy, ooi.primary_key if ooi else None)
                     new_boefje_task = models.BoefjeTask(
-                        boefje=models.Boefje.model_validate(plugin.model_dump()),
+                        boefje=new_boefje_copy,
                         input_ooi=ooi.primary_key if ooi else None,
                         organization=schedule.organisation,
                     )
@@ -434,6 +454,41 @@ class BoefjeScheduler(Scheduler):
                     self.push_boefje_task, new_boefje_task, self.create_schedule, self.process_rescheduling.__name__
                 )
                 future.add_done_callback(self.log_future_exceptions)
+
+    def resolve_rate_limit_group(self, boefje: models.Boefje, input_ooi: str | None) -> None:
+        """Resolve ``rate_limit_group`` placeholders against the input OOI.
+
+        The manifest ``rate_limit_group`` may be a plain string (e.g.
+        ``"api.shodan.io"``) or a ``str.format``-style template referencing the
+        input OOI, such as ``"{input_ooi}"`` or ``"shodan:{input_ooi}"``. This
+        lets boefjes that scan the same OOI share a rate-limit group across
+        organisations and workers.
+
+        Only placeholders available on the scheduler's OOI model are resolved
+        here (``{input_ooi}`` and ``{object_type}``). Resolving richer OOI
+        properties (e.g. ``{address}`` on a ``Website``) requires fetching the
+        full OOI from Octopoes and is left as a follow-up (see #1317).
+        """
+        if not boefje.rate_limit_interval or not boefje.rate_limit_group:
+            return
+
+        context: dict[str, str] = {}
+        if input_ooi is not None:
+            context["input_ooi"] = input_ooi
+            context["object_type"] = input_ooi.split("|")[0]
+
+        try:
+            boefje.rate_limit_group = boefje.rate_limit_group.format(**context)
+        except (KeyError, IndexError, ValueError, AttributeError) as error:
+            self.logger.warning(
+                "Cannot resolve rate_limit_group %r for boefje %s (%s); disabling rate limit for this task "
+                "(full OOI property resolution not yet implemented, see #1317)",
+                boefje.rate_limit_group,
+                boefje.id,
+                error,
+            )
+            boefje.rate_limit_interval = None
+            boefje.rate_limit_group = None
 
     @exception_handler
     @tracer.start_as_current_span("BoefjeScheduler.push_boefje_task")
@@ -553,6 +608,34 @@ class BoefjeScheduler(Scheduler):
         boefje_task.id to the task.id if they are not the same.
         """
         boefje_task = models.BoefjeTask.model_validate(item.data)
+
+        # Stamp rate-limit fields from the katalogus plugin so that manually
+        # started scans (Rocky "start scan" → POST /schedulers/{id}/push) are
+        # subject to the same rate limiting as scheduler-internal tasks.
+        # Only stamp when the task doesn't already carry rate-limit fields —
+        # scheduler-internal paths have already resolved the group template by
+        # this point and must not be overwritten with the unresolved template.
+        # Best-effort: if the katalogus is unavailable or returns unexpected
+        # data, the task proceeds without rate limiting.
+        if not boefje_task.boefje.rate_limit_interval:
+            try:
+                plugin = self.ctx.services.katalogus.get_plugin_by_id_and_org_id(
+                    boefje_task.boefje.id, boefje_task.organization
+                )
+                if (
+                    plugin is not None
+                    and isinstance(plugin.rate_limit_interval, int | float)
+                    and plugin.rate_limit_interval
+                ):
+                    boefje_task.boefje.rate_limit_interval = plugin.rate_limit_interval
+                    boefje_task.boefje.rate_limit_group = plugin.rate_limit_group
+                    self.resolve_rate_limit_group(boefje_task.boefje, boefje_task.input_ooi)
+                    item.data = boefje_task.model_dump()
+            except Exception:
+                self.logger.warning(
+                    "Failed to stamp rate-limit fields for boefje %s; task will proceed without rate limiting",
+                    boefje_task.boefje.id,
+                )
 
         # Check if id's are unique and correctly set. Same id's are necessary
         # for the task runner.
