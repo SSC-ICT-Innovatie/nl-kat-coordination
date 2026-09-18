@@ -44,19 +44,30 @@ class X509Certificate(OOI):
         "X509Certificate", max_issue_scan_level=1, max_inherit_scan_level=0, default=None
     )
     serial_number: str
-    expires_in: timedelta | None = None
 
     _natural_key_attrs = ["issuer", "serial_number"]
 
     @property
     def expired(self):
+        valid_until = self._parse_valid_until()
+
+        return datetime.now(timezone.utc) > valid_until
+
+    @property
+    def expires_in(self) -> timedelta | None:
+        """Time remaining until the certificate expires, computed from the
+        current time — not a stale value stored at ingest time (#5255)."""
+        valid_until = self._parse_valid_until()
+        return valid_until - datetime.now(timezone.utc)
+
+    def _parse_valid_until(self) -> datetime:
         valid_until = datetime.fromisoformat(self.valid_until.replace("Z", "+00:00"))
 
         # Treat naive timestamps as UTC
         if valid_until.tzinfo is None:
             valid_until = valid_until.replace(tzinfo=timezone.utc)
 
-        return datetime.now(timezone.utc) > valid_until
+        return valid_until
 
     _reverse_relation_names = {"signed_by": "signed_certificates"}
 

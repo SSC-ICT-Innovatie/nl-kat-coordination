@@ -410,7 +410,6 @@ def extract_certificate(event, network_reference):
         pk_algorithm=certificate_data.get("key_algo") or None,
         pk_size=certificate_data.get("key_size") or None,
         serial_number=certificate_data["fingerprint"],
-        expires_in=parse_datetime(valid_until).astimezone(timezone.utc) - datetime.now(timezone.utc),
     )
     yield certificate
 

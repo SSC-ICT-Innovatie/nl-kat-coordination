@@ -17,7 +17,7 @@ def run(input_ooi: X509Certificate, additional_oois: list[Website], config: dict
         yield ft
         yield Finding(ooi=input_ooi.reference, finding_type=ft.reference, description="TLS certificate has expired")
 
-    elif input_ooi.expires_in is not None and input_ooi.expires_in < THRESHOLD:
+    elif input_ooi.expires_in < THRESHOLD:
         ft = KATFindingType(id="KAT-CERTIFICATE-EXPIRING-SOON")
         yield ft
         yield Finding(
