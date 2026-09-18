@@ -142,9 +142,12 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         context["is_question"] = isinstance(self.ooi, Question)
         if isinstance(self.ooi, Question):
             try:
+                context["current_config_pk"] = self.ooi.config_pk
                 context["current_config"] = self.get_ooi(self.ooi.config_pk).config
             except Exception:
+                context["current_config_pk"] = None
                 context["current_config"] = None
+            context["current_config_json"] = json.dumps(context["current_config"]) if context["current_config"] else ""
 
         context["related"] = self.get_related_objects(self.observed_at)
 

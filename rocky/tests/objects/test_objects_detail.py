@@ -1,3 +1,4 @@
+from copy import deepcopy
 from urllib.parse import urlencode
 
 import pytest
@@ -6,6 +7,7 @@ from pytest_django.asserts import assertContains, assertNotContains
 from tools.enums import SCAN_LEVEL
 from tools.models import Indemnification
 
+from octopoes.models.ooi.config import Config
 from octopoes.models.tree import ReferenceTree
 from rocky.views.ooi_detail import OOIDetailView
 from tests.conftest import get_stub_path, setup_request
@@ -90,6 +92,27 @@ def test_question_detail(
     assertContains(response, "Question")
     assertContains(response, "Fill out this form to answer the Question (again)")
     assertContains(response, "Submit")
+
+
+def test_question_detail_prefills_saved_config(
+    rf, client_member, mock_organization_view_octopoes, mock_scheduler, paginated_task_list, mocker
+):
+    mocker.patch("katalogus.client.KATalogusClient")
+
+    question_data = deepcopy(QUESTION_DATA)
+    question_data["store"]["Question|/test|Network|testnetwork"]["ooi"] = "Network|testnetwork"
+    mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(question_data)
+    mock_organization_view_octopoes().get.return_value = Config(
+        ooi="Network|testnetwork", bit_id="/test", config={"key": "value"}
+    )
+
+    request = setup_request(rf.get("ooi_detail", {"ooi_id": "Question|/test|Network|testnetwork"}), client_member.user)
+
+    response = OOIDetailView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "Using config from")
+    assertContains(response, 'data-original="{&quot;key&quot;: &quot;value&quot;}"')
 
 
 def test_answer_question(

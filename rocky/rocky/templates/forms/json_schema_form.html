@@ -3,11 +3,18 @@
 
 <form method="post" class="indented-form">
     {% csrf_token %}
+    {% if current_config_pk %}
+        <p class="explanation">
+            {% translate "Using config from" %}: <a href="?ooi_id={{ current_config_pk }}">{{ current_config_pk }}</a>
+        </p>
+    {% else %}
+        <p class="explanation">{% translate "Currently unanswered." %}</p>
+    {% endif %}
+    <input type="hidden" name="action" value="submit_answer">
     <fieldset class="indented">
-        <input type="hidden" name="action" value="submit_answer">
-        <textarea name="schema" class="JsonSchemaForm">
-      {{ json_schema }}
-    </textarea>
+        <textarea name="schema" class="JsonSchemaForm"{% if current_config %} data-original="{{ current_config }}"{% endif %}>
+            {{ json_schema }}
+        </textarea>
         <legend>{% translate "Fill out this form to answer the Question (again):" %}</legend>
     </fieldset>
     <button type="submit">{% translate "Submit" %}</button>
