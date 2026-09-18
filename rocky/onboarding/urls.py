@@ -11,6 +11,11 @@ urlpatterns = [
     path(  # Step 2
         "step/organization-setup/", views.OnboardingOrganizationSetupView.as_view(), name="step_2a_organization_setup"
     ),
+    path(  # Step 2 alternative: select an existing organization
+        "step/organization-select/",
+        views.OnboardingOrganizationSelectView.as_view(),
+        name="step_2a_organization_select",
+    ),
     path(  # Step 2 update
         "<organization_code>/step/organization-setup/update/",
         views.OnboardingOrganizationUpdateView.as_view(),
