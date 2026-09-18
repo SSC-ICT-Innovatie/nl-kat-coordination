@@ -2666,7 +2666,7 @@ msgstr ""
 
 #: onboarding/views.py
 msgid ""
-"Your report is scheduled for generation in about 3 minutes, as we are "
+"Your report is scheduled for generation in a few minutes, as we are "
 "waiting for Boefjes to complete. In the meantime get familiar with OpenKAT "
 "and visit the Reports History tab later."
 msgstr ""

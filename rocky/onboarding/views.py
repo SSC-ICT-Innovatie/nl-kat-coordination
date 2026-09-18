@@ -386,7 +386,7 @@ class OnboardingCreateReportRecipe(
         parent_report_type = self.get_parent_report_type()
         report_recipe = self.create_report_recipe(report_name_format, parent_report_type, None)
 
-        self.create_report_schedule(report_recipe, datetime.now(timezone.utc) + timedelta(minutes=2))
+        self.create_report_schedule(report_recipe, datetime.now(timezone.utc) + timedelta(minutes=5))
         run_findings_dashboard(self.organization)
 
         return redirect(
@@ -431,7 +431,7 @@ class OnboardingReportView(
         messages.success(
             self.request,
             _(
-                "Your report is scheduled for generation in about 3 minutes, "
+                "Your report is scheduled for generation in a few minutes, "
                 "as we are waiting for Boefjes to complete. "
                 "In the meantime get familiar with OpenKAT and visit the Reports History tab later."
             ),
