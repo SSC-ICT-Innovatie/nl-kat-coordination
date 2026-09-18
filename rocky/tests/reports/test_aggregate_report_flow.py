@@ -217,7 +217,7 @@ def test_report_types_selection(
     assert response.status_code == 307  # if all plugins are enabled the view will auto redirect to generate report
 
     # Redirect to export setup
-    assert response.headers["Location"] == "/en/test/reports/aggregate-report/export-setup/?"
+    assert response.headers["Location"] == "/en/test/now/reports/aggregate-report/export-setup/?"
 
 
 def test_save_aggregate_report_view(
@@ -315,7 +315,7 @@ def test_save_aggregate_report_view_scheduled(
     response = SaveAggregateReportView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 302  # after post follows redirect, this to first create report ID
-    assert response.url == f"/en/{client_member.organization.code}/reports/scheduled-reports/"
+    assert response.url == f"/en/{client_member.organization.code}/now/reports/scheduled-reports/"
 
 
 def test_json_download_aggregate_report(

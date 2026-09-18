@@ -1,7 +1,7 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 from django.urls import resolve, reverse
-from tools.forms.base import ObservedAtForm
+from tools.urlconverters import TemporalContextConverter
 
 from octopoes.models.ooi.network import Network
 from octopoes.models.pagination import Paginated
@@ -11,64 +11,65 @@ from rocky.views.ooi_list import OOIListView
 from tests.conftest import setup_request
 
 
-def test_observed_at_no_value(mocker):
+def test_observed_at_defaults_to_now(mocker):
+    """Without a temporal context (the "now" segment resolves to None), observed_at is the present."""
     mock_mixin_datetime = mocker.patch("rocky.views.mixins.datetime")
-    mock_request = mocker.Mock()
-    mock_request.GET = {}
-    mock_request.POST = {}
     now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=timezone.utc)
     mock_mixin_datetime.now.return_value = now
 
-    observed_at = ObservedAtMixin()
-    observed_at.request = mock_request
-    assert observed_at.observed_at == now
+    mixin = ObservedAtMixin()
+    mixin.temporal_context = None
+
+    assert mixin.observed_at == now
+    assert mixin.is_historic_view is False
+    assert mixin.temporal_string == "now"
 
 
-def test_observed_at_date(mocker):
-    mock_request = mocker.Mock()
-    mock_request.GET = {"observed_at": "2023-10-24"}
+def test_observed_at_uses_temporal_context():
+    """A temporal context set from the URL segment drives observed_at directly."""
+    moment = datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)
 
-    observed_at = ObservedAtMixin()
-    observed_at.request = mock_request
-    assert observed_at.observed_at == datetime(2023, 10, 24, 23, 59, 59, 999999, tzinfo=timezone.utc)
+    mixin = ObservedAtMixin()
+    mixin.temporal_context = moment
 
-
-def test_observed_at_datetime(mocker):
-    mock_request = mocker.Mock()
-    mock_request.GET = {"observed_at": "2023-10-24T09:34:56"}
-
-    observed_at = ObservedAtMixin()
-    observed_at.request = mock_request
-    assert observed_at.observed_at == datetime(2023, 10, 24, 9, 34, 56, 0, tzinfo=timezone.utc)
+    assert mixin.observed_at == moment
+    assert mixin.is_historic_view is True
+    assert mixin.temporal_string == str(moment)
 
 
-def test_observed_at_datetime_with_timezone(mocker):
-    mock_request = mocker.Mock()
-    mock_request.GET = {"observed_at": "2023-10-24T11:34:56+02:00"}
+def test_temporal_context_converter_to_python():
+    converter = TemporalContextConverter()
 
-    observed_at = ObservedAtMixin()
-    observed_at.request = mock_request
-    assert observed_at.observed_at == datetime(2023, 10, 24, 9, 34, 56, 0, tzinfo=timezone.utc)
+    assert converter.to_python("now") is None
+    assert converter.to_python("at-20231024T093456Z") == datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)
 
 
-def test_observed_at_future_date(rf, client_member, mock_organization_view_octopoes):
-    kwargs = {"organization_code": client_member.organization.code}
+def test_temporal_context_converter_to_url():
+    converter = TemporalContextConverter()
+
+    assert converter.to_url(None) == "now"
+    assert converter.to_url("now") == "now"
+    assert converter.to_url(datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)) == "at-20231024T093456Z"
+
+
+def test_observed_at_historic_view_through_url(rf, client_member, mock_organization_view_octopoes):
+    """A historic temporal context in the URL renders a historic object list at that valid time."""
+    moment = datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": moment}
     url = reverse("ooi_list", kwargs=kwargs)
-
-    day_plus_1_in_future = (datetime.now(tz=timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
-    request = rf.get(url, {"observed_at": day_plus_1_in_future})
+    request = rf.get(url)
     request.resolver_match = resolve(url)
 
     setup_request(request, client_member.user)
 
-    mock_organization_view_octopoes().list.return_value = Paginated[OOIType](
-        count=200, items=[Network(name="testnetwork")] * 150
+    mock_organization_view_octopoes().list_objects.return_value = Paginated[OOIType](
+        count=1, items=[Network(name="testnetwork")]
     )
 
-    _ = OOIListView.as_view()(request, organization_code=client_member.organization.code)
+    response = OOIListView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=moment
+    )
 
-    messages = list(request._messages)
-    assert messages[0].message == "The selected date is in the future."
-
-    form = ObservedAtForm(data=request.GET)
-    assert form.is_valid()
+    assert response.status_code == 200
+    assert response.context_data["observed_at"] == moment
+    assert response.context_data["historic_view"] is True

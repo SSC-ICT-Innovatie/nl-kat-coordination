@@ -2,8 +2,7 @@
 {% load ooi_extra %}
 
 <div class="horizontal-view">
-    <a href="{% ooi_url "ooi_tree" ooi_id organization.code query=mandatory_fields view="condensed" %}"
+    <a href="{% app_url "ooi_tree" ooi=ooi_id %}?view=condensed"
        class="button">{% translate "Tree - dense view" %}</a>
-    <a href="{% ooi_url "ooi_tree" ooi_id organization.code query=mandatory_fields view="table" %}"
-       class="button">{% translate "Tree - table view" %}</a>
+    <a href="{% app_url "ooi_tree" ooi=ooi_id %}?view=table" class="button">{% translate "Tree - table view" %}</a>
 </div>
