@@ -1,4 +1,4 @@
-Developer documentation
+Develop OpenKAT
 ###########################
 
 Contains documentation for developers and contributors.
