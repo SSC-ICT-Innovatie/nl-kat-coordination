@@ -360,10 +360,48 @@ def test_find_parent_dns_zone(normalizer_runner):
 
     results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-zone-result-sub.example.nl.txt"))
 
-    expected = [requested_zone, parent_zone, parent_zone_hostname, name_server_hostname, soa_record]
+    expected = [parent_zone, parent_zone_hostname, name_server_hostname, soa_record]
     assert len(list(map(BaseModel.model_dump, expected))) == len(
         list(map(BaseModel.model_dump, results.observations[0].results))
     )
+
+    assert len(results.affirmations) == 1
+    affirmed = results.affirmations[0].ooi
+    assert affirmed.primary_key == requested_zone.primary_key
+    assert affirmed.parent == parent_zone.reference
+
+
+def test_find_dns_zone_for_hostname(normalizer_runner):
+    internet = Network(name="internet")
+
+    input_hostname = Hostname(network=internet.reference, name="sub.example.nl")
+    input_ = input_hostname.serialize()
+
+    parent_zone = DNSZone(hostname=Hostname(network=internet.reference, name="example.nl").reference)
+
+    meta = NormalizerMeta(
+        id=uuid.UUID("ee8374bb-e79f-4083-9ce9-add4f96006f2"),
+        normalizer=Normalizer(id="kat_dns_zone_normalize"),
+        raw_data=RawDataMeta(
+            id=uuid.UUID("2147da2a-921c-4c51-aef3-fa82d8d6e089"),
+            boefje_meta=BoefjeMeta(
+                id=uuid.UUID("ff1f0d62-a2e0-480f-8b11-5fb24974edce"),
+                boefje=Boefje(id="dns-records"),
+                organization="_dev",
+                input_ooi="Hostname|internet|sub.example.nl",
+                arguments={"input": input_},
+            ),
+            mime_types=[{"value": "boefje/dns-records"}],
+        ),
+    )
+
+    results = normalizer_runner.run(meta, get_dummy_data("inputs/dns-zone-result-sub.example.nl.txt"))
+
+    assert len(results.observations[0].results) == 4
+    assert len(results.affirmations) == 1
+    affirmed = results.affirmations[0].ooi
+    assert affirmed.primary_key == input_hostname.primary_key
+    assert affirmed.dns_zone == parent_zone.reference
 
 
 def test_exception_raised_no_input_ooi(normalizer_runner):
