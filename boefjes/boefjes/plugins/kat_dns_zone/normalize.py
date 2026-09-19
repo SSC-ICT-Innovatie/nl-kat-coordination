@@ -19,13 +19,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     lines = section.split("\n")
     message: Message = from_text("\n".join(lines[1:]))
 
-    input_zone_hostname = Hostname(network=network.reference, name=input_ooi["hostname"]["name"])
-
-    input_zone = DNSZone(hostname=input_zone_hostname.reference)
-
     for rrset in message.answer:
         for rr in rrset:
             if isinstance(rr, SOA):
+                parent_zone = None
                 parent_zone_hostname = None
                 if str(rrset.name).rstrip(".") != "":
                     parent_zone_hostname = Hostname(network=network.reference, name=str(rrset.name).rstrip("."))
@@ -39,19 +36,20 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     soa_hostname = Hostname(network=network.reference, name=str(rr.mname).rstrip("."))
                     yield soa_hostname
 
-                yield DNSSOARecord(
-                    hostname=parent_zone_hostname.reference if parent_zone_hostname else "",
-                    value=str(rr),
-                    ttl=rrset.ttl,
-                    soa_hostname=soa_hostname.reference if soa_hostname else "",
-                    serial=rr.serial,
-                    retry=rr.retry,
-                    refresh=rr.refresh,
-                    expire=rr.expire,
-                    minimum=rr.minimum,
-                )
+                if parent_zone_hostname is not None and soa_hostname is not None:
+                    yield DNSSOARecord(
+                        hostname=parent_zone_hostname.reference,
+                        value=str(rr),
+                        ttl=rrset.ttl,
+                        soa_hostname=soa_hostname.reference,
+                        serial=rr.serial,
+                        retry=rr.retry,
+                        refresh=rr.refresh,
+                        expire=rr.expire,
+                        minimum=rr.minimum,
+                    )
 
-                if str(name).rstrip(".") != "":
+                if parent_zone is not None and str(name).rstrip(".") != "":
                     if "hostname" in input_ooi:
                         # lets yield the dnszone again as a affirmation, adding only the dnszone property
                         input_zone_hostname = Hostname(network=network.reference, name=str(name).rstrip("."))
