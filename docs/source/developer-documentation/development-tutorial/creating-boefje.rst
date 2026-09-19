@@ -361,14 +361,26 @@ just want to create a CVE or other type of finding on the input OOI, we
 can return the CVE ID or KAT ID as a string with ``openkat/finding`` as
 mime-type.
 
-If your boefje does not make sense to run a given input ooi, and it never will,
-you can use the ``openkat/deschedule`` mimetype to signal the scheduler about this.
-The scheduler will in these cases de-schedule the specific boefje + inputooi combination.
-This in turn makes sure no new jobs will be created for that combination.
-Good examples of when this usecase is useful are:
+Besides returning scan data, a boefje can return a signal mimetype to tell
+the scheduler there is nothing to normalize. Three signals exist, and picking
+the right one matters for how the task and its schedule are treated:
 
-* A local IP, and a Shodan like api which cannot possibly know anything about your local lan.
-* A scan on a ipPort that only handles specific port numbers, or similarly a scan on a given protocol.
+* ``openkat/deschedule``: the boefje does not make sense for the given input
+  OOI, and it never will. The scheduler de-schedules the boefje + input OOI
+  combination, so no new jobs are created for it. Examples: a local IP for a
+  Shodan-like API that cannot possibly know your LAN, or a TLS check on a
+  non-TLS service.
+* ``info/boefje``: the boefje produced no scan data this run for an expected,
+  non-error reason, but a future run on the same OOI may still produce data.
+  The task completes normally, nothing is normalized and no error is shown.
+  Example: a netblock that is too large to scan under the current settings.
+* ``error/*`` mimetypes (e.g. ``error/boefje``): the boefje failed
+  unexpectedly. Nothing is normalized and the task is reported as failed in
+  the task list.
+
+Use ``openkat/deschedule`` rather than ``info/boefje`` whenever the boefje can
+never yield data for the input OOI, so the scheduler stops creating jobs that
+can only ever produce the informational message.
 
 --------------
 

@@ -112,8 +112,8 @@ class NormalizerScheduler(Scheduler):
 
         # Check if the raw data contains an "info/boefje" mime-type, meaning
         # the boefje exited with an informational message instead of real scan
-        # data (e.g. skipping a non-TLS service, or a public database lookup
-        # for a private IP). There is nothing to normalize in this case.
+        # data (e.g. a netblock too large to scan under the current settings).
+        # There is nothing to normalize in this case.
         if self.has_raw_data_info(latest_raw_data.raw_data):
             self.logger.debug(
                 "Skipping raw data %s with 'info/boefje' mime type",
@@ -299,9 +299,10 @@ class NormalizerScheduler(Scheduler):
     def has_raw_data_info(self, raw_data: models.RawData) -> bool:
         """Check if the raw data contains an informational boefje message.
 
-        A boefje signals an expected, non-actionable result (e.g. skipping a
-        non-TLS service) by producing an ``info/boefje`` mime-type. There is no
-        real data to normalize in this case.
+        A boefje signals an expected, non-actionable result (e.g. an input
+        that is out of scope under the current settings) by producing an
+        ``info/boefje`` mime-type. There is no real data to normalize in
+        this case.
 
         Args:
             raw_data: The raw data to check.
