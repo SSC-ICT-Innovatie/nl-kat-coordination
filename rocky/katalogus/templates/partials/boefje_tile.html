@@ -18,7 +18,7 @@
     {% with scan_level=item.scan_level.value %}
         <div class="horizontal-view scan-intensity">
             <span class="de-emphasized">{% translate "Scan level:" %}</span>
-            {% include "partials/scan_level_indicator.html" with value=scan_level %}
+            {% include "partials/scan_level_indicator.html" with value=scan_level scan_level_label=True %}
 
         </div>
     {% endwith %}
