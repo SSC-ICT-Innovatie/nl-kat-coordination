@@ -707,11 +707,15 @@ class OctopoesService:
                         param = OriginParameter(origin_id=bit_instance.id, reference=param_ooi.reference)
                         self.origin_parameter_repository.save(param, valid_time)
 
-        # TODO: remove all Origins and Origin Parameters, which are no longer in use
-
-        # rerun all existing bits
+        # rerun all existing bits; origins of bits that no longer exist are deleted (with their
+        # parameters), so their results are garbage collected instead of lingering forever
         origins = self.origin_repository.list_origins(valid_time, origin_type=OriginType.INFERENCE)
         for origin in origins:
+            if origin.method not in bit_definitions:
+                for origin_parameter in self.origin_parameter_repository.list_by_origin({origin.id}, valid_time):
+                    self.origin_parameter_repository.delete(origin_parameter, valid_time)
+                self.origin_repository.delete(origin, valid_time)
+                continue
             self._run_inference(origin, valid_time)
             bit_counter.update({origin.method})
         return sum(bit_counter.values())

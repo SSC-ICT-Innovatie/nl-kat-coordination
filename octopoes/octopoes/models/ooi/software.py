@@ -1,5 +1,7 @@
 from typing import Literal
 
+from pydantic import field_validator
+
 from octopoes.models import OOI, Reference
 from octopoes.models.persistence import ReferenceField
 
@@ -10,6 +12,23 @@ class Software(OOI):
     name: str
     version: str | None = None
     cpe: str | None = None
+
+    @field_validator("name", "version", "cpe", mode="before")
+    @classmethod
+    def coerce_numeric_to_string(cls, value: object) -> object:
+        """Coerce a numeric version to a string.
+
+        External APIs (e.g. shodan, censys, binaryedge) deliver numeric versions, which would
+        otherwise fail field validation and abort the whole scan's normalization. Only numbers are
+        coerced — a bool/list/dict is left for pydantic to reject, so a structurally wrong value
+        surfaces as a normalizer bug instead of being stored as garbage. The reference-separator
+        escaping (issue #5299) lives in OOI.natural_key, so it is not repeated here.
+        """
+        if isinstance(value, bool):
+            return value
+        if isinstance(value, int | float):
+            return str(value)
+        return value
 
     _natural_key_attrs = ["name", "version", "cpe"]
     _information_value = ["name"]

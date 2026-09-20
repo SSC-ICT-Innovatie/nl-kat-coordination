@@ -16,7 +16,7 @@ jobs:
     outputs:
       packages: ${{ steps.filter.outputs.changes }}
     steps:
-      - uses: dorny/paths-filter@fbd0ab8f3e69293af611ebaee6363fc25e6d187d # v4.0.1
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
         if: github.event_name != 'push'
         id: filter
         with:
@@ -151,7 +151,7 @@ jobs:
           tar -cvzf kat-ubuntu24.04-${{ env.RELEASE_VERSION }}.tar.gz -C kat-ubuntu24.04-${{ env.RELEASE_VERSION }} .
 
       - name: Add Release Assets
-        uses: softprops/action-gh-release@718ea10b132b3b2eba29c1007bb80653f286566b # v3.0.1
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           generate_release_notes: true
           files: |
