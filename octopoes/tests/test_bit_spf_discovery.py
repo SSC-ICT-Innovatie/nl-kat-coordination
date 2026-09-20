@@ -68,3 +68,21 @@ def test_spf_discovery_with_identifier():
     results = list(run(dnstxt_record, [], {}))
 
     assert len(results) == 10
+
+
+def test_spf_discovery_multiple_macros_in_mechanism():
+    """#4158: a single mechanism may contain multiple macros, and macros may
+    appear in mechanisms other than exists: (include, a, redirect). All
+    unresolvable macros must be stripped, not only those in exists:."""
+    dnstxt_record = DNSTXTRecord(
+        hostname=Reference.from_str("Hostname|internet|example.com"),
+        value="v=spf1 exists:%{ir}.%{v}.arpa._spf.example.com include:%{l}.%{d}.example.com ~all",
+    )
+    results = list(run(dnstxt_record, [], {}))
+
+    # both macro-bearing mechanisms are dropped; only the ~all record remains
+    spf_records = [r for r in results if isinstance(r, DNSSPFRecord)]
+    assert len(spf_records) == 1
+    assert spf_records[0].all == "~"
+    # no bogus hostnames with macro syntax leaked through
+    assert not any("%{" in str(getattr(r, "name", "")) for r in results)
