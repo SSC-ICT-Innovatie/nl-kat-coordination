@@ -8,14 +8,16 @@ from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.service import TLSCipher
 
 SEVERITY_TO_ID = {
-    "Critical": "KAT-CRITICAL-BAD-CIPHER",
-    "Medium": "KAT-MEDIUM-BAD-CIPHER",
-    "Recommendation": "KAT-RECOMMENDATION-BAD-CIPHER",
+    "Critical": "KAT-CRITICAL-TLS-CIPHER",
+    "High": "KAT-HIGH-TLS-CIPHER",
+    "Medium": "KAT-MEDIUM-TLS-CIPHER",
+    "Low": "KAT-LOW-TLS-CIPHER",
+    "Recommendation": "KAT-RECOMMENDATION-TLS-CIPHER",
 }
 
 
 def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
-    with Path.open(Path(__file__).parent / "list-ciphers-openssl-with-finding-type.csv", newline="") as csvfile:
+    with Path.open(Path(__file__).parent / "tls-cipher-findings.csv", newline="") as csvfile:
         reader = csv.DictReader(csvfile)
         data = [{k.strip(): v.strip() for k, v in row.items() if k} for row in reader]
 
@@ -46,7 +48,7 @@ def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
 
 def get_highest_severity_and_all_reasons(cipher_suites: dict) -> tuple[str, str]:
     # Define severity levels
-    severity_levels = {"Critical": 3, "Medium": 2, "Recommendation": 1}
+    severity_levels = {"Critical": 5, "High": 4, "Medium": 3, "Low": 2, "Recommendation": 1}
 
     # Get severities and reasons
     severities_and_reasons = []
