@@ -10,6 +10,7 @@ from rocky.views.ooi_view import BaseOOIDetailView
 class OOIFindingListView(OOIFindingManager, BaseOOIDetailView, TemplateView):
     template_name = "oois/ooi_findings.html"
     connector_form_class = ObservedAtForm
+    include_software_findings = True
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         breadcrumbs = super().build_breadcrumbs()
