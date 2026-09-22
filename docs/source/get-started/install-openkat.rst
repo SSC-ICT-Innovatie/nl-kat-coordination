@@ -18,7 +18,7 @@ Installation steps
 This guide gives you two ways to install OpenKAT:
 
 - Automatic installation using a script (for Debian/Ubuntu)
-- Manual installation (for all distributions)
+- Manual installation
 
 
 
@@ -47,10 +47,10 @@ Grab a tea while you pet your cat. Once it is finished you can reach the OpenKAT
 You should see a login prompt. You can now continue on the next section :doc:`use-openkat-first-time`.
 
 
-Manual installation via Github
+Manual installation via GitHub
 ------------------------------
 
-This installation can be used for other Linux distributions, and/or MacOS and Windows systems.
+This installation can be used for other Linux distributions and Windows systems.
 
 Docker installation
 *******************
@@ -64,6 +64,8 @@ Do **not** install Docker directly from the default Ubuntu/Debian repositories. 
 
 OpenKAT installation
 ********************
+
+When using Windows you need Windows Subsystem for Linux (WSL).
 
 Make sure you have the following packages installed:
 

@@ -72,6 +72,7 @@ In short
 
 OpenKAT continuously builds a picture of your information systems:
 
-collect information → connect it → analyze it → discover more → report findings → repeat
+.. image:: img/openkat-simple-process.png
+  :alt: Simplified explanation of the OpenKAT process
 
 The result is a continuously updated view of your systems and the security risks associated with them.

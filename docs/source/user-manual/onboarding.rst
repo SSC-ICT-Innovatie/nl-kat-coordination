@@ -100,4 +100,4 @@ After three minutes, you can open your DNS Report on the Report History page. He
 .. image:: img/11-onboarding-dns-report.png
   :alt: DNS report
 
-Now get familiar with OpenKAT and explore! If you need any help with navigating around and becoming familiar with OpenKAT, you can always go to the user manual.In the user manual you will find information on all the user interface related items of OpenKAT.
+Now get familiar with OpenKAT and explore! If you need any help with navigating around and becoming familiar with OpenKAT, you can always go to the user manual. In the user manual you will find information on all the user interface related items of OpenKAT.
