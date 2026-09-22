@@ -519,29 +519,45 @@
     "impact": "An exposed administrative interface lets an attacker attempt credential brute-forcing, exploit known vulnerabilities in the management software, and use it as an entry point into the environment.",
     "recommendation": "Restrict access to administrative panels to trusted networks or a VPN, place them behind authentication, and do not expose them directly to the internet."
   },
-  "KAT-CRITICAL-BAD-CIPHER": {
+  "KAT-CRITICAL-TLS-CIPHER": {
     "name":" Insecure SSL/TLS cipher(s) detected",
-    "description": "Cryptographic algorithms (ciphers) are used that are labeled as insecure by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm. These should not be used anymore",
-    "source": "https://english.ncsc.nl/binaries/ncsc-en/documenten/publications/2021/january/19/it-security-guidelines-for-transport-layer-security-2.1/IT+Security+Guidelines+for+Transport+Layer+Security+v2.1.pdf",
+    "description": "Cryptographic ciphers in use which are insecure and could potentially be exploited.",
+    "source": "https://www.ncsc.nl/api/media/sites/default/files/TLS-Security%20guidelines-2025-05.pdf",
     "risk": "critical",
+    "impact": "Insecure ciphers may result in loss of confidentiality and integrity of data through decryption attacks",
+    "recommendation": "Disable these ciphers immediately to prevent abuse. Enable ciphers that are labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers. If this is not possible make sure that systems using these ciphers are segmented and additionally secured."
+  },
+  "KAT-HIGH-TLS-CIPHER": {
+    "name":" Insecure SSL/TLS cipher(s) detected",
+    "description": "Cryptographic algorithms (ciphers) are used that are labeled as insecure by the Dutch NCSC. The used ciphers could be abused. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm. These should not be used anymore",
+    "source": "https://www.ncsc.nl/api/media/sites/default/files/TLS-Security%20guidelines-2025-05.pdf",
+    "risk": "high",
     "impact": "Insecure ciphers may result in loss of confidentiality and integrity of data through decryption attacks",
     "recommendation": "Disable insecure ciphers as much as possible. Enable ciphers that are labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers. If this is not possible make sure that systems using these ciphers are segmented and additionally secured."
   },
-  "KAT-MEDIUM-BAD-CIPHER": {
+   "KAT-MEDIUM-TLS-CIPHER": {
+    "name":" Weak SSL/TLS cipher(s) detected",
+    "description": "Cryptographic algorithms (ciphers) are used that are labeled as insecure by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm. These should not be used anymore",
+    "source": "https://www.ncsc.nl/api/media/sites/default/files/TLS-Security%20guidelines-2025-05.pdf",
+    "risk": "medium",
+    "impact": "Insecure ciphers may result in loss of confidentiality and integrity of data through decryption attacks",
+    "recommendation": "Disable insecure ciphers as much as possible. Enable ciphers that are labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers. If this is not possible make sure that systems using these ciphers are segmented and additionally secured."
+  },
+  "KAT-LOW-TLS-CIPHER": {
     "name":"Phase out SSL/TLS cipher(s) detected",
     "description": "Cryptographic algorithms (ciphers) are used that are labeled as 'phase out' by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm.",
-    "source": "https://english.ncsc.nl/binaries/ncsc-en/documenten/publications/2021/january/19/it-security-guidelines-for-transport-layer-security-2.1/IT+Security+Guidelines+for+Transport+Layer+Security+v2.1.pdf",
-    "risk": "medium",
+    "source": "https://www.ncsc.nl/api/media/sites/default/files/TLS-Security%20guidelines-2025-05.pdf",
+    "risk": "low",
     "impact": "Weak ciphers may result in loss of confidentiality and integrity of data through decryption attacks.",
     "recommendation": "Disable phase out ciphers as much as possible. Enable ciphers that are labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers."
   },
-  "KAT-RECOMMENDATION-BAD-CIPHER": {
+  "KAT-RECOMMENDATION-TLS-CIPHER": {
     "name":"Sufficient SSL/TLS cipher(s) detected",
-    "description": "Cryptographic algorithms (ciphers) are used that are labeled as 'sufficient' by the Dutch NCSC. This is caused by either the certificate verification, key exchange, bulk encryption or the hashing algorithm.",
-    "source": "https://english.ncsc.nl/binaries/ncsc-en/documenten/publications/2021/january/19/it-security-guidelines-for-transport-layer-security-2.1/IT+Security+Guidelines+for+Transport+Layer+Security+v2.1.pdf",
+    "description": "Cryptographic algorithms (ciphers) are used that are labeled as 'good' by the Dutch NCSC.",
+    "source": "https://www.ncsc.nl/api/media/sites/default/files/TLS-Security%20guidelines-2025-05.pdf",
     "risk": "recommendation",
-    "impact": "Sufficient ciphers may result in a loss of confidentiality of data. While there is currently no direct impact, the data may be decrypted in the future with enough computing power and resources or new attacks.",
-    "recommendation": "Disable 'sufficient' ciphers and enable ciphers labeled as 'Good' by the NCSC. Check https://cipherlist.eu/ for safe ciphers."
+    "impact": "No known impact at this time.",
+    "recommendation": "None, as recommended ciphers are used."
   },
   "KAT-NO-RPKI": {
     "name":"No matching RPKI route announcement",
