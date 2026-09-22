@@ -43,13 +43,13 @@ def test_medium_tls_ciphers():
             ],
             "TLSv1.2": [
                 {
-                    "cipher_suite_alias": "TLS_ECDHE-RSA-AES256-SHA384",
-                    "encryption_algorithm": "AESGCM",
-                    "cipher_suite_name": "ECDHE-RSA-AES256-SHA384",
-                    "key_size": 521,
-                    "bits": 256,
-                    "key_exchange_algorithm": "ECDH",
-                    "cipher_suite_code": "xc030",
+                    "cipher_suite_alias": "TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256",
+                    "encryption_algorithm": "CAMELLIA",
+                    "cipher_suite_name": "DHE-DSS-CAMELLIA128-SHA256",
+                    "key_size": 2048,
+                    "bits": 128,
+                    "key_exchange_algorithm": "DH",
+                    "cipher_suite_code": "x0066",
                 },
                 {
                     "cipher_suite_alias": "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
