@@ -48,7 +48,7 @@ def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
 
 def get_highest_severity_and_all_reasons(cipher_suites: dict) -> tuple[str, str]:
     # Define severity levels
-    severity_levels = {"Critical": 5, "High": 4, "Medium": 3, "Low": 2, "Recommendation": 1}
+    severity_levels = {"Critical": 5, "High": 4, "Medium": 3, "Low": 2, "Recommendation": 1, "Informational": 0}
 
     # Get severities and reasons
     severities_and_reasons = []
