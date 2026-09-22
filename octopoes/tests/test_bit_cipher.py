@@ -5,7 +5,7 @@ from octopoes.models.ooi.network import IPAddressV4, IPPort
 from octopoes.models.ooi.service import IPService, Service, TLSCipher
 
 
-def test_medium_bad_ciphers():
+def test_informational_tls_ciphers():
     address = IPAddressV4(address="8.8.8.8", network="network|fake")
     port = IPPort(address=address.reference, protocol="tcp", port=22)
     ip_service = IPService(ip_port=port.reference, service=Service(name="https").reference)
@@ -94,13 +94,10 @@ def test_medium_bad_ciphers():
     results = list(cipher_classification(cipher, {}, {}))
 
     assert len(results) == 2
-    assert results[0].reference == "KATFindingType|KAT-MEDIUM-BAD-CIPHER"
+    assert results[0].reference == "KATFindingType|KAT-RECOMMENDATION-TLS-CIPHER"
     finding = results[-1]
     assert isinstance(finding, Finding)
-    assert (
-        finding.description == "One or more of the cipher suites should not be used because:\n"
-        "ECDHE-RSA-AES256-SHA384 - Using CBC as bulk encryption algorithm (Medium)."
-    )
+    assert finding.description == "The identified ciphers are currently recommended and marked as safe."
 
 
 def test_good_ciphers():
