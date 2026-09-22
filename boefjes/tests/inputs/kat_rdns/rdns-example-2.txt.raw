@@ -1,0 +1,14 @@
+RESOLVER: 1.1.1.1
+id 10876
+opcode QUERY
+rcode NOERROR
+flags QR RD RA
+edns 0
+payload 1232
+option Generic 15
+;QUESTION
+1.2.0.192.in-addr.arpa. IN PTR
+;ANSWER
+1.2.0.192.in-addr.arpa. 86400 IN PTR example.com.
+;AUTHORITY
+;ADDITIONAL

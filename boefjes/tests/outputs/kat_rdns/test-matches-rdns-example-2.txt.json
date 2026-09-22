@@ -1,0 +1,4 @@
+[
+  "Hostname|internet|example.com",
+  "DNSPTRRecord|internet|example.com|internet|192.0.2.1"
+]

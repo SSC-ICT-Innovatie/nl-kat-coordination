@@ -1,0 +1,6 @@
+{
+  "primary_key": "IPAddressV4|internet|192.0.2.1",
+  "network": {
+    "name": "internet"
+  }
+}
