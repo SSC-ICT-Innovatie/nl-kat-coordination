@@ -1,14 +1,16 @@
 from collections import Counter
+from functools import cached_property
 
 from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.base import TemplateView
-from tools.ooi_helpers import format_attr_name
+from tools.ooi_helpers import collect_software_instances, findings_on_software, format_attr_name
 from tools.view_helpers import existing_ooi_type, get_mandatory_fields, url_with_querystring
 
-from octopoes.models import OOI
+from octopoes.models import OOI, Reference
 from octopoes.models.ooi.findings import Finding, FindingType, RiskLevelSeverity
+from octopoes.models.ooi.software import SoftwareInstance
 from octopoes.models.types import OOI_TYPES, get_relations, to_concrete
 from rocky.views.mixins import SingleOOITreeMixin
 
@@ -88,7 +90,23 @@ class OOIRelatedObjectManager(SingleOOITreeMixin):
 
 
 class OOIFindingManager(SingleOOITreeMixin):
+    # The detail page shows a two-deep tree, but software is bound to whatever the boefje observed
+    # -- an IPPort, IPService, IPAddress or HostnameHTTPURL -- so from a Hostname a SoftwareInstance
+    # sits up to four hops away. Fetch those separately, filtered to the one type we need.
+    SOFTWARE_TREE_DEPTH = 5
+
+    # That is a second graph call, so only the pages that are about findings pay for it. Every
+    # object detail page fetches its tree exactly once and should keep doing so.
+    include_software_findings = False
+
     def get_findings(self) -> list[Finding]:
+        findings = self.get_direct_findings()
+        seen = {finding.reference for finding in findings}
+
+        return findings + [finding for finding in self.software_findings if finding.reference not in seen]
+
+    def get_direct_findings(self) -> list[Finding]:
+        """Findings bound to this OOI itself, as they appear in the object tree."""
         findings = []
         for relation in self.tree.root.children.values():
             for child in relation:
@@ -97,10 +115,52 @@ class OOIFindingManager(SingleOOITreeMixin):
                     findings.append(ooi)
         return findings
 
+    @cached_property
+    def software_findings(self) -> list[Finding]:
+        """Findings carried by the software this OOI runs, reached through its SoftwareInstances."""
+        if not self.include_software_findings:
+            return []
+
+        tree = self.octopoes_api_connector.get_tree(
+            self.ooi.reference, valid_time=self.observed_at, depth=self.SOFTWARE_TREE_DEPTH, types={SoftwareInstance}
+        )
+        software_instances = collect_software_instances(tree)
+
+        if not software_instances:
+            return []
+
+        return [
+            finding
+            for finding, _asset in findings_on_software(
+                self.octopoes_api_connector, software_instances, self.observed_at
+            )
+        ]
+
+    def get_finding_types(self, findings: list[Finding]) -> dict[str, FindingType]:
+        """Finding types by reference; the tree only holds the ones of the direct findings."""
+        finding_types: dict[str, FindingType] = {}
+        missing: set[Reference] = set()
+
+        for finding in findings:
+            finding_type = self.tree.store.get(str(finding.finding_type))
+            if finding_type is not None:
+                finding_types[str(finding.finding_type)] = finding_type
+            else:
+                missing.add(finding.finding_type)
+
+        if missing:
+            loaded = self.octopoes_api_connector.load_objects_bulk(missing, valid_time=self.observed_at)
+            finding_types.update({str(reference): ooi for reference, ooi in loaded.items()})
+
+        return finding_types
+
     def count_findings_per_severity(self) -> Counter:
         counter = Counter({severity: 0 for severity in RiskLevelSeverity})
-        for finding in self.get_findings():
-            finding_type: FindingType | None = self.tree.store.get(str(finding.finding_type), None)
+        findings = self.get_findings()
+        finding_types = self.get_finding_types(findings)
+
+        for finding in findings:
+            finding_type = finding_types.get(str(finding.finding_type))
             if finding_type is not None and finding_type.risk_severity is not None:
                 counter.update([finding_type.risk_severity])
             else:
@@ -112,7 +172,14 @@ class OOIFindingManager(SingleOOITreeMixin):
         return list(sorted(finding_details, key=lambda x: x[1].risk_score or 0, reverse=True))
 
     def get_finding_details(self) -> list[tuple[Finding, FindingType]]:
-        return [(finding, self.tree.store[str(finding.finding_type)]) for finding in self.get_findings()]
+        findings = self.get_findings()
+        finding_types = self.get_finding_types(findings)
+
+        return [
+            (finding, finding_types[str(finding.finding_type)])
+            for finding in findings
+            if str(finding.finding_type) in finding_types
+        ]
 
 
 class OOIRelatedObjectAddView(OOIRelatedObjectManager, TemplateView):
