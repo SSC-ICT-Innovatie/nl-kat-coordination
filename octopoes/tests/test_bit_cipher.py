@@ -99,7 +99,7 @@ def test_medium_tls_ciphers():
     assert isinstance(finding, Finding)
     assert (
         finding.description == "One or more of the cipher suites should not be used because:\n"
-        "DHE-DSS-CAMELLIA128-SHA256 - Using CBC as bulk encryption algorithm (Medium)."
+        "DHE-DSS-CAMELLIA128-SHA256 - Using DH as key exchange algorithm (Medium)."
     )
 
 
