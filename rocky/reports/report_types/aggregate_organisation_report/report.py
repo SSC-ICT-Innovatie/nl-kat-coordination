@@ -234,7 +234,9 @@ class AggregateOrganisationReport(AggregateReport):
                 seen_keys = set()
 
                 for occurrence in finding_type["occurrences"]:
-                    occurrence_ooi = occurrence["finding"].ooi
+                    # Not finding.ooi: a CVE hangs on the shared Software OOI, so two assets
+                    # running the same vulnerable package would collapse into one row (#5321).
+                    occurrence_ooi = occurrence["affected_ooi"]
 
                     if occurrence_ooi not in seen_keys:
                         seen_keys.add(occurrence_ooi)
