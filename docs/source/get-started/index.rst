@@ -9,7 +9,7 @@ If you are completely new to OpenKAT start here. In this section you'll learn th
    :caption: Contents
 
    what-is-openkat
-   openkat-philosophy
    install-openkat
    use-openkat-first-time
    your-first-report
+   openkat-philosophy

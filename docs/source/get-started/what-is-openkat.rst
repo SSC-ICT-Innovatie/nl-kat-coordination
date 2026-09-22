@@ -36,7 +36,7 @@ Its modular architecture also means that scanning, normalization, analysis and r
 At the heart of OpenKAT are four concepts:
 
 - **Objects** — representations of things discovered in your environment, such as IP addresses, hostnames and services.
-- **Plugins** — tools and scripts that collect information.
+- **Plugins** — (security) tools, scans and scripts that collect information.
 - **Analysis** — rules that use the collected information to identify findings.
 - **Reports** — accessible representations of the information and findings.
 

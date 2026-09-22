@@ -141,11 +141,11 @@ A simplified example is:
       |
       +---- resolves to ----> IP address
       |
-      +---- exposes ----> Port
+      +---- exposes --------> Port
       |
-      +---- runs ----> Service
+      +---- runs -----------> Service
       |
-      +---- uses ----> Software
+      +---- uses -----------> Software
       |
       +---- affected by ----> Vulnerability
 
@@ -225,7 +225,7 @@ This allows an organization to decide how far OpenKAT may go when investigating 
 
 For example, an organization may allow passive discovery for one environment while permitting more active scanning for another.
 
-See :doc:../user-manual/scan-levels-clearance-indemnities for more information.
+See :doc:`../user-manual/basic-concepts/scan-levels-and-indemnification` for more information.
 
 Scheduling with Mula
 --------------------
@@ -276,16 +276,16 @@ The main components work together roughly as follows:
         +-----+-----+         +-----+-----+
               |                     |
               v                     |
-         +---------+                 |
-         | Findings|                 |
-         +----+----+                 |
-              |                      |
-              v                      |
-         +---------+                 |
-         | Reports |                 |
-         +---------+                 |
-                                     |
-                <--------------------+
+         +---------+                |
+         | Findings|                |
+         +----+----+                |
+              |                     |
+              v                     |
+         +---------+                |
+         | Reports |                |
+         +---------+                |
+                                    |
+              <---------------------+
 
 
 In practice, OpenKAT contains more components and interactions than this simplified diagram shows. The purpose of the diagram is to illustrate the main flow rather than every internal dependency.
@@ -293,40 +293,21 @@ In practice, OpenKAT contains more components and interactions than this simplif
 Why is OpenKAT built this way?
 ------------------------------
 
-The modular design gives OpenKAT several advantages.
+The modular design gives OpenKAT several advantages. These are described below.
 
-Different tools can be combined.
-********************************
-
-A specialized security tool can focus on collecting one type of information without having to implement the rest of OpenKAT.
-
-Information can be connected.
-*****************************
-
-Results from different tools can describe the same objects and relationships in the environment.
-
-Discovery can be recursive.
-***************************
-
-Information found by one tool can provide the input for another tool.
-
-Analysis can be separated from collection.
-******************************************
-
-New analysis rules can be created without changing the tools that collect information.
-
-The system can be extended.
-***************************
-
-Organizations can add new collectors, analysis rules and integrations for their own environments and use cases.
+- **Different tools can be combined:** A specialized security tool can focus on collecting one type of information.
+- **Information can be connected:** Results from different tools can describe the same objects and relationships in the environment.
+- **Discovery can be recursive:** Information found by one tool can provide the input for another tool.
+- **Analysis can be separated from collection:** New analysis rules can be created without changing the tools that collect information.
+- **The system can be extended:** Organizations can add new tools, analysis rules and integrations for their own environments and use cases.
 
 Where to learn more
 -------------------
 
 This page provides a conceptual overview of how the main parts of OpenKAT work together.
 
-For more detail about the architecture and individual components, see the :doc:../developer-documentation/index.
+For more detail about the architecture and individual components, see the :doc:`../developer-documentation/index`.
 
-For information about using OpenKAT, see the :doc:../user-manual/index.
+For information about using OpenKAT, see the :doc:`../user-manual/index`.
 
-For information about installing and deploying OpenKAT, see the :doc:../installation-and-deployment/index.
+For information about installing and deploying OpenKAT, see the :doc:`../installation-and-deployment/index`.

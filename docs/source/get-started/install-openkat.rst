@@ -9,7 +9,7 @@ Before you start
 
 You need:
 
-- at least 50GB of disk space (OpenKAT installation is ~25-30GB)
+- at least 50GB of disk space. The OpenKAT installation takes about ~30GB, but you need some room for storing your scans, reports, etc.
 
 
 Installation steps
@@ -17,8 +17,8 @@ Installation steps
 
 This guide gives you two ways to install OpenKAT:
 
-- Automatic installation using a script - for Debian/Ubuntu
-- Manual installation - for all distributions
+- Automatic installation using a script (for Debian/Ubuntu)
+- Manual installation (for all distributions)
 
 
 
@@ -33,7 +33,7 @@ Download the Debian installation script and give it executable rights.
     chmod 755 openkat-install.sh
 
 Now execute the installation script.
-The installation script will prompt for an e-mailaddress and password. You need these to sign in once the installation is complete.
+The installation script will prompt for an e-mailaddress and password. You need these for signing in once the installation is complete.
 
 .. code-block:: sh
 
@@ -44,7 +44,7 @@ Grab a tea while you pet your cat. Once it is finished you can reach the OpenKAT
     http://localhost:8000
 
 
-You should see a login prompt. You can now continue with the next section <LINK>.
+You should see a login prompt. You can now continue on the next section :doc:`use-openkat-first-time`.
 
 
 Manual installation via Github

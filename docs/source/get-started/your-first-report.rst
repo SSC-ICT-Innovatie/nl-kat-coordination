@@ -60,11 +60,11 @@ Your report is a summary of information that OpenKAT has collected.
 
 It is important to remember that a report does not necessarily contain everything OpenKAT knows about an object. What appears in a report depends on:
 
-the type of report;
-the object you selected;
-the plugins that were enabled;
-the clearance level of the object; and
-the information those plugins were able to collect.
+- the type of report;
+- the object you selected;
+- the plugins that were enabled;
+- the clearance level of the object; and
+- the information those plugins were able to collect.
 
 As you use OpenKAT, you can create different types of reports for different purposes.
 
@@ -83,9 +83,9 @@ review findings;
 create different types of reports; and
 schedule reports to be generated periodically.
 
-The :doc:../start-scanning page explains how to add and scan objects outside of the onboarding flow.
+The :doc:`../user-manual/start-scanning` page explains how to add and scan objects outside of the onboarding flow.
 
-To learn more about reports, including the different report types and how to create them, see :doc:../generate-report.
+To learn more about reports, including the different report types and how to create them, see :doc:`../user-manual/generate-report`.
 
 A note about timing
 -------------------
