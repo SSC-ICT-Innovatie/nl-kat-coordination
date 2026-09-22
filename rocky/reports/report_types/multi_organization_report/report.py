@@ -257,7 +257,7 @@ class MultiOrganizationReport(MultiReport):
             seen_keys = set()
 
             for occurrence in finding_type["occurrences"]:
-                occurrence_ooi = occurrence["finding"]["ooi"]
+                occurrence_ooi = occurrence["affected_ooi"]
 
                 if occurrence_ooi not in seen_keys:
                     seen_keys.add(occurrence_ooi)

@@ -2,7 +2,9 @@ import pytest
 from django.core.exceptions import PermissionDenied
 from pytest_django.asserts import assertContains, assertNotContains
 
-from octopoes.models.ooi.findings import Finding, RiskLevelSeverity
+from octopoes.models import Reference
+from octopoes.models.ooi.findings import CVEFindingType, Finding, RiskLevelSeverity
+from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.pagination import Paginated
 from octopoes.models.tree import ReferenceTree
 from rocky.views.finding_list import FindingListView
@@ -59,7 +61,8 @@ def test_ooi_finding_list(rf, client_member, mock_organization_view_octopoes):
     response = OOIFindingListView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
-    assert mock_organization_view_octopoes().get_tree.call_count == 1
+    # The object tree itself, plus the SoftwareInstance-only tree the software traversal needs.
+    assert mock_organization_view_octopoes().get_tree.call_count == 2
     assertContains(response, "Add finding")
 
 
@@ -349,3 +352,106 @@ def test_findings_list_filtering(
     FindingListView.as_view()(request_filtering, organization_code=member.organization.code)
 
     assert mock_organization_view_octopoes().list_findings.mock_calls[1].kwargs["severities"] == {RiskLevelSeverity.LOW}
+
+
+SOFTWARE_TREE_DATA = {
+    "root": {"reference": "Hostname|internet|example.com", "children": {}},
+    "store": {
+        "Hostname|internet|example.com": {
+            "object_type": "Hostname",
+            "primary_key": "Hostname|internet|example.com",
+            "name": "example.com",
+            "network": "Network|internet",
+        }
+    },
+}
+
+
+def software_instance_tree(asset: str, *instances: SoftwareInstance) -> ReferenceTree:
+    """The SoftwareInstance-only tree octopoes returns for the software traversal."""
+    return ReferenceTree.model_validate(
+        {
+            "root": {"reference": asset, "children": {}},
+            "store": {str(instance.reference): instance.model_dump(mode="json") for instance in instances},
+        }
+    )
+
+
+def test_ooi_findings_include_cve_bound_to_software(rf, client_member, mock_organization_view_octopoes):
+    """A CVE bound to the Software OOI must surface on the asset that runs it (#5321).
+
+    Software is not traversable, so the object tree never reaches such a finding: it is only
+    found by walking asset -> SoftwareInstance -> Software -> Finding.
+    """
+    software = Software(name="nginx", version="1.0")
+    finding_type = CVEFindingType(
+        id="CVE-2024-0001",
+        description="nginx has a known vulnerability",
+        risk_score=9.8,
+        risk_severity=RiskLevelSeverity.CRITICAL,
+    )
+    finding = Finding(finding_type=finding_type.reference, ooi=software.reference, description="")
+
+    instance = SoftwareInstance(ooi=Reference.from_str("IPPort|internet|1.1.1.1|tcp|443"), software=software.reference)
+    mock_organization_view_octopoes().get_tree.side_effect = [
+        ReferenceTree.model_validate(SOFTWARE_TREE_DATA),
+        software_instance_tree("Hostname|internet|example.com", instance),
+    ]
+    mock_organization_view_octopoes().query_many.return_value = [(str(instance.reference), finding)]
+    mock_organization_view_octopoes().load_objects_bulk.return_value = {finding_type.reference: finding_type}
+
+    request = setup_request(rf.get("ooi_findings", {"ooi_id": "Hostname|internet|example.com"}), client_member.user)
+    response = OOIFindingListView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "CVE-2024-0001")
+
+    # The software sits several hops away (Hostname -> ... -> IPPort -> SoftwareInstance), so the
+    # traversal must ask for more than the two levels the detail page itself renders.
+    software_tree_call = mock_organization_view_octopoes().get_tree.call_args_list[1]
+    assert software_tree_call.kwargs["types"] == {SoftwareInstance}
+    assert software_tree_call.kwargs["depth"] > 2
+
+
+def test_ooi_findings_do_not_duplicate_a_finding_reached_twice(rf, client_member, mock_organization_view_octopoes):
+    """One package on two ports yields the same finding twice; the page must show it once."""
+    software = Software(name="nginx", version="1.0")
+    finding_type = CVEFindingType(id="CVE-2024-0001", risk_score=9.8, risk_severity=RiskLevelSeverity.CRITICAL)
+    finding = Finding(finding_type=finding_type.reference, ooi=software.reference, description="")
+
+    ports = [
+        SoftwareInstance(ooi=Reference.from_str(f"IPPort|internet|1.1.1.1|tcp|{port}"), software=software.reference)
+        for port in (80, 443)
+    ]
+    mock_organization_view_octopoes().get_tree.side_effect = [
+        ReferenceTree.model_validate(SOFTWARE_TREE_DATA),
+        software_instance_tree("Hostname|internet|example.com", *ports),
+    ]
+    mock_organization_view_octopoes().query_many.return_value = [
+        (str(instance.reference), finding) for instance in ports
+    ]
+    mock_organization_view_octopoes().load_objects_bulk.return_value = {finding_type.reference: finding_type}
+
+    request = setup_request(rf.get("ooi_findings", {"ooi_id": "Hostname|internet|example.com"}), client_member.user)
+    response = OOIFindingListView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert response.status_code == 200
+    assert [str(finding.reference) for finding, _finding_type in response.context_data["findings"]] == [
+        str(finding.reference)
+    ]
+
+
+def test_ooi_findings_skip_the_traversal_without_software(rf, client_member, mock_organization_view_octopoes):
+    """No SoftwareInstance in reach means nothing to query -- don't ask octopoes anyway."""
+    mock_organization_view_octopoes().get_tree.side_effect = [
+        ReferenceTree.model_validate(SOFTWARE_TREE_DATA),
+        ReferenceTree.model_validate(
+            {"root": {"reference": "Hostname|internet|example.com", "children": {}}, "store": {}}
+        ),
+    ]
+
+    request = setup_request(rf.get("ooi_findings", {"ooi_id": "Hostname|internet|example.com"}), client_member.user)
+    response = OOIFindingListView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert response.status_code == 200
+    mock_organization_view_octopoes().query_many.assert_not_called()
