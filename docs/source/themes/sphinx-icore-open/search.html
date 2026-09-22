@@ -1,0 +1,39 @@
+{# Template for the search page. #}
+{%- extends "layout.html" %}
+{% set title = _('Search') %}
+
+{%- block scripts %}
+  {{ super() }}
+  <script src="{{ pathto('_static/searchtools.js', 1) }}"></script>
+  <script src="{{ pathto('_static/language_data.js', 1) }}"></script>
+{%- endblock %}
+
+{% block extrahead %}
+  <script src="{{ pathto('searchindex.js', 1) }}" defer="defer"></script>
+  <meta name="robots" content="noindex" />
+  {{ super() }}
+{% endblock %}
+
+{% block body %}
+  <h1 id="search-documentation">{{ _('Search') }}</h1>
+
+  {% block scriptwarning %}
+    <noscript>
+      <div class="warning">
+        <span>{{ _('Warning') }}</span>
+        {{ _('Please activate JavaScript to enable the search functionality.') }}
+      </div>
+    </noscript>
+  {% endblock %}
+
+  {% block searchtext %}
+    <p>
+      {{ _('Searching for multiple words only shows matches that contain all words.') }}
+    </p>
+    <hr/>
+  {% endblock %}
+
+  {% block searchresults %}
+    <div id="search-results"></div>
+  {% endblock %}
+{% endblock %}
