@@ -269,6 +269,25 @@ class TestOrganizationViewSet(ViewSetTest):
             actual = set(Organization.objects.values_list("id", flat=True))
             assert actual == expected
 
+    class TestDestroyWithAuditLog(UsesDeleteMethod, UsesDetailEndpoint, Returns409):
+        """AuditLog.organization is PROTECTed: an organization with audit log
+        entries cannot be deleted, and the refusal happens before Octopoes or
+        KAT-alogus are touched."""
+
+        @pytest.fixture(autouse=True)
+        def audit_log(self, mocker, organization):
+            from crisis_room.models import AuditLog
+
+            mocker.patch("katalogus.client.KATalogusClient")
+            mocker.patch("rocky.signals.OctopoesAPIConnector")
+
+            AuditLog.objects.create(
+                organization=organization, actor=None, actor_label="tester", action=AuditLog.Action.OBJECT_ADDED
+            )
+
+        def test_organization_is_kept(self, organization):
+            assert Organization.objects.filter(pk=organization.pk).exists()
+
     class TestListNoPermission(UsesGetMethod, UsesListEndpoint, Returns403):
         client = lambda_fixture("drf_redteam_client")
 

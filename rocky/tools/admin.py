@@ -69,6 +69,21 @@ class OrganizationAdmin(admin.ModelAdmin):
         else:
             return []
 
+    def delete_model(self, request, obj):
+        # AuditLog.organization is PROTECTed; explain instead of a ProtectedError 500.
+        if obj.audit_logs.exists():
+            self.message_user(request, f"Cannot delete {obj.name}: it has audit log entries.", level=messages.ERROR)
+            return
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        protected = queryset.filter(audit_logs__isnull=False).distinct()
+        if protected.exists():
+            self.message_user(
+                request, f"Skipped {protected.count()} organization(s) with audit log entries.", level=messages.ERROR
+            )
+        super().delete_queryset(request, queryset.exclude(pk__in=protected))
+
 
 @admin.register(OrganizationMember)
 class OrganizationMemberAdmin(admin.ModelAdmin):

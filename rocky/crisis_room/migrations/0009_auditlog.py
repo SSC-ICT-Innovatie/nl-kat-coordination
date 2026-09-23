@@ -46,7 +46,7 @@ class Migration(migrations.Migration):
                 (
                     "organization",
                     models.ForeignKey(
-                        on_delete=django.db.models.deletion.CASCADE, related_name="audit_logs", to="tools.organization"
+                        on_delete=django.db.models.deletion.PROTECT, related_name="audit_logs", to="tools.organization"
                     ),
                 ),
             ],

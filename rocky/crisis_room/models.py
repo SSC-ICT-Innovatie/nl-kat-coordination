@@ -31,7 +31,11 @@ class AuditLog(models.Model):
         PLUGIN_SETTINGS_CHANGED = "plugin_settings_changed", _("Changed plugin settings")
         PLUGIN_SETTINGS_DELETED = "plugin_settings_deleted", _("Deleted plugin settings")
 
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="audit_logs")
+    # PROTECT, not CASCADE: an audit trail must not be deletable via a single
+    # organization DELETE (the API exposes that path to any delete_organization
+    # permission holder). Deleting an organization with logs must be a
+    # deliberate decision (e.g. future soft-delete), never a side effect.
+    organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name="audit_logs")
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
     actor_label = models.CharField(max_length=254)
     action = models.CharField(max_length=32, choices=Action.choices)
