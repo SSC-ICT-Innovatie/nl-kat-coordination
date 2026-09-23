@@ -39,6 +39,35 @@ MICROSOFT_RDP_PORTS = [
     3389  # Microsoft Remote Desktop
 ]
 
+# Ports that should never be exposed to the internet, with the reason.
+# These are services that are unauthenticated by default, expose data,
+# or allow remote code execution.
+DANGEROUS_PORTS = {
+    2375: "Docker API without TLS — allows remote code execution",
+    2376: "Docker API — should not be exposed to the internet",
+    2379: "etcd — exposes cluster state and secrets",
+    2380: "etcd peer port — exposes cluster state and secrets",
+    5984: "CouchDB — unauthenticated by default, exposes data",
+    6379: "Redis — unauthenticated by default, exposes data",
+    9200: "Elasticsearch — unauthenticated by default, exposes data",
+    9300: "Elasticsearch transport — exposes cluster internals",
+    10250: "Kubernetes kubelet — allows code execution on cluster nodes",
+    10255: "Kubernetes kubelet read-only — exposes cluster internals",
+    11211: "Memcached — unauthenticated, used in amplification attacks",
+    27017: "MongoDB — unauthenticated by default, exposes data",
+    50070: "Hadoop NameNode — exposes filesystem metadata",
+    9000: "Hadoop NameNode IPC — exposes filesystem control",
+}
+
+# Insecure protocols that should be replaced with encrypted alternatives.
+INSECURE_PORTS = {
+    21: "FTP — transmits credentials in cleartext, use SFTP/FTPS instead",
+    23: "Telnet — transmits credentials in cleartext, use SSH instead",
+    69: "TFTP — unauthenticated, use SFTP instead",
+    161: "SNMP — exposes device information, restrict to internal networks",
+    389: "LDAP — unencrypted, use LDAPS (636) instead",
+}
+
 
 def get_ports_from_config(config, config_key, default):
     ports = config.get(config_key, None)
@@ -56,11 +85,37 @@ def run(input_ooi: IPPort, additional_oois: list, config: dict[str, Any]) -> Ite
     sa_tcp_ports = get_ports_from_config(config, "sa_tcp_ports", SA_TCP_PORTS)
     db_tcp_ports = get_ports_from_config(config, "db_tcp_ports", DB_TCP_PORTS)
     microsoft_rdp_ports = get_ports_from_config(config, "microsoft_rdp_ports", MICROSOFT_RDP_PORTS)
+    dangerous_ports = get_ports_from_config(config, "dangerous_ports", list(DANGEROUS_PORTS))
+    insecure_ports = get_ports_from_config(config, "insecure_ports", list(INSECURE_PORTS))
 
     for ip_port in additional_oois:
         port = ip_port.port
         protocol = ip_port.protocol
-        if protocol == Protocol.TCP and port in sa_tcp_ports:
+        if port in dangerous_ports:
+            ft = KATFindingType(id="KAT-DANGEROUS-PORT")
+            if aggregate_findings:
+                open_ports.append(ip_port.port)
+            else:
+                yield ft
+                yield Finding(
+                    finding_type=ft.reference,
+                    ooi=ip_port.reference,
+                    description=f"Port {port}/{protocol.value}: "
+                    f"{DANGEROUS_PORTS.get(port, 'dangerous service')}. "
+                    f"This port should never be exposed to the internet.",
+                )
+        elif port in insecure_ports:
+            ft = KATFindingType(id="KAT-INSECURE-PROTOCOL")
+            if aggregate_findings:
+                open_ports.append(ip_port.port)
+            else:
+                yield ft
+                yield Finding(
+                    finding_type=ft.reference,
+                    ooi=ip_port.reference,
+                    description=f"Port {port}/{protocol.value}: {INSECURE_PORTS.get(port, 'insecure protocol')}.",
+                )
+        elif protocol == Protocol.TCP and port in sa_tcp_ports:
             open_sa_port = KATFindingType(id="KAT-OPEN-SYSADMIN-PORT")
             if aggregate_findings:
                 open_ports.append(ip_port.port)
