@@ -709,13 +709,5 @@
     "risk": "medium",
     "impact": "Insecure protocols transmit credentials and data in cleartext, allowing interception and manipulation by network attackers.",
     "recommendation": "Replace the insecure protocol with a secure alternative (e.g. SSH instead of Telnet, SFTP/SCP instead of FTP). If the protocol must be used, restrict access with a firewall and use TLS where available."
-  },
-  "KAT-HEADER-VALUE-ISSUES": {
-    "name": "Security header value issues",
-    "description": "One or more security headers have values that do not follow recommended practices (e.g. X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy).",
-    "source": "https://owasp.org/www-project-secure-headers/",
-    "risk": "low",
-    "impact": "Weak or misconfigured security header values reduce the protection they provide against clickjacking, MIME-type sniffing, referrer leakage and other browser-based attacks.",
-    "recommendation": "Review and set the recommended values for each security header as documented by OWASP."
   }
 }
