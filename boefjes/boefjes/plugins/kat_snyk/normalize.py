@@ -39,7 +39,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     if software_version:
         for vuln in vulnerabilities:
-            severity = _SEVERITY_MAP.get(vuln.get("severity", "").lower())
+            affected = vuln.get("affected_versions")
+            if affected and not check_version.check_version_in(software_version, affected):
+                continue
+            severity = _SEVERITY_MAP.get((vuln.get("severity") or "").lower())
 
             cve = vuln.get("cve")
             if cve and cve.startswith("CVE-"):

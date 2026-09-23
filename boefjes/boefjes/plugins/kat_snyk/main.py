@@ -8,8 +8,9 @@ logger = logging.getLogger(__name__)
 
 # CPE target_sw values that map to a Snyk ecosystem prefix.
 # If the Software OOI has a CPE, we derive the ecosystem from its target_sw
-# field. npm is the fallback when no CPE is available or target_sw is "*".
-_CPE_TARGET_SW_TO_SNYYK_ECOSYSTEM = {
+# field. Bare CPEs carry no ecosystem signal, so an unmapped target_sw means
+# we have to probe instead.
+_CPE_TARGET_SW_TO_SNYK_ECOSYSTEM = {
     "node.js": "npm",
     "nodejs": "npm",
     "python": "pip",
@@ -22,17 +23,19 @@ _CPE_TARGET_SW_TO_SNYYK_ECOSYSTEM = {
     "c#": "nuget",
 }
 
+# Ecosystems to try when the CPE says nothing, most likely for OpenKAT's data first.
+_ECOSYSTEM_PROBE_ORDER = ("npm", "pip", "maven", "composer", "rubygems", "nuget", "golang", "cargo")
 
-def _ecosystem_from_cpe(cpe: str | None) -> str:
-    """Derive the Snyk ecosystem prefix from a CPE's target_sw field."""
+
+def _ecosystem_from_cpe(cpe: str | None) -> str | None:
+    """Derive the Snyk ecosystem prefix from a CPE's target_sw field, if it carries one."""
     if not cpe:
-        return "npm"
+        return None
     parts = cpe.split(":")
     # cpe:2.3:a:vendor:product:version:update:edition:language:sw_edition:target_sw:target_hw:other
     if len(parts) >= 11:
-        target_sw = parts[10].lower()
-        return _CPE_TARGET_SW_TO_SNYYK_ECOSYSTEM.get(target_sw, "npm")
-    return "npm"
+        return _CPE_TARGET_SW_TO_SNYK_ECOSYSTEM.get(parts[10].lower())
+    return None
 
 
 def _parse_nuxt_data(html: str) -> dict:
@@ -99,19 +102,41 @@ def _affected_versions_to_string(ranges: list[dict]) -> str:
     return ",".join(parts)
 
 
+def _fetch_package_data(software_name: str, version: str | None, cpe: str | None) -> dict | None:
+    """Fetch the snyk.io vuln data for the ecosystem that best matches this software.
+
+    A CPE target_sw pins the ecosystem. Bare CPEs carry no ecosystem signal, so we
+    probe in order and disambiguate same-named packages across ecosystems by checking
+    whether the installed version exists in the package's version list — otherwise
+    e.g. npm:django (a JS package) would mask pip:django (the actual framework).
+    Parse errors propagate: a snyk.io layout change must surface as a failed task,
+    not as a successful scan with zero findings (#5301).
+    """
+    mapped = _ecosystem_from_cpe(cpe)
+    ecosystems = [mapped] if mapped else _ECOSYSTEM_PROBE_ORDER
+    slug = software_name.lower().replace(" ", "-")
+
+    first_parseable = None
+    for ecosystem in ecosystems:
+        page = requests.get(f"https://snyk.io/vuln/{ecosystem}:{slug}", timeout=30)
+        if page.status_code == 404:
+            continue
+        page.raise_for_status()
+        pkg = _parse_nuxt_data(page.text)
+        if version is None or any(v.get("name") == version for v in pkg.get("versions") or []):
+            return pkg
+        if first_parseable is None:
+            first_parseable = pkg
+    return first_parseable
+
+
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     input_ = boefje_meta["arguments"]["input"]
     software_name = input_["name"]
-    cpe = input_.get("cpe")
 
-    ecosystem = _ecosystem_from_cpe(cpe)
-    url_snyk = f"https://snyk.io/vuln/{ecosystem}:{software_name.lower().replace(' ', '-')}"
-    page = requests.get(url_snyk, timeout=30)
-
-    try:
-        pkg = _parse_nuxt_data(page.text)
-    except ValueError:
-        logger.warning("Could not parse snyk.io page for %s", software_name)
+    pkg = _fetch_package_data(software_name, input_.get("version"), input_.get("cpe"))
+    if pkg is None:
+        logger.warning("No snyk.io vulnerability data found for %s", software_name)
         return [(set(), json.dumps({"vulnerabilities": [], "latest_version": None}))]
 
     vulnerabilities = []
