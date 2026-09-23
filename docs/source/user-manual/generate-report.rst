@@ -1,7 +1,7 @@
 Generate a report
 =================
 
-OpenKAT can generate a report to summarize all findings.
+OpenKAT can generate a Report to summarize all findings.
 In this section you will learn how to create a report, step by step.
 
 Select the kind of report
@@ -38,7 +38,7 @@ found later by OpenKAT must also be included in the report.
 
 Choose report types
 -------------------
-You can then select the desired report types. More information about all the different report types can be found :doc:`here <../navigation/reports>`.
+You can then select the desired report types. More information about all the different report types can be found :doc:`here <reports>`.
 
 .. image:: img/generate-report-03.png
   :alt: Report type selection
@@ -74,4 +74,4 @@ As soon as the report has been generated, it will be visible on the Reports Hist
 
 More information
 ----------------
-To read more about the Reports and the report types, go to :doc:`../navigation/reports`.
+To read more about the Reports and the report types, go to :doc:`reports`.

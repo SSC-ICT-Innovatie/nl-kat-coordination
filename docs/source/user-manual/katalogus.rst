@@ -1,9 +1,9 @@
-KAT-alogus
+KATalogus
 ==========
 
-The KAT-alogus (KAT catalog) is the place where you can see which plugins are available, enabled and/or disabled.
+The KATalogus (KAT catalog) is the place where you can see which plugins are available, enabled and/or disabled.
 Plugins can be common security scanning tools, like nmap (checks which ports are open), or specific tools that check for a CVE vulnerability.
-The KAT-alogus also contains all the Normalizers, which parse the data from the tools.
+The KATalogus also contains all the Normalizers, which parse the data from the tools.
 Each plugin (Boefje and Normalizer) contains more information on how it works and what is required, including the objects it can search for,
 and which objects are required for the plugin to work.
 
