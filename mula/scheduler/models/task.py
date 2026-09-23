@@ -109,7 +109,8 @@ Index(
     unique=True,
     postgresql_where=TaskDB.status.in_(ACTIVE_TASK_STATUSES),
 )
-
+# used by the superadmin task list
+Index("ix_tasks_scheduler_created_status", TaskDB.scheduler_id, TaskDB.created_at.desc(), TaskDB.status)
 # used by the superadmin task list stats
 Index("ix_tasks_scheduler_modified_status", TaskDB.scheduler_id, TaskDB.modified_at.desc(), TaskDB.status)
 # used by the regular user task list stats

@@ -8,6 +8,9 @@
   "produces": [
     "SecurityTXT",
     "Website",
-    "URL"
+    "URL",
+    "EmailAddress",
+    "EmailAddressInstance",
+    "Hostname"
   ]
 }

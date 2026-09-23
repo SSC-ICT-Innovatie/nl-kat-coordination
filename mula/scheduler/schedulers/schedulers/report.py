@@ -41,7 +41,7 @@ class ReportScheduler(Scheduler):
 
     @tracer.start_as_current_span(name="ReportScheduler.process_rescheduling")
     def process_rescheduling(self):
-        schedules, _ = self.ctx.datastores.schedule_store.get_schedules(
+        schedules, _, _ = self.ctx.datastores.schedule_store.get_schedules(
             filters=filters.FilterRequest(
                 filters=[
                     filters.Filter(column="scheduler_id", operator="eq", value=self.scheduler_id),

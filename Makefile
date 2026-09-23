@@ -5,6 +5,7 @@ SHELL := bash
 # use HIDE to run commands invisibly, unless VERBOSE defined
 HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
+export OPENKAT_VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo development)
 
 .PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian12-build-image debian13-build-image ubuntu22.04-build-image ubuntu24.04-build-image docs upgraderequirements requirements
 

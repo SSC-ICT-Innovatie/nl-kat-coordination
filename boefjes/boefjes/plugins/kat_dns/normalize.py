@@ -6,6 +6,8 @@ from ipaddress import IPv4Address, IPv6Address
 from dns.message import Message, from_text
 from dns.rdtypes.ANY.CAA import CAA
 from dns.rdtypes.ANY.CNAME import CNAME
+from dns.rdtypes.ANY.GPOS import GPOS
+from dns.rdtypes.ANY.LOC import LOC
 from dns.rdtypes.ANY.MX import MX
 from dns.rdtypes.ANY.NS import NS
 from dns.rdtypes.ANY.SOA import SOA
@@ -21,6 +23,8 @@ from octopoes.models.ooi.dns.records import (
     DNSARecord,
     DNSCAARecord,
     DNSCNAMERecord,
+    DNSGPOSRecord,
+    DNSLOCRecord,
     DNSMXRecord,
     DNSNSRecord,
     DNSRecord,
@@ -29,6 +33,7 @@ from octopoes.models.ooi.dns.records import (
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname
 from octopoes.models.ooi.email_security import DKIMExists, DMARCTXTRecord
+from octopoes.models.ooi.geography import GeographicPoint
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 
 
@@ -60,8 +65,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     sections = results["dns_records"].split("\n\n")
     responses: list[Message] = []
     for section in sections:
-        lines = section.split("\n")
-        responses.append(from_text("\n".join(lines[1:])))
+        lines = section.splitlines()
+        if ";QUESTION" not in lines:
+            continue  # nothing parseable in this block
+        start = lines.index(";QUESTION")  # skip everything before the question block
+        responses.append(from_text("\n".join(lines[start:])))
 
     # keep track of discovered zones
     zone_links: dict[str, DNSZone] = {}
@@ -85,6 +93,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                         expire=rr.expire,
                         minimum=rr.minimum,
                         soa_hostname=register_hostname(str(rr.mname)).reference,
+                        rname=str(rr.rname),
                         **default_args,
                     )
                     yield soa
@@ -129,6 +138,31 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     default_args["tag"] = re.sub("[^\\w]", "", record_value[1].lower())
                     default_args["value"] = record_value[2]
                     register_record(DNSCAARecord(**default_args))
+
+                if isinstance(rr, LOC | GPOS):
+                    default_args.update(
+                        {"value": rr.to_text(), "latitude": rr.float_latitude, "longitude": rr.float_longitude}
+                    )
+                    if isinstance(rr, LOC):
+                        default_args.update(
+                            {
+                                "altitude": rr.altitude,
+                                "horizontal_precision": rr.horizontal_precision,
+                                "vertical_precision": rr.vertical_precision,
+                                "size": rr.size,
+                            }
+                        )
+                        location_record = register_record(DNSLOCRecord(**default_args))
+                    else:
+                        default_args["altitude"] = rr.float_altitude * 100  # cm; converted from meters
+                        location_record = register_record(DNSGPOSRecord(**default_args))
+
+                    geo_point = {
+                        "ooi": location_record.reference,
+                        "latitude": rr.float_latitude,
+                        "longitude": rr.float_longitude,
+                    }
+                    register_record(GeographicPoint(**geo_point))
 
     # link the hostnames to their discovered zones
     for hostname_, zone in zone_links.items():

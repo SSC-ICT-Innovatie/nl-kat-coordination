@@ -6,6 +6,7 @@ from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.findings import CVEFindingType, Finding
 from octopoes.models.ooi.network import IPPort, PortState, Protocol
+from octopoes.models.ooi.software import Software, SoftwareInstance
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
@@ -25,8 +26,22 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield ip_port
 
             if "vulns" in scan:
-                for cve in scan["vulns"].values():
+                # Shodan returns `vulns` as a dict keyed by CVE id with detail
+                # dicts as values (e.g. {"CVE-2014-0226": {"summary": "..."}}).
+                # Iterate the keys so `id` receives the CVE string, not the
+                # detail dict.
+                for cve in scan["vulns"]:
                     ft = CVEFindingType(id=cve)
                     f = Finding(finding_type=ft.reference, ooi=ip_port.reference)
                     yield ft
                     yield f
+
+            # Shodan reports the detected product/version per banner. It was
+            # dropped entirely, so no Software was recorded and CVEs could not
+            # be bound to the software on a port.
+            product = scan.get("product")
+            if product:
+                cpe23 = scan.get("cpe23") or []
+                software = Software(name=product, version=scan.get("version"), cpe=cpe23[0] if cpe23 else None)
+                yield software
+                yield SoftwareInstance(ooi=ip_port.reference, software=software.reference)

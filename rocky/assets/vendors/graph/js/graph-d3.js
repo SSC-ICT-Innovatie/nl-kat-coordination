@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { colorForOoi, truncateText } from "../../../js/stringHelpers";
 
 const treeData = JSON.parse(document.getElementById("tree-data").textContent);
 const graphOverlay = document.querySelector(".graph-overlay");

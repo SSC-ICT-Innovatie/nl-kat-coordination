@@ -446,7 +446,10 @@ def get_scan_profile_inheritance(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="OOI does not have a scanprofile")
 
     start = InheritanceSection(
-        reference=ooi.reference, level=ooi.scan_profile.level, scan_profile_type=ooi.scan_profile.scan_profile_type
+        reference=ooi.reference,
+        level=ooi.scan_profile.level,
+        inherited_level=None,
+        scan_profile_type=ooi.scan_profile.scan_profile_type,
     )
     if ooi.scan_profile.scan_profile_type == ScanProfileType.DECLARED.value:
         return [start]

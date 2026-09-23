@@ -119,6 +119,25 @@ class BytesAPIClient:
         return [NormalizerMeta.model_validate(normalizer_meta) for normalizer_meta in normalizer_meta_json]
 
     @retry_with_login
+    def get_normalizer_metas(
+        self, normalizer_meta_ids: list[UUID], limit: int = 100, offset: int = 0
+    ) -> dict[str, NormalizerMeta]:
+        response = self.client.get(
+            "/bytes/normalizer_metas",
+            params={
+                "normalizer_metas": [str(normalizer_meta_id) for normalizer_meta_id in normalizer_meta_ids],
+                "limit": limit,
+                "offset": offset,
+            },
+        )
+        self._verify_response(response)
+
+        return {
+            normalizer_meta_id: NormalizerMeta.model_validate(normalizer_meta)
+            for normalizer_meta_id, normalizer_meta in response.json().items()
+        }
+
+    @retry_with_login
     def save_raw(self, boefje_meta_id: UUID, raw: bytes, mime_types: list[str] | None = None) -> str:
         if not mime_types:
             mime_types = []

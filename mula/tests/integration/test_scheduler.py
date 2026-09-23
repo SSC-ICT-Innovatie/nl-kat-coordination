@@ -282,7 +282,9 @@ class SchedulerTestCase(unittest.TestCase):
         self.assertNotEqual(updated_schedule_db.deadline_at, initial_schedule_db.deadline_at)
 
         # There should be only one schedule
-        schedules, _ = self.mock_ctx.datastores.schedule_store.get_schedules(scheduler_id=self.scheduler.scheduler_id)
+        schedules, _, _ = self.mock_ctx.datastores.schedule_store.get_schedules(
+            scheduler_id=self.scheduler.scheduler_id
+        )
 
         self.assertEqual(1, len(schedules))
 

@@ -1,18 +1,23 @@
 {
   "id": "kat_leakix_normalize",
   "name": "LeakIX",
-  "description": "Parses the LeakIX output into findings and identified software and services.",
+  "description": "Parses the LeakIX output into findings, identified software, TLS certificates and services.",
   "consumes": [
     "boefje/leakix"
   ],
   "produces": [
-    "KATFindingType",
-    "SoftwareInstance",
-    "Service",
+    "AutonomousSystem",
+    "IPAddressV4",
+    "IPAddressV6",
     "IPPort",
-    "Finding",
+    "Hostname",
     "Software",
-    "IPService",
-    "CVEFindingType"
+    "SoftwareInstance",
+    "X509Certificate",
+    "SubjectAlternativeNameHostname",
+    "SubjectAlternativeNameQualifier",
+    "KATFindingType",
+    "CVEFindingType",
+    "Finding"
   ]
 }

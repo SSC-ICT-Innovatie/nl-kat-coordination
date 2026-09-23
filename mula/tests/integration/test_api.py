@@ -629,6 +629,30 @@ class APITasksEndpointTestCase(APITemplateTestCase):
         self.assertEqual(2, response.json()["count"])
         self.assertEqual(2, len(response.json()["results"]))
 
+    def test_get_tasks_bounded_partial_count(self):
+        # With a real count (2) below the cap the response count is exact and not flagged partial.
+        response = self.client.get("/tasks?limit=10&allow_partial_count=true")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json()["count"])
+        self.assertFalse(response.json()["is_partial_count"])
+
+        # max_count = offset(0) + max_pages(1) * limit(1) + 1 = 2, real count 2 >= 2 -> partial.
+        response = self.client.get("/tasks?limit=1&max_pages=1&allow_partial_count=true")
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.json()["count"])
+        self.assertTrue(response.json()["is_partial_count"])
+
+    def test_get_tasks_stats_filtered_by_organisation_ids(self):
+        # organisation_ids must bind as a query parameter (fastapi.Query), not a request body,
+        # so a matching org returns the two setUp tasks and a non-matching org returns none.
+        matching = self.client.get(f"/tasks/stats?organisation_ids={self.organisation.id}")
+        self.assertEqual(200, matching.status_code)
+        self.assertEqual(2, sum(hour.get("total", 0) for hour in matching.json().values()))
+
+        other = self.client.get("/tasks/stats?organisation_ids=non-existent-org")
+        self.assertEqual(200, other.status_code)
+        self.assertEqual(0, sum(hour.get("total", 0) for hour in (other.json() or {}).values()))
+
     def test_get_task(self):
         # First add a task
         item = create_task_push_dict(1, self.organisation.id)

@@ -243,6 +243,32 @@ class TestOrganizationViewSet(ViewSetTest):
             }
             assert json == expected
 
+    class TestDestroyNodeAlreadyDeleted(UsesDeleteMethod, UsesDetailEndpoint, Returns204):
+        """Deleting an organization whose Octopoes node is already gone should
+        succeed, not show a failure notification (#4723)."""
+
+        initial_ids = precondition_fixture(
+            lambda mock_models_katalogus, mock_models_octopoes, organizations: set(
+                Organization.objects.values_list("id", flat=True)
+            ),
+            async_=False,
+        )
+
+        @pytest.fixture(autouse=True)
+        def mock_services(self, mocker):
+            from octopoes.models.exception import ObjectNotFoundException
+
+            mocker.patch("katalogus.client.KATalogusClient")
+            mocker.patch("rocky.signals.OctopoesAPIConnector.root_health")
+            mocker.patch(
+                "rocky.signals.OctopoesAPIConnector.delete_node", side_effect=ObjectNotFoundException("Node not found")
+            )
+
+        def test_it_deletes_organization(self, initial_ids, organization):
+            expected = initial_ids - {organization.id}
+            actual = set(Organization.objects.values_list("id", flat=True))
+            assert actual == expected
+
     class TestListNoPermission(UsesGetMethod, UsesListEndpoint, Returns403):
         client = lambda_fixture("drf_redteam_client")
 

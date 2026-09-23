@@ -1,6 +1,6 @@
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/dns-sec:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-dns-sec:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 USER root

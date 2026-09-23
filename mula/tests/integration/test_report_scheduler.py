@@ -66,7 +66,7 @@ class ReportSchedulerTestCase(ReportSchedulerBaseTestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         # Mocks
-        self.mock_get_schedules.return_value = ([schedule_db], 1)
+        self.mock_get_schedules.return_value = ([schedule_db], 1, False)
 
         # Act
         self.scheduler.process_rescheduling()
@@ -98,7 +98,7 @@ class ReportSchedulerTestCase(ReportSchedulerBaseTestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         # Mocks
-        self.mock_get_schedules.return_value = ([schedule_db], 1)
+        self.mock_get_schedules.return_value = ([schedule_db], 1, False)
 
         # Act
         self.scheduler.process_rescheduling()

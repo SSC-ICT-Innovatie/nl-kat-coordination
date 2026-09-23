@@ -7,6 +7,7 @@
   ],
   "produces": [
     "Finding",
-    "KATFindingType"
+    "KATFindingType",
+    "URL"
   ]
 }

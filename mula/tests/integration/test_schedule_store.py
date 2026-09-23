@@ -99,14 +99,18 @@ class ScheduleStoreTestCase(unittest.TestCase):
             )
             self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
-        schedules_scheduler_one, schedules_scheduler_one_count = self.mock_ctx.datastores.schedule_store.get_schedules(
-            filters=storage.filters.FilterRequest(
-                filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_one)]}
+        schedules_scheduler_one, schedules_scheduler_one_count, _ = (
+            self.mock_ctx.datastores.schedule_store.get_schedules(
+                filters=storage.filters.FilterRequest(
+                    filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_one)]}
+                )
             )
         )
-        schedules_scheduler_two, schedules_scheduler_two_count = self.mock_ctx.datastores.schedule_store.get_schedules(
-            filters=storage.filters.FilterRequest(
-                filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_two)]}
+        schedules_scheduler_two, schedules_scheduler_two_count, _ = (
+            self.mock_ctx.datastores.schedule_store.get_schedules(
+                filters=storage.filters.FilterRequest(
+                    filters={"and": [storage.filters.Filter(column="scheduler_id", operator="eq", value=scheduler_two)]}
+                )
             )
         )
 
@@ -115,6 +119,83 @@ class ScheduleStoreTestCase(unittest.TestCase):
         self.assertEqual(5, schedules_scheduler_one_count)
         self.assertEqual(5, len(schedules_scheduler_two))
         self.assertEqual(5, schedules_scheduler_two_count)
+
+    def _create_schedules(self, amount: int, scheduler_id: str = "test_scheduler_id"):
+        for _ in range(amount):
+            task = functions.create_task(scheduler_id=scheduler_id, organisation=self.organisation.id, priority=1)
+            schedule = models.Schedule(
+                scheduler_id=scheduler_id, organisation=self.organisation.id, hash=task.hash, data=task.model_dump()
+            )
+            self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
+
+    def test_get_schedules_bounded_count_below_cap(self):
+        # Arrange
+        self._create_schedules(3)
+
+        # Act: max_count = offset(0) + max_pages(6) * limit(2) + 1 = 13, real count 3 < 13
+        schedules, count, is_partial_count = self.mock_ctx.datastores.schedule_store.get_schedules(
+            limit=2, max_pages=6, allow_partial_count=True
+        )
+
+        # Assert
+        self.assertEqual(count, 3)
+        self.assertFalse(is_partial_count)
+        self.assertEqual(len(schedules), 2)
+
+    def test_get_schedules_bounded_count_at_cap(self):
+        # Arrange
+        self._create_schedules(10)
+
+        # Act: max_count = offset(0) + max_pages(2) * limit(2) + 1 = 5, real count 10 >= 5
+        schedules, count, is_partial_count = self.mock_ctx.datastores.schedule_store.get_schedules(
+            limit=2, max_pages=2, allow_partial_count=True
+        )
+
+        # Assert
+        self.assertEqual(count, 5)
+        self.assertTrue(is_partial_count)
+        self.assertEqual(len(schedules), 2)
+
+    def test_get_schedules_bounded_count_without_filter(self):
+        # Arrange
+        self._create_schedules(3)
+
+        # Act: no filters means no WHERE clause; the bounded count must project a real column
+        # so the FROM clause survives (a bare SELECT 1 collapses the count to 1)
+        schedules, count, is_partial_count = self.mock_ctx.datastores.schedule_store.get_schedules(
+            limit=150, allow_partial_count=True
+        )
+
+        # Assert
+        self.assertEqual(count, 3)
+        self.assertFalse(is_partial_count)
+
+    def test_get_schedules_limit_zero_returns_full_count(self):
+        # Arrange
+        self._create_schedules(4)
+
+        # Act: limit=0 is the count-probe idiom; no bounded query is possible without a page size
+        schedules, count, is_partial_count = self.mock_ctx.datastores.schedule_store.get_schedules(
+            limit=0, max_pages=1, allow_partial_count=True
+        )
+
+        # Assert
+        self.assertEqual(count, 4)
+        self.assertFalse(is_partial_count)
+        self.assertEqual(len(schedules), 0)
+
+    def test_get_schedules_allow_partial_count_false_is_exact(self):
+        # Arrange
+        self._create_schedules(10)
+
+        # Act: without allow_partial_count the count is always exact, even past the cap
+        schedules, count, is_partial_count = self.mock_ctx.datastores.schedule_store.get_schedules(
+            limit=2, max_pages=2, allow_partial_count=False
+        )
+
+        # Assert
+        self.assertEqual(count, 10)
+        self.assertFalse(is_partial_count)
 
     def test_get_schedule(self):
         # Arrange
@@ -252,7 +333,7 @@ class ScheduleStoreTestCase(unittest.TestCase):
             filters={"and": [filters.Filter(column="id", operator="eq", value=created_task.id.hex)]}
         )
 
-        tasks, count = self.mock_ctx.datastores.task_store.get_tasks(filters=f_req)
+        tasks, count, _ = self.mock_ctx.datastores.task_store.get_tasks(filters=f_req)
         self.assertEqual(count, 1)
         self.assertEqual(len(tasks), 1)
         self.assertEqual(tasks[0].schedule_id, schedule_db.id)

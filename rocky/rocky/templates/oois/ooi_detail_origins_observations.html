@@ -19,7 +19,10 @@
                 </thead>
                 <tbody>
                     {% for observation in observations %}
-                        <tr {% if observation.is_old %}class="warning"{% endif %}>
+                        <tr {% if observation.is_old %}class="warning"{% endif %}
+                            data-task-id="{{ observation.normalizer.raw_data.boefje_meta.id }}"
+                            data-task-type="boefje"
+                            data-task-status="completed">
                             <td>
                                 {% if observation.boefje.id %}
                                     <a href="{% url 'boefje_detail' organization_code=organization.code plugin_id=observation.boefje.id %}"
@@ -53,6 +56,40 @@
                                     <a href="{% url 'normalizer_detail' organization_code=organization.code plugin_id=observation.normalizer.normalizer.id %}"
                                        title="{{ observation.normalizer.normalizer.id }}">{{ observation.normalizer.normalizer.id }}</a>
                                 {% endif %}
+                            </td>
+                            <td class="actions sticky-cell">
+                                <button type="button"
+                                        class="expando-button observation-list-table-row"
+                                        data-icon-open-class="icon ti-chevron-down"
+                                        data-icon-close-class="icon ti-chevron-up"
+                                        data-close-label="{% translate "Close details" %}">
+                                    {% translate "Open details" %}
+                                </button>
+                            </td>
+                        </tr>
+                        <tr class="expando-row">
+                            <td colspan="6">
+                                <section>
+                                    <p class="explanation">{% translate "Loading..." %}</p>
+                                    <div id="yielded-objects-{{ observation.normalizer.raw_data.boefje_meta.id }}">
+                                        <h2>{% translate "Normalizer task" %}: {{ observation.normalizer.raw_data.boefje_meta.id }}</h2>
+                                        <p>{% translate "Consuming Raw file" %}: {{ observation.normalizer.raw_data.id }}</p>
+                                        <p>{% translate "Yielded objects" %}</p>
+                                    </div>
+                                    <div id="yielded-rawfiles-{{ observation.normalizer.raw_data.boefje_meta.id }}">
+                                        <h2>{% translate "Yielded raw files for task" %}: {{ observation.normalizer.raw_data.boefje_meta.id }}</h2>
+                                    </div>
+                                </section>
+                                <section>
+                                    <div class="button-container">
+                                        <a class="button"
+                                           href="{% url 'bytes_raw' organization_code=organization.code boefje_meta_id=observation.normalizer.raw_data.boefje_meta.id %}"><span class="icon ti-download"></span>{% translate "Download meta and raw data" %}</a>
+                                        <a class="button ghost"
+                                           href="{% url 'boefjes_task_list' organization_code=organization.code %}?task_id={{ observation.normalizer.raw_data.boefje_meta.id }}"><span class="icon search"></span>{% translate "Origin boefje task" %}</a>
+                                        <a class="button ghost"
+                                           href="{% url 'normalizers_task_list' organization_code=organization.code %}?ooi_id={{ observation.origin.source }}&amp;plugin_id={{ observation.normalizer.normalizer.id }}"><span class="icon search"></span>{% translate "See all similar tasks" %}</a>
+                                    </div>
+                                </section>
                             </td>
                         </tr>
                     {% endfor %}

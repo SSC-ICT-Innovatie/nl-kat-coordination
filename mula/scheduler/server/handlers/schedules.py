@@ -19,7 +19,7 @@ class ScheduleAPI:
 
         self.api.add_api_route(
             path="/schedules",
-            endpoint=self.list,
+            endpoint=self.get_paged,
             methods=["GET"],
             response_model=utils.PaginatedResponse,
             status_code=200,
@@ -71,7 +71,7 @@ class ScheduleAPI:
             description="Search schedules",
         )
 
-    def list(
+    def get_paged(
         self,
         request: fastapi.Request,
         scheduler_id: str | None = None,
@@ -80,6 +80,8 @@ class ScheduleAPI:
         enabled: bool | None = None,
         offset: int = 0,
         limit: int = 10,
+        max_pages: int = 6,
+        allow_partial_count: bool = False,
         min_deadline_at: datetime.datetime | None = None,
         max_deadline_at: datetime.datetime | None = None,
         min_created_at: datetime.datetime | None = None,
@@ -91,7 +93,7 @@ class ScheduleAPI:
         if (min_deadline_at is not None and max_deadline_at is not None) and min_deadline_at > max_deadline_at:
             raise BadRequestError("min_deadline_at must be less than max_deadline_at")
 
-        results, count = self.ctx.datastores.schedule_store.get_schedules(
+        results, count, is_partial_count = self.ctx.datastores.schedule_store.get_schedules(
             scheduler_id=scheduler_id,
             organisation=organisation,
             schedule_hash=schedule_hash,
@@ -102,9 +104,11 @@ class ScheduleAPI:
             max_created_at=max_created_at,
             offset=offset,
             limit=limit,
+            max_pages=max_pages,
+            allow_partial_count=allow_partial_count,
         )
 
-        return utils.paginate(request, results, count, offset, limit)
+        return utils.paginate(request, results, count, offset, limit, is_partial_count)
 
     def create(self, schedule: schemas.ScheduleCreate) -> schemas.Schedule:
         if not (schedule.deadline_at or schedule.schedule):
@@ -171,6 +175,8 @@ class ScheduleAPI:
         request: fastapi.Request,
         offset: int = 0,
         limit: int = 10,
+        max_pages: int = 6,
+        allow_partial_count: bool = False,
         filters: storage.filters.FilterRequest | None = Body(...),
     ) -> utils.PaginatedResponse:
         if filters is None:
@@ -179,8 +185,12 @@ class ScheduleAPI:
             )
 
         try:
-            results, count = self.ctx.datastores.schedule_store.get_schedules(
-                offset=offset, limit=limit, filters=filters
+            results, count, is_partial_count = self.ctx.datastores.schedule_store.get_schedules(
+                offset=offset,
+                limit=limit,
+                filters=filters,
+                max_pages=max_pages,
+                allow_partial_count=allow_partial_count,
             )
         except storage.filters.errors.FilterError as exc:
             raise fastapi.HTTPException(
@@ -197,7 +207,7 @@ class ScheduleAPI:
                 status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR, detail="failed to search schedules"
             ) from exc
 
-        return utils.paginate(request, results, count, offset, limit)
+        return utils.paginate(request, results, count, offset, limit, is_partial_count)
 
     def delete(self, schedule_id: uuid.UUID) -> None:
         self.ctx.datastores.schedule_store.delete_schedule(schedule_id)

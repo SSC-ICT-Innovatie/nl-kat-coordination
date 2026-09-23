@@ -6,13 +6,14 @@ from jsonschema.validators import validate
 
 from boefjes.plugins.kat_nmap_tcp.normalize import run
 from octopoes.models.ooi.network import IPAddressV4, Network
+from octopoes.models.ooi.software import Software, SoftwareInstance
 from tests.loading import get_dummy_data
 
 
 def test_normalizer():
     input_ooi = IPAddressV4(network=Network(name="internet").reference, address="134.209.85.72")
     output = list(run(input_ooi.serialize(), get_dummy_data("raw/nmap_mispoes.xml")))
-    assert len(output) == 15
+    assert len(output) == 25
     for i, out in enumerate(output[:-1]):
         if out.object_type == "IPPort" and output[i + 1].object_type == "Service":
             name = output[i + 1].name
@@ -23,6 +24,24 @@ def test_normalizer():
             else:
                 assert name != "http"
                 assert name != "https"
+
+
+def test_normalizer_extracts_software_from_cpes():
+    input_ooi = IPAddressV4(network=Network(name="internet").reference, address="134.209.85.72")
+    output = list(run(input_ooi.serialize(), get_dummy_data("raw/nmap_mispoes.xml")))
+
+    software = {(s.name, s.version, s.cpe) for s in output if isinstance(s, Software)}
+    assert ("openssh", "8.4p1", "cpe:/a:openbsd:openssh:8.4p1") in software
+    assert ("bind", "9.16.44", "cpe:/a:isc:bind:9.16.44") in software
+    assert ("nginx", "1.18.0", "cpe:/a:igor_sysoev:nginx:1.18.0") in software
+    assert ("mysql", None, "cpe:/a:mysql:mysql") in software
+    # Operating-system CPEs (cpe:/o:...) describe the host, not the service.
+    assert not any(s.cpe and s.cpe.startswith("cpe:/o:") for s in output if isinstance(s, Software))
+
+    # Every Software is bound to the IPService it was detected on.
+    instances = [si for si in output if isinstance(si, SoftwareInstance)]
+    assert len(instances) == 5
+    assert all(si.ooi.class_ == "IPService" for si in instances)
 
 
 def get_pattern():

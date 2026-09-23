@@ -1,6 +1,6 @@
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/ssl-scan:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-ssl-scan:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 USER root

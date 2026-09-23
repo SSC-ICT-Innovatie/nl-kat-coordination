@@ -57,18 +57,38 @@
                     {% if not is_crisis_room %}
                         <tr class="expando-row">
                             <td colspan="5">
-                                <h5>{% translate "Description" %}</h5>
-                                <p>{{ info.finding_type.description }}</p>
-                                <h5>{% translate "Source" %}</h5>
-                                {% if info.finding_type.source %}
-                                    <a class="nowrap" href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
-                                {% else %}
-                                    <p>{{ info.finding_type.source }}</p>
-                                {% endif %}
-                                <h5>{% translate "Impact" %}</h5>
-                                <p>{{ info.finding_type.impact }}</p>
-                                <h5>{% translate "Recommendation" %}</h5>
-                                <p>{{ info.finding_type.recommendation }}</p>
+                                <div>
+                                    <dl>
+                                        <div>
+                                            <dt>{% translate "Description" %}</dt>
+                                            <dd>
+                                                {{ info.finding_type.description }}
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt>{% translate "Source" %}</dt>
+                                            <dd>
+                                                {% if info.finding_type.source %}
+                                                    <a class="nowrap" href="{{ info.finding_type.source }}">{{ info.finding_type.source }}</a>
+                                                {% else %}
+                                                    {{ info.finding_type.source }}
+                                                {% endif %}
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt>{% translate "Impact" %}</dt>
+                                            <dd>
+                                                {{ info.finding_type.impact }}
+                                            </dd>
+                                        </div>
+                                        <div>
+                                            <dt>{% translate "Recommendation" %}</dt>
+                                            <dd>
+                                                {{ info.finding_type.recommendation }}
+                                            </dd>
+                                        </div>
+                                    </dl>
+                                </div>
                                 <div>
                                     <h5>{% translate "Findings" %}</h5>
                                 </div>

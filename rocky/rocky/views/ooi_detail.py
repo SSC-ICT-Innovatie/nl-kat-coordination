@@ -165,6 +165,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
                     "primary_key": section.reference,
                     "human_readable": Reference.from_str(section.reference).human_readable,
                     "level": section.level,
+                    "given": section.inherited_level,
                 }
                 for section in clearance_level_inheritance
             ]

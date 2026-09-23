@@ -117,6 +117,21 @@ class TaskStatus(Enum):
     # Task has been cancelled
     CANCELLED = "cancelled"
 
+    @property
+    def label(self) -> str:
+        return _TASK_STATUS_LABELS[self.value]
+
+
+_TASK_STATUS_LABELS = {
+    "pending": _("Pending"),
+    "queued": _("Queued"),
+    "dispatched": _("Dispatched"),
+    "running": _("Running"),
+    "completed": _("Completed"),
+    "failed": _("Failed"),
+    "cancelled": _("Cancelled"),
+}
+
 
 class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True)
@@ -297,6 +312,7 @@ class SchedulerClient:
     def list_schedules(self, **kwargs) -> PaginatedSchedulesResponse:
         try:
             kwargs = {k: v for k, v in kwargs.items() if v is not None}  # filter Nones from kwargs
+            kwargs["allow_partial_count"] = True
             res = self._client.get("/schedules", params=kwargs)
             res.raise_for_status()
             return PaginatedSchedulesResponse.model_validate_json(res.content)
@@ -357,6 +373,7 @@ class SchedulerClient:
         try:
             filter_key = "filters"
             params = {k: v for k, v in kwargs.items() if v is not None if k != filter_key}  # filter Nones from kwargs
+            params["allow_partial_count"] = True
             endpoint = "/tasks"
             res = self._client.post(endpoint, params=params, json=kwargs.get(filter_key))
             return PaginatedTasksResponse.model_validate_json(res.content)
@@ -423,7 +440,7 @@ class SchedulerClient:
         params: dict[str, object] = {"scheduler_id": scheduler_id}
 
         if organization_ids:
-            params["organisation_id"] = organization_ids
+            params["organisation_ids"] = organization_ids
 
         return self._get("/tasks/stats", params=params)  # type: ignore
 

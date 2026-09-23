@@ -20,7 +20,7 @@ from octopoes.models.ooi.reports import AssetReport, Report, ReportRecipe
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.ooi.web import URL, HTTPHeader, SecurityTXT
 from octopoes.models.origin import Origin, OriginType
-from octopoes.models.path import Direction, Path
+from octopoes.models.path import Direction, Path, get_paths_to_neighbours
 from octopoes.models.types import (
     DNSZone,
     Hostname,
@@ -68,6 +68,12 @@ class MockScanProfileRepository(ScanProfileRepository):
     def delete(self, scan_profile: ScanProfileBase, valid_time: datetime) -> None:
         del self.profiles[scan_profile.reference]
 
+    def get_bulk(self, references: set[Reference], valid_time: datetime) -> list[ScanProfileBase]:
+        profiles = []
+        for ref in references:
+            profiles.append(self.profiles[ref])
+        return profiles
+
 
 @pytest.fixture
 def scan_profile_repository():
@@ -108,8 +114,30 @@ class MockOOIRepository(OOIRepository):
 
         return neighbours
 
+    def get_neighbours(
+        self, reference: Reference, valid_time: datetime, paths: set[Path] | None = None
+    ) -> dict[Path, list[OOI]]:
+        if paths is None:
+            paths = get_paths_to_neighbours(reference.class_type)
+
+        ret: dict[Path, list[OOI]] = {}
+        for path in paths:
+            neighbours = self.list_neighbours({reference}, {path}, valid_time)
+            if neighbours:
+                # The real XTDB repository deserializes a fresh object per path, without
+                # a scan profile. Mimic that here so duplicate per-path instances of the
+                # same neighbour are represented faithfully.
+                copies = [neighbour.model_copy(deep=True) for neighbour in neighbours]
+                for copy in copies:
+                    copy.scan_profile = None
+                ret[path] = copies
+        return ret
+
     def list_oois_without_scan_profile(self, valid_time: datetime) -> set[Reference]:
         return set()
+
+    def get(self, ooi_reference: Reference, valid_time: datetime) -> OOI:
+        return self.oois[ooi_reference]
 
 
 @pytest.fixture

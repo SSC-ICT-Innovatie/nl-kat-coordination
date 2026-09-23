@@ -31,9 +31,7 @@
 {% endblock content %}
 {% block html_at_end_body %}
     {{ block.super }}
-    {{ ooi_types|json_script:"ooi-types" }}
-    {{ tree|json_script:"tree-data" }}
-    <script src="{% static "js/stringHelpers.js" %}" nonce="{{ request.csp_nonce }}"></script>
+    {{ graph_tree|json_script:"tree-data" }}
     <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
     <script src="{% static "dist/imports/graph.js" %}" nonce="{{ request.csp_nonce }}"></script>
     <link href="{% static "dist/imports/graph.css" %}" rel="stylesheet">

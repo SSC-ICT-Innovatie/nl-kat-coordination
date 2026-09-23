@@ -5,7 +5,8 @@ const organization_code = htmlElement.getAttribute("data-organization-code");
 const task_buttons = document.querySelectorAll(
   ".expando-button.boefjes-task-list-table-row," +
     ".expando-button.normalizer-list-table-row," +
-    ".expando-button.ooi-detail-task-list-table-row",
+    ".expando-button.ooi-detail-task-list-table-row," +
+    ".expando-button.observation-list-table-row",
 );
 const asyncoffset = 5; // time (in seconds) to allow for the database to actually save the OOIs
 

@@ -15,7 +15,6 @@ from httpx import HTTPError
 from tools.enums import CUSTOM_SCAN_LEVEL, SCAN_LEVEL
 from tools.forms.ooi import SetClearanceLevelForm
 from tools.forms.ooi_form import OOISearchForm, OOITypeMultiCheckboxForm
-from tools.models import Indemnification
 from tools.view_helpers import get_mandatory_fields
 
 from octopoes.connector import RemoteException
@@ -48,9 +47,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         context["ooi_search_form"] = OOISearchForm(self.request.GET)
         context["edit_clearance_level_form"] = SetClearanceLevelForm
         context["mandatory_fields"] = get_mandatory_fields(self.request, params=["observed_at"])
-        context["member"] = self.organization_member
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
-        context["organization_indemnification"] = self.get_organization_indemnification
         context["breadcrumbs"] = [
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")}
         ]
@@ -196,9 +193,6 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         )
 
         return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
-
-    def get_organization_indemnification(self):
-        return Indemnification.objects.filter(organization=self.organization).exists()
 
 
 class OOIListExportView(BaseOOIListView):
