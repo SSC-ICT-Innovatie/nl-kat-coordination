@@ -37,19 +37,20 @@ function addLinks(safestring) {
   const urlRegex = /https?:\/\/[^\s]+/gi;
 
   return safestring.replace(urlRegex, function (url) {
-    let href = url;
-    if (url.startsWith("www.")) {
-      href = "http://" + url; // add scheme so link works
-    }
-    return `<a href="${href}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
   });
 }
+
+// Label for required fields, set per page from data-required-label so it is
+// translated by Django like every other string on the page.
+var requiredText = "Required";
 
 function loadform(className) {
   let schemafields = document.querySelectorAll("." + className);
   schemafields.forEach((schemafield) => {
     let schema = schemafield.value;
     let original = schemafield.dataset.original;
+    requiredText = schemafield.dataset.requiredLabel || requiredText;
     let identifier = schemafield.id ? schemafield.id : "new";
     let parent = schemafield.closest("fieldset") || schemafield.closest("form");
     parent.className = "indented";
@@ -342,9 +343,10 @@ function renderfield(required, originalvalue, path, name, field) {
   let descriptionfield = null;
   if (field["description"]) {
     descriptionfield = document.createElement("p");
-    descriptionfield.id = name + "-description";
+    descriptionfield.id = input.id + "-description";
     descriptionfield.classList.add("nota-bene");
     descriptionfield.innerHTML = addLinks(escapeHtml(field["description"]));
+    input.setAttribute("aria-describedby", descriptionfield.id);
   }
   if (field["minLength"]) {
     input.minlength = parseInt(field["minLength"]);
@@ -355,7 +357,7 @@ function renderfield(required, originalvalue, path, name, field) {
   let label = document.createElement("label");
   label.htmlFor = input.id;
   label.innerHTML = required
-    ? `${escapeHtml(name)} <span class="nota-bene" aria-hidden="true">(Required)</span>`
+    ? `${escapeHtml(name)} <span class="nota-bene" aria-hidden="true">(${escapeHtml(requiredText)})</span>`
     : escapeHtml(name);
 
   let div = document.createElement("div");
@@ -378,6 +380,9 @@ function renderfield(required, originalvalue, path, name, field) {
 
   if (field["type"] != "boolean" && originalvalue !== undefined) {
     input.value = originalvalue;
+    // Mark fields that held a saved answer: an explicit empty string must
+    // survive form2json instead of silently dropping the key.
+    input.dataset.hadOriginal = "1";
   }
   div.appendChild(input);
   return div;
@@ -408,6 +413,7 @@ function ContentFromPostObject(wrapper, identifier, path, schema) {
     subpath = path + "_" + fieldname;
     childschema = schema["properties"][fieldname];
     data = null;
+    let element = null;
     let fieldtype = schema["properties"][fieldname]["type"];
     if (fieldtype == "array") {
       data = ContentFromPostArray(
@@ -421,11 +427,19 @@ function ContentFromPostObject(wrapper, identifier, path, schema) {
       data = ContentFromPostObject(wrapper, identifier, subpath, childschema);
     } else if (fieldtype == "boolean") {
       data = wrapper.elements[identifier + subpath].checked;
-    } else if (wrapper.elements[identifier + subpath]) {
-      data = wrapper.elements[identifier + subpath].value;
+    } else if ((element = wrapper.elements[identifier + subpath])) {
+      data = element.value;
     }
 
-    if (data || fieldtype == "boolean") {
+    // A saved empty string is an answer too — keep it. Untouched optional
+    // fields have no hadOriginal marker and keep dropping "" as before.
+    let keepEmpty =
+      data === "" &&
+      element &&
+      element.dataset.hadOriginal &&
+      fieldtype !== "number" &&
+      fieldtype !== "integer";
+    if (data || fieldtype == "boolean" || keepEmpty) {
       if (schema["properties"][fieldname]["type"] == "number") {
         data = parseFloat(data);
       } else if (schema["properties"][fieldname]["type"] == "integer") {
@@ -447,6 +461,7 @@ function ContentFromPostArray(wrapper, identifier, path, fieldname, schema) {
   for (let count = 0; count < maxcount; count++) {
     subpath = path + "_" + count;
     data = null;
+    let element = null;
     if (schema["items"]["type"] == "array") {
       data = ContentFromPostArray(
         wrapper,
@@ -462,10 +477,16 @@ function ContentFromPostArray(wrapper, identifier, path, fieldname, schema) {
         subpath,
         schema["items"],
       );
-    } else if (wrapper.elements[identifier + subpath]) {
-      data = wrapper.elements[identifier + subpath].value;
+    } else if ((element = wrapper.elements[identifier + subpath])) {
+      data = element.value;
     }
-    if (!data) {
+    let keepEmpty =
+      data === "" &&
+      element &&
+      element.dataset.hadOriginal &&
+      schema["items"]["type"] !== "number" &&
+      schema["items"]["type"] !== "integer";
+    if (!data && !keepEmpty) {
       break;
     }
 

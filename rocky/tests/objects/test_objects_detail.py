@@ -7,6 +7,7 @@ from pytest_django.asserts import assertContains, assertNotContains
 from tools.enums import SCAN_LEVEL
 from tools.models import Indemnification
 
+from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.config import Config
 from octopoes.models.tree import ReferenceTree
 from rocky.views.ooi_detail import OOIDetailView
@@ -36,7 +37,7 @@ QUESTION_DATA = {
     "store": {
         "Network|testnetwork": {"object_type": "Network", "primary_key": "Network|testnetwork", "name": "testnetwork"},
         "Question|/test|Network|testnetwork": {
-            "ooi": "Question|/test|Network|testnetwork",
+            "ooi": "Network|testnetwork",
             "object_type": "Question",
             "schema_id": "/test",
             "json_schema": get_stub_path("question_schema.json").read_text(),
@@ -83,6 +84,8 @@ def test_question_detail(
     request = setup_request(rf.get("ooi_detail", {"ooi_id": "Question|/test|Network|testnetwork"}), client_member.user)
 
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(QUESTION_DATA)
+    # No saved answer: the Config lookup 404s.
+    mock_organization_view_octopoes().get.side_effect = ObjectNotFoundException("Config not found")
 
     response = OOIDetailView.as_view()(request, organization_code=client_member.organization.code)
 
@@ -115,6 +118,27 @@ def test_question_detail_prefills_saved_config(
     assertContains(response, 'data-original="{&quot;key&quot;: &quot;value&quot;}"')
 
 
+def test_question_detail_empty_config_still_loads_saved_answer(
+    rf, client_member, mock_organization_view_octopoes, mock_scheduler, paginated_task_list, mocker
+):
+    """An empty saved Config is a saved answer: it must render data-original
+    instead of silently falling back to the schema defaults."""
+    mocker.patch("katalogus.client.KATalogusClient")
+
+    question_data = deepcopy(QUESTION_DATA)
+    question_data["store"]["Question|/test|Network|testnetwork"]["ooi"] = "Network|testnetwork"
+    mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(question_data)
+    mock_organization_view_octopoes().get.return_value = Config(ooi="Network|testnetwork", bit_id="/test", config={})
+
+    request = setup_request(rf.get("ooi_detail", {"ooi_id": "Question|/test|Network|testnetwork"}), client_member.user)
+
+    response = OOIDetailView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "Using config from")
+    assertContains(response, 'data-original="{}"')
+
+
 def test_answer_question(
     rf,
     client_member,
@@ -126,6 +150,7 @@ def test_answer_question(
 ):
     mocker.patch("katalogus.client.KATalogusClient")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(QUESTION_DATA)
+    mock_organization_view_octopoes().get.side_effect = ObjectNotFoundException("Config not found")
 
     query_string = urlencode({"ooi_id": "Question|/test|Network|testnetwork"}, doseq=True)
     request = setup_request(
@@ -152,6 +177,7 @@ def test_answer_question_bad_schema(
 ):
     mocker.patch("katalogus.client.KATalogusClient")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(QUESTION_DATA)
+    mock_organization_view_octopoes().get.side_effect = ObjectNotFoundException("Config not found")
 
     query_string = urlencode({"ooi_id": "Question|/test|Network|testnetwork"}, doseq=True)
 
