@@ -5,6 +5,8 @@ Release notes
    :maxdepth: 1
    :caption: Releases
 
+   1.23
+   1.22
    1.21
    1.20
    1.19

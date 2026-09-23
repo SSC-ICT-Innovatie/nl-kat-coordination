@@ -58,7 +58,7 @@ services:
 
   rabbitmq:
     restart: on-failure
-    image: "docker.io/library/rabbitmq:3.12-management"
+    image: "docker.io/library/rabbitmq:3.13-management"
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 5s

@@ -1,7 +1,7 @@
 services:
   rabbitmq:
     restart: unless-stopped
-    image: "docker.io/library/rabbitmq:3.12-management"
+    image: "docker.io/library/rabbitmq:3.13-management"
     ports:
       - "127.0.0.1:5672:5672"
       - "127.0.0.1:15672:15672"
@@ -12,6 +12,8 @@ services:
     env_file:
       - .env-defaults
       - .env
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
 
   postgres:
     restart: unless-stopped
@@ -362,3 +364,4 @@ volumes:
   cveapi-data:
   jaeger-data:
   prometheus-data:
+  rabbitmq-data:

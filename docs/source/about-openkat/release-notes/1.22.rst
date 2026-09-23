@@ -1,0 +1,20 @@
+============================================
+OpenKAT 1.22
+============================================
+
+Performance and stability release.
+
+This release closes out the performance work that was previewed in the 1.21
+notes and ships a number of stability, dependency and tooling improvements.
+For the authoritative, commit-level overview see the full GitHub changelog.
+
+Upgrading
+=========
+
+The normal instructions for upgrading :ref:`Debian packages<Upgrading Debian>`
+or upgrading :ref:`containers <Upgrading_Containers>` should be followed.
+
+Full Changelog
+==============
+
+https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/compare/v1.21.0...v1.22.0
