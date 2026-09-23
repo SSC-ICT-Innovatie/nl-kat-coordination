@@ -5,7 +5,6 @@ from boefjes.clients.scheduler_client import (
     get_environment_settings,
     get_system_env_settings_for_boefje,
 )
-from boefjes.worker.job_models import BoefjeMeta
 from tests.loading import get_boefje_meta
 
 
@@ -44,10 +43,7 @@ def test_environment_settings_coerces_integer_env_var(monkeypatch):
 
     schema = {
         "type": "object",
-        "properties": {
-            "PORTS": {"type": "string"},
-            "MIN_VLSM_IPV4": {"type": "integer", "minimum": 0, "maximum": 32},
-        },
+        "properties": {"PORTS": {"type": "string"}, "MIN_VLSM_IPV4": {"type": "integer", "minimum": 0, "maximum": 32}},
         "required": ["PORTS"],
     }
 
