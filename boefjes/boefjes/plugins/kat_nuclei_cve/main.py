@@ -3,10 +3,7 @@ import subprocess
 # nuclei exits 1 when it finds no vulnerabilities or when no templates are
 # available for the scan. These are not real errors — the scan ran fine, there
 # was just nothing to report.
-_BENIGN_STDERR_MARKERS = (
-    "No results found",
-    "no templates provided for scan",
-)
+_BENIGN_STDERR_MARKERS = ("No results found", "no templates provided for scan")
 
 
 def get_target_url(input_ooi: dict) -> str:
