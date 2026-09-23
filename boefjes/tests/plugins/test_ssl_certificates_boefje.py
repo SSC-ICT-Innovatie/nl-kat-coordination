@@ -35,6 +35,44 @@ def _fake_run(returncode: int, stdout: bytes = b"", stderr: bytes = b""):
     return fake_run
 
 
+def test_ipv6_address_wrapped_in_brackets(monkeypatch):
+    captured = {}
+
+    def fake_run(cmd, capture_output):
+        captured["cmd"] = cmd
+        return subprocess.CompletedProcess(cmd, 0, stdout=b"cert output", stderr=b"")
+
+    monkeypatch.setattr(main.subprocess, "run", fake_run)
+
+    main.run(_meta("2001:610:2d8:401::33:18"))
+
+    assert "-host" in captured["cmd"]
+    idx = captured["cmd"].index("-host")
+    assert captured["cmd"][idx + 1] == "[2001:610:2d8:401::33:18]"
+
+
+def test_ipv4_address_not_wrapped(monkeypatch):
+    captured = {}
+
+    def fake_run(cmd, capture_output):
+        captured["cmd"] = cmd
+        return subprocess.CompletedProcess(cmd, 0, stdout=b"cert output", stderr=b"")
+
+    monkeypatch.setattr(main.subprocess, "run", fake_run)
+
+    main.run(_meta("192.0.2.1"))
+
+    idx = captured["cmd"].index("-host")
+    assert captured["cmd"][idx + 1] == "192.0.2.1"
+
+
+def test_network_error_crashes_task(monkeypatch):
+    monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stderr=b"connect:errno=101\nNetwork unreachable\n"))
+
+    with pytest.raises(subprocess.CalledProcessError):
+        main.run(_meta("2001:610:2d8:401::33:18"))
+
+
 def test_success_returns_stdout(monkeypatch):
     monkeypatch.setattr(main.subprocess, "run", _fake_run(0, stdout=b"cert data here"))
 
