@@ -1,0 +1,28 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "REQUEST_TIMEOUT": {
+      "title": "timeout for slow lookup requests, defaults to 60 seconds",
+      "type": "integer",
+      "minimum": 5,
+      "maximum": 1000,
+      "default": 60
+    },
+    "TRIES": {
+      "title": "How many tries to perform, defaults to 2",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "default": 2
+    },
+    "PORTS": {
+      "title": "PORTS",
+      "maxLength": 2048,
+      "type": "string",
+      "pattern": "^(?:([1-9]|[1-9]\\d{1,3}|[1-5]\\d{4}|6[0-4]\\d{3}|65[0-4]\\d{2}|655[0-2]\\d|6553[0-5])(?:,\\s*|$))+$",
+      "description": "Specify the ports that need to be tried (they need to be available as IP services provided by, for example, NMAP). Multiple ports are possible as a CSV formatted string. For example: 22,111,137 will scan ports 22, 111, 137.",
+      "default": "8081"
+    }
+  }
+}
