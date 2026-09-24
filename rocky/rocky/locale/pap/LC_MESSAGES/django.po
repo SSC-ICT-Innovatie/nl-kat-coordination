@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-03-28 14:22+0000\n"
 "PO-Revision-Date: 2025-08-22 09:39+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: Papiamento <https://hosted.weblate.org/projects/openkat/nl-"
@@ -4645,8 +4645,8 @@ msgstr ""
 
 #: reports/views/mixins.py
 msgid ""
-"No data could be found for %(report_types). Object(s) did not exist on "
-"%(date)s."
+"No data could be found for %(report_types). Object(s) did not exist on %"
+"(date)s."
 msgstr ""
 
 #: reports/views/multi_report.py
@@ -4750,10 +4750,6 @@ msgstr ""
 #: tools/forms/base.py
 msgid "Date"
 msgstr "Fecha"
-
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr ""
 
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
@@ -5030,6 +5026,10 @@ msgstr ""
 msgid "Search by object name"
 msgstr "Buska riba nómber di opheto"
 
+#: tools/forms/scheduler.py
+msgid "The selected date is in the future. Please select a different date."
+msgstr ""
+
 #: tools/forms/settings.py
 msgid "--- Show all ----"
 msgstr "--- Mustra tur ---"
@@ -5124,9 +5124,9 @@ msgid ""
 "used as the basis for a form for the user. When the user enables this Boefje "
 "they can get the option to give extra information. For example, it can "
 "contain an API key that the script requires.</p> <p>More information about "
-"what the schema.json file looks like can be found <a href='https://docs."
-"openkat.nl/developer_documentation/development_tutorial/creating_a_boefje."
-"html'> here</a>.</p> "
+"what the schema.json file looks like can be found <a href='https://"
+"docs.openkat.nl/developer_documentation/development_tutorial/"
+"creating_a_boefje.html'> here</a>.</p> "
 msgstr ""
 
 #: tools/forms/settings.py
@@ -5656,9 +5656,8 @@ msgid "Add finding"
 msgstr "Añadí diskubrimentu"
 
 #: rocky/templates/findings/finding_list.html
-#, fuzzy
-msgid "Findings @ "
-msgstr "Diskubrimentu"
+msgid "Findings "
+msgstr ""
 
 #: rocky/templates/findings/finding_list.html
 #, fuzzy, python-format
@@ -6525,8 +6524,20 @@ msgid "OOI"
 msgstr "OOI"
 
 #: rocky/templates/partials/explanations.html
+msgid "This OOI"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
 msgstr "Origen"
+
+#: rocky/templates/partials/explanations.html
+msgid "declared"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
+msgstr ""
 
 #: rocky/templates/partials/explanations.html
 msgid "Show clearance level inheritance"
@@ -6632,6 +6643,10 @@ msgid "Page"
 msgstr "Página"
 
 #: rocky/templates/partials/list_paginator.html
+msgid "Current"
+msgstr ""
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr "Sinku pagina dilanti"
 
@@ -6673,11 +6688,11 @@ msgid "Edit %(display_type)s"
 msgstr "Editá %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
-#, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
+msgstr ""
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
 msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
@@ -6960,8 +6975,16 @@ msgid "List of tasks"
 msgstr "Lista di tareanan"
 
 #: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
 msgid "Yielded objects"
 msgstr "Ophetonan generá"
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files"
+msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
@@ -7322,6 +7345,20 @@ msgid "Can not parse date, falling back to show current date."
 msgstr ""
 
 #: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
+msgstr ""
+
+#: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
 msgstr ""
 
@@ -7671,6 +7708,10 @@ msgstr ""
 #: rocky/views/upload_raw.py
 msgid "Raw file successfully added."
 msgstr "Arkivo crudo añadi ku èxito."
+
+#, fuzzy
+#~ msgid "Findings @ "
+#~ msgstr "Diskubrimentu"
 
 #~ msgid "Clearance level has been set"
 #~ msgstr "Nivel di autorisashon a ser poni"
