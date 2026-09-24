@@ -93,18 +93,29 @@ def test_medium_tls_ciphers():
 
     results = list(cipher_classification(cipher, {}, {}))
 
-    assert len(results) == 2
+    assert len(results) == 4
+
     assert results[0].reference == "KATFindingType|KAT-MEDIUM-TLS-CIPHER"
+    assert results[2].reference == "KATFindingType|KAT-LOW-TLS-CIPHER"
 
-    finding = results[-1]
-    assert isinstance(finding, Finding)
+    medium_finding = results[1]
+    low_finding = results[3]
 
-    assert finding.description == (
+    assert isinstance(medium_finding, Finding)
+    assert isinstance(low_finding, Finding)
+
+
+    assert medium_finding.description == (
         "One or more of the cipher suites should not be used because:\n"
         "DHE-DSS-CAMELLIA128-SHA256 - Using DH as key exchange algorithm (Medium).\n"
         "DHE-DSS-CAMELLIA128-SHA256 - Using DSS for authentication (Medium).\n"
         "DHE-RSA-AES256-GCM-SHA384 - Using DH as key exchange algorithm (Medium).\n"
         "DHE-RSA-AES128-GCM-SHA256 - Using DH as key exchange algorithm (Medium)."
+    )
+
+    assert low_finding.description == (
+        "One or more of the cipher suites should not be used because:\n"
+        "DHE-DSS-CAMELLIA128-SHA256 - Using Camellia as bulk encryption algorithm (Low)."
     )
 
 
