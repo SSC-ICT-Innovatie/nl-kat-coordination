@@ -95,12 +95,18 @@ def test_medium_tls_ciphers():
 
     assert len(results) == 2
     assert results[0].reference == "KATFindingType|KAT-MEDIUM-TLS-CIPHER"
+
     finding = results[-1]
     assert isinstance(finding, Finding)
-    assert (
-        finding.description == "One or more of the cipher suites should not be used because:\n"
-        "DHE-DSS-CAMELLIA128-SHA256 - Using DH as key exchange algorithm (Medium)."
+
+    assert finding.description == (
+        "One or more of the cipher suites should not be used because:\n"
+        "DHE-DSS-CAMELLIA128-SHA256 - Using DH as key exchange algorithm (Medium).\n"
+        "DHE-DSS-CAMELLIA128-SHA256 - Using DSS for authentication (Medium).\n"
+        "DHE-RSA-AES256-GCM-SHA384 - Using DH as key exchange algorithm (Medium).\n"
+        "DHE-RSA-AES128-GCM-SHA256 - Using DH as key exchange algorithm (Medium)."
     )
+
 
 
 def test_good_ciphers():

@@ -15,6 +15,15 @@ SEVERITY_TO_ID = {
     "Recommendation": "KAT-RECOMMENDATION-TLS-CIPHER",
 }
 
+SEVERITY_LEVELS = {
+    "Critical": 5,
+    "High": 4,
+    "Medium": 3,
+    "Low": 2,
+    "Recommendation": 1,
+    "Informational": 0,
+}
+
 
 def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
     with Path.open(Path(__file__).parent / "tls-cipher-findings.csv", newline="") as csvfile:
@@ -46,61 +55,44 @@ def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
     return severities_and_reasons
 
 
-def get_highest_severity_and_all_reasons(cipher_suites: dict) -> tuple[str, str]:
-    severity_levels = {
-        "Critical": 5,
-        "High": 4,
-        "Medium": 3,
-        "Low": 2,
-        "Recommendation": 1,
-        "Informational": 0,
-    }
+def get_reasons_by_severity(
+    cipher_suites: dict,
+) -> dict[str, list[str]]:
+    reasons_by_severity: dict[str, list[str]] = {}
 
-    severities_and_reasons = []
-
-    for protocol, suites in cipher_suites.items():
+    for suites in cipher_suites.items():
         for suite in suites:
-            severities_and_reasons.extend(
-                get_severity_and_reasons(suite["cipher_suite_name"])
-            )
+            cipher_suite = suite["cipher_suite_name"]
 
-    if not severities_and_reasons:
-        return "", ""
+            for severity, reason in get_severity_and_reasons(cipher_suite):
+                reasons_by_severity.setdefault(severity, []).append(reason)
 
-    highest_severity_level = max(
-        severity_levels.get(severity, -1)
-        for severity, _ in severities_and_reasons
-    )
+    return reasons_by_severity
 
-    highest_severity = next(
-        severity
-        for severity, _ in severities_and_reasons
-        if severity_levels.get(severity, -1) == highest_severity_level
-    )
+def run(
+    input_ooi: TLSCipher,
+    additional_oois: list,
+    config: dict[str, Any],
+) -> Iterator[OOI]:
+    reasons_by_severity = get_reasons_by_severity(input_ooi.suites)
 
-    all_reasons = [
-        reason
-        for severity, reason in severities_and_reasons
-        if severity_levels.get(severity, -1) == highest_severity_level
-    ]
+    for severity in sorted(
+        reasons_by_severity,
+        key=lambda severity: SEVERITY_LEVELS.get(severity, -1),
+        reverse=True,
+    ):
 
-    return highest_severity, "\n".join(all_reasons)
+        if severity not in SEVERITY_TO_ID:
+            continue
 
-
-
-def run(input_ooi: TLSCipher, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
-    # Get the highest severity and all reasons for the cipher suite
-    highest_severity, all_reasons = get_highest_severity_and_all_reasons(input_ooi.suites)
-
-    # If no severity is found, return an empty list
-    if not highest_severity:
-        return
-
-    if highest_severity in SEVERITY_TO_ID:
-        ft = KATFindingType(id=SEVERITY_TO_ID[highest_severity])
+        ft = KATFindingType(id=SEVERITY_TO_ID[severity])
         yield ft
+
         yield Finding(
             finding_type=ft.reference,
             ooi=input_ooi.reference,
-            description=f"One or more of the cipher suites should not be used because:\n{all_reasons}",
+            description=(
+                "One or more of the cipher suites should not be used because:\n"
+                + "\n".join(reasons_by_severity[severity])
+            ),
         )
