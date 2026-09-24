@@ -60,7 +60,7 @@ def get_reasons_by_severity(
 ) -> dict[str, list[str]]:
     reasons_by_severity: dict[str, list[str]] = {}
 
-    for suites in cipher_suites.items():
+    for suites in cipher_suites.values():
         for suite in suites:
             cipher_suite = suite["cipher_suite_name"]
 
