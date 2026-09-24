@@ -2,6 +2,7 @@ import json
 from collections import defaultdict
 
 from django.contrib import messages
+from django.http import Http404
 from django.utils.translation import gettext_lazy as _
 from jsonschema.validators import Draft202012Validator
 from katalogus.client import Boefje, KATalogusError
@@ -142,9 +143,14 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         context["is_question"] = isinstance(self.ooi, Question)
         if isinstance(self.ooi, Question):
             try:
+                context["current_config_pk"] = self.ooi.config_pk
                 context["current_config"] = self.get_ooi(self.ooi.config_pk).config
-            except Exception:
+            except Http404:
+                context["current_config_pk"] = None
                 context["current_config"] = None
+            context["current_config_json"] = (
+                json.dumps(context["current_config"]) if context["current_config"] is not None else ""
+            )
 
         context["related"] = self.get_related_objects(self.observed_at)
 

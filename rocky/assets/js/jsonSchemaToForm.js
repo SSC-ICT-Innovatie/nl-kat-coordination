@@ -23,11 +23,34 @@ var formattypes = {
   textarea: ["textarea"],
 };
 
+function escapeHtml(unsafe) {
+  if (unsafe == null) return "";
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function addLinks(safestring) {
+  const urlRegex = /https?:\/\/[^\s]+/gi;
+
+  return safestring.replace(urlRegex, function (url) {
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`;
+  });
+}
+
+// Label for required fields, set per page from data-required-label so it is
+// translated by Django like every other string on the page.
+var requiredText = "Required";
+
 function loadform(className) {
   let schemafields = document.querySelectorAll("." + className);
   schemafields.forEach((schemafield) => {
     let schema = schemafield.value;
     let original = schemafield.dataset.original;
+    requiredText = schemafield.dataset.requiredLabel || requiredText;
     let identifier = schemafield.id ? schemafield.id : "new";
     let parent = schemafield.closest("fieldset") || schemafield.closest("form");
     parent.className = "indented";
@@ -81,17 +104,24 @@ function renderobject(original, path, schema) {
   let fieldset = document.createElement("fieldset");
   for (fieldname in schema["properties"]) {
     let legend = document.createElement("legend");
-    legend.innerText = fieldname;
-    fieldset.appendChild(legend);
+    legend.innerText =
+      "description" in schema.properties[fieldname]
+        ? schema.properties[fieldname].description
+        : fieldname;
+
     childoriginal =
-      original && original[fieldname] ? original[fieldname] : false;
+      original && original[fieldname] !== undefined
+        ? original[fieldname]
+        : undefined;
     childschema = schema["properties"][fieldname];
     subpath = path + "_" + fieldname;
     if (schema["properties"][fieldname]["type"] == "array") {
+      fieldset.appendChild(legend);
       fieldset.appendChild(
         renderarray(childoriginal, subpath, fieldname, childschema),
       );
     } else if (schema["properties"][fieldname]["type"] == "object") {
+      fieldset.appendChild(legend);
       fieldset.appendChild(renderobject(childoriginal, subpath, childschema));
     } else {
       fieldset.appendChild(
@@ -128,7 +158,9 @@ function renderarray(original, path, name, schema) {
     if (schema["items"]["type"] == "array") {
       fieldset.appendChild(
         renderarray(
-          original && original[count] ? original[count] : false,
+          original && original[count] !== undefined
+            ? original[count]
+            : undefined,
           subpath,
           name,
           schema["items"],
@@ -137,7 +169,9 @@ function renderarray(original, path, name, schema) {
     } else if (schema["items"]["type"] == "object") {
       fieldset.appendChild(
         renderobject(
-          original && original[count] ? original[count] : false,
+          original && original[count] !== undefined
+            ? original[count]
+            : undefined,
           subpath,
           schema["items"],
         ),
@@ -147,7 +181,9 @@ function renderarray(original, path, name, schema) {
       fieldset.appendChild(
         renderfield(
           required,
-          original && original[count] ? original[count] : false,
+          original && original[count] !== undefined
+            ? original[count]
+            : undefined,
           subpath,
           null,
           schema["items"],
@@ -180,13 +216,13 @@ function renderarray(original, path, name, schema) {
       if (schema["items"]["type"] == "array") {
         subpath = path + "_" + fieldset.querySelectorAll("div").length;
         fieldset.insertBefore(
-          renderarray(false, subpath, name, schema["items"]),
+          renderarray(undefined, subpath, name, schema["items"]),
           morebutton,
         );
       } else if (schema["items"]["type"] == "object") {
         subpath = path + "_" + fieldset.querySelectorAll("fieldset").length;
         fieldset.insertBefore(
-          renderobject(false, subpath, schema["items"]),
+          renderobject(undefined, subpath, schema["items"]),
           morebutton,
         );
       } else {
@@ -194,7 +230,7 @@ function renderarray(original, path, name, schema) {
         fieldset.insertBefore(
           renderfield(
             schema["required"] && schema["required"].includes(name),
-            false,
+            undefined,
             subpath,
             null,
             schema["items"],
@@ -247,7 +283,7 @@ function renderfield(required, originalvalue, path, name, field) {
     field["enum"].forEach((fieldvalue) => {
       let value = document.createElement("option");
       value.value = fieldvalue;
-      if (originalvalue && originalvalue === fieldvalue) {
+      if (originalvalue === fieldvalue) {
         value.selected = true;
       }
       let valuetext = document.createTextNode(fieldvalue);
@@ -292,14 +328,25 @@ function renderfield(required, originalvalue, path, name, field) {
       input.max = field["exclusiveMaximum"] - 1;
     }
   }
-  if (field["type"] == "boolean" && field["default"]) {
-    input.checked = field["default"];
+
+  if (field["type"] == "boolean") {
+    input.checked =
+      originalvalue !== undefined
+        ? Boolean(originalvalue)
+        : Boolean(field["default"]);
   }
+
   if (field["default"]) {
     input.value = field["default"];
     input.placeholder = field["default"];
-  } else if (field["description"]) {
-    input.placeholder = field["description"];
+  }
+  let descriptionfield = null;
+  if (field["description"]) {
+    descriptionfield = document.createElement("p");
+    descriptionfield.id = input.id + "-description";
+    descriptionfield.classList.add("nota-bene");
+    descriptionfield.innerHTML = addLinks(escapeHtml(field["description"]));
+    input.setAttribute("aria-describedby", descriptionfield.id);
   }
   if (field["minLength"]) {
     input.minlength = parseInt(field["minLength"]);
@@ -309,10 +356,15 @@ function renderfield(required, originalvalue, path, name, field) {
   }
   let label = document.createElement("label");
   label.htmlFor = input.id;
+  label.innerHTML = required
+    ? `${escapeHtml(name)} <span class="nota-bene" aria-hidden="true">(${escapeHtml(requiredText)})</span>`
+    : escapeHtml(name);
 
   let div = document.createElement("div");
   div.appendChild(label);
-
+  if (descriptionfield) {
+    div.appendChild(descriptionfield);
+  }
   if (field["examples"]) {
     let datalist = document.createElement("datalist");
     for (let index = 0; index < field["examples"].length; ++index) {
@@ -326,8 +378,11 @@ function renderfield(required, originalvalue, path, name, field) {
     input.list = input.id + "listoptions";
   }
 
-  if (originalvalue) {
+  if (field["type"] != "boolean" && originalvalue !== undefined) {
     input.value = originalvalue;
+    // Mark fields that held a saved answer: an explicit empty string must
+    // survive form2json instead of silently dropping the key.
+    input.dataset.hadOriginal = "1";
   }
   div.appendChild(input);
   return div;
@@ -358,6 +413,7 @@ function ContentFromPostObject(wrapper, identifier, path, schema) {
     subpath = path + "_" + fieldname;
     childschema = schema["properties"][fieldname];
     data = null;
+    let element = null;
     let fieldtype = schema["properties"][fieldname]["type"];
     if (fieldtype == "array") {
       data = ContentFromPostArray(
@@ -371,11 +427,19 @@ function ContentFromPostObject(wrapper, identifier, path, schema) {
       data = ContentFromPostObject(wrapper, identifier, subpath, childschema);
     } else if (fieldtype == "boolean") {
       data = wrapper.elements[identifier + subpath].checked;
-    } else if (wrapper.elements[identifier + subpath]) {
-      data = wrapper.elements[identifier + subpath].value;
+    } else if ((element = wrapper.elements[identifier + subpath])) {
+      data = element.value;
     }
 
-    if (data || fieldtype == "boolean") {
+    // A saved empty string is an answer too — keep it. Untouched optional
+    // fields have no hadOriginal marker and keep dropping "" as before.
+    let keepEmpty =
+      data === "" &&
+      element &&
+      element.dataset.hadOriginal &&
+      fieldtype !== "number" &&
+      fieldtype !== "integer";
+    if (data || fieldtype == "boolean" || keepEmpty) {
       if (schema["properties"][fieldname]["type"] == "number") {
         data = parseFloat(data);
       } else if (schema["properties"][fieldname]["type"] == "integer") {
@@ -397,6 +461,7 @@ function ContentFromPostArray(wrapper, identifier, path, fieldname, schema) {
   for (let count = 0; count < maxcount; count++) {
     subpath = path + "_" + count;
     data = null;
+    let element = null;
     if (schema["items"]["type"] == "array") {
       data = ContentFromPostArray(
         wrapper,
@@ -412,10 +477,16 @@ function ContentFromPostArray(wrapper, identifier, path, fieldname, schema) {
         subpath,
         schema["items"],
       );
-    } else if (wrapper.elements[identifier + subpath]) {
-      data = wrapper.elements[identifier + subpath].value;
+    } else if ((element = wrapper.elements[identifier + subpath])) {
+      data = element.value;
     }
-    if (!data) {
+    let keepEmpty =
+      data === "" &&
+      element &&
+      element.dataset.hadOriginal &&
+      schema["items"]["type"] !== "number" &&
+      schema["items"]["type"] !== "integer";
+    if (!data && !keepEmpty) {
       break;
     }
 
