@@ -47,36 +47,45 @@ def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
 
 
 def get_highest_severity_and_all_reasons(cipher_suites: dict) -> tuple[str, str]:
-    # Define severity levels
-    severity_levels = {"Critical": 5, "High": 4, "Medium": 3, "Low": 2, "Recommendation": 1, "Informational": 0}
+    severity_levels = {
+        "Critical": 5,
+        "High": 4,
+        "Medium": 3,
+        "Low": 2,
+        "Recommendation": 1,
+        "Informational": 0,
+    }
 
-    # Get severities and reasons
     severities_and_reasons = []
+
     for protocol, suites in cipher_suites.items():
         for suite in suites:
-            severities_and_reasons.extend(get_severity_and_reasons(suite["cipher_suite_name"]))
+            severities_and_reasons.extend(
+                get_severity_and_reasons(suite["cipher_suite_name"])
+            )
 
     if not severities_and_reasons:
         return "", ""
 
-    # Initialize highest severity and corresponding reasons
-    highest_severity_level = 0
-    highest_severity = ""
-    all_reasons = []
+    highest_severity_level = max(
+        severity_levels.get(severity, -1)
+        for severity, _ in severities_and_reasons
+    )
 
-    for severity, reason in severities_and_reasons:
-        # Update highest severity level and reasons if a higher severity level is found
-        if severity_levels.get(severity, 0) > highest_severity_level:
-            highest_severity_level = severity_levels.get(severity, 0)
-            highest_severity = severity
-        # Add all reasons to the list
-        if severity in severity_levels:
-            all_reasons.append(reason)
+    highest_severity = next(
+        severity
+        for severity, _ in severities_and_reasons
+        if severity_levels.get(severity, -1) == highest_severity_level
+    )
 
-    # Join all reasons into a single string, separated by newlines
-    all_reasons_str = "\n".join(all_reasons)
+    all_reasons = [
+        reason
+        for severity, reason in severities_and_reasons
+        if severity_levels.get(severity, -1) == highest_severity_level
+    ]
 
-    return highest_severity, all_reasons_str
+    return highest_severity, "\n".join(all_reasons)
+
 
 
 def run(input_ooi: TLSCipher, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
