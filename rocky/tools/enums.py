@@ -1,6 +1,3 @@
-from enum import Enum
-from typing import cast
-
 from django.db import models
 
 
@@ -12,7 +9,7 @@ class SCAN_LEVEL(models.IntegerChoices):
     L4 = 4, "L4"
 
 
-MAX_SCAN_LEVEL = max(scan_level.value for scan_level in cast(type[Enum], SCAN_LEVEL))
+MAX_SCAN_LEVEL = max(SCAN_LEVEL.values)
 
 
 class CUSTOM_SCAN_LEVEL(models.Choices):

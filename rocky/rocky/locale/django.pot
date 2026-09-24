@@ -64,15 +64,7 @@ msgid "Enter an email address."
 msgstr ""
 
 #: account/forms/account_setup.py
-msgid "Password"
-msgstr ""
-
-#: account/forms/account_setup.py
-msgid "Choose a super secret password"
-msgstr ""
-
-#: account/forms/account_setup.py
-msgid "Choose another email."
+msgid "Set password for your new account."
 msgstr ""
 
 #: account/forms/account_setup.py tools/forms/settings.py
@@ -461,7 +453,6 @@ msgid "Sincerely,"
 msgstr ""
 
 #: account/templates/password_reset_email.html
-#: account/templates/registration_email.html
 msgid "The OpenKAT team"
 msgstr ""
 
@@ -502,8 +493,15 @@ msgstr ""
 #: account/templates/registration_email.html
 #, python-format
 msgid ""
-"Welcome to OpenKAT. You're receiving this email because you have been added "
-"to organization \"%(organization)s\" at %(site_name)s."
+"Welcome to %(site_name)s\n"
+"        You're receiving this email because you have been added to "
+"organization \"%(organization)s\" at %(site_name)s.\n"
+"    "
+msgstr ""
+
+#: account/templates/registration_email.html
+#, python-format
+msgid "The %(site_name)s team"
 msgstr ""
 
 #: account/templates/registration_subject.txt
