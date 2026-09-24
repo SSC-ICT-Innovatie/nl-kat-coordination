@@ -2,7 +2,9 @@ Start scanning
 ==============
 
 To get started with OpenKAT, you need to add an object. After adding an object, setting the clearance level and
-enabling plugins, OpenKAT can start scanning this object. This section will show you how to do this, step by step.
+enabling plugins, OpenKAT can start scanning this object.
+
+This section will show you how to do this, step by step.
 
 
 Adding an object
@@ -33,8 +35,8 @@ Now it is time to fill in the details of the object and continue to the next pag
 After clicking 'Add Hostname', the object will be saved and should appear on the object's detail page.
 You can also find the object in the overview table on the Objects page.
 
-See :doc:`../basic-concepts/objects-and-recursion` for more detailed information about the way objects work.
-If you want to know more about the Objects page and the Object details page, see :doc:`../navigation/objects`.
+See :doc:`basic-concepts/objects-and-recursion` for more detailed information about the way objects work.
+If you want to know more about the Objects page and the Object details page, see :doc:`objects`.
 
 
 Changing clearance level
@@ -42,7 +44,7 @@ Changing clearance level
 
 The next step is to change the clearance level of the object.
 The clearance level of an object tells OpenKAT how far it can go in scanning the object.
-More information about the different clearance levels can be found :doc:`here <../basic-concepts/scan-levels-and-indemnification>`.
+More information about the different clearance levels can be found :doc:`here <basic-concepts/scan-levels-and-indemnification>`.
 
 There are two ways to change the clearance level:
 
