@@ -314,6 +314,32 @@ class RawFileReceivedTestCase(NormalizerSchedulerBaseTestCase):
         # Task should not be on priority queue
         self.assertEqual(0, self.scheduler.queue.qsize())
 
+    def test_process_raw_data_info_mimetype(self):
+        # Arrange
+        scan_profile = ScanProfileFactory(level=0)
+        ooi = OOIFactory(scan_profile=scan_profile)
+        boefje = BoefjeFactory()
+        boefje_task = models.BoefjeTask(boefje=boefje, input_ooi=ooi.primary_key, organization=self.organisation.id)
+
+        task = functions.create_task(
+            scheduler_id=self.scheduler.scheduler_id, data=boefje_task, organisation=self.organisation.id
+        )
+        self.mock_ctx.datastores.task_store.create_task(task)
+
+        boefje_meta = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key)
+
+        raw_data_event = models.RawDataReceivedEvent(
+            raw_data=RawDataFactory(boefje_meta=boefje_meta, mime_types=[{"value": "info/boefje"}]),
+            organization=self.organisation.id,
+            created_at=datetime.datetime.now(),
+        ).model_dump_json()
+
+        # Act
+        self.scheduler.process_raw_data(raw_data_event)
+
+        # Task should not be on priority queue
+        self.assertEqual(0, self.scheduler.queue.qsize())
+
     def test_process_raw_data_queue_full(self):
         events = []
         for _ in range(0, 2):

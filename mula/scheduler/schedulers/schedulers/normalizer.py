@@ -110,6 +110,18 @@ class NormalizerScheduler(Scheduler):
             )
             return
 
+        # Check if the raw data contains an "info/boefje" mime-type, meaning
+        # the boefje exited with an informational message instead of real scan
+        # data (e.g. a netblock too large to scan under the current settings).
+        # There is nothing to normalize in this case.
+        if self.has_raw_data_info(latest_raw_data.raw_data):
+            self.logger.debug(
+                "Skipping raw data %s with 'info/boefje' mime type",
+                latest_raw_data.raw_data.id,
+                raw_data_id=latest_raw_data.raw_data.id,
+            )
+            return
+
         # Get all unique normalizers for the mime types of the raw data
         normalizers: dict[str, models.Plugin] = {}
         for mime_type in latest_raw_data.raw_data.mime_types:
@@ -283,3 +295,19 @@ class NormalizerScheduler(Scheduler):
             True if the raw data contains errors, False otherwise.
         """
         return any(mime_type.get("value", "").startswith("error/") for mime_type in raw_data.mime_types)
+
+    def has_raw_data_info(self, raw_data: models.RawData) -> bool:
+        """Check if the raw data contains an informational boefje message.
+
+        A boefje signals an expected, non-actionable result (e.g. an input
+        that is out of scope under the current settings) by producing an
+        ``info/boefje`` mime-type. There is no real data to normalize in
+        this case.
+
+        Args:
+            raw_data: The raw data to check.
+
+        Returns:
+            True if the raw data contains the ``info/boefje`` mime-type, False otherwise.
+        """
+        return any(mime_type.get("value", "") == "info/boefje" for mime_type in raw_data.mime_types)
