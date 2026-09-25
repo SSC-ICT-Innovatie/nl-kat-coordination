@@ -91,17 +91,17 @@
                                                 <tr>
                                                     <td>
                                                         {% if report.input_oois|length == 1 %}
-                                                            <a href="{% url "view_report" organization.code %}?asset_report_id={{ report.input_oois.0.reference }}&observed_at={{ report.input_oois.0.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                            <a href="{% app_url "view_report" %}?asset_report_id={{ report.input_oois.0.reference }}&observed_at={{ report.input_oois.0.observed_at|date:"Y-m-d H:i:s:u" }}"
                                                                title="{% translate "Show report details" %}">{{ report.input_oois.0.name }}</a>
                                                         {% else %}
-                                                            <a href="{% url "view_report" organization.code %}?report_id={{ report.reference }}&observed_at={{ report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                            <a href="{% app_url "view_report" %}?report_id={{ report.reference }}&observed_at={{ report.observed_at|date:"Y-m-d H:i:s:u" }}"
                                                                title="{% translate "Show report details" %}">{{ report.name }}</a>
                                                         {% endif %}
                                                     </td>
                                                     <td>
                                                         {% if report.input_oois|length == 1 or schedule.recipe.input_recipe.input_oois|length == 1 %}
                                                             {% with ooi=report.input_oois.0 %}
-                                                                <a href="{% ooi_url 'ooi_detail' ooi organization.code query=ooi.mandatory_fields %}">{{ ooi|human_readable }}</a>
+                                                                <a href="{% app_url 'ooi_detail' ooi=ooi %}">{{ ooi|human_readable }}</a>
                                                             {% endwith %}
                                                         {% else %}
                                                             {{ schedule.total_oois }} {% translate "objects" %}
@@ -117,7 +117,7 @@
                                     <div class="button-container">
                                         {% if schedule.enabled %}
                                             <a class="button ghost"
-                                               href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
+                                               href="{% app_url "ooi_edit" ooi=schedule.recipe %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
                                             {% if perms.tools.can_enable_disable_schedule %}
                                                 <a class="button ghost destructive"
                                                    href="#disable-schedule-modal-{{ schedule.recipe.recipe_id }}">{% translate "Disable schedule" %}</a>
@@ -128,7 +128,7 @@
                                             {% if perms.tools.can_enable_disable_schedule %}
                                                 <form class="inline"
                                                       method="post"
-                                                      action="{% url "enable_disable_scheduled_reports" organization.code %}">
+                                                      action="{% app_url "enable_disable_scheduled_reports" %}">
                                                     {% csrf_token %}
                                                     <input type="hidden"
                                                            name="recipe_id"
@@ -140,7 +140,7 @@
                                                 </form>
                                             {% endif %}
                                             <a class="button ghost"
-                                               href="{% ooi_url "ooi_edit" schedule.recipe organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
+                                               href="{% app_url "ooi_edit" ooi=schedule.recipe %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}</a>
                                         {% endif %}
                                         {% if perms.tools.can_enable_disable_schedule %}
                                             <a class="button ghost destructive"

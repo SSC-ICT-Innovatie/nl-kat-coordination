@@ -20,7 +20,7 @@
         {% if perms.tools.can_add_boefje %}
             <div class="horizontal-view toolbar">
                 <a class="button ghost"
-                   href="{% url "boefje_variant_setup" plugin_id=plugin.id organization_code=organization.code %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add variant" %}</a>
+                   href="{% app_url "boefje_variant_setup" plugin_id=plugin.id temporal_context=None %}"><span aria-hidden="true" class="icon ti-plus"></span>{% translate "Add variant" %}</a>
             </div>
         {% endif %}
     </div>
@@ -55,7 +55,7 @@
                                 {% for variant in variants %}
                                     <tr>
                                         <td>
-                                            <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=variant.id %}">
+                                            <a href="{% app_url "boefje_detail" plugin_id=variant.id temporal_context=None %}">
                                                 {% if variant.id == plugin.id %}
                                                     {{ variant.name }} ({% translate "current" %})
                                                 {% else %}
@@ -126,7 +126,7 @@
                                             {% if perms.tools.can_add_boefje %}
                                                 <div class="horizontal-view toolbar">
                                                     <a class="button ghost"
-                                                       href="{% url "edit_boefje" plugin_id=variant.id organization_code=organization.code %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit variant" %}</a>
+                                                       href="{% app_url "edit_boefje" plugin_id=variant.id temporal_context=None %}"><span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit variant" %}</a>
                                                 </div>
                                             {% endif %}
                                         </td>

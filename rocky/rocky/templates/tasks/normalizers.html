@@ -90,7 +90,7 @@
                                                title="{% translate "Filter on this ooi" %}"><i class="icon filter"></i></a>
                                             <a href="{{ request.path }}{% querystring ooi_id=task.data.raw_data.boefje_meta.input_ooi %}"
                                                title="{% translate "Add filter on this ooi" %}"><i class="icon filteradd"></i></a>
-                                            <a href="{% ooi_url "ooi_detail" task.data.raw_data.boefje_meta.input_ooi task.data.raw_data.boefje_meta.organization observed_at=task.created_at|date:'c' %}">{{ task.data.raw_data.boefje_meta.input_ooi }}</a>
+                                            <a href="{% app_url "ooi_detail" ooi=task.data.raw_data.boefje_meta.input_ooi organization_code=task.data.raw_data.boefje_meta.organization temporal_context=task.created_at|date:'c' %}">{{ task.data.raw_data.boefje_meta.input_ooi }}</a>
                                         {% endif %}
                                     </td>
                                     <td class="actions sticky-cell">

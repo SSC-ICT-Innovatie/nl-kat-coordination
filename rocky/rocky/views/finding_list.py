@@ -138,7 +138,10 @@ class FindingListView(BreadcrumbsMixin, FindingListFilter, AddDashboardItemFormM
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
             {
-                "url": reverse_lazy("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse_lazy(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Findings"),
             }
         ]

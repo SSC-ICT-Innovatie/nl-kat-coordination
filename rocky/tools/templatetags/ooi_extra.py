@@ -1,17 +1,60 @@
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from account.models import KATUser
 from django import template
 from django.core.exceptions import ObjectDoesNotExist
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import OOI, Reference, ScanLevel
 from octopoes.models.ooi.findings import Finding, FindingType
-from tools.view_helpers import get_ooi_url
 
 register = template.Library()
+
+
+@register.simple_tag(takes_context=True)
+def app_url(context, viewname, *args, **kwargs):
+    """Automatically adds the organization and temporal_context from the current
+    session to the url reversing.
+
+    Both can be nulled by setting them to None, or overwritten by setting them
+    to any other value."""
+    if "organization" in kwargs and kwargs["organization"] is None:
+        # explicit removal requested
+        del kwargs["organization"]
+    else:
+        organization = context.get("organization")
+        if organization is not None:
+            kwargs.setdefault("organization_code", organization.code)
+
+    # Default the temporal context to the current one. None is a valid value: the converter
+    # renders it as "now", which is the required segment for the present. An explicit
+    # temporal_context in kwargs (including None) overrides the context value.
+    kwargs.setdefault("temporal_context", context.get("temporal_context"))
+
+    if "ooi" in kwargs and not isinstance(kwargs["ooi"], str):
+        kwargs["ooi"] = str(kwargs["ooi"])
+
+    try:
+        return reverse(viewname, args=args, kwargs=kwargs)
+    except NoReverseMatch:
+        # This tag is also used for routes without a <temporal_context> segment; those reject
+        # the extra kwarg, so retry without it.
+        kwargs.pop("temporal_context", None)
+        return reverse(viewname, args=args, kwargs=kwargs)
+
+
+def parse_observed_at(observed_at):
+    try:
+        observed_at = datetime.fromisoformat(observed_at)
+        if not observed_at.tzinfo:
+            observed_at = observed_at.replace(tzinfo=timezone.utc)
+
+        return observed_at
+    except TypeError:
+        return observed_at
 
 
 @register.filter
@@ -42,11 +85,6 @@ def ooi_types_to_strings(ooi_types: set[type[OOI]]) -> list["str"]:
 @register.filter()
 def get_type(x: Any) -> Any:
     return type(x)
-
-
-@register.simple_tag()
-def ooi_url(routename: str, ooi_id: str, organization_code: str, **kwargs: str) -> str:
-    return get_ooi_url(routename, ooi_id, organization_code, **kwargs)
 
 
 @register.filter()

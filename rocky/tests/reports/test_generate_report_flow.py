@@ -209,7 +209,7 @@ def test_report_types_selection(
     assert response.status_code == 307
 
     # Redirect to export setup, all plugins are then enabled
-    assert response.headers["Location"] == "/en/test/reports/generate-report/export-setup/?"
+    assert response.headers["Location"] == "/en/test/now/reports/generate-report/export-setup/?"
 
 
 def test_save_generate_report_view(
@@ -300,4 +300,4 @@ def test_save_generate_report_view_scheduled(
     response = SaveGenerateReportView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 302  # after post follows redirect, this to first create report ID
-    assert response.url == f"/en/{client_member.organization.code}/reports/scheduled-reports/"
+    assert response.url == f"/en/{client_member.organization.code}/now/reports/scheduled-reports/"

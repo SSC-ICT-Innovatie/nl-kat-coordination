@@ -109,7 +109,7 @@
                                 {% for boefje in boefjes %}
                                     <tr>
                                         <td class="nowrap">
-                                            <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=boefje.id %}?ooi_id={{ ooi }}">{{ boefje.name }}</a>
+                                            <a href="{% app_url "boefje_detail" plugin_id=boefje.id temporal_context=None %}?ooi_id={{ ooi }}">{{ boefje.name }}</a>
                                         </td>
                                         <td>{{ boefje.description }}</td>
                                         <td class="nowrap">

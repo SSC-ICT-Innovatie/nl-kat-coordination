@@ -1,6 +1,5 @@
 import csv
 import io
-from datetime import datetime, timezone
 from typing import Any, ClassVar
 from uuid import uuid4
 
@@ -8,19 +7,20 @@ from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError
 from pydantic import ValidationError
 from tools.forms.upload_csv import CSV_ERRORS
 from tools.forms.upload_oois import UploadOOICSVForm
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.api.models import Declaration
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 from octopoes.models.ooi.web import URL
+from rocky.views.mixins import ObservedAtMixin
 
 CSV_CRITERIA = [
     _("Add column titles. Followed by each object on a new line."),
@@ -45,7 +45,7 @@ CSV_CRITERIA = [
 CLEARANCE_VALUES = ["0", "1", "2", "3", "4"]
 
 
-class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
+class UploadCSV(OrganizationPermissionRequiredMixin, BreadcrumbsMixin, ObservedAtMixin, OrganizationView, FormView):
     template_name = "upload_csv.html"
     form_class = UploadOOICSVForm
     permission_required = "tools.can_scan_organization"
@@ -64,18 +64,18 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         if not self.organization:
             self.add_error_notification(CSV_ERRORS["no_org"])
 
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
+        kwargs = {"organization_code": self.organization.code, "temporal_context": self.kwargs.get("temporal_context")}
+        return [
+            {"url": reverse("ooi_list", kwargs=kwargs), "text": _("Objects")},
+            {"url": reverse("upload_csv", kwargs=kwargs), "text": _("Upload CSV")},
+        ]
+
     def get_success_url(self):
-        return reverse_lazy("ooi_list", kwargs={"organization_code": self.organization.code})
+        return self.build_breadcrumbs()[0]["url"]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
-            {
-                "url": reverse("upload_csv", kwargs={"organization_code": self.organization.code}),
-                "text": _("Upload CSV"),
-            },
-        ]
         context["criteria"] = CSV_CRITERIA
         return context
 
@@ -116,7 +116,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             if is_reference and required:
                 try:
                     referenced_ooi = self.get_or_create_reference(field, values.get(field))
-                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=datetime.now(timezone.utc)))
+                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=self.observed_at))
                     kwargs[field] = referenced_ooi.reference
                 except IndexError:
                     if required:
@@ -133,7 +133,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
 
     def form_valid(self, form):
         if not self.process_csv(form):
-            return redirect("upload_csv", organization_code=self.organization.code)
+            return redirect(self.build_breadcrumbs()[1]["url"])
         return super().form_valid(form)
 
     def add_error_notification(self, error_message):
@@ -164,7 +164,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
                     ooi, level, declarations = self.get_ooi_from_csv(object_type, row)
                     if declarations:
                         oois.extend(declarations)
-                    oois.append(Declaration(ooi=ooi, valid_time=datetime.now(timezone.utc), task_id=task_id))
+                    oois.append(Declaration(ooi=ooi, valid_time=self.observed_at, task_id=task_id))
                     if isinstance(level, int):
                         self.raise_clearance_level(ooi.reference, level)
                 except ValidationError:

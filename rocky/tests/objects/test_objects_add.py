@@ -16,7 +16,7 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
     response = OOIAddView.as_view()(request, organization_code=client_member.organization.code, ooi_type="Network")
 
     assert response.status_code == 302
-    assert response.url == "/en/test/objects/detail/?ooi_id=Network%7Ctestnetwork"
+    assert response.url == "/en/test/now/objects/Network%7Ctestnetwork"
 
     mock_bytes_client().add_manual_proof.assert_called_once()
     call_args = mock_bytes_client().add_manual_proof.call_args[0]

@@ -118,7 +118,7 @@ class ScheduledReportsView(BreadcrumbsReportOverviewView, SchedulerView, ListVie
             self.delete_report_schedule(str(schedule.id))
             try:
                 self.octopoes_api_connector.delete(
-                    Reference.from_str(f"ReportRecipe|{recipe_id}"), valid_time=datetime.now(timezone.utc)
+                    Reference.from_str(f"ReportRecipe|{recipe_id}"), valid_time=self.observed_at
                 )
                 logger.info(
                     "Schedule and ReportRecipe deleted", event_code="0800083", schedule_id=schedule.id, recipe=recipe_id
@@ -130,7 +130,12 @@ class ScheduledReportsView(BreadcrumbsReportOverviewView, SchedulerView, ListVie
         else:
             messages.error(self.request, _("No schedule or recipe selected"))
 
-        return redirect(reverse("scheduled_reports", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "scheduled_reports",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -181,7 +186,12 @@ class ScheduledReportsEnableDisableView(
                     ).format(report_name_format),
                 )
 
-        return redirect(reverse("scheduled_reports", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "scheduled_reports",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
 
 class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesView, ListView):
@@ -239,7 +249,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
                 messages.error(self.request, _("Other OOI type selected than Report"))
                 return
 
-        self.octopoes_api_connector.delete_many(report_references, datetime.now(timezone.utc))
+        self.octopoes_api_connector.delete_many(report_references, self.observed_at)
         logger.info("Reports deleted", event_code=800073, reports=report_references)
         messages.success(self.request, _("Deletion successful."))
 
@@ -322,7 +332,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
             report_ooi = self.get_report_ooi(report_id).to_report()
             report_ooi.name = report_names[index]
             try:
-                create_ooi(self.octopoes_api_connector, self.bytes_client, report_ooi, datetime.now(timezone.utc))
+                create_ooi(self.octopoes_api_connector, self.bytes_client, report_ooi, self.observed_at)
             except ValidationError:
                 error_reports.append(f'"{report_ooi.name}"')
 
