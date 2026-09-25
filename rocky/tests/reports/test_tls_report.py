@@ -35,14 +35,14 @@ def test_tls_report_multiple_findings_and_suites(
     assert len(data["findings"]) == 3
     assert (
         data["findings"][0].primary_key
-        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-RECOMMENDATION-BAD-CIPHER"
+        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-RECOMMENDATION-TLS-CIPHER"
     )
     assert (
-        data["findings"][1].primary_key == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-MEDIUM-BAD-CIPHER"
+        data["findings"][1].primary_key == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-MEDIUM-TLS-CIPHER"
     )
     assert (
         data["findings"][2].primary_key
-        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-CRITICAL-BAD-CIPHER"
+        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-CRITICAL-TLS-CIPHER"
     )
 
     assert len(data["suites_with_findings"]) == 2

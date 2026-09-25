@@ -10,7 +10,13 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from octopoes.models.ooi.service import IPService
 from reports.report_types.definitions import Report
 
-CIPHER_FINDINGS = ["KAT-RECOMMENDATION-BAD-CIPHER", "KAT-MEDIUM-BAD-CIPHER", "KAT-CRITICAL-BAD-CIPHER"]
+CIPHER_FINDINGS = [
+    "KAT-RECOMMENDATION-TLS-CIPHER",
+    "KAT-LOW-TLS-CIPHER",
+    "KAT-MEDIUM-TLS-CIPHER",
+    "KAT-HIGH-TLS-CIPHER",
+    "KAT-CRITICAL-TLS-CIPHER",
+]
 
 
 class TLSReport(Report):
