@@ -33,7 +33,9 @@ class OOIForm(BaseRockyForm):
 
     def clean(self):
         super().clean()["user_id"] = self.user_id
-        return {key: value for key, value in super().clean().items() if value}
+        # Only drop "no input" values (None, ""), not valid falsy values like
+        # {} or [] which JSONField returns for empty dicts/lists (#3933).
+        return {key: value for key, value in super().clean().items() if value is not None and value != ""}
 
     def get_fields(self) -> dict[str, forms.fields.Field]:
         return self.generate_form_fields()
@@ -70,7 +72,11 @@ class OOIForm(BaseRockyForm):
                 or annotation == dict[str, Any]
                 or annotation == dict[str, JsonValue]
             ):
-                fields[name] = forms.JSONField(**default_attrs)
+                # Django's JSONField treats {} and [] as empty values, but for
+                # dict/list fields these are valid values the model accepts.
+                json_field = forms.JSONField(**default_attrs)
+                json_field.empty_values = [None, ""]
+                fields[name] = json_field
             elif annotation is int or (hasattr(annotation, "__args__") and int in annotation.__args__):
                 fields[name] = forms.IntegerField(**default_attrs)
             elif isclass(annotation) and issubclass(annotation, Enum):
