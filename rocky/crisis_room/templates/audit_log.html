@@ -1,0 +1,62 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div>
+                <h1>{% translate "Crisis room" %}</h1>
+                {% if organization %}
+                    {% include "organization_crisis_room_header.html" with active="activity" %}
+
+                {% else %}
+                    {% include "crisis_room_header.html" with active="activity" %}
+
+                {% endif %}
+                <h2>{% translate "Activity log" %}</h2>
+                <p>{% translate "Recent recorded user actions are shown below." %}</p>
+                {% if audit_logs %}
+                    <div class="horizontal-scroll">
+                        <table class="nowrap">
+                            <caption class="visually-hidden">{% translate "Recent user actions" %}</caption>
+                            <thead>
+                                <tr>
+                                    <th scope="col">{% translate "Date and time" %}</th>
+                                    <th scope="col">{% translate "User" %}</th>
+                                    {% if not organization %}
+                                        <th scope="col">{% translate "Organization" %}</th>
+                                    {% endif %}
+                                    <th scope="col">{% translate "Action" %}</th>
+                                    <th scope="col">{% translate "Object" %}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for entry in audit_logs %}
+                                    <tr>
+                                        <td>
+                                            <time datetime="{{ entry.created_at|date:'c' }}">{{ entry.created_at|date:"SHORT_DATETIME_FORMAT" }}</time>
+                                        </td>
+                                        <td>{{ entry.actor_label }}</td>
+                                        {% if not organization %}<td>{{ entry.organization.name }}</td>{% endif %}
+                                        <td>{{ entry.get_action_display }}</td>
+                                        <td>
+                                            {% if entry.object_pk %}<a href="{{ entry.get_object_url }}">{% endif %}
+                                                {{ entry.get_object_label|default:"—" }}
+                                                {% if entry.object_pk %}</a>{% endif %}
+                                            {% if entry.object_type %}<span class="nota-bene">{{ entry.object_type }}</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p>{% translate "No user actions have been recorded yet." %}</p>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+{% endblock content %}
