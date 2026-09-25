@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-08-24 13:47+0000\n"
 "PO-Revision-Date: 2025-08-22 09:39+0000\n"
 "Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Tamil <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -359,6 +359,7 @@ msgstr "உறுப்பினர் வகை"
 
 #: account/templates/account_detail.html
 #: crisis_room/templates/partials/crisis_room_findings_table.html
+#: onboarding/forms.py onboarding/templates/step_2a_organization_select.html
 #: rocky/templates/tasks/normalizers.html
 msgid "Organization"
 msgstr "அமைப்பு"
@@ -973,6 +974,7 @@ msgstr "விவரங்கள்"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -988,6 +990,7 @@ msgstr "விவரங்களை மூடு"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -1734,7 +1737,7 @@ msgstr "இது அனைத்து செருகுநிரல்கள�
 msgid "Latest plugin settings"
 msgstr "அண்மைக் கால சொருகி அமைப்புகள்"
 
-#: katalogus/templates/katalogus_settings.html
+#: katalogus/templates/katalogus_settings.html tools/forms/scheduler.py
 #: rocky/templates/tasks/ooi_detail_task_list.html
 msgid "Plugin"
 msgstr "சொருகு"
@@ -2289,6 +2292,21 @@ msgid "Please enter a valid URL starting with 'http://' or 'https://'."
 msgstr ""
 "'Http: //' அல்லது 'https: //' உடன் தொடங்கும் செல்லுபடியாகும் முகவரி ஐ உள்ளிடவும்."
 
+#: onboarding/forms.py
+#, fuzzy
+msgid "--- Select an organization ---"
+msgstr "அமைப்பைத் தேர்ந்தெடுக்கவும்"
+
+#: onboarding/forms.py
+#, fuzzy
+msgid "Please select an organization to proceed."
+msgstr "தொடர ஒரு சொருகி என்பதைத் தேர்ந்தெடுக்கவும்."
+
+#: onboarding/forms.py
+#, fuzzy
+msgid "explanation-organization-select"
+msgstr "விளக்கம்-அமைப்பு-பெயர்"
+
 #: onboarding/templates/partials/onboarding_header.html
 msgid "Onboarding"
 msgstr ""
@@ -2355,6 +2373,30 @@ msgstr ""
 msgid "Let's get started"
 msgstr "தொடங்குவோம்"
 
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Select an organization"
+msgstr "அமைப்பைத் தேர்ந்தெடுக்கவும்"
+
+#: onboarding/templates/step_2a_organization_select.html
+msgid ""
+"You are already a member of one or more organizations. Select an existing "
+"organization to continue the onboarding in."
+msgstr ""
+
+#: onboarding/templates/step_2a_organization_select.html
+#: onboarding/templates/step_2b_organization_update.html
+#: onboarding/templates/step_3_indemnification_setup.html
+#: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
+#: onboarding/templates/step_7_clearance_level_introduction.html
+msgid "Continue"
+msgstr "தொடரவும்"
+
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Or create a new organization"
+msgstr "இந்த அமைப்புகளில்"
+
 #: onboarding/templates/step_2a_organization_setup.html
 #: onboarding/templates/step_2b_organization_update.html
 #: rocky/templates/organizations/organization_add.html
@@ -2375,16 +2417,14 @@ msgstr "அமைப்பு விவரங்கள்"
 msgid "Submit"
 msgstr "சமர்ப்பிக்கவும்"
 
+#: onboarding/templates/step_2a_organization_setup.html
+#, fuzzy
+msgid "Or select an existing organization"
+msgstr "அமைப்பைத் தேர்ந்தெடுக்கவும்"
+
 #: onboarding/templates/step_2b_organization_update.html
 msgid "Submit changes"
 msgstr "மாற்றங்களை சமர்ப்பிக்கவும்"
-
-#: onboarding/templates/step_2b_organization_update.html
-#: onboarding/templates/step_3_indemnification_setup.html
-#: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
-#: onboarding/templates/step_7_clearance_level_introduction.html
-msgid "Continue"
-msgstr "தொடரவும்"
 
 #: onboarding/templates/step_3_indemnification_setup.html
 msgid "Indemnification setup"
@@ -5031,10 +5071,6 @@ msgstr "3: ஏற்றுமதி அமைப்பு"
 msgid "Date"
 msgstr "திகதி"
 
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr "தேர்ந்தெடுக்கப்பட்ட தேதி எதிர்காலத்தில் உள்ளது. வேறு தேதியைத் தேர்ந்தெடுக்கவும்."
-
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
 msgstr "எடுத்துக்காட்டாக: -ச்டு -டாப் -போர்ட்ச் 1000"
@@ -5218,7 +5254,7 @@ msgstr "தீவிரத்தினால் வடிகட்டவும�
 msgid "Filter by muted findings"
 msgstr "முடக்கிய கண்டுபிடிப்புகளால் வடிகட்டவும்"
 
-#: tools/forms/findings.py tools/forms/ooi_form.py tools/forms/scheduler.py
+#: tools/forms/findings.py tools/forms/ooi_form.py
 msgid "Search"
 msgstr "தேடல்"
 
@@ -5311,8 +5347,52 @@ msgid "Running"
 msgstr "இயங்கும்"
 
 #: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search (in OOI)"
+msgstr "தேடுகிறது: "
+
+#: tools/forms/scheduler.py
 msgid "Search by object name"
 msgstr "பொருள் பெயரால் தேடுங்கள்"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Input OOI"
+msgstr "உள்ளீடு"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Select specific object"
+msgstr "தேர்ந்தெடுக்கப்பட்ட பொருள்கள்"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search by plugin"
+msgstr "இயக்கப்பட்ட செருகுநிரல்களைக் காட்டு"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Task id"
+msgstr "பணி ஐடி"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search by task ID"
+msgstr "பொருள் பெயரால் தேடுங்கள்"
+
+#: tools/forms/scheduler.py
+#, fuzzy, python-format
+msgid ""
+"The selected date (%s) is in the future. Please select a different date."
+msgstr "தேர்ந்தெடுக்கப்பட்ட தேதி எதிர்காலத்தில் உள்ளது. வேறு தேதியைத் தேர்ந்தெடுக்கவும்."
+
+#: tools/forms/scheduler.py
+msgid "'from'"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'to'"
+msgstr ""
 
 #: tools/forms/settings.py
 msgid "--- Show all ----"
@@ -5979,8 +6059,9 @@ msgid "Add finding"
 msgstr "கண்டுபிடிப்பைச் சேர்க்கவும்"
 
 #: rocky/templates/findings/finding_list.html
-msgid "Findings @ "
-msgstr "கண்டுபிடிப்புகள் @ "
+#, fuzzy
+msgid "Findings "
+msgstr "கண்டுபிடிப்புகள்"
 
 #: rocky/templates/findings/finding_list.html
 #, python-format
@@ -6218,7 +6299,7 @@ msgstr "%(display_type)s சேர்"
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
-#: rocky/templates/partials/ooi_list_toolbar.html rocky/views/ooi_add.py
+#: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Add object"
 msgstr "பொருளைச் சேர்க்கவும்"
 
@@ -6457,6 +6538,49 @@ msgstr "மூல கோப்பைக் காண முடியவில்
 msgid "Warning"
 msgstr "எச்சரிக்கை"
 
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Normalizer task"
+msgstr "இயல்பானவை"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr "விளைவித்த பொருள்கள்"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr "மேவு மற்றும் மூல தரவுகளைப் பதிவிறக்கவும்"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Origin boefje task"
+msgstr "போஃப்செசைப் பயன்படுத்துதல்"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
+msgstr ""
+
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6515,24 +6639,14 @@ msgid "List of views for OOI"
 msgstr "OOI க்கான பார்வைகளின் பட்டியல்"
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due"
-msgstr "இந்த பொருள் கடந்த காலமாகும்"
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due and has been deleted"
-msgstr "இந்த பொருள் கடந்துவிட்டது மற்றும் நீக்கப்பட்டது"
+msgid "You are looking at a historic view of this object."
+msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"This object is past due. You are viewing the object state in a past state."
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
 msgstr ""
-"இந்த பொருள் கடந்த காலமாகும். நீங்கள் கடந்தகால நிலையில் பொருள் நிலையைப் பார்க்கிறீர்கள்."
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's to past due objects."
-msgstr ""
-"கடந்த கால பொருள்களுக்கு நீங்கள் கண்டுபிடிப்புகள் அல்லது பிற OOI ஐ சேர்க்க முடியாது."
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 #: rocky/templates/partials/hyperlink_ooi_id.html
@@ -6865,8 +6979,22 @@ msgid "OOI"
 msgstr "ஓய்"
 
 #: rocky/templates/partials/explanations.html
+#, fuzzy
+msgid "This OOI"
+msgstr "இது"
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
 msgstr "தோற்றம்"
+
+#: rocky/templates/partials/explanations.html
+#, fuzzy
+msgid "declared"
+msgstr "அறிவிக்கப்பட்டது"
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
+msgstr ""
 
 #: rocky/templates/partials/explanations.html
 msgid "Show clearance level inheritance"
@@ -6971,6 +7099,11 @@ msgid "Page"
 msgstr "பக்கம்"
 
 #: rocky/templates/partials/list_paginator.html
+#, fuzzy
+msgid "Current"
+msgstr "மின்னோட்ட்ம், ஓட்டம்"
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr "ஐந்து பக்கங்கள் முன்னோக்கி"
 
@@ -7012,15 +7145,12 @@ msgid "Edit %(display_type)s"
 msgstr "திருத்து %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
-#, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
 msgstr ""
-"\"%(ooi)s\", பொருள் வகை \"%(type)s\" இன் கண்ணோட்டம். இது பொதுவான தகவல்களையும் "
-"அதனுடன் தொடர்புடைய பொருள்களையும் காட்டுகிறது. இது கூடுதல் தொடர்புடைய பொருள்களைச் "
-"சேர்ப்பதற்கான வாய்ப்பையும் வழங்குகிறது, அல்லது அவற்றுக்காக வருடு செய்யவும்."
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
+msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Scan for objects"
@@ -7226,11 +7356,6 @@ msgid ""
 msgstr "போஃப்சே பணியின் கண்ணோட்டம், உள்ளீடு OOI மற்றும் அது உருவாக்கிய மூல தரவு."
 
 #: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr "மேவு மற்றும் மூல தரவுகளைப் பதிவிறக்கவும்"
-
-#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr "மேவு தரவைப் பதிவிறக்கவும்"
 
@@ -7260,6 +7385,35 @@ msgstr "உருவாக்கப்பட்ட தேதி"
 #: rocky/templates/tasks/reports.html
 msgid "Modified date"
 msgstr "மாற்றியமைக்கப்பட்ட தேதி"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Filter on this plugin"
+msgstr "செருகுநிரல்களை வடிகட்டவும்"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Add filter on this plugin"
+msgstr "செருகுநிரல்களை வடிகட்டவும்"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+#, fuzzy
+msgid "Filter on this status"
+msgstr "வடிகட்டி விருப்பங்கள்"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Add filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Filter on this ooi"
+msgstr "வடிகட்டி விருப்பங்கள்"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Add filter on this ooi"
+msgstr "வடிகட்டி விருப்பங்களை மறைக்கவும்"
 
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
@@ -7302,12 +7456,17 @@ msgid "List of tasks"
 msgstr "பணிகளின் பட்டியல்"
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
-msgstr "விளைவித்த பொருள்கள்"
+msgid "Processing input from Boefje task"
+msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
 msgstr "மறுசீரமைப்பு"
+
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Related Normalizer tasks"
+msgstr "இயல்பானவை"
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Download task data"
@@ -7642,6 +7801,11 @@ msgid "Upload raw"
 msgstr "பச்சையாக பதிவேற்றவும்"
 
 #: rocky/views/bytes_raw.py
+#, fuzzy
+msgid "Getting raw data failed, No such meta."
+msgstr "மூல தரவைப் பெறுவது தோல்வியடைந்தது."
+
+#: rocky/views/bytes_raw.py
 msgid "Getting raw data failed."
 msgstr "மூல தரவைப் பெறுவது தோல்வியடைந்தது."
 
@@ -7670,12 +7834,30 @@ msgid "Can not parse date, falling back to show current date."
 msgstr "தேதியை அலச முடியாது, தற்போதைய தேதியைக் காட்ட மீண்டும் விழுகிறது."
 
 #: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
+msgstr ""
+
+#: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
 msgstr "டாச்போர்டில் உருப்படிகளைச் சேர்க்க உங்களுக்கு இசைவு இல்லை."
 
 #: rocky/views/mixins.py
 msgid "Dashboard item has been added."
 msgstr "டாச்போர்டு உருப்படி சேர்க்கப்பட்டுள்ளது."
+
+#: rocky/views/ooi_add.py
+msgid "Type select"
+msgstr "தேர்ந்தெடு தட்டச்சு செய்க"
 
 #: rocky/views/ooi_add.py
 #, python-format
@@ -7941,10 +8123,6 @@ msgid "Scans"
 msgstr "வருடல்கள்"
 
 #: rocky/views/scheduler.py
-msgid "Your report has been scheduled."
-msgstr "உங்கள் அறிக்கை திட்டமிடப்பட்டுள்ளது."
-
-#: rocky/views/scheduler.py
 msgid ""
 "Your task is scheduled and will soon be started in the background. Results "
 "will be added to the object list when they are in. It may take some time, a "
@@ -7953,6 +8131,10 @@ msgstr ""
 "உங்கள் பணி திட்டமிடப்பட்டுள்ளது, விரைவில் பின்னணியில் தொடங்கப்படும். முடிவுகள் அவை "
 "இருக்கும் போது பொருள் பட்டியலில் சேர்க்கப்படும். சிறிது நேரம் ஆகலாம், முடிவுகளைக் காட்ட "
 "பக்கத்தின் புதுப்பிப்பு தேவைப்படலாம்."
+
+#: rocky/views/scheduler.py
+msgid "Your report has been scheduled."
+msgstr "உங்கள் அறிக்கை திட்டமிடப்பட்டுள்ளது."
 
 #: rocky/views/tasks.py
 #, python-brace-format
@@ -8024,6 +8206,35 @@ msgstr "மூல கோப்பை பைட்டுகளில் பதி
 #: rocky/views/upload_raw.py
 msgid "Raw file successfully added."
 msgstr "மூல கோப்பு வெற்றிகரமாக சேர்க்கப்பட்டது."
+
+#~ msgid "Findings @ "
+#~ msgstr "கண்டுபிடிப்புகள் @ "
+
+#~ msgid "This object is past due"
+#~ msgstr "இந்த பொருள் கடந்த காலமாகும்"
+
+#~ msgid "This object is past due and has been deleted"
+#~ msgstr "இந்த பொருள் கடந்துவிட்டது மற்றும் நீக்கப்பட்டது"
+
+#~ msgid ""
+#~ "This object is past due. You are viewing the object state in a past state."
+#~ msgstr ""
+#~ "இந்த பொருள் கடந்த காலமாகும். நீங்கள் கடந்தகால நிலையில் பொருள் நிலையைப் பார்க்கிறீர்கள்."
+
+#~ msgid ""
+#~ "You will not be able to add Findings or other OOI's to past due objects."
+#~ msgstr ""
+#~ "கடந்த கால பொருள்களுக்கு நீங்கள் கண்டுபிடிப்புகள் அல்லது பிற OOI ஐ சேர்க்க முடியாது."
+
+#, python-format
+#~ msgid ""
+#~ "An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
+#~ "information and its related objects. It also gives the possibility to add "
+#~ "additional related objects, or to scan for them."
+#~ msgstr ""
+#~ "\"%(ooi)s\", பொருள் வகை \"%(type)s\" இன் கண்ணோட்டம். இது பொதுவான தகவல்களையும் "
+#~ "அதனுடன் தொடர்புடைய பொருள்களையும் காட்டுகிறது. இது கூடுதல் தொடர்புடைய பொருள்களைச் "
+#~ "சேர்ப்பதற்கான வாய்ப்பையும் வழங்குகிறது, அல்லது அவற்றுக்காக வருடு செய்யவும்."
 
 #~ msgid "Clearance level has been set"
 #~ msgstr "இசைவு நிலை அமைக்கப்பட்டுள்ளது"
@@ -9142,9 +9353,6 @@ msgstr "மூல கோப்பு வெற்றிகரமாக சேர
 #~ msgid "Blocked status"
 #~ msgstr "தடுக்கப்பட்ட நிலை"
 
-#~ msgid "Type select"
-#~ msgstr "தேர்ந்தெடு தட்டச்சு செய்க"
-
 #~ msgid "Add Account Type"
 #~ msgstr "கணக்கு வகையைச் சேர்க்கவும்"
 
@@ -10041,9 +10249,6 @@ msgstr "மூல கோப்பு வெற்றிகரமாக சேர
 
 #~ msgid "View all subreports"
 #~ msgstr "அனைத்து துணை அறிக்கைகளையும் காண்க"
-
-#~ msgid "Input"
-#~ msgstr "உள்ளீடு"
 
 #, python-format
 #~ msgid "Showing %(length)s of %(total)s subreports"

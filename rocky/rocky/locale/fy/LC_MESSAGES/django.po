@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-08-24 13:47+0000\n"
 "PO-Revision-Date: 2025-08-22 09:39+0000\n"
 "Last-Translator: Weblate Translation Memory <noreply-mt-weblate-translation-"
 "memory@weblate.org>\n"
@@ -368,6 +368,7 @@ msgstr "Soarte fan lid"
 
 #: account/templates/account_detail.html
 #: crisis_room/templates/partials/crisis_room_findings_table.html
+#: onboarding/forms.py onboarding/templates/step_2a_organization_select.html
 #: rocky/templates/tasks/normalizers.html
 msgid "Organization"
 msgstr "Organisaasje"
@@ -970,6 +971,7 @@ msgstr "Details"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -985,6 +987,7 @@ msgstr "Details slute"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -1723,7 +1726,7 @@ msgstr "Dit is in oersjoch fan de lêste ynstellingen fan alle ynstekkers."
 msgid "Latest plugin settings"
 msgstr "Lêste ynstekkerynstellingen"
 
-#: katalogus/templates/katalogus_settings.html
+#: katalogus/templates/katalogus_settings.html tools/forms/scheduler.py
 #: rocky/templates/tasks/ooi_detail_task_list.html
 msgid "Plugin"
 msgstr "Ynstekker"
@@ -2285,6 +2288,21 @@ msgstr "taljochting-frijwarrings-nivo"
 msgid "Please enter a valid URL starting with 'http://' or 'https://'."
 msgstr "Fier in jildige URL yn begjinnend mei ‘http://’ of ‘https://’."
 
+#: onboarding/forms.py
+#, fuzzy
+msgid "--- Select an organization ---"
+msgstr "Fan dizze organisaasjes hawwe"
+
+#: onboarding/forms.py
+#, fuzzy
+msgid "Please select an organization to proceed."
+msgstr "Selektearje in ynstekker om troch te gean."
+
+#: onboarding/forms.py
+#, fuzzy
+msgid "explanation-organization-select"
+msgstr "útlis-organisaasje-namme"
+
 #: onboarding/templates/partials/onboarding_header.html
 msgid "Onboarding"
 msgstr ""
@@ -2351,6 +2369,30 @@ msgstr ""
 msgid "Let's get started"
 msgstr "Begjin hjir"
 
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Select an organization"
+msgstr "scande organisaasjes."
+
+#: onboarding/templates/step_2a_organization_select.html
+msgid ""
+"You are already a member of one or more organizations. Select an existing "
+"organization to continue the onboarding in."
+msgstr ""
+
+#: onboarding/templates/step_2a_organization_select.html
+#: onboarding/templates/step_2b_organization_update.html
+#: onboarding/templates/step_3_indemnification_setup.html
+#: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
+#: onboarding/templates/step_7_clearance_level_introduction.html
+msgid "Continue"
+msgstr "Trochgean"
+
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Or create a new organization"
+msgstr "Fan dizze organisaasjes hawwe"
+
 #: onboarding/templates/step_2a_organization_setup.html
 #: onboarding/templates/step_2b_organization_update.html
 #: rocky/templates/organizations/organization_add.html
@@ -2371,16 +2413,14 @@ msgstr "Organisaasjedetails"
 msgid "Submit"
 msgstr "Yntsjinje"
 
+#: onboarding/templates/step_2a_organization_setup.html
+#, fuzzy
+msgid "Or select an existing organization"
+msgstr "Fan dizze organisaasjes hawwe"
+
 #: onboarding/templates/step_2b_organization_update.html
 msgid "Submit changes"
 msgstr "Wizigingen bewarje"
-
-#: onboarding/templates/step_2b_organization_update.html
-#: onboarding/templates/step_3_indemnification_setup.html
-#: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
-#: onboarding/templates/step_7_clearance_level_introduction.html
-msgid "Continue"
-msgstr "Trochgean"
 
 #: onboarding/templates/step_3_indemnification_setup.html
 msgid "Indemnification setup"
@@ -4844,10 +4884,6 @@ msgstr ""
 msgid "Date"
 msgstr ""
 
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr ""
-
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
 msgstr ""
@@ -5025,7 +5061,7 @@ msgstr ""
 msgid "Filter by muted findings"
 msgstr ""
 
-#: tools/forms/findings.py tools/forms/ooi_form.py tools/forms/scheduler.py
+#: tools/forms/findings.py tools/forms/ooi_form.py
 msgid "Search"
 msgstr ""
 
@@ -5118,7 +5154,48 @@ msgid "Running"
 msgstr ""
 
 #: tools/forms/scheduler.py
+msgid "Search (in OOI)"
+msgstr ""
+
+#: tools/forms/scheduler.py
 msgid "Search by object name"
+msgstr ""
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Input OOI"
+msgstr "Ynfier"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Select specific object"
+msgstr "Selektearre objekt"
+
+#: tools/forms/scheduler.py
+#, fuzzy
+msgid "Search by plugin"
+msgstr "Ynskeakele ynstekkers toane"
+
+#: tools/forms/scheduler.py
+msgid "Task id"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by task ID"
+msgstr ""
+
+#: tools/forms/scheduler.py
+#, python-format
+msgid ""
+"The selected date (%s) is in the future. Please select a different date."
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'from'"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'to'"
 msgstr ""
 
 #: tools/forms/settings.py
@@ -5731,8 +5808,9 @@ msgid "Add finding"
 msgstr ""
 
 #: rocky/templates/findings/finding_list.html
-msgid "Findings @ "
-msgstr ""
+#, fuzzy
+msgid "Findings "
+msgstr "Befiningen"
 
 #: rocky/templates/findings/finding_list.html
 #, python-format
@@ -5946,7 +6024,7 @@ msgstr ""
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
-#: rocky/templates/partials/ooi_list_toolbar.html rocky/views/ooi_add.py
+#: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Add object"
 msgstr ""
 
@@ -6175,6 +6253,48 @@ msgstr ""
 msgid "Warning"
 msgstr ""
 
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Normalizer task"
+msgstr "Normalizers"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
+msgstr ""
+
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6229,21 +6349,13 @@ msgid "List of views for OOI"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due"
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due and has been deleted"
+msgid "You are looking at a historic view of this object."
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"This object is past due. You are viewing the object state in a past state."
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's to past due objects."
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
 msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
@@ -6558,7 +6670,19 @@ msgid "OOI"
 msgstr ""
 
 #: rocky/templates/partials/explanations.html
+msgid "This OOI"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "declared"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
 msgstr ""
 
 #: rocky/templates/partials/explanations.html
@@ -6664,6 +6788,11 @@ msgid "Page"
 msgstr ""
 
 #: rocky/templates/partials/list_paginator.html
+#, fuzzy
+msgid "Current"
+msgstr "aktueel"
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr ""
 
@@ -6705,11 +6834,11 @@ msgid "Edit %(display_type)s"
 msgstr ""
 
 #: rocky/templates/partials/ooi_head.html
-#, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
+msgstr ""
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
 msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
@@ -6912,11 +7041,6 @@ msgid ""
 msgstr ""
 
 #: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr ""
-
-#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr ""
 
@@ -6946,6 +7070,34 @@ msgstr ""
 #: rocky/templates/tasks/reports.html
 msgid "Modified date"
 msgstr "Bewurke datum"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Filter on this plugin"
+msgstr "Ynstekkers filterje"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Add filter on this plugin"
+msgstr "Ynstekkers filterje"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+#, fuzzy
+msgid "Filter on this status"
+msgstr "Filteropsjes"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Add filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+#, fuzzy
+msgid "Filter on this ooi"
+msgstr "Filteropsjes"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this ooi"
+msgstr ""
 
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
@@ -6988,12 +7140,17 @@ msgid "List of tasks"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
+msgid "Processing input from Boefje task"
 msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
 msgstr ""
+
+#: rocky/templates/tasks/partials/task_actions.html
+#, fuzzy
+msgid "Related Normalizer tasks"
+msgstr "Normalizers"
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Download task data"
@@ -7286,6 +7443,10 @@ msgid "Upload raw"
 msgstr ""
 
 #: rocky/views/bytes_raw.py
+msgid "Getting raw data failed, No such meta."
+msgstr ""
+
+#: rocky/views/bytes_raw.py
 msgid "Getting raw data failed."
 msgstr ""
 
@@ -7314,11 +7475,29 @@ msgid "Can not parse date, falling back to show current date."
 msgstr ""
 
 #: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
+msgstr ""
+
+#: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
 msgstr ""
 
 #: rocky/views/mixins.py
 msgid "Dashboard item has been added."
+msgstr ""
+
+#: rocky/views/ooi_add.py
+msgid "Type select"
 msgstr ""
 
 #: rocky/views/ooi_add.py
@@ -7576,14 +7755,14 @@ msgid "Scans"
 msgstr ""
 
 #: rocky/views/scheduler.py
-msgid "Your report has been scheduled."
-msgstr ""
-
-#: rocky/views/scheduler.py
 msgid ""
 "Your task is scheduled and will soon be started in the background. Results "
 "will be added to the object list when they are in. It may take some time, a "
 "refresh of the page may be needed to show the results."
+msgstr ""
+
+#: rocky/views/scheduler.py
+msgid "Your report has been scheduled."
 msgstr ""
 
 #: rocky/views/tasks.py
@@ -8614,9 +8793,6 @@ msgstr "Raw-bestân mei sukses tafoege."
 #~ msgid "This sector contains"
 #~ msgstr "Dizze sektor befettet"
 
-#~ msgid "scanned organizations."
-#~ msgstr "scande organisaasjes."
-
 #~ msgid "A total of "
 #~ msgstr "In totaal fan "
 
@@ -8659,9 +8835,6 @@ msgstr "Raw-bestân mei sukses tafoege."
 
 #~ msgid "View all subreports"
 #~ msgstr "Alle subrapporten besjen"
-
-#~ msgid "Input"
-#~ msgstr "Ynfier"
 
 #, python-format
 #~ msgid "Showing %(length)s of %(total)s subreports"
@@ -8757,11 +8930,6 @@ msgstr "Raw-bestân mei sukses tafoege."
 
 #~ msgid "Clearance level:"
 #~ msgstr "Frijwarringsnivo:"
-
-#~ msgid "Selected object"
-#~ msgid_plural "Selected objects"
-#~ msgstr[0] "Selektearre objekt"
-#~ msgstr[1] "Selektearre objekten"
 
 #~ msgid "Permission to set OOI clearance levels "
 #~ msgstr "Tastimming om frijwarringsnivo’s fan OOI yn te stellen "
