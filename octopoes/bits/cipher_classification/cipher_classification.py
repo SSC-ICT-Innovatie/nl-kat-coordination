@@ -15,14 +15,7 @@ SEVERITY_TO_ID = {
     "Recommendation": "KAT-RECOMMENDATION-TLS-CIPHER",
 }
 
-SEVERITY_LEVELS = {
-    "Critical": 5,
-    "High": 4,
-    "Medium": 3,
-    "Low": 2,
-    "Recommendation": 1,
-    "Informational": 0,
-}
+SEVERITY_LEVELS = {"Critical": 5, "High": 4, "Medium": 3, "Low": 2, "Recommendation": 1, "Informational": 0}
 
 
 def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
@@ -55,9 +48,7 @@ def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
     return severities_and_reasons
 
 
-def get_reasons_by_severity(
-    cipher_suites: dict,
-) -> dict[str, list[str]]:
+def get_reasons_by_severity(cipher_suites: dict) -> dict[str, list[str]]:
     reasons_by_severity: dict[str, list[str]] = {}
 
     for suites in cipher_suites.values():
@@ -69,19 +60,11 @@ def get_reasons_by_severity(
 
     return reasons_by_severity
 
-def run(
-    input_ooi: TLSCipher,
-    additional_oois: list,
-    config: dict[str, Any],
-) -> Iterator[OOI]:
+
+def run(input_ooi: TLSCipher, additional_oois: list, config: dict[str, Any]) -> Iterator[OOI]:
     reasons_by_severity = get_reasons_by_severity(input_ooi.suites)
 
-    for severity in sorted(
-        reasons_by_severity,
-        key=lambda severity: SEVERITY_LEVELS.get(severity, -1),
-        reverse=True,
-    ):
-
+    for severity in sorted(reasons_by_severity, key=lambda severity: SEVERITY_LEVELS.get(severity, -1), reverse=True):
         if severity not in SEVERITY_TO_ID:
             continue
 
