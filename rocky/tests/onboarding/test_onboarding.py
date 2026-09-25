@@ -3,6 +3,7 @@ from django.core.exceptions import PermissionDenied
 from django.test import Client
 from django.urls import reverse
 from httpx import HTTPError
+from onboarding.forms import OnboardingCreateObjectURLForm
 from onboarding.view_helpers import DNS_REPORT_LEAST_CLEARANCE_LEVEL
 from onboarding.views import (
     OnboardingAcknowledgeClearanceLevelView,
@@ -250,6 +251,24 @@ def test_step_5_onboarding_setup_scan_detail_create_ooi(
     assert response.status_code == 302
 
 
+def test_step_5_onboarding_form_rejects_ip_address():
+    """#4043: the onboarding DNS report requires a hostname; an IP-address URL
+    must be rejected at the form instead of crashing later in get_ooi_pks."""
+    form = OnboardingCreateObjectURLForm(data={"url": "http://127.0.0.1"})
+    assert not form.is_valid()
+    assert "IP address" in str(form.errors["url"])
+
+    # localhost never reaches DNS, so it must be rejected too — including a
+    # bare "localhost", which URLField expands to https://localhost
+    for localhost_url in ("localhost", "https://localhost:8443", "https://foo.localhost"):
+        form = OnboardingCreateObjectURLForm(data={"url": localhost_url})
+        assert not form.is_valid(), localhost_url
+        assert "localhost" in str(form.errors["url"])
+
+    form = OnboardingCreateObjectURLForm(data={"url": "http://example.com"})
+    assert form.is_valid()
+
+
 def test_step_6_onboarding_set_clearance_level(
     rf, superuser_member, admin_member, redteam_member, client_member, mock_organization_view_octopoes, url
 ):
@@ -386,6 +405,42 @@ def test_step_9a_onboarding_ooi_detail_scan_create_report_schedule(
 
     assert response.status_code == 302
     assert "recipe_id" in response.url
+
+
+@pytest.mark.parametrize(
+    "raw_url,web_url_ref",
+    [
+        ("http://127.0.0.1", "IPAddressHTTPURL|http|testnetwork|127.0.0.1|80|/"),
+        ("http://localhost", "HostnameHTTPURL|http|testnetwork|localhost|80|/"),
+    ],
+)
+def test_step_9a_onboarding_ip_address_url_no_crash(
+    rf, mocker, redteam_member, mock_bytes_client, mock_organization_view_octopoes, network, raw_url, web_url_ref
+):
+    """#4043: a URL whose web_url netloc is an IP address (IPAddressHTTPURL)
+    must not crash get_ooi_pks with a KeyError, and a localhost URL never
+    reaches DNS. The report creation is aborted with a user-friendly error
+    instead of a 500 or a useless report."""
+    from octopoes.models import Reference
+    from octopoes.models.ooi.web import URL
+
+    ip_url = URL(network=network.reference, raw=raw_url, web_url=Reference(web_url_ref))
+
+    mocker.patch("account.mixins.OrganizationView.katalogus_client")
+    mocker.patch("crisis_room.management.commands.dashboards.scheduler_client")
+    mock_organization_view_octopoes().get.return_value = ip_url
+    mock_bytes_client().upload_raw.return_value = "raw_id"
+
+    request_url = (
+        reverse("step_9a_setup_scan_ooi_detail", kwargs={"organization_code": redteam_member.organization.code})
+        + f"?report_type=dns-report&ooi={ip_url.primary_key}"
+    )
+
+    response = OnboardingCreateReportRecipe.as_view()(
+        setup_request(rf.post(request_url), redteam_member.user), organization_code=redteam_member.organization.code
+    )
+
+    assert response.status_code == 200  # re-renders the page, no 500 crash
 
 
 @pytest.mark.parametrize("member", ["superuser_member", "admin_member", "redteam_member", "client_member"])
