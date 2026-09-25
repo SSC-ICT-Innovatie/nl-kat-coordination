@@ -15,12 +15,11 @@ class ZoneNotFoundException(Exception):
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     input_ = boefje_meta["arguments"]["input"]
-    zone_ooi = input_["hostname"]["name"]
+    ooi = input_["hostname"]["name"] if "hostname" in input_ else input_["name"]
+    name = dns.name.from_text(ooi)
 
-    zone_name = dns.name.from_text(zone_ooi)
-
-    zone_parent = zone_name.parent()
-    zone_soa_record = get_parent_zone_soa(zone_parent)
+    parent = name.parent()
+    zone_soa_record = get_parent_zone_soa(parent)
 
     answers = [zone_soa_record]
     answers_formatted = [f"RESOLVER: {answer.nameserver}\n{answer.response}" for answer in answers]
