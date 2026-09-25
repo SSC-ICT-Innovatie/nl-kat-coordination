@@ -412,6 +412,10 @@ cron-descriptor==2.0.8 \
     --hash=sha256:21fae0e6e0e28b19fd6a08e032c700077fe759e9bc1deb1ebe32f277fbc8ba6c \
     --hash=sha256:7e487efe14a99a3c1c23bb5302bb75c8bf5d54bca82931bf71f5ae2855939772
     # via rocky
+croniter==6.2.4 \
+    --hash=sha256:8ef3d544107a5c05a150a2d78f8bf5a8eb9c5c4d93405a736b824109574e3f4d \
+    --hash=sha256:fc124f751b1b04805c2a04b061898b436b45ab2320b045e1e052ea895de65189
+    # via rocky
 cssbeautifier==1.15.4 \
     --hash=sha256:78c84d5e5378df7d08622bbd0477a1abdbd209680e95480bf22f12d5701efc98 \
     --hash=sha256:9bb08dc3f64c101a01677f128acf01905914cf406baf87434dcde05b74c0acf5
@@ -1426,6 +1430,10 @@ pytest-lambda==2.2.1 \
 pytest-mock==3.15.1 \
     --hash=sha256:0a25e2eb88fe5168d535041d09a4529a188176ae608a6d249ee65abc0949630d \
     --hash=sha256:1849a238f6f396da19762269de72cb1814ab44416fa73a8686deac10b0d87a0f
+python-dateutil==2.9.0.post0 \
+    --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
+    --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427
+    # via croniter
 python-dotenv==1.2.2 \
     --hash=sha256:1d8214789a24de455a8b8bd8ae6fe3c6b69a5e3d64aa8a8e5d68e694bbcb285a \
     --hash=sha256:2c371a91fbd7ba082c2c1dc1f8bf89ca22564a087c2c287cd9b662adde799cf3
@@ -1789,6 +1797,7 @@ six==1.17.0 \
     # via
     #   cssbeautifier
     #   jsbeautifier
+    #   python-dateutil
 sniffio==1.3.1 \
     --hash=sha256:2f6da418d1f1e0fddd844478f41680e794e6051915791a034ff65e5f100525a2 \
     --hash=sha256:f4324edc670a0f49750a81b895f35c3adb843cca46f0530f79fc1babb23789dc
