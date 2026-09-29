@@ -6,7 +6,8 @@ from collections.abc import Iterable
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 from dateutil.parser import parse
 
 from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
@@ -117,16 +118,26 @@ def read_certificates(
             subject_alternative_names = []
         valid_from = cert.not_valid_before_utc.isoformat()
         valid_until = cert.not_valid_after_utc.isoformat()
-        pk_size = cert.public_key().key_size
-        logging.info("Parsing certificate of type %s", type(cert.public_key()))
-        if isinstance(cert.public_key(), rsa.RSAPublicKey):
+
+        public_key = cert.public_key()
+
+        logging.info("Parsing certificate of type %s", type(public_key))
+
+        if isinstance(public_key, rsa.RSAPublicKey):
             pk_algorithm = str(AlgorithmType.RSA)
-            pk_number = cert.public_key().public_numbers().n.to_bytes(pk_size // 8, "big").hex()
-        elif isinstance(cert.public_key(), ec.EllipticCurvePublicKey):
+            pk_size = public_key.key_size
+            pk_number = public_key.public_numbers().n.to_bytes(pk_size // 8, "big").hex()
+        elif isinstance(public_key, ec.EllipticCurvePublicKey):
             pk_algorithm = str(AlgorithmType.ECC)
-            pk_number = hex(cert.public_key().public_numbers().x) + hex(cert.public_key().public_numbers().y)
+            pk_size = public_key.key_size
+            pk_number = hex(public_key.public_numbers().x) + hex(public_key.public_numbers().y)
+        elif isinstance(public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
+            pk_algorithm = str(AlgorithmType.EDDSA)
+            pk_size = None
+            pk_number = public_key.public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
         else:
             pk_algorithm = None
+            pk_size = None
             pk_number = None
 
         certificate = X509Certificate(
