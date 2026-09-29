@@ -109,7 +109,11 @@ def read_certificates(
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
         except IndexError:
             subject = None
-        issuer = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)[0].value
+
+        # get the issuer organization name, if available
+        issuer_attributes = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)
+        issuer = issuer_attributes[0].value if issuer_attributes else None
+
         try:
             subject_alternative_names = [
                 name.value for name in cert.extensions.get_extension_for_oid(x509.OID_SUBJECT_ALTERNATIVE_NAME).value
