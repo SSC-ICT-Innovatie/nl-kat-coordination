@@ -37,8 +37,12 @@ def test_ssl_certificates_normalizer():
 
 # Test cases for EdDSA certificates (Ed25519 and Ed448)
 def _create_ed_certificate(private_key):
-    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "test.example"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+        ]
+    )
     now = datetime.datetime.now(datetime.timezone.utc)
 
     certificate = (
