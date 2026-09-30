@@ -1,11 +1,12 @@
+# jan klopper <jan@underdark.nl>, 2026.
 #: reports/forms.py
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-20 07:38+0000\n"
-"PO-Revision-Date: 2025-08-22 09:39+0000\n"
-"Last-Translator: Anonymous <noreply@weblate.org>\n"
+"PO-Revision-Date: 2026-09-30 19:33+0000\n"
+"Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Papiamento <https://hosted.weblate.org/projects/openkat/nl-"
 "kat-coordination/pap/>\n"
 "Language: pap\n"
@@ -13,7 +14,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.13\n"
+"X-Generator: Weblate 2026.10.dev0\n"
 
 #: account/admin.py
 msgid "Permissions"
@@ -1625,8 +1626,8 @@ msgid ""
 "be advised that by continuing you will declare a level %(scan_level)s on "
 "these objects."
 msgstr ""
-"E sigiente ophetonan no ta pone na e nivel di autorisashon number "
-"%(scan_level)s, por fabor ta consiente ku pa sigi bo ta deklara un nivel di "
+"E sigiente ophetonan no ta pone na e nivel di autorisashon number %"
+"(scan_level)s, por fabor ta consiente ku pa sigi bo ta deklara un nivel di "
 "autorisashon di %(scan_level)s riba e ophetonan."
 
 #: katalogus/templates/change_clearance_level.html
@@ -1832,9 +1833,9 @@ msgid ""
 msgstr ""
 "E boefje aki ta skan solamente ophetonan ku un nivél di autorisashon di "
 "<strong>L%(scan_level)s</strong> òf mas haltu. No tin indemnizashon pa e "
-"boefje pa skan un OOI ku un nivél di autorisashon mas abou ku "
-"<strong>L%(scan_level)s</strong>. Uza e filter pa mustra OOI's ku un nivél "
-"di autorisashon mas abou."
+"boefje pa skan un OOI ku un nivél di autorisashon mas abou ku <strong>L%"
+"(scan_level)s</strong>. Uza e filter pa mustra OOI's ku un nivél di "
+"autorisashon mas abou."
 
 #: katalogus/templates/partials/objects_to_scan.html
 msgid "Warning scan level:"
@@ -5211,11 +5212,11 @@ msgid ""
 "the mime type \"boefje/dns-records\" is added, the normalizer expects the "
 "raw file to contain dns scan information.</p>"
 msgstr ""
-"<p>Agregá un grupo di mime types, separá ku komas, por ehèmpel:</"
-"p><p><i>\"text/html, image/jpeg\"</i> òf <i>\"boefje/dns-records\"</i>.</"
-"p><p>Tipo mime ta wordu usá pa activa e normalizador korekto na un arkivo "
-"Ora e tipo mime \"boefje/dns-records\" ta wordu agregá, e normalizador ta "
-"spera ku e arkivo ta kontené informashon di skaneo di dns.</p>"
+"<p>Agregá un grupo di mime types, separá ku komas, por ehèmpel:</p><p><i>"
+"\"text/html, image/jpeg\"</i> òf <i>\"boefje/dns-records\"</i>.</p><p>Tipo "
+"mime ta wordu usá pa activa e normalizador korekto na un arkivo Ora e tipo "
+"mime \"boefje/dns-records\" ta wordu agregá, e normalizador ta spera ku e "
+"arkivo ta kontené informashon di skaneo di dns.</p>"
 
 #: tools/forms/upload_raw.py rocky/templates/partials/ooi_list_toolbar.html
 #: rocky/templates/upload_raw.html
@@ -5661,15 +5662,15 @@ msgid "Findings @ "
 msgstr "Diskubrimentu"
 
 #: rocky/templates/findings/finding_list.html
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "An overview of all findings OpenKAT found for organization "
 "<strong>%(organization_name)s</strong>. Each finding relates to an object. "
 "Click a finding for additional information."
 msgstr ""
-"Un relato general di tur diskubrimentu OpenKAT á enkontrá riba %(date)s. "
-"Kada diskubrimentu ta relatá na un opheto. Klék un diskubrimentu pa "
-"informashon adishonál."
+"Un bista di tur e resultadonan ku OpenKAT a haña pa organisashon <strong>%"
+"(organization_name)s</strong>. Kada hañamentu ta relashoná ku un opheto. "
+"Klik riba un hallazgo pa informashon adishonal."
 
 #: rocky/templates/findings/finding_list.html
 #, python-format
@@ -5820,8 +5821,7 @@ msgstr "OpenKAT ta sigurá"
 msgid ""
 "Forensically secured storage of evidence is one of the basic ingredients of "
 "OpenKAT."
-msgstr ""
-"Evidensia forénsiko sigurá ta un di e íngredientenan basiko di OpenKAT."
+msgstr "Evidensia forénsiko sigurá ta un di e íngredientenan basiko di OpenKAT."
 
 #: rocky/templates/landing_page.html
 msgid "OpenKAT is sweet"
@@ -5939,8 +5939,7 @@ msgstr "Kita %(display_type)s"
 
 #: rocky/templates/oois/ooi_delete.html
 msgid "Deletion not possible for types: KATFindingType and CVEFindingType"
-msgstr ""
-"Kitamentu no ta posibel pa e tiponan: KATFindingType and CVEFindingType"
+msgstr "Kitamentu no ta posibel pa e tiponan: KATFindingType and CVEFindingType"
 
 #: rocky/templates/oois/ooi_detail.html
 msgid "using boefjes"
@@ -6152,15 +6151,15 @@ msgid "Currently no findings have been identified for OOI"
 msgstr ""
 
 #: rocky/templates/oois/ooi_list.html
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "An overview of objects found for organization <strong>%(organization_name)s</"
 "strong>. Objects can be added manually or by running Boefjes. Click an "
 "object for additional information."
 msgstr ""
-"Un bista general di bo lista di ophetonan. Ophetonan por wòrdu añadí "
-"manualmente òf dor di ehekutá boefjes. </br> Klik riba un opheto pa mas "
-"informashon."
+"Un bista di ophetonan hañá pa organisashon <strong>%(organization_name)s</"
+"strong>. Ophetonan por wòrdu agregá manualmente òf dor di kore Boefjes. Klik "
+"riba un opheto pa informashon adishonal."
 
 #: rocky/templates/oois/ooi_list.html
 #: rocky/templates/scan_profiles/scan_profile_detail.html
@@ -6480,8 +6479,8 @@ msgstr "Mustra detayes pa %(object_id)s, ku %(child_count)s su yiunan."
 msgid ""
 "Show tree for %(object_id)s with only children of type %(object_ooi_type)s"
 msgstr ""
-"Mustra resultado pa %(object_id)s ku solamente yiunan di e tipo "
-"%(object_ooi_type)s"
+"Mustra resultado pa %(object_id)s ku solamente yiunan di e tipo %"
+"(object_ooi_type)s"
 
 #: rocky/templates/partials/elements/ooi_tree_condensed_table_row.html
 #, python-format
@@ -7269,8 +7268,7 @@ msgstr "Bo OTP token ta %(token)s"
 
 #: rocky/templates/upload_csv.html
 msgid "Automate the creation of multiple objects by uploading a CSV file."
-msgstr ""
-"Automatisá a kreashon di diferente ophetonan dor di upload un CSV file."
+msgstr "Automatisá a kreashon di diferente ophetonan dor di upload un CSV file."
 
 #: rocky/templates/upload_csv.html
 msgid "These are the criteria for CSV upload:"
