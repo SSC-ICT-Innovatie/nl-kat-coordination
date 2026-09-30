@@ -2,19 +2,23 @@
 # Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
 # This file is distributed under the same license as the PACKAGE package.
 #
+# jan klopper <jan@underdark.nl>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Polish (OpenKAT)\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-03-28 14:22+0000\n"
-"PO-Revision-Date: 2026-07-15 00:00+0000\n"
-"Last-Translator: Automatically generated\n"
-"Language-Team: Polish <https://hosted.weblate.org/projects/openkat/nl-kat-coordination/pl/>\n"
+"PO-Revision-Date: 2026-09-30 19:33+0000\n"
+"Last-Translator: jan klopper <jan@underdark.nl>\n"
+"Language-Team: Polish <https://hosted.weblate.org/projects/openkat/nl-kat-"
+"coordination/pl/>\n"
 "Language: pl\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"Plural-Forms: nplurals=3; plural=(n == 1 ? 0 : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 12 || n % 100 > 14) ? 1 : 2);\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 "
+"|| n%100>=20) ? 1 : 2);\n"
+"X-Generator: Weblate 2026.10.dev0\n"
 
 #: account/admin.py
 msgid "Permissions"
@@ -425,7 +429,7 @@ msgid ""
 msgstr ""
 "Otrzymałeś zezwolenie na poziom L%(tcl)s od swojego administratora. Zanim "
 "będziesz mógł zmienić poziomy uprawnień OOI aż do tego poziomu, musisz "
-"zaakceptować to uprawnienie. Pamiętaj: <strong> z wielką mocą wiąże się "
+"zaakceptować to uprawnienie. Pamiętaj: <strong>z wielką mocą wiąże się "
 "wielka odpowiedzialność.</strong>"
 
 #: account/templates/account_detail.html
@@ -1297,10 +1301,10 @@ msgid ""
 "press the options button next to the section name to create a dashboard "
 "item."
 msgstr ""
-"Aby dodać sekcję raportu <strong></strong>, przejdź do strony historii i "
+"Aby  dodać <strong>sekcję raportu</strong>, przejdź do strony historii i "
 "otwórz raport. Następnie przejdź do sekcji, którą chcesz dodać do swojego "
-"dashboardu i naciśnij przycisk opcji obok nazwy sekcji, aby utworzyć element"
-" dashboardu."
+"dashboardu i naciśnij przycisk opcji obok nazwy sekcji, aby utworzyć element "
+"dashboardu."
 
 #: crisis_room/templates/partials/new_dashboard_item_explanation_modal.html
 msgid "Go to report history"
@@ -1647,8 +1651,9 @@ msgid ""
 "href=\"https://docs.openkat.nl/developer_documentation/development_tutorial/creating_a_boefje.html\">documentation</a>."
 msgstr ""
 "Możesz utworzyć nowy Boefje. Jeśli chcesz uzyskać więcej informacji na ten "
-"temat, zapoznaj się z dokumentacją <a "
-"href=\"https://docs.openkat.nl/developer_documentation/development_tutorial/creating_a_boefje.html\"></a>."
+"temat, zapoznaj się z <a href=\"https://docs.openkat.nl/"
+"developer_documentation/development_tutorial/creating_a_boefje.html\">"
+"dokumentacją</a>."
 
 #: katalogus/templates/boefje_setup.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
@@ -5646,9 +5651,9 @@ msgid ""
 "indemnities'> documentation</a>.</p> "
 msgstr ""
 "<p>Wybierz poziom luzu dla swojego Boefje. Więcej informacji na temat "
-"różnych poziomów luzu można znaleźć w dokumentacji <a "
-"href='https://docs.openkat.nl/manual/usermanual.html#scan-levels-clearance-"
-"indemnities'></a>.</p>"
+"różnych poziomów luzu można znaleźć w <a href='https://docs.openkat.nl/"
+"manual/usermanual.html#scan-levels-clearance-indemnities'> dokumentacji</a>"
+".</p> "
 
 #: tools/forms/settings.py
 msgid ""
@@ -6499,8 +6504,8 @@ msgid ""
 "page</a> to add one."
 msgstr ""
 "<strong>Ostrzeżenie:</strong> Ta organizacja nie otrzymuje żadnego "
-"zabezpieczenia. Przejdź do strony ustawień organizacji <a "
-"href=\"%(organization_settings)s\"></a>, aby ją dodać."
+"zabezpieczenia. Przejdź do strony <a href=\"%(organization_settings)s\">"
+"ustawień organizacji</a> aby ją dodać."
 
 #: rocky/templates/oois/ooi_detail.html
 msgid "Permission warning"
@@ -6528,9 +6533,9 @@ msgid ""
 "details</a> to manage your clearance level."
 msgstr ""
 "<strong>Ostrzeżenie:</strong> Nie masz uprawnień do skanowania tego OOI. "
-"Twój maksymalny poziom uprawnień to %(member_clearance_level)s, a ten OOI ma"
-" poziom %(boefje_scan_level)s. Przejdź do szczegółów konta <a "
-"href=\"%(account_details)s\"></a>, aby zarządzać poziomem uprawnień."
+"Twój maksymalny poziom uprawnień to %(member_clearance_level)s, a ten OOI ma "
+"poziom %(boefje_scan_level)s. Przejdź do <a href=\"%(account_details)s\">"
+"szczegółów konta</a>, aby zarządzać poziomem uprawnień."
 
 #: rocky/templates/oois/ooi_detail.html rocky/templates/scan.html
 msgid "Boefjes overview"
@@ -6883,9 +6888,9 @@ msgid ""
 "target=\"_blank\" rel=\"noopener\">documentation</a>."
 msgstr ""
 "Tworzenie nowego członka organizacji <strong>%(organization)s</strong>. Aby "
-"uzyskać szczegółowe informacje na temat różnych typów kont, sprawdź "
-"dokumentację <a href=\"https://docs.openkat.nl/basics/users-and-"
-"organisations.html#users\" target=\"_blank\" rel=\"noopener\"></a>."
+"uzyskać szczegółowe informacje na temat różnych typów kont, sprawdź <a "
+"href=\"https://docs.openkat.nl/basics/users-and-organisations.html#users\" "
+"target=\"_blank\" rel=\"noopener\">dokumentację</a>."
 
 #: rocky/templates/organizations/organization_member_edit.html
 #: rocky/views/organization_member_edit.py
