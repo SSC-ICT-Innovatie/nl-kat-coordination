@@ -23,7 +23,7 @@
                         data-task-type="{{ task.type }}"
                         data-task-status="{{ task.status.value }}">
                         <td class="nowrap">
-                            <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.value|capfirst }}
+                            <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.label }}
                         </td>
                         <td>{{ task.created_at }}</td>
                         <td>

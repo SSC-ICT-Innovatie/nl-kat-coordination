@@ -37,12 +37,12 @@ if ! command -v sudo; then
         echo "Sudo could not be found, please first install sudo as root"
         exit 1
     fi
-    apt -y update
-    apt -y install sudo
+    apt-get -y update
+    apt-get -y install sudo
 fi
 
-sudo apt -y update
-sudo apt -y install curl
+sudo apt-get -y update
+sudo apt-get -y install curl
 
 echo "Step 1 - Determine latest xtdb-http-multinode and OpenKAT versions"
 
@@ -71,10 +71,10 @@ curl -LO "https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/releases/down
 
 echo "Step 3 - Install OpenKAT and xtdb"
 tar zvxf kat-*.tar.gz
-sudo apt install -y --no-install-recommends ./kat-*_amd64.deb ./xtdb-http-multinode_*_all.deb
+sudo apt-get install -y --no-install-recommends ./kat-*_amd64.deb ./xtdb-http-multinode_*_all.deb
 
 echo "Step 4 - Setup postgres databases"
-sudo apt -y install postgresql
+sudo apt-get -y install postgresql
 
 sudo systemctl start postgresql
 
@@ -240,7 +240,7 @@ fi
 echo "Step 6 - RabbitMQ-server setup"
 
 echo "Step 6.1 - Install rabbitmq-server"
-sudo apt -y install rabbitmq-server
+sudo apt-get -y install rabbitmq-server
 
 echo "Step 6.2 - Stop rabbitmq-server"
 sudo systemctl stop rabbitmq-server
