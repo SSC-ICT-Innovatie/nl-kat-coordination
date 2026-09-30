@@ -47,6 +47,7 @@ dependencies = [
     "structlog>=25.3.0,<26",
     "django-structlog>=9.1.1,<10",
     "cron-descriptor>=2",
+    "croniter>=6.0.0,<7",
     "structlog>=25.3.0,<26",
     "django-structlog>=9.1.1,<10",
     "weasyprint>=70.0",
