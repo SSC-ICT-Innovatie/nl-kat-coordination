@@ -161,24 +161,24 @@ class ScheduledReportsEnableDisableView(
         schedule = self.get_schedule_with_filters(filters) if recipe_id else None
 
         if schedule:
-            is_schedule_enabled = not schedule.enabled
+            new_enabled_state = not schedule.enabled
 
-            self.edit_report_schedule(str(schedule.id), {"enabled": is_schedule_enabled})
+            self.edit_report_schedule(str(schedule.id), {"enabled": new_enabled_state})
 
-            if is_schedule_enabled:
+            if new_enabled_state:
+                messages.success(
+                    self.request,
+                    _("Schedule enabled successfully. '{}' will be generated according to schedule.").format(
+                        report_name_format
+                    ),
+                )
+            else:
                 messages.success(
                     self.request,
                     _(
                         "Schedule disabled successfully. '{}' will not be generated "
                         "automatically until the schedule is enabled again."
                     ).format(report_name_format),
-                )
-            else:
-                messages.success(
-                    self.request,
-                    _("Schedule enabled successfully. '{}' will be generated according to schedule.").format(
-                        report_name_format
-                    ),
                 )
 
         return redirect(reverse("scheduled_reports", kwargs={"organization_code": self.organization.code}))

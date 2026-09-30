@@ -32,7 +32,7 @@
                             {% endif %}
                         </td>
                         <td class="nowrap">
-                            <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.value|capfirst }}
+                            <i class="icon {{ task.status.value }}"></i>&nbsp;{{ task.status.label }}
                         </td>
                         <td class="nowrap">{{ task.created_at }}</td>
                         <td class="actions">

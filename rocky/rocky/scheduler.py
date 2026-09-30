@@ -117,6 +117,21 @@ class TaskStatus(Enum):
     # Task has been cancelled
     CANCELLED = "cancelled"
 
+    @property
+    def label(self) -> str:
+        return _TASK_STATUS_LABELS[self.value]
+
+
+_TASK_STATUS_LABELS = {
+    "pending": _("Pending"),
+    "queued": _("Queued"),
+    "dispatched": _("Dispatched"),
+    "running": _("Running"),
+    "completed": _("Completed"),
+    "failed": _("Failed"),
+    "cancelled": _("Cancelled"),
+}
+
 
 class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True)
