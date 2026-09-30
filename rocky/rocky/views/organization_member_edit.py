@@ -2,6 +2,7 @@ import structlog
 from account.forms import OrganizationMemberEditForm
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django.contrib import messages
+from django.contrib.auth import get_user_model
 from django.contrib.auth.mixins import UserPassesTestMixin
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +10,7 @@ from django.views.generic import UpdateView
 from tools.models import GROUP_CLIENT, OrganizationMember
 
 logger = structlog.get_logger(__name__)
+User = get_user_model()
 
 
 class OrganizationMemberEditView(
@@ -60,6 +62,10 @@ class OrganizationMemberEditView(
                 "text": _("Edit member"),
             },
         ]
+
+        if self.object.user.is_superuser:
+            active_superuser_count = User.objects.filter(is_superuser=True, is_active=True).count()
+            context["can_revoke_superuser"] = active_superuser_count > 1
 
         return context
 
