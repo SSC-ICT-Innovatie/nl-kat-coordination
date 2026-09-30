@@ -1,7 +1,7 @@
-Installation and deployment
-###########################
+Configure and maintain OpenKAT
+##############################
 
-Contains documentation for developers and contributors.
+Contains documentation for installation and administrating your OpenKAT production environment.
 
 .. toctree::
    :maxdepth: 4
