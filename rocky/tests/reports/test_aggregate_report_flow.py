@@ -1,4 +1,5 @@
 import json
+from unittest.mock import patch
 
 from pytest_django.asserts import assertContains
 from reports.views.aggregate_report import (
@@ -344,3 +345,39 @@ def test_json_download_aggregate_report(
     json_compare_data = json.dumps(get_aggregate_report_data())
 
     assert json_response_data == json_compare_data
+
+
+def test_json_download_aggregate_report_with_organization_tags(
+    rf,
+    client_member,
+    get_aggregate_report_ooi,
+    get_aggregate_report_from_bytes,
+    mock_organization_view_octopoes,
+    mock_bytes_client,
+    mock_katalogus_client,
+):
+    """Regression guard for #4332: organization tags must be JSON serializable.
+
+    The JSON export passed OrganizationTag model instances to JsonResponse,
+    which raised TypeError. Tags should be serialized as their names, matching
+    the form the report runner itself uses.
+    """
+    with patch("katalogus.client.KATalogusClient"), patch("rocky.signals.OctopoesAPIConnector"):
+        client_member.organization.tags = ["tag-a", "tag-b"]
+        client_member.organization.save()
+
+    mock_organization_view_octopoes().get_report.return_value = get_aggregate_report_ooi
+    mock_bytes_client().get_raws.return_value = [
+        ("7b305f0d-c0a7-4ad5-af1e-31f81fc229c2", get_aggregate_report_from_bytes)
+    ]
+
+    request = setup_request(
+        rf.get("view_report_json", {"json": "true", "report_id": f"{get_aggregate_report_ooi.primary_key}"}),
+        client_member.user,
+    )
+
+    json_response = ViewReportView.as_view()(request, organization_code=client_member.organization.code)
+
+    assert json_response.status_code == 200
+    data = json.loads(json_response.content)
+    assert data["organization_tags"] == ["tag-a", "tag-b"]
