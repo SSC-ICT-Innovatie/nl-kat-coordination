@@ -1,7 +1,8 @@
 Reports
 =======
 
-OpenKAT displays all findings in the crisis room, the entry point for all current information from the system.
+
+OpenKAT displays all findings in the Crisis Room, the entry point for all current information from the system.
 In addition, you can create reports where all the found information can be collected.
 
 .. image:: img/report.png
@@ -207,7 +208,7 @@ And please note that enabling plugins during the report flow wizard will result 
 as the plugins will take some time before they have gathered and analyzed all data.
 Check the Tasks page to verify that all tasks have completed.
 
-If you need more help on generating a report, please check our step-by-step instructions :doc:`here <../getting-started/generate-report>`.
+If you need more help on generating a report, please check our step-by-step instructions :doc:`here <generate-report>`.
 
 
 Plugins
