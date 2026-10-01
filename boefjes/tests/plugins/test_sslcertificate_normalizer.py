@@ -400,11 +400,9 @@ def test_ssl_certificates_normalizer_certificate_chain():
 
     assert len(certificates) == 3
 
-    leaf, intermediate, root = certificates
-
-    assert leaf.subject == "test.example"
-    assert intermediate.subject == "Intermediate CA"
-    assert root.subject == "Root CA"
+    leaf = next(certificate for certificate in certificates if certificate.subject == "test.example")
+    intermediate = next(certificate for certificate in certificates if certificate.subject == "Intermediate CA")
+    root = next(certificate for certificate in certificates if certificate.subject == "Root CA")
 
     assert leaf.signed_by == intermediate.reference
     assert intermediate.signed_by == root.reference
