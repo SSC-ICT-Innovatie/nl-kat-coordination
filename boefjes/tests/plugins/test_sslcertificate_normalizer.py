@@ -2,9 +2,7 @@ import datetime
 
 from cryptography import x509
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ed448, ed25519
-from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ed448, ed25519, rsa
 from cryptography.x509.oid import NameOID
 
 from boefjes.plugins.kat_ssl_certificates.normalize import read_certificates, run
@@ -37,6 +35,34 @@ def test_ssl_certificates_normalizer():
             assert ooi.valid_from != ooi.valid_until
 
 
+# Unit test for #5443 handling missing OrgName in certificates
+def test_ssl_certificates_normalizer_without_issuer_organization():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
+    issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test CA")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(private_key, algorithm=None)
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert certificates[0].issuer is None
+
+
 # Test cases for EdDSA certificates (Ed25519 and Ed448)
 def _create_ed_certificate(private_key):
     subject = x509.Name(
@@ -46,12 +72,6 @@ def _create_ed_certificate(private_key):
         ]
     )
     now = datetime.datetime.now(datetime.timezone.utc)
-# Unit test for #5443 handling missing OrgName in certificates
-def test_ssl_certificates_normalizer_without_issuer_organization():
-    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
-
-    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-    issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test CA")])
 
     certificate = (
         x509.CertificateBuilder()
@@ -83,15 +103,6 @@ def test_ssl_certificates_normalizer_ed25519():
 def test_ssl_certificates_normalizer_ed448():
     private_key = ed448.Ed448PrivateKey.generate()
     pem = _create_ed_certificate(private_key)
-        .issuer_name(issuer)
-        .public_key(private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1))
-        .sign(private_key, hashes.SHA256())
-    )
-
-    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
 
     reference = Reference.from_str(input_ooi["primary_key"])
     certificates, _, _ = read_certificates(pem, reference)
