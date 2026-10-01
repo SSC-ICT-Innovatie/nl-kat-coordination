@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.asymmetric import ed448, ed25519, rsa
 from cryptography.x509.oid import NameOID
 
 from boefjes.plugins.kat_ssl_certificates.normalize import read_certificates, run
-from octopoes.models import Network, Reference
+from octopoes.models import Reference
 from tests.loading import get_dummy_data
 
 input_ooi = {
@@ -318,7 +318,7 @@ def test_ssl_certificates_normalizer_san_uses_certificate_network():
     assert len(sans) == 1
     assert len(hostnames) == 1
     assert hostnames[0].name == "www.example.com"
-    assert hostnames[0].network == Network(name="internal").reference
+    assert hostnames[0].network.tokenized.name == "internal"
 
 
 def test_ssl_certificates_normalizer_without_common_name():
@@ -345,3 +345,67 @@ def test_ssl_certificates_normalizer_without_common_name():
 
     assert len(certificates) == 1
     assert certificates[0].subject is None
+
+
+def _create_signed_certificate(subject_name, issuer_certificate, issuer_key, public_key):
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, subject_name),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+        ]
+    )
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    return (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer_certificate.subject if issuer_certificate else subject)
+        .public_key(public_key)
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(issuer_key, hashes.SHA256())
+    )
+
+
+# Test that certificates are in expected leaf-intermediate-root order.
+def test_ssl_certificates_normalizer_certificate_chain():
+    root_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    root_certificate = _create_signed_certificate("Root CA", None, root_key, root_key.public_key())
+
+    intermediate_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    intermediate_certificate = _create_signed_certificate(
+        "Intermediate CA", root_certificate, root_key, intermediate_key.public_key()
+    )
+
+    leaf_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    leaf_certificate = _create_signed_certificate(
+        "test.example", intermediate_certificate, intermediate_key, leaf_key.public_key()
+    )
+
+    pem = b"".join(
+        certificate.public_bytes(serialization.Encoding.PEM)
+        for certificate in (leaf_certificate, intermediate_certificate, root_certificate)
+    )
+
+    raw = b"Certificate chain\n" + pem + b"Certificate chain"
+
+    output = list(run(input_ooi, raw))
+
+    certificates = [ooi for ooi in output if getattr(ooi, "object_type", None) == "X509Certificate"]
+
+    assert len(certificates) == 3
+
+    leaf, intermediate, root = certificates
+
+    assert leaf.subject == "test.example"
+    assert intermediate.subject == "Intermediate CA"
+    assert root.subject == "Root CA"
+
+    assert leaf.signed_by == intermediate.reference
+    assert intermediate.signed_by == root.reference
+    assert root.signed_by is None
