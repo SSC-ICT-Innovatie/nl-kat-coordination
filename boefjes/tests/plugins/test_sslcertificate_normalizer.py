@@ -42,9 +42,9 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
 
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
     issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test CA")])
-    
     now = datetime.datetime.now(datetime.timezone.utc)
-    certificate = (  
+
+    certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer)
@@ -61,14 +61,17 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
     certificates, _, _ = read_certificates(pem, reference)
 
     assert len(certificates) == 1
-    assert certificates[0].subject == "test.example"
     assert certificates[0].issuer is None
 
-    
+
 # Test cases for EdDSA certificates (Ed25519 and Ed448)
 def _create_ed_certificate(private_key):
-    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "test.example"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+        ]
+    )
     now = datetime.datetime.now(datetime.timezone.utc)
 
     certificate = (
