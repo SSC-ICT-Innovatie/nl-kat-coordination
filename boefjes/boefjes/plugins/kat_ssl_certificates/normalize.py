@@ -164,8 +164,8 @@ def read_certificates(
 
         certificates.append(certificate)
 
-        # Process the subject alternative names for this certificate.
-        network_reference = Network(name="internet").reference
+        # Process the subject alternative names for this certificate on the Network object it belongs to.
+        network_reference = Network(name=website_reference.tokenized.hostname.network.name).reference
         certificate_reference = certificate.reference
 
         for name in subject_alternative_names:
