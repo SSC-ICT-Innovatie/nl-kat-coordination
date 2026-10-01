@@ -69,7 +69,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     # chain certificates together, while keeping chain logic
     for certificate in certificates:
-        yield from certificates
+        yield certificates
 
     # add all hostnames
     yield from hostnames
@@ -179,22 +179,18 @@ def read_certificates(
             if san is not None:
                 certificate_subject_alternative_names.append(san)
 
-        # Link certificates using the actual issuer/subject relationship
-        # instead of relying on the order returned by OpenSSL.
-        for certificate, cert in parsed_certificates:
-            if cert.issuer == cert.subject:
-                continue
+    # Link certificates using the actual issuer/subject relationship
+    # instead of relying on the order returned by OpenSSL.
+    for certificate, cert in parsed_certificates:
+        if cert.issuer == cert.subject:
+            continue
 
-            issuer_certificate = next(
-                (
-                    candidate
-                    for candidate, candidate_cert in parsed_certificates
-                    if candidate_cert.subject == cert.issuer
-                ),
-                None,
-            )
+        issuer_certificate = next(
+            (candidate for candidate, candidate_cert in parsed_certificates if candidate_cert.subject == cert.issuer),
+            None,
+        )
 
-            if issuer_certificate is not None:
-                certificate.signed_by = issuer_certificate.reference
+        if issuer_certificate is not None:
+            certificate.signed_by = issuer_certificate.reference
 
     return certificates, certificate_subject_alternative_names, hostnames
