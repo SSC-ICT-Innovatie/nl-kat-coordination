@@ -407,3 +407,49 @@ def test_ssl_certificates_normalizer_certificate_chain():
     assert leaf.signed_by == intermediate.reference
     assert intermediate.signed_by == root.reference
     assert root.signed_by is None
+
+
+# Make sure the normalizer doesn't care about the OpenSSL formatting
+def test_ssl_certificates_normalizer_without_certificate_chain_markers():
+    pem = _create_certificate_with_sans([x509.DNSName("www.example.com")])
+
+    raw = b"some openssl output\n" + pem.encode() + b"\nmore openssl output\n"
+
+    output = list(run(input_ooi, raw))
+
+    certificates = [ooi for ooi in output if getattr(ooi, "object_type", None) == "X509Certificate"]
+
+    assert len(certificates) == 1
+
+
+# Certificates in wrong order
+def test_ssl_certificates_normalizer_certificate_chain_does_not_depend_on_order():
+    root_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    root_certificate = _create_signed_certificate("Root CA", None, root_key, root_key.public_key())
+
+    intermediate_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    intermediate_certificate = _create_signed_certificate(
+        "Intermediate CA", root_certificate, root_key, intermediate_key.public_key()
+    )
+
+    leaf_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    leaf_certificate = _create_signed_certificate(
+        "test.example", intermediate_certificate, intermediate_key, leaf_key.public_key()
+    )
+
+    pem = b"".join(
+        certificate.public_bytes(serialization.Encoding.PEM)
+        for certificate in (leaf_certificate, root_certificate, intermediate_certificate)
+    )
+
+    output = list(run(input_ooi, pem))
+
+    certificates = [ooi for ooi in output if getattr(ooi, "object_type", None) == "X509Certificate"]
+
+    leaf = next(c for c in certificates if c.subject == "test.example")
+    intermediate = next(c for c in certificates if c.subject == "Intermediate CA")
+    root = next(c for c in certificates if c.subject == "Root CA")
+
+    assert leaf.signed_by == intermediate.reference
+    assert intermediate.signed_by == root.reference
+    assert root.signed_by is None
