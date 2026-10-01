@@ -35,7 +35,7 @@ def test_ssl_certificates_normalizer():
         if hasattr(ooi, "object_type") and ooi.object_type == "X509Certificate":
             assert ooi.valid_from != ooi.valid_until
 
-            
+
 # Unit test for #5443 handling missing OrgName in certificates
 def test_ssl_certificates_normalizer_without_issuer_organization():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -136,7 +136,7 @@ def _create_certificate_with_sans(sans):
         .not_valid_before(now)
         .not_valid_after(now + datetime.timedelta(days=1))
         .add_extension(x509.SubjectAlternativeName(sans), critical=False)
-        .sign(private_key, algorithm=None)
+        .sign(private_key, algorithm=hashes.SHA256())
     )
 
     return certificate.public_bytes(serialization.Encoding.PEM).decode()
