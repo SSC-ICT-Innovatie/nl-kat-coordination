@@ -105,13 +105,13 @@ def read_certificates(
         pem_contents = f"-----BEGIN CERTIFICATE-----{m.group()}-----END CERTIFICATE-----"
 
         cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
+
         try:
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
         except IndexError:
             subject = None
-
-        # get the issuer organization name, if available
         issuer_attributes = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)
+        # Catch cases where no OrganizationName is present in the issuer field
         issuer = issuer_attributes[0].value if issuer_attributes else None
 
         try:

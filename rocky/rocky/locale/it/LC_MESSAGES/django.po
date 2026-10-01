@@ -1,12 +1,12 @@
-# Brenno de Winter <brenno@dewinter.com>, 2023, 2025.
-# Luca Racchetti <razzo1987@gmail.com>, 2023, 2025.
+# Brenno de Winter <brenno@dewinter.com>, 2023, 2025, 2026.
+# Luca Racchetti <razzo1987@gmail.com>, 2023, 2025, 2026.
 #: reports/forms.py
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-08-20 07:38+0000\n"
-"PO-Revision-Date: 2025-08-22 09:39+0000\n"
+"PO-Revision-Date: 2026-09-30 19:10+0000\n"
 "Last-Translator: Luca Racchetti <razzo1987@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/openkat/nl-kat-"
 "coordination/it/>\n"
@@ -15,7 +15,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 5.13\n"
+"X-Generator: Weblate 2026.10.dev0\n"
 
 #: account/admin.py
 msgid "Permissions"
@@ -590,8 +590,7 @@ msgstr "Autenticazione a due fattori"
 
 #: account/views/password_reset.py
 msgid "We couldn't send a password reset link. Contact "
-msgstr ""
-"Non siamo riusciti a inviare un link di reset della password. Contatta "
+msgstr "Non siamo riusciti a inviare un link di reset della password. Contatta "
 
 #: account/views/password_reset.py
 msgid ""
@@ -1637,9 +1636,9 @@ msgid ""
 "be advised that by continuing you will declare a level %(scan_level)s on "
 "these objects."
 msgstr ""
-"Gli oggetti seguenti non sono ancora autorizzati per il livello "
-"%(scan_level)s, si prega di notare che continuando si dichiarerà un livello "
-"%(scan_level)s su questi oggetti."
+"Gli oggetti seguenti non sono ancora autorizzati per il livello %(scan_level)"
+"s, si prega di notare che continuando si dichiarerà un livello %(scan_level)"
+"s su questi oggetti."
 
 #: katalogus/templates/change_clearance_level.html
 #: reports/report_types/aggregate_organisation_report/appendix.html
@@ -1873,8 +1872,8 @@ msgid ""
 "Add objects with a complying clearance level, or alter the clearance level "
 "of existing objects."
 msgstr ""
-"Attualmente non hai oggetti che soddisfano il livello di scansione di "
-"%(name)s.\n"
+"Attualmente non hai oggetti che soddisfano il livello di scansione di %(name)"
+"s.\n"
 "Aggiungi oggetti con un livello di autorizzazione conforme o modifica il "
 "livello di autorizzazione degli oggetti esistenti."
 
@@ -2122,8 +2121,8 @@ msgstr "Elimina impostazioni"
 msgid ""
 "Are you sure you want to delete all settings for the plugin %(plugin_name)s?"
 msgstr ""
-"Sei sicuro di voler eliminare tutte le impostazioni per il plugin "
-"%(plugin_name)s?"
+"Sei sicuro di voler eliminare tutte le impostazioni per il plugin %"
+"(plugin_name)s?"
 
 #: katalogus/templates/plugin_settings_list.html
 msgid ""
@@ -2200,8 +2199,8 @@ msgid ""
 "Your clearance level is not set. Go to your profile page to see your "
 "clearance or contact the administrator to set a clearance level."
 msgstr ""
-"Prima di abilitare, impostare le impostazioni richieste per il boefje "
-"'{boefje_name}'."
+"Prima di abilitare, impostare le impostazioni richieste per il boefje '"
+"{boefje_name}'."
 
 #: katalogus/views/plugin_enable_disable.py
 msgid ""
@@ -5239,12 +5238,11 @@ msgid ""
 "the mime type \"boefje/dns-records\" is added, the normalizer expects the "
 "raw file to contain dns scan information.</p>"
 msgstr ""
-"<p>Aggiungi un set di tipi MIME, separati da virgole, ad esempio:</"
-"p><p><i>\"text/html, image/jpeg\"</i> o <i>\"boefje/dns-records\"</i>.</"
-"p><p>I tipi MIME vengono utilizzati per abbinare il Normalizer corretto a un "
-"file raw. Quando viene aggiunto il tipo MIME \"boefje/dns-records\", il "
-"Normalizer si aspetta che il file raw contenga informazioni sulla scansione "
-"DNS.</p>"
+"<p>Aggiungi un set di tipi MIME, separati da virgole, ad esempio:</p><p><i>"
+"\"text/html, image/jpeg\"</i> o <i>\"boefje/dns-records\"</i>.</p><p>I tipi "
+"MIME vengono utilizzati per abbinare il Normalizer corretto a un file raw. "
+"Quando viene aggiunto il tipo MIME \"boefje/dns-records\", il Normalizer si "
+"aspetta che il file raw contenga informazioni sulla scansione DNS.</p>"
 
 #: tools/forms/upload_raw.py rocky/templates/partials/ooi_list_toolbar.html
 #: rocky/templates/upload_raw.html
@@ -6039,8 +6037,7 @@ msgstr ""
 
 #: rocky/templates/oois/ooi_detail.html
 msgid "There are no boefjes enabled to scan an OOI of type"
-msgstr ""
-"Non ci sono boefjes abilitati a eseguire la scansione di un OOI di tipo"
+msgstr "Non ci sono boefjes abilitati a eseguire la scansione di un OOI di tipo"
 
 #: rocky/templates/oois/ooi_detail.html
 msgid "See"
@@ -6192,8 +6189,8 @@ msgid ""
 "strong>. Objects can be added manually or by running Boefjes. Click an "
 "object for additional information."
 msgstr ""
-"Una panoramica degli oggetti trovati per l'organizzazione "
-"<strong>%(organization_name)s</strong>. Gli oggetti possono essere aggiunti "
+"Una panoramica degli oggetti trovati per l'organizzazione <strong>%"
+"(organization_name)s</strong>. Gli oggetti possono essere aggiunti "
 "manualmente o tramite l'esecuzione di Boefjes. Clicca su un oggetto per "
 "ulteriori informazioni."
 
