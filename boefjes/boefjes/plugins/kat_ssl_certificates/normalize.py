@@ -68,7 +68,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield NormalizerAffirmation(ooi=website)
 
     # chain certificates together, while keeping chain logic
-    yield from certificates
+    for certificate in certificates:
+        yield from certificates
 
     # add all hostnames
     yield from hostnames
