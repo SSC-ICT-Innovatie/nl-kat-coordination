@@ -30,6 +30,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # only get the first part of certificates
     contents = raw.decode(errors="replace")
 
+    if "Certificate chain" in contents:
+        contents = contents.split("Certificate chain", 1)[1]
+        contents = contents.split("Certificate chain", 1)[0]
+
     if "-----BEGIN CERTIFICATE-----" not in contents:
         return
 
@@ -67,9 +71,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         # update website
         yield NormalizerAffirmation(ooi=website)
 
-    # chain certificates together, while keeping chain logic
-    for certificate in certificates:
-        yield certificates
+    # Yield certificates after their chain relationships have been resolved.
+    yield from certificates
 
     # add all hostnames
     yield from hostnames
@@ -86,11 +89,8 @@ def read_certificates(
     parsed_certificates = []
     certificate_subject_alternative_names = []
     hostnames = []
-    for m in re.finditer(
-        r"(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)", contents, flags=re.DOTALL
-    ):
-        pem_contents = f"-----BEGIN CERTIFICATE-----{m.group()}-----END CERTIFICATE-----"
-
+    for m in re.finditer(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", contents, flags=re.DOTALL):
+        pem_contents = m.group()
         cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
 
         try:
