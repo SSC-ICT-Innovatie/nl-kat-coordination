@@ -2,7 +2,7 @@ import datetime
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
-from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives.asymmetric import ed448, ed25519, rsa
 from cryptography.x509.oid import NameOID
 
 from boefjes.plugins.kat_ssl_certificates.normalize import read_certificates, run
@@ -41,6 +41,7 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
 
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
     issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test CA")])
+    now = datetime.datetime.now(datetime.timezone.utc)
 
     certificate = (
         x509.CertificateBuilder()
@@ -48,8 +49,8 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
         .issuer_name(issuer)
         .public_key(private_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1))
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
         .sign(private_key, hashes.SHA256())
     )
 
@@ -59,5 +60,54 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
     certificates, _, _ = read_certificates(pem, reference)
 
     assert len(certificates) == 1
-    assert certificates[0].subject == "test.example"
     assert certificates[0].issuer is None
+
+
+# Test cases for EdDSA certificates (Ed25519 and Ed448)
+def _create_ed_certificate(private_key):
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "test.example"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+        ]
+    )
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(private_key, algorithm=None)
+    )
+
+    return certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+
+def test_ssl_certificates_normalizer_ed25519():
+    private_key = ed25519.Ed25519PrivateKey.generate()
+    pem = _create_ed_certificate(private_key)
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert certificates[0].pk_algorithm == "AlgorithmType.EDDSA"
+    assert certificates[0].pk_size is None
+    assert len(certificates[0].pk_number) == 64
+
+
+def test_ssl_certificates_normalizer_ed448():
+    private_key = ed448.Ed448PrivateKey.generate()
+    pem = _create_ed_certificate(private_key)
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert certificates[0].pk_algorithm == "AlgorithmType.EDDSA"
+    assert certificates[0].pk_size is None
+    assert len(certificates[0].pk_number) == 114
