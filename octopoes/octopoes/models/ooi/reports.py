@@ -52,6 +52,14 @@ class AssetReport(BaseReport):
         populate_by_name=True,
     )
 
+    @property
+    def natural_key(self) -> str:
+        # input_ooi holds a full OOI reference (its pipes are structural, not data) and report_type is a
+        # slug; neither is attacker-controlled free text, so the base leaf-escaping must not touch them —
+        # escaping input_ooi would corrupt the embedded reference. Typing input_ooi as a Reference and
+        # handling non-concrete references centrally is tracked in #5357.
+        return f"{self.input_ooi}|{self.report_type}"
+
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return f"{reference.tokenized.report_type} for {reference.tokenized.input_ooi}"

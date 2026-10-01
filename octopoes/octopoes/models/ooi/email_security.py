@@ -1,4 +1,3 @@
-import hashlib
 from enum import Enum
 from typing import Literal
 
@@ -29,9 +28,7 @@ class DNSSPFRecord(OOI):
 
     @property
     def natural_key(self) -> str:
-        sha = hashlib.sha1(self.value.encode("UTF-8")).hexdigest()
-        key = super().natural_key
-        return key.replace(self.value, sha)
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:

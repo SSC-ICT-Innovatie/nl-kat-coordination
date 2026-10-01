@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 from enum import Enum, IntEnum
 from typing import Any, ClassVar, Literal, TypeAlias, TypeVar
 
@@ -150,6 +151,33 @@ class OOI(BaseModel):
     def human_readable(self) -> str:
         return self.format_reference_human_readable(self.reference)
 
+    @staticmethod
+    def _escape_natural_key_part(value: str) -> str:
+        """Escape the reference separator out of a single natural-key leaf (issue #5299).
+
+        ``|`` separates the parts of a primary key, so an unescaped ``|`` in externally
+        controlled key material (banners, API output, header names, ...) corrupts the key of
+        this OOI and of anything referencing it. Escaping happens only while constructing the
+        key; the stored field value is left untouched. Sanitising in this one spot protects
+        every current and future OOI type instead of relying on a per-field validator.
+        """
+        return value.replace("|", "%7C")
+
+    @staticmethod
+    def _natural_key_with_hashed_value(key: str, value: str) -> str:
+        """Return ``key`` with ``value`` replaced by its SHA-1 hash, so a record whose value is
+        arbitrarily long or structured still yields a bounded key. ``value`` is matched in its escaped
+        form (the builder escapes it) and only its last occurrence is replaced, so a short value that
+        also occurs inside an earlier reference part (e.g. the hostname) is not corrupted. An empty
+        value is left as is, since replacing it would be a no-op that mangles the key.
+        """
+        if not value:
+            return key
+        head, separator, tail = key.rpartition(OOI._escape_natural_key_part(value))
+        if not separator:
+            return key
+        return f"{head}{hashlib.sha1(value.encode()).hexdigest()}{tail}"
+
     @property
     def natural_key(self) -> str:
         parts = []
@@ -158,12 +186,12 @@ class OOI(BaseModel):
             part = getattr(self, attr)
             if part is None:
                 part = ""
-            if isinstance(part, Reference):
-                part = part.natural_key
+            elif isinstance(part, Reference):
+                part = part.natural_key  # references carry structural separators and are never escaped
             elif isinstance(part, Enum):
-                part = str(part.value)
+                part = self._escape_natural_key_part(str(part.value))
             else:
-                part = str(part)
+                part = self._escape_natural_key_part(str(part))
 
             parts.append(part)
 

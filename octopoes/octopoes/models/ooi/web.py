@@ -248,6 +248,38 @@ class HTTPHeaderHostname(OOI):
         return f"{t.key} @ {web_url} @ {address} contains {str(reference.tokenized.hostname.name)}"
 
 
+class CSPDirective(OOI):
+    """A single directive parsed out of a Content-Security-Policy header, e.g. `script-src`."""
+
+    object_type: Literal["CSPDirective"] = "CSPDirective"
+
+    header: Reference = ReferenceField(HTTPHeader, max_issue_scan_level=0, max_inherit_scan_level=1)
+    name: str
+
+    _natural_key_attrs = ["header", "name"]
+    _reverse_relation_names = {"header": "csp_directives"}
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        return f"CSP directive {reference.tokenized.name}"
+
+
+class CSPSource(OOI):
+    """A single source expression of a CSP directive, e.g. `'self'`, `https://cdn.example.com` or `*`."""
+
+    object_type: Literal["CSPSource"] = "CSPSource"
+
+    directive: Reference = ReferenceField(CSPDirective, max_issue_scan_level=0, max_inherit_scan_level=1)
+    value: str
+
+    _natural_key_attrs = ["directive", "value"]
+    _reverse_relation_names = {"directive": "csp_sources"}
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        return f"CSP source {reference.tokenized.value} for {reference.tokenized.directive.name}"
+
+
 class ImageMetadata(OOI):
     object_type: Literal["ImageMetadata"] = "ImageMetadata"
 

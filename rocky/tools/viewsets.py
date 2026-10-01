@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from structlog import get_logger
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
+from octopoes.models.exception import ObjectNotFoundException
 from rocky.exceptions import OctopoesException
 from rocky.signals import _get_healthy_katalogus, _get_healthy_octopoes
 from tools.models import Indemnification, Organization
@@ -42,6 +43,11 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
         try:
             octopoes_client.delete_node()
+        except ObjectNotFoundException as e:
+            if e.value == "Node not found":
+                logger.info("Octopoes node already deleted, continuing", organization_code=instance.code)
+            else:
+                raise OctopoesException("Failed deleting organization in Octopoes") from e
         except Exception as e:
             raise OctopoesException("Failed deleting organization in Octopoes") from e
 

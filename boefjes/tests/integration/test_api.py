@@ -171,7 +171,8 @@ def test_add_normalizer(test_client, organisation):
     assert response.status_code == 201
 
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins/?plugin_type=normalizer")
-    assert len(response.json()) != 0
+    assert response.status_code == 200
+    assert len(response.json()) > 0
 
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins/test_normalizer")
     assert response.json() == normalizer.model_dump(mode="json")

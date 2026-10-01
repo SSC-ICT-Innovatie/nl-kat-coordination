@@ -60,11 +60,11 @@ def test_expected_findings_results_dashboard(rf, mocker, client_member, expected
     assertContains(response, "<h2>Findings per organization</h2>", html=True)
     assertContains(response, '<caption class="visually-hidden">Findings per organization overview</caption>', html=True)
 
-    assertContains(response, f'<td><a href="/en/crisis-room/{org_code_a}/">{org_name_a}</a></td>', html=True)
+    assertContains(response, f'<td><a href="/en/{org_code_a}/crisis-room/">{org_name_a}</a></td>', html=True)
     assertContains(response, "<h5>Findings overview</h5>", html=True)
     assertContains(response, '<td>Total</td><td class="number">4</td><td class="number">7</td>', html=True)
 
-    assertContains(response, f'<td><a href="/en/crisis-room/{org_code_b}/">{org_name_b}</a></td>', html=True)
+    assertContains(response, f'<td><a href="/en/{org_code_b}/crisis-room/">{org_name_b}</a></td>', html=True)
 
     assertContains(
         response,

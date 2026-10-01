@@ -1,4 +1,3 @@
-import hashlib
 from enum import Enum
 from typing import Literal
 
@@ -87,9 +86,7 @@ class DNSTXTRecord(DNSRecord):
 
     @property
     def natural_key(self) -> str:
-        sha = hashlib.sha1(self.value.encode("UTF-8")).hexdigest()
-        key = super().natural_key
-        return key.replace(self.value, sha)
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
 
     _reverse_relation_names = {"hostname": "dns_txt_records"}
 
@@ -232,9 +229,7 @@ class DNSLocation(DNSRecord):
 
     @property
     def natural_key(self) -> str:
-        sha = hashlib.sha1(self.value.encode()).hexdigest()
-        key = super().natural_key
-        return key.replace(self.value, sha)
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
 
 
 class DNSGPOSRecord(DNSLocation):

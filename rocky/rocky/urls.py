@@ -72,6 +72,7 @@ urlpatterns += i18n_patterns(
     path("", LandingPageView.as_view(), name="landing_page"),
     path("onboarding/", include("onboarding.urls"), name="onboarding"),
     path("crisis-room/", include("crisis_room.urls"), name="crisis_room"),
+    path("<organization_code>/crisis-room/", include("crisis_room.urls_org"), name="crisis_room_org"),
     path("privacy-statement/", PrivacyStatementView.as_view(), name="privacy_statement"),
     path("tasks/", AllBoefjesTaskListView.as_view(), name="all_task_list"),
     path("tasks/boefjes", AllBoefjesTaskListView.as_view(), name="all_boefjes_task_list"),

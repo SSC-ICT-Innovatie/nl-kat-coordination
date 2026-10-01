@@ -5,6 +5,7 @@ import logging
 import pdb
 import sys
 import uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 import click
@@ -20,6 +21,7 @@ from boefjes.worker.boefje_handler import LocalBoefjeHandler
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from boefjes.job_handler import bytes_api_client
+from boefjes.worker.interfaces import Task, TaskStatus
 from boefjes.worker.job_models import Boefje, BoefjeMeta
 from boefjes.worker.repository import get_local_repository
 
@@ -43,8 +45,22 @@ def run_boefje(start_pdb, organization_code, boefje_id, input_ooi):
     meta = SchedulerAPIClient(plugin_service, "/dev/null")._hydrate_boefje_meta(meta)
 
     handler = LocalBoefjeHandler(local_repository, bytes_api_client)
+    task = Task(
+        id=meta.id,
+        scheduler_id="manual",
+        schedule_id=None,
+        organisation=organization_code,
+        priority=1,
+        status=TaskStatus.RUNNING,
+        type="boefje",
+        data=meta,
+        created_at=meta.started_at or datetime.now(timezone.utc),
+        modified_at=meta.started_at or datetime.now(timezone.utc),
+    )
     try:
-        handler.handle(meta)
+        result = handler.handle(task)
+        if result and result[1].files:
+            logging.info("Raw file IDs: %s", ", ".join(f.name for f in result[1].files))
     except Exception:
         if start_pdb:
             pdb.post_mortem()

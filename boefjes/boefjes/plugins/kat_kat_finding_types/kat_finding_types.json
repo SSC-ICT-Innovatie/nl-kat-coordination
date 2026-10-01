@@ -247,6 +247,14 @@
     "impact": "A too naive CSP policy allows attackers to perform attacks from/to external locations.",
     "recommendation": "Adjust the CSP header to make it as strict as possible in order to reduce the attack surface."
   },
+  "KAT-CSP-INVALID": {
+    "name":"Content Security Policy header is malformed",
+    "description": "The content security policy (CSP) header could not be parsed cleanly (e.g. an empty policy, a directive without a value, or a duplicate directive).",
+    "source": "https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP",
+    "risk": "recommendation",
+    "impact": "A malformed CSP directive is ignored by the browser, so the intended protection is silently not applied.",
+    "recommendation": "Correct the CSP header so every directive is well-formed and appears once."
+  },
   "KAT-POTENTIAL-MALWARE": {
     "name":"Software identified with potential malware",
     "description": "This software is known to be used as malware.",
