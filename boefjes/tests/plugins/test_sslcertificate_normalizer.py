@@ -1,4 +1,5 @@
 import datetime
+import ipaddress
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -111,3 +112,91 @@ def test_ssl_certificates_normalizer_ed448():
     assert certificates[0].pk_algorithm == "AlgorithmType.EDDSA"
     assert certificates[0].pk_size is None
     assert len(certificates[0].pk_number) == 114
+
+
+# Add test cases for Subject Alternative Names (SANs) in certificates
+def _create_certificate_with_sans(sans):
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, "test.example"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+        ]
+    )
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .add_extension(x509.SubjectAlternativeName(sans), critical=False)
+        .sign(private_key, algorithm=hashes.SHA256())
+    )
+
+    return certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+
+def test_ssl_certificates_normalizer_dns_san():
+    pem = _create_certificate_with_sans([x509.DNSName("www.example.com")])
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 1
+    assert len(hostnames) == 1
+    assert hostnames[0].name == "www.example.com"
+
+
+def test_ssl_certificates_normalizer_wildcard_san():
+    pem = _create_certificate_with_sans([x509.DNSName("*.example.com")])
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 1
+    assert len(hostnames) == 0
+    assert sans[0].name == "*.example.com"
+
+
+def test_ssl_certificates_normalizer_ipv4_san():
+    pem = _create_certificate_with_sans([x509.IPAddress(ipaddress.IPv4Address("192.0.2.1"))])
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 1
+    assert len(hostnames) == 0
+    assert str(sans[0].address.tokenized.address) == "192.0.2.1"
+
+
+def test_ssl_certificates_normalizer_ipv6_san():
+    pem = _create_certificate_with_sans([x509.IPAddress(ipaddress.IPv6Address("2001:db8::1"))])
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 1
+    assert len(hostnames) == 0
+    assert str(sans[0].address.tokenized.address) == "2001:db8::1"
+
+
+def test_ssl_certificates_normalizer_non_dns_sans_are_not_hostnames():
+    pem = _create_certificate_with_sans(
+        [x509.RFC822Name("admin@example.com"), x509.UniformResourceIdentifier("https://example.com")]
+    )
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 0

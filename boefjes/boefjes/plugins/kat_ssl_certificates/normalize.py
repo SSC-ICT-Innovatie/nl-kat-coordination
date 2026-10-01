@@ -110,16 +110,20 @@ def read_certificates(
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
         except IndexError:
             subject = None
+
+        # get the issuer organization name, if available
         issuer_attributes = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)
+
         # Catch cases where no OrganizationName is present in the issuer field
         issuer = issuer_attributes[0].value if issuer_attributes else None
 
         try:
-            subject_alternative_names = [
-                name.value for name in cert.extensions.get_extension_for_oid(x509.OID_SUBJECT_ALTERNATIVE_NAME).value
-            ]
+            subject_alternative_names = list(
+                cert.extensions.get_extension_for_oid(x509.OID_SUBJECT_ALTERNATIVE_NAME).value
+            )
         except x509.ExtensionNotFound:
             subject_alternative_names = []
+
         valid_from = cert.not_valid_before_utc.isoformat()
         valid_until = cert.not_valid_after_utc.isoformat()
 
@@ -157,29 +161,32 @@ def read_certificates(
             expires_in=parse(valid_until).astimezone(datetime.timezone.utc)
             - datetime.datetime.now(datetime.timezone.utc),
         )
-        # todo: alt names
+
         certificates.append(certificate)
 
+        # Process the subject alternative names for this certificate.
         network_reference = Network(name="internet").reference
         certificate_reference = certificate.reference
 
         for name in subject_alternative_names:
             san = None
-            if isinstance(name, str):
-                if "*" not in name:
-                    hostname = Hostname(network=network_reference, name=name)
+
+            if isinstance(name, x509.DNSName):
+                if "*" not in name.value:
+                    hostname = Hostname(network=network_reference, name=name.value)
                     hostnames.append(hostname)
+
                     san = SubjectAlternativeNameHostname(hostname=hostname.reference, certificate=certificate_reference)
                 else:
-                    san = SubjectAlternativeNameQualifier(name=name, certificate=certificate_reference)
-            elif isinstance(name, ipaddress.IPv4Address):
-                address = IPAddressV4(network=network_reference, address=name)
+                    san = SubjectAlternativeNameQualifier(name=name.value, certificate=certificate_reference)
+
+            elif isinstance(name, x509.IPAddress):
+                if isinstance(name.value, ipaddress.IPv4Address):
+                    address = IPAddressV4(network=network_reference, address=name.value)
+                else:
+                    address = IPAddressV6(network=network_reference, address=name.value)
+
                 san = SubjectAlternativeNameIP(address=address.reference, certificate=certificate_reference)
-            elif isinstance(name, ipaddress.IPv6Address):
-                address = IPAddressV6(network=network_reference, address=name)
-                san = SubjectAlternativeNameIP(address=address.reference, certificate=certificate_reference)
-            else:
-                pass  # todo: support other SANs?
 
             if san is not None:
                 certificate_subject_alternative_names.append(san)
