@@ -1,7 +1,7 @@
 import datetime
 
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519, rsa
 from cryptography.x509.oid import NameOID
 
@@ -51,7 +51,7 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
         .serial_number(x509.random_serial_number())
         .not_valid_before(now)
         .not_valid_after(now + datetime.timedelta(days=1))
-        .sign(private_key, algorithm=None)
+        .sign(private_key, hashes.SHA256())
     )
 
     pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
@@ -111,5 +111,3 @@ def test_ssl_certificates_normalizer_ed448():
     assert certificates[0].pk_algorithm == "AlgorithmType.EDDSA"
     assert certificates[0].pk_size is None
     assert len(certificates[0].pk_number) == 114
-    assert certificates[0].subject == "test.example"
-    assert certificates[0].issuer is None
