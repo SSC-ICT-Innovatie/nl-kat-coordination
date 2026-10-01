@@ -26,20 +26,11 @@ from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.web import Website
 
 
-def find_between(s: str, first: str, last: str) -> str:
-    try:
-        start = s.index(first) + len(first)
-        end = s.index(last, start)
-        return s[start:end]
-    except ValueError:
-        return ""
-
-
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # only get the first part of certificates
-    contents = find_between(raw.decode(), "Certificate chain", "Certificate chain")
+    contents = raw.decode(errors="replace")
 
-    if not contents:
+    if "-----BEGIN CERTIFICATE-----" not in contents:
         return
 
     pk = input_ooi["primary_key"]
@@ -76,14 +67,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         # update website
         yield NormalizerAffirmation(ooi=website)
 
-    # chain certificates together
-    last_certificate = None
-    for certificate in reversed(certificates):
-        if last_certificate is not None:
-            certificate.signed_by = last_certificate.reference
-
-        last_certificate = certificate
-        yield certificate
+    # chain certificates together, while keeping chain logic
+    yield from certificates
 
     # add all hostnames
     yield from hostnames
@@ -97,6 +82,7 @@ def read_certificates(
 ) -> tuple[list[X509Certificate], list[SubjectAlternativeName], list[Hostname]]:
     # iterate through the PEM certificates and decode them
     certificates = []
+    parsed_certificates = []
     certificate_subject_alternative_names = []
     hostnames = []
     for m in re.finditer(
@@ -163,6 +149,7 @@ def read_certificates(
         )
 
         certificates.append(certificate)
+        parsed_certificates.append((certificate, cert))
 
         # Process the subject alternative names for this certificate on the Network object it belongs to.
         network_reference = Network(name=website_reference.tokenized.hostname.network.name).reference
@@ -190,5 +177,23 @@ def read_certificates(
 
             if san is not None:
                 certificate_subject_alternative_names.append(san)
+
+        # Link certificates using the actual issuer/subject relationship
+        # instead of relying on the order returned by OpenSSL.
+        for certificate, cert in parsed_certificates:
+            if cert.issuer == cert.subject:
+                continue
+
+            issuer_certificate = next(
+                (
+                    candidate
+                    for candidate, candidate_cert in parsed_certificates
+                    if candidate_cert.subject == cert.issuer
+                ),
+                None,
+            )
+
+            if issuer_certificate is not None:
+                certificate.signed_by = issuer_certificate.reference
 
     return certificates, certificate_subject_alternative_names, hostnames
