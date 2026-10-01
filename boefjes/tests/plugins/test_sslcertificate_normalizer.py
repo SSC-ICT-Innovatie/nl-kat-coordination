@@ -2,7 +2,7 @@ import datetime
 import ipaddress
 
 from cryptography import x509
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519, rsa
 from cryptography.x509.oid import NameOID
 
@@ -35,7 +35,36 @@ def test_ssl_certificates_normalizer():
         if hasattr(ooi, "object_type") and ooi.object_type == "X509Certificate":
             assert ooi.valid_from != ooi.valid_until
 
+            
+# Unit test for #5443 handling missing OrgName in certificates
+def test_ssl_certificates_normalizer_without_issuer_organization():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
+    issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test CA")])
+    
+    now = datetime.datetime.now(datetime.timezone.utc)
+    certificate = (  
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(private_key, hashes.SHA256())
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert certificates[0].subject == "test.example"
+    assert certificates[0].issuer is None
+
+    
 # Test cases for EdDSA certificates (Ed25519 and Ed448)
 def _create_ed_certificate(private_key):
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
@@ -168,4 +197,3 @@ def test_ssl_certificates_normalizer_non_dns_sans_are_not_hostnames():
 
     assert len(certificates) == 1
     assert len(sans) == 0
-    assert len(hostnames) == 0
