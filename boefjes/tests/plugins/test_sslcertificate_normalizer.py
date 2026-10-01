@@ -142,6 +142,30 @@ def _create_certificate_with_sans(sans):
     return certificate.public_bytes(serialization.Encoding.PEM).decode()
 
 
+def test_ssl_certificates_normalizer_without_san():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(private_key, hashes.SHA256())
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert sans == []
+    assert hostnames == []
+
+
 def test_ssl_certificates_normalizer_dns_san():
     pem = _create_certificate_with_sans([x509.DNSName("www.example.com")])
 
@@ -200,3 +224,186 @@ def test_ssl_certificates_normalizer_non_dns_sans_are_not_hostnames():
 
     assert len(certificates) == 1
     assert len(sans) == 0
+
+
+def test_ssl_certificates_normalizer_self_signed_certificate():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(private_key, hashes.SHA256())
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert certificates[0].subject == "test.example"
+    assert certificates[0].issuer is None
+
+
+def test_ssl_certificates_normalizer_unsupported_san_types_are_ignored():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .add_extension(
+            x509.SubjectAlternativeName(
+                [
+                    x509.RFC822Name("security@example.com"),
+                    x509.UniformResourceIdentifier("https://example.com/security.txt"),
+                ]
+            ),
+            critical=False,
+        )
+        .sign(private_key, hashes.SHA256())
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert sans == []
+    assert hostnames == []
+
+
+# The certificate Boefje can operate on a Website belonging to another network.
+# It should derive the network from the input/Website reference rather than hard-code it.
+def test_ssl_certificates_normalizer_san_uses_certificate_network():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .add_extension(x509.SubjectAlternativeName([x509.DNSName("www.example.com")]), critical=False)
+        .sign(private_key, hashes.SHA256())
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+    reference = Reference.from_str("Website|internal|192.0.2.0|tcp|443|https|internal|example.com")
+    certificates, sans, hostnames = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 1
+    assert len(hostnames) == 1
+    assert hostnames[0].name == "www.example.com"
+    assert hostnames[0].network.tokenized.name == "internal"
+
+
+def test_ssl_certificates_normalizer_without_common_name():
+    private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    subject = x509.Name([x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization")])
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    certificate = (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(subject)
+        .public_key(private_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(private_key, hashes.SHA256())
+    )
+
+    pem = certificate.public_bytes(serialization.Encoding.PEM).decode()
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem, reference)
+
+    assert len(certificates) == 1
+    assert certificates[0].subject is None
+
+
+def _create_signed_certificate(subject_name, issuer_certificate, issuer_key, public_key):
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COMMON_NAME, subject_name),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+        ]
+    )
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    return (
+        x509.CertificateBuilder()
+        .subject_name(subject)
+        .issuer_name(issuer_certificate.subject if issuer_certificate else subject)
+        .public_key(public_key)
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now)
+        .not_valid_after(now + datetime.timedelta(days=1))
+        .sign(issuer_key, hashes.SHA256())
+    )
+
+
+# Test that certificates are in expected leaf-intermediate-root order.
+def test_ssl_certificates_normalizer_certificate_chain():
+    root_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    root_certificate = _create_signed_certificate("Root CA", None, root_key, root_key.public_key())
+
+    intermediate_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    intermediate_certificate = _create_signed_certificate(
+        "Intermediate CA", root_certificate, root_key, intermediate_key.public_key()
+    )
+
+    leaf_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    leaf_certificate = _create_signed_certificate(
+        "test.example", intermediate_certificate, intermediate_key, leaf_key.public_key()
+    )
+
+    pem = b"".join(
+        certificate.public_bytes(serialization.Encoding.PEM)
+        for certificate in (leaf_certificate, intermediate_certificate, root_certificate)
+    )
+
+    raw = b"Certificate chain\n" + pem + b"Certificate chain"
+
+    output = list(run(input_ooi, raw))
+
+    certificates = [ooi for ooi in output if getattr(ooi, "object_type", None) == "X509Certificate"]
+
+    assert len(certificates) == 3
+
+    leaf = next(certificate for certificate in certificates if certificate.subject == "test.example")
+    intermediate = next(certificate for certificate in certificates if certificate.subject == "Intermediate CA")
+    root = next(certificate for certificate in certificates if certificate.subject == "Root CA")
+
+    assert leaf.signed_by == intermediate.reference
+    assert intermediate.signed_by == root.reference
+    assert root.signed_by is None
