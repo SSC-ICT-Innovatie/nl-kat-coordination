@@ -1,7 +1,7 @@
 ---
 authors: Edward Hasekamp (@hasecon)
 state: draft
-discussion:
+discussion: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/5466
 implementation:
 labels: octopoes, rocky, reporting
 ---
