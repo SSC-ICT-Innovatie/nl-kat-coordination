@@ -111,7 +111,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         if ooi_type_name == "IPAddress":
             address = values.get("address")
             try:
-                return IPAddressV6 if ipaddress.ip_address(address).version == 6 else IPAddressV4
+                return IPAddressV6 if ipaddress.ip_address(address or "").version == 6 else IPAddressV4
             except ValueError:
                 # Let pydantic raise the validation error for this row.
                 return IPAddressV4
