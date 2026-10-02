@@ -124,6 +124,7 @@ repos:
           pyproject.toml$ |
           requirements-.*.txt$ |
           retirejs.json$ |
+          ^rfd/0004-scanning-richness-and-quality\.md$ |
           ^boefjes/boefjes/plugins/kat_fierce/lists |
           ^boefjes/boefjes/plugins/kat_wappalyzer/data/.*.json |
           ^boefjes/tests/examples/inputs/cve-result-without-cvss.json |
