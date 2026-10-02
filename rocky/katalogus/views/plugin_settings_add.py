@@ -41,9 +41,19 @@ class PluginSettingsAddView(OrganizationPermissionRequiredMixin, SinglePluginVie
 
     def form_valid(self, form):
         if form.cleaned_data == {}:
-            messages.add_message(
-                self.request, messages.WARNING, _("No changes to the settings added: no form data present")
-            )
+            existing = self.katalogus_client.get_plugin_settings(self.plugin.id)
+            if existing:
+                try:
+                    self.katalogus_client.delete_plugin_settings(self.plugin.id)
+                    messages.add_message(
+                        self.request, messages.SUCCESS, _("Cleared settings for '{}'").format(self.plugin.name)
+                    )
+                except HTTPError:
+                    messages.add_message(self.request, messages.ERROR, _("Failed clearing settings"))
+            else:
+                messages.add_message(
+                    self.request, messages.WARNING, _("No changes to the settings added: no form data present")
+                )
             return redirect(self.get_success_url())
 
         try:
