@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
             name="AuditLog",
             fields=[
                 ("id", models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name="ID")),
-                ("actor_label", models.CharField(max_length=254)),
+                ("actor_label", models.CharField(blank=True, default="", max_length=254)),
                 (
                     "action",
                     models.CharField(

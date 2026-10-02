@@ -342,7 +342,8 @@ class AuditLogView(TemplateView):
         page_number = self.request.GET.get("page", 1)
         logs = AuditLog.objects.filter(organization__in=self.request.user.organizations).select_related("organization")
         paginator = Paginator(logs, self.paginate_by)
-        context["audit_logs"] = paginator.page(page_number)
+        context["page_obj"] = paginator.get_page(page_number)
+        context["audit_logs"] = context["page_obj"]
         context["breadcrumbs"] = [{"url": reverse("crisis_room_audit_log"), "text": _("Activity log")}]
         return context
 
@@ -380,7 +381,8 @@ class OrganizationAuditLogView(OrganizationView, TemplateView):
         page_number = self.request.GET.get("page", 1)
         logs = AuditLog.objects.filter(organization=self.organization)
         paginator = Paginator(logs, self.paginate_by)
-        context["audit_logs"] = paginator.page(page_number)
+        context["page_obj"] = paginator.get_page(page_number)
+        context["audit_logs"] = context["page_obj"]
         context["breadcrumbs"] = [
             {
                 "url": reverse(

@@ -24,7 +24,7 @@ class IndemnificationAddView(OrganizationPermissionRequiredMixin, OrganizationVi
                 organization=self.organization,
                 action=AuditLog.Action.INDEMNIFICATION_SET,
                 object_type="Indemnification",
-                object_label=str(_("Scanning indemnification")),
+                object_label="Scanning indemnification",
             )
         self.add_success_notification()
         return super().post(request, *args, **kwargs)

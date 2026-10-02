@@ -199,13 +199,14 @@ class OrganizationView(ContextMixin, View):
             sync=True,
         )
         logger.info("Declared scan profiles created", event_code="800010", ooi_count=len(ooi_references), level=level)
-        AuditLog.record(
-            user=self.request.user,
-            organization=self.organization,
-            action=AuditLog.Action.CLEARANCE_LEVEL_CHANGED,
-            object_type="OOI",
-            object_label=str(_("%(count)s objects to L%(level)s")) % {"count": len(ooi_references), "level": level},
-        )
+        for reference in ooi_references:
+            AuditLog.record(
+                user=self.request.user,
+                organization=self.organization,
+                action=AuditLog.Action.CLEARANCE_LEVEL_CHANGED,
+                object_type=reference.class_,
+                object_pk=reference,
+            )
 
         return True
 

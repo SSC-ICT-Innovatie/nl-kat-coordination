@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 16:49+0000\n"
+"POT-Creation-Date: 2026-10-02 09:32+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -251,11 +251,6 @@ msgstr ""
 
 #: account/forms/token.py
 msgid "Backup token"
-msgstr ""
-
-#: account/mixins.py
-#, python-format
-msgid "%(count)s objects to L%(level)s"
 msgstr ""
 
 #: account/mixins.py
@@ -7355,10 +7350,6 @@ msgstr ""
 
 #: rocky/views/health.py
 msgid "Beautified"
-msgstr ""
-
-#: rocky/views/indemnification_add.py
-msgid "Scanning indemnification"
 msgstr ""
 
 #: rocky/views/indemnification_add.py

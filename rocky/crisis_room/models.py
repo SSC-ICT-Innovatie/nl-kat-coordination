@@ -37,7 +37,7 @@ class AuditLog(models.Model):
     # deliberate decision (e.g. future soft-delete), never a side effect.
     organization = models.ForeignKey(Organization, on_delete=models.PROTECT, related_name="audit_logs")
     actor = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, on_delete=models.SET_NULL)
-    actor_label = models.CharField(max_length=254)
+    actor_label = models.CharField(blank=True, default="", max_length=254)
     action = models.CharField(max_length=32, choices=Action.choices)
     object_type = models.CharField(blank=True, max_length=64)
     object_label = models.TextField(blank=True, default="")
@@ -65,7 +65,7 @@ class AuditLog(models.Model):
             return cls.objects.create(
                 organization=organization,
                 actor=user if user.is_authenticated else None,
-                actor_label=user.get_username() if user.is_authenticated else str(_("System")),
+                actor_label=user.get_username() if user.is_authenticated else "",
                 action=action,
                 object_type=object_type,
                 object_label=object_label,
@@ -74,6 +74,11 @@ class AuditLog(models.Model):
         except Exception:
             logger.exception("Failed to record audit log entry", action=action)
             return None
+
+    def get_actor_label(self) -> str:
+        """The stored label is the durable record (actor is SET_NULL); an
+        empty label means a system action, rendered in the reader's language."""
+        return self.actor_label or str(_("System"))
 
     def get_object_label(self) -> str:
         """Infer the display label from the stored PK for OOI actions;
@@ -92,6 +97,7 @@ class AuditLog(models.Model):
         if not self.object_pk:
             return ""
         try:
+            Reference.from_str(self.object_pk).class_type
             return get_ooi_url(
                 "ooi_detail", self.object_pk, self.organization.code, valid_time=self.created_at.isoformat()
             )
