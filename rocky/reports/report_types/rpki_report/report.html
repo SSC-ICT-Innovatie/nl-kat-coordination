@@ -10,6 +10,15 @@
     </p>
 {% endif %}
 {% if data.rpki_ips %}
+    {% if data.plugin_likely_disabled %}
+        <p class="warning">
+            {% blocktranslate trimmed %}
+                No RPKI findings were found. This usually means the RPKI plugin is
+                not enabled for this organisation. Enable the RPKI plugin and rescan
+                to get accurate results.
+            {% endblocktranslate %}
+        </p>
+    {% endif %}
     {% if show_introduction %}
         <p class="toggle-item" data-show="off">
             {% blocktranslate trimmed %}
