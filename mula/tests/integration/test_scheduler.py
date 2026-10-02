@@ -305,7 +305,7 @@ class SchedulerTestCase(unittest.TestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         first_item.schedule_id = schedule_db.id
-        self.mock_ctx.datastores.task_store.update_task(first_item)
+        self.mock_ctx.datastores.task_store.update_task(first_item.id, {"schedule_id": first_item.schedule_id})
 
         # Act
         self.scheduler.push_item_to_queue(first_item)
@@ -333,7 +333,7 @@ class SchedulerTestCase(unittest.TestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         first_item.schedule_id = schedule_db.id
-        self.mock_ctx.datastores.task_store.update_task(first_item)
+        self.mock_ctx.datastores.task_store.update_task(first_item.id, {"schedule_id": first_item.schedule_id})
 
         # Act
         self.scheduler.push_item_to_queue(first_item)
@@ -359,7 +359,7 @@ class SchedulerTestCase(unittest.TestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         first_item.schedule_id = schedule_db.id
-        self.mock_ctx.datastores.task_store.update_task(first_item)
+        self.mock_ctx.datastores.task_store.update_task(first_item.id, {"schedule_id": first_item.schedule_id})
 
         # Act
         self.scheduler.push_item_to_queue(first_item)
