@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-08-20 07:38+0000\n"
+"POT-Creation-Date: 2026-09-16 16:49+0000\n"
 "PO-Revision-Date: 2026-09-30 19:33+0000\n"
 "Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -436,8 +436,8 @@ msgid ""
 msgstr ""
 "U krijgt vrijwaring voor niveau L%(tcl)s van uw beheerder. Voordat u OOI-"
 "vrijwaringsniveaus kunt wijzigen tot dit niveau, moet u deze toestemming "
-"accepteren. Onthoud: <strong>met grote macht komt grote "
-"verantwoordelijkheid.</strong>"
+"accepteren. Onthoud: <strong>met grote macht komt grote verantwoordelijkheid."
+"</strong>"
 
 #: account/templates/account_detail.html
 #: onboarding/templates/step_4_trusted_acknowledge_clearance_level.html
@@ -581,7 +581,8 @@ msgstr " letters"
 #: account/validators.py
 msgid ""
 " special characters such as: {str(validators.get('special_characters',''))}"
-msgstr " speciale karakters als: {str(validators.get('special_characters',''))}"
+msgstr ""
+" speciale karakters als: {str(validators.get('special_characters',''))}"
 
 #: account/validators.py
 msgid " lower case letters"
@@ -1007,6 +1008,7 @@ msgstr "Details"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -1022,6 +1024,7 @@ msgstr "Details sluiten"
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/summary/selected_plugins.html
 #: rocky/templates/findings/finding_list.html
+#: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
 #: rocky/templates/tasks/ooi_detail_task_list.html
 #: rocky/templates/tasks/plugin_detail_task_list.html
@@ -1757,10 +1760,10 @@ msgid ""
 "includes both the KAT-alogus settings as well as enabled and disabled "
 "plugins."
 msgstr ""
-"Gebruik onderstaand formulier om de instellingen van <strong>%"
-"(current_organization)s</strong> naar de geselecteerde organisatie te "
-"klonen. Dit omvat zowel KAT-alogus-instellingen als in-/uitgeschakelde plug-"
-"ins."
+"Gebruik onderstaand formulier om de instellingen van "
+"<strong>%(current_organization)s</strong> naar de geselecteerde organisatie "
+"te klonen. Dit omvat zowel KAT-alogus-instellingen als in-/uitgeschakelde "
+"plug-ins."
 
 #: katalogus/templates/confirmation_clone_settings.html
 msgid "Clone"
@@ -1795,7 +1798,7 @@ msgstr "Dit is een overzicht van de laatste instellingen van alle plug-ins."
 msgid "Latest plugin settings"
 msgstr "Laatste plug-ininstellingen"
 
-#: katalogus/templates/katalogus_settings.html
+#: katalogus/templates/katalogus_settings.html tools/forms/scheduler.py
 #: rocky/templates/tasks/ooi_detail_task_list.html
 msgid "Plugin"
 msgstr "Plug-in"
@@ -1932,8 +1935,8 @@ msgid ""
 msgstr ""
 "Dit Boefje scant alleen objecten met een overeenkomstig vrijwaringsniveau "
 "van <strong>(%(scan_level)s)</strong> of hoger. Er is geen vrijwaring voor "
-"dit Boefje om een OOI met een lager scanlevel te scannen dan <strong>L%"
-"(scan_level)s</strong>. Gebruik het filter om OOI’s met een lagere "
+"dit Boefje om een OOI met een lager scanlevel te scannen dan "
+"<strong>L%(scan_level)s</strong>. Gebruik het filter om OOI’s met een lagere "
 "vrijwaringsniveau te tonen."
 
 #: katalogus/templates/partials/objects_to_scan.html
@@ -2626,8 +2629,8 @@ msgid ""
 "L%(dns_report_least_clearance_level)s, meaning only informational scans are "
 "allowed."
 msgstr ""
-"Voor de onboarding gebruiken we een toestemmingsniveau van L%"
-"(dns_report_least_clearance_level)s, wat betekent dat alleen informatieve "
+"Voor de onboarding gebruiken we een toestemmingsniveau van "
+"L%(dns_report_least_clearance_level)s, wat betekent dat alleen informatieve "
 "scans zijn toegestaan."
 
 #: onboarding/templates/step_6_set_clearance_level.html
@@ -3011,9 +3014,9 @@ msgid ""
 "strong> are taken as a starting point, assets that are not in bold were "
 "found by OpenKAT itself."
 msgstr ""
-"Een overzicht van de handmatig gevrijwaarde gescande assets. <strong>"
-"Vetgedrukte</strong> assets zijn als startpunt genomen, niet vetgedrukte "
-"assets zijn door OpenKAT zelf gevonden."
+"Een overzicht van de handmatig gevrijwaarde gescande assets. "
+"<strong>Vetgedrukte</strong> assets zijn als startpunt genomen, niet "
+"vetgedrukte assets zijn door OpenKAT zelf gevonden."
 
 #: reports/report_types/aggregate_organisation_report/basic_security.html
 #: reports/report_types/aggregate_organisation_report/report.html
@@ -4652,7 +4655,8 @@ msgid "Low"
 msgstr "Laag"
 
 #: reports/templates/partials/report_severity_totals_table.html
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Pending"
 msgstr "In behandeling"
 
@@ -5121,8 +5125,8 @@ msgstr "Selecteer minstens één rapporttype om door te gaan."
 
 #: reports/views/mixins.py
 msgid ""
-"No data could be found for %(report_types). Object(s) did not exist on "
-"%(date)s."
+"No data could be found for %(report_types). Object(s) did not exist on %"
+"(date)s."
 msgstr ""
 "Er zijn geen gegevens gevonden voor %(report_types). Object(en) bestaan niet "
 "op %(date)s."
@@ -5149,16 +5153,16 @@ msgstr "Geen schema of recept geselecteerd"
 
 #: reports/views/report_overview.py
 msgid ""
+"Schedule enabled successfully. '{}' will be generated according to schedule."
+msgstr "Schema met succes ingeschakeld. ‘{}’ wordt volgens schema aangemaakt."
+
+#: reports/views/report_overview.py
+msgid ""
 "Schedule disabled successfully. '{}' will not be generated automatically "
 "until the schedule is enabled again."
 msgstr ""
 "Schema met succes uitgeschakeld. ‘{}’ wordt niet automatisch aangemaakt, "
 "tenzij het weer wordt ingeschakeld."
-
-#: reports/views/report_overview.py
-msgid ""
-"Schedule enabled successfully. '{}' will be generated according to schedule."
-msgstr "Schema met succes ingeschakeld. ‘{}’ wordt volgens schema aangemaakt."
 
 #: reports/views/report_overview.py
 msgid "An unexpected error occurred, please check logs for more info."
@@ -5239,10 +5243,6 @@ msgstr "3: Instellingen exporteren"
 #: tools/forms/base.py
 msgid "Date"
 msgstr "Datum"
-
-#: tools/forms/base.py tools/forms/scheduler.py
-msgid "The selected date is in the future. Please select a different date."
-msgstr "De gekozen datum ligt in de toekomst. Kies een andere datum."
 
 #: tools/forms/boefje.py
 msgid "For example: -sTU --top-ports 1000"
@@ -5424,7 +5424,7 @@ msgstr "Filteren op ernst"
 msgid "Filter by muted findings"
 msgstr "Gedempte bevindingen uitsluiten"
 
-#: tools/forms/findings.py tools/forms/ooi_form.py tools/forms/scheduler.py
+#: tools/forms/findings.py tools/forms/ooi_form.py
 msgid "Search"
 msgstr "Zoeken"
 
@@ -5465,6 +5465,11 @@ msgid "Expires by (UTC)"
 msgstr "Verloopt op (UTC)"
 
 #: tools/forms/ooi_form.py
+#, python-format
+msgid "Invalid cron expression: %(error)s"
+msgstr ""
+
+#: tools/forms/ooi_form.py
 msgid "option"
 msgstr "optie"
 
@@ -5494,33 +5499,77 @@ msgstr "Van"
 msgid "To"
 msgstr "Tot"
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Cancelled"
 msgstr "Geannuleerd"
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Completed"
 msgstr "Voltooid"
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Dispatched"
 msgstr "Afgeleverd"
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Failed"
 msgstr "Mislukt"
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Queued"
 msgstr "In de wachtrij"
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Running"
 msgstr "Draaiend"
 
 #: tools/forms/scheduler.py
+msgid "Search (in OOI)"
+msgstr ""
+
+#: tools/forms/scheduler.py
 msgid "Search by object name"
 msgstr "Zoeken op objectnaam"
+
+#: tools/forms/scheduler.py
+msgid "Input OOI"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Select specific object"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by plugin"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Task id"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "Search by task ID"
+msgstr ""
+
+#: tools/forms/scheduler.py
+#, python-format
+msgid ""
+"The selected date (%s) is in the future. Please select a different date."
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'from'"
+msgstr ""
+
+#: tools/forms/scheduler.py
+msgid "'to'"
+msgstr ""
 
 #: tools/forms/settings.py
 msgid "--- Show all ----"
@@ -5627,9 +5676,9 @@ msgid ""
 "used as the basis for a form for the user. When the user enables this Boefje "
 "they can get the option to give extra information. For example, it can "
 "contain an API key that the script requires.</p> <p>More information about "
-"what the schema.json file looks like can be found <a href='https://docs."
-"openkat.nl/developer_documentation/development_tutorial/creating_a_boefje."
-"html'> here</a>.</p> "
+"what the schema.json file looks like can be found <a href='https://"
+"docs.openkat.nl/developer_documentation/development_tutorial/"
+"creating_a_boefje.html'> here</a>.</p> "
 msgstr ""
 "<p>Als er nog andere instellingen nodig zijn voor uw Boefje, voeg deze dan "
 "toe als JSON-schema, laat anders het veld leeg of ‘null’.</p> <p> Deze JSON "
@@ -5662,8 +5711,8 @@ msgid ""
 msgstr ""
 "<p>Selecteer een vrijwaringsniveau voor uw Boefje. Lees voor meer informatie "
 "over de verschillende vrijwaringsniveaus de <a href='https://docs.openkat.nl/"
-"manual/usermanual.html#scan-levels-clearance-indemnities'> documentatie</a>"
-".</p> "
+"manual/usermanual.html#scan-levels-clearance-indemnities'> documentatie</a>."
+"</p> "
 
 #: tools/forms/settings.py
 msgid ""
@@ -5734,11 +5783,12 @@ msgid ""
 "the mime type \"boefje/dns-records\" is added, the normalizer expects the "
 "raw file to contain dns scan information.</p>"
 msgstr ""
-"<p>Voeg een set MIME-types toe, gescheiden door komma’s, bijvoorbeeld:</p><p>"
-"<i>‘tekst/html, afbeelding/jpeg’</i> of <i>‘boefje/dns-records’</i>.</p><p>"
-"MIME-types worden gebruikt om de juiste Normalizer aan een onbewerkt bestand "
-"te koppelen. Wanneer het mime-type ‘boefje/dns-records’ is toegevoegd, "
-"verwacht de Normalizer het ruwe bestand met DNS-scaninformatie.</p>"
+"<p>Voeg een set MIME-types toe, gescheiden door komma’s, bijvoorbeeld:</"
+"p><p><i>‘tekst/html, afbeelding/jpeg’</i> of <i>‘boefje/dns-records’</i>.</"
+"p><p>MIME-types worden gebruikt om de juiste Normalizer aan een onbewerkt "
+"bestand te koppelen. Wanneer het mime-type ‘boefje/dns-records’ is "
+"toegevoegd, verwacht de Normalizer het ruwe bestand met DNS-scaninformatie.</"
+"p>"
 
 #: tools/forms/upload_raw.py rocky/templates/partials/ooi_list_toolbar.html
 #: rocky/templates/upload_raw.html
@@ -6205,8 +6255,8 @@ msgid "Add finding"
 msgstr "Bevinding toevoegen"
 
 #: rocky/templates/findings/finding_list.html
-msgid "Findings @ "
-msgstr "Bevindingen @ "
+msgid "Findings "
+msgstr ""
 
 #: rocky/templates/findings/finding_list.html
 #, python-format
@@ -6370,7 +6420,8 @@ msgstr "OpenKAT is veilig"
 msgid ""
 "Forensically secured storage of evidence is one of the basic ingredients of "
 "OpenKAT."
-msgstr "Forensisch geborgde opslag van bewijsmateriaal is de basis van OpenKAT."
+msgstr ""
+"Forensisch geborgde opslag van bewijsmateriaal is de basis van OpenKAT."
 
 #: rocky/templates/landing_page.html
 msgid "OpenKAT is sweet"
@@ -6445,7 +6496,7 @@ msgstr "%(display_type)s toevoegen"
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
-#: rocky/templates/partials/ooi_list_toolbar.html rocky/views/ooi_add.py
+#: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Add object"
 msgstr "Object toevoegen"
 
@@ -6533,8 +6584,9 @@ msgid ""
 msgstr ""
 "<strong>Waarschuwing:</strong> U hebt geen rechten om dit OOI te scannen. Uw "
 "maximale vrijwaringsniveau is %(member_clearance_level)s en dit OOI heeft "
-"niveau %(boefje_scan_level)s. Ga naar uw <a href=\"%(account_details)s\">"
-"accountinstellingen</a> om uw vrijwaringsniveau aan te passen."
+"niveau %(boefje_scan_level)s. Ga naar uw <a "
+"href=\"%(account_details)s\">accountinstellingen</a> om uw vrijwaringsniveau "
+"aan te passen."
 
 #: rocky/templates/oois/ooi_detail.html rocky/templates/scan.html
 msgid "Boefjes overview"
@@ -6689,6 +6741,47 @@ msgstr ""
 msgid "Warning"
 msgstr "Waarschuwing"
 
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Loading..."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Normalizer task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Consuming Raw file"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded objects"
+msgstr "Opgeleverde objecten"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Yielded raw files for task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/boefje_task_detail.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Download meta and raw data"
+msgstr "Meta- en ruwe gegevens downloaden"
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Origin boefje task"
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_origins_observations.html
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "See all similar tasks"
+msgstr ""
+
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
 msgid "Edit %(type)s: %(ooi_human_readable)s"
@@ -6714,9 +6807,10 @@ msgid ""
 "strong>. Objects can be added manually or by running Boefjes. Click an "
 "object for additional information."
 msgstr ""
-"Een overzicht van uw objectenlijst voor organisatie <strong>%"
-"(organization_name)s</strong>. Objecten kunnen handmatig worden toegevoegd "
-"of door het uitvoeren van Boefjes. Klik op een object voor meer informatie."
+"Een overzicht van uw objectenlijst voor organisatie "
+"<strong>%(organization_name)s</strong>. Objecten kunnen handmatig worden "
+"toegevoegd of door het uitvoeren van Boefjes. Klik op een object voor meer "
+"informatie."
 
 #: rocky/templates/oois/ooi_list.html
 #: rocky/templates/scan_profiles/scan_profile_detail.html
@@ -6746,22 +6840,14 @@ msgid "List of views for OOI"
 msgstr "Lijst van weergaven voor OOI"
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due"
-msgstr "Dit object is voorbij de houdbaarheidsdatum"
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "This object is past due and has been deleted"
-msgstr "Dit object is voorbij de houdbaarheidsdatum en gewist"
+msgid "You are looking at a historic view of this object."
+msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 msgid ""
-"This object is past due. You are viewing the object state in a past state."
-msgstr "Dit object is voorbij de houdbaarheidsdatum. U ziet een oude status."
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's to past due objects."
-msgstr "Het is niet mogelijk om bevindingen of objecten toe te voegen."
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
+msgstr ""
 
 #: rocky/templates/oois/ooi_past_due_warning.html
 #: rocky/templates/partials/hyperlink_ooi_id.html
@@ -6969,8 +7055,8 @@ msgid ""
 "An overview of general information and settings for "
 "<strong>%(organization_name)s</strong>."
 msgstr ""
-"Overzicht van algemene informatie en instellingen voor <strong>%"
-"(organization_name)s</strong>."
+"Overzicht van algemene informatie en instellingen voor "
+"<strong>%(organization_name)s</strong>."
 
 #: rocky/templates/organizations/organization_settings.html
 msgid ""
@@ -7056,8 +7142,8 @@ msgstr "Details van %(object_id)s, met %(child_count)s kinderen tonen."
 msgid ""
 "Show tree for %(object_id)s with only children of type %(object_ooi_type)s"
 msgstr ""
-"Boomweergave van %(object_id)s met alleen kinderen van type %"
-"(object_ooi_type)s tonen"
+"Boomweergave van %(object_id)s met alleen kinderen van type "
+"%(object_ooi_type)s tonen"
 
 #: rocky/templates/partials/elements/ooi_tree_condensed_table_row.html
 #, python-format
@@ -7101,8 +7187,20 @@ msgid "OOI"
 msgstr "OOI"
 
 #: rocky/templates/partials/explanations.html
+msgid "This OOI"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
 msgid "Origin"
 msgstr "Oorsprong"
+
+#: rocky/templates/partials/explanations.html
+msgid "declared"
+msgstr ""
+
+#: rocky/templates/partials/explanations.html
+msgid "inherited from ↓"
+msgstr ""
 
 #: rocky/templates/partials/explanations.html
 msgid "Show clearance level inheritance"
@@ -7215,6 +7313,10 @@ msgid "Page"
 msgstr "Pagina"
 
 #: rocky/templates/partials/list_paginator.html
+msgid "Current"
+msgstr ""
+
+#: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
 msgstr "Vijf pagina’s vooruit"
 
@@ -7256,15 +7358,12 @@ msgid "Edit %(display_type)s"
 msgstr "Bewerk %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
-#, fuzzy, python-format
-msgid ""
-"An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
-"information and its related objects. It also gives the possibility to add "
-"additional related objects, or to scan for them."
+msgid "Data from:"
 msgstr ""
-"Een overzicht van \"%(ooi)s\", objecttype \"%(type)s\". Dit toont algemene "
-"informatie en de gerelateerde objecten. Het biedt tevens de mogelijkheid om "
-"aanvullende gerelateerde objecten toe te voegen, of via scannen op te sporen."
+
+#: rocky/templates/partials/ooi_head.html
+msgid "(Now)"
+msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Scan for objects"
@@ -7365,6 +7464,16 @@ msgstr "volgende"
 #: rocky/templates/partials/pagination.html
 msgid "last"
 msgstr "laatste"
+
+#: rocky/templates/partials/scan_level_indicator.html
+#, python-format
+msgid "Scan level %(level)s"
+msgstr ""
+
+#: rocky/templates/partials/scan_level_indicator.html
+#, python-format
+msgid "Clearance level %(level)s"
+msgstr ""
 
 #: rocky/templates/partials/secondary-menu.html
 msgid "User navigation"
@@ -7481,11 +7590,6 @@ msgstr ""
 "heeft gegenereerd."
 
 #: rocky/templates/tasks/boefje_task_detail.html
-#: rocky/templates/tasks/partials/task_actions.html
-msgid "Download meta and raw data"
-msgstr "Meta- en ruwe gegevens downloaden"
-
-#: rocky/templates/tasks/boefje_task_detail.html
 msgid "Download meta data"
 msgstr "Meta-gegevens downloaden"
 
@@ -7515,6 +7619,30 @@ msgstr "Datum toegevoegd"
 #: rocky/templates/tasks/reports.html
 msgid "Modified date"
 msgstr "Bewerkte datum"
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Filter on this plugin"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this plugin"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
+msgid "Add filter on this status"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Filter on this ooi"
+msgstr ""
+
+#: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
+msgid "Add filter on this ooi"
+msgstr ""
 
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
@@ -7557,12 +7685,16 @@ msgid "List of tasks"
 msgstr "Lijst van taken"
 
 #: rocky/templates/tasks/partials/task_actions.html
-msgid "Yielded objects"
-msgstr "Opgeleverde objecten"
+msgid "Processing input from Boefje task"
+msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
 msgstr "Opnieuw plannen"
+
+#: rocky/templates/tasks/partials/task_actions.html
+msgid "Related Normalizer tasks"
+msgstr ""
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Download task data"
@@ -7907,6 +8039,10 @@ msgid "Upload raw"
 msgstr "Ruwe bestand uploaden"
 
 #: rocky/views/bytes_raw.py
+msgid "Getting raw data failed, No such meta."
+msgstr ""
+
+#: rocky/views/bytes_raw.py
 msgid "Getting raw data failed."
 msgstr "Het ophalen van ruwe gegevens is mislukt."
 
@@ -7935,12 +8071,30 @@ msgid "Can not parse date, falling back to show current date."
 msgstr "Kan datum niet lezen. Huidige datum wordt gebruikt."
 
 #: rocky/views/mixins.py
+#, python-format
+msgid "Could not load origins for OOI: %s from octopoes"
+msgstr ""
+
+#: rocky/views/mixins.py
+msgid "Could not load normalizer metas from bytes"
+msgstr ""
+
+#: rocky/views/mixins.py
+#, python-format
+msgid "Could not load boefje %s from katalogus"
+msgstr ""
+
+#: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
 msgstr "U hebt geen rechten om items aan een dashboard toe te voegen."
 
 #: rocky/views/mixins.py
 msgid "Dashboard item has been added."
 msgstr "Dashboarditem toegevoegd."
+
+#: rocky/views/ooi_add.py
+msgid "Type select"
+msgstr "Type selecteren"
 
 #: rocky/views/ooi_add.py
 #, python-format
@@ -8215,10 +8369,6 @@ msgid "Scans"
 msgstr "Scans"
 
 #: rocky/views/scheduler.py
-msgid "Your report has been scheduled."
-msgstr "Uw rapport is ingepland."
-
-#: rocky/views/scheduler.py
 msgid ""
 "Your task is scheduled and will soon be started in the background. Results "
 "will be added to the object list when they are in. It may take some time, a "
@@ -8227,6 +8377,10 @@ msgstr ""
 "Uw taak is gepland en zal binnenkort op de achtergrond beginnen. Resultaten "
 "worden toegevoegd aan de objectenlijst als ze binnen zijn. Het kan even "
 "duren, een verversing van de pagina is nodig om nieuwe resultaten te tonen."
+
+#: rocky/views/scheduler.py
+msgid "Your report has been scheduled."
+msgstr "Uw rapport is ingepland."
 
 #: rocky/views/tasks.py
 #, python-brace-format
@@ -8247,8 +8401,8 @@ msgid ""
 "with http:// or https://, optionally a second column 'network' is supported "
 msgstr ""
 "Voor het type URL-object is een kolom ‘raw’ met URL-waarden vereist, "
-"beginnend met http:// of https://. Optioneel wordt een tweede kolom ‘network"
-"’ ondersteund. "
+"beginnend met http:// of https://. Optioneel wordt een tweede kolom "
+"‘network’ ondersteund. "
 
 #: rocky/views/upload_csv.py
 msgid ""
@@ -8297,6 +8451,38 @@ msgstr "Ruwe bestand kan niet naar Bytes worden geüpload: %s"
 #: rocky/views/upload_raw.py
 msgid "Raw file successfully added."
 msgstr "Ruwe bestand met succes toegevoegd."
+
+#~ msgid "The selected date is in the future. Please select a different date."
+#~ msgstr "De gekozen datum ligt in de toekomst. Kies een andere datum."
+
+#~ msgid "Findings @ "
+#~ msgstr "Bevindingen @ "
+
+#~ msgid "This object is past due"
+#~ msgstr "Dit object is voorbij de houdbaarheidsdatum"
+
+#~ msgid "This object is past due and has been deleted"
+#~ msgstr "Dit object is voorbij de houdbaarheidsdatum en gewist"
+
+#~ msgid ""
+#~ "This object is past due. You are viewing the object state in a past state."
+#~ msgstr ""
+#~ "Dit object is voorbij de houdbaarheidsdatum. U ziet een oude status."
+
+#~ msgid ""
+#~ "You will not be able to add Findings or other OOI's to past due objects."
+#~ msgstr "Het is niet mogelijk om bevindingen of objecten toe te voegen."
+
+#, fuzzy, python-format
+#~ msgid ""
+#~ "An overview of \"%(ooi)s\", object type \"%(type)s\". This shows general "
+#~ "information and its related objects. It also gives the possibility to add "
+#~ "additional related objects, or to scan for them."
+#~ msgstr ""
+#~ "Een overzicht van \"%(ooi)s\", objecttype \"%(type)s\". Dit toont "
+#~ "algemene informatie en de gerelateerde objecten. Het biedt tevens de "
+#~ "mogelijkheid om aanvullende gerelateerde objecten toe te voegen, of via "
+#~ "scannen op te sporen."
 
 #~ msgid "Clearance level has been set"
 #~ msgstr "Vrijwaringsniveau is ingesteld"
@@ -9540,9 +9726,6 @@ msgstr "Ruwe bestand met succes toegevoegd."
 #~ msgid "Blocked status"
 #~ msgstr "Geblokkeerde status"
 
-#~ msgid "Type select"
-#~ msgstr "Type selecteren"
-
 #~ msgid "Add Account Type"
 #~ msgstr "Accounttype toevoegen"
 
@@ -9808,17 +9991,17 @@ msgstr "Ruwe bestand met succes toegevoegd."
 #~ "\n"
 #~ "                        You can create a new Boefje. If you want more "
 #~ "information on this,\n"
-#~ "                        you can check out the <a href=\"https://docs."
-#~ "openkat.nl/developer_documentation/development_tutorial/creating_a_boefje."
-#~ "html\">documentation</a>.\n"
+#~ "                        you can check out the <a href=\"https://"
+#~ "docs.openkat.nl/developer_documentation/development_tutorial/"
+#~ "creating_a_boefje.html\">documentation</a>.\n"
 #~ "                    "
 #~ msgstr ""
 #~ "\n"
 #~ "                        U kunt een nieuw Boefje maken. Als u hier meer "
 #~ "info over wilt,\n"
 #~ "                        kunt u de <a href=\"https://docs.openkat.nl/"
-#~ "developer_documentation/development_tutorial/creating_a_boefje."
-#~ "html\">documentatie</a> nalezen.\n"
+#~ "developer_documentation/development_tutorial/"
+#~ "creating_a_boefje.html\">documentatie</a> nalezen.\n"
 #~ "                    "
 
 #, python-format
@@ -10401,9 +10584,9 @@ msgstr "Ruwe bestand met succes toegevoegd."
 #~ msgid ""
 #~ "To make the report names more descriptive, you can include placeholders "
 #~ "for the object name, the report type and/or the reference date. For "
-#~ "subreports and reports over a single object, use the placeholder "
-#~ "\"{ooi}\" for the object name, \"{report type}\" for the report type and "
-#~ "use a <a href=\"https://strftime.org/\" target=\"_blank\" "
+#~ "subreports and reports over a single object, use the placeholder \"{ooi}"
+#~ "\" for the object name, \"{report type}\" for the report type and use a "
+#~ "<a href=\"https://strftime.org/\" target=\"_blank\" "
 #~ "rel=\"noopener\">Python strftime code</a> for the reference date. For "
 #~ "reports over multiple objects, use \"{oois_count}\" for the number of "
 #~ "objects in the report."
