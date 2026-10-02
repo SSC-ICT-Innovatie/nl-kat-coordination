@@ -38,8 +38,8 @@ models themselves.
 1. Make "first seen" and "last seen" available as first-class metadata on any
    OOI, retrieved in the same call that retrieves the OOI.
 2. Allow querying over a period rather than at a single point in time.
-3. Deliver a report that shows, per finding, when it appeared, when it was
-   resolved, and how long it was open.
+3. Deliver this as a **new, separate report type**, not as an extension of an
+   existing report — see the section below on why.
 4. Remove the N+1 call pattern that the existing reports use to approximate this.
 
 ### Scope
@@ -120,8 +120,10 @@ A `with_lifecycle=true` parameter on the existing `GET /{client}/findings`,
 `/objects` and `/object` endpoints populates it. Two Datalog predicates,
 `get-start-valid-time` and `get-end-valid-time`, provide the values.
 
-With that in place, `FindingsReport` and `VulnerabilityReport` migrate off
-`get_history()` and `last_seen` gets a real value for the first time.
+With that in place, `FindingsReport` and `VulnerabilityReport` can migrate off
+`get_history()`, and `last_seen` gets a real value for the first time. That is a
+repair of two existing reports that rides along, not the deliverable this RFD
+asks for.
 
 #### Phase 2 — range mode
 
@@ -133,6 +135,35 @@ resolved, duration and status, plus a summary block.
 A period report has to add up. Baseline plus added minus resolved should equal
 the closing count, and the report should say so rather than leave the reader to
 check.
+
+### Why a separate report type
+
+The deliverable is a new report type rather than a period mode bolted onto
+`FindingsReport`, for four reasons.
+
+**It answers a different question for a different reader.** A snapshot report
+answers "what is open"; a period report answers "what happened, and can I prove
+it". Supporting both in one report makes it bimodal, and bimodal reports tend to
+serve neither case well.
+
+**It carries no regression risk.** The existing reports are relied upon. A new
+type can be built, reviewed and shipped without changing their output at all,
+which matters given the non-functional requirement in RFD 0004 that changes to
+existing behaviour must not degrade existing quality.
+
+**An audit deliverable needs its own identity.** It has to state its own scope and
+limitations — scan coverage for the period, an explicit "cause not established"
+category — and that belongs in a document about the period, not as extra columns
+in a report about now.
+
+**It is the cheap and conventional option.** Rocky has fourteen report types;
+registering one is a directory under `reports/report_types/`, a class, one import
+and one entry in the `REPORTS` list in `reports/report_types/helpers.py`.
+
+A useful consequence: because option A works today without any backend change, the
+report can be built on two-snapshot diffing first and switched onto lifecycle
+metadata once phase 1 lands. The report is therefore not blocked on the three
+decisions below — only its efficiency is.
 
 ### Open questions
 
