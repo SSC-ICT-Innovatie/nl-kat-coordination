@@ -847,14 +847,14 @@ def finding_type_kat_no_two_ipv6() -> KATFindingType:
 def cipher_finding_types() -> list[KATFindingType]:
     return [
         KATFindingType(
-            id="KAT-RECOMMENDATION-BAD-CIPHER",
+            id="KAT-RECOMMENDATION-TLS-CIPHER",
             description="Fake description...",
             recommendation="Fake recommendation...",
             risk_score=3.0,
             risk_severity=RiskLevelSeverity.RECOMMENDATION,
         ),
         KATFindingType(
-            id="KAT-CRITICAL-BAD-CIPHER",
+            id="KAT-CRITICAL-TLS-CIPHER",
             description="Fake description...",
             recommendation="Fake recommendation...",
             risk_score=10.0,
@@ -866,7 +866,7 @@ def cipher_finding_types() -> list[KATFindingType]:
 @pytest.fixture
 def cipher_finding_type() -> KATFindingType:
     return KATFindingType(
-        id="KAT-MEDIUM-BAD-CIPHER",
+        id="KAT-MEDIUM-TLS-CIPHER",
         description="Fake description...",
         recommendation="Fake recommendation...",
         risk_score=6.0,
@@ -995,17 +995,17 @@ def query_data_tls_findings_and_suites(cipher):
         Finding(
             ooi=cipher.reference,
             description="Fake description with cipher_suite_name ECDHE-RSA-AES128-SHA",
-            finding_type=KATFindingType(id="KAT-RECOMMENDATION-BAD-CIPHER").reference,
+            finding_type=KATFindingType(id="KAT-RECOMMENDATION-TLS-CIPHER").reference,
         ),
         Finding(
             ooi=cipher.reference,
             description="Fake description with cipher_suite_name ECDHE-RSA-AES256-SHA",
-            finding_type=KATFindingType(id="KAT-MEDIUM-BAD-CIPHER").reference,
+            finding_type=KATFindingType(id="KAT-MEDIUM-TLS-CIPHER").reference,
         ),
         Finding(
             ooi=cipher.reference,
             description="Fake description...",
-            finding_type=KATFindingType(id="KAT-CRITICAL-BAD-CIPHER").reference,
+            finding_type=KATFindingType(id="KAT-CRITICAL-TLS-CIPHER").reference,
         ),
     ]
 
