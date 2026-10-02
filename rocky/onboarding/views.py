@@ -382,6 +382,8 @@ class OnboardingCreateReportRecipe(
     task_type = "report"
 
     def post(self, request, *args, **kwargs):
+        if not self.get_ooi_pks():
+            return self.get(request, *args, **kwargs)
         report_name_format = self.get_initial_report_name()
         parent_report_type = self.get_parent_report_type()
         report_recipe = self.create_report_recipe(report_name_format, parent_report_type, None)
@@ -397,7 +399,20 @@ class OnboardingCreateReportRecipe(
     def get_ooi_pks(self) -> list[str]:
         ooi = self.get_ooi(self.request.GET.get("ooi"))
         if ooi.web_url is not None:
-            hostname_ooi = [Hostname(name=ooi.web_url.tokenized["netloc"]["name"], network=ooi.network)]
+            netloc = ooi.web_url.tokenized["netloc"]
+            try:
+                name = netloc["name"]
+            except KeyError:
+                name = None  # IPAddressHTTPURL netloc has "address", not "name"
+            if name is None or name == "localhost" or name.endswith(".localhost"):
+                # A DNS report cannot run on an IP address or localhost, so
+                # bail out with a clear message instead of crashing with a 500
+                # or producing an empty report.
+                messages.error(
+                    self.request, _("The onboarding DNS report requires a hostname, not an IP address or localhost.")
+                )
+                return []
+            hostname_ooi = [Hostname(name=name, network=ooi.network)]
             return [hostname_ooi[0].primary_key]
 
         messages.error(self.request, _("Web URL not found."))
