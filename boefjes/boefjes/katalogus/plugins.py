@@ -6,7 +6,7 @@ from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.responses import FileResponse, JSONResponse, Response
 from jsonschema.exceptions import SchemaError
 from jsonschema.validators import Draft202012Validator
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from boefjes.dependencies.plugins import (
     PluginService,
@@ -144,6 +144,8 @@ class BoefjeIn(BaseModel):
     boefje_schema: dict | None = None
     cron: str | None = None
     interval: int | None = None
+    rate_limit_interval: float | None = Field(default=None, gt=0)
+    rate_limit_group: str | None = None
     run_on: list[RunOn] | None = None
     oci_image: str | None = None
     oci_arguments: list[str] = Field(default_factory=list)
@@ -166,6 +168,12 @@ class BoefjeIn(BaseModel):
             croniter(cron)  # Raises a ValueError
 
         return cron
+
+    @model_validator(mode="after")
+    def rate_limit_has_group(self):
+        if self.rate_limit_interval is not None and not self.rate_limit_group:
+            raise ValueError("rate_limit_group is required when rate_limit_interval is set")
+        return self
 
 
 @router.patch("/boefjes/{boefje_id}", status_code=status.HTTP_204_NO_CONTENT)
