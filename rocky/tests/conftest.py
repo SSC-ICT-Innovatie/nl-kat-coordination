@@ -415,7 +415,7 @@ def bytes_raw_metas():
                 "arguments": {},
                 "organization": "test",
                 "runnable_hash": "ed871e9731f3d528ea92ca23c8eb18f38ac47e6d89a634b654a073fc2ca5fb50",
-                "environment": {},
+                "environment": {"SECRET_TOKEN": "supersecret", "NON_SECRET": "visible"},
             },
             "mime_types": [
                 {"value": "boefje/dns-sec"},
