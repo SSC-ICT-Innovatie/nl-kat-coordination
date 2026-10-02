@@ -2,7 +2,7 @@
 authors: Paul van den Braken (@paulvandenbraken), Jordy van den Elshout (@jordy-kennisnet)
 date: 24 september 2026
 state: draft
-discussion:
+discussion: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/pull/5465
 implementation:
 labels: boefjes, quality
 ---
