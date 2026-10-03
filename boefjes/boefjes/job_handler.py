@@ -230,6 +230,21 @@ class LocalNormalizerHandler(NormalizerHandler):
                     # Mypy doesn't seem to be able to figure out that ended_at is a datetime
                     valid_time=cast(datetime, normalizer_meta.raw_data.boefje_meta.ended_at),
                 )
+
+            # Raw files produced by unpacker normalizers are stored back in Bytes under the parent raw's
+            # boefje_meta. Bytes then emits a raw_file_received event, so downstream normalizers are
+            # dispatched by mime type just like for boefje output. A failing file must not abort the task.
+            for raw_file in results.raw_files:
+                try:
+                    self.bytes_client.save_raw(
+                        normalizer_meta.raw_data.boefje_meta.id, raw_file.content, raw_file.mime_types
+                    )
+                except Exception:
+                    logger.exception(
+                        "Failed to save raw file produced by normalizer %s[%s]",
+                        normalizer_meta.normalizer.id,
+                        normalizer_meta.id,
+                    )
         finally:
             normalizer_meta.ended_at = datetime.now(timezone.utc)
             self.bytes_client.save_normalizer_meta(normalizer_meta)
