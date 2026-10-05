@@ -67,6 +67,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         # update website
         yield NormalizerAffirmation(ooi=website)
 
+    certificates, certificate_subject_alternative_names, hostnames = read_certificates(contents, Reference.from_str(pk))
     # Yield certificates after their chain relationships have been resolved.
     yield from certificates
 
@@ -110,6 +111,8 @@ def read_certificates(
     parsed_certificates = []
     certificate_subject_alternative_names = []
     hostnames = []
+    seen_certificates = set()
+
     for m in re.finditer(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", contents, flags=re.DOTALL):
         pem_contents = m.group()
 
@@ -118,6 +121,13 @@ def read_certificates(
         except ValueError:
             logging.warning("Unable to parse PEM certificate, skipping it")
             continue
+
+        certificate_der = cert.public_bytes(serialization.Encoding.DER)
+
+        if certificate_der in seen_certificates:
+            continue
+
+        seen_certificates.add(certificate_der)
 
         try:
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
