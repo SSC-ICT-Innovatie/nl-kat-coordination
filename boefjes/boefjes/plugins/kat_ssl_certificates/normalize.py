@@ -220,7 +220,7 @@ def read_certificates(
             None,
         )
 
-    if issuer_certificate is not None:
-        certificate.signed_by = issuer_certificate.reference
+        if issuer_certificate is not None:
+            certificate.signed_by = issuer_certificate.reference
 
     return certificates, certificate_subject_alternative_names, hostnames
