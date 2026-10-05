@@ -5,6 +5,7 @@ import re
 from collections.abc import Iterable
 
 from cryptography import x509
+from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
@@ -27,12 +28,7 @@ from octopoes.models.ooi.web import Website
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    # only get the first part of certificates
     contents = raw.decode(errors="replace")
-
-    if "Certificate chain" in contents:
-        contents = contents.split("Certificate chain", 1)[1]
-        contents = contents.split("Certificate chain", 1)[0]
 
     if "-----BEGIN CERTIFICATE-----" not in contents:
         return
@@ -81,6 +77,31 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     yield from certificate_subject_alternative_names
 
 
+def _certificate_is_signed_by(certificate: x509.Certificate, issuer: x509.Certificate) -> bool:
+    if certificate.issuer != issuer.subject:
+        return False
+
+    try:
+        issuer_public_key = issuer.public_key()
+
+        if isinstance(issuer_public_key, rsa.RSAPublicKey | ec.EllipticCurvePublicKey):
+            issuer_public_key.verify(
+                certificate.signature,
+                certificate.tbs_certificate_bytes,
+                certificate.signature_algorithm_parameters,
+                certificate.signature_hash_algorithm,
+            )
+        elif isinstance(issuer_public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
+            issuer_public_key.verify(certificate.signature, certificate.tbs_certificate_bytes)
+        else:
+            return False
+
+    except (InvalidSignature, UnsupportedAlgorithm, ValueError):
+        return False
+
+    return True
+
+
 def read_certificates(
     contents: str, website_reference: Reference
 ) -> tuple[list[X509Certificate], list[SubjectAlternativeName], list[Hostname]]:
@@ -91,7 +112,12 @@ def read_certificates(
     hostnames = []
     for m in re.finditer(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", contents, flags=re.DOTALL):
         pem_contents = m.group()
-        cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
+
+        try:
+            cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
+        except ValueError:
+            logging.warning("Unable to parse PEM certificate, skipping it")
+            continue
 
         try:
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
@@ -186,11 +212,15 @@ def read_certificates(
             continue
 
         issuer_certificate = next(
-            (candidate for candidate, candidate_cert in parsed_certificates if candidate_cert.subject == cert.issuer),
+            (
+                candidate
+                for candidate, candidate_cert in parsed_certificates
+                if _certificate_is_signed_by(cert, candidate_cert)
+            ),
             None,
         )
 
-        if issuer_certificate is not None:
-            certificate.signed_by = issuer_certificate.reference
+    if issuer_certificate is not None:
+        certificate.signed_by = issuer_certificate.reference
 
     return certificates, certificate_subject_alternative_names, hostnames
