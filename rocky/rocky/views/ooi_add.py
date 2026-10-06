@@ -24,7 +24,7 @@ EXCLUDE_OOI_TYPES = [
 
 def ooi_type_input_choices():
     ooi_types = [ooi_type for ooi_type in OOI_TYPES_WITHOUT_FINDINGS if ooi_type not in EXCLUDE_OOI_TYPES]
-    ooi_types = sorted(set(ooi_types) | MANUALLY_ADDABLE_OOI_TYPES)
+    ooi_types.sort()
     return [{"value": ooi_type, "text": ooi_type} for ooi_type in ooi_types]
 
 
