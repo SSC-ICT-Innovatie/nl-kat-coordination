@@ -6,8 +6,14 @@ from django import forms
 from pytest_django.asserts import assertContains
 from tools.forms.ooi_form import generate_select_ooi_field
 
-from rocky.views.ooi_add import OOIAddView
+from rocky.views.ooi_add import OOIAddView, ooi_type_input_choices
 from tests.conftest import setup_request
+
+
+def test_hostname_service_is_available_in_add_object_type_choices():
+    choices = ooi_type_input_choices()
+
+    assert {choice["value"] for choice in choices} >= {"HostnameService"}
 
 
 def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_client):

@@ -15,6 +15,8 @@ from octopoes.models.ooi.web import ImageMetadata
 from octopoes.models.types import type_by_name
 from rocky.views.ooi_view import BaseOOIFormView
 
+MANUALLY_ADDABLE_OOI_TYPES = {"HostnameService"}
+
 EXCLUDE_OOI_TYPES = [
     ooi_type.get_object_type()
     for ooi_type in [Question, Incident, ImageMetadata, Report, ReportData, BaseReport, AssetReport, HydratedReport]
@@ -23,7 +25,7 @@ EXCLUDE_OOI_TYPES = [
 
 def ooi_type_input_choices():
     ooi_types = [ooi_type for ooi_type in OOI_TYPES_WITHOUT_FINDINGS if ooi_type not in EXCLUDE_OOI_TYPES]
-    ooi_types.sort()
+    ooi_types = sorted(set(ooi_types) | MANUALLY_ADDABLE_OOI_TYPES)
     return [{"value": ooi_type, "text": ooi_type} for ooi_type in ooi_types]
 
 
