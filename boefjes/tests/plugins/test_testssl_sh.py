@@ -1,4 +1,8 @@
+import pytest
+
 from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
+from octopoes.models import Reference
+from octopoes.models.ooi.service import HostnameService
 from tests.loading import get_dummy_data
 
 input_ooi = {
@@ -176,47 +180,30 @@ def test_ciphered_hostname_service_identity_includes_hostname_and_ip_service():
 
 
 def test_hostname_service_identity_distinguishes_sni_hosts_on_same_ip_service():
-    from octopoes.models.ooi.service import HostnameService
-
-    a = HostnameService.from_dict(
-        {
-            "object_type": "HostnameService",
-            "ip_service": "IPService|internet|192.0.2.10|tcp|443|https",
-            "hostname": "Hostname|internet|a.example",
-        }
+    a = HostnameService(
+        ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),
+        hostname=Reference.from_str("Hostname|internet|a.example"),
     )
-    b = HostnameService.from_dict(
-        {
-            "object_type": "HostnameService",
-            "ip_service": "IPService|internet|192.0.2.10|tcp|443|https",
-            "hostname": "Hostname|internet|b.example",
-        }
+
+    b = HostnameService(
+        ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),
+        hostname=Reference.from_str("Hostname|internet|b.example"),
     )
 
     assert a.natural_key != b.natural_key
 
 
 def test_normalizer_rejects_non_array_json():
-    import pytest
-
-    from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
-
     with pytest.raises(ValueError, match="expected an array"):
         list(run(input_ooi, b'{"finding":"not-an-array"}'))
 
 
 def test_normalizer_rejects_malformed_json():
-    import pytest
-
-    from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
-
     with pytest.raises(ValueError):
         list(run(input_ooi, b"not-json"))
 
 
 def test_normalizer_ignores_unknown_future_cipher_format():
-    from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
-
     raw = b"""[
         {"id":"cipher-tls1_3_xffff","finding":"TLSv1.3 xffff future-format"},
         {"id":"unknown-future-record","finding":"future format"}
@@ -225,8 +212,6 @@ def test_normalizer_ignores_unknown_future_cipher_format():
 
 
 def test_normalizer_marks_weak_cipher_characteristics():
-    from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
-
     raw = b"""[
         {"id":"cipher-tls1_2_x0010",
         "finding":"TLSv1.2 x0010 ECDHE-RSA-DES-CBC3-SHA ECDH 521 3DES 168 TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA"}
