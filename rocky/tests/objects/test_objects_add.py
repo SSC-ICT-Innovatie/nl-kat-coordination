@@ -9,6 +9,7 @@ from tools.forms.ooi_form import generate_select_ooi_field
 from rocky.views.ooi_add import OOIAddView
 from tests.conftest import setup_request
 
+
 def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_client):
     request = setup_request(rf.post("ooi_add", {"ooi_type": "Network", "name": "testnetwork"}), client_member.user)
 

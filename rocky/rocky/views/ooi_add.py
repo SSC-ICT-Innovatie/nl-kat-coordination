@@ -15,7 +15,6 @@ from octopoes.models.ooi.web import ImageMetadata
 from octopoes.models.types import type_by_name
 from rocky.views.ooi_view import BaseOOIFormView
 
-
 EXCLUDE_OOI_TYPES = [
     ooi_type.get_object_type()
     for ooi_type in [Question, Incident, ImageMetadata, Report, ReportData, BaseReport, AssetReport, HydratedReport]
