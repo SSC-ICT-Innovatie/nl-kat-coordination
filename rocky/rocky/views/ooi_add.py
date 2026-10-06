@@ -15,7 +15,6 @@ from octopoes.models.ooi.web import ImageMetadata
 from octopoes.models.types import type_by_name
 from rocky.views.ooi_view import BaseOOIFormView
 
-MANUALLY_ADDABLE_OOI_TYPES = {"HostnameService"}
 
 EXCLUDE_OOI_TYPES = [
     ooi_type.get_object_type()
