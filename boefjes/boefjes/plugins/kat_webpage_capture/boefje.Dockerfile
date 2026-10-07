@@ -47,9 +47,16 @@ ENV PYTHONPATH=/app/boefje:/app
 WORKDIR /app/boefje
 RUN adduser --disabled-password --gecos '' nonroot
 # Pinned to the versions boefjes/uv.lock resolves so rebuilds stay reproducible
-# (#5440); bump them together with the lockfile.
+# (#5440); bump them together with the lockfile. pip itself is uninstalled after
+# use: it is only needed at build time, and shipping it would leave nonroot a
+# working package manager plus its known advisories in the final image.
 RUN --mount=type=cache,target=/root/.cache pip3 install "pip==25.2" &&  \
-    pip3 install "httpx==0.28.1" "structlog==25.5.0" "pydantic==2.13.0" "jsonschema==4.26.0" "croniter==6.2.2" "click==8.3.2"
+    pip3 install "httpx==0.28.1" "structlog==25.5.0" "pydantic==2.13.0" "jsonschema==4.26.0" "croniter==6.2.2" "click==8.3.2" && \
+    python3.13 -m pip uninstall -y pip
+
+# No user site-packages: without this anything dropped into ~/.local sorts ahead
+# of dist-packages on sys.path and could shadow the pins above at runtime.
+ENV PYTHONNOUSERSITE=1
 
 USER nonroot
 
