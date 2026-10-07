@@ -76,11 +76,11 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
     }
 
     if parts[4].isdigit():
-        # TLS <= 1.2 reports a key-exchange/key-size value before the bulk
+        # TLS <= 1.2 reports a key-exchange/key-size strength before the bulk
         # encryption algorithm. TLS 1.3 does not have an equivalent cipher-suite
-        # key size, so it must not be interpreted as one.
+        # key exchange strength field.
         if protocol != "TLSv1.3":
-            suite["key_size"] = int(parts[4])
+            suite["key_exchange_bits"] = int(parts[4])
         encryption_index = 5
         bits_index = 6
         alias_index = 7
@@ -96,7 +96,7 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
     suite.update(
         {
             "encryption_algorithm": encryption,
-            "bits": int(parts[bits_index]),
+            "encryption_bits": int(parts[bits_index]),
             "cipher_suite_alias": parts[alias_index],
             "characteristics": _characteristics(parts[2], parts[3], encryption),
         }
