@@ -109,20 +109,20 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
     if bits_match.group("export") and "EXPORT" not in characteristics:
         characteristics.append("EXPORT")
 
-    suite: dict[str, Any] = {
+    suite = {
         "cipher_suite_code": code,
         "cipher_suite_name": cipher_suite_name,
         "key_exchange_algorithm": key_exchange,
         "encryption_algorithm": encryption,
-        "bits": int(bits_match.group("bits") or 0),
+        "encryption_bits": int(bits),
         "cipher_suite_alias": alias,
-        "characteristics": characteristics,
+        "characteristics": _characteristics(cipher_suite_name, key_exchange, encryption),
     }
 
     # TLS 1.3 does not expose the legacy key-size field, so only retain it
     # for protocols where testssl actually reports one.
     if key_size is not None and protocol != "TLSv1.3":
-        suite["key_size"] = key_size
+        suite["key_exchange_bits"] = key_size
 
     return protocol, suite
 
