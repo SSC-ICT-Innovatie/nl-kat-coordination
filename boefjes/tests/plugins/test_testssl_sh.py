@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import pytest
 
+from boefjes.plugins.kat_testssl_sh_ciphers.main import run as boefje_run
 from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
 from octopoes.models import Reference
 from octopoes.models.ooi.service import HostnameService
@@ -240,11 +241,10 @@ def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip(tmp_path):
     def fake_run(command, **kwargs):
         jsonfile = command[command.index("--jsonfile") + 1]
         Path(jsonfile).write_bytes(b"[]")
-
         return subprocess.CompletedProcess(command, 0)
 
     with patch("boefjes.plugins.kat_testssl_sh_ciphers.main.subprocess.run", side_effect=fake_run) as mock_run:
-        run(boefje_meta, b"")
+        boefje_run(boefje_meta)
 
     command = mock_run.call_args.args[0]
 
