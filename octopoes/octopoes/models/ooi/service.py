@@ -52,15 +52,26 @@ class HostnameService(OOI):
     ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
 
-    _natural_key_attrs = ["ip_service", "hostname"]
+    # Hostname is an optional suffix of the natural key. Keep only
+    # ip_service as a tokenizable field so legacy hostname-less TLSCipher
+    # references remain valid.
+    _natural_key_attrs = ["ip_service"]
     _reverse_relation_names = {"ip_service": "hostname_services", "hostname": "services"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        t = reference.tokenized
-        address = t.ip_service.ip_port.address.address
-        port = t.ip_service.ip_port.port
-        return f"{t.ip_service.service.name}://{t.hostname.name}:{port} @ {address}"
+        # Natural key:
+        #   network|address|protocol|port|service
+        # or
+        #   network|address|protocol|port|service|hostname_network|hostname
+        parts = reference.natural_key.split("|")
+        address = parts[1]
+        port = parts[3]
+
+        if len(parts) == 7:
+            return f"Ciphers of {parts[6]}:{address}:{port}"
+
+        return f"Ciphers of {address}:{port}"
 
 
 class TLSCipher(OOI):

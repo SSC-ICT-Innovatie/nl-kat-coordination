@@ -242,7 +242,7 @@ def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip():
             patch("boefjes.plugins.kat_testssl_sh_ciphers.main.Path.exists", return_value=True),
             patch("boefjes.plugins.kat_testssl_sh_ciphers.main.Path.read_bytes", return_value=b"[]"),
         ):
-            run(boefje_meta)
+            run(boefje_meta, b"")
 
     command = mock_run.call_args.args[0]
 
