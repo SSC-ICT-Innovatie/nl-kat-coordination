@@ -15,11 +15,12 @@ class AlgorithmType(Enum):
 
     Possible values
     ---------------
-    RSA, ECC
+    RSA, ECC, EdDSA
     """
 
     RSA = "RSA"
     ECC = "ECC"
+    EDDSA = "EdDSA"
 
 
 class X509Certificate(OOI):
