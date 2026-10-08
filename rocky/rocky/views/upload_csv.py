@@ -151,7 +151,6 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         csv_raw_data = csv_file.read()
 
         task_id = uuid4()
-        self.bytes_client.add_manual_proof(task_id, csv_raw_data, manual_mime_types={"manual/csv"})
 
         csv_data = io.StringIO(csv_raw_data.decode("UTF-8"))
         rows_with_error = []
@@ -177,6 +176,10 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             self.add_success_notification(_("Object(s) successfully added."))
         except (csv.Error, IndexError):
             return self.add_error_notification(CSV_ERRORS["csv_error"])
+
+        # Only store the raw proof after validation succeeds, so failed
+        # uploads don't trigger normalizers that create duplicate objects (#3781)
+        self.bytes_client.add_manual_proof(task_id, csv_raw_data, manual_mime_types={"manual/csv"})
 
         try:
             self.octopoes_api_connector.save_many_declarations(oois, sync=True)

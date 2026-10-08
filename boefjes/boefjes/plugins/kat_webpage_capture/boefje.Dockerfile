@@ -3,8 +3,8 @@
 # is immutable and Dependabot-trackable (a plain tag can't be, see #3261). The
 # digest is authoritative (Docker ignores the tag when a digest is present), so on
 # a version bump update the base tag, the digest and PLAYWRIGHT_VERSION together.
-ARG PLAYWRIGHT_VERSION=1.62.1
-FROM mcr.microsoft.com/playwright:v1.62.1-noble@sha256:dcc5531e97840b9b5e794f2814476b21571c5124a3fca2267d73041f56e7580e
+ARG PLAYWRIGHT_VERSION=1.63.0
+FROM mcr.microsoft.com/playwright:v1.63.0-noble@sha256:eff16c30e6f3f4af0a03fa4b706120d5e9b0891c344a27d64559aff5900a4a27
 
 # Redeclare so the RUN below (a new build stage scope) can use it.
 ARG PLAYWRIGHT_VERSION
@@ -28,7 +28,17 @@ RUN apt-get update && \
     playwright install --with-deps chromium && \
     # Build-time guardrail (this image is built in CI): fail the build if the
     # installed Playwright is not the pinned version. -F: match a fixed string.
-    playwright --version | grep -qF "Version ${PLAYWRIGHT_VERSION}"
+    playwright --version | grep -qF "Version ${PLAYWRIGHT_VERSION}" && \
+    # Immutability (#5440): remove every package manager so nothing inside the
+    # container can fetch or upgrade code at runtime — `npx playwright` pulling
+    # the latest unpinned release is exactly how #3916 broke. The boefje only
+    # needs `node` (playwright's shebang); keep /usr/lib/node_modules/playwright.
+    rm -f /usr/bin/npm /usr/bin/npx /usr/bin/yarn /usr/bin/yarnpkg /usr/bin/corepack && \
+    rm -rf /usr/lib/node_modules/npm /usr/lib/node_modules/yarn /usr/lib/node_modules/corepack /root/.npm && \
+    # The base image ships /ms-playwright world-writable so any user can install
+    # browsers — strip the write bits so the nonroot runtime cannot download or
+    # replace browser binaries either.
+    chmod -R a-w /ms-playwright
 
 ARG BOEFJES_API=http://boefje:8000
 ENV BOEFJES_API=$BOEFJES_API
@@ -36,8 +46,17 @@ ENV PYTHONPATH=/app/boefje:/app
 
 WORKDIR /app/boefje
 RUN adduser --disabled-password --gecos '' nonroot
-RUN --mount=type=cache,target=/root/.cache pip3 install --upgrade pip &&  \
-    pip3 install httpx structlog pydantic jsonschema croniter click
+# Pinned to the versions boefjes/uv.lock resolves so rebuilds stay reproducible
+# (#5440); bump them together with the lockfile. pip itself is uninstalled after
+# use: it is only needed at build time, and shipping it would leave nonroot a
+# working package manager plus its known advisories in the final image.
+RUN --mount=type=cache,target=/root/.cache pip3 install "pip==25.2" &&  \
+    pip3 install "httpx==0.28.1" "structlog==25.5.0" "pydantic==2.13.0" "jsonschema==4.26.0" "croniter==6.2.2" "click==8.3.2" && \
+    python3.13 -m pip uninstall -y pip
+
+# No user site-packages: without this anything dropped into ~/.local sorts ahead
+# of dist-packages on sys.path and could shadow the pins above at runtime.
+ENV PYTHONNOUSERSITE=1
 
 USER nonroot
 
