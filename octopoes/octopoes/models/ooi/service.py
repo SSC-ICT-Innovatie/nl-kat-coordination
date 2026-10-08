@@ -55,7 +55,7 @@ class HostnameService(OOI):
     # Hostname is an optional suffix of the natural key. Keep only
     # ip_service as a tokenizable field so legacy hostname-less TLSCipher
     # references remain valid.
-    _natural_key_attrs = ["ip_service"]
+    _natural_key_attrs = ["ip_service", "hostname"]
     _reverse_relation_names = {"ip_service": "hostname_services", "hostname": "services"}
 
     @classmethod
@@ -64,14 +64,10 @@ class HostnameService(OOI):
         #   network|address|protocol|port|service
         # or
         #   network|address|protocol|port|service|hostname_network|hostname
-        parts = reference.natural_key.split("|")
-        address = parts[1]
-        port = parts[3]
-
-        if len(parts) == 7:
-            return f"Ciphers of {parts[6]}:{address}:{port}"
-
-        return f"Ciphers of {address}:{port}"
+        t = reference.tokenized
+        address = t.ip_service.ip_port.address.address
+        port = t.ip_service.ip_port.port
+        return f"{t.ip_service.service.name}://{t.hostname.name}:{port} @ {address}"
 
 
 class TLSCipher(OOI):
@@ -84,7 +80,7 @@ class TLSCipher(OOI):
     suites: dict
     server_preference: dict[str, str] = Field(default_factory=dict)
 
-    _natural_key_attrs = ["ip_service", "hostname"]
+    _natural_key_attrs = ["ip_service"]
 
     _reverse_relation_names = {"ip_service": "ciphers", "hostname": "ciphers"}
 
@@ -99,7 +95,13 @@ class TLSCipher(OOI):
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        t = reference.tokenized
-        ip_address = t.ip_service.ip_port.address.address
-        hostname = t.hostname.name if t.hostname else str(ip_address)
-        return f"Ciphers of {hostname}:{str(ip_address)}:{t.ip_service.ip_port.port}"
+        parts = reference.natural_key.split("|")
+
+        address = parts[1]
+        port = parts[3]
+
+        if len(parts) == 7:
+            hostname = parts[6]
+            return f"Ciphers of {hostname}:{address}:{port}"
+
+        return f"Ciphers of {address}:{port}"
