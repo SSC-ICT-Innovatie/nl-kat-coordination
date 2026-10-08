@@ -12,6 +12,9 @@ from octopoes.models.ooi.service import TLSCipher
 CIPHER_ID_RE = re.compile(r"^cipher-(?P<proto>ssl2|ssl3|tls1(?:_[123])?)_(?P<code>x[0-9a-f]+)$", re.IGNORECASE)
 CIPHER_CODE_RE = re.compile(r"^x[0-9a-f]+$", re.IGNORECASE)
 
+# Parse the ,exp suffix for encryptions strength
+BITS_RE = re.compile(r"^(?:(?P<bits>\d+)(?P<export>,exp)?|None)$", re.IGNORECASE)
+
 PROTOCOL_NAMES = {
     "ssl2": "SSLv2",
     "ssl3": "SSLv3",
@@ -101,6 +104,15 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
         bits = parts[5]
         alias = parts[6]
 
+    bits_match = BITS_RE.fullmatch(bits)
+    if not bits_match:
+        return None
+
+    characteristics = _characteristics(cipher_suite_name, key_exchange, encryption)
+
+    if bits_match.group("export"):
+        characteristics.append("EXPORT")
+
     # Export and NULL ciphers are the weakest ones, so they must not be skipped.
     bits_match = BITS_RE.fullmatch(bits)
     if not bits_match:
@@ -114,7 +126,7 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
         "cipher_suite_name": cipher_suite_name,
         "key_exchange_algorithm": key_exchange,
         "encryption_algorithm": encryption,
-        "encryption_bits": int(bits),
+        "encryption_bits": int(bits_match.group("bits") or 0),
         "cipher_suite_alias": alias,
         "characteristics": _characteristics(cipher_suite_name, key_exchange, encryption),
     }
