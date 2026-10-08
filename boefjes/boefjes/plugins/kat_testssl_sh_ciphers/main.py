@@ -64,7 +64,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     hostname, address, port, servicename = _input_target(input_)
 
     if servicename not in TLS_CAPABLE_SERVICES + STARTTLS_CAPABLE_SERVICES:
-        return [({"info/boefje"}, "Skipping check due to non-TLS/STARTTLS service")]
+        return []
 
     timeout = int(os.getenv("TIMEOUT", "30"))
     configured_arguments = boefje_meta["arguments"].get("oci_arguments", [])
@@ -80,19 +80,20 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
         # Keep the hostname as the TLS target so testssl sends it as SNI, while
         # --ip forces the TCP connection to the exact IP represented by the OOI.
-        target = f"{hostname}:{port}" if hostname else f"[{address}]:{port}"
-        if hostname:
-            cmd.extend(["--ip", f"[{address}]" if ip_address(address).version == 6 else address])
-        elif ip_address(address).version == 6:
+        if ip_address(address).version == 6:
             cmd.append("-6")
 
+        if hostname:
+            cmd.extend(["--ip", f"[{address}]"])
+
+        target = f"{hostname}:{port}" if hostname else f"[{address}]:{port}"
         cmd.append(target)
 
         env = os.environ.copy()
         env["OPENSSL_TIMEOUT"] = str(timeout)
         env["CONNECT_TIMEOUT"] = str(timeout)
 
-        output = subprocess.run(cmd, capture_output=True, env=env, timeout=timeout + 5)
+        output = subprocess.run(cmd, capture_output=True, env=env)
 
         # A non-zero exit is not automatically a discard: testssl can produce a
         # useful JSON report for a partially completed scan. Only fail when no

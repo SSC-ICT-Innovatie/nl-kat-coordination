@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 
 from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
@@ -219,3 +221,52 @@ def test_normalizer_marks_weak_cipher_characteristics():
     result = list(run(input_ooi, raw))
 
     assert result[0].suites["TLSv1.2"][0]["characteristics"] == ["3DES", "CBC", "RSA", "FORWARD_SECRECY"]
+
+
+def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip():
+    input_ooi = {
+        "object_type": "HostnameService",
+        "hostname": {"name": "one.one.one.one"},
+        "ip_service": {
+            "ip_port": {"address": {"address": "2606:4700:4700::1111"}, "port": 443},
+            "service": {"name": "https"},
+        },
+    }
+
+    boefje_meta = {"arguments": {"input": input_ooi, "oci_arguments": ["--jsonfile", "output.json"]}}
+
+    with patch("boefjes.plugins.kat_testssl_sh_ciphers.main.subprocess.run") as mock_run:
+        mock_run.return_value.returncode = 0
+
+        with (
+            patch("boefjes.plugins.kat_testssl_sh_ciphers.main.Path.exists", return_value=True),
+            patch("boefjes.plugins.kat_testssl_sh_ciphers.main.Path.read_bytes", return_value=b"[]"),
+        ):
+            run(boefje_meta)
+
+    command = mock_run.call_args.args[0]
+
+    assert "-6" in command
+    assert "--ip" in command
+    assert command[command.index("--ip") + 1] == "[2606:4700:4700::1111]"
+    assert "one.one.one.one:443" in command
+
+
+# boefjes/tests/plugins/test_testssl_sh.py — real testssl 3.2.4 line from tls-v1-0.badssl.com
+def test_tls_1_0_ciphers_are_kept():
+    raw = (
+        b'[{"id":"cipher-tls1_xc013","severity":"LOW","finding":"TLSv1   xc013   ECDHE-RSA-AES128-SHA'
+        b'              ECDH 256   AES         128      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"}]'
+    )
+    oois = list(run(input_ooi, raw))
+    assert list(oois[0].suites) == ["TLSv1"]
+    assert oois[0].suites["TLSv1"][0]["cipher_suite_name"] == "ECDHE-RSA-AES128-SHA"
+
+
+# octopoes/tests — keys already in XTDB and from the IPService path have no hostname
+def test_tls_cipher_without_hostname_is_human_readable():
+    assert Reference.from_str("TLSCipher|internet|1.2.3.4|tcp|443|https").human_readable == "Ciphers of 1.2.3.4:443"
+    assert (
+        Reference.from_str("Finding|TLSCipher|internet|1.2.3.4|tcp|443|https|KAT-CRITICAL-BAD-CIPHER").human_readable
+        == "KAT-CRITICAL-BAD-CIPHER @ Ciphers of 1.2.3.4:443"
+    )
