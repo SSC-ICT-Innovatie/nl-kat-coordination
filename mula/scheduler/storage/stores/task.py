@@ -1,6 +1,8 @@
+import uuid
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
-from sqlalchemy import desc, exc, func
+from sqlalchemy import desc, exc, exists, func
 
 from scheduler import models
 from scheduler.storage import DBConn
@@ -150,11 +152,23 @@ class TaskStore:
 
     @retry()
     @exception_handler
-    def update_task(self, task: models.Task) -> None:
+    def update_task(self, task_id: uuid.UUID, fields: dict[str, Any]) -> None:
+        # Write only the given fields: writing back a previously read model
+        # would also write values that changed concurrently, e.g. schedule_id
+        # after its schedule was deleted (ON DELETE SET NULL), violating the
+        # foreign key.
+        fields = {k: v for k, v in fields.items() if k != "id"}
+        if not fields:
+            return
+
         with self.dbconn.session.begin() as session:
-            # NOTE: mode="json" is used specifically to convert the Enum to as_string
-            # sqlalchemy does not allow raw enums to be used in update
-            (session.query(models.TaskDB).filter(models.TaskDB.id == task.id).update(task.model_dump(mode="json")))
+            stmt = session.query(models.TaskDB).filter(models.TaskDB.id == task_id)
+            schedule_id = fields.get("schedule_id")
+            if schedule_id is not None:
+                # If the schedule was deleted after the caller resolved it,
+                # skip the write instead of inserting a dangling reference.
+                stmt = stmt.filter(exists().where(models.ScheduleDB.id == schedule_id))
+            stmt.update(fields)
 
     @retry()
     @exception_handler

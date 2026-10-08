@@ -66,8 +66,7 @@ def test_upload_bad_input(rf, redteam_member, mock_organization_view_octopoes, m
 
     assert response.status_code == 302
 
-    task_id = mock_bytes_client().add_manual_proof.call_args[0][0]
-    mock_bytes_client().add_manual_proof.assert_called_once_with(task_id, data, manual_mime_types={"manual/csv"})
+    assert mock_bytes_client().add_manual_proof.call_count == 0
 
     messages = list(request._messages)
     assert "could not be created for row number" in messages[0].message

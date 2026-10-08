@@ -4,7 +4,7 @@ Login & registration
 Registration
 ------------
 
-As an administrator, you can register new users on the "Members page". Read more about this page :doc:`here <../navigation/members>`.
+As an administrator, you can register new users on the "Members page". Read more about this page :doc:`here <members>`.
 Regular users should contact their system administrator.
 
 
