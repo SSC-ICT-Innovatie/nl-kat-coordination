@@ -34,10 +34,11 @@ class OOIForm(BaseRockyForm):
             self.fields[name] = field
 
     def clean(self):
-        super().clean()["user_id"] = self.user_id
+        cleaned_data = super().clean()
+        cleaned_data["user_id"] = self.user_id
         # Only drop "no input" values (None, ""), not valid falsy values like
         # {} or [] which JSONField returns for empty dicts/lists (#3933).
-        return {key: value for key, value in super().clean().items() if value is not None and value != ""}
+        return {key: value for key, value in cleaned_data.items() if value is not None and value != ""}
 
     def clean_cron_expression(self):
         value = self.cleaned_data.get("cron_expression")
