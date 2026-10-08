@@ -30,11 +30,11 @@
               "risk_severity": "medium",
               "source": "https://wiki.mozilla.org/Security/Server_Side_TLS",
               "recommendation": "It is recommended to only use ciphers labelled as 'good'. Check https://cipherlist.eu/ for safe ciphers.",
-              "id": "KAT-MEDIUM-BAD-CIPHER",
+              "id": "KAT-MEDIUM-TLS-CIPHER",
               "user_id": "None",
               "scan_profile": "None",
               "impact": "Weak or insecure ciphers may result in loss of confidentiality and integrity of data through decryption.",
-              "primary_key": "KATFindingType|KAT-MEDIUM-BAD-CIPHER"
+              "primary_key": "KATFindingType|KAT-MEDIUM-TLS-CIPHER"
             }
           ]
         },
