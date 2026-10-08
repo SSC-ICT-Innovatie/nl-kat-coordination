@@ -322,7 +322,7 @@ class Scheduler(abc.ABC):
 
         schedule_db = self.calculate_deadline(schedule_db)
         self.ctx.datastores.schedule_store.update_schedule(schedule_db)
-        self.ctx.datastores.task_store.update_task(item)
+        self.ctx.datastores.task_store.update_task(item.id, {"schedule_id": schedule_db.id})
 
         return item
 
