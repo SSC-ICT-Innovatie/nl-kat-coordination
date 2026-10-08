@@ -8,6 +8,7 @@ requires-python = ">=3.10"
 dependencies = [
     "httpx>=0.28.1",
     "idna>=3.15",
+    "anyio>=4.14.2",
 ]
 
 [project.scripts]
