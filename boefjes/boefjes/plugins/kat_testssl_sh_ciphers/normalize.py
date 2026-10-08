@@ -108,17 +108,10 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
     if not bits_match:
         return None
 
+    # Export and NULL ciphers are the weakest ones, so they must not be skipped.
     characteristics = _characteristics(cipher_suite_name, key_exchange, encryption)
 
     if bits_match.group("export"):
-        characteristics.append("EXPORT")
-
-    # Export and NULL ciphers are the weakest ones, so they must not be skipped.
-    bits_match = BITS_RE.fullmatch(bits)
-    if not bits_match:
-        return None
-    characteristics = _characteristics(cipher_suite_name, key_exchange, encryption)
-    if bits_match.group("export") and "EXPORT" not in characteristics:
         characteristics.append("EXPORT")
 
     suite = {
@@ -128,7 +121,7 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
         "encryption_algorithm": encryption,
         "encryption_bits": int(bits_match.group("bits") or 0),
         "cipher_suite_alias": alias,
-        "characteristics": _characteristics(cipher_suite_name, key_exchange, encryption),
+        "characteristics": characteristics,
     }
 
     # TLS 1.3 does not expose the legacy key-size field, so only retain it
