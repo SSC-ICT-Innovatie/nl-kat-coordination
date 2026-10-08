@@ -7,17 +7,30 @@ from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.service import TLSCipher
 
-# testssl ids: cipher-tls1_x.. (TLS 1.0), cipher-tls1_1_x.., cipher-tls1_2_x.., cipher-tls1_3_x..
-CIPHER_ID_RE = re.compile(r"^cipher-tls1(?:_(?P<minor>[123]))?_(?P<code>x[0-9a-f]+)$", re.IGNORECASE)
+# testssl names its per-protocol cipher findings "cipher-<proto>_<hexcode>", with
+# proto one of ssl2, ssl3, tls1 (= TLS 1.0), tls1_1, tls1_2 or tls1_3.
+CIPHER_ID_RE = re.compile(r"^cipher-(?P<proto>ssl2|ssl3|tls1(?:_[123])?)_(?P<code>x[0-9a-f]+)$", re.IGNORECASE)
 CIPHER_CODE_RE = re.compile(r"^x[0-9a-f]+$", re.IGNORECASE)
+
+PROTOCOL_NAMES = {
+    "ssl2": "SSLv2",
+    "ssl3": "SSLv3",
+    "tls1": "TLSv1",
+    "tls1_1": "TLSv1.1",
+    "tls1_2": "TLSv1.2",
+    "tls1_3": "TLSv1.3",
+}
+
+# Encryption strength as testssl prints it: "128", "40,exp" for export-grade
+# ciphers, or "None" for NULL ciphers.
+BITS_RE = re.compile(r"^(?:(?P<bits>\d+)(?P<export>,exp)?|None)$", re.IGNORECASE)
 
 
 def _protocol_from_id(cipher_id: str) -> str | None:
     match = CIPHER_ID_RE.match(cipher_id)
     if not match:
         return None
-    minor = match.group("minor")
-    return f"TLSv1.{minor}" if minor else "TLSv1"
+    return PROTOCOL_NAMES[match.group("proto").lower()]
 
 
 def _characteristics(cipher_suite: str, key_exchange: str, encryption: str) -> list[str]:
@@ -88,18 +101,22 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
         bits = parts[5]
         alias = parts[6]
 
-    # Encryption strength must be numeric before it can be stored as an int.
-    if not bits.isdigit():
+    # Export and NULL ciphers are the weakest ones, so they must not be skipped.
+    bits_match = BITS_RE.fullmatch(bits)
+    if not bits_match:
         return None
+    characteristics = _characteristics(cipher_suite_name, key_exchange, encryption)
+    if bits_match.group("export") and "EXPORT" not in characteristics:
+        characteristics.append("EXPORT")
 
     suite: dict[str, Any] = {
         "cipher_suite_code": code,
         "cipher_suite_name": cipher_suite_name,
         "key_exchange_algorithm": key_exchange,
         "encryption_algorithm": encryption,
-        "bits": int(bits),
+        "bits": int(bits_match.group("bits") or 0),
         "cipher_suite_alias": alias,
-        "characteristics": _characteristics(cipher_suite_name, key_exchange, encryption),
+        "characteristics": characteristics,
     }
 
     # TLS 1.3 does not expose the legacy key-size field, so only retain it

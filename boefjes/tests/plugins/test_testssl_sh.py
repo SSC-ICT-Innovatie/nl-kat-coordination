@@ -1,3 +1,5 @@
+import subprocess
+from pathlib import Path
 from unittest.mock import patch
 
 import pytest
@@ -223,7 +225,7 @@ def test_normalizer_marks_weak_cipher_characteristics():
     assert result[0].suites["TLSv1.2"][0]["characteristics"] == ["3DES", "CBC", "RSA", "FORWARD_SECRECY"]
 
 
-def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip():
+def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip(tmp_path):
     input_ooi = {
         "object_type": "HostnameService",
         "hostname": {"name": "one.one.one.one"},
@@ -233,16 +235,16 @@ def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip():
         },
     }
 
-    boefje_meta = {"arguments": {"input": input_ooi, "oci_arguments": ["--jsonfile", "output.json"]}}
+    boefje_meta = {"arguments": {"input": input_ooi, "oci_arguments": ["--jsonfile", str(tmp_path / "output.json")]}}
 
-    with patch("boefjes.plugins.kat_testssl_sh_ciphers.main.subprocess.run") as mock_run:
-        mock_run.return_value.returncode = 0
+    def fake_run(command, **kwargs):
+        jsonfile = command[command.index("--jsonfile") + 1]
+        Path(jsonfile).write_bytes(b"[]")
 
-        with (
-            patch("boefjes.plugins.kat_testssl_sh_ciphers.main.Path.exists", return_value=True),
-            patch("boefjes.plugins.kat_testssl_sh_ciphers.main.Path.read_bytes", return_value=b"[]"),
-        ):
-            run(boefje_meta, b"")
+        return subprocess.CompletedProcess(command, 0)
+
+    with patch("boefjes.plugins.kat_testssl_sh_ciphers.main.subprocess.run", side_effect=fake_run) as mock_run:
+        run(boefje_meta, b"")
 
     command = mock_run.call_args.args[0]
 
@@ -250,6 +252,30 @@ def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip():
     assert "--ip" in command
     assert command[command.index("--ip") + 1] == "[2606:4700:4700::1111]"
     assert "one.one.one.one:443" in command
+
+
+def test_sslv3_ciphers_are_kept():
+    raw = (
+        b'[{"id":"cipher-ssl3_xc014","severity":"LOW","finding":"SSLv3   xc014   ECDHE-RSA-AES256-SHA'
+        b'              ECDH 256   AES         256      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"}]'
+    )
+    oois = list(run(input_ooi, raw))
+    assert list(oois[0].suites) == ["SSLv3"]
+    assert oois[0].suites["SSLv3"][0]["cipher_suite_name"] == "ECDHE-RSA-AES256-SHA"
+
+
+def test_export_and_null_ciphers_are_kept():
+    raw = (
+        b'[{"id":"cipher-ssl3_x03","severity":"CRITICAL","finding":"SSLv3   x03     EXP-RC4-MD5'
+        b'                       RSA(512)   RC4         40,exp   TLS_RSA_EXPORT_WITH_RC4_40_MD5"},'
+        b'{"id":"cipher-ssl3_x01","severity":"CRITICAL","finding":"SSLv3   x01     NULL-MD5'
+        b'                          RSA        None        None     TLS_RSA_WITH_NULL_MD5"}]'
+    )
+    suites = {s["cipher_suite_name"]: s for s in list(run(input_ooi, raw))[0].suites["SSLv3"]}
+    assert suites["EXP-RC4-MD5"]["bits"] == 40
+    assert "EXPORT" in suites["EXP-RC4-MD5"]["characteristics"]
+    assert suites["NULL-MD5"]["bits"] == 0
+    assert "NULL" in suites["NULL-MD5"]["characteristics"]
 
 
 # boefjes/tests/plugins/test_testssl_sh.py — real testssl 3.2.4 line from tls-v1-0.badssl.com
