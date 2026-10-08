@@ -272,9 +272,9 @@ def test_export_and_null_ciphers_are_kept():
         b'                          RSA        None        None     TLS_RSA_WITH_NULL_MD5"}]'
     )
     suites = {s["cipher_suite_name"]: s for s in list(run(input_ooi, raw))[0].suites["SSLv3"]}
-    assert suites["EXP-RC4-MD5"]["bits"] == 40
+    assert suites["EXP-RC4-MD5"]["encryption_bits"] == 40
     assert "EXPORT" in suites["EXP-RC4-MD5"]["characteristics"]
-    assert suites["NULL-MD5"]["bits"] == 0
+    assert suites["NULL-MD5"]["encryption_bits"] == 0
     assert "NULL" in suites["NULL-MD5"]["characteristics"]
 
 
