@@ -182,7 +182,7 @@ def test_check_add_redteamer_form(rf, admin_member):
     assertContains(
         response,
         '<input type="radio" name="trusted_clearance_level" value="-1" radio_paws="True" '
-        'id="id_trusted_clearance_level_0" required="True" checked="True" checked="True">',
+        'id="id_trusted_clearance_level_0" required="True" checked="True">',
         html=True,
     )
     assertContains(

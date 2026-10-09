@@ -1959,7 +1959,7 @@ def findings_reports(client_member, client_member_b):
         data_raw_id=bytes_raw_id_a,
         observed_at=datetime(2024, 12, 23, 12, 0, 32, 53194),
         parent_report=None,
-        report_recipe=Reference(recipe_id_a),
+        report_recipe=Reference(f"ReportRecipe|{recipe_id_a}"),
         has_parent=False,
     )
 
@@ -1981,7 +1981,7 @@ def findings_reports(client_member, client_member_b):
         data_raw_id=bytes_raw_id_b,
         observed_at=datetime(2024, 12, 23, 11, 0, 31, 602127),
         parent_report=None,
-        report_recipe=Reference(recipe_id_b),
+        report_recipe=Reference(f"ReportRecipe|{recipe_id_b}"),
         has_parent=False,
     )
 

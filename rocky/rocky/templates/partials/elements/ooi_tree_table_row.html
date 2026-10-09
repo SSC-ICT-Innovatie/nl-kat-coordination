@@ -5,12 +5,12 @@
         <td>{{ prop }}</td>
         {% if prop == "id" %}
             <td>
-                <a href="{% ooi_url "ooi_detail" organization_code=organization.code ooi_id=ooi_id ooi_type=item %}"
+                <a href="{% app_url "ooi_detail" ooi=ooi_id %}?ooi_type={{ item }}"
                    title="Show details for {{ item }}">{{ item }}</a>
             </td>
         {% elif prop == "ooi_type" %}
             <td>
-                <a href="{% ooi_url "ooi_tree" ooi_id organization.code ooi_type=item %}"
+                <a href="{% app_url "ooi_tree" ooi=ooi_id %}?ooi_type={{ item }}"
                    title="Only show children of type {{ item }}">{{ item }}</a>
             </td>
         {% else %}

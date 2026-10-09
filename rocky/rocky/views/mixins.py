@@ -15,7 +15,7 @@ from django.contrib.auth import get_user_model
 from django.core.exceptions import ImproperlyConfigured, PermissionDenied
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
-from django.urls import reverse
+from django.urls import NoReverseMatch, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic import ListView
@@ -28,7 +28,6 @@ from tools.forms.base import ObservedAtForm
 from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
 from tools.models import Organization, OrganizationMember
 from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
-from tools.view_helpers import convert_date_to_datetime, get_ooi_url
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfileType
@@ -103,33 +102,62 @@ class OOIAttributeError(AttributeError):
 class ObservedAtMixin(ContextMixin, View):
     connector_form_class: type[ObservedAtForm] = ObservedAtForm
 
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.temporal_context: datetime | None = kwargs.get("temporal_context")
+
     @cached_property
     def is_historic_view(self) -> bool:
-        return bool(self.request.GET.get("observed_at", False) or self.request.POST.get("observed_at", False))
+        """Are we dealing with a historic view? or are we looking at the 'now'"""
+        return self.temporal_context is not None
 
     @cached_property
     def observed_at(self) -> datetime:
-        observed_at = self.request.GET.get("observed_at", self.request.POST.get("observed_at", None))
-        # handle empty input
-        if observed_at:
-            # handle date only input
-            try:
-                datetime_format = "%Y-%m-%d"
-                observed_at = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
-                if observed_at.date() > datetime.now(timezone.utc).date():
-                    messages.warning(self.request, _("The selected date is in the future."))
-                return observed_at
-            except ValueError:
-                # handle iso format input
-                try:
-                    observed_at = datetime.fromisoformat(observed_at)
-                    if not observed_at.tzinfo:
-                        observed_at = observed_at.replace(tzinfo=timezone.utc)
-
-                    return observed_at
-                except ValueError:
-                    messages.error(self.request, _("Can not parse date, falling back to show current date."))
+        """Property that holds the datetime, useful when constructing queries"""
+        if self.temporal_context is not None:
+            return self.temporal_context
         return datetime.now(timezone.utc)
+
+    @cached_property
+    def temporal_string(self) -> str:
+        """Property that holds the temporal context as a string"""
+        if self.is_historic_view:
+            return str(self.temporal_context)
+        return "now"
+
+    @cached_property
+    def now_url(self) -> str:
+        """The current url, but with any temporal context reset to now"""
+        return self.get_temporal_url(None)
+
+    def get_temporal_url(self, observed_at: datetime | None) -> str:
+        # resolver_match is set by Django's URL dispatcher; it is only absent when the view is
+        # reached without going through URL resolution (e.g. an unresolved request). In that case
+        # there is no current route to rebuild, so fall back to an empty temporal link.
+        if self.request.resolver_match is None:
+            return ""
+        kwargs = self.request.resolver_match.kwargs.copy()
+        kwargs["temporal_context"] = observed_at
+        return reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+
+    @cached_property
+    def temporal_navigation(self):
+        ages = (1, 3, 7, 14, 30)
+        urls = []
+        try:
+            urls.append({"label": _("Now"), "url": self.now_url})
+        except NoReverseMatch:
+            kwargs = self.request.resolver_match.kwargs.copy()
+            if "temporal_context" in kwargs:
+                del kwargs["temporal_context"]
+            url = reverse(self.request.resolver_match.view_name, kwargs=kwargs)
+            urls.append({"label": _("Now"), "url": url})
+            return urls
+
+        for age in ages:
+            timestamp = self.observed_at - timedelta(days=age)
+            urls.append({"timestamp": timestamp, "url": self.get_temporal_url(timestamp)})
+        return urls
 
     def get_connector_form_kwargs(self) -> dict:
         if self.is_historic_view:
@@ -142,12 +170,15 @@ class ObservedAtMixin(ContextMixin, View):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["observed_at_form"] = self.get_connector_form()
         context["observed_at"] = self.observed_at
+        context["temporal_context"] = self.temporal_context
         context["historic_view"] = self.is_historic_view
+        context["temporal_navigation"] = self.temporal_navigation
+        context["now_url"] = self.now_url
         return context
 
     def count_observed_at_filter(self) -> int:
+        """Count the temporal filter when dealing with forms, only counts if not 'now'"""
         return int(self.is_historic_view)
 
 
@@ -231,9 +262,6 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
 
     def get_scan_profile_inheritance(self, ooi: OOI) -> list[InheritanceSection]:
         return self.octopoes_api_connector.get_scan_profile_inheritance(ooi.reference, self.observed_at)
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(**kwargs)
 
 
 class OOIList:
@@ -492,34 +520,55 @@ class ReportList:
 
 
 class SingleOOIMixin(OctopoesView):
-    ooi: OOI
+    ooi_id: str | None
 
-    def get_ooi_id(self) -> str:
-        if "ooi_id" not in self.request.GET:
-            raise OOIAttributeError("OOI primary key missing")
+    def setup(self, request, *args, **kwargs):
+        # Set ooi_id before super().setup() so it is available to mixins further down the chain
+        # that read self.ooi during their own setup (e.g. BaseReportView). Not every route that
+        # uses this mixin carries an <ooi> segment (OOIAddView, MuteFindingsBulkView, onboarding),
+        # so a missing id is None and only matters for the views that actually read the OOI.
+        self.ooi_id = kwargs.get("ooi")
+        super().setup(request, *args, **kwargs)
 
-        return self.request.GET["ooi_id"]
+    @cached_property
+    def ooi(self):
+        """Property of the OOI as requested in the url"""
+        if self.ooi_id is None:
+            raise Http404("No OOI provided in the URL")
+        return self.get_single_ooi(self.ooi_id)
 
     def get_ooi(self, pk: str | None = None) -> OOI:
+        """Helper method to fetch a single OOI by its PK"""
         if pk is None:
-            pk = self.get_ooi_id()
+            pk = self.ooi_id
+        if pk is None:
+            raise Http404("No OOI provided in the URL")
 
         return self.get_single_ooi(pk)
 
-    def get_breadcrumb_list(self):
-        start = {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": "Objects"}
+    @property
+    def ooi_type(self) -> str:
+        """The object type of the OOI this view operates on."""
+        return self.ooi.get_ooi_type()
+
+    def build_breadcrumbs(self):
+        """Breadcrumbs up to and including the OOI itself; subclasses append their own leaf."""
+        if self.ooi_id is None:
+            # Views that reuse this mixin on a route without an <ooi> segment (onboarding, the
+            # report views) have no OOI to point at; let the breadcrumb builder they mix in
+            # next take over.
+            return super().build_breadcrumbs()
+
+        kwargs = {"organization_code": self.organization.code, "temporal_context": self.temporal_context}
+
         if isinstance(self.ooi, Finding):
-            start = {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
-                "text": "Findings",
-            }
+            list_route, list_text = "finding_list", _("Findings")
+        else:
+            list_route, list_text = "ooi_list", _("Objects")
 
         return [
-            start,
-            {
-                "url": get_ooi_url("ooi_detail", self.ooi.primary_key, self.organization.code),
-                "text": self.ooi.human_readable,
-            },
+            {"url": reverse(list_route, kwargs=kwargs), "text": list_text},
+            {"url": reverse("ooi_detail", kwargs={**kwargs, "ooi": self.ooi}), "text": self.ooi.human_readable},
         ]
 
     def get_ooi_properties(self, ooi: OOI) -> dict:
@@ -544,6 +593,15 @@ class SingleOOIMixin(OctopoesView):
 
         return props
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["ooi_id"] = self.ooi_id
+        # Only fetch the OOI for routes that actually carry one; ooi-less views that reuse this
+        # mixin (OOIAddView, MuteFindingsBulkView, onboarding) would otherwise fetch OOI "None".
+        if self.ooi_id is not None:
+            context["ooi"] = self.ooi
+        return context
+
 
 class SingleOOITreeMixin(SingleOOIMixin):
     @cached_property
@@ -565,12 +623,14 @@ class SingleOOITreeMixin(SingleOOIMixin):
         types: list[str] | None = None,
     ) -> OOI:
         if pk is None:
-            pk = self.get_ooi_id()
+            pk = self.ooi_id
 
         if observed_at is None:
             observed_at = self.observed_at
 
-        ref = Reference.from_str(pk)
+        # pk falls back to self.ooi_id (Optional); on the tree routes it is always present in
+        # production, so treat it as the required str the reference expects.
+        ref = Reference.from_str(cast(str, pk))
         depth = depth or self.get_depth()
 
         try:

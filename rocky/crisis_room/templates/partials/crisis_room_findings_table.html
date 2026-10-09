@@ -90,11 +90,11 @@
                             <div class="horizontal-view toolbar">
                                 <div class="button-container">
                                     <a class="button"
-                                       href="{% url "view_report" dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}#findings-table">
+                                       href="{% app_url "view_report" organization_code=dashboard_item.data.report.organization_code %}?report_id={{ dashboard_item.data.report.primary_key }}#findings-table">
                                         {% translate "View findings report" %}
                                     </a>
                                     <a class="button ghost"
-                                       href="{% ooi_url "ooi_edit" dashboard_item.data.report.report_recipe dashboard_item.data.report.organization_code %}">
+                                       href="{% app_url "ooi_edit" ooi=dashboard_item.data.report.report_recipe organization_code=dashboard_item.data.report.organization_code %}">
                                         <span aria-hidden="true" class="icon ti-edit action-button"></span>{% translate "Edit report recipe" %}
                                     </a>
                                 </div>

@@ -41,8 +41,10 @@ def test_scan_profile(rf, redteam_member, mock_scheduler, mock_organization_view
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
-    request = setup_request(rf.get("scan_profile_detail", {"ooi_id": "Network|testnetwork"}), redteam_member.user)
-    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
+    request = setup_request(rf.get("scan_profile_detail"), redteam_member.user)
+    response = ScanProfileDetailView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
@@ -63,10 +65,12 @@ def test_scan_profile_submit(rf, redteam_member, mock_scheduler, mock_organizati
         ),
         redteam_member.user,
     )
-    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = ScanProfileDetailView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 302
-    assert response.url == f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}"
+    assert response.url == f"/en/{redteam_member.organization.code}/now/objects/Network%7Ctestnetwork/scan-profile/"
 
 
 def test_scan_profile_submit_no_indemnification(
@@ -86,10 +90,12 @@ def test_scan_profile_submit_no_indemnification(
         ),
         redteam_member.user,
     )
-    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = ScanProfileDetailView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 302
-    assert response.url == f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}"
+    assert response.url == f"/en/{redteam_member.organization.code}/now/objects/Network%7Ctestnetwork/scan-profile/"
 
 
 def test_scan_profile_no_permissions_acknowledged(
@@ -101,8 +107,10 @@ def test_scan_profile_no_permissions_acknowledged(
     redteam_member.acknowledged_clearance_level = -1
     redteam_member.save()
 
-    request = setup_request(rf.get("scan_profile_detail", {"ooi_id": "Network|testnetwork"}), redteam_member.user)
-    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
+    request = setup_request(rf.get("scan_profile_detail"), redteam_member.user)
+    response = ScanProfileDetailView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
@@ -119,8 +127,10 @@ def test_scan_profile_no_permissions_trusted(
     redteam_member.trusted_clearance_level = -1
     redteam_member.save()
 
-    request = setup_request(rf.get("scan_profile_detail", {"ooi_id": "Network|testnetwork"}), redteam_member.user)
-    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
+    request = setup_request(rf.get("scan_profile_detail"), redteam_member.user)
+    response = ScanProfileDetailView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
@@ -141,8 +151,10 @@ def test_scan_profile_submit_inherited(rf, redteam_member, mock_scheduler, mock_
         ),
         redteam_member.user,
     )
-    response = ScanProfileDetailView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = ScanProfileDetailView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 302
-    assert response.url == f"/en/{redteam_member.organization.code}/objects/scan-profile/?{query_string}"
+    assert response.url == f"/en/{redteam_member.organization.code}/now/objects/Network%7Ctestnetwork/scan-profile/"
     assert mock_organization_view_octopoes().get_tree.call_count == 1

@@ -11,7 +11,7 @@
             <p>
                 {% translate "Findings can occur multiple times. To give better insight the following table shows the number of unique findings found as well as the number of occurrences." %}
             </p>
-            <a href="{% ooi_url 'ooi_findings' ooi.primary_key organization.code query=mandatory_fields %}"
+            <a href="{% app_url 'ooi_findings' ooi=ooi.primary_key %}"
                class="button">{% translate "See finding details" %}</a>
         </div>
         <div class="horizontal-scroll">

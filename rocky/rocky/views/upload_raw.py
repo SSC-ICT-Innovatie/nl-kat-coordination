@@ -5,16 +5,16 @@ from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError, HTTPStatusError
 from tools.forms.upload_raw import UploadRawForm
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.models.types import OOI_TYPES
 
 
-class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
+class UploadRaw(OrganizationPermissionRequiredMixin, BreadcrumbsMixin, OrganizationView, FormView):
     template_name = "upload_raw.html"
     form_class = UploadRawForm
     permission_required = "tools.can_scan_organization"
@@ -30,23 +30,19 @@ class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             initial["mime_types"] = unquote(self.kwargs["mime_types"])
         return initial
 
-    def get_success_url(self):
-        return reverse_lazy("ooi_list", kwargs={"organization_code": self.organization.code})
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
-            {
-                "url": reverse("upload_raw", kwargs={"organization_code": self.organization.code}),
-                "text": _("Upload raw"),
-            },
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
+        kwargs = {"organization_code": self.organization.code, "temporal_context": self.kwargs.get("temporal_context")}
+        return [
+            {"url": reverse("ooi_list", kwargs=kwargs), "text": _("Objects")},
+            {"url": reverse("upload_raw", kwargs=kwargs), "text": _("Upload raw")},
         ]
-        return context
+
+    def get_success_url(self):
+        return self.build_breadcrumbs()[0]["url"]
 
     def form_valid(self, form):
         if not self.process_raw(form):
-            return redirect("upload_raw", organization_code=self.organization.code)
+            return redirect(self.build_breadcrumbs()[1]["url"])
         return super().form_valid(form)
 
     def add_error_notification(self, error_message):

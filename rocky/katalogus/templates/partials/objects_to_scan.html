@@ -50,7 +50,7 @@
             {% endblocktranslate %}
             <p>
                 {% for ooi in plugin.consumes %}
-                    <a href="{% url "ooi_add" ooi_type=ooi organization_code=organization.code %}">{{ ooi }}</a>
+                    <a href="{% app_url "ooi_add" ooi_type=ooi %}">{{ ooi }}</a>
                     {% if ooi != plugin.consumes|last %}-{% endif %}
                 {% endfor %}
             </p>

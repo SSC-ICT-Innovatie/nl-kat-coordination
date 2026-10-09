@@ -20,7 +20,7 @@ def test_report_history_less_than_five_subreports_two_input_objects(
     """
 
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("report_history", kwargs=kwargs)
 
     request = rf.get(url)
@@ -54,7 +54,7 @@ def test_report_history_less_than_five_subreports_two_input_objects(
     assertNotContains(
         response,
         (
-            '<a href="/en/test/reports/report-history/subreports?'
+            '<a href="/en/test/now/reports/report-history/subreports?'
             f'report_id={parent_report}" class="button">View all asset reports</a>'
         ),
         html=True,
@@ -78,7 +78,7 @@ def test_report_history_more_than_five_asset_reports_one_input_object(
 
     """
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("report_history", kwargs=kwargs)
 
     request = rf.get(url)
@@ -98,9 +98,7 @@ def test_report_history_more_than_five_asset_reports_one_input_object(
     parent_report = report_list_six_asset_reports[0]
     assertContains(response, parent_report.name)
     assertContains(
-        response,
-        '<a href="/en/test/objects/detail/?ooi_id=Hostname%7Cinternet%7Cexample.com">example.com</a>',
-        html=True,
+        response, '<a href="/en/test/now/objects/Hostname%7Cinternet%7Cexample.com">example.com</a>', html=True
     )
     assertContains(response, "Close asset report object details")
 
@@ -120,7 +118,7 @@ def test_report_history_more_than_five_asset_reports_one_input_object(
     assertContains(
         response,
         (
-            '<a href="/en/test/reports/report-history/subreports?'
+            '<a href="/en/test/now/reports/report-history/subreports?'
             f'report_id={parent_report}" class="button">View all asset reports</a>'
         ),
         html=True,
@@ -147,7 +145,7 @@ def test_report_history_asset_reports_table(
     rf, client_member, mock_organization_view_octopoes, mocker, report_list_six_asset_reports, get_asset_reports
 ):
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("subreports", kwargs=kwargs)
     parent_report = report_list_six_asset_reports[0]
 

@@ -12,7 +12,7 @@ from pydantic import ValidationError
 from tools.forms.base import BaseRockyForm
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES, ClearanceFilterForm, OOIForm, OrderByObjectTypeForm
 from tools.ooi_helpers import create_ooi
-from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin
 
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
 from octopoes.models import OOI, ScanProfileType
@@ -128,7 +128,6 @@ class BaseOOIListView(OOIFilterView, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["mandatory_fields"] = get_mandatory_fields(self.request)
         context["total_oois"] = len(self.object_list)
         context["table_columns"] = OBJECT_LIST_COLUMNS
         return context
@@ -141,15 +140,16 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         self.ooi = tree.store[tree.root.reference]
 
     @property
-    def get_current_ooi(self) -> OOI | None:
+    def get_now_ooi(self) -> OOI | None:
         """
         Some OOIs have an old valid time, this will fetch the latest OOI for today.
         """
-        now = datetime.now(timezone.utc)
         if not self.is_historic_view:
             return self.ooi
+        if self.ooi_id is None:
+            return None
         try:
-            return self.get_single_ooi(self.get_ooi_id(), observed_at=now)
+            return self.get_single_ooi(self.ooi_id, observed_at=datetime.now(timezone.utc))
         except Http404:
             return None
 
@@ -157,26 +157,38 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         context = super().get_context_data(**kwargs)
 
         context["ooi"] = self.ooi
-        context["ooi_current"] = self.get_current_ooi
-        context["mandatory_fields"] = get_mandatory_fields(self.request)
+        context["ooi_current"] = self.get_now_ooi
         return context
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         start: Breadcrumb
         if isinstance(self.ooi, Finding):
             start = {
-                "url": reverse("finding_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "finding_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Findings"),
             }
         else:
             start = {
-                "url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Objects"),
             }
         return [
             start,
             {
-                "url": get_ooi_url("ooi_detail", self.ooi.primary_key, self.organization.code),
+                "url": reverse(
+                    "ooi_detail",
+                    kwargs={
+                        "ooi": self.ooi,
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                    },
+                ),
                 "text": self.ooi.human_readable,
             },
         ]
@@ -187,7 +199,10 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
     form_class: type[BaseRockyForm] = OOIForm
 
     def get_ooi_class(self):
-        return self.ooi.__class__ if hasattr(self, "ooi") else None
+        # self.ooi is a cached_property that fetches from Octopoes, so guard on ooi_id
+        # rather than hasattr(self, "ooi") (which would trigger a fetch, and a connector
+        # error there is not an AttributeError so hasattr would not swallow it).
+        return self.ooi.__class__ if self.ooi_id is not None else None
 
     def get_form(self, form_class: type[Form] | None = None) -> BaseRockyForm:
         form = super().get_form(form_class)
@@ -211,10 +226,8 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             end_valid_time = form.cleaned_data.pop("end_valid_time", None)
             if end_valid_time is not None:
                 end_valid_time = end_valid_time.replace(tzinfo=timezone.utc)
-            new_ooi = self.ooi_class.model_validate(form.cleaned_data)
-            create_ooi(
-                self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
-            )
+            new_ooi = self.get_ooi_class().model_validate(form.cleaned_data)
+            create_ooi(self.octopoes_api_connector, self.bytes_client, new_ooi, self.observed_at, end_valid_time)
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:
             for error in exception.errors():
@@ -225,10 +238,13 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
             return self.form_invalid(form)
 
     def get_ooi_success_url(self, ooi: OOI) -> str:
-        return get_ooi_url("ooi_detail", ooi.primary_key, self.organization.code)
+        return reverse(
+            "ooi_detail",
+            kwargs={"ooi": ooi, "organization_code": self.organization.code, "temporal_context": self.temporal_context},
+        )
 
     def get_readonly_fields(self) -> list:
-        if not hasattr(self, "ooi"):
+        if self.ooi_id is None:
             return []
 
         return self.ooi._natural_key_attrs

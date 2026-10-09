@@ -25,7 +25,7 @@
                             data-task-status="completed">
                             <td>
                                 {% if observation.boefje.id %}
-                                    <a href="{% url 'boefje_detail' organization_code=organization.code plugin_id=observation.boefje.id %}"
+                                    <a href="{% app_url 'boefje_detail' plugin_id=observation.boefje.id temporal_context=None %}"
                                        title="{{ observation.boefje.id }}">{{ observation.boefje.name }}</a>
                                 {% else %}
                                     {% if observation.normalizer.raw_data.boefje_meta.boefje.id == "manual" %}
@@ -36,7 +36,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% ooi_url 'ooi_detail' observation.origin.source organization.code %}">{{ observation.origin.source }}</a>
+                                <a href="{% app_url 'ooi_detail' ooi=observation.origin.source %}">{{ observation.origin.source }}</a>
                             </td>
                             <td>
                                 {% if observation.normalizer.raw_data.boefje_meta.id %}
@@ -53,7 +53,7 @@
                             </td>
                             <td>
                                 {% if observation.normalizer.normalizer.id %}
-                                    <a href="{% url 'normalizer_detail' organization_code=organization.code plugin_id=observation.normalizer.normalizer.id %}"
+                                    <a href="{% app_url 'normalizer_detail' plugin_id=observation.normalizer.normalizer.id temporal_context=None %}"
                                        title="{{ observation.normalizer.normalizer.id }}">{{ observation.normalizer.normalizer.id }}</a>
                                 {% endif %}
                             </td>

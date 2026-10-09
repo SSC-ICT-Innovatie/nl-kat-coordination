@@ -23,7 +23,7 @@
                     {% endblocktranslate %}
                 </p>
                 <form method="post"
-                      action="{% url "step_9a_setup_scan_ooi_detail" organization.code %}?{{ request.GET.urlencode }}"
+                      action="{% url "step_9a_setup_scan_ooi_detail" organization.code request.GET.ooi %}?{{ request.GET.urlencode }}"
                       class="inline">
                     {% csrf_token %}
                     <div class="button-container">

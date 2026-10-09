@@ -1,10 +1,11 @@
 from copy import deepcopy
 
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import TemplateView
 from tools.forms.ooi import OoiTreeSettingsForm
 from tools.ooi_helpers import create_object_tree_item_from_ref, filter_ooi_tree, get_ooi_types_from_tree
-from tools.view_helpers import Breadcrumb, get_ooi_url
+from tools.view_helpers import Breadcrumb
 
 from rocky.views.ooi_view import BaseOOIDetailView
 
@@ -49,7 +50,14 @@ class OOITreeView(BaseOOIDetailView, TemplateView):
 
     def get_last_breadcrumb(self):
         return {
-            "url": get_ooi_url("ooi_tree", self.ooi.primary_key, self.organization.code),
+            "url": reverse(
+                "ooi_tree",
+                kwargs={
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                    "ooi": self.ooi,
+                },
+            ),
             "text": _("Tree Visualisation"),
         }
 
@@ -66,7 +74,17 @@ class OOISummaryView(OOITreeView):
     template_name = "oois/ooi_summary.html"
 
     def get_last_breadcrumb(self):
-        return {"url": get_ooi_url("ooi_summary", self.ooi.primary_key, self.organization.code), "text": _("Summary")}
+        return {
+            "url": reverse(
+                "ooi_summary",
+                kwargs={
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                    "ooi": self.ooi,
+                },
+            ),
+            "text": _("Summary"),
+        }
 
 
 class OOIGraphView(OOITreeView):
@@ -77,21 +95,24 @@ class OOIGraphView(OOITreeView):
         # Only the graph template needs the hydrated fields (display_name, overlay_data,
         # graph_url), so build them on a dedicated, deep-copied tree. The shared `tree`
         # context used by the tree/summary tabs stays filter-only and unhydrated.
-        context["graph_tree"] = hydrate_tree(deepcopy(context["tree"]), self.organization.code)
+        context["graph_tree"] = hydrate_branch(deepcopy(context["tree"]), self.organization.code, self.temporal_context)
         return context
 
     def get_last_breadcrumb(self):
         return {
-            "url": get_ooi_url("ooi_graph", self.ooi.primary_key, self.organization.code),
+            "url": reverse(
+                "ooi_graph",
+                kwargs={
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                    "ooi": self.ooi,
+                },
+            ),
             "text": _("Graph Visualisation"),
         }
 
 
-def hydrate_tree(tree: dict, organization_code: str) -> dict:
-    return hydrate_branch(tree, organization_code)
-
-
-def hydrate_branch(branch: dict, organization_code: str) -> dict:
+def hydrate_branch(branch: dict, organization_code: str, temporal_context) -> dict:
     branch["name"] = branch["tree_meta"]["location"] + "-" + branch["ooi_type"]
     branch["overlay_data"] = {"Type": branch["ooi_type"]}
     if branch["ooi_type"] == "Finding":
@@ -103,9 +124,13 @@ def hydrate_branch(branch: dict, organization_code: str) -> dict:
         branch["overlay_data"]["State"] = branch["state"]
 
     branch["display_name"] = branch["human_readable"]
-    branch["graph_url"] = get_ooi_url("ooi_graph", branch["id"], organization_code=organization_code)
-
+    branch["graph_url"] = reverse(
+        "ooi_graph",
+        kwargs={"organization_code": organization_code, "temporal_context": temporal_context, "ooi": branch["id"]},
+    )
     if branch.get("children"):
-        branch["children"] = [hydrate_branch(child, organization_code) for child in branch["children"]]
+        branch["children"] = [
+            hydrate_branch(child, organization_code, temporal_context) for child in branch["children"]
+        ]
 
     return branch

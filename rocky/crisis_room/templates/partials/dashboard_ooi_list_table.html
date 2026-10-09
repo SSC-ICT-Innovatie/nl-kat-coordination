@@ -14,17 +14,15 @@
             {% endfor %}
         </tr>
     </thead>
-    <tbody>
+    <tbody id="{{ dashboard_item }}">
         {% for object in data.object_list %}
             <tr>
                 {% for column_value in dashboard_item.settings.columns %}
                     <td>
                         {% if column_value == "object" %}
-                            <a href="{% ooi_url "ooi_detail" object.primary_key organization.code observed_at=observed_at %}">{{ object.human_readable }}</a>
+                            <a href="{% app_url "ooi_detail" ooi=object.primary_key %}">{{ object.human_readable }}</a>
                         {% endif %}
-                        {% if column_value == "object_type" %}
-                            <a href="{{ request.path }}?observed_at={{ observed_at|date:"Y-m-d" }}&ooi_type={{ object.ooi_type }}">{{ object.ooi_type }}</a>
-                        {% endif %}
+                        {% if column_value == "object_type" %}{{ object.ooi_type }}{% endif %}
                         {% if column_value == "clearance_level" %}
                             {% include "partials/scan_level_indicator.html" with value=object.scan_profile.level.value %}
 
