@@ -4,6 +4,7 @@ from ipaddress import IPv4Address, IPv6Address
 import pytest
 from pydantic import BaseModel
 
+from boefjes.plugins.kat_dns.normalize import run as dns_normalize_run
 from boefjes.worker.job_models import (
     Boefje,
     BoefjeMeta,
@@ -409,3 +410,16 @@ def test_dns_loc_gpos_records(normalizer_runner):
     assert gpos.altitude == 1000.0  # 10.0m in centimeters
 
     assert sum(o.object_type == "GeographicPoint" for o in oois) == 2
+
+
+def test_dkim_unparsable_response_does_not_crash():
+    """A malformed DKIM response must degrade gracefully, not crash the whole
+    normalizer run. On main, ``dkim_results.split("\\n")[2]`` raised IndexError
+    on short input, killing the entire normalizer (#4277)."""
+    input_ooi = Hostname(network=Network(name="internet").reference, name="example.org")
+
+    # Must not raise; the unparsable DKIM response is logged and skipped
+    output = list(dns_normalize_run(input_ooi.serialize(), get_dummy_data("inputs/dns-result-dkim-unparsable.json")))
+
+    # No DKIMExists finding should be yielded for an unparsable response
+    assert not any(ooi.object_type == "DKIMExists" for ooi in output)
