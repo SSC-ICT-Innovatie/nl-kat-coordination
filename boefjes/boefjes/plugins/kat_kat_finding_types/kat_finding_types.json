@@ -685,5 +685,29 @@
     "risk": "medium",
     "impact": "A cookie without the Secure attribute may be sent over an unencrypted connection and intercepted. Without HttpOnly the cookie is readable by client-side scripts, so an XSS flaw can steal it. Without a restrictive SameSite value the cookie is sent with cross-site requests, enabling CSRF. For session cookies this can lead to session hijacking.",
     "recommendation": "Set the Secure and HttpOnly attributes on all cookies, and set SameSite to Strict or Lax (use None only together with Secure when cross-site use is required)."
+  },
+  "KAT-NO-MX": {
+    "name": "No MX record found for apex hostname",
+    "description": "The apex hostname has no MX record and no null MX, so email delivery to this domain will fail.",
+    "source": "https://www.rfc-editor.org/rfc/rfc7505",
+    "risk": "low",
+    "impact": "Mail sent to this domain cannot be delivered. If the domain is not intended to receive email, a null MX (RFC 7505) should be published to indicate this explicitly.",
+    "recommendation": "Publish an MX record for the apex hostname, or publish a null MX (preference 0, target '.') if the domain does not accept email."
+  },
+  "KAT-DANGEROUS-PORT": {
+    "name": "Dangerous port open",
+    "description": "A port associated with a dangerous service (e.g. Redis, MongoDB, Elasticsearch, Docker API) is open and reachable.",
+    "source": "https://www.cisecurity.org/benchmark/",
+    "risk": "high",
+    "impact": "Services like Redis, MongoDB and Elasticsearch are often deployed without authentication. Exposing them to the network allows unauthenticated access, data exfiltration or remote code execution.",
+    "recommendation": "Restrict access to the service using a firewall or bind it to localhost only. Ensure authentication is enabled."
+  },
+  "KAT-INSECURE-PROTOCOL": {
+    "name": "Insecure protocol port open",
+    "description": "A port associated with an insecure protocol (e.g. Telnet, FTP, TFTP, SNMP, LDAP) is open and reachable.",
+    "source": "https://www.cisecurity.org/benchmark/",
+    "risk": "medium",
+    "impact": "Insecure protocols transmit credentials and data in cleartext, allowing interception and manipulation by network attackers.",
+    "recommendation": "Replace the insecure protocol with a secure alternative (e.g. SSH instead of Telnet, SFTP/SCP instead of FTP). If the protocol must be used, restrict access with a firewall and use TLS where available."
   }
 }
