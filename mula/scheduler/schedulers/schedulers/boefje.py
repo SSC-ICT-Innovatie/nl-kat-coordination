@@ -134,13 +134,8 @@ class BoefjeScheduler(Scheduler):
 
             # Delete all items for this ooi, update all tasks for this ooi
             # to cancelled.
-            for item in items:
-                task = self.ctx.datastores.task_store.get_task(item.id)
-                if task is None:
-                    continue
-
-                task.status = models.TaskStatus.CANCELLED
-                self.ctx.datastores.task_store.update_task(task)
+            task_ids = [str(item.id) for item in items]
+            self.ctx.datastores.task_store.cancel_tasks(self.scheduler_id, task_ids)
 
             return
 
@@ -457,7 +452,7 @@ class BoefjeScheduler(Scheduler):
 
                 # Update task in datastore to be failed
                 task_db.status = models.TaskStatus.FAILED
-                self.ctx.datastores.task_store.update_task(task_db)
+                self.ctx.datastores.task_store.update_task(task_db.id, {"status": models.TaskStatus.FAILED.name})
                 # Fall through to create a new task
             else:
                 self.logger.debug(

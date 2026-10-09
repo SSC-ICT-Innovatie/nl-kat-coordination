@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv6Address
@@ -109,9 +110,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     register_record(DNSAAAARecord(address=ipv6.reference, **default_args))
 
                 if isinstance(rr, TXT):
-                    # TODO: concatenated txt records should be handled better
-                    # see https://www.rfc-editor.org/rfc/rfc1035 3.3.14
-                    default_args["value"] = str(rr).strip('"').replace('" "', "")
+                    # Concatenate TXT character-strings per RFC 1035 3.3.14:
+                    # multiple strings are concatenated without separators.
+                    default_args["value"] = "".join(s.decode() if isinstance(s, bytes) else s for s in rr.strings)
                     register_record(DNSTXTRecord(**default_args))
 
                 if isinstance(rr, MX):
@@ -175,8 +176,15 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     # DKIM
     dkim_results = results["dkim_response"]
-    if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"] and dkim_results.split("\n")[2] == "rcode NOERROR":
-        yield DKIMExists(hostname=input_hostname.reference)
+    if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"]:
+        try:
+            dkim_response = from_text(dkim_results)
+            if dkim_response.rcode() == 0:  # NOERROR
+                yield DKIMExists(hostname=input_hostname.reference)
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "Could not parse DKIM response for %s", input_hostname.name, exc_info=True
+            )
 
     # DMARC
     dmarc_results = results["dmarc_response"]
