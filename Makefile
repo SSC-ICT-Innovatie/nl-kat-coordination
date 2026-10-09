@@ -7,7 +7,7 @@ HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
 export OPENKAT_VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo development)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade env-if-empty env build debian12-build-image debian13-build-image ubuntu22.04-build-image ubuntu24.04-build-image docs upgraderequirements requirements
+.PHONY: kat update reset up stop down clean fetch pull upgrade last-release env-if-empty env build debian12-build-image debian13-build-image ubuntu22.04-build-image ubuntu24.04-build-image docs upgraderequirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -75,6 +75,9 @@ VERSION?=$(shell curl -sSf "https://api.github.com/repos/SSC-ICT-Innovatie/nl-ka
 upgrade: down fetch
 	git checkout $(VERSION)
 	make kat
+
+# Switch to the latest stable release and run it (alias for `make upgrade`)
+last-release: upgrade
 
 # Create .env file only if it does not exist
 env-if-empty:
