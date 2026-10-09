@@ -16,8 +16,8 @@ msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-09-16 16:49+0000\n"
-"PO-Revision-Date: 2026-10-05 13:51+0000\n"
-"Last-Translator: paulvandenbraken <paul.vandenbraken@ezzenz.nl>\n"
+"PO-Revision-Date: 2026-10-09 06:50+0000\n"
+"Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/openkat/nl-kat-"
 "coordination/nl/>\n"
 "Language: nl\n"
@@ -2828,7 +2828,7 @@ msgstr ""
 
 #: reports/forms.py tools/forms/ooi_form.py
 msgid "Filter by OOI types"
-msgstr "Filter op OOI-types"
+msgstr "Op OOI-types filteren"
 
 #: reports/forms.py
 msgid "Today"
@@ -5465,9 +5465,9 @@ msgid "Expires by (UTC)"
 msgstr "Verloopt op (UTC)"
 
 #: tools/forms/ooi_form.py
-#, fuzzy, python-format
+#, python-format
 msgid "Invalid cron expression: %(error)s"
-msgstr "Ongeldige cron expressie: %(error)s"
+msgstr "Ongeldige cron-expressie: %(error)s"
 
 #: tools/forms/ooi_form.py
 msgid "option"
@@ -5530,54 +5530,47 @@ msgid "Running"
 msgstr "Draaiend"
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "Search (in OOI)"
-msgstr "Zoek (in OOI)"
+msgstr "Zoeken (in OOI)"
 
 #: tools/forms/scheduler.py
 msgid "Search by object name"
 msgstr "Zoeken op objectnaam"
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "Input OOI"
-msgstr "Invoer OOI"
+msgstr "OOI invoeren"
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "Select specific object"
-msgstr "Selecteer specifieke object"
+msgstr "Specifiek object selecteren"
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "Search by plugin"
-msgstr "Zoek in plugin"
+msgstr "Op plug-in zoeken"
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "Task id"
-msgstr "Taak id"
+msgstr "Taak-ID"
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "Search by task ID"
-msgstr "Zoek per taak ID"
+msgstr "Per taak-ID zoeken"
 
 #: tools/forms/scheduler.py
-#, fuzzy, python-format
+#, python-format
 msgid ""
 "The selected date (%s) is in the future. Please select a different date."
 msgstr ""
 "De geselecteerde datum (%s) is in de toekomst. Selecteer een andere datum."
 
 #: tools/forms/scheduler.py
-#, fuzzy
 msgid "'from'"
-msgstr "'van'"
+msgstr "‘van’"
 
 #: tools/forms/scheduler.py
 msgid "'to'"
-msgstr "'tot'"
+msgstr "‘tot’"
 
 #: tools/forms/settings.py
 msgid "--- Show all ----"
@@ -6263,7 +6256,6 @@ msgid "Add finding"
 msgstr "Bevinding toevoegen"
 
 #: rocky/templates/findings/finding_list.html
-#, fuzzy
 msgid "Findings "
 msgstr "Bevindingen "
 
@@ -6752,21 +6744,18 @@ msgstr "Waarschuwing"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Loading..."
-msgstr "Laden..."
+msgstr "Laden…"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Normalizer task"
-msgstr "Normalizer taak"
+msgstr "Normalizer-taak"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Consuming Raw file"
-msgstr "Verwerkenbvan ruwe data"
+msgstr "Ruwe gegevens verwerken"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
@@ -6775,9 +6764,8 @@ msgstr "Opgeleverde objecten"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Yielded raw files for task"
-msgstr "Opgehaalde ruwe data voor taak"
+msgstr "Opgehaalde ruwe gegevens voor taak"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/boefje_task_detail.html
@@ -6787,15 +6775,13 @@ msgstr "Meta- en ruwe gegevens downloaden"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Origin boefje task"
-msgstr "Bron boefje voor taak"
+msgstr "Bron van Boefje-taak"
 
 #: rocky/templates/oois/ooi_detail_origins_observations.html
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "See all similar tasks"
-msgstr "Toon vergelijkbare taken"
+msgstr "Vergelijkbare taken tonen"
 
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
@@ -6855,12 +6841,10 @@ msgid "List of views for OOI"
 msgstr "Lijst van weergaven voor OOI"
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-#, fuzzy
 msgid "You are looking at a historic view of this object."
-msgstr "Je bekijkt een historische weergave van dit object"
+msgstr "Je bekijkt een historische weergave van dit object."
 
 #: rocky/templates/oois/ooi_past_due_warning.html
-#, fuzzy
 msgid ""
 "You are looking at a historic view of this object which has been deleted in "
 "the current timeline"
@@ -7206,7 +7190,6 @@ msgid "OOI"
 msgstr "OOI"
 
 #: rocky/templates/partials/explanations.html
-#, fuzzy
 msgid "This OOI"
 msgstr "Dit OOI"
 
@@ -7215,14 +7198,12 @@ msgid "Origin"
 msgstr "Oorsprong"
 
 #: rocky/templates/partials/explanations.html
-#, fuzzy
 msgid "declared"
 msgstr "opgevoerd"
 
 #: rocky/templates/partials/explanations.html
-#, fuzzy
 msgid "inherited from ↓"
-msgstr "geërfd van"
+msgstr "geërfd van ↓"
 
 #: rocky/templates/partials/explanations.html
 msgid "Show clearance level inheritance"
@@ -7335,9 +7316,8 @@ msgid "Page"
 msgstr "Pagina"
 
 #: rocky/templates/partials/list_paginator.html
-#, fuzzy
 msgid "Current"
-msgstr "Huidig"
+msgstr "Huidige"
 
 #: rocky/templates/partials/list_paginator.html
 msgid "Five Pages Forward"
@@ -7381,12 +7361,10 @@ msgid "Edit %(display_type)s"
 msgstr "Bewerk %(display_type)s"
 
 #: rocky/templates/partials/ooi_head.html
-#, fuzzy
 msgid "Data from:"
-msgstr "Data van:"
+msgstr "Gegevens van:"
 
 #: rocky/templates/partials/ooi_head.html
-#, fuzzy
 msgid "(Now)"
 msgstr "(Nu)"
 
@@ -7491,14 +7469,14 @@ msgid "last"
 msgstr "laatste"
 
 #: rocky/templates/partials/scan_level_indicator.html
-#, fuzzy, python-format
+#, python-format
 msgid "Scan level %(level)s"
-msgstr "Scan level %(level)s"
+msgstr "Scanniveau %(level)s"
 
 #: rocky/templates/partials/scan_level_indicator.html
-#, fuzzy, python-format
+#, python-format
 msgid "Clearance level %(level)s"
-msgstr "Vrijwarings niveau %(level)s"
+msgstr "Vrijwaringsniveau %(level)s"
 
 #: rocky/templates/partials/secondary-menu.html
 msgid "User navigation"
@@ -7646,34 +7624,28 @@ msgid "Modified date"
 msgstr "Bewerkte datum"
 
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
-#, fuzzy
 msgid "Filter on this plugin"
-msgstr "Filter op deze plugin"
+msgstr "Op deze plug-in filteren"
 
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
-#, fuzzy
 msgid "Add filter on this plugin"
-msgstr "Voeg filter toe aan deze plugin"
+msgstr "Filter aan deze plug-in toevoegen"
 
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
-#, fuzzy
 msgid "Filter on this status"
-msgstr "Filter op deze status"
+msgstr "Op deze status filteren"
 
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/partials/stats.html
-#, fuzzy
 msgid "Add filter on this status"
-msgstr "Voeg filter toe aan deze status"
+msgstr "Filter aan deze status toevoegen"
 
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
-#, fuzzy
 msgid "Filter on this ooi"
-msgstr "Filter op dit OOI"
+msgstr "Op dit OOI filteren"
 
 #: rocky/templates/tasks/boefjes.html rocky/templates/tasks/normalizers.html
-#, fuzzy
 msgid "Add filter on this ooi"
-msgstr "Voeg filter toe aan dit ooi"
+msgstr "Filter aan dit OOI toevoegen"
 
 #: rocky/templates/tasks/normalizers.html
 msgid "There are no tasks for normalizers."
@@ -7716,18 +7688,16 @@ msgid "List of tasks"
 msgstr "Lijst van taken"
 
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Processing input from Boefje task"
-msgstr "Verwerken van invoer van boefje taak"
+msgstr "Invoer van Boefje-taak verwerken"
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Reschedule"
 msgstr "Opnieuw plannen"
 
 #: rocky/templates/tasks/partials/task_actions.html
-#, fuzzy
 msgid "Related Normalizer tasks"
-msgstr "Gerelateerde Normalizer taken"
+msgstr "Gerelateerde Normalizer-taken"
 
 #: rocky/templates/tasks/partials/task_actions.html
 msgid "Download task data"
@@ -8072,9 +8042,8 @@ msgid "Upload raw"
 msgstr "Ruwe bestand uploaden"
 
 #: rocky/views/bytes_raw.py
-#, fuzzy
 msgid "Getting raw data failed, No such meta."
-msgstr "Ontvangen van ruwe data mislukt, metadata niet gevonden"
+msgstr "Ontvangen van ruwe gegevens is mislukt, metagegevens niet gevonden."
 
 #: rocky/views/bytes_raw.py
 msgid "Getting raw data failed."
@@ -8105,19 +8074,18 @@ msgid "Can not parse date, falling back to show current date."
 msgstr "Kan datum niet lezen. Huidige datum wordt gebruikt."
 
 #: rocky/views/mixins.py
-#, fuzzy, python-format
+#, python-format
 msgid "Could not load origins for OOI: %s from octopoes"
-msgstr "Kan geen bron voor OOI: %s uit octopoes laden"
+msgstr "Kan geen bron voor OOI laden: %s uit Octopoes"
 
 #: rocky/views/mixins.py
-#, fuzzy
 msgid "Could not load normalizer metas from bytes"
-msgstr "Kan geen normalizer metadata uit bytes laden"
+msgstr "Kan geen Normalizer-metagegevens uit bytes laden"
 
 #: rocky/views/mixins.py
-#, fuzzy, python-format
+#, python-format
 msgid "Could not load boefje %s from katalogus"
-msgstr "Kan boefje %s  niet uit de  katalogus laden"
+msgstr "Kan Boefje %s uit de Katalogus niet laden"
 
 #: rocky/views/mixins.py
 msgid "You do not have the permission to add items to a dashboard."
@@ -8203,7 +8171,7 @@ msgstr "Een van de OOI’s bestaat niet"
 #: rocky/views/ooi_list.py
 #, python-format
 msgid "Successfully set scan profile to %s for %d OOIs."
-msgstr "Scanprofiel met succes ingesteld op %s voor %d OOI’s"
+msgstr "Scanprofiel met succes op %s ingesteld voor %d OOI’s."
 
 #: rocky/views/ooi_list.py
 msgid "An error occurred while setting clearance levels to inherit."
