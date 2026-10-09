@@ -9,9 +9,15 @@ from boefjes.plugins.kat_links_in_capture.normalize import run as run_in_zone
 INPUT_URL = "HostnameHTTPURL|https|internet|demo.dvwa.cloud|443|/"
 
 
-def har_zip(body: str, url: str = "https://demo.dvwa.cloud/", mime: str = "text/html", redirect_first: bool = False):
+def har_zip(
+    body: str,
+    url: str = "https://demo.dvwa.cloud/",
+    mime: str = "text/html",
+    redirect_first: bool = False,
+    extra_entries: list | None = None,
+):
     """A Playwright HAR archive: the HAR document plus its bodies as separate members."""
-    entries = []
+    entries = list(extra_entries or [])
 
     if redirect_first:
         entries.append(
@@ -116,3 +122,67 @@ def test_capture_without_an_html_document_yields_nothing():
     raw = har_zip("{}", mime="application/json")
 
     assert list(run_in_zone({"primary_key": INPUT_URL}, raw)) == []
+
+
+def test_redirect_with_its_own_html_body_is_not_mistaken_for_the_page():
+    """A 301 often carries the server's default "Moved Permanently" page.
+
+    Picking the first HTML-bodied entry would parse that and find no links at all.
+    """
+    redirect = {
+        "request": {"url": "http://demo.dvwa.cloud/"},
+        "response": {"status": 301, "content": {"mimeType": "text/html", "text": "<html><h1>Moved</h1></html>"}},
+    }
+    raw = har_zip(links("https://api.dvwa.cloud/"), extra_entries=[redirect])
+
+    assert "api.dvwa.cloud" in names(run_in_zone({"primary_key": INPUT_URL}, raw))
+
+
+def test_one_malformed_href_does_not_cost_the_whole_page():
+    """urlparse raises on some hrefs; the task must not die on a single bad link."""
+    raw = har_zip(links("https://api.dvwa.cloud]/", "https://app.dvwa.cloud/"))
+
+    assert names(run_in_zone({"primary_key": INPUT_URL}, raw)) == ["app.dvwa.cloud", "dvwa.cloud"]
+
+
+def test_a_hostname_the_model_rejects_does_not_cost_the_whole_page():
+    """Underscores are common in the wild and the Hostname validator refuses them."""
+    raw = har_zip(links("https://my_site.dvwa.cloud/", "https://app.dvwa.cloud/"))
+
+    assert names(run_in_zone({"primary_key": INPUT_URL}, raw)) == ["app.dvwa.cloud", "dvwa.cloud"]
+
+
+def test_internationalised_domains_are_compared_in_the_same_form():
+    """Hostname punycodes its name, so the primary key and the href disagree.
+
+    Without normalising, the in-zone normalizer finds nothing and the external one
+    mints the organisation's own domain as a third-party host.
+    """
+    idn = "HostnameHTTPURL|https|internet|xn--mller-kva.de|443|/"
+    raw = har_zip(links("https://shop.müller.de/"), url="https://xn--mller-kva.de/")
+
+    # The apex is the input OOI here, so only the subdomain is new.
+    found = list(run_in_zone({"primary_key": idn}, raw))
+    assert names(found) == ["shop.xn--mller-kva.de"]
+    assert found[0].registered_domain.tokenized.name == "xn--mller-kva.de"
+    assert names(run_external({"primary_key": idn}, raw)) == []
+
+
+def test_a_trailing_dot_is_the_same_host():
+    """api.dvwa.cloud. would otherwise be a second Hostname inheriting the same L2."""
+    raw = har_zip(links("https://api.dvwa.cloud./"))
+
+    assert names(run_in_zone({"primary_key": INPUT_URL}, raw)) == ["api.dvwa.cloud", "dvwa.cloud"]
+
+
+def test_base_href_changes_what_relative_links_point_at():
+    body = '<html><head><base href="https://app.dvwa.cloud/"></head><body><a href="/x">x</a></body></html>'
+
+    assert names(run_in_zone({"primary_key": INPUT_URL}, har_zip(body))) == ["app.dvwa.cloud", "dvwa.cloud"]
+
+
+def test_a_page_that_is_its_own_apex_is_not_re_emitted():
+    apex = "HostnameHTTPURL|https|internet|dvwa.cloud|443|/"
+    raw = har_zip(links("https://dvwa.cloud/about", "https://api.dvwa.cloud/"), url="https://dvwa.cloud/")
+
+    assert names(run_in_zone({"primary_key": apex}, raw)) == ["api.dvwa.cloud"]
