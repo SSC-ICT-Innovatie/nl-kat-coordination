@@ -1,6 +1,6 @@
 import pytest
 from django.core.exceptions import PermissionDenied
-from django.urls import resolve
+from django.urls import resolve, reverse
 from katalogus.client import (
     KATalogusClient,
     KATalogusNotAllowedError,
@@ -393,7 +393,8 @@ def test_enable_disable_plugin_has_clearance(rf, redteam_member, mocker):
     mock_requests.Client().get.return_value = mock_response
     mock_response.json.return_value = plugin
 
-    request = setup_request(rf.post("plugin_enable_disable"), redteam_member.user)
+    current_url = "/en/test/kat-alogus/plugins/boefjes/grid/#plugin_test-boefje"
+    request = setup_request(rf.post("plugin_enable_disable", {"current_url": current_url}), redteam_member.user)
 
     response = PluginEnableDisableView.as_view()(
         setup_request(request, redteam_member.user),
@@ -403,8 +404,9 @@ def test_enable_disable_plugin_has_clearance(rf, redteam_member, mocker):
         plugin_state=False,
     )
 
-    # redirects back to KAT-alogus
+    # redirects back to the submitted current_url (anchor preserved)
     assert response.status_code == 302
+    assert response.url == current_url
 
     assert list(request._messages).pop().message == "Boefje '" + plugin["name"] + "' enabled."
 
@@ -430,3 +432,102 @@ def test_enable_disable_normalizer(rf, redteam_member, mocker):
     assert response.status_code == 302
 
     assert list(request._messages).pop().message == "Normalizer '" + plugin["name"] + "' enabled."
+
+
+def test_enable_disable_plugin_disable(rf, redteam_member, mocker):
+    """The disable branch (plugin_state=True) disables the plugin and redirects back."""
+    plugin = get_boefjes_data()[0]
+    mock_requests = mocker.patch("katalogus.client.httpx")
+    mock_response = mocker.MagicMock()
+    mock_requests.Client().get.return_value = mock_response
+    mock_response.json.return_value = plugin
+
+    current_url = "/en/test/kat-alogus/plugins/boefjes/grid/#plugin_test-boefje"
+    request = setup_request(rf.post("plugin_enable_disable", {"current_url": current_url}), redteam_member.user)
+
+    response = PluginEnableDisableView.as_view()(
+        setup_request(request, redteam_member.user),
+        organization_code=redteam_member.organization.code,
+        plugin_type=plugin["type"],
+        plugin_id=plugin["id"],
+        plugin_state="True",
+    )
+
+    assert response.status_code == 302
+    assert response.url == current_url
+    assert list(request._messages).pop().message == "Boefje '" + plugin["name"] + "' disabled."
+
+
+def test_enable_disable_plugin_fallback_url(rf, redteam_member, mocker):
+    """Without current_url, the redirect falls back to the katalogus page."""
+    plugin = get_boefjes_data()[0]
+    mock_requests = mocker.patch("katalogus.client.httpx")
+    mock_response = mocker.MagicMock()
+    mock_requests.Client().get.return_value = mock_response
+    mock_response.json.return_value = plugin
+
+    request = setup_request(rf.post("plugin_enable_disable"), redteam_member.user)
+
+    response = PluginEnableDisableView.as_view()(
+        setup_request(request, redteam_member.user),
+        organization_code=redteam_member.organization.code,
+        plugin_type=plugin["type"],
+        plugin_id=plugin["id"],
+        plugin_state=False,
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("katalogus", kwargs={"organization_code": redteam_member.organization.code})
+
+
+def test_enable_disable_plugin_bad_current_url_degrades_to_fallback(rf, redteam_member, mocker):
+    """A bad current_url degrades to the fallback, not a 403."""
+    plugin = get_boefjes_data()[0]
+    mock_requests = mocker.patch("katalogus.client.httpx")
+    mock_response = mocker.MagicMock()
+    mock_requests.Client().get.return_value = mock_response
+    mock_response.json.return_value = plugin
+
+    request = setup_request(
+        rf.post("plugin_enable_disable", {"current_url": "https://evil.example/"}), redteam_member.user
+    )
+
+    response = PluginEnableDisableView.as_view()(
+        setup_request(request, redteam_member.user),
+        organization_code=redteam_member.organization.code,
+        plugin_type=plugin["type"],
+        plugin_id=plugin["id"],
+        plugin_state=False,
+    )
+
+    assert response.status_code == 302
+    assert response.url == reverse("katalogus", kwargs={"organization_code": redteam_member.organization.code})
+
+
+def test_enable_disable_plugin_no_clearance_strips_fragment(rf, redteam_member, mocker):
+    """The clearance-refusal path strips the fragment so the error message is visible."""
+    redteam_member.trusted_clearance_level = -1
+    redteam_member.acknowledged_clearance_level = -1
+    redteam_member.save()
+
+    plugin = get_boefjes_data()[0]
+    mock_requests = mocker.patch("katalogus.client.httpx")
+    mock_response = mocker.MagicMock()
+    mock_requests.Client().get.return_value = mock_response
+    mock_response.json.return_value = plugin
+
+    current_url = "/en/test/kat-alogus/plugins/boefjes/grid/#plugin_test-boefje"
+    request = setup_request(rf.post("plugin_enable_disable", {"current_url": current_url}), redteam_member.user)
+
+    response = PluginEnableDisableView.as_view()(
+        setup_request(request, redteam_member.user),
+        organization_code=redteam_member.organization.code,
+        plugin_type=plugin["type"],
+        plugin_id=plugin["id"],
+        plugin_state=False,
+    )
+
+    assert response.status_code == 302
+    # Fragment stripped so the user lands at the top where the error message is
+    assert "#" not in response.url
+    assert response.url == "/en/test/kat-alogus/plugins/boefjes/grid/"
