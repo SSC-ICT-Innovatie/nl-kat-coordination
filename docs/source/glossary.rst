@@ -2,8 +2,9 @@ Glossary
 ========
 
 Becoming familiar with new tools can be daunting.
+
 In this glossary you will find the most commonly used terms in OpenKAT with it's definition.
-We hope this helps to make your life easier.
+We hope this helps to make your life easier. Where possible, we point to more in-depth documentation.
 
 
 .. list-table:: Glossary

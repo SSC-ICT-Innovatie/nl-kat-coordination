@@ -6,7 +6,8 @@ from collections.abc import Iterable
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives.asymmetric import ec, rsa
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 from dateutil.parser import parse
 
 from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
@@ -104,29 +105,47 @@ def read_certificates(
         pem_contents = f"-----BEGIN CERTIFICATE-----{m.group()}-----END CERTIFICATE-----"
 
         cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
+
         try:
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
         except IndexError:
             subject = None
-        issuer = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)[0].value
+
+        # get the issuer organization name, if available
+        issuer_attributes = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)
+
+        # Catch cases where no OrganizationName is present in the issuer field
+        issuer = issuer_attributes[0].value if issuer_attributes else None
+
         try:
-            subject_alternative_names = [
-                name.value for name in cert.extensions.get_extension_for_oid(x509.OID_SUBJECT_ALTERNATIVE_NAME).value
-            ]
+            subject_alternative_names = list(
+                cert.extensions.get_extension_for_oid(x509.OID_SUBJECT_ALTERNATIVE_NAME).value
+            )
         except x509.ExtensionNotFound:
             subject_alternative_names = []
+
         valid_from = cert.not_valid_before_utc.isoformat()
         valid_until = cert.not_valid_after_utc.isoformat()
-        pk_size = cert.public_key().key_size
-        logging.info("Parsing certificate of type %s", type(cert.public_key()))
-        if isinstance(cert.public_key(), rsa.RSAPublicKey):
+
+        public_key = cert.public_key()
+
+        logging.info("Parsing certificate of type %s", type(public_key))
+
+        if isinstance(public_key, rsa.RSAPublicKey):
             pk_algorithm = str(AlgorithmType.RSA)
-            pk_number = cert.public_key().public_numbers().n.to_bytes(pk_size // 8, "big").hex()
-        elif isinstance(cert.public_key(), ec.EllipticCurvePublicKey):
+            pk_size = public_key.key_size
+            pk_number = public_key.public_numbers().n.to_bytes(pk_size // 8, "big").hex()
+        elif isinstance(public_key, ec.EllipticCurvePublicKey):
             pk_algorithm = str(AlgorithmType.ECC)
-            pk_number = hex(cert.public_key().public_numbers().x) + hex(cert.public_key().public_numbers().y)
+            pk_size = public_key.key_size
+            pk_number = hex(public_key.public_numbers().x) + hex(public_key.public_numbers().y)
+        elif isinstance(public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
+            pk_algorithm = str(AlgorithmType.EDDSA)
+            pk_size = None
+            pk_number = public_key.public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
         else:
             pk_algorithm = None
+            pk_size = None
             pk_number = None
 
         certificate = X509Certificate(
@@ -142,29 +161,32 @@ def read_certificates(
             expires_in=parse(valid_until).astimezone(datetime.timezone.utc)
             - datetime.datetime.now(datetime.timezone.utc),
         )
-        # todo: alt names
+
         certificates.append(certificate)
 
-        network_reference = Network(name="internet").reference
+        # Process the subject alternative names for this certificate on the Network object it belongs to.
+        network_reference = Network(name=website_reference.tokenized.hostname.network.name).reference
         certificate_reference = certificate.reference
 
         for name in subject_alternative_names:
             san = None
-            if isinstance(name, str):
-                if "*" not in name:
-                    hostname = Hostname(network=network_reference, name=name)
+
+            if isinstance(name, x509.DNSName):
+                if "*" not in name.value:
+                    hostname = Hostname(network=network_reference, name=name.value)
                     hostnames.append(hostname)
+
                     san = SubjectAlternativeNameHostname(hostname=hostname.reference, certificate=certificate_reference)
                 else:
-                    san = SubjectAlternativeNameQualifier(name=name, certificate=certificate_reference)
-            elif isinstance(name, ipaddress.IPv4Address):
-                address = IPAddressV4(network=network_reference, address=name)
+                    san = SubjectAlternativeNameQualifier(name=name.value, certificate=certificate_reference)
+
+            elif isinstance(name, x509.IPAddress):
+                if isinstance(name.value, ipaddress.IPv4Address):
+                    address = IPAddressV4(network=network_reference, address=name.value)
+                else:
+                    address = IPAddressV6(network=network_reference, address=name.value)
+
                 san = SubjectAlternativeNameIP(address=address.reference, certificate=certificate_reference)
-            elif isinstance(name, ipaddress.IPv6Address):
-                address = IPAddressV6(network=network_reference, address=name)
-                san = SubjectAlternativeNameIP(address=address.reference, certificate=certificate_reference)
-            else:
-                pass  # todo: support other SANs?
 
             if san is not None:
                 certificate_subject_alternative_names.append(san)
