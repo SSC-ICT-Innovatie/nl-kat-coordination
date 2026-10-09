@@ -252,6 +252,7 @@ def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip(tmp_path):
     assert "--ip" in command
     assert command[command.index("--ip") + 1] == "[2606:4700:4700::1111]"
     assert "one.one.one.one:443" in command
+    assert "timeout" not in mock_run.call_args.kwargs
 
 
 def test_sslv3_ciphers_are_kept():

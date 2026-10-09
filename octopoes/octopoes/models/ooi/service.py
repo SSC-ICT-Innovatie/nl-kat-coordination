@@ -52,9 +52,6 @@ class HostnameService(OOI):
     ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
 
-    # Hostname is an optional suffix of the natural key. Keep only
-    # ip_service as a tokenizable field so legacy hostname-less TLSCipher
-    # references remain valid.
     _natural_key_attrs = ["ip_service", "hostname"]
     _reverse_relation_names = {"ip_service": "hostname_services", "hostname": "services"}
 

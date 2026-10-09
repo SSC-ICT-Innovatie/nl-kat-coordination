@@ -64,7 +64,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     hostname, address, port, servicename = _input_target(input_)
 
     if servicename not in TLS_CAPABLE_SERVICES + STARTTLS_CAPABLE_SERVICES:
-        return []
+        return [({"openkat/deschedule"}, "Skipping check due to non-TLS/STARTTLS service")]
 
     timeout = int(os.getenv("TIMEOUT", "30"))
     configured_arguments = boefje_meta["arguments"].get("oci_arguments", [])
