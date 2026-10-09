@@ -32,6 +32,11 @@ def test_tls_report_multiple_findings_and_suites(
     assert data["suites"]["TLSv1"][0]["cipher_suite_name"] == "ECDHE-RSA-AES128-SHA"
     assert data["suites"]["TLSv1"][1]["cipher_suite_name"] == "ECDHE-RSA-AES256-SHA"
 
+    # The fixture uses the pre-#5470 "bits"/"key_size" keys; the report
+    # backfills them to "encryption_bits"/"key_exchange_bits" for the template.
+    assert data["suites"]["TLSv1"][0]["encryption_bits"] == 128
+    assert data["suites"]["TLSv1"][0]["key_exchange_bits"] == 256
+
     assert len(data["findings"]) == 3
     assert (
         data["findings"][0].primary_key

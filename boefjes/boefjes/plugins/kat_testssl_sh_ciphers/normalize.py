@@ -12,9 +12,6 @@ from octopoes.models.ooi.service import TLSCipher
 CIPHER_ID_RE = re.compile(r"^cipher-(?P<proto>ssl2|ssl3|tls1(?:_[123])?)_(?P<code>x[0-9a-f]+)$", re.IGNORECASE)
 CIPHER_CODE_RE = re.compile(r"^x[0-9a-f]+$", re.IGNORECASE)
 
-# Parse the ,exp suffix for encryptions strength
-BITS_RE = re.compile(r"^(?:(?P<bits>\d+)(?P<export>,exp)?|None)$", re.IGNORECASE)
-
 PROTOCOL_NAMES = {
     "ssl2": "SSLv2",
     "ssl3": "SSLv3",
@@ -111,7 +108,7 @@ def parse_cipher(cipher: dict) -> tuple[str, dict[str, Any]] | None:
     # Export and NULL ciphers are the weakest ones, so they must not be skipped.
     characteristics = _characteristics(cipher_suite_name, key_exchange, encryption)
 
-    if bits_match.group("export"):
+    if bits_match.group("export") and "EXPORT" not in characteristics:
         characteristics.append("EXPORT")
 
     suite = {

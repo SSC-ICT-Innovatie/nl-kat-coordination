@@ -279,7 +279,7 @@ def test_export_and_null_ciphers_are_kept():
     assert "NULL" in suites["NULL-MD5"]["characteristics"]
 
 
-# boefjes/tests/plugins/test_testssl_sh.py — real testssl 3.2.4 line from tls-v1-0.badssl.com
+# real testssl 3.2.4 line from tls-v1-0.badssl.com
 def test_tls_1_0_ciphers_are_kept():
     raw = (
         b'[{"id":"cipher-tls1_xc013","severity":"LOW","finding":"TLSv1   xc013   ECDHE-RSA-AES128-SHA'
@@ -290,7 +290,7 @@ def test_tls_1_0_ciphers_are_kept():
     assert oois[0].suites["TLSv1"][0]["cipher_suite_name"] == "ECDHE-RSA-AES128-SHA"
 
 
-# octopoes/tests — keys already in XTDB and from the IPService path have no hostname
+# keys already in XTDB and from the IPService path have no hostname
 def test_tls_cipher_without_hostname_is_human_readable():
     assert Reference.from_str("TLSCipher|internet|1.2.3.4|tcp|443|https").human_readable == "Ciphers of 1.2.3.4:443"
     assert (
