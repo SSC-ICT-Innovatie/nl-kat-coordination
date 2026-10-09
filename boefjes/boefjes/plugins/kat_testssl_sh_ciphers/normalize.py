@@ -4,6 +4,7 @@ from typing import Any
 
 from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
+from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.service import TLSCipher
 
 
@@ -52,3 +53,15 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 tls_dict[protocol].append(suite)
     if tls_dict:
         yield TLSCipher(ip_service=ip_service_reference, suites=tls_dict)
+
+    # Signal scan problems (e.g. unreachable target) as findings (#3867)
+    for item in output:
+        if item.get("severity") == "FATAL":
+            ft = KATFindingType(id="KAT-SCAN-PROBLEM")
+            yield ft
+            yield Finding(
+                finding_type=ft.reference,
+                ooi=ip_service_reference,
+                description=item.get("finding", "Scan problem"),
+            )
+            break
