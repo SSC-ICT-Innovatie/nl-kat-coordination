@@ -7,6 +7,8 @@
     "IPAddressV6"
   ],
   "scan_level": 1,
+  "rate_limit_interval": 1,
+  "rate_limit_group": "api.shodan.io",
   "oci_image": "docker.underdark.nl/librekat/openkat-generic:latest",
   "oci_arguments": [
     "kat_shodan.main"
