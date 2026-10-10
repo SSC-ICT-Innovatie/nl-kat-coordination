@@ -20,6 +20,7 @@ from octopoes.models.ooi.findings import (
     KATFindingType,
     RetireJSFindingType,
     SnykFindingType,
+    WPVulnFindingType,
 )
 from octopoes.models.tree import ReferenceNode
 from octopoes.models.types import OOI_TYPES, get_relations
@@ -220,7 +221,13 @@ def filter_ooi_tree_item(ooi_node, show_types, hide_types, self_excluded_from_fi
 
 def get_finding_type_from_finding(finding: Finding) -> FindingType:
     return TypeAdapter(
-        KATFindingType | CVEFindingType | CWEFindingType | RetireJSFindingType | SnykFindingType | CAPECFindingType
+        KATFindingType
+        | CVEFindingType
+        | CWEFindingType
+        | RetireJSFindingType
+        | SnykFindingType
+        | CAPECFindingType
+        | WPVulnFindingType
     ).validate_python({"object_type": finding.finding_type.class_, "id": finding.finding_type.natural_key})
 
 
