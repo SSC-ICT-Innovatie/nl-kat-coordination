@@ -36,6 +36,21 @@ def test_ssl_certificates_normalizer():
             assert ooi.valid_from != ooi.valid_until
 
 
+# Test for malformed PEM certificates
+def test_ssl_certificates_normalizer_skips_invalid_pem_certificate():
+    valid_pem = _create_certificate_with_sans([x509.DNSName("www.example.com")])
+
+    invalid_pem = "-----BEGIN CERTIFICATE-----\nthis-is-not-a-valid-certificate\n-----END CERTIFICATE-----\n"
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+
+    certificates, sans, hostnames = read_certificates(invalid_pem + valid_pem, reference)
+
+    assert len(certificates) == 1
+    assert len(sans) == 1
+    assert len(hostnames) == 1
+
+
 # Unit test for #5443 handling missing OrgName in certificates
 def test_ssl_certificates_normalizer_without_issuer_organization():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -407,3 +422,95 @@ def test_ssl_certificates_normalizer_certificate_chain():
     assert leaf.signed_by == intermediate.reference
     assert intermediate.signed_by == root.reference
     assert root.signed_by is None
+
+
+# Make sure the normalizer doesn't care about the OpenSSL formatting
+def test_ssl_certificates_normalizer_without_certificate_chain_markers():
+    pem = _create_certificate_with_sans([x509.DNSName("www.example.com")])
+
+    raw = b"some openssl output\n" + pem.encode() + b"\nmore openssl output\n"
+
+    output = list(run(input_ooi, raw))
+
+    certificates = [ooi for ooi in output if getattr(ooi, "object_type", None) == "X509Certificate"]
+
+    assert len(certificates) == 1
+
+
+# Certificates in wrong ordergit
+def test_ssl_certificates_normalizer_certificate_chain_does_not_depend_on_order():
+    root_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    root_certificate = _create_signed_certificate("Root CA", None, root_key, root_key.public_key())
+
+    intermediate_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    intermediate_certificate = _create_signed_certificate(
+        "Intermediate CA", root_certificate, root_key, intermediate_key.public_key()
+    )
+
+    leaf_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    leaf_certificate = _create_signed_certificate(
+        "test.example", intermediate_certificate, intermediate_key, leaf_key.public_key()
+    )
+
+    pem = b"".join(
+        certificate.public_bytes(serialization.Encoding.PEM)
+        for certificate in (leaf_certificate, root_certificate, intermediate_certificate)
+    )
+
+    output = list(run(input_ooi, pem))
+
+    certificates = [ooi for ooi in output if getattr(ooi, "object_type", None) == "X509Certificate"]
+
+    leaf = next(c for c in certificates if c.subject == "test.example")
+    intermediate = next(c for c in certificates if c.subject == "Intermediate CA")
+    root = next(c for c in certificates if c.subject == "Root CA")
+
+    assert leaf.signed_by == intermediate.reference
+    assert intermediate.signed_by == root.reference
+    assert root.signed_by is None
+
+
+# False issuer match
+def test_ssl_certificates_normalizer_does_not_link_certificate_with_invalid_signature():
+    intermediate_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    intermediate_certificate = _create_signed_certificate(
+        "Intermediate CA", None, intermediate_key, intermediate_key.public_key()
+    )
+
+    rogue_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+    leaf_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
+
+    # The leaf claims to be issued by Intermediate CA,
+    # but is actually signed by rogue_key.
+    leaf_certificate = (
+        x509.CertificateBuilder()
+        .subject_name(
+            x509.Name(
+                [
+                    x509.NameAttribute(NameOID.COMMON_NAME, "test.example"),
+                    x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
+                ]
+            )
+        )
+        .issuer_name(intermediate_certificate.subject)
+        .public_key(leaf_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
+        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1))
+        .sign(rogue_key, hashes.SHA256())
+    )
+
+    pem = b"".join(
+        certificate.public_bytes(serialization.Encoding.PEM)
+        for certificate in (leaf_certificate, intermediate_certificate)
+    )
+
+    reference = Reference.from_str(input_ooi["primary_key"])
+    certificates, _, _ = read_certificates(pem.decode(), reference)
+
+    leaf = next(c for c in certificates if c.subject == "test.example")
+    intermediate = next(c for c in certificates if c.subject == "Intermediate CA")
+
+    assert leaf.signed_by is None
+    assert intermediate.signed_by is None

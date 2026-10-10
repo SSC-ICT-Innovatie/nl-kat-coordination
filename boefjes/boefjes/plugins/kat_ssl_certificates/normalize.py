@@ -5,6 +5,7 @@ import re
 from collections.abc import Iterable
 
 from cryptography import x509
+from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
@@ -26,20 +27,10 @@ from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.web import Website
 
 
-def find_between(s: str, first: str, last: str) -> str:
-    try:
-        start = s.index(first) + len(first)
-        end = s.index(last, start)
-        return s[start:end]
-    except ValueError:
-        return ""
-
-
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    # only get the first part of certificates
-    contents = find_between(raw.decode(), "Certificate chain", "Certificate chain")
+    contents = raw.decode(errors="replace")
 
-    if not contents:
+    if "-----BEGIN CERTIFICATE-----" not in contents:
         return
 
     pk = input_ooi["primary_key"]
@@ -76,14 +67,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         # update website
         yield NormalizerAffirmation(ooi=website)
 
-    # chain certificates together
-    last_certificate = None
-    for certificate in reversed(certificates):
-        if last_certificate is not None:
-            certificate.signed_by = last_certificate.reference
-
-        last_certificate = certificate
-        yield certificate
+    certificates, certificate_subject_alternative_names, hostnames = read_certificates(contents, Reference.from_str(pk))
+    # Yield certificates after their chain relationships have been resolved.
+    yield from certificates
 
     # add all hostnames
     yield from hostnames
@@ -92,19 +78,56 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     yield from certificate_subject_alternative_names
 
 
+def _certificate_is_signed_by(certificate: x509.Certificate, issuer: x509.Certificate) -> bool:
+    if certificate.issuer != issuer.subject:
+        return False
+
+    try:
+        issuer_public_key = issuer.public_key()
+
+        if isinstance(issuer_public_key, rsa.RSAPublicKey | ec.EllipticCurvePublicKey):
+            issuer_public_key.verify(
+                certificate.signature,
+                certificate.tbs_certificate_bytes,
+                certificate.signature_algorithm_parameters,
+                certificate.signature_hash_algorithm,
+            )
+        elif isinstance(issuer_public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
+            issuer_public_key.verify(certificate.signature, certificate.tbs_certificate_bytes)
+        else:
+            return False
+
+    except (InvalidSignature, UnsupportedAlgorithm, ValueError):
+        return False
+
+    return True
+
+
 def read_certificates(
     contents: str, website_reference: Reference
 ) -> tuple[list[X509Certificate], list[SubjectAlternativeName], list[Hostname]]:
     # iterate through the PEM certificates and decode them
     certificates = []
+    parsed_certificates = []
     certificate_subject_alternative_names = []
     hostnames = []
-    for m in re.finditer(
-        r"(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)", contents, flags=re.DOTALL
-    ):
-        pem_contents = f"-----BEGIN CERTIFICATE-----{m.group()}-----END CERTIFICATE-----"
+    seen_certificates = set()
 
-        cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
+    for m in re.finditer(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", contents, flags=re.DOTALL):
+        pem_contents = m.group()
+
+        try:
+            cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
+        except ValueError:
+            logging.warning("Unable to parse PEM certificate, skipping it")
+            continue
+
+        certificate_der = cert.public_bytes(serialization.Encoding.DER)
+
+        if certificate_der in seen_certificates:
+            continue
+
+        seen_certificates.add(certificate_der)
 
         try:
             subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
@@ -163,6 +186,7 @@ def read_certificates(
         )
 
         certificates.append(certificate)
+        parsed_certificates.append((certificate, cert))
 
         # Process the subject alternative names for this certificate on the Network object it belongs to.
         network_reference = Network(name=website_reference.tokenized.hostname.network.name).reference
@@ -190,5 +214,23 @@ def read_certificates(
 
             if san is not None:
                 certificate_subject_alternative_names.append(san)
+
+    # Link certificates using the actual issuer/subject relationship
+    # instead of relying on the order returned by OpenSSL.
+    for certificate, cert in parsed_certificates:
+        if cert.issuer == cert.subject:
+            continue
+
+        issuer_certificate = next(
+            (
+                candidate
+                for candidate, candidate_cert in parsed_certificates
+                if _certificate_is_signed_by(cert, candidate_cert)
+            ),
+            None,
+        )
+
+        if issuer_certificate is not None:
+            certificate.signed_by = issuer_certificate.reference
 
     return certificates, certificate_subject_alternative_names, hostnames
