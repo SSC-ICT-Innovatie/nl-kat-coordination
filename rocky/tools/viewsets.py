@@ -38,6 +38,14 @@ class OrganizationViewSet(viewsets.ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
+
+        # AuditLog.organization is PROTECTed: refuse up front, before the
+        # Octopoes and KAT-alogus deletions, so the org is never half-deleted.
+        if instance.audit_logs.exists():
+            return Response(
+                {"detail": "Cannot delete organization: it has audit log entries."}, status=status.HTTP_409_CONFLICT
+            )
+
         katalogus_client = _get_healthy_katalogus()
         octopoes_client = _get_healthy_octopoes(instance.code)
 

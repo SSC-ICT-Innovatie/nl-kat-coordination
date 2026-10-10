@@ -1,5 +1,6 @@
 import structlog
 from account.mixins import OrganizationPermissionRequiredMixin
+from crisis_room.models import AuditLog
 from django.contrib import messages
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -59,6 +60,13 @@ class PluginSettingsDeleteView(OrganizationPermissionRequiredMixin, SinglePlugin
     def delete(self, request, *args, **kwargs):
         try:
             self.katalogus_client.delete_plugin_settings(self.plugin.id)
+            AuditLog.record(
+                user=request.user,
+                organization=self.organization,
+                action=AuditLog.Action.PLUGIN_SETTINGS_DELETED,
+                object_type=self.plugin.type.title(),
+                object_label=self.plugin.name,
+            )
             messages.add_message(
                 request, messages.SUCCESS, _("Settings for plugin {} successfully deleted.").format(self.plugin.name)
             )
