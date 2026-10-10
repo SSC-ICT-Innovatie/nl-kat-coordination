@@ -74,6 +74,10 @@ class TLSReport(Report):
 
             for protocol, cipher_suites in suites.items():
                 for suite in cipher_suites:
+                    # TLSCiphers stored before #5470 use "bits" and "key_size"
+                    suite.setdefault("encryption_bits", suite.get("bits"))
+                    suite.setdefault("key_exchange_bits", suite.get("key_size"))
+
                     for finding in findings:
                         if finding.description and suite["cipher_suite_name"] in finding.description:
                             suites_with_findings.append(suite["cipher_suite_name"])

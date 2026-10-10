@@ -5,7 +5,7 @@ ENV OCI_IMAGE=$OCI_IMAGE
 
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends bsdmainutils procps git dnsutils
-RUN git clone --depth 1 https://github.com/testssl/testssl.sh.git --branch v3.2.1 testssl
+RUN git clone --depth 1 https://github.com/testssl/testssl.sh.git --branch v3.2.4 testssl
 RUN ln -s /app/boefje/testssl/testssl.sh /usr/local/bin/testssl.sh
 USER nonroot
 
