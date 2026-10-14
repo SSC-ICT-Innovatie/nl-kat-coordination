@@ -29,6 +29,8 @@ def test_rpki_ip_valid(mock_octopoes_api_connector, valid_time, hostname, ipaddr
     assert data["number_of_compliant"] == 1
     assert data["number_of_valid"] == 1
     assert data["number_of_ips"] == 1
+    # No findings at all → plugin likely disabled
+    assert data["plugin_likely_disabled"] is True
 
     assert data["rpki_ips"][ipaddressv4.reference] == {"exists": True, "valid": True}
 
@@ -49,6 +51,8 @@ def test_rpki_hostname_with_ip_valid(mock_octopoes_api_connector, valid_time, ho
     assert data["number_of_compliant"] == 1
     assert data["number_of_valid"] == 1
     assert data["number_of_ips"] == 1
+    # No findings at all → plugin likely disabled
+    assert data["plugin_likely_disabled"] is True
 
     assert data["rpki_ips"][ipaddressv4.reference] == {"exists": True, "valid": True}
 
@@ -83,3 +87,5 @@ def test_rpki_hostname_with_two_ips_invalid(
     assert data["number_of_compliant"] == 0
     assert data["number_of_valid"] == 0
     assert data["number_of_ips"] == 2
+    # Findings present → plugin is enabled
+    assert data["plugin_likely_disabled"] is False
