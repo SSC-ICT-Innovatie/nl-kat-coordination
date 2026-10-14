@@ -52,3 +52,65 @@ def test_kat_finding_types_unrecognised_risk_falls_back_to_unknown(caplog):
     assert oois[0].ooi.risk_severity == RiskLevelSeverity.UNKNOWN
     assert oois[0].ooi.risk_score is None
     assert any("Unknown risk level" in record.message for record in caplog.records)
+
+
+def test_kat_finding_types_groups_are_propagated():
+    raw = json.dumps({"KAT-EXAMPLE": {"risk": "low", "groups": ["web-security", "http-security-headers"]}}).encode()
+
+    finding_type = list(run({"id": "KAT-EXAMPLE"}, raw))[0].ooi
+
+    assert finding_type.groups == ["web-security", "http-security-headers"]
+    assert KATFindingType.model_validate(finding_type.model_dump()).groups == finding_type.groups
+
+
+def test_kat_finding_types_missing_groups_default_to_empty():
+    raw = json.dumps({"KAT-EXAMPLE": {"risk": "low"}}).encode()
+
+    assert list(run({"id": "KAT-EXAMPLE"}, raw))[0].ooi.groups == []
+    assert KATFindingType(id="KAT-LEGACY").groups == []
+
+
+def test_kat_finding_types_tags_are_propagated():
+    raw = json.dumps({"KAT-EXAMPLE": {"risk": "low", "tags": ["misconfiguration", "example-tag"]}}).encode()
+
+    finding_type = list(run({"id": "KAT-EXAMPLE"}, raw))[0].ooi
+
+    assert finding_type.tags == ["misconfiguration", "example-tag"]
+    assert KATFindingType.model_validate(finding_type.model_dump()).tags == finding_type.tags
+
+
+def test_kat_finding_types_missing_tags_default_to_empty():
+    raw = json.dumps({"KAT-EXAMPLE": {"risk": "low"}}).encode()
+
+    assert list(run({"id": "KAT-EXAMPLE"}, raw))[0].ooi.tags == []
+    assert KATFindingType(id="KAT-LEGACY").tags == []
+
+
+def test_kat_finding_types_legacy_payload_without_tags_is_accepted():
+    finding_type = KATFindingType.model_validate({"id": "KAT-LEGACY", "groups": ["dns-security"]})
+
+    assert finding_type.groups == ["dns-security"]
+    assert finding_type.tags == []
+
+
+def test_kat_finding_types_tags_are_not_shared_between_instances():
+    first = KATFindingType(id="KAT-FIRST")
+    second = KATFindingType(id="KAT-SECOND")
+    first.tags.append("misconfiguration")
+
+    assert second.tags == []
+
+
+def test_kat_finding_types_unknown_id_has_no_tags():
+    finding_type = list(run({"id": "KAT-UNKNOWN"}, b"{}"))[0].ooi
+
+    assert finding_type.tags == []
+
+
+def test_kat_finding_types_normalizer_explicit_empty_classification_is_serialized():
+    """The catalog can intentionally clear old assignments on rehydration."""
+    raw = json.dumps({"KAT-EXAMPLE": {"risk": "low"}}).encode()
+    finding_type = list(run({"id": "KAT-EXAMPLE"}, raw))[0].ooi
+
+    assert finding_type.model_dump()["groups"] == []
+    assert finding_type.model_dump()["tags"] == []

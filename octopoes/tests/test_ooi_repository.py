@@ -4,15 +4,25 @@ from ipaddress import IPv4Address
 from typing import Literal, cast
 from unittest import TestCase
 from unittest.mock import Mock, patch
+from uuid import uuid4
 
 import octopoes.models.path as path_module
+from octopoes.api.models import (
+    Affirmation,
+    Declaration,
+    Observation,
+    ValidatedAffirmation,
+    ValidatedDeclaration,
+    ValidatedObservation,
+)
 from octopoes.events.manager import EventManager
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import DNSZone
+from octopoes.models.ooi.findings import KATFindingType
 from octopoes.models.ooi.network import IPAddressV4, Network
 from octopoes.models.path import _cached_paths_to_neighbours
 from octopoes.models.persistence import ReferenceField
-from octopoes.repositories.ooi_repository import XTDBOOIRepository
+from octopoes.repositories.ooi_repository import XTDBOOIRepository, merge_ooi
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
@@ -146,3 +156,116 @@ class OOIRepositoryTest(TestCase):
 
         resolved_hostname = neighbours[path_module.Path.parse("MockHostname.<hostname[is MockResolvedHostname]")][0]
         self.assertEqual(Reference.from_str("MockIPAddressV4|internet|1.1.1.1"), resolved_hostname.address)
+
+
+def test_kat_finding_type_omitted_classification_survives_api_round_trip():
+    """A partial declaration must not turn missing metadata into [] on the wire."""
+    finding_type = KATFindingType(id="KAT-NO-HSTS")
+    declaration = Declaration(ooi=finding_type, valid_time=datetime.now(timezone.utc))
+    payload = declaration.model_dump(mode="json")
+
+    assert "groups" not in payload["ooi"]
+    assert "tags" not in payload["ooi"]
+
+    received = ValidatedDeclaration.model_validate(payload).ooi
+    assert isinstance(received, KATFindingType)
+    assert received.groups == []
+    assert received.tags == []
+    assert "groups" not in received.model_fields_set
+    assert "tags" not in received.model_fields_set
+
+
+def test_kat_finding_type_omitted_classification_survives_other_origin_requests():
+    finding_type = KATFindingType(id="KAT-NO-HSTS")
+    valid_time = datetime.now(timezone.utc)
+    affirmation = Affirmation(ooi=finding_type, valid_time=valid_time)
+    affirmation_payload = affirmation.model_dump(mode="json")
+    assert "groups" not in affirmation_payload["ooi"]
+    assert "tags" not in affirmation_payload["ooi"]
+    restored_affirmation = ValidatedAffirmation.model_validate(affirmation_payload).ooi
+    assert "groups" not in restored_affirmation.model_fields_set
+    assert "tags" not in restored_affirmation.model_fields_set
+
+    observation = Observation(
+        method="unit-test",
+        source=finding_type.reference,
+        source_method=None,
+        result=[finding_type],
+        valid_time=valid_time,
+        task_id=uuid4(),
+    )
+    observation_payload = observation.model_dump(mode="json")
+    assert "groups" not in observation_payload["result"][0]
+    assert "tags" not in observation_payload["result"][0]
+    restored_observation = ValidatedObservation.model_validate(observation_payload).result[0]
+    assert "groups" not in restored_observation.model_fields_set
+    assert "tags" not in restored_observation.model_fields_set
+
+
+def test_kat_finding_type_partial_merge_preserves_groups_and_tags():
+    stored = KATFindingType(
+        id="KAT-NO-HSTS", name="HSTS", groups=["web-security", "http-security-headers"], tags=["misconfiguration"]
+    )
+    partial = KATFindingType(id="KAT-NO-HSTS")
+    merged, changed = merge_ooi(partial, stored)
+
+    assert not changed
+    assert merged.name == "HSTS"
+    assert merged.groups == stored.groups
+    assert merged.tags == stored.tags
+
+
+def test_kat_finding_type_explicit_empty_classification_clears_existing_values():
+    stored = KATFindingType(id="KAT-NO-HSTS", groups=["web-security"], tags=["misconfiguration"])
+    explicit_clear = KATFindingType(id="KAT-NO-HSTS", groups=[], tags=[])
+    payload = Declaration(ooi=explicit_clear, valid_time=datetime.now(timezone.utc)).model_dump(mode="json")
+    received = ValidatedDeclaration.model_validate(payload).ooi
+
+    assert payload["ooi"]["groups"] == []
+    assert payload["ooi"]["tags"] == []
+    merged, changed = merge_ooi(received, stored)
+    assert changed
+    assert merged.groups == []
+    assert merged.tags == []
+
+
+def test_kat_finding_type_partial_classification_update_keeps_other_field():
+    stored = KATFindingType(id="KAT-NO-HSTS", groups=["web-security"], tags=["misconfiguration"])
+    update = KATFindingType(id="KAT-NO-HSTS", groups=["http-security-headers"])
+    merged, changed = merge_ooi(update, stored)
+
+    assert changed
+    assert merged.groups == ["http-security-headers"]
+    assert merged.tags == ["misconfiguration"]
+
+
+def test_kat_finding_type_xtdb_serialization_of_classification():
+    repository = XTDBOOIRepository(Mock(spec=EventManager), XTDBSession(Mock(spec=XTDBHTTPClient)))
+    classified = KATFindingType(id="KAT-NO-HSTS", groups=["web-security"], tags=["misconfiguration"])
+    serial = repository.serialize(classified)
+
+    assert serial["KATFindingType/groups"] == ["web-security"]
+    assert serial["KATFindingType/tags"] == ["misconfiguration"]
+    restored = repository.deserialize(serial)
+    assert isinstance(restored, KATFindingType)
+    assert restored.groups == classified.groups
+    assert restored.tags == classified.tags
+
+    legacy = repository.serialize(KATFindingType(id="KAT-UNKNOWN"))
+    assert "KATFindingType/groups" not in legacy
+    assert "KATFindingType/tags" not in legacy
+
+
+def test_kat_finding_type_backfill_adds_previously_missing_classification():
+    """Existing OOIs without metadata must be updated by catalog rehydration."""
+    legacy = KATFindingType(id="KAT-NO-HSTS", name="HSTS")
+    hydrated = KATFindingType(
+        id="KAT-NO-HSTS", groups=["web-security", "http-security-headers"], tags=["misconfiguration"]
+    )
+
+    merged, changed = merge_ooi(hydrated, legacy)
+
+    assert changed
+    assert merged.groups == hydrated.groups
+    assert merged.tags == hydrated.tags
+    assert merged.name == "HSTS"
