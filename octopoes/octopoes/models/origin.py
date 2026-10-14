@@ -19,7 +19,7 @@ class Origin(BaseModel):
     origin_type: OriginType
     method: str
     source: Reference
-    source_method: str | None = None  # None for bits and normalizers
+    source_method: str | None = None  # None for bits/inferences; boefje id for observations
     result: list[Reference] = Field(default_factory=list)
     task_id: UUID | None = None
 
