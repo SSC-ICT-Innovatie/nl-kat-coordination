@@ -1363,6 +1363,42 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         # Assert
         self.assertFalse(is_allowed)
 
+    def test_has_boefje_permission_to_run_no_indemnification(self):
+        # Arrange
+        scan_profile = ScanProfileFactory(level=0)
+        ooi = OOIFactory(scan_profile=scan_profile)
+        plugin = PluginFactory(scan_level=0, consumes=[ooi.object_type])
+
+        self.mock_katalogus.get_organisation.return_value = models.Organisation(
+            id=self.organisation.id, name=self.organisation.name, indemnification=False
+        )
+
+        # Act
+        is_allowed = self.scheduler.has_boefje_permission_to_run(
+            plugin, ooi, organisation_id=self.organisation.id
+        )
+
+        # Assert
+        self.assertFalse(is_allowed)
+
+    def test_has_boefje_permission_to_run_with_indemnification(self):
+        # Arrange
+        scan_profile = ScanProfileFactory(level=0)
+        ooi = OOIFactory(scan_profile=scan_profile)
+        plugin = PluginFactory(scan_level=0, consumes=[ooi.object_type])
+
+        self.mock_katalogus.get_organisation.return_value = models.Organisation(
+            id=self.organisation.id, name=self.organisation.name, indemnification=True
+        )
+
+        # Act
+        is_allowed = self.scheduler.has_boefje_permission_to_run(
+            plugin, ooi, organisation_id=self.organisation.id
+        )
+
+        # Assert
+        self.assertTrue(is_allowed)
+
 
 class ScanProfileMutationTestCase(BoefjeSchedulerBaseTestCase):
     def setUp(self):
