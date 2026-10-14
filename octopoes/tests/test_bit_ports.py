@@ -108,3 +108,59 @@ def test_port_common_udp_53():
     finding = results[-1]
     assert isinstance(finding, Finding)
     assert finding.description == "Port 53/udp is a common port and found to be open."
+
+
+def _port_classification_findings(port, config=None):
+    address = IPAddressV4(address="8.8.8.8", network="network|fake")
+    results = list(run_port_classification(address, [port], config or {}))
+    return [r for r in results if isinstance(r, Finding)]
+
+
+def test_port_classification_tcp_6379_dangerous():
+    port = IPPort(address="address|8.8.8.8", protocol="tcp", port=6379)
+    findings = _port_classification_findings(port)
+
+    assert len(findings) == 1
+    assert "Redis" in findings[0].description
+    assert findings[0].finding_type == "KATFindingType|KAT-DANGEROUS-PORT"
+
+
+def test_port_classification_tcp_2375_dangerous():
+    port = IPPort(address="address|8.8.8.8", protocol="tcp", port=2375)
+    findings = _port_classification_findings(port)
+
+    assert len(findings) == 1
+    assert "Docker" in findings[0].description
+
+
+def test_port_classification_tcp_23_insecure():
+    port = IPPort(address="address|8.8.8.8", protocol="tcp", port=23)
+    findings = _port_classification_findings(port)
+
+    assert len(findings) == 1
+    assert "Telnet" in findings[0].description
+    assert findings[0].finding_type == "KATFindingType|KAT-INSECURE-PROTOCOL"
+
+
+def test_port_classification_udp_161_insecure():
+    port = IPPort(address="address|8.8.8.8", protocol="udp", port=161)
+    findings = _port_classification_findings(port)
+
+    assert len(findings) == 1
+    assert "SNMP" in findings[0].description
+
+
+def test_port_classification_dangerous_ports_configurable():
+    port = IPPort(address="address|8.8.8.8", protocol="tcp", port=6379)
+    findings = _port_classification_findings(port, {"dangerous_ports": "1234"})
+
+    assert len(findings) == 1
+    assert "not a common port" in findings[0].description
+
+
+def test_port_classification_dangerous_ports_config_extra():
+    port = IPPort(address="address|8.8.8.8", protocol="tcp", port=1234)
+    findings = _port_classification_findings(port, {"dangerous_ports": "1234"})
+
+    assert len(findings) == 1
+    assert "dangerous service" in findings[0].description
