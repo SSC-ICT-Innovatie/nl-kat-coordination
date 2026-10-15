@@ -45,28 +45,28 @@
                             </li>
                         {% endif %}
                         {% if organization.code and not view_type == "onboarding" %}
-                            {% url "katalogus" organization.code as index_url %}
                             <li>
+                                {% app_url "katalogus" temporal_context=None as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "KAT-alogus" %}</a>
                             </li>
                             <li>
-                                {% url "finding_list" organization.code as index_url %}
+                                {% app_url "finding_list" as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Findings" %}</a>
                             </li>
                             <li>
-                                {% url "reports" organization.code as index_url %}
+                                {% app_url "reports" as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Reports" %}</a>
                             </li>
                             <li>
-                                {% url "ooi_list" organization.code as index_url %}
+                                {% app_url "ooi_list" as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Objects" %}</a>
                             </li>
                             <li>
-                                {% url "task_list" organization.code as index_url %}
+                                {% app_url "task_list" temporal_context=None as index_url %}
                                 <a href="{{ index_url }}"
                                    {% if index_url in request.path|urlencode %}aria-current="page"{% endif %}>{% translate "Tasks" %}</a>
                             </li>
@@ -86,6 +86,7 @@
                     {% endif %}
                 </ul>
                 <div>
+                    {% include "partials/temporal-selector.html" %}
                     {% include "partials/language-switcher.html" %}
                     {% include "partials/secondary-menu.html" %}
 

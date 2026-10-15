@@ -1,5 +1,4 @@
 import uuid
-from datetime import date, datetime, timezone
 from typing import Any, TypedDict
 from urllib.parse import urlencode, urlparse, urlunparse
 
@@ -11,11 +10,6 @@ from django.utils.translation import gettext_lazy as _
 
 from octopoes.models.types import OOI_TYPES
 from tools.models import Organization
-
-
-def convert_date_to_datetime(d: date) -> datetime:
-    # returning 23:59 of date_object in UTC timezone
-    return datetime.combine(d, datetime.max.time(), tzinfo=timezone.utc)
 
 
 def get_mandatory_fields(request: HttpRequest, params: list[str] | None = None) -> list:
@@ -53,19 +47,6 @@ def url_with_querystring(path: str, doseq: bool = False, /, **kwargs: Any) -> st
             )
         )
     )
-
-
-def get_ooi_url(routename: str, ooi_id: str, organization_code: str, **kwargs: Any) -> str:
-    if ooi_id:
-        kwargs["ooi_id"] = ooi_id
-
-    if "query" in kwargs:
-        kwargs["query"] = {key: value for key, value in kwargs["query"] if key not in kwargs}
-        kwargs.update(kwargs["query"])
-
-        del kwargs["query"]
-
-    return url_with_querystring(reverse(routename, kwargs={"organization_code": organization_code}), **kwargs)
 
 
 def existing_ooi_type(ooi_type: str) -> bool:
@@ -153,11 +134,18 @@ class OrganizationMemberBreadcrumbsMixin(BreadcrumbsMixin):
 
 class ObjectsBreadcrumbsMixin(BreadcrumbsMixin):
     organization: Organization
+    kwargs: dict[str, Any]
 
     def build_breadcrumbs(self) -> list[Breadcrumb]:
         return [
             {
-                "url": reverse_lazy("ooi_list", kwargs={"organization_code": self.organization.code}),
+                "url": reverse_lazy(
+                    "ooi_list",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.kwargs.get("temporal_context"),
+                    },
+                ),
                 "text": _("Objects"),
             }
         ]

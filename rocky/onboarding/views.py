@@ -316,7 +316,7 @@ class OnboardingSetupScanSelectPluginsView(
     def get_plugins(self) -> dict[str, list[Plugin]]:
         all_plugins = {}
         for required_optional, plugin_ids in self.plugins.items():
-            plugins = self.katalogus_client.get_plugins(ids=[plugin_id for plugin_id in plugin_ids])  # type: ignore
+            plugins = self.katalogus_client.get_plugins(ids=plugin_ids)
             all_plugins[required_optional] = plugins
 
         return all_plugins
@@ -397,9 +397,8 @@ class OnboardingCreateReportRecipe(
         )
 
     def get_ooi_pks(self) -> list[str]:
-        ooi = self.get_ooi(self.request.GET.get("ooi"))
-        if ooi.web_url is not None:
-            netloc = ooi.web_url.tokenized["netloc"]
+        if self.ooi.web_url is not None:
+            netloc = self.ooi.web_url.tokenized["netloc"]
             try:
                 name = netloc["name"]
             except KeyError:
@@ -412,7 +411,7 @@ class OnboardingCreateReportRecipe(
                     self.request, _("The onboarding DNS report requires a hostname, not an IP address or localhost.")
                 )
                 return []
-            hostname_ooi = [Hostname(name=name, network=ooi.network)]
+            hostname_ooi = [Hostname(name=name, network=self.ooi.network)]
             return [hostname_ooi[0].primary_key]
 
         messages.error(self.request, _("Web URL not found."))
@@ -421,11 +420,6 @@ class OnboardingCreateReportRecipe(
 
     def get_report_type_ids(self) -> list[str]:
         return [self.request.POST.get("report_type", "")]
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["ooi"] = self.get_ooi(self.request.GET.get("ooi", ""))
-        return context
 
 
 class OnboardingReportView(
@@ -451,7 +445,12 @@ class OnboardingReportView(
                 "In the meantime get familiar with OpenKAT and visit the Reports History tab later."
             ),
         )
-        return redirect(reverse("report_history", kwargs={"organization_code": self.organization.code}))
+        return redirect(
+            reverse(
+                "report_history",
+                kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+            )
+        )
 
     def set_member_onboarded(self):
         member = OrganizationMember.objects.get(user=self.request.user, organization=self.organization)

@@ -347,10 +347,11 @@ def test_step_8_onboarding_select_plugins_perms(request, member, rf, url):
 
 
 @pytest.mark.parametrize("member", ["superuser_member", "admin_member", "redteam_member", "client_member"])
-def test_step_9_onboarding_choose_report_type(request, member, rf):
+def test_step_9_onboarding_choose_report_type(request, member, rf, url):
     member = request.getfixturevalue(member)
     response = OnboardingChooseReportTypeView.as_view()(
-        setup_request(rf.get("step_choose_report_type"), member.user), organization_code=member.organization.code
+        setup_request(rf.get("step_choose_report_type", {"ooi": url.primary_key}), member.user),
+        organization_code=member.organization.code,
     )
 
     assert response.status_code == 200
@@ -373,6 +374,7 @@ def test_step_9a_onboarding_ooi_detail_scan(
     response = OnboardingCreateReportRecipe.as_view()(
         setup_request(rf.get("step_9a_setup_scan_ooi_detail", {"ooi": url.primary_key}), member.user),
         organization_code=member.organization.code,
+        ooi=url.primary_key,
     )
 
     assert response.status_code == 200
@@ -395,12 +397,17 @@ def test_step_9a_onboarding_ooi_detail_scan_create_report_schedule(
     mock_bytes_client().upload_raw.return_value = "raw_id"
 
     request_url = (
-        reverse("step_9a_setup_scan_ooi_detail", kwargs={"organization_code": member.organization.code})
-        + f"?report_type=dns-report&ooi={url.primary_key}"
+        reverse(
+            "step_9a_setup_scan_ooi_detail",
+            kwargs={"organization_code": member.organization.code, "ooi": url.primary_key},
+        )
+        + "?report_type=dns-report"
     )
 
     response = OnboardingCreateReportRecipe.as_view()(
-        setup_request(rf.post(request_url), member.user), organization_code=member.organization.code
+        setup_request(rf.post(request_url), member.user),
+        organization_code=member.organization.code,
+        ooi=url.primary_key,
     )
 
     assert response.status_code == 302
@@ -432,12 +439,17 @@ def test_step_9a_onboarding_ip_address_url_no_crash(
     mock_bytes_client().upload_raw.return_value = "raw_id"
 
     request_url = (
-        reverse("step_9a_setup_scan_ooi_detail", kwargs={"organization_code": redteam_member.organization.code})
-        + f"?report_type=dns-report&ooi={ip_url.primary_key}"
+        reverse(
+            "step_9a_setup_scan_ooi_detail",
+            kwargs={"organization_code": redteam_member.organization.code, "ooi": ip_url.primary_key},
+        )
+        + "?report_type=dns-report"
     )
 
     response = OnboardingCreateReportRecipe.as_view()(
-        setup_request(rf.post(request_url), redteam_member.user), organization_code=redteam_member.organization.code
+        setup_request(rf.post(request_url), redteam_member.user),
+        organization_code=redteam_member.organization.code,
+        ooi=ip_url.primary_key,
     )
 
     assert response.status_code == 200  # re-renders the page, no 500 crash

@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from enum import Enum
 
+from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
-from tools.view_helpers import get_ooi_url
 
 from rocky.views.ooi_view import BaseOOIFormView
 from rocky.views.scheduler import SchedulerView
@@ -11,11 +11,6 @@ from rocky.views.scheduler import SchedulerView
 class OOIEditView(BaseOOIFormView, SchedulerView):
     template_name = "oois/ooi_edit.html"
     task_type = "report"
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.ooi = self.get_ooi()
-        self.ooi_class = self.get_ooi_class()
 
     def get_initial(self):
         initial = super().get_initial()
@@ -58,17 +53,26 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
 
         return super().form_valid(form)
 
+    def build_breadcrumbs(self):
+        return [
+            *super().build_breadcrumbs(),
+            {
+                "url": reverse_lazy(
+                    "ooi_edit",
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi": self.ooi,
+                    },
+                ),
+                "text": _("Edit"),
+            },
+        ]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # Construct breadcrumbs
-        breadcrumb_list = self.get_breadcrumb_list()
-        breadcrumb_list.append(
-            {"url": get_ooi_url("ooi_edit", self.ooi.primary_key, self.organization.code), "text": _("Edit")}
-        )
-
-        context["type"] = self.ooi_class.get_ooi_type()
-        context["ooi_human_readable"] = self.ooi.human_readable
-        context["breadcrumbs"] = breadcrumb_list
+        context["type"] = self.ooi_type
+        context["breadcrumbs"] = self.build_breadcrumbs()
 
         return context

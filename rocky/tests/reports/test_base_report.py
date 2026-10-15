@@ -9,7 +9,7 @@ from tests.conftest import setup_request
 
 def test_aggregate_report_select_oois(rf, client_member, mock_organization_view_octopoes, mocker, listed_hostnames):
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("aggregate_report_select_oois", kwargs=kwargs)
     request = rf.get(url)
     request.resolver_match = resolve(url)
@@ -34,7 +34,7 @@ def test_aggregate_report_select_oois_empty_list(
     rf, client_member, mock_organization_view_octopoes, mocker, listed_hostnames
 ):
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("aggregate_report_select_oois", kwargs=kwargs)
     request = rf.get(url)
     request.resolver_match = resolve(url)
@@ -55,7 +55,7 @@ def test_aggregate_report_choose_report_types(
     rf, client_member, mock_organization_view_octopoes, mocker, listed_hostnames, valid_time
 ):
     mocker.patch("account.mixins.OrganizationView.katalogus_client")
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("aggregate_report_select_report_types", kwargs=kwargs)
 
     request = rf.post(url, {"observed_at": valid_time.strftime("%Y-%m-%d"), "ooi": "all"})

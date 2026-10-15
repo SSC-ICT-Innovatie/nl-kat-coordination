@@ -19,7 +19,7 @@ def test_generate_report_setup_scan_wrong_plugin_id(
     katalogus_client.get_plugins.side_effect = KATalogusHTTPStatusError(MagicMock())
     mock_bytes_client().upload_raw.return_value = "raw_id"
 
-    kwargs = {"organization_code": client_member.organization.code}
+    kwargs = {"organization_code": client_member.organization.code, "temporal_context": "now"}
     url = reverse("generate_report_setup_scan", kwargs=kwargs)
 
     request = rf.post(url, {"observed_at": valid_time.strftime("%Y-%m-%d"), "ooi": "all", "report_type": "ipv6-report"})

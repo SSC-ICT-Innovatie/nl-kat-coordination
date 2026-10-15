@@ -9,7 +9,9 @@
     <main id="main-content">
         <article>
             <div class="layout-form">
-                <h1>{% blocktranslate %}Edit {{ type }}: {{ ooi_human_readable }}{% endblocktranslate %}</h1>
+                <h1>
+                    {% blocktranslate with ooi_human_readable=ooi.human_readable %}Edit: {{ ooi_human_readable }}{% endblocktranslate %}
+                </h1>
                 <p>{% blocktranslate %}Primary key fields cannot be edited.{% endblocktranslate %}</p>
                 <form method="post">
                     {% csrf_token %}
@@ -28,7 +30,9 @@
 
                         {% endfor %}
                     </fieldset>
-                    <button type="submit">{% blocktranslate %}Save {{ display_type }}{% endblocktranslate %}</button>
+                    <button type="submit">
+                        {% blocktranslate with ooi_human_readable=ooi.human_readable %}Save {{ ooi_human_readable }}{% endblocktranslate %}
+                    </button>
                 </form>
             </div>
         </article>
