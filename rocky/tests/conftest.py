@@ -1361,7 +1361,16 @@ class MockOctopoesAPIConnector:
     def get_tree(
         self, reference: Reference, valid_time: datetime, types: set = frozenset(), depth: int = 1
     ) -> ReferenceTree:
-        return self.tree[reference]
+        tree = self.tree[reference]
+
+        if not types:
+            return tree
+
+        # Octopoes prunes the store to the requested types; mirror that, so a test can tell whether
+        # its subject actually asked for the type it needs.
+        return tree.model_copy(
+            update={"store": {pk: ooi for pk, ooi in tree.store.items() if isinstance(ooi, tuple(types))}}
+        )
 
     def query(
         self, path: str, valid_time: datetime, source: Reference | str | None = None, offset: int = 0, limit: int = 50
