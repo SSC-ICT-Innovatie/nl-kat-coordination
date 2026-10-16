@@ -124,4 +124,4 @@ task-tags = ["Example", "todo", "TODO", "FIXME"]
 split-on-trailing-comma = false
 
 [tool.codespell]
-ignore-words-list = 'edn,juxt,assertIn'
+ignore-words-list = 'edn,juxt,assertIn,EDE'

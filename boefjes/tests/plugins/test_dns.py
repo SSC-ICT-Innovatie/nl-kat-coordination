@@ -423,3 +423,225 @@ def test_dkim_unparsable_response_does_not_crash():
 
     # No DKIMExists finding should be yielded for an unparsable response
     assert not any(ooi.object_type == "DKIMExists" for ooi in output)
+
+
+def test_dns_record_types_reject_unsupported(monkeypatch):
+    from boefjes.plugins.kat_dns.main import get_record_types
+
+    monkeypatch.setenv("RECORD_TYPES", "A,INVALID")
+    with pytest.raises(ValueError, match="INVALID"):
+        get_record_types()
+
+
+def test_dns_record_types_strip_whitespace(monkeypatch):
+    from boefjes.plugins.kat_dns.main import get_record_types
+
+    monkeypatch.setenv("RECORD_TYPES", " a , aaaa ")
+    assert get_record_types() == {"A", "AAAA"}
+
+
+def test_dns_email_security_servfail_without_ede_is_not_dnssec():
+    from unittest.mock import Mock
+
+    import dns.resolver
+
+    from boefjes.plugins.kat_dns.main import get_email_security_records
+
+    resolver = Mock()
+    resolver.resolve.side_effect = dns.resolver.NoNameservers(
+        request=Mock(), errors=[("1.1.1.1", False, 53, "SERVFAIL", Mock(options=[]))]
+    )
+    with pytest.raises(dns.resolver.NoNameservers):
+        get_email_security_records(resolver, "example.org", "_dmarc")
+
+
+def test_dns_dmarc_unparsable_response_does_not_crash():
+    import json
+
+    input_ooi = Hostname(network=Network(name="internet").reference, name="example.org")
+    raw = json.dumps({"dns_records": "", "dkim_response": "NXDOMAIN", "dmarc_response": "invalid"}).encode()
+    output = list(dns_normalize_run(input_ooi.serialize(), raw))
+    assert not any(ooi.object_type == "DMARCTXTRecord" for ooi in output)
+
+
+def test_dns_normalizer_canonicalizes_hostname_case():
+    import json
+
+    input_ooi = Hostname(network=Network(name="internet").reference, name="Example.ORG")
+    raw = json.dumps({"dns_records": "", "dkim_response": "NXDOMAIN", "dmarc_response": "NXDOMAIN"}).encode()
+    output = list(dns_normalize_run(input_ooi.serialize(), raw))
+    assert any(isinstance(ooi, Hostname) and ooi.name == "example.org" for ooi in output)
+
+
+def test_dns_run_preserves_answers_on_later_nxdomain(monkeypatch):
+    import json
+    from unittest.mock import Mock
+
+    import dns.resolver
+
+    from boefjes.plugins.kat_dns import main
+
+    resolver = Mock()
+    answer = Mock(nameserver="1.1.1.1", response="valid response")
+    resolver.resolve.side_effect = [answer, dns.resolver.NXDOMAIN()]
+    monkeypatch.setattr(main.dns.resolver, "Resolver", lambda: resolver)
+    monkeypatch.setattr(main, "get_record_types", lambda: {"A", "AAAA"})
+    monkeypatch.setattr(main, "get_email_security_records", lambda *args: "NXDOMAIN")
+    output = main.run({"arguments": {"input": {"name": "example.org"}}})
+    result = json.loads(output[0][1])
+    assert "valid response" in result["dns_records"]
+    assert result["query_errors"] == {"AAAA": "NXDOMAIN"}
+
+
+def test_dns_run_preserves_no_nameservers_diagnostic(monkeypatch):
+    import json
+    from unittest.mock import Mock
+
+    import dns.resolver
+
+    from boefjes.plugins.kat_dns import main
+
+    resolver = Mock()
+    resolver.resolve.side_effect = dns.resolver.NoNameservers()
+    monkeypatch.setattr(main.dns.resolver, "Resolver", lambda: resolver)
+    monkeypatch.setattr(main, "get_record_types", lambda: {"A"})
+    monkeypatch.setattr(main, "get_email_security_records", lambda *args: "NXDOMAIN")
+    output = main.run({"arguments": {"input": {"name": "example.org"}}})
+    assert json.loads(output[0][1])["query_errors"] == {"A": "NO_NAMESERVERS"}
+
+
+# Additional regression coverage for DNS improvement patches 1 and 2.
+# All resolver responses are mocked: no public DNS service is contacted.
+
+
+@pytest.fixture
+def dns_mock_run(monkeypatch):
+    from unittest.mock import Mock
+
+    from boefjes.plugins.kat_dns import main
+
+    resolver = Mock()
+    monkeypatch.setattr(main.dns.resolver, "Resolver", lambda: resolver)
+    monkeypatch.setattr(main, "get_record_types", lambda: {"A", "AAAA"})
+    email_results = {"_dmarc": "NXDOMAIN", "_domainkey": "NXDOMAIN"}
+    monkeypatch.setattr(main, "get_email_security_records", lambda _r, _h, sub: email_results[sub])
+    return main, resolver, email_results
+
+
+def test_dns_all_queries_timeout_raises(dns_mock_run):
+    import dns.resolver
+
+    main, resolver, email = dns_mock_run
+    resolver.resolve.side_effect = dns.resolver.Timeout()
+    email.update({"_dmarc": "Timeout", "_domainkey": "Timeout"})
+    with pytest.raises(main.TimeoutException):
+        main.run({"arguments": {"input": {"name": "example.org"}}})
+
+
+def test_dns_soa_timeout_does_not_discard_a_record(dns_mock_run, monkeypatch):
+    import json
+    from unittest.mock import Mock
+
+    import dns.resolver
+
+    main, resolver, _ = dns_mock_run
+    monkeypatch.setattr(main, "get_record_types", lambda: {"A", "SOA"})
+    monkeypatch.setattr(main, "get_parent_zone_soa", lambda *_: (_ for _ in ()).throw(dns.resolver.Timeout()))
+    resolver.resolve.side_effect = [Mock(nameserver="1.1.1.1", response="A response"), dns.resolver.NoAnswer()]
+    result = json.loads(main.run({"arguments": {"input": {"name": "example.org"}}})[0][1])
+    assert "A response" in result["dns_records"]
+    assert result["query_errors"]["SOA"] == "NOANSWER"
+
+
+@pytest.mark.parametrize(
+    "error,status", [("noanswer", "NOANSWER"), ("timeout", "TIMEOUT"), ("noservers", "NO_NAMESERVERS")]
+)
+def test_dns_resolver_failure_diagnostics(dns_mock_run, error, status):
+    import json
+
+    import dns.resolver
+
+    main, resolver, _ = dns_mock_run
+    exceptions = {
+        "noanswer": dns.resolver.NoAnswer(),
+        "timeout": dns.resolver.Timeout(),
+        "noservers": dns.resolver.NoNameservers(),
+    }
+    resolver.resolve.side_effect = exceptions[error]
+    result = json.loads(main.run({"arguments": {"input": {"name": "example.org"}}})[0][1])
+    assert result["query_errors"] == {"A": status, "AAAA": status}
+
+
+def test_dns_nxdomain_after_transient_failure_keeps_diagnostic(dns_mock_run):
+    import json
+
+    import dns.resolver
+
+    main, resolver, _ = dns_mock_run
+    resolver.resolve.side_effect = [dns.resolver.Timeout(), dns.resolver.NXDOMAIN()]
+    result = main.run({"arguments": {"input": {"name": "example.org"}}})[0][1]
+    assert result != "NXDOMAIN"
+    assert json.loads(result)["query_errors"] == {"A": "TIMEOUT", "AAAA": "NXDOMAIN"}
+
+
+def test_dns_all_nxdomain_retains_legacy_marker(dns_mock_run):
+    import dns.resolver
+
+    main, resolver, _ = dns_mock_run
+    resolver.resolve.side_effect = dns.resolver.NXDOMAIN()
+    assert main.run({"arguments": {"input": {"name": "example.org"}}})[0][1] == "NXDOMAIN"
+
+
+@pytest.mark.parametrize("record_types", ["A,INVALID", "A,,AAAA", "A, "])
+def test_dns_invalid_record_types_rejected(monkeypatch, record_types):
+    from boefjes.plugins.kat_dns.main import get_record_types
+
+    monkeypatch.setenv("RECORD_TYPES", record_types)
+    with pytest.raises(ValueError):
+        get_record_types()
+
+
+def test_dns_email_security_refused_not_dnssec():
+    from unittest.mock import Mock
+
+    import dns.resolver
+
+    from boefjes.plugins.kat_dns.main import get_email_security_records
+
+    resolver = Mock()
+    resolver.resolve.side_effect = dns.resolver.NoNameservers(
+        request=Mock(), errors=[("1.1.1.1", False, 53, "REFUSED", Mock(options=[]))]
+    )
+    with pytest.raises(dns.resolver.NoNameservers):
+        get_email_security_records(resolver, "example.org", "_dmarc")
+
+
+def test_dns_email_security_servfail_with_missing_response_not_dnssec():
+    from unittest.mock import Mock
+
+    import dns.resolver
+
+    from boefjes.plugins.kat_dns.main import get_email_security_records
+
+    resolver = Mock()
+    resolver.resolve.side_effect = dns.resolver.NoNameservers(
+        request=Mock(), errors=[("1.1.1.1", False, 53, "SERVFAIL", None)]
+    )
+    with pytest.raises(dns.resolver.NoNameservers):
+        get_email_security_records(resolver, "example.org", "_dmarc")
+
+
+def test_dns_normalizer_accepts_optional_query_errors():
+    import json
+
+    input_ooi = Hostname(network=Network(name="internet").reference, name="EXAMPLE.ORG.")
+    raw = json.dumps(
+        {
+            "dns_records": "",
+            "query_errors": {"A": "TIMEOUT", "AAAA": "NOANSWER"},
+            "dmarc_response": "NXDOMAIN",
+            "dkim_response": "NXDOMAIN",
+        }
+    ).encode()
+    output = list(dns_normalize_run(input_ooi.serialize(), raw))
+    assert any(isinstance(ooi, Hostname) and ooi.name == "example.org" for ooi in output)

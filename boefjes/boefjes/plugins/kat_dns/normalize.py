@@ -46,7 +46,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     record_store: dict[str, DNSRecord] = {}
 
     def register_hostname(name: str) -> Hostname:
-        hostname = Hostname(network=internet.reference, name=name.rstrip("."))
+        hostname = Hostname(network=internet.reference, name=name.rstrip(".").lower())
         hostname_store[hostname.name] = hostname
         return hostname
 
@@ -112,7 +112,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 if isinstance(rr, TXT):
                     # Concatenate TXT character-strings per RFC 1035 3.3.14:
                     # multiple strings are concatenated without separators.
-                    default_args["value"] = "".join(s.decode() if isinstance(s, bytes) else s for s in rr.strings)
+                    default_args["value"] = "".join(
+                        s.decode("utf-8", errors="replace") if isinstance(s, bytes) else s for s in rr.strings
+                    )
                     register_record(DNSTXTRecord(**default_args))
 
                 if isinstance(rr, MX):
@@ -179,7 +181,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"]:
         try:
             dkim_response = from_text(dkim_results)
-            if dkim_response.rcode() == 0:  # NOERROR
+            if dkim_response.rcode() == 0 and any(rrset.rdtype == 16 and len(rrset) for rrset in dkim_response.answer):
                 yield DKIMExists(hostname=input_hostname.reference)
         except Exception:
             logging.getLogger(__name__).warning(
@@ -188,8 +190,14 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     # DMARC
     dmarc_results = results["dmarc_response"]
-    if dmarc_results not in ["NXDOMAIN", "Timeout"]:
-        for rrset in from_text(dmarc_results).answer:
-            for rr in rrset:
-                if isinstance(rr, TXT):
-                    yield DMARCTXTRecord(hostname=input_hostname.reference, value=str(rr).strip('"'), ttl=rrset.ttl)
+    if dmarc_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"]:
+        try:
+            dmarc_response = from_text(dmarc_results)
+            for rrset in dmarc_response.answer:
+                for rr in rrset:
+                    if isinstance(rr, TXT):
+                        yield DMARCTXTRecord(hostname=input_hostname.reference, value=str(rr).strip('"'), ttl=rrset.ttl)
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "Could not parse DMARC response for %s", input_hostname.name, exc_info=True
+            )

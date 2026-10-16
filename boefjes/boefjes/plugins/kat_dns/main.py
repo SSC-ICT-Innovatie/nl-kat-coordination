@@ -2,7 +2,6 @@
 
 import json
 import logging
-import re
 from os import getenv
 
 import dns.resolver
@@ -41,10 +40,11 @@ def get_record_types() -> set[str]:
     requested_record_types = getenv("RECORD_TYPES", "")
     if not requested_record_types:
         return DEFAULT_RECORD_TYPES
-    parsed_requested_record_types = map(
-        lambda x: re.sub(r"[^A-Za-z]", "", x), requested_record_types.upper().split(",")
-    )
-    return set(parsed_requested_record_types).intersection(DEFAULT_RECORD_TYPES)
+    selected = {record.strip().upper() for record in requested_record_types.split(",")}
+    unsupported = selected - DEFAULT_RECORD_TYPES
+    if unsupported:
+        raise ValueError(f"Unsupported DNS record types: {', '.join(sorted(unsupported))}")
+    return selected
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -59,25 +59,50 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     resolver.nameservers = [nameserver]
 
     record_types = get_record_types()
-    answers = [get_parent_zone_soa(resolver, requested_dns_name)] if "SOA" in record_types else []
+    answers = []
+    timed_out = False
+    query_errors: dict[str, str] = {}
+    if "SOA" in record_types:
+        try:
+            answers.append(get_parent_zone_soa(resolver, requested_dns_name))
+        except (dns.resolver.Timeout, dns.resolver.NoNameservers, ZoneNotFoundException) as error:
+            logger.warning("Could not discover SOA for %s: %s", hostname, error)
+            timed_out = isinstance(error, dns.resolver.Timeout)
 
-    for type_ in record_types:
+    for type_ in sorted(record_types):
         try:
             answer: Answer = resolver.resolve(hostname, type_)
             answers.append(answer)
-        except (dns.resolver.NoAnswer, dns.resolver.Timeout):
-            pass
+        except dns.resolver.NoAnswer:
+            query_errors[type_] = "NOANSWER"
+        except dns.resolver.Timeout:
+            timed_out = True
+            query_errors[type_] = "TIMEOUT"
+        except dns.resolver.NoNameservers as error:
+            query_errors[type_] = "NO_NAMESERVERS"
+            logger.warning("DNS query for %s (%s) failed: %s", hostname, type_, error)
         except dns.resolver.NXDOMAIN:
-            return [(set(), "NXDOMAIN")]
+            query_errors[type_] = "NXDOMAIN"
+            # Only emit the legacy NXDOMAIN marker when there are no successful
+            # answers or transient errors to preserve. An isolated negative
+            # response must not discard records already collected.
+            if not answers and all(status == "NXDOMAIN" for status in query_errors.values()):
+                return [(set(), "NXDOMAIN")]
 
     answers_formatted = [f"RESOLVER: {answer.nameserver}\n{answer.response}" for answer in answers]
 
     results = {
         "dns_records": "\n\n".join(answers_formatted),
+        "query_errors": query_errors,
         "dmarc_response": get_email_security_records(resolver, hostname, "_dmarc"),
         "dkim_response": get_email_security_records(resolver, hostname, "_domainkey"),
     }
-    if not answers_formatted and results["dmarc_response"] == "Timeout" and results["dmarc_response"] == "Timeout":
+    if (
+        not answers_formatted
+        and timed_out
+        and results["dmarc_response"] == "Timeout"
+        and results["dkim_response"] == "Timeout"
+    ):
         raise TimeoutException("No answers from DNS-Server due to timeouts.")
     return [(set(), json.dumps(results))]
 
@@ -103,11 +128,13 @@ def get_email_security_records(resolver: dns.resolver.Resolver, hostname: str, r
         # no servers responded happily, we'll check the response from the first
         # https://dnspython.readthedocs.io/en/latest/_modules/dns/rcode.html
         # https://www.rfc-editor.org/rfc/rfc8914#name-extended-dns-error-code-6-d
-        firsterror = error.kwargs["errors"][0]
-        if firsterror[3] == "SERVFAIL":
-            edeerror = int(firsterror[4].options[0].code)
-            if edeerror in (1, 2, 5, 6, 7, 8, 9, 10, 11, 12):  # DNSSEC error codes defined in RFC 8914
-                return "DNSSECFAIL"  # returned when the resolver indicates a DNSSEC failure.
+        for server_error in error.kwargs.get("errors", []):
+            if len(server_error) < 5 or server_error[3] != "SERVFAIL":
+                continue
+            response = server_error[4]
+            for option in getattr(response, "options", ()):
+                if isinstance(option, EDEOption) and option.code in (1, 2, 5, 6, 7, 8, 9, 10, 11, 12):
+                    return "DNSSECFAIL"
         raise  # Not dnssec related, unhandled, raise.
     except dns.resolver.NXDOMAIN:
         return "NXDOMAIN"
