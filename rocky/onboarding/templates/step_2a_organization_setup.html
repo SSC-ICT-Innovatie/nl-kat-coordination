@@ -23,6 +23,9 @@
 
                     <button type="submit">{% translate "Submit" %}</button>
                 </form>
+                {% if user.organization_members %}
+                    <a class="button ghost" href="{% url "step_2a_organization_select" %}">{% translate "Or select an existing organization" %}</a>
+                {% endif %}
             </div>
         </section>
     </main>

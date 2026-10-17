@@ -7650,3 +7650,30 @@ msgstr ""
 
 #~ msgid "Choose your super secret password"
 #~ msgstr "What would be ye super secret password?"
+
+#: onboarding/forms.py
+msgid "--- Select an organization ---"
+msgstr ""
+
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Or create a new organization"
+msgstr "Name this ship."
+
+#: onboarding/templates/step_2a_organization_setup.html
+#, fuzzy
+msgid "Or select an existing organization"
+msgstr "Board another ship."
+
+#: onboarding/forms.py
+msgid "Please select an organization to proceed."
+msgstr ""
+
+#: onboarding/templates/step_2a_organization_select.html
+#, fuzzy
+msgid "Select an organization"
+msgstr "Board another ship."
+
+#: onboarding/forms.py
+msgid "explanation-organization-select"
+msgstr ""
