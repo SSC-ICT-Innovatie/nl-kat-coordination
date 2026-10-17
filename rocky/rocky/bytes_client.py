@@ -3,7 +3,6 @@ import uuid
 from base64 import b64decode, b64encode
 from collections.abc import Generator, Sequence, Set
 from datetime import datetime, timezone
-from functools import cached_property
 from typing import Any
 
 import httpx
@@ -15,6 +14,10 @@ from rocky.health import ServiceHealth
 from rocky.scheduler import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawData
 
 logger = structlog.get_logger("bytes_client")
+
+# Module-level token cache keyed by username so that token is reused across
+# BytesClient instances instead of being fetched on every request. See #4442.
+_token_cache: dict[str, str] = {}
 
 
 class NoAuth(httpx.Auth):
@@ -222,13 +225,17 @@ class BytesClient:
 
         return response.json()
 
-    @cached_property
+    @property
     def token(self) -> str:
-        return self._get_token()
+        username = self.credentials["username"]
+        if cached := _token_cache.get(username):
+            return cached
+        token = self._get_token()
+        _token_cache[username] = token
+        return token
 
     def _invalidate_token(self):
-        if "token" in self.__dict__:
-            del self.__dict__["token"]
+        _token_cache.pop(self.credentials["username"], None)
 
     def _get_token(self) -> str:
         # this request should not try to use the auth provider, as that would cause a loop
