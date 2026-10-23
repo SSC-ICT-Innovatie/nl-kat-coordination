@@ -188,7 +188,9 @@ def test_plugin_enabled_storage(organisation_storage, plugin_storage, config_sto
 
 
 def test_bare_boefje_storage(plugin_storage):
-    boefje = Boefje(id="test_boefje", name="Test", static=False)
+    boefje = Boefje(
+        id="test_boefje", name="Test", static=False, rate_limit_interval=1, rate_limit_group="api.example.com"
+    )
 
     with plugin_storage as storage:
         storage.create_boefje(boefje)
