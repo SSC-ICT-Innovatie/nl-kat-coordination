@@ -1790,9 +1790,9 @@ seedir==0.5.1 \
     --hash=sha256:76ba4e6c9d85930166fa127b31efcbf8ccb471ed38624e728f4eb22e47e7b1a4 \
     --hash=sha256:9fb82a6133f92a711bb2d46b2a142f56712e242a4fc03fef2fea9418d307efe2
     # via robotframework-browser
-setuptools==83.0.0 \
-    --hash=sha256:025bccbbf0fa05b6192bc64ae1e7b16e001fd6d6d4d5de03c97b1c1ade523bef \
-    --hash=sha256:29b23c360f22f414dc7336bb39178cc7bcbf6021ed2733cde173f09dba19abb3
+setuptools==84.1.0 \
+    --hash=sha256:23657205b63d4d31395ab917815247f694aafad28cd21316bf5fd45a51048ea0 \
+    --hash=sha256:5231689c6ac8156cd155cfb98c3fd6fb252c3e7e9bd3d78b64d3c55f132624c9
     # via grpcio-tools
 six==1.17.0 \
     --hash=sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274 \
