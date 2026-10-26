@@ -38,7 +38,7 @@ jobs:
           cache: pip
 
       - name: Install uv
-        run: pip install uv==0.7.13
+        run: pip install uv==0.13.4
 
       - name: Check, lock, and export requirements
         run: make requirements

@@ -9,6 +9,7 @@ dependencies = [
     "httpx>=0.28.1",
     "idna>=3.15",
     "anyio>=4.14.2",
+    "certifi>=2026.10.19",
 ]
 
 [project.scripts]
