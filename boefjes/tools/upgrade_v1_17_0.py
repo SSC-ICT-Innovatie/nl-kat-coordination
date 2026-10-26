@@ -6,13 +6,10 @@ https://github.com/minvws/nl-kat-coordination/issues/2875"""
 import json
 import logging.config
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from httpx import HTTPStatusError
-from sqlalchemy.orm import sessionmaker
-
 from boefjes.api import get_bytes_client
 from boefjes.clients.scheduler_client import get_octopoes_api_connector
 from boefjes.config import settings
@@ -24,7 +21,9 @@ from boefjes.sql.plugin_storage import create_plugin_storage
 from boefjes.storage.interfaces import OrganisationStorage
 from boefjes.worker.models import Boefje
 from boefjes.worker.repository import get_local_repository
+from httpx import HTTPStatusError
 from octopoes.models.origin import OriginType
+from sqlalchemy.orm import sessionmaker
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -41,7 +40,7 @@ def upgrade(organisation_repository: OrganisationStorage, valid_time: datetime |
     meaning that it can be rerun until there are no, or only expected, exceptions.
     """
     if valid_time is None:
-        valid_time = datetime.now(timezone.utc)
+        valid_time = datetime.now(UTC)
 
     bytes_client = get_bytes_client()
     bytes_client.login()
@@ -102,9 +101,7 @@ def migrate_organisation(
     while True:
         # We loop through the paginated API until we reach the end
 
-        origins = connector.list_origins(
-            valid_time, method=[x for x in boefjes_per_normalizer], offset=offset, limit=page_size
-        )
+        origins = connector.list_origins(valid_time, method=[*boefjes_per_normalizer], offset=offset, limit=page_size)
         logger.info("Processing %s origins", len(origins))
 
         for origin in origins:

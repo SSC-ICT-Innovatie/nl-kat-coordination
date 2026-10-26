@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from account.mixins import OrganizationView
@@ -7,14 +7,14 @@ from django.http import FileResponse, Http404
 from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
-from tools.forms.ooi import SelectOOIFilterForm, SelectOOIForm
-
-from katalogus.client import Boefje, Normalizer
-from katalogus.views.plugin_settings_list import PluginSettingsListView
 from octopoes.models import ScanLevel
 from octopoes.models.types import OOIType
 from rocky.scheduler import ScheduleResponse
 from rocky.views.tasks import TaskListView
+from tools.forms.ooi import SelectOOIFilterForm, SelectOOIForm
+
+from katalogus.client import Boefje, Normalizer
+from katalogus.views.plugin_settings_list import PluginSettingsListView
 
 
 class PluginCoverImgView(OrganizationView):
@@ -170,7 +170,7 @@ class BoefjeDetailView(PluginDetailView):
         oois = {
             ooi.primary_key: ooi
             for ooi in self.octopoes_api_connector.list_objects(
-                self.plugin.consumes, valid_time=datetime.now(timezone.utc), limit=self.limit_ooi_list
+                self.plugin.consumes, valid_time=datetime.now(UTC), limit=self.limit_ooi_list
             ).items
         }
 
@@ -182,7 +182,7 @@ class BoefjeDetailView(PluginDetailView):
             ooi.primary_key: ooi
             for ooi in self.octopoes_api_connector.list_objects(
                 self.plugin.consumes,
-                valid_time=datetime.now(timezone.utc),
+                valid_time=datetime.now(UTC),
                 limit=self.limit_ooi_list,
                 scan_level={level.value for level in ScanLevel if level.value >= self.plugin.scan_level.value},
             ).items

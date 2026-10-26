@@ -2,7 +2,7 @@ import base64
 import multiprocessing
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
@@ -10,10 +10,6 @@ from uuid import UUID
 
 import alembic.config
 import pytest
-from fastapi.testclient import TestClient
-from pydantic import TypeAdapter
-from sqlalchemy.orm import sessionmaker
-
 from boefjes.clients.bytes_client import BytesAPIClient
 from boefjes.config import settings
 from boefjes.dependencies.plugins import PluginService, get_plugin_service
@@ -50,12 +46,16 @@ from boefjes.worker.repository import (
     get_local_repository,
     get_normalizer_resource,
 )
+from fastapi.testclient import TestClient
 from octopoes.api.models import Declaration, Observation
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network
 from octopoes.models.ooi.service import IPService, Service
+from pydantic import TypeAdapter
+from sqlalchemy.orm import sessionmaker
+
 from tests.loading import get_dummy_data
 
 
@@ -226,7 +226,7 @@ def manager(item_handler: MockHandler, tmp_path: Path) -> SchedulerWorkerManager
 
 @pytest.fixture
 def api(tmp_path):
-    from boefjes.api import app
+    from boefjes.api import app  # noqa: PLC0415
 
     return TestClient(app)
 
@@ -358,7 +358,7 @@ def bytes_client(request) -> BytesAPIClient:
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def seed_system(

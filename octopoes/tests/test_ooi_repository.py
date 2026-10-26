@@ -1,5 +1,5 @@
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address
 from typing import Literal, cast
 from unittest import TestCase
@@ -14,6 +14,7 @@ from octopoes.models.path import _cached_paths_to_neighbours
 from octopoes.models.persistence import ReferenceField
 from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
+
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
     OOITYPE_BY_NAME,
@@ -141,7 +142,7 @@ class OOIRepositoryTest(TestCase):
         ]
 
         neighbours = self.repository.get_neighbours(
-            Reference.from_str("MockHostname|internet|example.com"), datetime.now(timezone.utc)
+            Reference.from_str("MockHostname|internet|example.com"), datetime.now(UTC)
         )
 
         resolved_hostname = neighbours[path_module.Path.parse("MockHostname.<hostname[is MockResolvedHostname]")][0]

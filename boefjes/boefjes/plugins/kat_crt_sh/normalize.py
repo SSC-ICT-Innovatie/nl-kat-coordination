@@ -4,11 +4,11 @@ import logging
 from collections.abc import Iterable
 
 from dateutil.parser import parse
-
-from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.certificate import X509Certificate
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
+
+from boefjes.normalizer_models import NormalizerOutput
 
 logger = logging.getLogger(__name__)
 
@@ -59,9 +59,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             unique_domains.add(name)
 
         # Yield only current certs.
-        expires_in = parse(certificate["not_after"]).astimezone(datetime.timezone.utc) - datetime.datetime.now(
-            datetime.timezone.utc
-        )
+        expires_in = parse(certificate["not_after"]).astimezone(datetime.UTC) - datetime.datetime.now(datetime.UTC)
         if expires_in.total_seconds() > 0:
             yield X509Certificate(
                 subject=common_name,

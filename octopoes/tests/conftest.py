@@ -1,12 +1,11 @@
 import uuid
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, ip_address
 from unittest.mock import Mock
 
 import pytest
 from bits.runner import BitRunner
-
 from octopoes.config.settings import Settings
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.core.app import get_xtdb_client
@@ -43,7 +42,7 @@ from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 class MockScanProfileRepository(ScanProfileRepository):

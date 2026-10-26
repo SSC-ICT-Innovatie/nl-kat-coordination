@@ -1,7 +1,7 @@
 import os
 import traceback
 from base64 import b64encode
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 import structlog
@@ -77,15 +77,15 @@ class LocalBoefjeHandler(BoefjeHandler):
             if not boefje_resource.module:
                 raise JobRuntimeError("No runnable module found")
 
-            boefje_meta.started_at = datetime.now(timezone.utc)
+            boefje_meta.started_at = datetime.now(UTC)
 
             with TemporaryEnvironment(boefje_meta.environment or {}):
                 boefje_results = boefje_resource.module.run(boefje_meta.model_dump())
 
-            boefje_meta.ended_at = datetime.now(timezone.utc)
+            boefje_meta.ended_at = datetime.now(UTC)
         except BaseException as e:
             logger.exception("Error running boefje %s[%s]", boefje_meta.boefje.id, str(boefje_meta.id))
-            boefje_meta.ended_at = datetime.now(timezone.utc)
+            boefje_meta.ended_at = datetime.now(UTC)
             boefje_results = [({"error/boefje"}, traceback.format_exc())]
             error = e
 

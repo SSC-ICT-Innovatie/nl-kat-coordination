@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from django.forms import Form
@@ -8,17 +8,17 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 from django.views.generic.edit import FormView
+from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
+from octopoes.models import OOI, ScanProfileType
+from octopoes.models.ooi.findings import Finding, FindingType
+from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
+from octopoes.models.types import get_collapsed_types
 from pydantic import ValidationError
 from tools.forms.base import BaseRockyForm
 from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES, ClearanceFilterForm, OOIForm, OrderByObjectTypeForm
 from tools.ooi_helpers import create_ooi
 from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields, get_ooi_url
 
-from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
-from octopoes.models import OOI, ScanProfileType
-from octopoes.models.ooi.findings import Finding, FindingType
-from octopoes.models.ooi.reports import AssetReport, BaseReport, HydratedReport, Report, ReportData, ReportRecipe
-from octopoes.models.types import get_collapsed_types
 from rocky.paginator import RockyPaginator
 from rocky.views.mixins import OBJECT_LIST_COLUMNS, OctopoesView, OOIList, SingleOOIMixin, SingleOOITreeMixin
 
@@ -145,7 +145,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         """
         Some OOIs have an old valid time, this will fetch the latest OOI for today.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         if not self.is_historic_view:
             return self.ooi
         try:
@@ -210,11 +210,9 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
         try:
             end_valid_time = form.cleaned_data.pop("end_valid_time", None)
             if end_valid_time is not None:
-                end_valid_time = end_valid_time.replace(tzinfo=timezone.utc)
+                end_valid_time = end_valid_time.replace(tzinfo=UTC)
             new_ooi = self.ooi_class.model_validate(form.cleaned_data)
-            create_ooi(
-                self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(timezone.utc), end_valid_time
-            )
+            create_ooi(self.octopoes_api_connector, self.bytes_client, new_ooi, datetime.now(UTC), end_valid_time)
             return redirect(self.get_ooi_success_url(new_ooi))
         except ValidationError as exception:
             for error in exception.errors():

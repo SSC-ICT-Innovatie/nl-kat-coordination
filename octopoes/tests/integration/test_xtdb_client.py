@@ -1,9 +1,8 @@
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
-
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
@@ -16,6 +15,7 @@ from octopoes.repositories.origin_repository import XTDBOriginRepository
 from octopoes.xtdb.client import OperationType, XTDBHTTPClient, XTDBSession
 from octopoes.xtdb.exceptions import NodeNotFound
 from octopoes.xtdb.query import Aliased, Query
+
 from tests.conftest import seed_asset_report, seed_report, seed_system
 
 logger = logging.getLogger(__name__)
@@ -220,13 +220,13 @@ def test_query_where_in(xtdb_session: XTDBSession, valid_time: datetime):
 
 def test_entity_history(xtdb_session: XTDBSession, valid_time: datetime):
     network = Network(name="testnetwork")
-    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(timezone.utc))
+    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(UTC))
     xtdb_session.commit()
 
-    xtdb_session.add((OperationType.DELETE, str(network.reference), datetime.now(timezone.utc)))
+    xtdb_session.add((OperationType.DELETE, str(network.reference), datetime.now(UTC)))
     xtdb_session.commit()
 
-    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(timezone.utc))
+    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(UTC))
     xtdb_session.commit()
 
     history = xtdb_session.client.get_entity_history(str(network.reference), with_docs=True)

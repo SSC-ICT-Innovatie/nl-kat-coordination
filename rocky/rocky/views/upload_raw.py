@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import unquote
 
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
@@ -9,9 +9,8 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError, HTTPStatusError
-from tools.forms.upload_raw import UploadRawForm
-
 from octopoes.models.types import OOI_TYPES
+from tools.forms.upload_raw import UploadRawForm
 
 
 class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
@@ -63,7 +62,7 @@ class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         input_ooi = form.cleaned_data["ooi"]
         valid_time = None
         if "date" in form.cleaned_data:
-            valid_time = form.cleaned_data["date"].replace(tzinfo=timezone.utc)
+            valid_time = form.cleaned_data["date"].replace(tzinfo=UTC)
 
         try:
             self.bytes_client.upload_raw(
@@ -96,9 +95,7 @@ class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         return kwargs
 
     def get_ooi_options(self) -> list[tuple[str, str]]:
-        objects = self.octopoes_api_connector.list_objects(
-            set(OOI_TYPES.values()), valid_time=datetime.now(timezone.utc)
-        ).items
+        objects = self.octopoes_api_connector.list_objects(set(OOI_TYPES.values()), valid_time=datetime.now(UTC)).items
 
         options = [(o.primary_key, o.get_ooi_type()) for o in objects]
 

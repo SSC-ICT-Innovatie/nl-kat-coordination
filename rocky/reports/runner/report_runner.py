@@ -1,25 +1,25 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from string import Template
 from typing import Any
 
 import structlog
 from django.conf import settings
-from pydantic import ConfigDict, RootModel
-from tools.models import Organization
-from tools.ooi_helpers import create_ooi
-
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference, ScanLevel, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException, TypeNotFound
 from octopoes.models.ooi.reports import AssetReport, Report, ReportRecipe
 from octopoes.models.types import type_by_name
+from pydantic import ConfigDict, RootModel
+from rocky.bytes_client import BytesClient
+from rocky.scheduler import ReportTask
+from tools.models import Organization
+from tools.ooi_helpers import create_ooi
+
 from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
 from reports.report_types.definitions import ReportPlugins, report_plugins_union
 from reports.report_types.helpers import get_report_by_id
 from reports.report_types.multi_organization_report.report import MultiOrganizationReport, collect_report_data
 from reports.runner.models import ReportRunner
-from rocky.bytes_client import BytesClient
-from rocky.scheduler import ReportTask
 
 logger = structlog.get_logger(__name__)
 
@@ -32,7 +32,7 @@ class LocalReportRunner(ReportRunner):
     def run(self, report_task: ReportTask) -> None:
         organization = Organization.objects.get(code=report_task.organisation_id)
         # TODO: https://github.com/minvws/nl-kat-coordination/issues/4014
-        valid_time = self.valid_time or datetime.now(timezone.utc)
+        valid_time = self.valid_time or datetime.now(UTC)
         connector = OctopoesAPIConnector(
             settings.OCTOPOES_API, report_task.organisation_id, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
         )
@@ -43,7 +43,7 @@ class LocalReportRunner(ReportRunner):
         elif query := recipe.input_recipe.get("query"):
             oois = connector.list_objects(
                 types={type_by_name(ooi_type) for ooi_type in query["ooi_types"]},
-                valid_time=datetime.now(tz=timezone.utc),
+                valid_time=datetime.now(tz=UTC),
                 scan_level={ScanLevel(level) for level in query["scan_level"]},
                 scan_profile_type={ScanProfileType(scan_type) for scan_type in query["scan_type"]},
                 search_string=query["search_string"],

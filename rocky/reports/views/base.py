@@ -1,6 +1,6 @@
 import json
 from collections.abc import Iterable, Mapping, Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from operator import attrgetter
 from typing import Any, Literal, cast
 from uuid import uuid4
@@ -19,13 +19,16 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView, TemplateView
 from django_weasyprint import WeasyTemplateResponseMixin
 from katalogus.client import Boefje, KATalogus, KATalogusError, Plugin
-from tools.ooi_helpers import create_ooi
-from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, PostRedirect, url_with_querystring
-
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.reports import AssetReport, ReportRecipe
 from octopoes.models.ooi.reports import BaseReport as ReportOOI
 from octopoes.models.types import OOIType, type_by_name
+from rocky.views.mixins import AddDashboardItemFormMixin, ObservedAtMixin, OOIList
+from rocky.views.ooi_view import BaseOOIListView, OOIFilterView
+from rocky.views.scheduler import SchedulerView
+from tools.ooi_helpers import create_ooi
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, PostRedirect, url_with_querystring
+
 from reports.forms import OOITypeMultiCheckboxForReportForm, ReportScheduleStartDateForm
 from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
 from reports.report_types.concatenated_report.report import ConcatenatedReport
@@ -40,9 +43,6 @@ from reports.report_types.helpers import (
 )
 from reports.report_types.multi_organization_report.report import MultiOrganizationReport
 from reports.utils import JSONEncoder, debug_json_keys
-from rocky.views.mixins import AddDashboardItemFormMixin, ObservedAtMixin, OOIList
-from rocky.views.ooi_view import BaseOOIListView, OOIFilterView
-from rocky.views.scheduler import SchedulerView
 
 REPORTS_PRE_SELECTION = {"clearance_level": ["2", "3", "4"], "clearance_type": "declared"}
 
@@ -264,7 +264,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
         return report_types, len(report_types)
 
     def get_observed_at(self):
-        return self.observed_at if self.observed_at < datetime.now(timezone.utc) else datetime.now(timezone.utc)
+        return self.observed_at if self.observed_at < datetime.now(UTC) else datetime.now(UTC)
 
     def is_single_report(self) -> bool:
         return len(self.get_report_type_ids()) == 1
@@ -304,7 +304,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
             api_connector=self.octopoes_api_connector,
             bytes_client=self.bytes_client,
             ooi=report_recipe,
-            observed_at=datetime.now(timezone.utc),
+            observed_at=datetime.now(UTC),
         )
         logger.info("ReportRecipe created", event_code=800091, report_recipe=report_recipe)
         return report_recipe
@@ -584,8 +584,8 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
     def custom_observed_at(self):
         return (
             self.observed_at.replace(hour=23, minute=59, second=59, microsecond=999999)
-            if self.observed_at < datetime.now(timezone.utc)
-            else datetime.now(timezone.utc).replace(hour=23, minute=59, second=59, microsecond=999999)
+            if self.observed_at < datetime.now(UTC)
+            else datetime.now(UTC).replace(hour=23, minute=59, second=59, microsecond=999999)
         )
 
     def get_report_ooi(self) -> ReportOOI:
@@ -693,7 +693,7 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
         if settings.ASSET_REPORTS:
             oois = self.get_input_oois(list({asset_ooi.input_ooi for asset_ooi in self.report_ooi.input_oois}))
         else:
-            oois = self.get_input_oois(list({input_ooi for input_ooi in self.report_ooi.input_oois}))
+            oois = self.get_input_oois(list({*self.report_ooi.input_oois}))
 
         return report_data, oois, report_types, plugins
 

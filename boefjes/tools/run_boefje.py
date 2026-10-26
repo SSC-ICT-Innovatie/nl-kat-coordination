@@ -5,18 +5,17 @@ import logging
 import pdb
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
-from sqlalchemy.orm import sessionmaker
-
 from boefjes.clients.scheduler_client import SchedulerAPIClient
 from boefjes.dependencies.plugins import PluginService
 from boefjes.sql.config_storage import create_config_storage
 from boefjes.sql.db import get_engine
 from boefjes.sql.plugin_storage import create_plugin_storage
 from boefjes.worker.boefje_handler import LocalBoefjeHandler
+from sqlalchemy.orm import sessionmaker
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
@@ -54,8 +53,8 @@ def run_boefje(start_pdb, organization_code, boefje_id, input_ooi):
         status=TaskStatus.RUNNING,
         type="boefje",
         data=meta,
-        created_at=meta.started_at or datetime.now(timezone.utc),
-        modified_at=meta.started_at or datetime.now(timezone.utc),
+        created_at=meta.started_at or datetime.now(UTC),
+        modified_at=meta.started_at or datetime.now(UTC),
     )
     try:
         result = handler.handle(task)

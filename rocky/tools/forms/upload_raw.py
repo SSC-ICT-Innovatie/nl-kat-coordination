@@ -1,12 +1,12 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext as _
-
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.exception import ObjectNotFoundException
+
 from tools.forms.base import BaseRockyForm, DataListInput, DateTimeInput
 from tools.forms.settings import RAW_FILE_DATETIME_HELP_TEXT
 
@@ -47,14 +47,12 @@ class UploadRawForm(BaseRockyForm):
 
         if observed_at:
             try:
-                parsed_date = (
-                    datetime.strptime(observed_at, "%Y-%m-%d").replace(tzinfo=timezone.utc).replace(hour=23, minute=59)
-                )
+                parsed_date = datetime.strptime(observed_at, "%Y-%m-%d").replace(tzinfo=UTC).replace(hour=23, minute=59)
                 self.fields["date"].initial = parsed_date
             except ValueError:
-                self.fields["date"].initial = datetime.now(tz=timezone.utc)
+                self.fields["date"].initial = datetime.now(tz=UTC)
         else:
-            self.fields["date"].initial = datetime.now(tz=timezone.utc)
+            self.fields["date"].initial = datetime.now(tz=UTC)
 
     def clean_mime_types(self) -> set[str]:
         mime_types = self.cleaned_data["mime_types"]
@@ -68,7 +66,7 @@ class UploadRawForm(BaseRockyForm):
         ooi_id = self.data["ooi_id"]
 
         # date should not be in the future
-        if date > datetime.now(tz=timezone.utc):
+        if date > datetime.now(tz=UTC):
             self.add_error("date", _("Doc! I'm from the future, I'm here to take you back!"))
 
         try:

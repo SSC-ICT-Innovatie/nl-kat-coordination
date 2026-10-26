@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from account.forms import OnboardingOrganizationUpdateForm, OrganizationForm
@@ -16,18 +16,22 @@ from django.views.generic import TemplateView
 from django.views.generic.edit import CreateView, FormView, UpdateView
 from httpx import HTTPError
 from katalogus.client import Plugin
+from octopoes.models import OOI
+from octopoes.models.ooi.dns.zone import Hostname
+from octopoes.models.ooi.network import Network
+from octopoes.models.ooi.web import URL
 from reports.report_types.definitions import ReportPlugins
 from reports.report_types.dns_report.report import DNSReport
 from reports.views.base import BaseReportView, get_selection
+from rocky.exceptions import RockyError
+from rocky.views.indemnification_add import IndemnificationAddView
+from rocky.views.ooi_view import SingleOOIMixin, SingleOOITreeMixin
+from rocky.views.scheduler import SchedulerView
 from structlog import get_logger
 from tools.models import Organization, OrganizationMember
 from tools.ooi_helpers import get_or_create_ooi
 from tools.view_helpers import Breadcrumb
 
-from octopoes.models import OOI
-from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.network import Network
-from octopoes.models.ooi.web import URL
 from onboarding.forms import OnboardingCreateObjectURLForm, OnboardingSetClearanceLevelForm
 from onboarding.view_helpers import (
     DNS_REPORT_LEAST_CLEARANCE_LEVEL,
@@ -35,10 +39,6 @@ from onboarding.view_helpers import (
     IntroductionRegistrationStepsMixin,
     IntroductionStepsMixin,
 )
-from rocky.exceptions import RockyError
-from rocky.views.indemnification_add import IndemnificationAddView
-from rocky.views.ooi_view import SingleOOIMixin, SingleOOITreeMixin
-from rocky.views.scheduler import SchedulerView
 
 User = get_user_model()
 
@@ -205,7 +205,7 @@ class OnboardingSetupScanOOIAddView(
     def get_or_create_url_object(self, url: str) -> OOI:
         network = Network(name="internet")
         url = URL(network=network.reference, raw=url, user_id=self.request.user.id)
-        observed_at = datetime.now(timezone.utc)
+        observed_at = datetime.now(UTC)
         url_ooi, _ = get_or_create_ooi(self.octopoes_api_connector, self.bytes_client, url, observed_at)
         return url_ooi
 
@@ -316,7 +316,7 @@ class OnboardingSetupScanSelectPluginsView(
     def get_plugins(self) -> dict[str, list[Plugin]]:
         all_plugins = {}
         for required_optional, plugin_ids in self.plugins.items():
-            plugins = self.katalogus_client.get_plugins(ids=[plugin_id for plugin_id in plugin_ids])  # type: ignore
+            plugins = self.katalogus_client.get_plugins(ids=[*plugin_ids])
             all_plugins[required_optional] = plugins
 
         return all_plugins
@@ -388,7 +388,7 @@ class OnboardingCreateReportRecipe(
         parent_report_type = self.get_parent_report_type()
         report_recipe = self.create_report_recipe(report_name_format, parent_report_type, None)
 
-        self.create_report_schedule(report_recipe, datetime.now(timezone.utc) + timedelta(minutes=2))
+        self.create_report_schedule(report_recipe, datetime.now(UTC) + timedelta(minutes=2))
         run_findings_dashboard(self.organization)
 
         return redirect(

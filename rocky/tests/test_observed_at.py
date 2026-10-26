@@ -1,13 +1,13 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from django.urls import resolve, reverse
-from tools.forms.base import ObservedAtForm
-
 from octopoes.models.ooi.network import Network
 from octopoes.models.pagination import Paginated
 from octopoes.models.types import OOIType
 from rocky.views.mixins import ObservedAtMixin
 from rocky.views.ooi_list import OOIListView
+from tools.forms.base import ObservedAtForm
+
 from tests.conftest import setup_request
 
 
@@ -16,7 +16,7 @@ def test_observed_at_no_value(mocker):
     mock_request = mocker.Mock()
     mock_request.GET = {}
     mock_request.POST = {}
-    now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=timezone.utc)
+    now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=UTC)
     mock_mixin_datetime.now.return_value = now
 
     observed_at = ObservedAtMixin()
@@ -30,7 +30,7 @@ def test_observed_at_date(mocker):
 
     observed_at = ObservedAtMixin()
     observed_at.request = mock_request
-    assert observed_at.observed_at == datetime(2023, 10, 24, 23, 59, 59, 999999, tzinfo=timezone.utc)
+    assert observed_at.observed_at == datetime(2023, 10, 24, 23, 59, 59, 999999, tzinfo=UTC)
 
 
 def test_observed_at_datetime(mocker):
@@ -39,7 +39,7 @@ def test_observed_at_datetime(mocker):
 
     observed_at = ObservedAtMixin()
     observed_at.request = mock_request
-    assert observed_at.observed_at == datetime(2023, 10, 24, 9, 34, 56, 0, tzinfo=timezone.utc)
+    assert observed_at.observed_at == datetime(2023, 10, 24, 9, 34, 56, 0, tzinfo=UTC)
 
 
 def test_observed_at_datetime_with_timezone(mocker):
@@ -48,14 +48,14 @@ def test_observed_at_datetime_with_timezone(mocker):
 
     observed_at = ObservedAtMixin()
     observed_at.request = mock_request
-    assert observed_at.observed_at == datetime(2023, 10, 24, 9, 34, 56, 0, tzinfo=timezone.utc)
+    assert observed_at.observed_at == datetime(2023, 10, 24, 9, 34, 56, 0, tzinfo=UTC)
 
 
 def test_observed_at_future_date(rf, client_member, mock_organization_view_octopoes):
     kwargs = {"organization_code": client_member.organization.code}
     url = reverse("ooi_list", kwargs=kwargs)
 
-    day_plus_1_in_future = (datetime.now(tz=timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
+    day_plus_1_in_future = (datetime.now(tz=UTC) + timedelta(days=1)).strftime("%Y-%m-%d")
     request = rf.get(url, {"observed_at": day_plus_1_in_future})
     request.resolver_match = resolve(url)
 

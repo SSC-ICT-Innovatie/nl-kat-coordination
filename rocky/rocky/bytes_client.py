@@ -2,15 +2,15 @@ import json
 import uuid
 from base64 import b64decode, b64encode
 from collections.abc import Generator, Sequence, Set
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import cached_property
 from typing import Any
 
 import httpx
 import structlog
 from django.conf import settings
-
 from octopoes.api.models import Declaration
+
 from rocky.health import ServiceHealth
 from rocky.scheduler import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawData
 
@@ -75,8 +75,8 @@ class BytesClient:
             input_ooi=None,
             arguments={},
             organization=self.organization,
-            started_at=datetime.now(timezone.utc),
-            ended_at=datetime.now(timezone.utc),
+            started_at=datetime.now(UTC),
+            ended_at=datetime.now(UTC),
         )
 
         self._save_boefje_meta(boefje_meta)
@@ -92,8 +92,8 @@ class BytesClient:
                     mime_types=[{"value": mime_type} for mime_type in all_mime_types],
                 ),
                 normalizer=Normalizer(id="normalizer/manual"),
-                started_at=datetime.now(timezone.utc),
-                ended_at=datetime.now(timezone.utc),
+                started_at=datetime.now(UTC),
+                ended_at=datetime.now(UTC),
             )
         )
 
@@ -111,8 +111,8 @@ class BytesClient:
             input_ooi=input_ooi,
             arguments={"input": input_dict} if input_dict else {},
             organization=self.organization,
-            started_at=valid_time or datetime.now(timezone.utc),
-            ended_at=valid_time or datetime.now(timezone.utc),
+            started_at=valid_time or datetime.now(UTC),
+            ended_at=valid_time or datetime.now(UTC),
         )
 
         self._save_boefje_meta(boefje_meta)

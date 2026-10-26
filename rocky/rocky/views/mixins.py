@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import cached_property
 from operator import attrgetter
 from typing import Literal, TypedDict, cast
@@ -23,13 +23,6 @@ from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from httpx import HTTPError
 from katalogus.client import Boefje
-from pydantic import BaseModel
-from tools.forms.base import ObservedAtForm
-from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
-from tools.models import Organization, OrganizationMember
-from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
-from tools.view_helpers import convert_date_to_datetime, get_ooi_url
-
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
@@ -40,6 +33,12 @@ from octopoes.models.origin import Origin, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import get_relations
+from pydantic import BaseModel
+from tools.forms.base import ObservedAtForm
+from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
+from tools.models import Organization, OrganizationMember
+from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
+from tools.view_helpers import convert_date_to_datetime, get_ooi_url
 
 logger = structlog.get_logger(__name__)
 
@@ -85,9 +84,9 @@ class OriginData(BaseModel):
         if (observation_date := self.normalizer.get("raw_data", {}).get("boefje_meta", {}).get("ended_at")) is None:
             raise ValueError("Observation date is missing in normalizer meta")
 
-        observation_date = observation_date.replace(tzinfo=timezone.utc)
+        observation_date = observation_date.replace(tzinfo=UTC)
 
-        return observation_date < datetime.now(timezone.utc) - time_delta
+        return observation_date < datetime.now(UTC) - time_delta
 
 
 class Origins(TypedDict):
@@ -116,7 +115,7 @@ class ObservedAtMixin(ContextMixin, View):
             try:
                 datetime_format = "%Y-%m-%d"
                 observed_at = convert_date_to_datetime(datetime.strptime(observed_at, datetime_format))
-                if observed_at.date() > datetime.now(timezone.utc).date():
+                if observed_at.date() > datetime.now(UTC).date():
                     messages.warning(self.request, _("The selected date is in the future."))
                 return observed_at
             except ValueError:
@@ -124,12 +123,12 @@ class ObservedAtMixin(ContextMixin, View):
                 try:
                     observed_at = datetime.fromisoformat(observed_at)
                     if not observed_at.tzinfo:
-                        observed_at = observed_at.replace(tzinfo=timezone.utc)
+                        observed_at = observed_at.replace(tzinfo=UTC)
 
                     return observed_at
                 except ValueError:
                     messages.error(self.request, _("Can not parse date, falling back to show current date."))
-        return datetime.now(timezone.utc)
+        return datetime.now(UTC)
 
     def get_connector_form_kwargs(self) -> dict:
         if self.is_historic_view:

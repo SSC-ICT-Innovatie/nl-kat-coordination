@@ -1,13 +1,13 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.exception import ObjectNotFoundException
+
 from tools.forms.base import BaseRockyForm, DataListInput, DateTimeInput
 from tools.forms.settings import (
     FINDING_DATETIME_HELP_TEXT,
@@ -111,7 +111,7 @@ CVE-2021-00000""",
     date = forms.DateTimeField(
         label=_("Date/Time (UTC)"),
         widget=DateTimeInput(format="%Y-%m-%dT%H:%M"),
-        initial=lambda: datetime.now(tz=timezone.utc),
+        initial=lambda: datetime.now(tz=UTC),
         help_text=FINDING_DATETIME_HELP_TEXT,
     )
 
@@ -124,7 +124,7 @@ CVE-2021-00000""",
         data = self.cleaned_data["date"]
 
         # date should not be in the future
-        if data > datetime.now(tz=timezone.utc):
+        if data > datetime.now(tz=UTC):
             raise ValidationError(_("Doc! I'm from the future, I'm here to take you back!"))
 
         return data
@@ -132,7 +132,7 @@ CVE-2021-00000""",
     def clean_ooi_id(self):
         try:
             data = self.cleaned_data["ooi_id"]
-            self.octopoes_connector.get(Reference.from_str(data), datetime.now(timezone.utc))
+            self.octopoes_connector.get(Reference.from_str(data), datetime.now(UTC))
             return data
         except ObjectNotFoundException:
             raise ValidationError(_("OOI doesn't exist"))

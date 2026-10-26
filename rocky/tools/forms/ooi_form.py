@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from inspect import isclass
 from ipaddress import IPv4Address, IPv6Address
@@ -8,13 +8,13 @@ from croniter import croniter
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from pydantic import AnyUrl, JsonValue
-from pydantic.fields import FieldInfo
-
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI
 from octopoes.models.ooi.question import Question
 from octopoes.models.types import get_collapsed_types, get_relations
+from pydantic import AnyUrl, JsonValue
+from pydantic.fields import FieldInfo
+
 from tools.enums import SCAN_LEVEL
 from tools.forms.base import BaseRockyForm, ObservedAtForm
 from tools.forms.findings import FindingSearchForm, FindingSeverityMultiSelectForm, MutedFindingSelectionForm
@@ -142,7 +142,7 @@ def generate_select_ooi_field(
     if initial:
         select_options.append((initial, initial))
 
-    oois = api_connector.list_objects({related_ooi_type}, datetime.now(timezone.utc)).items
+    oois = api_connector.list_objects({related_ooi_type}, datetime.now(UTC)).items
     select_options.extend([(ooi.primary_key, ooi.primary_key) for ooi in oois])
 
     if field.is_required() and len(oois) == 1:

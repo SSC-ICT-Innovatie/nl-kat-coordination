@@ -4,7 +4,7 @@ import json
 import logging
 import uuid
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, IPv6Address
 from os import urandom
 from pathlib import Path
@@ -25,10 +25,6 @@ from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.middleware import OTPMiddleware
 from httpx import Response
 from katalogus.client import Boefje, parse_plugin
-from reports.report_types.findings_report.report import FindingsReport
-from tools.enums import SCAN_LEVEL
-from tools.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Indemnification, Organization, OrganizationMember
-
 from octopoes.config.settings import (
     DEFAULT_LIMIT,
     DEFAULT_OFFSET,
@@ -48,8 +44,11 @@ from octopoes.models.pagination import Paginated
 from octopoes.models.transaction import TransactionRecord
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import OOIType
+from reports.report_types.findings_report.report import FindingsReport
 from rocky.health import ServiceHealth
 from rocky.scheduler import PaginatedTasksResponse, ReportTask, ScheduleResponse, Task, TaskStatus
+from tools.enums import SCAN_LEVEL
+from tools.models import GROUP_ADMIN, GROUP_CLIENT, GROUP_REDTEAM, Indemnification, Organization, OrganizationMember
 
 LANG_LIST = [code for code, _ in settings.LANGUAGES]
 
@@ -82,7 +81,7 @@ def fixture_configure_structlog(log_output):
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.fixture(params=LANG_LIST)

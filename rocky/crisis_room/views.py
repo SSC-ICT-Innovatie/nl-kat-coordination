@@ -1,6 +1,6 @@
 import json
 from dataclasses import dataclass
-from datetime import datetime, time, timezone
+from datetime import UTC, datetime, time
 from typing import Any
 from uuid import UUID
 
@@ -19,12 +19,6 @@ from django.utils.text import slugify
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from httpx import HTTPStatusError, ReadTimeout
-from pydantic import Field
-from reports.report_types.findings_report.report import SEVERITY_OPTIONS
-from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES
-
-from crisis_room.forms import AddDashboardForm
-from crisis_room.models import MAX_POSITION, Dashboard, DashboardItem
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference, ScanLevel, ScanProfileType
@@ -32,8 +26,14 @@ from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.findings import RiskLevelSeverity
 from octopoes.models.ooi.reports import HydratedReport
 from octopoes.models.types import get_collapsed_types, type_by_name
+from pydantic import Field
+from reports.report_types.findings_report.report import SEVERITY_OPTIONS
 from rocky.bytes_client import get_bytes_client
 from rocky.views.mixins import FindingList
+from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES
+
+from crisis_room.forms import AddDashboardForm
+from crisis_room.models import MAX_POSITION, Dashboard, DashboardItem
 
 logger = structlog.get_logger(__name__)
 
@@ -54,8 +54,10 @@ class DashboardService:
             highest_risk_level = finding_types[0]["finding_type"]["risk_severity"]
             critical_high_finding_types = list(
                 filter(
-                    lambda finding_type: finding_type["finding_type"]["risk_severity"] == "critical"
-                    or finding_type["finding_type"]["risk_severity"] == "high",
+                    lambda finding_type: (
+                        finding_type["finding_type"]["risk_severity"] == "critical"
+                        or finding_type["finding_type"]["risk_severity"] == "high"
+                    ),
                     finding_types,
                 )
             )
@@ -124,7 +126,7 @@ class DashboardService:
 
         if recipes_data:
             # Returns for each recipe id, its Hydrated report.
-            reports: dict[UUID, HydratedReport] = self.get_reports(datetime.now(timezone.utc), report_filters)
+            reports: dict[UUID, HydratedReport] = self.get_reports(datetime.now(UTC), report_filters)
 
             # After reports are collected, collect data raw ids to fetch data from Bytes later.
             for dashboard_item, recipe_id in recipes_data.items():
@@ -140,7 +142,7 @@ class DashboardService:
                             timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT,
                         )
                         hydrated_report = octopoes_client.get(
-                            Reference.from_str(dashboard_item.source), datetime.now(timezone.utc)
+                            Reference.from_str(dashboard_item.source), datetime.now(UTC)
                         )
                     raw_ids.append(hydrated_report.data_raw_id)
                     reports_data[dashboard_item] = hydrated_report
@@ -238,11 +240,9 @@ class DashboardService:
             timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT,
         )
 
-        observed_at = (
-            datetime.strptime(query["observed_at"], "%Y-%m-%d") if query["observed_at"] else datetime.now(timezone.utc)
-        )
+        observed_at = datetime.strptime(query["observed_at"], "%Y-%m-%d") if query["observed_at"] else datetime.now(UTC)
         # for now we check till end of day
-        valid_time = datetime.combine(observed_at.date(), time(23, 59, 59), tzinfo=timezone.utc)
+        valid_time = datetime.combine(observed_at.date(), time(23, 59, 59), tzinfo=UTC)
 
         ooi_list = octopoes_client.list_objects(
             ooi_types,
@@ -280,11 +280,9 @@ class DashboardService:
         exclude_muted = muted_findings == "non-muted"
         only_muted = muted_findings == "muted"
 
-        observed_at = (
-            datetime.strptime(query["observed_at"], "%Y-%m-%d") if query["observed_at"] else datetime.now(timezone.utc)
-        )
+        observed_at = datetime.strptime(query["observed_at"], "%Y-%m-%d") if query["observed_at"] else datetime.now(UTC)
         # for now we check till end of day
-        valid_time = datetime.combine(observed_at.date(), time(23, 59, 59), tzinfo=timezone.utc)
+        valid_time = datetime.combine(observed_at.date(), time(23, 59, 59), tzinfo=UTC)
 
         finding_list = FindingList(
             octopoes_connector=octopoes_client,

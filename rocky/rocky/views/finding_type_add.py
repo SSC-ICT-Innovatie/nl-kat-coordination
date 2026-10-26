@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from account.mixins import OrganizationView
@@ -6,12 +6,12 @@ from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
+from octopoes.api.models import Declaration
+from octopoes.models.ooi.findings import KATFindingType
 from tools.forms.finding_type import FindingTypeAddForm
 from tools.models import OOIInformation
 from tools.view_helpers import get_ooi_url
 
-from octopoes.api.models import Declaration
-from octopoes.models.ooi.findings import KATFindingType
 from rocky.bytes_client import BytesClient
 
 
@@ -40,7 +40,7 @@ class FindingTypeAddView(OrganizationView, FormView):
         form_data = form.cleaned_data
         # set data
         finding_type = KATFindingType(id=form_data["id"])
-        info, created = OOIInformation.objects.get_or_create(id=f'KATFindingType|{form_data["id"]}')
+        info, created = OOIInformation.objects.get_or_create(id=f"KATFindingType|{form_data['id']}")
         info.data = {
             "title": form_data["title"],
             "description": form_data["description"],
@@ -56,7 +56,7 @@ class FindingTypeAddView(OrganizationView, FormView):
         info.save()
 
         task_id = uuid4()
-        declaration = Declaration(ooi=finding_type, valid_time=datetime.now(timezone.utc), task_id=str(task_id))
+        declaration = Declaration(ooi=finding_type, valid_time=datetime.now(UTC), task_id=str(task_id))
 
         self.bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations([declaration]))
         self.api_connector.save_declaration(declaration, sync=True)

@@ -1,7 +1,5 @@
 import json
-from datetime import datetime, timezone
-
-from pydantic import TypeAdapter
+from datetime import UTC, datetime
 
 import boefjes.plugins.kat_leakix.normalize as leakix_normalize
 from boefjes.plugins.kat_leakix.normalize import run
@@ -15,12 +13,14 @@ from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import AutonomousSystem, IPAddressV4, IPPort
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.types import OOIType
+from pydantic import TypeAdapter
+
 from tests.loading import get_dummy_data
 
 # The example.com fixture was captured on 2024-02-14; freezing the clock there
 # keeps time-derived attributes (X509Certificate.expires_in) deterministic so
 # the full-output snapshot can be compared byte-for-byte.
-FIXTURE_CAPTURE_TIME = datetime(2024, 2, 14, 13, 0, 0, tzinfo=timezone.utc)
+FIXTURE_CAPTURE_TIME = datetime(2024, 2, 14, 13, 0, 0, tzinfo=UTC)
 
 
 class FixedDatetime(datetime):
@@ -46,7 +46,7 @@ def test_output(monkeypatch):
         }
     )
 
-    output = [x for x in run(input_ooi.serialize(), get_dummy_data("raw/leakix-example.com.json"))]
+    output = [*run(input_ooi.serialize(), get_dummy_data("raw/leakix-example.com.json"))]
 
     assert str(output) == get_dummy_data("raw/leakix-example.com-output.txt").decode().strip()
 

@@ -1,7 +1,7 @@
 import csv
 import io
 import ipaddress
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, ClassVar
 from uuid import uuid4
 
@@ -13,15 +13,14 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError
-from pydantic import ValidationError
-from tools.forms.upload_csv import CSV_ERRORS
-from tools.forms.upload_oois import UploadOOICSVForm
-
 from octopoes.api.models import Declaration
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 from octopoes.models.ooi.web import URL
+from pydantic import ValidationError
+from tools.forms.upload_csv import CSV_ERRORS
+from tools.forms.upload_oois import UploadOOICSVForm
 
 CSV_CRITERIA = [
     _("Add column titles. Followed by each object on a new line."),
@@ -134,7 +133,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             if is_reference and required:
                 try:
                     referenced_ooi = self.get_or_create_reference(field, values.get(field))
-                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=datetime.now(timezone.utc)))
+                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=datetime.now(UTC)))
                     kwargs[field] = referenced_ooi.reference
                 except IndexError:
                     if required:
@@ -181,7 +180,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
                     ooi, level, declarations = self.get_ooi_from_csv(object_type, row)
                     if declarations:
                         oois.extend(declarations)
-                    oois.append(Declaration(ooi=ooi, valid_time=datetime.now(timezone.utc), task_id=task_id))
+                    oois.append(Declaration(ooi=ooi, valid_time=datetime.now(UTC), task_id=task_id))
                     if isinstance(level, int):
                         self.raise_clearance_level(ooi.reference, level)
                 except ValidationError:

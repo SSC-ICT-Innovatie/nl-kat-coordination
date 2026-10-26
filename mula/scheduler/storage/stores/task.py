@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import desc, exc, exists, func
@@ -190,7 +190,7 @@ class TaskStore:
                     models.TaskDB.status,
                     func.count().label("count"),
                 )
-                .filter(models.TaskDB.modified_at >= datetime.now(timezone.utc) - timedelta(hours=24))
+                .filter(models.TaskDB.modified_at >= datetime.now(UTC) - timedelta(hours=24))
                 .group_by("hour", models.TaskDB.status)
                 .order_by(desc("hour"), models.TaskDB.status)
             )

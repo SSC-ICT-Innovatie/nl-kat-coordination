@@ -11,12 +11,12 @@ from django_otp.models import Device
 from httpx import HTTPError
 from katalogus.client import KATalogusClient, get_katalogus_client
 from katalogus.exceptions import KATalogusDownException, KATalogusException, KATalogusUnhealthyException
-from structlog import get_logger
-from tools.models import Organization
-
 from octopoes.api.models import Declaration
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models.ooi.network import Network
+from structlog import get_logger
+from tools.models import Organization
+
 from rocky.exceptions import OctopoesDownException, OctopoesException, OctopoesUnhealthyException
 
 logger = get_logger(__name__)
@@ -172,7 +172,7 @@ def organization_post_save(sender, instance, created, *args, **kwargs):
         run_findings_dashboard(instance, octopoes_client)
 
     try:
-        valid_time = datetime.datetime.now(datetime.timezone.utc)
+        valid_time = datetime.datetime.now(datetime.UTC)
         octopoes_client.save_declaration(Declaration(ooi=Network(name="internet"), valid_time=valid_time))
     except Exception:
         logger.exception("Could not seed internet for organization %s", sender)
