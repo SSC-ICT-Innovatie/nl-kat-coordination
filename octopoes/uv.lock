@@ -730,12 +730,6 @@ wheels = [
 ]
 
 [[package]]
-name = "link-shorteners"
-version = "1.14.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/bf/e1/20938b14964c854ebd773b56399e6039c08279915e78fbc42b1e5c0e4c21/link_shorteners-1.14.1.tar.gz", hash = "sha256:d0020e5f365372b125bc695bc3b886241ee5d23408d34016565b93e33942b3e0", size = 14502, upload-time = "2025-02-24T18:34:30.917Z" }
-
-[[package]]
 name = "octopoes"
 version = "0.0.1.dev1"
 source = { virtual = "." }
@@ -751,7 +745,6 @@ dependencies = [
     { name = "idna" },
     { name = "jsonschema" },
     { name = "kombu" },
-    { name = "link-shorteners" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp-proto-common" },
     { name = "opentelemetry-exporter-otlp-proto-grpc" },
@@ -810,7 +803,6 @@ requires-dist = [
     { name = "idna", specifier = ">=3.15" },
     { name = "jsonschema", specifier = ">=4.18.0,<5" },
     { name = "kombu", specifier = ">=5.2.4,<6" },
-    { name = "link-shorteners", specifier = ">=1.11.0,<2" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-exporter-otlp-proto-common" },
     { name = "opentelemetry-exporter-otlp-proto-grpc" },
