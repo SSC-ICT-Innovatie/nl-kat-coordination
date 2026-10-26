@@ -3,7 +3,7 @@ name = "rocky"
 version = "0.0.1.dev1"
 description = "OpenKAT's Django front-end"
 authors = [{ name = "Stichting Librekat", email = "maintainer@librekat.nl" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "EUPL-1.2"
 dependencies = [
     "beautifulsoup4>=4.11.2,<5",
@@ -53,7 +53,7 @@ dependencies = [
     "weasyprint>=70.0",
     "requests>=2.33.0,<3",
     "attrs>=26.1.0",
-    "pillow>=12.3.0",
+    "pillow>=13.0.0",
     "brotlicffi>=1.2.1.0",
     "urllib3>=2.8.0",
     "idna>=3.15",
