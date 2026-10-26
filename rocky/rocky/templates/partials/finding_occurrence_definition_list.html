@@ -5,7 +5,7 @@
 
     {% if finding.proof %}
         {% translate "Proof" as label %}
-        {% include "partials/elements/definition_list_item.html" with label=label description=finding.proof %}
+        {% include "partials/elements/definition_list_item.html" with label=label description=finding.proof preserve_linebreaks=True %}
 
     {% endif %}
     {% if finding.reproduce %}

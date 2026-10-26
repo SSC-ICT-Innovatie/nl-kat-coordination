@@ -103,8 +103,10 @@ def test_medium_tls_ciphers():
 
     assert isinstance(medium_finding, Finding)
     assert isinstance(low_finding, Finding)
+    assert medium_finding.description is None
+    assert low_finding.description is None
 
-    assert medium_finding.description == (
+    assert medium_finding.proof == (
         "One or more of the cipher suites should not be used because:\n"
         "DHE-DSS-CAMELLIA128-SHA256 - Using DH as key exchange algorithm (Medium).\n"
         "DHE-DSS-CAMELLIA128-SHA256 - Using DSS for authentication (Medium).\n"
@@ -112,7 +114,7 @@ def test_medium_tls_ciphers():
         "DHE-RSA-AES128-GCM-SHA256 - Using DH as key exchange algorithm (Medium)."
     )
 
-    assert low_finding.description == (
+    assert low_finding.proof == (
         "One or more of the cipher suites should not be used because:\n"
         "DHE-DSS-CAMELLIA128-SHA256 - Using Camellia as bulk encryption algorithm (Low)."
     )

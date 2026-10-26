@@ -5,7 +5,11 @@
         </dt>
         <dd>
             {% if description %}
-                {{ description }}
+                {% if preserve_linebreaks %}
+                    {{ description|linebreaksbr }}
+                {% else %}
+                    {{ description }}
+                {% endif %}
             {% else %}
                 -
             {% endif %}

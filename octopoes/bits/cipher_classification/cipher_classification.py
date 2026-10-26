@@ -74,7 +74,7 @@ def run(input_ooi: TLSCipher, additional_oois: list, config: dict[str, Any]) -> 
         yield Finding(
             finding_type=ft.reference,
             ooi=input_ooi.reference,
-            description=(
+            proof=(
                 "One or more of the cipher suites should not be used because:\n"
                 + "\n".join(reasons_by_severity[severity])
             ),

@@ -2,6 +2,7 @@ from copy import deepcopy
 from urllib.parse import urlencode
 
 import pytest
+from django.template.loader import render_to_string
 from katalogus.client import Boefje
 from pytest_django.asserts import assertContains, assertNotContains
 from tools.enums import SCAN_LEVEL
@@ -352,3 +353,34 @@ def test_ooi_detail_start_scan_perms(
 
     assert response.status_code == 200
     assertNotContains(response, "Start Scan")
+
+
+def test_ooi_detail_object_proof_displays_each_cipher_finding_on_a_new_line():
+    html = render_to_string(
+        "oois/ooi_detail_object.html",
+        {
+            "object_details": {
+                "Description": "General finding description",
+                "Proof": "Cipher A - weak key exchange\nCipher B - insecure <algorithm>",
+            }
+        },
+    )
+
+    assert "General finding description" in html
+    assert "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;" in html
+
+
+def test_finding_occurrence_proof_displays_each_cipher_finding_on_a_new_line():
+    html = render_to_string(
+        "partials/finding_occurrence_definition_list.html",
+        {
+            "finding": {
+                "proof": "Cipher A - weak key exchange\nCipher B - insecure <algorithm>",
+                "reproduce": None,
+                "items": [],
+            }
+        },
+    )
+
+    assert "Proof" in html
+    assert "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;" in html
