@@ -18,13 +18,11 @@
     {% endif %}
     {% if finding.items %}
         {% if finding|is_legacy_cipher_finding %}
-            +
             {% include "partials/elements/definition_list_items.html" with items=finding.items exclude_keys="id,human_readable,ooi_type,ooi,finding_type,description,proof,reproduce" %}
-            +
+
         {% else %}
-            +
             {% include "partials/elements/definition_list_items.html" with items=finding.items exclude_keys="id,human_readable,ooi_type,ooi,finding_type,proof,reproduce" %}
-            +
+
         {% endif %}
     {% endif %}
 </dl>
