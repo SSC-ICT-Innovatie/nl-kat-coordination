@@ -42,6 +42,10 @@ class TaskStatus(str, enum.Enum):
     # Task has been cancelled
     CANCELLED = "cancelled"
 
+    # The boefje caught a timeout itself and returned it through the error/timeout
+    # mime-type. Its results may be incomplete, rerunning it at a later date may succeed.
+    TIMEOUT = "timeout"
+
 
 ACTIVE_TASK_STATUSES = (TaskStatus.PENDING, TaskStatus.QUEUED, TaskStatus.DISPATCHED, TaskStatus.RUNNING)
 

@@ -18,6 +18,7 @@ class File(BaseModel):
 class StatusEnum(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    TIMEOUT = "TIMEOUT"
 
 
 class BoefjeOutput(BaseModel):
