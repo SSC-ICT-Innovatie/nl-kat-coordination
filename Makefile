@@ -7,7 +7,7 @@ HIDE:=$(if $(VERBOSE),,@)
 UNAME := $(shell uname)
 export OPENKAT_VERSION := $(shell git describe --tags --always --dirty 2>/dev/null || echo development)
 
-.PHONY: kat update reset up stop down clean fetch pull upgrade last-release env-if-empty env build debian12-build-image debian13-build-image ubuntu22.04-build-image ubuntu24.04-build-image docs upgraderequirements requirements
+.PHONY: kat update reset up stop down clean fetch pull upgrade last-release env-if-empty env build debian12-build-image debian13-build-image ubuntu24.04-build-image docs upgraderequirements requirements
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -108,10 +108,6 @@ endif
 # Build Debian 12 build image
 debian12-build-image:
 	docker build -t kat-debian12-build-image packaging/debian12
-
-# Build Ubuntu 22.04 build image
-ubuntu22.04-build-image:
-	docker build -t kat-ubuntu22.04-build-image packaging/ubuntu22.04
 
 # Build Debian 13 build image
 debian13-build-image:

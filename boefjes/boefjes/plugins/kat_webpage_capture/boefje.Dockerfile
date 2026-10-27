@@ -4,7 +4,7 @@
 # digest is authoritative (Docker ignores the tag when a digest is present), so on
 # a version bump update the base tag, the digest and PLAYWRIGHT_VERSION together.
 ARG PLAYWRIGHT_VERSION=1.64.1
-FROM mcr.microsoft.com/playwright:v1.64.1-noble@sha256:7852dc5a7d72f5fe458a597d690f6c42fbc8e9e26ddfa95f8e6ef552558d9bbf
+FROM mcr.microsoft.com/playwright:v1.64.1-noble@sha256:47b510dd9230bf0b9bfc9b20102241e577ea7a99334ab4c3ca19f19770e9b8ea
 
 # Redeclare so the RUN below (a new build stage scope) can use it.
 ARG PLAYWRIGHT_VERSION
@@ -50,7 +50,7 @@ RUN adduser --disabled-password --gecos '' nonroot
 # (#5440); bump them together with the lockfile. pip itself is uninstalled after
 # use: it is only needed at build time, and shipping it would leave nonroot a
 # working package manager plus its known advisories in the final image.
-RUN --mount=type=cache,target=/root/.cache pip3 install "pip==25.2" &&  \
+RUN --mount=type=cache,target=/root/.cache pip3 install "pip==26.2.2" &&  \
     pip3 install "httpx==0.28.1" "structlog==25.5.0" "pydantic==2.13.0" "jsonschema==4.26.0" "croniter==6.2.2" "click==8.3.2" && \
     python3.13 -m pip uninstall -y pip
 

@@ -16,8 +16,7 @@ Supported distributions
 
 We provide Debian packages for Debian and Ubuntu. We support only Debian stable
 and Ubuntu LTS releases and stop supporting the previous version 6 months after
-the release. Currently this means we support Debian 12 (bookworm), 13 (trixie) and
-Ubuntu 22.04 and 24.04.
+the release. Currently this means we support Debian 12 (bookworm), 13 (trixie) and Ubuntu 24.04.
 
 Prerequisites
 =============
@@ -25,7 +24,7 @@ Prerequisites
 We will be using ``sudo`` in this guide, so make sure you have ``sudo`` installed on
 your system.
 
-The packages are built with Ubuntu 22.04 and Debian 11 in mind.
+The packages are built with Ubuntu 24.04 and Debian 12 and 13 in mind.
 They may or may not work on other versions or distributions.
 
 Downloading and installing
@@ -34,7 +33,7 @@ Downloading and installing
 Download the packages for all the components of KAT from `GitHub
 <https://github.com/minvws/nl-kat-coordination/releases/latest>`__. Also download the XTDB
 multinode package from `GitHub
-<https://github.com/dekkers/xtdb-http-multinode/releases/latest>`__.
+<https://github.com/underdarknl/xtdb-http-multinode/releases/latest>`__.
 
 After downloading they can be installed as follows:
 
@@ -426,4 +425,4 @@ Restart all processes:
 
 .. code-block:: sh
 
-    sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
+    sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker kat-octopoes-scanlevels

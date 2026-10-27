@@ -1,7 +1,6 @@
 import datetime
 import ipaddress
 import uuid
-from datetime import timezone
 
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
@@ -61,7 +60,7 @@ def test_ssl_certificates_normalizer_without_issuer_organization():
 
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
     issuer = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "Test CA")])
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -91,7 +90,7 @@ def _create_ed_certificate(private_key):
             x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization"),
         ]
     )
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -144,7 +143,7 @@ def _create_certificate_with_sans(sans):
         ]
     )
 
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -164,7 +163,7 @@ def _create_certificate_with_sans(sans):
 def test_ssl_certificates_normalizer_without_san():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     certificate = (
         x509.CertificateBuilder()
         .subject_name(subject)
@@ -249,7 +248,7 @@ def test_ssl_certificates_normalizer_self_signed_certificate():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -283,7 +282,7 @@ def test_ssl_certificates_normalizer_unsupported_san_types_are_ignored():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -321,7 +320,7 @@ def test_ssl_certificates_normalizer_san_uses_certificate_network():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
     subject = x509.Name([x509.NameAttribute(NameOID.COMMON_NAME, "test.example")])
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -351,7 +350,7 @@ def test_ssl_certificates_normalizer_without_common_name():
     private_key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
 
     subject = x509.Name([x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Test Organization")])
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     certificate = (
         x509.CertificateBuilder()
@@ -381,7 +380,7 @@ def _create_signed_certificate(subject_name, issuer_certificate, issuer_key, pub
         ]
     )
 
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     return (
         x509.CertificateBuilder()
@@ -507,8 +506,8 @@ def test_ssl_certificates_normalizer_does_not_link_certificate_with_invalid_sign
         .issuer_name(intermediate_certificate.subject)
         .public_key(leaf_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
-        .not_valid_after(datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(days=1))
+        .not_valid_before(datetime.datetime.now(datetime.UTC))
+        .not_valid_after(datetime.datetime.now(datetime.UTC) + datetime.timedelta(days=1))
         .sign(rogue_key, hashes.SHA256())
     )
 
@@ -536,7 +535,7 @@ def test_ssl_certificates_normalizer_does_not_link_certificate_with_invalid_sign
 # Prevent incorrect issuer relationships, but doesn't prevent two colliding certificate
 # objects from being emitted with the same reference.
 def test_certificate_reference_collision_skips_issuer_relationships():
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
 
     key_a = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     key_b = rsa.generate_private_key(public_exponent=65537, key_size=2048)
@@ -661,6 +660,6 @@ def test_ssl_certificates_output_is_a_valid_observation():
         source=Reference.from_str(input_ooi["primary_key"]),
         source_method="ssl-certificates",
         task_id=uuid.uuid4(),
-        valid_time=datetime.datetime.now(timezone.utc),
+        valid_time=datetime.datetime.now(datetime.UTC),
         result=oois,
     )
