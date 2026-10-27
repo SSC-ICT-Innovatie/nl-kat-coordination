@@ -30,6 +30,18 @@ User = get_user_model()
 
 RISK_LEVEL_SCORE_DEFAULT = 10
 
+# These finding types were emitted with their cipher evidence in `description`
+# before the classifier started filling `proof`. Older observations remain stored
+# in Octopoes, so the UI needs a display-only compatibility path for them.
+_TLS_CIPHER_FINDING_IDS = {
+    "KAT-CRITICAL-TLS-CIPHER",
+    "KAT-HIGH-TLS-CIPHER",
+    "KAT-MEDIUM-TLS-CIPHER",
+    "KAT-LOW-TLS-CIPHER",
+    "KAT-RECOMMENDATION-TLS-CIPHER",
+}
+_TLS_CIPHER_EVIDENCE_PREFIX = "One or more of the cipher suites should not be used because:"
+
 
 def format_attr_name(s: str) -> str:
     return s.replace("_", " ").replace("/", " -> ").title()
@@ -46,6 +58,24 @@ def format_display(data: dict, ignore: list | None = None) -> dict[str, str]:
         ignore = []
 
     return {format_attr_name(k): format_value(v) for k, v in data.items() if k not in ignore}
+
+
+def is_legacy_tls_cipher_finding(finding: OOI) -> bool:
+    """Detect saved cipher evidence that predates the `proof` field fix."""
+    return (
+        isinstance(finding, Finding)
+        and finding.finding_type.natural_key in _TLS_CIPHER_FINDING_IDS
+        and not finding.proof
+        and isinstance(finding.description, str)
+        and finding.description.startswith(_TLS_CIPHER_EVIDENCE_PREFIX)
+    )
+
+
+def finding_display_proof(finding: Finding) -> str | None:
+    """Show stored evidence in Proof without mutating historical observations."""
+    if is_legacy_tls_cipher_finding(finding):
+        return finding.description
+    return finding.proof
 
 
 def get_knowledge_base_data_for_ooi_store(ooi_store: dict) -> dict[str, dict]:

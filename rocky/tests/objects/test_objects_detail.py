@@ -355,6 +355,112 @@ def test_ooi_detail_start_scan_perms(
     assertNotContains(response, "Start Scan")
 
 
+def test_legacy_cipher_finding_is_displayed_under_proof(
+    rf, client_member, mock_organization_view_octopoes, mock_scheduler, paginated_task_list, mocker
+):
+    """Previously stored TLS cipher findings must work without being scanned again."""
+    mocker.patch("katalogus.client.KATalogusClient")
+    mock_scheduler.list_tasks.return_value = paginated_task_list
+
+    cipher_reference = "Finding|Network|testnetwork|KAT-MEDIUM-TLS-CIPHER"
+    tree = deepcopy(TREE_DATA)
+    old_reference = tree["root"]["reference"]
+    tree["root"]["reference"] = cipher_reference
+    cipher = tree["store"].pop(old_reference)
+    cipher.update(
+        primary_key=cipher_reference,
+        finding_type="KATFindingType|KAT-MEDIUM-TLS-CIPHER",
+        description=(
+            "One or more of the cipher suites should not be used because:\n"
+            "Cipher A - weak key exchange\n"
+            "Cipher B - insecure <algorithm>"
+        ),
+    )
+    tree["store"][cipher_reference] = cipher
+    mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(tree)
+
+    request = setup_request(rf.get("ooi_detail", {"ooi_id": cipher_reference}), client_member.user)
+    response = OOIDetailView.as_view()(request, organization_code=client_member.organization.code)
+
+    assertContains(response, "Proof")
+    assertContains(response, "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;", html=False)
+    assertNotContains(response, "<dt>Description</dt>", html=False)
+
+
+def test_non_cipher_description_does_not_move_to_proof(
+    rf, client_member, mock_organization_view_octopoes, mock_scheduler, paginated_task_list, mocker
+):
+    mocker.patch("katalogus.client.KATalogusClient")
+    mock_scheduler.list_tasks.return_value = paginated_task_list
+    tree = deepcopy(TREE_DATA)
+    tree["store"]["Finding|Network|testnetwork|KAT-000"]["description"] = (
+        "One or more of the cipher suites should not be used because:\nNot a TLS cipher finding"
+    )
+    mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(tree)
+
+    request = setup_request(rf.get("ooi_detail", {"ooi_id": "Finding|Network|testnetwork|KAT-000"}), client_member.user)
+    response = OOIDetailView.as_view()(request, organization_code=client_member.organization.code)
+
+    assertContains(response, "Description")
+    assertContains(response, "Not a TLS cipher finding")
+    assertNotContains(response, "<dt>Proof</dt>", html=False)
+
+
+def test_proof_with_newlines_renders_each_cipher_finding_separately():
+    from django.template.loader import render_to_string
+
+    html = render_to_string(
+        "oois/ooi_detail_object.html",
+        {
+            "object_details": {
+                "Description": "A general explanation",
+                "Proof": "Cipher A - weak key exchange\nCipher B - insecure <algorithm>",
+            }
+        },
+    )
+
+    assert "A general explanation" in html
+    assert "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;" in html
+
+
+def test_finding_occurrence_legacy_cipher_proof_renders_without_duplicate_description():
+    from django.template.loader import render_to_string
+
+    from octopoes.models.ooi.findings import Finding
+
+    finding = Finding(
+        finding_type="KATFindingType|KAT-LOW-TLS-CIPHER",
+        ooi="Network|testnetwork",
+        description="One or more of the cipher suites should not be used because:\nCipher A\nCipher B <unsafe>",
+    )
+    html = render_to_string("partials/finding_occurrence_definition_list.html", {"finding": finding})
+
+    assert "Proof" in html
+    assert "Cipher A<br>Ciphera B &lt;unsafe&gt;" in html
+    assert "Description" not in html
+
+
+def test_new_cipher_finding_keeps_existing_description_and_proof():
+    from django.template.loader import render_to_string
+    from tools.ooi_helpers import format_display, is_legacy_tls_cipher_finding
+
+    from octopoes.models.ooi.findings import Finding
+
+    finding = Finding(
+        finding_type="KATFindingType|KAT-LOW-TLS-CIPHER",
+        ooi="Network|testnetwork",
+        description="A separate explanation",
+        proof="Cipher A\nCipher B <unsafe>",
+    )
+    assert not is_legacy_tls_cipher_finding(finding)
+    html = render_to_string(
+        "oois/ooi_detail_object.html",
+        {"object_details": format_display({"description": finding.description, "proof": finding.proof})},
+    )
+    assert "A separate explanation" in html
+    assert "Cipher A<br>Cipher B &lt;unsafe&gt;" in html
+
+
 def test_ooi_detail_object_proof_displays_each_cipher_finding_on_a_new_line():
     html = render_to_string(
         "oois/ooi_detail_object.html",
