@@ -1,3 +1,4 @@
+import re
 from collections.abc import Sequence
 from datetime import datetime
 from enum import Enum
@@ -42,6 +43,15 @@ _TLS_CIPHER_FINDING_IDS = {
 }
 _TLS_CIPHER_EVIDENCE_PREFIX = "One or more of the cipher suites should not be used because:"
 
+# Used to remove severity suffix from cipher findings
+_TLS_CIPHER_SEVERITY_SUFFIX = re.compile(
+    r" \((?:Critical|High|Medium|Low|Recommendation|Informational)\)(?=\.\r?$)", re.MULTILINE
+)
+
+
+def is_tls_cipher_finding(finding: OOI) -> bool:
+    return isinstance(finding, Finding) and finding.finding_type.natural_key in _TLS_CIPHER_FINDING_IDS
+
 
 def format_attr_name(s: str) -> str:
     return s.replace("_", " ").replace("/", " -> ").title()
@@ -63,8 +73,7 @@ def format_display(data: dict, ignore: list | None = None) -> dict[str, str]:
 def is_legacy_tls_cipher_finding(finding: OOI) -> bool:
     """Detect saved cipher evidence that predates the `proof` field fix."""
     return (
-        isinstance(finding, Finding)
-        and finding.finding_type.natural_key in _TLS_CIPHER_FINDING_IDS
+        is_tls_cipher_finding(finding)
         and not finding.proof
         and isinstance(finding.description, str)
         and finding.description.startswith(_TLS_CIPHER_EVIDENCE_PREFIX)
@@ -72,10 +81,13 @@ def is_legacy_tls_cipher_finding(finding: OOI) -> bool:
 
 
 def finding_display_proof(finding: Finding) -> str | None:
-    """Show stored evidence in Proof without mutating historical observations."""
-    if is_legacy_tls_cipher_finding(finding):
-        return finding.description
-    return finding.proof
+    """Display TLS cipher proof without severity suffixes, preserving stored observations."""
+    proof = finding.description if is_legacy_tls_cipher_finding(finding) else finding.proof
+
+    if is_tls_cipher_finding(finding) and isinstance(proof, str):
+        return _TLS_CIPHER_SEVERITY_SUFFIX.sub("", proof)
+
+    return proof
 
 
 def get_knowledge_base_data_for_ooi_store(ooi_store: dict) -> dict[str, dict]:

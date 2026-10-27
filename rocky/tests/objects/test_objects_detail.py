@@ -7,10 +7,12 @@ from katalogus.client import Boefje
 from pytest_django.asserts import assertContains, assertNotContains
 from tools.enums import SCAN_LEVEL
 from tools.models import Indemnification
+from tools.ooi_helpers import finding_display_proof, format_display, is_legacy_tls_cipher_finding
 
 from octopoes.connector import RemoteException
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.config import Config
+from octopoes.models.ooi.findings import Finding
 from octopoes.models.tree import ReferenceTree
 from rocky.views.ooi_detail import OOIDetailView
 from tests.conftest import get_stub_path, setup_request
@@ -372,8 +374,8 @@ def test_legacy_cipher_finding_is_displayed_under_proof(
         finding_type="KATFindingType|KAT-MEDIUM-TLS-CIPHER",
         description=(
             "One or more of the cipher suites should not be used because:\n"
-            "Cipher A - weak key exchange\n"
-            "Cipher B - insecure <algorithm>"
+            "Cipher A - weak key exchange (Low).\n"
+            "Cipher B - insecure <algorithm> (Medium)."
         ),
     )
     tree["store"][cipher_reference] = cipher
@@ -383,7 +385,8 @@ def test_legacy_cipher_finding_is_displayed_under_proof(
     response = OOIDetailView.as_view()(request, organization_code=client_member.organization.code)
 
     assertContains(response, "Proof")
-    assertContains(response, "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;", html=False)
+    assertContains(response, "Cipher A - weak key exchange.<br>Cipher B - insecure &lt;algorithm&gt;.", html=False)
+    assertNotContains(response, "(Low)")
     assertNotContains(response, "<dt>Description</dt>", html=False)
 
 
@@ -407,8 +410,6 @@ def test_non_cipher_description_does_not_move_to_proof(
 
 
 def test_proof_with_newlines_renders_each_cipher_finding_separately():
-    from django.template.loader import render_to_string
-
     html = render_to_string(
         "oois/ooi_detail_object.html",
         {
@@ -424,28 +425,24 @@ def test_proof_with_newlines_renders_each_cipher_finding_separately():
 
 
 def test_finding_occurrence_legacy_cipher_proof_renders_without_duplicate_description():
-    from django.template.loader import render_to_string
-
-    from octopoes.models.ooi.findings import Finding
-
     finding = Finding(
         finding_type="KATFindingType|KAT-LOW-TLS-CIPHER",
         ooi="Network|testnetwork",
-        description="One or more of the cipher suites should not be used because:\nCipher A\nCipher B <unsafe>",
+        description=(
+            "One or more of the cipher suites should not be used because:\n"
+            "Cipher A (Low).\n"
+            "Cipher B <unsafe> (High)."
+        ),
     )
     html = render_to_string("partials/finding_occurrence_definition_list.html", {"finding": finding})
 
     assert "Proof" in html
-    assert "Cipher A<br>Ciphera B &lt;unsafe&gt;" in html
+    assert "Cipher A.<br>Cipher B &lt;unsafe&gt;." in html
+    assert "(Low)" not in html
     assert "Description" not in html
 
 
 def test_new_cipher_finding_keeps_existing_description_and_proof():
-    from django.template.loader import render_to_string
-    from tools.ooi_helpers import format_display, is_legacy_tls_cipher_finding
-
-    from octopoes.models.ooi.findings import Finding
-
     finding = Finding(
         finding_type="KATFindingType|KAT-LOW-TLS-CIPHER",
         ooi="Network|testnetwork",
@@ -459,6 +456,42 @@ def test_new_cipher_finding_keeps_existing_description_and_proof():
     )
     assert "A separate explanation" in html
     assert "Cipher A<br>Cipher B &lt;unsafe&gt;" in html
+
+
+def test_historical_cipher_proof_severity_is_only_hidden_for_cipher_evidence():
+    text = (
+        "One or more of the cipher suites should not be used because:\n"
+        "DHE-RSA-AES256-SHA - Using CBC as bulk encryption algorithm (Low).\n"
+        "Another cipher - Using an algorithm (High).\n"
+        "A note (experimental)."
+    )
+    stored_proof = Finding(finding_type="KATFindingType|KAT-LOW-TLS-CIPHER", ooi="Network|testnetwork", proof=text)
+    expected = (
+        "One or more of the cipher suites should not be used because:\n"
+        "DHE-RSA-AES256-SHA - Using CBC as bulk encryption algorithm.\n"
+        "Another cipher - Using an algorithm.\n"
+        "A note (experimental)."
+    )
+    assert finding_display_proof(stored_proof) == expected
+    assert stored_proof.proof == text  # Stored data stays untouched.
+
+    unrelated = Finding(finding_type="KATFindingType|KAT-000", ooi="Network|testnetwork", proof=text)
+    assert finding_display_proof(unrelated) == text
+
+
+def test_cipher_proof_with_stored_severity_renders_without_suffix():
+    finding = Finding(
+        finding_type="KATFindingType|KAT-LOW-TLS-CIPHER",
+        ooi="Network|testnetwork",
+        proof=(
+            "One or more of the cipher suites should not be used because:\n"
+            "DHE-RSA-AES256-SHA - Using CBC as bulk encryption algorithm (Low).\n"
+            "A second <cipher> (Low)."
+        ),
+    )
+    html = render_to_string("partials/finding_occurrence_definition_list.html", {"finding": finding})
+    assert "DHE-RSA-AES256-SHA - Using CBC as bulk encryption algorithm.<br>A second &lt;cipher&gt;." in html
+    assert "(Low)" not in html
 
 
 def test_ooi_detail_object_proof_displays_each_cipher_finding_on_a_new_line():
