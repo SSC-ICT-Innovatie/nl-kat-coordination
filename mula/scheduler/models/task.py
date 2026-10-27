@@ -1,6 +1,6 @@
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import ClassVar
 
 import mmh3
@@ -19,7 +19,7 @@ from .normalizer import Normalizer
 from .raw_data import RawData
 
 
-class TaskStatus(str, enum.Enum):
+class TaskStatus(enum.StrEnum):
     # Task has been created but not yet queued
     PENDING = "pending"
 
@@ -63,8 +63,8 @@ class Task(BaseModel):
     hash: str | None = Field(None, max_length=32)
     data: dict = Field(default_factory=dict)
 
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-    modified_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    modified_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class TaskDB(Base):

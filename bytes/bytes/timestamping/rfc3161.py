@@ -21,7 +21,7 @@ def _patched_check_timestamp(
     nonce: int | None = None,
 ) -> bool:
     """Wrapper around rfc3161ng.check_timestamp that supports EC public keys."""
-    from cryptography.hazmat.primitives import hashes
+    from cryptography.hazmat.primitives import hashes  # noqa: PLC0415
 
     try:
         return _original_check_timestamp(tst, certificate, data, digest, hashname, nonce)
@@ -31,8 +31,8 @@ def _patched_check_timestamp(
 
     # EC key path: re-implement the signature verification with correct EC API.
     # We re-parse the TST to extract the signature and signed data.
-    from pyasn1.codec.der import decoder, encoder
-    from pyasn1.type import univ
+    from pyasn1.codec.der import decoder, encoder  # noqa: PLC0415
+    from pyasn1.type import univ  # noqa: PLC0415
 
     if not isinstance(tst, rfc3161ng.TimeStampToken):
         tst, _ = decoder.decode(tst, asn1Spec=rfc3161ng.TimeStampToken())

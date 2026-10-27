@@ -1,5 +1,4 @@
 import datetime
-from datetime import timezone
 from unittest import TestCase
 
 from bytes.models import HashingAlgorithm
@@ -9,7 +8,7 @@ from tests.loading import get_raw_data
 
 class HashTests(TestCase):
     def test_hash_same_data(self) -> None:
-        dt = datetime.datetime(year=2022, month=1, day=1, hour=0, minute=0, second=0, tzinfo=timezone.utc)
+        dt = datetime.datetime(year=2022, month=1, day=1, hour=0, minute=0, second=0, tzinfo=datetime.UTC)
 
         secure_hash = hash_data(data=get_raw_data(), datetime=dt)
 
@@ -28,7 +27,7 @@ class HashTests(TestCase):
         )
 
     def test_hash_sha224(self) -> None:
-        dt = datetime.datetime(year=2022, month=1, day=1, hour=0, minute=0, second=0, tzinfo=timezone.utc)
+        dt = datetime.datetime(year=2022, month=1, day=1, hour=0, minute=0, second=0, tzinfo=datetime.UTC)
 
         secure_hash = hash_data(data=get_raw_data(), datetime=dt, hash_algo=HashingAlgorithm.SHA224)
 

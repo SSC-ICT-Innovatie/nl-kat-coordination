@@ -71,10 +71,10 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.0
+    rev: v3.21.1
     hooks:
       - id: pyupgrade
-        args: [--py310-plus]
+        args: [--py311-plus]
 
   - repo: https://github.com/adamchainz/django-upgrade
     rev: 1.22.1

@@ -1,7 +1,7 @@
 import time
 import unittest
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest import mock
 
@@ -212,8 +212,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         task_db_second = models.Task(
@@ -224,11 +224,11 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
             status=models.TaskStatus.FAILED,
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
-        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc))
+        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(UTC))
 
         # Mock
         self.mock_get_latest_task_by_hash.side_effect = [task_db_first, task_db_second]
@@ -285,7 +285,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         ooi = OOIFactory(scan_profile=scan_profile)
         boefje = BoefjeFactory()
         task = models.BoefjeTask(boefje=boefje, input_ooi=ooi.primary_key, organization=self.organisation.id)
-        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc))
+        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(UTC))
 
         # Mock
         self.mock_get_latest_task_by_hash.return_value = None
@@ -313,8 +313,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         # Mock
@@ -341,8 +341,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
         # Mock
@@ -372,8 +372,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         # Mock
@@ -406,8 +406,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
         # Mock
@@ -435,8 +435,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
         # Mock
@@ -467,8 +467,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         # Mock
@@ -497,14 +497,14 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
         task_bytes = BoefjeMetaFactory(
             boefje=boefje,
             input_ooi=ooi.primary_key,
-            ended_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
+            ended_at=datetime.now(UTC) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
         # Mock
@@ -533,11 +533,11 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC) - timedelta(seconds=self.mock_ctx.config.pq_grace_period),
         )
 
-        task_bytes = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(timezone.utc))
+        task_bytes = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(UTC))
 
         # Mock
         self.mock_get_latest_task_by_hash.return_value = task_db
@@ -673,8 +673,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         # Mocks
@@ -979,8 +979,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         self.mock_get_plugin.return_value = plugin
@@ -1028,8 +1028,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         self.mock_get_plugin.return_value = plugin
@@ -1064,7 +1064,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         # day at midnight
         self.assertEqual(
             schedule_db.deadline_at,
-            datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1),
+            datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1),
         )
 
     def test_post_push_boefje_interval(self):
@@ -1083,8 +1083,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         self.mock_get_plugin.return_value = plugin
@@ -1116,7 +1116,7 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
 
         # Check if the deadline_at is set correctly with the interval
         # set to 1500 minutes (25 hours) to at least the next day
-        self.assertGreater(schedule_db.deadline_at, datetime.now(timezone.utc) + timedelta(days=1))
+        self.assertGreater(schedule_db.deadline_at, datetime.now(UTC) + timedelta(days=1))
 
     def test_pop(self):
         # Arrange
@@ -1137,8 +1137,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         # Mocks
@@ -1180,8 +1180,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
                 type=models.BoefjeTask.type,
                 hash=boefje_task.hash,
                 data=boefje_task.model_dump(),
-                created_at=datetime.now(timezone.utc),
-                modified_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
+                modified_at=datetime.now(UTC),
             )
             original_tasks.append(task)
 
@@ -1221,8 +1221,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
                 type=models.BoefjeTask.type,
                 hash=boefje_task.hash,
                 data=boefje_task.model_dump(),
-                created_at=datetime.now(timezone.utc),
-                modified_at=datetime.now(timezone.utc),
+                created_at=datetime.now(UTC),
+                modified_at=datetime.now(UTC),
             )
             original_tasks.append(task)
 
@@ -1243,8 +1243,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         self.scheduler.push_item_to_queue(task)
@@ -1272,8 +1272,8 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
             type=models.BoefjeTask.type,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            created_at=datetime.now(timezone.utc),
-            modified_at=datetime.now(timezone.utc),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
         )
 
         # Mocks
@@ -2181,7 +2181,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2226,7 +2226,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2270,7 +2270,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2309,7 +2309,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2348,7 +2348,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2387,7 +2387,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
@@ -2426,7 +2426,7 @@ class RescheduleTestCase(BoefjeSchedulerBaseTestCase):
             organisation=self.organisation.id,
             hash=boefje_task.hash,
             data=boefje_task.model_dump(),
-            deadline_at=datetime.now(timezone.utc) + timedelta(seconds=1),
+            deadline_at=datetime.now(UTC) + timedelta(seconds=1),
         )
 
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)

@@ -50,8 +50,10 @@ class Migration(migrations.Migration):
                             (4, "4. Poorly Detectable. Detecting the failure mode is difficult."),
                             (
                                 5,
-                                "5. Almost Undetectable. "
-                                "Failure mode detection is very difficult or nearly impossible.",
+                                (
+                                    "5. Almost Undetectable. "
+                                    "Failure mode detection is very difficult or nearly impossible."
+                                ),
                             ),
                         ]
                     ),

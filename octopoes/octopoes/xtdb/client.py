@@ -1,6 +1,6 @@
 import functools
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from json import JSONDecodeError
 from typing import Any
@@ -86,7 +86,7 @@ class XTDBHTTPClient:
 
     def get_entity(self, entity_id: str, valid_time: datetime | None = None) -> dict:
         if valid_time is None:
-            valid_time = datetime.now(timezone.utc)
+            valid_time = datetime.now(UTC)
         res = self._session.get(
             f"{self.node_url}/entity", params={"eid": entity_id, "valid-time": valid_time.isoformat()}
         )
@@ -135,7 +135,7 @@ class XTDBHTTPClient:
 
     def query(self, query: str | Query, valid_time: datetime | None = None) -> list[list[Any]]:
         if valid_time is None:
-            valid_time = datetime.now(timezone.utc)
+            valid_time = datetime.now(UTC)
         res = self._session.post(
             f"{self.node_url}/query",
             params={"valid-time": valid_time.isoformat()},

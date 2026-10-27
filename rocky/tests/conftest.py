@@ -4,7 +4,7 @@ import json
 import logging
 import uuid
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, IPv6Address
 from os import urandom
 from pathlib import Path
@@ -82,7 +82,7 @@ def fixture_configure_structlog(log_output):
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.fixture(params=LANG_LIST)

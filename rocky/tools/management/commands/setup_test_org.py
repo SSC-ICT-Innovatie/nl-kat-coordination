@@ -152,7 +152,7 @@ class Command(BaseCommand):
         )
         bytes_client = get_bytes_client(org_code)
 
-        valid_time = datetime.datetime.now(datetime.timezone.utc)
+        valid_time = datetime.datetime.now(datetime.UTC)
 
         # Network (usually already seeded by organization creation signal)
         network = Network(name="internet")

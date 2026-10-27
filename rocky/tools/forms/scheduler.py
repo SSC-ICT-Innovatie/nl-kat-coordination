@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
@@ -56,7 +56,7 @@ class TaskFilterForm(forms.Form):
 
         date_message = _("The selected date (%s) is in the future. Please select a different date.")
 
-        now = datetime.now(tz=timezone.utc)
+        now = datetime.now(tz=UTC)
 
         if min_created_at is not None and min_created_at > now.date():
             self.add_error("min_created_at", date_message % _("'from'"))

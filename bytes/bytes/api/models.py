@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ class File(BaseModel):
     tags: list[str] = Field(default_factory=list)
 
 
-class StatusEnum(str, Enum):
+class StatusEnum(StrEnum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
     TIMEOUT = "TIMEOUT"

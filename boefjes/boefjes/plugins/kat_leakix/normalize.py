@@ -2,7 +2,7 @@ import ipaddress
 import json
 import re
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from dateutil.parser import parse as parse_datetime
 
@@ -383,9 +383,9 @@ def collect_certificate_candidate(event, candidates: dict) -> None:
         return
 
     try:
-        event_time = parse_datetime(event["time"]).astimezone(timezone.utc)
+        event_time = parse_datetime(event["time"]).astimezone(UTC)
     except (KeyError, TypeError, ValueError, OverflowError):
-        event_time = datetime.min.replace(tzinfo=timezone.utc)
+        event_time = datetime.min.replace(tzinfo=UTC)
 
     # Key on the host first so distinct SNI virtual hosts on the same IP:port keep
     # their own certificate; rescans of the same host still dedup to the newest.
@@ -410,7 +410,7 @@ def extract_certificate(event, network_reference):
         pk_algorithm=certificate_data.get("key_algo") or None,
         pk_size=certificate_data.get("key_size") or None,
         serial_number=certificate_data["fingerprint"],
-        expires_in=parse_datetime(valid_until).astimezone(timezone.utc) - datetime.now(timezone.utc),
+        expires_in=parse_datetime(valid_until).astimezone(UTC) - datetime.now(UTC),
     )
     yield certificate
 

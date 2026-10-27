@@ -1,8 +1,9 @@
+from typing import Self
+
 import structlog
 from psycopg2 import errors
 from sqlalchemy import exc
 from sqlalchemy.orm import Session, sessionmaker
-from typing_extensions import Self
 
 from boefjes.storage.interfaces import IntegrityError, StorageError, UniqueViolation
 
