@@ -9,8 +9,9 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError, HTTPStatusError
-from octopoes.models.types import OOI_TYPES
 from tools.forms.upload_raw import UploadRawForm
+
+from octopoes.models.types import OOI_TYPES
 
 
 class UploadRaw(OrganizationPermissionRequiredMixin, OrganizationView, FormView):

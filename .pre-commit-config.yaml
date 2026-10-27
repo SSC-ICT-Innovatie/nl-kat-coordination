@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+    rev: v5.0.0
     hooks:
       - id: trailing-whitespace
       - id: mixed-line-ending
@@ -33,13 +33,13 @@ repos:
           )
 
   - repo: https://github.com/abravalheri/validate-pyproject
-    rev: v0.27
+    rev: v0.23
     hooks:
       - id: validate-pyproject
         files: pyproject.toml$
 
   - repo: https://github.com/rstcheck/rstcheck
-    rev: v6.3.0
+    rev: v6.2.4
     hooks:
       - id: rstcheck
         # https://github.com/rstcheck/rstcheck-core/issues/4
@@ -53,37 +53,37 @@ repos:
         additional_dependencies: ["rstcheck[sphinx]", "autodoc-pydantic==2.1.0"]
 
   - repo: https://github.com/MarketSquare/robotframework-tidy
-    rev: "4.18.0"
+    rev: "4.14.0"
     hooks:
       - id: robotidy
 
   - repo: https://github.com/jendrikseipp/vulture
-    rev: v2.16
+    rev: v2.13
     hooks:
       - id: vulture
         exclude: |
           /tests/
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: "v0.17.2"
+    rev: "v0.8.1"
     hooks:
       - id: ruff
       - id: ruff-format
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.22.0
+    rev: v3.21.1
     hooks:
       - id: pyupgrade
-        args: [--py310-plus]
+        args: [--py311-plus]
 
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.33.0
+    rev: 1.22.1
     hooks:
       - id: django-upgrade
         args: [--target-version, "5.0"]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v2.4.0
+    rev: v1.13.0
     hooks:
       - id: mypy
         additional_dependencies:
@@ -110,7 +110,7 @@ repos:
           )
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.3
+    rev: v2.3.0
     hooks:
       - id: codespell
         additional_dependencies: ["tomli"]
@@ -140,7 +140,7 @@ repos:
           )
 
   - repo: https://github.com/Riverside-Healthcare/djLint
-    rev: v1.47.0
+    rev: v1.36.3
     hooks:
       - id: djlint-reformat-django
         files: |
@@ -159,7 +159,7 @@ repos:
         exclude: '^rocky/rocky/templates/admin/.*\.html$'
 
   - repo: https://github.com/thibaudcolas/pre-commit-stylelint
-    rev: v18.0.0-next.0
+    rev: v16.10.0
     hooks:
       - id: stylelint
         args: [--fix]
@@ -169,13 +169,13 @@ repos:
         files: "^(rocky\/assets\/css\/|docs\/source\/).*.(css|scss|sass)$"
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1-1
+    rev: v0.10.0.1
     hooks:
       - id: shellcheck
         args: ["-e", "SC1091"]
 
   - repo: https://github.com/scop/pre-commit-shfmt
-    rev: v3.14.1-1
+    rev: v3.10.0-1
     hooks:
       - id: shfmt
         args: ["-w", "-s", "-i", "4", "-sr"]

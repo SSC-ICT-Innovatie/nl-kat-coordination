@@ -2,8 +2,8 @@ from datetime import UTC, datetime
 from io import BytesIO
 
 from pytest_django.asserts import assertContains
-from rocky.views.upload_raw import UploadRaw
 
+from rocky.views.upload_raw import UploadRaw
 from tests.conftest import setup_request
 
 

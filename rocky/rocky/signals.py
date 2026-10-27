@@ -11,12 +11,12 @@ from django_otp.models import Device
 from httpx import HTTPError
 from katalogus.client import KATalogusClient, get_katalogus_client
 from katalogus.exceptions import KATalogusDownException, KATalogusException, KATalogusUnhealthyException
-from octopoes.api.models import Declaration
-from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models.ooi.network import Network
 from structlog import get_logger
 from tools.models import Organization
 
+from octopoes.api.models import Declaration
+from octopoes.connector.octopoes import OctopoesAPIConnector
+from octopoes.models.ooi.network import Network
 from rocky.exceptions import OctopoesDownException, OctopoesException, OctopoesUnhealthyException
 
 logger = get_logger(__name__)

@@ -4,11 +4,11 @@ import logging
 from collections.abc import Iterable
 
 from dateutil.parser import parse
+
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.certificate import X509Certificate
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
-
-from boefjes.normalizer_models import NormalizerOutput
 
 logger = logging.getLogger(__name__)
 

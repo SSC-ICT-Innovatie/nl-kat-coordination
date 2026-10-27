@@ -5,6 +5,7 @@ from datetime import UTC, datetime
 from ipaddress import ip_address
 
 import pytest
+
 from octopoes.api.models import Declaration, Observation
 from octopoes.config.settings import Settings
 from octopoes.connector.octopoes import OctopoesAPIConnector

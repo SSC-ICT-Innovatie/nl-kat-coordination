@@ -7,14 +7,14 @@ from django.http import FileResponse, Http404
 from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
-from octopoes.models import ScanLevel
-from octopoes.models.types import OOIType
-from rocky.scheduler import ScheduleResponse
-from rocky.views.tasks import TaskListView
 from tools.forms.ooi import SelectOOIFilterForm, SelectOOIForm
 
 from katalogus.client import Boefje, Normalizer
 from katalogus.views.plugin_settings_list import PluginSettingsListView
+from octopoes.models import ScanLevel
+from octopoes.models.types import OOIType
+from rocky.scheduler import ScheduleResponse
+from rocky.views.tasks import TaskListView
 
 
 class PluginCoverImgView(OrganizationView):

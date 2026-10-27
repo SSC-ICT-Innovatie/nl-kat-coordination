@@ -10,6 +10,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import click
+from httpx import HTTPStatusError
+from sqlalchemy.orm import sessionmaker
+
 from boefjes.api import get_bytes_client
 from boefjes.clients.scheduler_client import get_octopoes_api_connector
 from boefjes.config import settings
@@ -21,9 +24,7 @@ from boefjes.sql.plugin_storage import create_plugin_storage
 from boefjes.storage.interfaces import OrganisationStorage
 from boefjes.worker.models import Boefje
 from boefjes.worker.repository import get_local_repository
-from httpx import HTTPStatusError
 from octopoes.models.origin import OriginType
-from sqlalchemy.orm import sessionmaker
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 

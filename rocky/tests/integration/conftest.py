@@ -4,6 +4,9 @@ from ipaddress import ip_address
 
 import pytest
 from django.conf import settings
+from reports.runner.report_runner import LocalReportRunner
+from tools.models import Organization
+
 from octopoes.api.models import Declaration, Observation
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, DeclaredScanProfile, Reference
@@ -14,9 +17,7 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Networ
 from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, SecurityTXT, Website
-from reports.runner.report_runner import LocalReportRunner
 from rocky.health import ServiceHealth
-from tools.models import Organization
 
 
 @pytest.fixture

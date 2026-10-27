@@ -2,15 +2,15 @@ import datetime
 import ipaddress
 import uuid
 
-from boefjes.plugins.kat_ssl_certificates.normalize import read_certificates, run
 from cryptography import x509
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ed448, ed25519, rsa
 from cryptography.x509.oid import NameOID
+
+from boefjes.plugins.kat_ssl_certificates.normalize import read_certificates, run
 from octopoes.api.models import Observation
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.certificate import SignatureVerificationStatus
-
 from tests.loading import get_dummy_data
 
 input_ooi = {

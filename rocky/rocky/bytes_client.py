@@ -9,8 +9,8 @@ from typing import Any
 import httpx
 import structlog
 from django.conf import settings
-from octopoes.api.models import Declaration
 
+from octopoes.api.models import Declaration
 from rocky.health import ServiceHealth
 from rocky.scheduler import Boefje, BoefjeMeta, Normalizer, NormalizerMeta, RawData
 

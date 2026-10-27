@@ -8,8 +8,8 @@ from django.http.response import HttpResponseRedirectBase
 from django.urls.base import reverse, reverse_lazy
 from django.utils.functional import Promise
 from django.utils.translation import gettext_lazy as _
-from octopoes.models.types import OOI_TYPES
 
+from octopoes.models.types import OOI_TYPES
 from tools.models import Organization
 
 

@@ -6,10 +6,10 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
-from octopoes.models.ooi.findings import MutedFinding
 from tools.forms.ooi import MuteFindingForm
 from tools.ooi_helpers import create_oois
 
+from octopoes.models.ooi.findings import MutedFinding
 from rocky.views.mixins import SingleOOIMixin
 from rocky.views.ooi_view import BaseOOIDetailView
 

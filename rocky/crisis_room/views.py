@@ -19,6 +19,12 @@ from django.utils.text import slugify
 from django.views.generic import TemplateView
 from django.views.generic.edit import FormView
 from httpx import HTTPStatusError, ReadTimeout
+from pydantic import Field
+from reports.report_types.findings_report.report import SEVERITY_OPTIONS
+from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES
+
+from crisis_room.forms import AddDashboardForm
+from crisis_room.models import MAX_POSITION, Dashboard, DashboardItem
 from octopoes.config.settings import DEFAULT_SCAN_LEVEL_FILTER, DEFAULT_SCAN_PROFILE_TYPE_FILTER
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference, ScanLevel, ScanProfileType
@@ -26,14 +32,8 @@ from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.findings import RiskLevelSeverity
 from octopoes.models.ooi.reports import HydratedReport
 from octopoes.models.types import get_collapsed_types, type_by_name
-from pydantic import Field
-from reports.report_types.findings_report.report import SEVERITY_OPTIONS
 from rocky.bytes_client import get_bytes_client
 from rocky.views.mixins import FindingList
-from tools.forms.ooi_form import _EXCLUDED_OOI_TYPES
-
-from crisis_room.forms import AddDashboardForm
-from crisis_room.models import MAX_POSITION, Dashboard, DashboardItem
 
 logger = structlog.get_logger(__name__)
 

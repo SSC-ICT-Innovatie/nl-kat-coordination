@@ -1,6 +1,8 @@
 import datetime
 
 import pytest
+from pydantic import ValidationError
+
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.records import DNSTXTRecord
 from octopoes.models.ooi.dns.zone import Hostname
@@ -9,7 +11,6 @@ from octopoes.models.ooi.reports import AssetReport
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.ooi.web import URL, HTTPHeader
 from octopoes.models.types import get_concrete_types
-from pydantic import ValidationError
 
 
 def test_escaper_only_touches_the_separator():

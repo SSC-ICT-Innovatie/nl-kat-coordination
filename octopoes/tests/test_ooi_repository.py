@@ -14,7 +14,6 @@ from octopoes.models.path import _cached_paths_to_neighbours
 from octopoes.models.persistence import ReferenceField
 from octopoes.repositories.ooi_repository import XTDBOOIRepository
 from octopoes.xtdb.client import XTDBHTTPClient, XTDBSession
-
 from tests.mocks.mock_ooi_types import (
     ALL_OOI_TYPES,
     OOITYPE_BY_NAME,

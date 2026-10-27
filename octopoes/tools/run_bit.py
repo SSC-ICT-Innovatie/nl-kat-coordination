@@ -12,6 +12,7 @@ import click
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 from bits.definitions import get_bit_definitions
+
 from octopoes.config.settings import Settings
 from octopoes.core.app import bootstrap_octopoes, get_xtdb_client
 from octopoes.models.exception import ObjectNotFoundException

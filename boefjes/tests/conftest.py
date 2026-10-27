@@ -10,6 +10,10 @@ from uuid import UUID
 
 import alembic.config
 import pytest
+from fastapi.testclient import TestClient
+from pydantic import TypeAdapter
+from sqlalchemy.orm import sessionmaker
+
 from boefjes.clients.bytes_client import BytesAPIClient
 from boefjes.config import settings
 from boefjes.dependencies.plugins import PluginService, get_plugin_service
@@ -46,16 +50,12 @@ from boefjes.worker.repository import (
     get_local_repository,
     get_normalizer_resource,
 )
-from fastapi.testclient import TestClient
 from octopoes.api.models import Declaration, Observation
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network
 from octopoes.models.ooi.service import IPService, Service
-from pydantic import TypeAdapter
-from sqlalchemy.orm import sessionmaker
-
 from tests.loading import get_dummy_data
 
 

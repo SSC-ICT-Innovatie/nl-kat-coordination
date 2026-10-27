@@ -12,14 +12,14 @@ from django.urls import reverse, reverse_lazy
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
 from httpx import HTTPError
-from octopoes.connector import RemoteException
-from octopoes.models import EmptyScanProfile, Reference, ScanProfileType
-from octopoes.models.exception import ObjectNotFoundException
 from tools.enums import CUSTOM_SCAN_LEVEL, SCAN_LEVEL
 from tools.forms.ooi import SetClearanceLevelForm
 from tools.forms.ooi_form import OOISearchForm, OOITypeMultiCheckboxForm
 from tools.view_helpers import get_mandatory_fields
 
+from octopoes.connector import RemoteException
+from octopoes.models import EmptyScanProfile, Reference, ScanProfileType
+from octopoes.models.exception import ObjectNotFoundException
 from rocky.exceptions import (
     AcknowledgedClearanceLevelTooLowException,
     IndemnificationNotPresentException,

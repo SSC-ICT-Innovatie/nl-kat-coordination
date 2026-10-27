@@ -3,6 +3,7 @@ import os
 from datetime import UTC, datetime
 
 import pytest
+
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
@@ -15,7 +16,6 @@ from octopoes.repositories.origin_repository import XTDBOriginRepository
 from octopoes.xtdb.client import OperationType, XTDBHTTPClient, XTDBSession
 from octopoes.xtdb.exceptions import NodeNotFound
 from octopoes.xtdb.query import Aliased, Query
-
 from tests.conftest import seed_asset_report, seed_report, seed_system
 
 logger = logging.getLogger(__name__)

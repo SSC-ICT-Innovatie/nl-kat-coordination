@@ -6,12 +6,12 @@ from django.shortcuts import redirect
 from django.urls.base import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
-from octopoes.api.models import Declaration
-from octopoes.models.ooi.findings import KATFindingType
 from tools.forms.finding_type import FindingTypeAddForm
 from tools.models import OOIInformation
 from tools.view_helpers import get_ooi_url
 
+from octopoes.api.models import Declaration
+from octopoes.models.ooi.findings import KATFindingType
 from rocky.bytes_client import BytesClient
 
 

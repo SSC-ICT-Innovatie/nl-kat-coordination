@@ -7,10 +7,10 @@ from django.contrib.auth import get_user_model
 from django.shortcuts import redirect
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView
-from octopoes.models import DeclaredScanProfile, EmptyScanProfile, ScanProfileType
 from tools.forms.ooi import SetClearanceLevelForm
 from tools.view_helpers import get_mandatory_fields, get_ooi_url
 
+from octopoes.models import DeclaredScanProfile, EmptyScanProfile, ScanProfileType
 from rocky.views.ooi_detail import OOIDetailView
 
 logger = structlog.get_logger(__name__)

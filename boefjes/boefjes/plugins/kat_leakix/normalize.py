@@ -5,6 +5,8 @@ from collections.abc import Iterable
 from datetime import UTC, datetime
 
 from dateutil.parser import parse as parse_datetime
+
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
     SubjectAlternativeNameHostname,
@@ -15,8 +17,6 @@ from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType
 from octopoes.models.ooi.network import AutonomousSystem, IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
 from octopoes.models.ooi.software import Software, SoftwareInstance
-
-from boefjes.normalizer_models import NormalizerOutput
 
 SEVERITY_FINDING_MAPPING = {
     "critical": "KAT-LEAKIX-CRITICAL",

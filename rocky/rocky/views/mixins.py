@@ -23,6 +23,13 @@ from django.views.generic.base import ContextMixin
 from django.views.generic.edit import FormMixin
 from httpx import HTTPError
 from katalogus.client import Boefje
+from pydantic import BaseModel
+from tools.forms.base import ObservedAtForm
+from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
+from tools.models import Organization, OrganizationMember
+from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
+from tools.view_helpers import convert_date_to_datetime, get_ooi_url
+
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
@@ -33,12 +40,6 @@ from octopoes.models.origin import Origin, OriginType
 from octopoes.models.pagination import Paginated
 from octopoes.models.tree import ReferenceTree
 from octopoes.models.types import get_relations
-from pydantic import BaseModel
-from tools.forms.base import ObservedAtForm
-from tools.forms.settings import DEPTH_DEFAULT, DEPTH_MAX
-from tools.models import Organization, OrganizationMember
-from tools.ooi_helpers import get_knowledge_base_data_for_ooi_store
-from tools.view_helpers import convert_date_to_datetime, get_ooi_url
 
 logger = structlog.get_logger(__name__)
 

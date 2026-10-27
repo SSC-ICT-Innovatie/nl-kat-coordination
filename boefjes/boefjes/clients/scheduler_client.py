@@ -9,15 +9,15 @@ import structlog
 from httpx import Client, HTTPError, HTTPTransport, Response
 from jsonschema import ValidationError
 from jsonschema.validators import validate
-from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import Reference
-from octopoes.models.exception import ObjectNotFoundException
 from pydantic import TypeAdapter
 
 from boefjes.config import settings
 from boefjes.dependencies.plugins import PluginService
 from boefjes.worker.interfaces import SchedulerClientInterface, Task, TaskPop, TaskStatus, WorkerManager
 from boefjes.worker.job_models import BoefjeMeta
+from octopoes.connector.octopoes import OctopoesAPIConnector
+from octopoes.models import Reference
+from octopoes.models.exception import ObjectNotFoundException
 
 logger = structlog.get_logger(__name__)
 

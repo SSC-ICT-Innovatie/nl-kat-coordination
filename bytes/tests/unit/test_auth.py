@@ -1,10 +1,10 @@
 from datetime import UTC, datetime, timedelta
 
 import jwt
-from bytes.auth import ALGORITHM, authenticate_token
-from bytes.config import Settings
 from fastapi.testclient import TestClient
 
+from bytes.auth import ALGORITHM, authenticate_token
+from bytes.config import Settings
 from tests.loading import load_stub
 
 # Any UUID works — the request never reaches the DB because authenticate_token runs first.

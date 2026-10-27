@@ -8,13 +8,13 @@ from croniter import croniter
 from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
+from pydantic import AnyUrl, JsonValue
+from pydantic.fields import FieldInfo
+
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.models import OOI
 from octopoes.models.ooi.question import Question
 from octopoes.models.types import get_collapsed_types, get_relations
-from pydantic import AnyUrl, JsonValue
-from pydantic.fields import FieldInfo
-
 from tools.enums import SCAN_LEVEL
 from tools.forms.base import BaseRockyForm, ObservedAtForm
 from tools.forms.findings import FindingSearchForm, FindingSeverityMultiSelectForm, MutedFindingSelectionForm

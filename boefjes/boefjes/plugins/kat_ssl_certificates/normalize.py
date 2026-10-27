@@ -11,6 +11,8 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
 from dateutil.parser import parse
+
+from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
     AlgorithmType,
@@ -26,8 +28,6 @@ from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
 from octopoes.models.ooi.service import IPService, Service
 from octopoes.models.ooi.web import Website
-
-from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:

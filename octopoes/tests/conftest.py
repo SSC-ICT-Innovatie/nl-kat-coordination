@@ -6,6 +6,7 @@ from unittest.mock import Mock
 
 import pytest
 from bits.runner import BitRunner
+
 from octopoes.config.settings import Settings
 from octopoes.connector.octopoes import OctopoesAPIConnector
 from octopoes.core.app import get_xtdb_client

@@ -19,16 +19,13 @@ from django.utils.translation import gettext_lazy as _
 from django.views.generic import FormView, TemplateView
 from django_weasyprint import WeasyTemplateResponseMixin
 from katalogus.client import Boefje, KATalogus, KATalogusError, Plugin
+from tools.ooi_helpers import create_ooi
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, PostRedirect, url_with_querystring
+
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.reports import AssetReport, ReportRecipe
 from octopoes.models.ooi.reports import BaseReport as ReportOOI
 from octopoes.models.types import OOIType, type_by_name
-from rocky.views.mixins import AddDashboardItemFormMixin, ObservedAtMixin, OOIList
-from rocky.views.ooi_view import BaseOOIListView, OOIFilterView
-from rocky.views.scheduler import SchedulerView
-from tools.ooi_helpers import create_ooi
-from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, PostRedirect, url_with_querystring
-
 from reports.forms import OOITypeMultiCheckboxForReportForm, ReportScheduleStartDateForm
 from reports.report_types.aggregate_organisation_report.report import AggregateOrganisationReport
 from reports.report_types.concatenated_report.report import ConcatenatedReport
@@ -43,6 +40,9 @@ from reports.report_types.helpers import (
 )
 from reports.report_types.multi_organization_report.report import MultiOrganizationReport
 from reports.utils import JSONEncoder, debug_json_keys
+from rocky.views.mixins import AddDashboardItemFormMixin, ObservedAtMixin, OOIList
+from rocky.views.ooi_view import BaseOOIListView, OOIFilterView
+from rocky.views.scheduler import SchedulerView
 
 REPORTS_PRE_SELECTION = {"clearance_level": ["2", "3", "4"], "clearance_type": "declared"}
 

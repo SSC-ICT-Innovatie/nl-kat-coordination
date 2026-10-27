@@ -1,6 +1,8 @@
 import json
 from datetime import UTC, datetime
 
+from pydantic import TypeAdapter
+
 import boefjes.plugins.kat_leakix.normalize as leakix_normalize
 from boefjes.plugins.kat_leakix.normalize import run
 from octopoes.models import Reference
@@ -13,8 +15,6 @@ from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import AutonomousSystem, IPAddressV4, IPPort
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.types import OOIType
-from pydantic import TypeAdapter
-
 from tests.loading import get_dummy_data
 
 # The example.com fixture was captured on 2024-02-14; freezing the clock there

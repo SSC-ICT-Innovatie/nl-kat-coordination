@@ -12,10 +12,12 @@ from django.utils.translation import gettext_lazy as _
 from django.views import View
 from django.views.generic.base import ContextMixin
 from katalogus.client import KATalogus, get_katalogus
-from octopoes.connector.octopoes import OctopoesAPIConnector
-from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
 from rest_framework.exceptions import ValidationError
 from rest_framework.request import Request
+from tools.models import Indemnification, Organization, OrganizationMember
+
+from octopoes.connector.octopoes import OctopoesAPIConnector
+from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
 from rocky.bytes_client import BytesClient, get_bytes_client
 from rocky.exceptions import (
     AcknowledgedClearanceLevelTooLowException,
@@ -23,7 +25,6 @@ from rocky.exceptions import (
     TrustedClearanceLevelTooLowException,
 )
 from rocky.scheduler import SchedulerClient, scheduler_client
-from tools.models import Indemnification, Organization, OrganizationMember
 
 logger = structlog.get_logger(__name__)
 

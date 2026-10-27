@@ -1,13 +1,13 @@
 from datetime import UTC, datetime, timedelta
 
 from django.urls import resolve, reverse
+from tools.forms.base import ObservedAtForm
+
 from octopoes.models.ooi.network import Network
 from octopoes.models.pagination import Paginated
 from octopoes.models.types import OOIType
 from rocky.views.mixins import ObservedAtMixin
 from rocky.views.ooi_list import OOIListView
-from tools.forms.base import ObservedAtForm
-
 from tests.conftest import setup_request
 
 
