@@ -90,7 +90,6 @@ def boefje_output(
     boefje_meta.ended_at = datetime.now(timezone.utc)
 
     try:
-        bytes_client.login()
         bytes_client.save_boefje_meta(boefje_meta)
 
         bytes_response = {}
