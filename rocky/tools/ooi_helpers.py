@@ -71,10 +71,13 @@ def format_display(data: dict, ignore: list | None = None) -> dict[str, str]:
 
 
 def is_legacy_tls_cipher_finding(finding: OOI) -> bool:
-    """Detect saved cipher evidence that predates the `proof` field fix."""
+    """Detect saved cipher evidence that predates the `proof` field fix.
+
+    Octopoes merges a re-inferred finding into the stored one and skips None values, so the old
+    `description` survives next to the new `proof` once the bit runs again.
+    """
     return (
         is_tls_cipher_finding(finding)
-        and not finding.proof
         and isinstance(finding.description, str)
         and finding.description.startswith(_TLS_CIPHER_EVIDENCE_PREFIX)
     )
@@ -82,7 +85,7 @@ def is_legacy_tls_cipher_finding(finding: OOI) -> bool:
 
 def finding_display_proof(finding: Finding) -> str | None:
     """Display TLS cipher proof without severity suffixes, preserving stored observations."""
-    proof = finding.description if is_legacy_tls_cipher_finding(finding) else finding.proof
+    proof = finding.proof or (finding.description if is_legacy_tls_cipher_finding(finding) else None)
 
     if is_tls_cipher_finding(finding) and isinstance(proof, str):
         return _TLS_CIPHER_SEVERITY_SUFFIX.sub("", proof)

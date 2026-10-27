@@ -29,7 +29,13 @@
                             <span class="{{ finding_type.risk_severity.value }}">{{ finding_type.risk_severity.value|capfirst }}</span>
                         </td>
                         <td>{{ finding_type.risk_score }}</td>
-                        <td>{{ finding.description|default:finding.proof }}</td>
+                        <td>
+                            {% if finding|is_legacy_cipher_finding %}
+                                {{ finding|display_proof }}
+                            {% else %}
+                                {{ finding.description|default:finding.proof }}
+                            {% endif %}
+                        </td>
                         <td>
                             <a href="{% ooi_url 'ooi_detail' finding.primary_key organization.code query=mandatory_fields %}">{{ finding.human_readable }}</a>
                         </td>
