@@ -516,6 +516,6 @@ def test_finding_occurrence_proof_displays_each_cipher_finding_on_a_new_line():
         proof="Cipher A - weak key exchange\nCipher B - insecure <algorithm>",
     )
 
-    html = render_to_string("partials/finding_occurrence_definition_list.html", {"finding": {finding}})
+    html = render_to_string("partials/finding_occurrence_definition_list.html", {"finding": finding})
 
     assert "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;" in html
