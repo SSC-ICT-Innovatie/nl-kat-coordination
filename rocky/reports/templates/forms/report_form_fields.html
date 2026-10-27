@@ -10,7 +10,11 @@
 {% endfor %}
 {% if request.GET.page %}<input type="hidden" name="page" value="{{ request.GET.page }}">{% endif %}
 {% if not disable_ooi_selection_fields %}
-    {% for ooi in selected_oois %}<input type="hidden" name="ooi" value="{{ ooi }}">{% endfor %}
+    {% if all_oois_selected %}
+        <input type="hidden" name="ooi" value="all">
+    {% else %}
+        {% for ooi in selected_oois %}<input type="hidden" name="ooi" value="{{ ooi }}">{% endfor %}
+    {% endif %}
 {% endif %}
 {% if not disable_report_type_fields %}
     {% for report_type in selected_report_types %}
