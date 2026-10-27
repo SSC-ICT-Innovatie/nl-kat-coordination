@@ -46,7 +46,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
         url = urlparse(f"{host}{path}")
 
-        address = ip_address(host_element.attributes["ip"].value)  # stdlib address, parsed ONCE
+        address = ip_address(host_element.attributes["ip"].value)
 
         hostname = None
         # we might be dealing with a request to an IP-address
@@ -55,8 +55,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield hostname
 
         port = 443 if url.scheme == "https" else 80
-
-        address = ip_address(host_element.attributes["ip"].value)
 
         if isinstance(address, IPv4Address):
             ip_ooi = IPAddressV4(address=address, network=network.reference)
@@ -89,7 +87,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield http_resource
         else:
             http_url = IPAddressHTTPURL(
-                network=network.reference, scheme=WebScheme(url.scheme), port=port, path=url.path, netloc=url.netloc
+                network=network.reference,
+                scheme=WebScheme(url.scheme),
+                port=port,
+                path=url.path,
+                netloc=ip_ooi.reference,
             )
 
         if issue.getElementsByTagName("vulnerabilityClassifications"):

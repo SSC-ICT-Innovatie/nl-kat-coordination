@@ -43,7 +43,9 @@ def test_normalizer_emits_ip_with_netblock_relation():
     assert all(port.address == discovered_ip.reference for port in output if isinstance(port, IPPort))
 
 
-def test_normalizer_emits_up_host_without_open_ports():
+def test_normalizer_skips_host_without_open_ports():
+    # With -Pn every scanned address is reported "up" (reason="user-set"); without open ports
+    # there is no evidence the address exists, so a netblock scan must not create it.
     network = Network(name="internet")
     netblock = IPV4NetBlock(
         network=network.reference,
@@ -53,12 +55,7 @@ def test_normalizer_emits_up_host_without_open_ports():
 
     raw = re.sub(rb"<ports>.*?</ports>", b"<ports/>", get_dummy_data("raw/nmap_mispoes.xml"), flags=re.DOTALL)
 
-    output = list(run(netblock.serialize(), raw))
-
-    assert len(output) == 1
-    assert isinstance(output[0], IPAddressV4)
-    assert str(output[0].address) == "134.209.85.72"
-    assert output[0].netblock == netblock.reference
+    assert list(run(netblock.serialize(), raw)) == []
 
 
 def test_normalizer_extracts_software_from_cpes():

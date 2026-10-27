@@ -52,9 +52,9 @@ def get_ip_ports_and_service(
         else IPAddressV6(network=network.reference, address=host.address, netblock=netblock)
     )
 
-    # Yield IP only when it isn't the input OOI itself, to prevent introduction of bug #2310
-    if input_ref is None or ip.reference != input_ref:
-        yield ip
+    # Never yield the input OOI itself (#2310). With -Pn nmap reports every scanned address as "up",
+    # so only yield the IP once it has an open port: otherwise each address of a netblock becomes an IP.
+    ip_yielded = input_ref is not None and ip.reference == input_ref
 
     for port, protocol in open_ports:
         service: NmapService = host.get_service(port, protocol)
@@ -62,6 +62,10 @@ def get_ip_ports_and_service(
         # If service is tcpwrapped we should consider the port closed
         if service.service == "tcpwrapped":
             continue
+
+        if not ip_yielded:
+            yield ip
+            ip_yielded = True
 
         ip_port = IPPort(address=ip.reference, protocol=Protocol(protocol), port=port, state=PortState(service.state))
         yield ip_port
