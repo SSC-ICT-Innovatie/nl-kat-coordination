@@ -11,28 +11,19 @@
             <span aria-hidden="true" class="icon ti-chevron-down"></span>
         </button>
         <ul id="language-switcher" role="listbox" class="dropdown-list">
-            {% for language in languages %}
-                {% get_language_info for language as lang %}
-                {% if LANGUAGE_CODE != language %}
+            {% for code, url in language_links %}
+                {% get_language_info for code as lang %}
+                {% if LANGUAGE_CODE != code %}
                     <li>
-                        <a hreflang="{{ language }}"
-                           href="#"
+                        <a hreflang="{{ code }}"
+                           href="{{ url }}"
                            role="option"
-                           data-value="{{ language }}"
-                           lang="{{ language }}">
-                            <button form="set-language" type="submit" name="language" value={{ language }}>
-                                {{ lang.name_local.title }}
-                            </button>
+                           lang="{{ code }}">
+                            <button>{{ lang.name_local.title }}</button>
                         </a>
                     </li>
                 {% endif %}
             {% endfor %}
         </ul>
     </div>
-    <form id="set-language"
-          action="{% url "set_language" %}"
-          method="post"
-          class="inline">
-        {% csrf_token %}
-    </form>
 </div>

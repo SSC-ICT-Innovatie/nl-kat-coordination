@@ -91,10 +91,10 @@
                                                 <tr>
                                                     <td>
                                                         {% if report.input_oois|length == 1 %}
-                                                            <a href="{% url "view_report" organization.code %}?asset_report_id={{ report.input_oois.0.reference }}&observed_at={{ report.input_oois.0.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                            <a href="{% url "view_report" organization.code %}?asset_report_id={{ report.input_oois.0.reference }}&observed_at={{ report.input_oois.0.observed_at|date:"Y-m-d H:i:s.u" }}"
                                                                title="{% translate "Show report details" %}">{{ report.input_oois.0.name }}</a>
                                                         {% else %}
-                                                            <a href="{% url "view_report" organization.code %}?report_id={{ report.reference }}&observed_at={{ report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                                                            <a href="{% url "view_report" organization.code %}?report_id={{ report.reference }}&observed_at={{ report.observed_at|date:"Y-m-d H:i:s.u" }}"
                                                                title="{% translate "Show report details" %}">{{ report.name }}</a>
                                                         {% endif %}
                                                     </td>

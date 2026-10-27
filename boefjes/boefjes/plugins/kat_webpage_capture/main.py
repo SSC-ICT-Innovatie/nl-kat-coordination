@@ -34,12 +34,32 @@ def build_playwright_command(webpage: str, browser: str, tmp_path: str) -> list[
     ]
 
 
+def playwright_log(output: subprocess.CompletedProcess) -> str:
+    """Both Playwright streams, labelled, so a failure can be diagnosed from the task log.
+
+    Playwright writes its diagnostics to stderr and leaves stdout empty on failure, so a log
+    built from stdout alone is empty exactly when it is needed.
+    """
+    return "\n".join(
+        f"{name}:\n{stream.decode(errors='replace')}"
+        for name, stream in (("stdout", output.stdout), ("stderr", output.stderr))
+        if stream
+    )
+
+
 def run_playwright(webpage: str, browser: str) -> tuple[bytes, bytes, bytes]:
     """Run Playwright in Docker."""
     tmp_path = "/tmp/output"  # noqa: S108
     command = build_playwright_command(webpage=webpage, browser=browser, tmp_path=tmp_path)
     output = subprocess.run(command, capture_output=True)
-    output.check_returncode()
+
+    # Not check_returncode(): its CalledProcessError renders neither stream, so the traceback
+    # says a command exited 1 and nothing about why. Playwright's own explanation is in stderr.
+    if output.returncode != 0:
+        raise WebpageCaptureException(
+            f"Playwright exited with code {output.returncode}, command was: " + " ".join(command),
+            playwright_log(output),
+        )
 
     try:
         image = Path(f"{tmp_path}.png").read_bytes()
@@ -48,7 +68,7 @@ def run_playwright(webpage: str, browser: str) -> tuple[bytes, bytes, bytes]:
     except FileNotFoundError:
         raise WebpageCaptureException(
             "Playwright container did not return expected files, command was: " + " ".join(command),
-            output.stdout.decode(),
+            playwright_log(output),
         )
 
     return image, har, storage

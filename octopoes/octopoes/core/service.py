@@ -1,7 +1,7 @@
 import json
 from collections import Counter
 from collections.abc import Callable, ValuesView
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import cached_property
 from time import perf_counter
 from typing import Literal, overload
@@ -296,7 +296,7 @@ class OctopoesService:
             start_ooi_references = {
                 profile.reference for profile in all_declared_scan_profiles if profile.level == current_level
             } | {reference for reference, level in assigned_scan_levels.items() if level > current_level}
-            next_ooi_set = {ooi for ooi in self.ooi_repository.load_bulk(start_ooi_references, valid_time).values()}
+            next_ooi_set = {*self.ooi_repository.load_bulk(start_ooi_references, valid_time).values()}
 
             while next_ooi_set:
                 # prepare next iteration, group oois per type
@@ -679,7 +679,7 @@ class OctopoesService:
         return inheritance_chain
 
     def recalculate_bits(self) -> int:
-        valid_time = datetime.now(timezone.utc)
+        valid_time = datetime.now(UTC)
         bit_counter: Counter[str] = Counter()
 
         # loop over all bit definitions and add origins and origin params

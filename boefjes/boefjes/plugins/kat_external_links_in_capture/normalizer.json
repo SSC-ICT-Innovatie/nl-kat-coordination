@@ -1,0 +1,12 @@
+{
+  "id": "kat_external_links_in_capture_normalize",
+  "name": "Webpage capture find externally linked hostnames",
+  "description": "Finds hostnames in the links on a captured page that belong to a different registrable domain than the page itself. Disabled by default: these are third-party hosts, they stay at clearance level 0 and are never scanned, so enable this only if you want them inventoried.",
+  "consumes": [
+    "application/har+json"
+  ],
+  "produces": [
+    "Hostname"
+  ],
+  "enabled": false
+}

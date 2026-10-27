@@ -196,6 +196,15 @@ def test_admin_does_not_see_grant_superuser_action(rf, admin_member, redteam_mem
     assertNotContains(response, "Grant superuser access")
 
 
+def test_sole_superuser_does_not_see_grant_on_own_member_page(rf, superuser_member):
+    request = setup_request(rf.get("organization_member_edit"), superuser_member.user)
+    response = OrganizationMemberEditView.as_view()(
+        request, organization_code=superuser_member.organization.code, pk=superuser_member.id
+    )
+
+    assertNotContains(response, "Grant superuser access")
+
+
 def test_superuser_can_view_grant_superuser_confirmation(rf, superuser_member, admin_member):
     request = setup_request(rf.get("organization_member_grant_superuser"), superuser_member.user)
     response = GrantSuperuserAccessView.as_view()(

@@ -32,17 +32,22 @@ def test_tls_report_multiple_findings_and_suites(
     assert data["suites"]["TLSv1"][0]["cipher_suite_name"] == "ECDHE-RSA-AES128-SHA"
     assert data["suites"]["TLSv1"][1]["cipher_suite_name"] == "ECDHE-RSA-AES256-SHA"
 
+    # The fixture uses the pre-#5470 "bits"/"key_size" keys; the report
+    # backfills them to "encryption_bits"/"key_exchange_bits" for the template.
+    assert data["suites"]["TLSv1"][0]["encryption_bits"] == 128
+    assert data["suites"]["TLSv1"][0]["key_exchange_bits"] == 256
+
     assert len(data["findings"]) == 3
     assert (
         data["findings"][0].primary_key
-        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-RECOMMENDATION-BAD-CIPHER"
+        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-RECOMMENDATION-TLS-CIPHER"
     )
     assert (
-        data["findings"][1].primary_key == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-MEDIUM-BAD-CIPHER"
+        data["findings"][1].primary_key == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-MEDIUM-TLS-CIPHER"
     )
     assert (
         data["findings"][2].primary_key
-        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-CRITICAL-BAD-CIPHER"
+        == "Finding|TLSCipher|testnetwork|192.0.2.1|tcp|80|domain|KAT-CRITICAL-TLS-CIPHER"
     )
 
     assert len(data["suites_with_findings"]) == 2

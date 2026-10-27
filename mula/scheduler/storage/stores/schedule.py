@@ -1,5 +1,5 @@
 from collections.abc import Iterable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import exc, func, not_, select
 
@@ -119,7 +119,7 @@ class ScheduleStore:
         active_statuses: Iterable[models.TaskStatus] | None = None,
         limit: int | None = None,
     ):
-        now = now or datetime.now(timezone.utc)
+        now = now or datetime.now(UTC)
         active_statuses = tuple(active_statuses or models.ACTIVE_TASK_STATUSES)
 
         active_task_exists = (

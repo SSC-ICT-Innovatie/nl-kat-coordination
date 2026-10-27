@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from unittest import TestCase, mock
 
 from scheduler.schedulers.rankers.boefje import BoefjeRanker, BoefjeRankerTimeBased
@@ -38,27 +38,27 @@ class BoefjeRankerTestCase(TestCase):
     def test_rank_task_just_ran_is_close_to_max_priority(self):
         # A task that just ran (no time elapsed) should sit near the top of the
         # 3..MAX_PRIORITY range. Allow a small tolerance for sub-second jitter.
-        recent = datetime.now(timezone.utc) - timedelta(seconds=1)
+        recent = datetime.now(UTC) - timedelta(seconds=1)
         score = self.ranker.rank(self._obj_with_latest_task(recent))
         self.assertGreater(score, BoefjeRanker.MAX_PRIORITY - 5)
         self.assertLessEqual(score, BoefjeRanker.MAX_PRIORITY)
 
     def test_rank_task_older_than_max_days_returns_3(self):
-        old = datetime.now(timezone.utc) - timedelta(days=BoefjeRanker.MAX_DAYS + 1)
+        old = datetime.now(UTC) - timedelta(days=BoefjeRanker.MAX_DAYS + 1)
         self.assertEqual(3, self.ranker.rank(self._obj_with_latest_task(old)))
 
     def test_rank_task_within_grace_period_returns_minus_one(self):
         # Set a grace period of 1 hour and a latest_task that ran 1 minute ago.
         # The grace period has not elapsed, so the ranker should signal "skip".
         self.ctx.config.pq_grace_period = 3600
-        recent = datetime.now(timezone.utc) - timedelta(minutes=1)
+        recent = datetime.now(UTC) - timedelta(minutes=1)
         self.assertEqual(-1, self.ranker.rank(self._obj_with_latest_task(recent)))
 
     def test_rank_decays_monotonically_over_time(self):
         # Two tasks where one ran more recently than the other should rank the
         # recent one higher (= larger priority number) than the older one.
         # Catches sign flips and .seconds-truncation regressions.
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         recent = self.ranker.rank(self._obj_with_latest_task(now - timedelta(hours=1)))
         older = self.ranker.rank(self._obj_with_latest_task(now - timedelta(days=3)))
         self.assertGreater(recent, older)
@@ -68,7 +68,7 @@ class BoefjeRankerTimeBasedTestCase(TestCase):
     def test_rank_returns_creation_epoch(self):
         ranker = BoefjeRankerTimeBased(ctx=mock.MagicMock())
         obj = mock.Mock()
-        obj.created_at = datetime(2026, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
+        obj.created_at = datetime(2026, 1, 1, 12, 0, 0, tzinfo=UTC)
         self.assertEqual(int(obj.created_at.timestamp()), ranker.rank(obj))
 
 
@@ -81,13 +81,13 @@ class NormalizerRankerTestCase(TestCase):
     def test_rank_returns_boefje_meta_ended_at_epoch(self):
         ranker = NormalizerRanker(ctx=mock.MagicMock())
         obj = mock.Mock()
-        obj.raw_data.boefje_meta.ended_at = datetime(2026, 4, 11, 9, 30, 0, tzinfo=timezone.utc)
+        obj.raw_data.boefje_meta.ended_at = datetime(2026, 4, 11, 9, 30, 0, tzinfo=UTC)
         self.assertEqual(int(obj.raw_data.boefje_meta.ended_at.timestamp()), ranker.rank(obj))
 
     def test_rank_orders_older_raws_lower(self):
         ranker = NormalizerRanker(ctx=mock.MagicMock())
         older = mock.Mock()
-        older.raw_data.boefje_meta.ended_at = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        older.raw_data.boefje_meta.ended_at = datetime(2026, 1, 1, tzinfo=UTC)
         newer = mock.Mock()
-        newer.raw_data.boefje_meta.ended_at = datetime(2026, 4, 1, tzinfo=timezone.utc)
+        newer.raw_data.boefje_meta.ended_at = datetime(2026, 4, 1, tzinfo=UTC)
         self.assertLess(ranker.rank(older), ranker.rank(newer))

@@ -10,7 +10,6 @@ from django.views.generic import UpdateView
 from tools.models import GROUP_CLIENT, OrganizationMember
 
 logger = structlog.get_logger(__name__)
-User = get_user_model()
 
 
 class OrganizationMemberEditView(
@@ -64,7 +63,7 @@ class OrganizationMemberEditView(
         ]
 
         if self.object.user.is_superuser:
-            active_superuser_count = User.objects.filter(is_superuser=True, is_active=True).count()
+            active_superuser_count = get_user_model().objects.filter(is_superuser=True, is_active=True).count()
             context["can_revoke_superuser"] = active_superuser_count > 1
 
         return context

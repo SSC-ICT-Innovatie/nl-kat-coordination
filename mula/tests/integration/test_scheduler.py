@@ -1,6 +1,6 @@
 import unittest
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest import mock
 
@@ -220,7 +220,7 @@ class SchedulerTestCase(unittest.TestCase):
 
         # Assert: deadline should be in the future, at least later than the
         # grace period
-        self.assertGreater(schedule_db.deadline_at, datetime.now(timezone.utc))
+        self.assertGreater(schedule_db.deadline_at, datetime.now(UTC))
 
     def test_post_push_schedule_enabled(self):
         # Arrange
@@ -254,7 +254,7 @@ class SchedulerTestCase(unittest.TestCase):
 
         # Assert: deadline should be in the future, at least later than the
         # grace period
-        self.assertGreater(schedule_db.deadline_at, datetime.now(timezone.utc))
+        self.assertGreater(schedule_db.deadline_at, datetime.now(UTC))
 
     def test_post_push_schedule_update_schedule(self):
         # Arrange
@@ -305,7 +305,7 @@ class SchedulerTestCase(unittest.TestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         first_item.schedule_id = schedule_db.id
-        self.mock_ctx.datastores.task_store.update_task(first_item)
+        self.mock_ctx.datastores.task_store.update_task(first_item.id, {"schedule_id": first_item.schedule_id})
 
         # Act
         self.scheduler.push_item_to_queue(first_item)
@@ -314,7 +314,7 @@ class SchedulerTestCase(unittest.TestCase):
         # day at midnight
         self.assertEqual(
             schedule_db.deadline_at,
-            datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1),
+            datetime.now(UTC).replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1),
         )
 
     def test_post_push_schedule_is_none(self):
@@ -333,7 +333,7 @@ class SchedulerTestCase(unittest.TestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         first_item.schedule_id = schedule_db.id
-        self.mock_ctx.datastores.task_store.update_task(first_item)
+        self.mock_ctx.datastores.task_store.update_task(first_item.id, {"schedule_id": first_item.schedule_id})
 
         # Act
         self.scheduler.push_item_to_queue(first_item)
@@ -359,7 +359,7 @@ class SchedulerTestCase(unittest.TestCase):
         schedule_db = self.mock_ctx.datastores.schedule_store.create_schedule(schedule)
 
         first_item.schedule_id = schedule_db.id
-        self.mock_ctx.datastores.task_store.update_task(first_item)
+        self.mock_ctx.datastores.task_store.update_task(first_item.id, {"schedule_id": first_item.schedule_id})
 
         # Act
         self.scheduler.push_item_to_queue(first_item)

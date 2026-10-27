@@ -24,6 +24,11 @@
                         </li>
                     {% endif %}
                 {% endfor %}
+                {% if perms.tools.add_organization %}
+                    <li>
+                        <a href="{% url 'organization_add' %}" class="button"><span class="icon ti-plus" aria-hidden="true"></span>{% translate "Add new organization" %}</a>
+                    </li>
+                {% endif %}
             </ul>
         </div>
     </div>

@@ -5,7 +5,7 @@ from octopoes.models.ooi.network import IPAddressV4, IPPort
 from octopoes.models.ooi.service import IPService, Service, TLSCipher
 
 
-def test_medium_bad_ciphers():
+def test_medium_tls_ciphers():
     address = IPAddressV4(address="8.8.8.8", network="network|fake")
     port = IPPort(address=address.reference, protocol="tcp", port=22)
     ip_service = IPService(ip_port=port.reference, service=Service(name="https").reference)
@@ -43,13 +43,13 @@ def test_medium_bad_ciphers():
             ],
             "TLSv1.2": [
                 {
-                    "cipher_suite_alias": "TLS_ECDHE-RSA-AES256-SHA384",
-                    "encryption_algorithm": "AESGCM",
-                    "cipher_suite_name": "ECDHE-RSA-AES256-SHA384",
-                    "key_size": 521,
-                    "bits": 256,
-                    "key_exchange_algorithm": "ECDH",
-                    "cipher_suite_code": "xc030",
+                    "cipher_suite_alias": "TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA256",
+                    "encryption_algorithm": "CAMELLIA",
+                    "cipher_suite_name": "DHE-DSS-CAMELLIA128-SHA256",
+                    "key_size": 2048,
+                    "bits": 128,
+                    "key_exchange_algorithm": "DH",
+                    "cipher_suite_code": "x0066",
                 },
                 {
                     "cipher_suite_alias": "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
@@ -93,13 +93,28 @@ def test_medium_bad_ciphers():
 
     results = list(cipher_classification(cipher, {}, {}))
 
-    assert len(results) == 2
-    assert results[0].reference == "KATFindingType|KAT-MEDIUM-BAD-CIPHER"
-    finding = results[-1]
-    assert isinstance(finding, Finding)
-    assert (
-        finding.description == "One or more of the cipher suites should not be used because:\n"
-        "ECDHE-RSA-AES256-SHA384 - Using CBC as bulk encryption algorithm (Medium)."
+    assert len(results) == 4
+
+    assert results[0].reference == "KATFindingType|KAT-MEDIUM-TLS-CIPHER"
+    assert results[2].reference == "KATFindingType|KAT-LOW-TLS-CIPHER"
+
+    medium_finding = results[1]
+    low_finding = results[3]
+
+    assert isinstance(medium_finding, Finding)
+    assert isinstance(low_finding, Finding)
+
+    assert medium_finding.description == (
+        "One or more of the cipher suites should not be used because:\n"
+        "DHE-DSS-CAMELLIA128-SHA256 - Using DH as key exchange algorithm (Medium).\n"
+        "DHE-DSS-CAMELLIA128-SHA256 - Using DSS for authentication (Medium).\n"
+        "DHE-RSA-AES256-GCM-SHA384 - Using DH as key exchange algorithm (Medium).\n"
+        "DHE-RSA-AES128-GCM-SHA256 - Using DH as key exchange algorithm (Medium)."
+    )
+
+    assert low_finding.description == (
+        "One or more of the cipher suites should not be used because:\n"
+        "DHE-DSS-CAMELLIA128-SHA256 - Using Camellia as bulk encryption algorithm (Low)."
     )
 
 

@@ -2,7 +2,7 @@ import base64
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest import mock
 from uuid import UUID
@@ -41,8 +41,8 @@ sys.path.append(str(Path(__file__).parent))
 
 def test_parse_normalizer_meta_to_json():
     meta = NormalizerMeta.model_validate_json(get_dummy_data("snyk-normalizer.json"))
-    meta.started_at = datetime(2023, 10, 10, 10, tzinfo=timezone.utc)
-    meta.ended_at = datetime(2023, 10, 10, 12, tzinfo=timezone.utc)
+    meta.started_at = datetime(2023, 10, 10, 10, tzinfo=UTC)
+    meta.ended_at = datetime(2023, 10, 10, 12, tzinfo=UTC)
     results = meta.model_dump(mode="json")
 
     assert results["started_at"] == "2023-10-10T10:00:00Z"

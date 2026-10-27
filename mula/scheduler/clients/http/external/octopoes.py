@@ -1,5 +1,5 @@
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import httpx
 from pydantic import BaseModel
@@ -31,9 +31,9 @@ class Octopoes(HTTPService):
         url = f"{self.host}/{organisation_id}/objects"
 
         pagesize = 1000
-        params = {"types": object_types, "offset": 0, "limit": pagesize, "valid_time": datetime.now(timezone.utc)}
+        params = {"types": object_types, "offset": 0, "limit": pagesize, "valid_time": datetime.now(UTC)}
         if scan_level:
-            params["scan_level"] = [s for s in scan_level]
+            params["scan_level"] = [*scan_level]
 
         count = pagesize
         processed = 0
@@ -61,7 +61,7 @@ class Octopoes(HTTPService):
 
         url = f"{self.host}/{organisation_id}/objects/random"
 
-        params = {"amount": str(n), "scan_level": [s for s in scan_level], "valid_time": datetime.now(timezone.utc)}
+        params = {"amount": str(n), "scan_level": [*scan_level], "valid_time": datetime.now(UTC)}
 
         try:
             response = self.get(url, params=params)
@@ -75,7 +75,7 @@ class Octopoes(HTTPService):
     def get_objects(self, organisation_id: str, references: list[str]) -> Iterator[OOI]:
         """Get an ooi from octopoes"""
         url = f"{self.host}/{organisation_id}/objects/by_reference"
-        response = self.get(url, params={"references": references, "valid_time": datetime.now(timezone.utc)})
+        response = self.get(url, params={"references": references, "valid_time": datetime.now(UTC)})
         list_objects = response.json()
         for ooi in list_objects:
             yield OOI(**list_objects[ooi])
@@ -86,7 +86,7 @@ class Octopoes(HTTPService):
         url = f"{self.host}/{organisation_id}/object"
 
         try:
-            response = self.get(url, params={"reference": reference, "valid_time": datetime.now(timezone.utc)})
+            response = self.get(url, params={"reference": reference, "valid_time": datetime.now(UTC)})
             return OOI(**response.json())
         except httpx.HTTPStatusError as e:
             if e.response.status_code == httpx.codes.NOT_FOUND:

@@ -23,7 +23,8 @@
             </div>
         </section>
         {% if request.user.is_superuser %}
-            {% if object.user.is_superuser and can_revoke_superuser %}
+            {% if object.user.is_superuser %}
+            {% if can_revoke_superuser %}
                 <section>
                     <div>
                         <h2>{% translate "Global account access" %}</h2>
@@ -34,6 +35,7 @@
                            href="{% url 'organization_member_revoke_superuser' organization.code object.id %}">{% translate "Revoke superuser access" %}</a>
                     </div>
                 </section>
+            {% endif %}
             {% elif object.user.is_active and not object.blocked %}
                 <section>
                     <div>
