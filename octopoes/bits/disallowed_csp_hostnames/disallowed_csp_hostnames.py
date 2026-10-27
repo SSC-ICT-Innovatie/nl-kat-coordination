@@ -1,13 +1,15 @@
 from collections.abc import Iterator
+from pathlib import Path
 from typing import Any
-
-from link_shorteners import link_shorteners_list
 
 from octopoes.models import OOI
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.web import HTTPHeaderHostname
 
-LINK_SHORTENERS = link_shorteners_list()
+# Vendored from the unmaintained link-shorteners package (MIT, see LICENSE-link-shorteners.txt), which still
+# imports pkg_resources and therefore breaks on setuptools >= 82.
+with (Path(__file__).parent / "link-shorteners.txt").open(encoding="utf-8") as f:
+    LINK_SHORTENERS = frozenset(line.strip().lower() for line in f if line.strip())
 
 
 def get_disallowed_hostnames_from_config(config, config_key, default):
@@ -27,7 +29,7 @@ def run(input_ooi: HTTPHeaderHostname, additional_oois: list, config: dict[str, 
     disallow_url_shorteners = config.get("disallow_url_shorteners", True) if config else True
 
     hostname = header_hostname.hostname.tokenized.name
-    disallowed_domains = link_shorteners_list() if disallow_url_shorteners else []
+    disallowed_domains = list(LINK_SHORTENERS) if disallow_url_shorteners else []
     disallowed_hostnames_from_config = get_disallowed_hostnames_from_config(config, "disallowed_hostnames", [])
 
     disallowed_domains.extend(disallowed_hostnames_from_config)
