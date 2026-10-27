@@ -314,12 +314,10 @@ class OnboardingSetupScanSelectPluginsView(
     plugins: ReportPlugins = DNSReport.plugins
 
     def get_plugins(self) -> dict[str, list[Plugin]]:
-        all_plugins = {}
-        for required_optional, plugin_ids in self.plugins.items():
-            plugins = self.katalogus_client.get_plugins(ids=list(plugin_ids))
-            all_plugins[required_optional] = plugins
-
-        return all_plugins
+        return {
+            "required": self.katalogus_client.get_plugins(ids=list(self.plugins["required"])),
+            "optional": self.katalogus_client.get_plugins(ids=list(self.plugins["optional"])),
+        }
 
     def post(self, request, *args, **kwargs):
         selected_plugins = request.POST.getlist("plugin", [])
