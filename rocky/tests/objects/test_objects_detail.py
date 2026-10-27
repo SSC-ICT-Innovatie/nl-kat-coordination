@@ -406,7 +406,7 @@ def test_non_cipher_description_does_not_move_to_proof(
 
     assertContains(response, "Description")
     assertContains(response, "Not a TLS cipher finding")
-    assertNotContains(response, "<dt>Proof</dt>", html=False)
+    assert response.context_data["object_details"]["Proof"] is None
 
 
 def test_proof_with_newlines_renders_each_cipher_finding_separately():
@@ -510,16 +510,12 @@ def test_ooi_detail_object_proof_displays_each_cipher_finding_on_a_new_line():
 
 
 def test_finding_occurrence_proof_displays_each_cipher_finding_on_a_new_line():
-    html = render_to_string(
-        "partials/finding_occurrence_definition_list.html",
-        {
-            "finding": {
-                "proof": "Cipher A - weak key exchange\nCipher B - insecure <algorithm>",
-                "reproduce": None,
-                "items": [],
-            }
-        },
+    finding = Finding(
+        finding_type="KATFindingType|KAT-LOW-TLS-CIPHER",
+        ooi="Network|testnetwork",
+        proof="Cipher A - weak key exchange\nCipher B - insecure <algorithm>",
     )
 
-    assert "Proof" in html
+    html = render_to_string("partials/finding_occurrence_definition_list.html", {"finding": {finding}})
+
     assert "Cipher A - weak key exchange<br>Cipher B - insecure &lt;algorithm&gt;" in html
