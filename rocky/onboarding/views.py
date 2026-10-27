@@ -316,7 +316,7 @@ class OnboardingSetupScanSelectPluginsView(
     def get_plugins(self) -> dict[str, list[Plugin]]:
         all_plugins = {}
         for required_optional, plugin_ids in self.plugins.items():
-            plugins = self.katalogus_client.get_plugins(ids=[*plugin_ids])
+            plugins = self.katalogus_client.get_plugins(ids=list(plugin_ids))
             all_plugins[required_optional] = plugins
 
         return all_plugins
