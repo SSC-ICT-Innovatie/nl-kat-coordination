@@ -269,9 +269,9 @@ fastapi-slim==0.129.1 \
     --hash=sha256:8e6d734797dcfeec171714224e9cbbb1c4d34c861ed3fdd07800fe1cf8e8e862 \
     --hash=sha256:c88ac964c7a804b5a739d809b8450a2eeb110ea5f59c8d02273452644fc7098d
     # via octopoes
-filelock==3.25.2 \
-    --hash=sha256:b64ece2b38f4ca29dd3e810287aa8c48182bbecd1ae6e9ae126c9b35f1382694 \
-    --hash=sha256:ca8afb0da15f229774c9ad1b455ed96e85a81373065fb10446672f64444ddf70
+filelock==4.2.1 \
+    --hash=sha256:7be2662e9e826b9bba28afc0f843a123280d799a2ea44bb5d35ccec67905ae44 \
+    --hash=sha256:c4c937ccac2a813cee448e662a56366cfb374c0f8702e75f295c412cc1c5d5a3
     # via tldextract
 googleapis-common-protos==1.74.0 \
     --hash=sha256:57971e4eeeba6aad1163c1f0fc88543f965bb49129b8bb55b2b7b26ecab084f1 \
