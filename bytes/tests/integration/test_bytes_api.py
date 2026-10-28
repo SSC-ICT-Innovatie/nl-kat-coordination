@@ -341,7 +341,7 @@ def test_save_raw_no_mime_types(bytes_api_client: BytesAPIClient) -> None:
     assert get_raw_without_mime_type_response.content == raw
 
 
-def test_get_raws_timeout_mime_type_yields_failed_status(bytes_api_client: BytesAPIClient) -> None:
+def test_get_raws_timeout_mime_type_yields_timeout_status(bytes_api_client: BytesAPIClient) -> None:
     boefje_meta = get_boefje_meta(meta_id=uuid.uuid4())
     bytes_api_client.save_boefje_meta(boefje_meta)
 
@@ -357,8 +357,28 @@ def test_get_raws_timeout_mime_type_yields_failed_status(bytes_api_client: Bytes
 
     assert response.status_code == 200
     body = response.json()
-    assert body["status"] == StatusEnum.FAILED
+    assert body["status"] == StatusEnum.TIMEOUT
     assert b64decode(body["files"][0]["content"]) == b"Timed out after 30 seconds"
+
+
+def test_get_raws_error_mime_type_yields_failed_status(bytes_api_client: BytesAPIClient) -> None:
+    boefje_meta = get_boefje_meta(meta_id=uuid.uuid4())
+    bytes_api_client.save_boefje_meta(boefje_meta)
+
+    bytes_api_client.save_raw(boefje_meta.id, b"Traceback (most recent call last): ...", ["error/boefje"])
+
+    bytes_api_client.login()
+    response = httpx.get(
+        f"{bytes_api_client.client.base_url}/bytes/raws",
+        headers=bytes_api_client.client.headers,
+        params={"boefje_meta_id": str(boefje_meta.id)},
+        timeout=30,
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] == StatusEnum.FAILED
+    assert b64decode(body["files"][0]["content"]) == b"Traceback (most recent call last): ..."
 
 
 def test_get_many_actual_raw_files(bytes_api_client: BytesAPIClient) -> None:

@@ -287,9 +287,11 @@ def get_raws(
     raws = meta_repository.get_raws(query_filter)
     status = StatusEnum.COMPLETED
 
-    error_mime_types = {"error/boefje", "error/timeout"}
-
-    if any(error_mime_types & {m.value for m in raw.mime_types} for _, raw in raws):
+    # A raw carrying error/boefje comes from a crashed boefje; error/timeout from a boefje
+    # that caught its own timeout. Both signal the run did not produce usable results.
+    if any("error/timeout" in {m.value for m in raw.mime_types} for _, raw in raws):
+        status = StatusEnum.TIMEOUT
+    elif any("error/boefje" in {m.value for m in raw.mime_types} for _, raw in raws):
         status = StatusEnum.FAILED
 
     return BoefjeOutput(
