@@ -3,7 +3,7 @@
 Finding Type classification (groups and tags) is stored as metadata on
 KATFindingType in XTDB. Existing OOIs do not receive new classification
 automatically after a catalog or registry change; see
-docs/source/finding-type-groups.md ("Preserving and refreshing
+docs/source/developer-documentation/finding-type-groups.md ("Preserving and refreshing
 classifications").
 
 Instead of re-running the kat-finding-types boefje by hand, page by page, per

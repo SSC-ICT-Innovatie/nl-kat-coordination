@@ -18,6 +18,7 @@ Contains documentation for developers and contributors.
    bytes
    octopoes
    octopoes-models
+   finding-type-groups
    octopoes-research
    observability
    reports

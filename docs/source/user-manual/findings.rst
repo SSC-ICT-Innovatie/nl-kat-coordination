@@ -26,3 +26,24 @@ Click the button 'Mute Findings' to mute the selected findings.
 
 .. image:: img/findings-muted.png
   :alt: Mute findings
+
+.. _filtering-by-group-and-tag:
+
+Filtering by group and tag
+--------------------------
+Every finding describes a certain kind of problem, such as a weak TLS cipher or a missing email record.
+The findings page groups these kinds of problems into categories, which you can filter on with the
+**Group** dropdown: for example *HTTP Security Headers*, *DNS Security* or *Email Security*.
+
+The **Tag** dropdown filters on broader labels that apply across categories.
+Currently there is one: *Misconfiguration*, which marks findings that are caused by a wrong setting
+rather than by, for example, outdated software.
+
+A few things to know:
+
+- Selecting a group shows only findings of that exact category. Related sub-categories
+  (for example *HTTP Security Headers* within *Web Security*) are not included automatically.
+- Selecting both a group and a tag shows only findings that match both.
+- The group and tag filters combine with the other filters on this page, such as severity and search.
+
+The list of groups and tags is maintained by the OpenKAT developers and grows with the product.

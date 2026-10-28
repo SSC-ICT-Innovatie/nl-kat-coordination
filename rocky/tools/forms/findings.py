@@ -58,7 +58,8 @@ class FindingClassificationForm(BaseRockyForm):
         required=False,
         # Finding types can belong to multiple groups and groups form a
         # hierarchy, but filtering is on explicit membership only (see
-        # docs/source/finding-type-groups.md): sub-groups are not included.
+        # docs/source/developer-documentation/finding-type-groups.md):
+        # sub-groups are not included.
         help_text=_("Filters on the selected group only; sub-groups are not included."),
     )
     tag = forms.ChoiceField(label=_("Filter by tag"), required=False)

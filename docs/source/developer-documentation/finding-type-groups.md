@@ -1,4 +1,11 @@
-# Finding Type groups
+# Finding Type groups (developer documentation)
+
+This page describes how Finding Type classification (groups and tags) is
+implemented. For a plain-language description of what the filters do in the
+interface, see the `Findings page <../../user-manual/findings.html#filtering-by-group-and-tag>`\_
+section in the user manual.
+
+## The classification model
 
 The static OpenKAT Finding Type catalog defines `groups` as an array of stable group identifiers.
 The canonical group registry is `boefjes/boefjes/plugins/kat_kat_finding_types/finding_type_groups.json`.
@@ -8,7 +15,6 @@ it does **not** imply descendant-aware filtering.
 
 Run `python boefjes/boefjes/plugins/kat_kat_finding_types/validate_groups.py`
 to validate group references and hierarchy.
-Group propagation into Octopoes is provided by Phase 2.
 
 ## Finding Type tags
 
@@ -21,7 +27,8 @@ Cookies. An absent `tags` field means no tags.
 The catalog validator also checks that provided tags are non-empty strings with
 no duplicates. `KATFindingType` stores both `groups` and `tags`, using empty
 lists for older definitions without these fields. Tags do not change finding
-identity or severity. Dashboard persistence is separate Rocky work.
+identity or severity. Dashboard persistence is separate Rocky work
+(`gh issue: 5560 <https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/issues/5560>`\_).
 
 ## Preserving and refreshing classifications
 
@@ -61,7 +68,7 @@ not defined in the static catalog continue to have empty classification.
 Run this refresh after later catalog classification changes as well. A new
 installation hydrates catalog metadata through the usual boefje workflow.
 
-## Filtering findings in Rocky
+## Implementing the filters
 
 The findings page offers optional Group and Tag dropdowns. Each filters on
 explicit `KATFindingType` membership (not hierarchy descendants); the group
@@ -69,6 +76,18 @@ dropdown's help text states this as well. Selecting both applies an AND
 condition. Filtering happens in Octopoes before counting, sorting, or
 pagination and combines with existing severity, search, muted, and
 observation-time filters.
+
+Concretely, the filter parameters flow through these layers:
+
+- `octopoes/octopoes/api/router.py`: `group` and `tag` query parameters on
+  `list_findings`.
+- `octopoes/octopoes/repositories/ooi_repository.py`: XTDB clauses matching
+  individual array elements (`[?finding_type :KATFindingType/groups ...]`),
+  added to both the page query and the count query. XTDB indexes vector
+  attributes element-wise, so no array equality is needed.
+- `octopoes/octopoes/connector/octopoes.py` and
+  `rocky/rocky/views/mixins.py` (`FindingList`): parameter propagation.
+- `rocky/tools/forms/findings.py`: the `FindingClassificationForm` dropdowns.
 
 The dropdown labels come from the canonical JSON group registry and the
 available tags from the Finding Type catalog. Group display names are shown
