@@ -3,14 +3,14 @@ name = "octopoes"
 version = "0.0.1.dev1"
 description = "OpenKAT's knowledge graph engine"
 authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = { text = "EUPL-1.2" }
 dependencies = [
     "pydantic>=2.7.1,<3",
     "uvicorn>=0.29.0,<0.30",
     "pika>=1.3.1,<2",
     "PyYAML~=6.0",
-    "dnspython>=2.6.1,<3",
+    "dnspython>=2.9.0,<3",
     "kombu>=5.2.4,<6",
     "celery>=5.2.7,<6",
     "pyparsing>=3.0.9,<4",
@@ -35,7 +35,7 @@ dependencies = [
     "fastapi-slim>=0.115.2",
     "structlog>=25.2.0,<26",
     "asgiref>=3.8.1,<4",
-    "setuptools>80,<85",
+    "setuptools>=84.1.0,<85",
     "requests>=2.33.0,<3",
     "pygments>=2.20.0",
     "wrapt>=2.1.2",
@@ -47,6 +47,7 @@ dependencies = [
     "soupsieve>=2.9",
     "anyio>=4.14.2",
     "certifi>=2026.10.19",
+    "filelock>=4.2.1",
 ]
 
 [dependency-groups]

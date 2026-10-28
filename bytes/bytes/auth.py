@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 import structlog
@@ -75,4 +75,4 @@ def _create_access_token(
 def _get_expire_time(access_token_expire_minutes: float) -> datetime:
     access_token_expires = timedelta(minutes=access_token_expire_minutes)
 
-    return datetime.now(timezone.utc) + access_token_expires
+    return datetime.now(UTC) + access_token_expires

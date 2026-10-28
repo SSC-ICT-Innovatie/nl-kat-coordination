@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -118,7 +118,7 @@ class ScheduledReportsView(BreadcrumbsReportOverviewView, SchedulerView, ListVie
             self.delete_report_schedule(str(schedule.id))
             try:
                 self.octopoes_api_connector.delete(
-                    Reference.from_str(f"ReportRecipe|{recipe_id}"), valid_time=datetime.now(timezone.utc)
+                    Reference.from_str(f"ReportRecipe|{recipe_id}"), valid_time=datetime.now(UTC)
                 )
                 logger.info(
                     "Schedule and ReportRecipe deleted", event_code="0800083", schedule_id=schedule.id, recipe=recipe_id
@@ -239,7 +239,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
                 messages.error(self.request, _("Other OOI type selected than Report"))
                 return
 
-        self.octopoes_api_connector.delete_many(report_references, datetime.now(timezone.utc))
+        self.octopoes_api_connector.delete_many(report_references, datetime.now(UTC))
         logger.info("Reports deleted", event_code=800073, reports=report_references)
         messages.success(self.request, _("Deletion successful."))
 
@@ -297,7 +297,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
 
     def rerun_report(self, report_ooi: Report | AssetReport) -> bool:
         """Rerun an existing Report and its AssetReports."""
-        deadline_at = datetime.now(timezone.utc).isoformat()
+        deadline_at = datetime.now(UTC).isoformat()
         report_recipe_id = str(report_ooi.report_recipe.tokenized.recipe_id)
         filters = {
             "filters": [{"column": "data", "field": "report_recipe_id", "operator": "==", "value": report_recipe_id}]
@@ -322,7 +322,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
             report_ooi = self.get_report_ooi(report_id).to_report()
             report_ooi.name = report_names[index]
             try:
-                create_ooi(self.octopoes_api_connector, self.bytes_client, report_ooi, datetime.now(timezone.utc))
+                create_ooi(self.octopoes_api_connector, self.bytes_client, report_ooi, datetime.now(UTC))
             except ValidationError:
                 error_reports.append(f'"{report_ooi.name}"')
 
