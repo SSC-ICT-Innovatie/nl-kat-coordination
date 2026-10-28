@@ -205,8 +205,7 @@ def read_certificates(
             pk_number=pk_number,
             website=website_reference,
             serial_number=cert.serial_number.to_bytes(20, "big").hex(),
-            expires_in=parse(valid_until).astimezone(datetime.timezone.utc)
-            - datetime.datetime.now(datetime.timezone.utc),
+            expires_in=parse(valid_until).astimezone(datetime.UTC) - datetime.datetime.now(datetime.UTC),
         )
 
         certificates.append(certificate)

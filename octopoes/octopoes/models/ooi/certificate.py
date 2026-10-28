@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import Enum, StrEnum
 from typing import Literal
 
 from octopoes.models import OOI, Reference
@@ -10,7 +10,7 @@ from octopoes.models.ooi.network import IPAddress
 from octopoes.models.persistence import ReferenceField
 
 
-class SignatureVerificationStatus(str, Enum):
+class SignatureVerificationStatus(StrEnum):
     VERIFIED = "verified"
     ISSUER_NAME_MISMATCH = "issuer_name_mismatch"  # The issuer distinguished name does not match.
     INVALID_SIGNATURE = "invalid_signature"  # The signature is invalid.
@@ -65,9 +65,9 @@ class X509Certificate(OOI):
 
         # Treat naive timestamps as UTC
         if valid_until.tzinfo is None:
-            valid_until = valid_until.replace(tzinfo=timezone.utc)
+            valid_until = valid_until.replace(tzinfo=UTC)
 
-        return datetime.now(timezone.utc) > valid_until
+        return datetime.now(UTC) > valid_until
 
     _reverse_relation_names = {"signed_by": "signed_certificates"}
 

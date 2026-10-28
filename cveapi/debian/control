@@ -6,7 +6,7 @@ Build-Depends: debhelper-compat (= 13),
                dh-sequence-python3,
                python3,
                pybuild-plugin-pyproject,
-               python3-poetry,
+               python3-setuptools,
 Standards-Version: 4.6.2
 Homepage: https://github.com/minvws/nl-kat-coordination
 Rules-Requires-Root: no

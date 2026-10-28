@@ -1,7 +1,7 @@
 import uuid
 from collections.abc import Iterator
 from concurrent import futures
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 from httpx import HTTPStatusError, ReadTimeout
@@ -653,8 +653,7 @@ class BoefjeScheduler(Scheduler):
             and task_db.status in [models.TaskStatus.COMPLETED, models.TaskStatus.FAILED]
             and (
                 task_db.modified_at is not None
-                and task_db.modified_at
-                > datetime.now(timezone.utc) - timedelta(seconds=self.ctx.config.pq_grace_period)
+                and task_db.modified_at > datetime.now(UTC) - timedelta(seconds=self.ctx.config.pq_grace_period)
             )
         ):
             self.logger.error(
@@ -688,8 +687,7 @@ class BoefjeScheduler(Scheduler):
             and (task_db.status == models.TaskStatus.DISPATCHED or task_db.status == models.TaskStatus.RUNNING)
             and (
                 task_db.modified_at is not None
-                and datetime.now(timezone.utc)
-                > task_db.modified_at + timedelta(seconds=self.ctx.config.pq_grace_period)
+                and datetime.now(UTC) > task_db.modified_at + timedelta(seconds=self.ctx.config.pq_grace_period)
             )
         ):
             return True
@@ -719,7 +717,7 @@ class BoefjeScheduler(Scheduler):
             timeout = timedelta(seconds=self.ctx.config.pq_grace_period)
 
         # Has grace period passed according to datastore?
-        if task_db is not None and datetime.now(timezone.utc) - task_db.modified_at < timeout:
+        if task_db is not None and datetime.now(UTC) - task_db.modified_at < timeout:
             self.logger.debug(
                 "Task has not passed grace period, according to the datastore",
                 task_id=task_db.id,
@@ -732,7 +730,7 @@ class BoefjeScheduler(Scheduler):
         if (
             task_bytes is not None
             and task_bytes.ended_at is not None
-            and datetime.now(timezone.utc) - task_bytes.ended_at < timeout
+            and datetime.now(UTC) - task_bytes.ended_at < timeout
         ):
             self.logger.debug(
                 "Task has not passed grace period, according to bytes",
@@ -783,7 +781,7 @@ class BoefjeScheduler(Scheduler):
         # We're only interested in the organisations that have
         # the same input_ooi as the boefje task
         orgs = self.ctx.services.octopoes.get_object_clients(
-            reference=boefje_task.input_ooi, clients=set(other_orgs_from_configs), valid_time=datetime.now(timezone.utc)
+            reference=boefje_task.input_ooi, clients=set(other_orgs_from_configs), valid_time=datetime.now(UTC)
         )
         if not orgs:
             self.logger.debug(
@@ -867,6 +865,6 @@ class BoefjeScheduler(Scheduler):
 
         # Does the boefje have an interval defined?
         if plugin.interval is not None and plugin.interval > 0:
-            schedule.deadline_at = datetime.now(timezone.utc) + timedelta(minutes=plugin.interval)
+            schedule.deadline_at = datetime.now(UTC) + timedelta(minutes=plugin.interval)
 
         return super().calculate_deadline(schedule)

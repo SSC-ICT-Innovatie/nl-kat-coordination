@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 from django.contrib import messages
@@ -86,7 +86,7 @@ class SaveAggregateReportMixin(BaseReportView):
 
 class SaveMultiReportMixin(BaseReportView):
     def save_report(self, report_names: list) -> Report:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         observed_at = self.get_observed_at()
         report_type = MultiOrganizationReport(self.octopoes_api_connector)

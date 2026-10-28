@@ -2,12 +2,12 @@
 
 {% if form.non_field_errors %}
     <div class="non-field-errors" role="alert" aria-live="assertive">
-        <p class="error">
+        <div class="error">
             <span class="visually-hidden"><strong>{% translate "Error:" %}</strong></span>
-        </p>
-        <ul>
-            {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
-        </ul>
+            <ul>
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        </div>
     </div>
 {% endif %}
 {% for hidden in form.hidden_fields %}

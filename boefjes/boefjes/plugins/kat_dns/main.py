@@ -64,6 +64,10 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     for type_ in record_types:
         try:
             answer: Answer = resolver.resolve(hostname, type_)
+            # An SOA lookup can follow a CNAME into a different DNS zone.
+            # Only treat a directly-owned SOA as a record for this hostname.
+            if type_ == "SOA" and (answer.rrset is None or answer.rrset.name != requested_dns_name):
+                continue
             answers.append(answer)
         except (dns.resolver.NoAnswer, dns.resolver.Timeout):
             pass
@@ -85,7 +89,11 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 def get_parent_zone_soa(resolver: dns.resolver.Resolver, name: Name) -> Answer:
     while True:
         try:
-            return resolver.resolve(name, dns.rdatatype.SOA)
+            answer = resolver.resolve(name, dns.rdatatype.SOA)
+            # A CNAME at `name` can cause resolve() to return the target's
+            # SOA. Keep walking the original hostname's parents instead.
+            if answer.rrset is not None and answer.rrset.name == name:
+                return answer
         except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
             pass
 

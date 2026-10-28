@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import cached_property
 
 import structlog
@@ -173,7 +173,7 @@ class OrganizationView(ContextMixin, View):
         self.verify_raise_clearance_level(level)
         self.octopoes_api_connector.save_scan_profile(
             DeclaredScanProfile(reference=ooi_reference, level=ScanLevel(level), user_id=self.request.user.id),
-            datetime.now(timezone.utc),
+            datetime.now(UTC),
             sync=True,
         )
         logger.info("Declared scan profile created", event_code="800010", ooi=ooi_reference, level=level)
@@ -187,7 +187,7 @@ class OrganizationView(ContextMixin, View):
                 DeclaredScanProfile(reference=reference, level=ScanLevel(level), user_id=self.request.user.id)
                 for reference in ooi_references
             ],
-            datetime.now(timezone.utc),
+            datetime.now(UTC),
             sync=True,
         )
         logger.info("Declared scan profiles created", event_code="800010", ooi_count=len(ooi_references), level=level)
@@ -297,7 +297,7 @@ class OrganizationAPIMixin:
         try:
             valid_time = self.request.query_params["valid_time"]
         except KeyError:
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
         else:
             try:
                 ret = datetime.fromisoformat(valid_time)
@@ -305,6 +305,6 @@ class OrganizationAPIMixin:
                 raise ValidationError(f"Wrong format for valid_time: {valid_time}")
 
             if not ret.tzinfo:
-                ret = ret.replace(tzinfo=timezone.utc)
+                ret = ret.replace(tzinfo=UTC)
 
             return ret

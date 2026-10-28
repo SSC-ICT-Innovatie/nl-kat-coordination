@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any, NewType
 from uuid import UUID
 
@@ -12,17 +12,17 @@ RetrievalLink = NewType("RetrievalLink", str)
 SecureHash = NewType("SecureHash", str)
 
 
-class EncryptionMiddleware(str, Enum):
+class EncryptionMiddleware(StrEnum):
     IDENTITY = "IDENTITY"
     NACL_SEALBOX = "NACL_SEALBOX"
 
 
-class HashingAlgorithm(str, Enum):
+class HashingAlgorithm(StrEnum):
     SHA512 = "sha512"
     SHA224 = "sha224"
 
 
-class HashingRepositoryReference(str, Enum):
+class HashingRepositoryReference(StrEnum):
     IN_MEMORY = "IN_MEMORY"
     PASTEBIN = "PASTEBIN"
     RFC3161 = "RFC3161"
