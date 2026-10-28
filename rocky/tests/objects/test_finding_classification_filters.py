@@ -1,6 +1,6 @@
 """Regression tests for the Rocky findings classification filters."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from pytest_django.asserts import assertContains
@@ -65,7 +65,7 @@ def test_finding_list_count_first_forwards_classification_filters(mock_organizat
     connector = mock_organization_view_octopoes()
     connector.list_findings.return_value = Paginated[Finding](count=0, items=[])
     findings = FindingList(
-        octopoes_connector=connector, valid_time=datetime.now(timezone.utc), severities=set(), group=group, tag=tag
+        octopoes_connector=connector, valid_time=datetime.now(UTC), severities=set(), group=group, tag=tag
     )
 
     # Counting before retrieving a page uses the count-only query.
