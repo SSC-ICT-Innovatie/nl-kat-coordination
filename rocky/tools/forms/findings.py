@@ -3,7 +3,6 @@ from functools import lru_cache
 from pathlib import Path
 
 from django import forms
-from django.utils.translation import get_language
 from django.utils.translation import gettext_lazy as _
 
 from octopoes.models.ooi.findings import RiskLevelSeverity
@@ -25,7 +24,8 @@ MUTED_FINDINGS_CHOICES = (
 FINDING_TYPES_DIR = Path(__file__).resolve().parents[3] / "boefjes/boefjes/plugins/kat_kat_finding_types"
 
 
-def _read_classification_files() -> tuple[dict, dict]:
+@lru_cache(maxsize=1)
+def finding_classification_choices() -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
     """Read the group registry and finding type catalog shared with Boefjes.
 
     These files are copied from Boefjes into the Rocky container at build time
@@ -33,6 +33,9 @@ def _read_classification_files() -> tuple[dict, dict]:
     Rocky after changing the registry or catalog. A standalone Rocky checkout
     without the Boefjes files fails here with a clear message instead of a raw
     FileNotFoundError deep inside form rendering.
+
+    Group names are displayed verbatim, like finding type names and severity
+    values elsewhere in Rocky; only static labels are translated.
     """
     try:
         registry = json.loads((FINDING_TYPES_DIR / "finding_type_groups.json").read_text(encoding="utf-8"))
@@ -44,36 +47,9 @@ def _read_classification_files() -> tuple[dict, dict]:
             "copied from Boefjes at build time (see rocky/Dockerfile), in source checkouts they are "
             "read from boefjes/boefjes/plugins/kat_kat_finding_types/ relative to the repository root."
         ) from error
-    return registry, catalog
-
-
-@lru_cache(maxsize=1)
-def _classification_data() -> tuple[dict, dict]:
-    """Cache the raw files, not the rendered choices.
-
-    Group labels depend on the request language, so they must be computed per
-    request; only the (language-independent) file contents are cached here.
-    Restart Rocky after changing the registry or catalog.
-    """
-    return _read_classification_files()
-
-
-def finding_classification_choices() -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
-    registry, catalog = _classification_data()
-    group_choices = [(identifier, _group_label(group)) for identifier, group in registry.items()]
+    group_choices = [(identifier, group["name"]) for identifier, group in registry.items()]
     tags = sorted({tag for finding_type in catalog.values() for tag in finding_type.get("tags", [])})
     return group_choices, [(tag, tag.replace("-", " ").capitalize()) for tag in tags]
-
-
-def _group_label(group: dict) -> str:
-    """Prefer the Dutch display name when the UI language is Dutch.
-
-    Group names come from the JSON registry instead of gettext, so they are
-    stored in both languages there. Fall back to the English name.
-    """
-    if get_language() and get_language().startswith("nl") and group.get("name_nl"):
-        return group["name_nl"]
-    return group["name"]
 
 
 class FindingClassificationForm(BaseRockyForm):

@@ -2,8 +2,7 @@
 
 The static OpenKAT Finding Type catalog defines `groups` as an array of stable group identifiers.
 The canonical group registry is `boefjes/boefjes/plugins/kat_kat_finding_types/finding_type_groups.json`.
-Each group has an English and a Dutch display name (`name`, `name_nl`), a description, and an optional
-parent identifier.
+Each group has a display name, description, and optional parent identifier.
 A Finding Type may belong to multiple groups. A parent relationship describes the taxonomy;
 it does **not** imply descendant-aware filtering.
 
@@ -72,10 +71,10 @@ pagination and combines with existing severity, search, muted, and
 observation-time filters.
 
 The dropdown labels come from the canonical JSON group registry and the
-available tags from the Finding Type catalog. Group display names are stored
-in the registry in both English and Dutch; Rocky picks the language matching
-the interface language. The Rocky container copies these two files from
-Boefjes at build time; after changing the registry or catalog, rebuild Rocky
-so the displayed options match the deployed catalog, and restart Rocky
-afterwards: the choices are cached for the lifetime of the process. The
-findings-page controls do not yet persist in dashboard widgets.
+available tags from the Finding Type catalog. Group display names are shown
+verbatim, like finding type names and severity values elsewhere in Rocky;
+only the static labels are translated. The Rocky container copies these two
+files from Boefjes at build time; after changing the registry or catalog,
+rebuild Rocky so the displayed options match the deployed catalog, and
+restart Rocky afterwards: the choices are cached for the lifetime of the
+process. The findings-page controls do not yet persist in dashboard widgets.
