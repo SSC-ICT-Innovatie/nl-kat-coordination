@@ -1,91 +1,109 @@
 {
   "web-security": {
     "name": "Web Security",
+    "name_nl": "Webbeveiliging",
     "description": "Security of websites and web applications.",
     "parent": null
   },
   "http-security-headers": {
     "name": "HTTP Security Headers",
+    "name_nl": "HTTP-securityheaders",
     "description": "HTTP response header security controls.",
     "parent": "web-security"
   },
   "http-cookies": {
     "name": "HTTP Cookies",
+    "name_nl": "HTTP-cookies",
     "description": "HTTP cookie security properties.",
     "parent": "web-security"
   },
   "http-exposure": {
     "name": "HTTP Exposure",
+    "name_nl": "HTTP-blootstelling",
     "description": "Exposure of web resources and endpoints.",
     "parent": "web-security"
   },
   "tls-certificates": {
     "name": "TLS and Certificates",
+    "name_nl": "TLS en certificaten",
     "description": "TLS protocols, ciphers and certificates.",
     "parent": null
   },
   "dns-security": {
     "name": "DNS Security",
+    "name_nl": "DNS-beveiliging",
     "description": "DNS records, delegation and DNSSEC.",
     "parent": null
   },
   "email-security": {
     "name": "Email Security",
+    "name_nl": "E-mailbeveiliging",
     "description": "Email authentication and domain email security.",
     "parent": null
   },
   "network-exposure": {
     "name": "Network Exposure",
+    "name_nl": "Netwerkblootstelling",
     "description": "Exposed network services and ports.",
     "parent": null
   },
   "software-security": {
     "name": "Software Security",
+    "name_nl": "Softwarebeveiliging",
     "description": "Software inventory, updates and malware.",
     "parent": null
   },
   "known-vulnerabilities": {
     "name": "Known Vulnerabilities",
+    "name_nl": "Bekende kwetsbaarheden",
     "description": "Identified or reported security vulnerabilities.",
     "parent": null
   },
   "information-disclosure": {
     "name": "Information Disclosure",
+    "name_nl": "Informatielekkage",
     "description": "Unintended disclosure of technical or sensitive information.",
     "parent": null
   },
   "authentication": {
     "name": "Authentication and Access Control",
+    "name_nl": "Authenticatie en toegangscontrole",
     "description": "Authentication and access control weaknesses.",
     "parent": null
   },
   "cloud-infrastructure": {
     "name": "Cloud and Infrastructure",
+    "name_nl": "Cloud en infrastructuur",
     "description": "Cloud services and infrastructure configuration.",
     "parent": null
   },
   "privacy": {
     "name": "Privacy",
+    "name_nl": "Privacy",
     "description": "Privacy-related security and data protection.",
     "parent": null
   },
   "ipv6": {
     "name": "IPv6",
+    "name_nl": "IPv6",
     "description": "IPv6 availability and connectivity.",
     "parent": null
   },
   "internet-standards": {
     "name": "Internet Standards",
+    "name_nl": "Internetstandaarden",
     "description": "Compliance with internet standards and routing security.",
     "parent": null
   },
   "other": {
     "name": "Other Findings",
+    "name_nl": "Overige bevindingen",
     "description": "Findings without a more specific security domain.",
     "parent": null
   },
   "general-configuration": {
     "name": "General Configuration",
+    "name_nl": "Algemene configuratie",
     "description": "Configuration weaknesses without a more specific technical group.",
     "parent": null
   }

@@ -2,7 +2,8 @@
 
 The static OpenKAT Finding Type catalog defines `groups` as an array of stable group identifiers.
 The canonical group registry is `boefjes/boefjes/plugins/kat_kat_finding_types/finding_type_groups.json`.
-Each group has a display name, description, and optional parent identifier.
+Each group has an English and a Dutch display name (`name`, `name_nl`), a description, and an optional
+parent identifier.
 A Finding Type may belong to multiple groups. A parent relationship describes the taxonomy;
 it does **not** imply descendant-aware filtering.
 
@@ -36,11 +37,24 @@ catalog can intentionally remove obsolete assignments.
 An application update does **not** automatically backfill Finding Types that
 already exist in XTDB. After deploying updated Boefjes and Octopoes services,
 refresh the `kat-finding-types` boefje for the existing `KATFindingType` OOIs
-in each organization. In Rocky, find **KAT Finding Types** in KAT-alogus,
-select the existing Finding Type OOIs and run the boefje. If the list is
-paginated, repeat for all relevant pages. The normalizer must also complete;
-only scheduling the boefje is not sufficient. Check the resulting
-`KATFindingType` details to confirm that `groups` and `tags` are populated.
+in each organization. Two ways to do that:
+
+- **Automated (recommended):** run the Rocky management command. It schedules
+  the boefje for every existing `KATFindingType` in every organization (or one
+  organization with `--organization`); `--dry-run` only reports the counts.
+  The boefjes worker and the `kat_kat_finding_types` normalizer must complete
+  afterwards.
+
+      python manage.py refresh_finding_type_metadata            # all organizations
+      python manage.py refresh_finding_type_metadata --dry-run  # count only
+
+- **Manual:** in Rocky, find **KAT Finding Types** in KAT-alogus,
+  select the existing Finding Type OOIs and run the boefje. If the list is
+  paginated, repeat for all relevant pages, and repeat for each organization.
+
+In both cases the normalizer must also complete; only scheduling the boefje is
+not sufficient. Check the resulting `KATFindingType` details to confirm that
+`groups` and `tags` are populated.
 
 This refresh reuses the existing OOI and its finding relationships; it does
 not recreate findings or create new OOIs for the classification. Finding Types
@@ -51,13 +65,17 @@ installation hydrates catalog metadata through the usual boefje workflow.
 ## Filtering findings in Rocky
 
 The findings page offers optional Group and Tag dropdowns. Each filters on
-explicit `KATFindingType` membership (not hierarchy descendants). Selecting
-both applies an AND condition. Filtering happens in Octopoes before counting,
-sorting, or pagination and combines with existing severity, search, muted,
-and observation-time filters.
+explicit `KATFindingType` membership (not hierarchy descendants); the group
+dropdown's help text states this as well. Selecting both applies an AND
+condition. Filtering happens in Octopoes before counting, sorting, or
+pagination and combines with existing severity, search, muted, and
+observation-time filters.
 
 The dropdown labels come from the canonical JSON group registry and the
-available tags from the Finding Type catalog. The Rocky container copies
-these two files from Boefjes at build time; after changing the registry or
-catalog, rebuild Rocky so the displayed options match the deployed catalog.
-The findings-page controls do not yet persist in dashboard widgets.
+available tags from the Finding Type catalog. Group display names are stored
+in the registry in both English and Dutch; Rocky picks the language matching
+the interface language. The Rocky container copies these two files from
+Boefjes at build time; after changing the registry or catalog, rebuild Rocky
+so the displayed options match the deployed catalog, and restart Rocky
+afterwards: the choices are cached for the lifetime of the process. The
+findings-page controls do not yet persist in dashboard widgets.

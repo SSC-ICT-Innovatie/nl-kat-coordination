@@ -43,6 +43,15 @@ def merge_ooi(ooi_new: OOI, ooi_old: OOI) -> tuple[OOI, bool]:
     # Trim new None values
     clean_new = {key: val for key, val in data_new.items() if val is not None}
 
+    # `key not in data_old` matters only for models that omit unset fields
+    # during serialization, currently KATFindingType (see the
+    # serialize_classification model serializer in
+    # octopoes/models/ooi/findings.py). A partial KATFindingType declaration
+    # carries no groups/tags keys, so those keys are absent from data_old's
+    # keyspace here only when the stored OOI lacks them: the omission must
+    # count as a change, otherwise a backfilling declaration would be
+    # considered unchanged and the metadata never stored. Do not "simplify"
+    # this clause away without keeping that serializer in sync.
     changed = False
     for key, value in clean_new.items():
         if key not in data_old or data_old[key] != value:
