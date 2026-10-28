@@ -25,13 +25,6 @@ def _plugin(enabled=True):
     return plugin
 
 
-def _page(items, count, offset):
-    page = Mock()
-    page.items = items
-    page.count = count
-    return page
-
-
 def test_command_refreshes_all_pages_and_organizations(mocker, db, organization, organization_b):
     """Both organizations get tasks for every finding type, across pages."""
     connector = mocker.patch(
