@@ -71,11 +71,12 @@ installation hydrates catalog metadata through the usual boefje workflow.
 ## Implementing the filters
 
 The findings page offers optional Group and Tag dropdowns. Each filters on
-explicit `KATFindingType` membership (not hierarchy descendants); the group
-dropdown's help text states this as well. Selecting both applies an AND
-condition. Filtering happens in Octopoes before counting, sorting, or
-pagination and combines with existing severity, search, muted, and
-observation-time filters.
+explicit `KATFindingType` membership (not hierarchy descendants). In the
+current catalog every sub-group finding is also an explicit member of its
+parent group, so filtering on the parent shows sub-group findings too.
+Selecting both a group and a tag applies an AND condition. Filtering happens
+in Octopoes before counting, sorting, or pagination and combines with
+existing severity, search, muted, and observation-time filters.
 
 Concretely, the filter parameters flow through these layers:
 

@@ -4868,7 +4868,7 @@ msgid "Filter by group"
 msgstr ""
 
 #: tools/forms/findings.py
-msgid "Filters on the selected group only; sub-groups are not included."
+msgid "Only findings assigned to the selected group are shown."
 msgstr ""
 
 #: tools/forms/findings.py
