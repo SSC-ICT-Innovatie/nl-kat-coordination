@@ -42,9 +42,7 @@ def get_severity_and_reasons(cipher_suite: str) -> list[tuple[str, str]]:
             # Check if there's a severity rating and a reason in the row
             if row[severity_col] and row[reason_col]:
                 # Append the severity and reason as a tuple to the list
-                severities_and_reasons.append(
-                    (row[severity_col], f"{cipher_suite} - {row[reason_col]} ({row[severity_col]}).")
-                )
+                severities_and_reasons.append((row[severity_col], f"{cipher_suite} - {row[reason_col]}."))
     return severities_and_reasons
 
 
@@ -74,7 +72,7 @@ def run(input_ooi: TLSCipher, additional_oois: list, config: dict[str, Any]) -> 
         yield Finding(
             finding_type=ft.reference,
             ooi=input_ooi.reference,
-            description=(
+            proof=(
                 "One or more of the cipher suites should not be used because:\n"
                 + "\n".join(reasons_by_severity[severity])
             ),
