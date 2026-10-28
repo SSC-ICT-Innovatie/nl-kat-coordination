@@ -86,7 +86,18 @@ class Command(BaseCommand):
             connector = OctopoesAPIConnector(
                 settings.OCTOPOES_API, client=organization.code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
             )
-            finding_types = connector.list_objects({"KATFindingType"}, valid_time=valid_time).items
+
+            # Paginate: list_objects returns at most DEFAULT_LIMIT (50) objects
+            # per call, while the catalog holds 88 finding types.
+            finding_types = []
+            offset = 0
+            page_size = 100
+            while True:
+                page = connector.list_objects({"KATFindingType"}, valid_time=valid_time, offset=offset, limit=page_size)
+                finding_types.extend(page.items)
+                offset += page_size
+                if offset >= page.count or not page.items:
+                    break
 
             if not finding_types:
                 self.stdout.write(f"[{organization.code}] no KATFindingType OOIs found.")
@@ -100,7 +111,9 @@ class Command(BaseCommand):
             scheduler = scheduler_client(organization.code)
             for finding_type in finding_types:
                 boefje_task = BoefjeTask(
-                    boefje=SchedulerBoefje(id=FINDING_TYPES_BOEFJE_ID),
+                    # The worker needs the full plugin definition (notably
+                    # oci_image) to run the boefje; a bare id is not enough.
+                    boefje=SchedulerBoefje.model_validate(plugin.model_dump()),
                     input_ooi=finding_type.reference,
                     organization=organization.code,
                 )

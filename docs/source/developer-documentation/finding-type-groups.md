@@ -68,6 +68,31 @@ not defined in the static catalog continue to have empty classification.
 Run this refresh after later catalog classification changes as well. A new
 installation hydrates catalog metadata through the usual boefje workflow.
 
+Migration notes for large deployments:
+
+- **The refresh is only as fresh as the boefje OCI image.** The
+  `kat-finding-types` boefje runs inside the `openkat-generic` OCI image
+  (built by `boefjes/images/generic.Dockerfile`, which bakes the catalog in
+  at build time). If the refresh runs with an image built before a catalog
+  change, the normalizer receives the old catalog and _explicitly_ clears
+  the groups it no longer sees. Always ensure the deployed image contains
+  the current catalog (pull the latest `openkat-generic`, or rebuild it from
+  the same revision as the deployed Boefjes code) before running the
+  refresh. Running it again with a current image restores the correct
+  classification, so a stale-image run is recoverable, but avoid it.
+- The command paginates through all `KATFindingType` objects per
+  organization (the Octopoes API caps pages at 50 by default) and schedules
+  one boefje task per finding type, so an organization with 88 finding types
+  queues 88 tasks. Tasks run at normal scheduler priority; the boefje itself
+  is cheap (it reads a static file), but schedule the refresh off-peak for
+  deployments with very many organizations and let the workers drain the
+  queue. The normalizer that follows is equally cheap. Nothing in the
+  refresh path rewrites `Finding` objects, only `KATFindingType` documents.
+
+When adding or changing groups in the registry, also update the end-user
+description in `docs/source/user-manual/findings.rst` (section "Filtering by
+group and tag"), which lists all groups, tags, and their hierarchy.
+
 ## Implementing the filters
 
 The findings page offers optional Group and Tag dropdowns. Each filters on
