@@ -1,6 +1,6 @@
 """Tests for optional, database-level Finding Type classification filters."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import Mock
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
@@ -13,7 +13,7 @@ def test_filtered_count_and_page_use_same_classification_clauses():
     session.client.query.return_value = [[2]]
     repository = XTDBOOIRepository(Mock(), session)
     repository.query = Mock(return_value=[("finding", 8.0, "finding_type")])
-    when = datetime.now(timezone.utc)
+    when = datetime.now(UTC)
     options = {
         "group": "web-security",
         "tag": "misconfiguration",
@@ -45,9 +45,7 @@ def test_count_only_applies_classification_filters():
     session.client.query.return_value = [[3]]
     repository = XTDBOOIRepository(Mock(), session)
 
-    result = repository.list_findings(
-        {RiskLevelSeverity.MEDIUM}, datetime.now(timezone.utc), limit=0, tag="misconfiguration"
-    )
+    result = repository.list_findings({RiskLevelSeverity.MEDIUM}, datetime.now(UTC), limit=0, tag="misconfiguration")
 
     assert result.count == 3
     assert result.items == []
@@ -61,7 +59,7 @@ def test_unfiltered_query_does_not_require_classification():
     session.client.query.return_value = [[4]]
     repository = XTDBOOIRepository(Mock(), session)
 
-    result = repository.list_findings({RiskLevelSeverity.HIGH}, datetime.now(timezone.utc), limit=0)
+    result = repository.list_findings({RiskLevelSeverity.HIGH}, datetime.now(UTC), limit=0)
 
     assert result.count == 4
     query = session.client.query.call_args.args[0]
@@ -74,7 +72,7 @@ def test_classification_values_are_escaped_in_query():
     session.client.query.return_value = [[0]]
     repository = XTDBOOIRepository(Mock(), session)
 
-    repository.list_findings({RiskLevelSeverity.HIGH}, datetime.now(timezone.utc), limit=0, group='odd"\\value')
+    repository.list_findings({RiskLevelSeverity.HIGH}, datetime.now(UTC), limit=0, group='odd"\\value')
 
     query = session.client.query.call_args.args[0]
     assert '[?finding_type :KATFindingType/groups "odd\\"\\\\value"]' in query
@@ -87,7 +85,7 @@ def test_connector_sends_optional_classification_parameters():
     connector.session.get.return_value.content = b'{"count":0,"items":[]}'
 
     result = connector.list_findings(
-        {RiskLevelSeverity.HIGH}, datetime.now(timezone.utc), group="web-security", tag="misconfiguration"
+        {RiskLevelSeverity.HIGH}, datetime.now(UTC), group="web-security", tag="misconfiguration"
     )
 
     assert result.count == 0
@@ -95,7 +93,7 @@ def test_connector_sends_optional_classification_parameters():
     assert params["group"] == "web-security"
     assert params["tag"] == "misconfiguration"
 
-    connector.list_findings({RiskLevelSeverity.HIGH}, datetime.now(timezone.utc))
+    connector.list_findings({RiskLevelSeverity.HIGH}, datetime.now(UTC))
     params = connector.session.get.call_args.kwargs["params"]
     assert "group" not in params
     assert "tag" not in params
@@ -108,7 +106,7 @@ def test_out_of_range_page_still_uses_actual_filtered_count():
     repository.query = Mock(return_value=[])
 
     result = repository.list_findings(
-        {RiskLevelSeverity.HIGH}, datetime.now(timezone.utc), offset=25, limit=5, group="web-security"
+        {RiskLevelSeverity.HIGH}, datetime.now(UTC), offset=25, limit=5, group="web-security"
     )
 
     assert result.count == 2

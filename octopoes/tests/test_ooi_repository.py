@@ -161,7 +161,7 @@ class OOIRepositoryTest(TestCase):
 def test_kat_finding_type_omitted_classification_survives_api_round_trip():
     """A partial declaration must not turn missing metadata into [] on the wire."""
     finding_type = KATFindingType(id="KAT-NO-HSTS")
-    declaration = Declaration(ooi=finding_type, valid_time=datetime.now(timezone.utc))
+    declaration = Declaration(ooi=finding_type, valid_time=datetime.now(UTC))
     payload = declaration.model_dump(mode="json")
 
     assert "groups" not in payload["ooi"]
@@ -177,7 +177,7 @@ def test_kat_finding_type_omitted_classification_survives_api_round_trip():
 
 def test_kat_finding_type_omitted_classification_survives_other_origin_requests():
     finding_type = KATFindingType(id="KAT-NO-HSTS")
-    valid_time = datetime.now(timezone.utc)
+    valid_time = datetime.now(UTC)
     affirmation = Affirmation(ooi=finding_type, valid_time=valid_time)
     affirmation_payload = affirmation.model_dump(mode="json")
     assert "groups" not in affirmation_payload["ooi"]
@@ -218,7 +218,7 @@ def test_kat_finding_type_partial_merge_preserves_groups_and_tags():
 def test_kat_finding_type_explicit_empty_classification_clears_existing_values():
     stored = KATFindingType(id="KAT-NO-HSTS", groups=["web-security"], tags=["misconfiguration"])
     explicit_clear = KATFindingType(id="KAT-NO-HSTS", groups=[], tags=[])
-    payload = Declaration(ooi=explicit_clear, valid_time=datetime.now(timezone.utc)).model_dump(mode="json")
+    payload = Declaration(ooi=explicit_clear, valid_time=datetime.now(UTC)).model_dump(mode="json")
     received = ValidatedDeclaration.model_validate(payload).ooi
 
     assert payload["ooi"]["groups"] == []

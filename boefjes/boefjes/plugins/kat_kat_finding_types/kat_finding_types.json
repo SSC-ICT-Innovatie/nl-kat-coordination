@@ -275,7 +275,7 @@
     "source": "https://www.dns-school.org/Documentation/dnssec_howto.pdf",
     "risk": "medium",
     "impact": "DNS responses without DNSSEC authentication can be modified or spoofed without detection by DNSSEC validation.",
-    "recommendation": "Check whether the authoritative zone is intentionally unsigned. If DNSSEC protection is required, sign the zone and publish the appropriate DS record at the parent."
+    "recommendation": "Check whether the authoritative zone is intentionally unsigned. If DNSSEC protection is required, sign the zone and publish the appropriate DS record at the parent.",
     "groups": ["dns-security"],
     "tags": ["misconfiguration"]
   },
@@ -285,7 +285,7 @@
     "source": "https://www.dns-school.org/Documentation/dnssec_howto.pdf",
     "risk": "high",
     "impact": "Validating resolvers may reject the affected DNS answers, potentially making the service unreachable.",
-    "recommendation": "Inspect DNSKEY, DS, RRSIG, signature validity periods and delegation configuration; correct the failing chain of trust."
+    "recommendation": "Inspect DNSKEY, DS, RRSIG, signature validity periods and delegation configuration; correct the failing chain of trust.",
     "groups": ["dns-security"],
     "tags": ["misconfiguration"]
   },
