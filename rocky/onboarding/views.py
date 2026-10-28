@@ -28,7 +28,7 @@ from octopoes.models import OOI
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import URL
-from onboarding.forms import OnboardingCreateObjectURLForm, OnboardingSetClearanceLevelForm
+from onboarding.forms import OnboardingCreateObjectURLForm, OnboardingSetClearanceLevelForm, OrganizationSelectForm
 from onboarding.view_helpers import (
     DNS_REPORT_LEAST_CLEARANCE_LEVEL,
     ONBOARDING_PERMISSIONS,
@@ -89,10 +89,14 @@ class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegis
     permission_required = "tools.add_organization"
 
     def get(self, request, *args, **kwargs):
-        if member := OrganizationMember.objects.filter(user=self.request.user).first():
-            return redirect(
-                reverse("step_2b_organization_update", kwargs={"organization_code": member.organization.code})
-            )
+        if not request.GET.get("new"):
+            members = OrganizationMember.objects.filter(user=self.request.user, blocked=False)
+            if members.count() > 1:
+                return redirect(reverse("step_2a_organization_select"))
+            if member := members.first():
+                return redirect(
+                    reverse("step_2b_organization_update", kwargs={"organization_code": member.organization.code})
+                )
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
@@ -123,6 +127,33 @@ class OnboardingOrganizationSetupView(PermissionRequiredMixin, IntroductionRegis
     def add_success_notification(self, org_name):
         success_message = _("{org_name} successfully created.").format(org_name=org_name)
         messages.add_message(self.request, messages.SUCCESS, success_message)
+
+
+class OnboardingOrganizationSelectView(PermissionRequiredMixin, IntroductionRegistrationStepsMixin, FormView):
+    """
+    Step 2a (alternative): Select an existing organization to onboard into,
+    instead of creating a new one. Shown when the user is already a member of
+    one or more organizations.
+    """
+
+    template_name = "step_2a_organization_select.html"
+    form_class = OrganizationSelectForm
+    current_step = 2
+    permission_required = "tools.add_organizationmember"
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["organizations"] = Organization.objects.filter(members__user=self.request.user, members__blocked=False)
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["may_create_organization"] = self.request.user.has_perm("tools.add_organization")
+        return context
+
+    def form_valid(self, form):
+        organization = form.cleaned_data["organization"]
+        return redirect(reverse("step_2b_organization_update", kwargs={"organization_code": organization.code}))
 
 
 class OnboardingOrganizationUpdateView(
