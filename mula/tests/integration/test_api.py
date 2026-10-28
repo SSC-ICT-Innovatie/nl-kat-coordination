@@ -1,7 +1,7 @@
 import json
 import unittest
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest import mock
 from urllib.parse import quote
@@ -739,7 +739,7 @@ class APITasksEndpointTestCase(APITemplateTestCase):
 
     def test_get_tasks_min_created_at_future(self):
         # Get tasks based on datetime for something in the future, should return 0 items
-        params = {"min_created_at": (datetime.now(timezone.utc) + timedelta(days=1)).isoformat()}
+        params = {"min_created_at": (datetime.now(UTC) + timedelta(days=1)).isoformat()}
         response = self.client.get("/tasks", params=params)
         self.assertEqual(200, response.status_code)
         self.assertEqual(0, len(response.json()["results"]))
@@ -865,7 +865,7 @@ class APIScheduleEndpointTestCase(APITemplateTestCase):
                 organisation=self.organisation.id,
                 hash=self.first_item.hash,
                 data=self.first_item.data,
-                deadline_at=datetime.now(timezone.utc) + timedelta(days=1),
+                deadline_at=datetime.now(UTC) + timedelta(days=1),
             )
         )
 
@@ -876,7 +876,7 @@ class APIScheduleEndpointTestCase(APITemplateTestCase):
                 organisation=self.organisation.id,
                 hash=self.second_item.hash,
                 data=self.second_item.data,
-                deadline_at=datetime.now(timezone.utc) + timedelta(days=2),
+                deadline_at=datetime.now(UTC) + timedelta(days=2),
             )
         )
 
@@ -1036,13 +1036,13 @@ class APIScheduleEndpointTestCase(APITemplateTestCase):
             utils.cron.next_run("*/5 * * * *"),
             # NOTE: Remove Z from the end of the string. Until 3.11
             # datetime.fromisoformat does not accept Z at the end of the string
-            datetime.fromisoformat(response.json().get("deadline_at")[:-1]).astimezone(timezone.utc),
+            datetime.fromisoformat(response.json().get("deadline_at")[:-1]).astimezone(UTC),
         )
 
     def test_post_schedule_explicit_deadline_at(self):
         """When a schedule is created, the deadline_at should be set if it is provided."""
         item = functions.create_task(self.scheduler.scheduler_id, self.organisation.id)
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         response = self.client.post(
             "/schedules",
             json={
@@ -1057,7 +1057,7 @@ class APIScheduleEndpointTestCase(APITemplateTestCase):
         self.assertEqual(
             # NOTE: Remove Z from the end of the string. Until 3.11
             # datetime.fromisoformat does not accept Z at the end of the string
-            datetime.fromisoformat(response.json().get("deadline_at")[:-1]).astimezone(timezone.utc),
+            datetime.fromisoformat(response.json().get("deadline_at")[:-1]).astimezone(UTC),
             now,
         )
 

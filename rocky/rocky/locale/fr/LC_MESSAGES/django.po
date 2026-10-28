@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-16 16:49+0000\n"
+"POT-Creation-Date: 2026-10-14 14:16+0000\n"
 "PO-Revision-Date: 2026-09-30 19:11+0000\n"
 "Last-Translator: Anonymous <noreply@weblate.org>\n"
 "Language-Team: French <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -2189,6 +2189,12 @@ msgstr ""
 msgid "Please enter a valid URL starting with 'http://' or 'https://'."
 msgstr ""
 
+#: onboarding/forms.py onboarding/views.py
+msgid ""
+"The onboarding DNS report requires a hostname, not an IP address or "
+"localhost."
+msgstr ""
+
 #: onboarding/templates/partials/onboarding_header.html
 msgid "Onboarding"
 msgstr ""
@@ -3924,6 +3930,7 @@ msgid "Report names:"
 msgstr ""
 
 #: reports/templates/partials/report_names_form.html
+#: rocky/templates/forms/json_schema_form.html
 #: rocky/templates/forms/widgets/checkbox_group_table.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
@@ -5668,7 +5675,21 @@ msgid "Privacy Statement"
 msgstr ""
 
 #: rocky/templates/forms/json_schema_form.html
+msgid "Using config from"
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
+msgid "Currently unanswered."
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
 msgid "Fill out this form to answer the Question (again):"
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
+msgid ""
+"Note: an emptied field is stored as an empty answer, not reset to its "
+"default value."
 msgstr ""
 
 #: rocky/templates/graph-d3.html
@@ -6237,6 +6258,7 @@ msgid "An overview of all organizations you are a member of."
 msgstr ""
 
 #: rocky/templates/organizations/organization_list.html
+#: rocky/templates/partials/organizations_menu_dropdown.html
 msgid "Add new organization"
 msgstr ""
 

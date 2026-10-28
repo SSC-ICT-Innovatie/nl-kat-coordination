@@ -41,7 +41,7 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     internet = Network(name="internet")
 
-    zone = None
+    zones: dict[str, DNSZone] = {}
     hostname_store: dict[str, Hostname] = {}
     record_store: dict[str, DNSRecord] = {}
 
@@ -84,8 +84,14 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 # the soa is the zone of itself, and the argument hostname
                 if isinstance(rr, SOA):
                     zone = DNSZone(hostname=record_hostname.reference)
+                    zones[record_hostname.name] = zone
                     zone_links[record_hostname.name] = zone
-                    zone_links[input_hostname.name] = zone
+                    # Do not associate an external CNAME target's SOA with
+                    # the original hostname's zone.
+                    if input_hostname.name == record_hostname.name or input_hostname.name.endswith(
+                        "." + record_hostname.name
+                    ):
+                        zone_links[input_hostname.name] = zone
 
                     soa = DNSSOARecord(
                         serial=rr.serial,
@@ -169,8 +175,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     for hostname_, zone in zone_links.items():
         hostname_store[hostname_].dns_zone = zone.reference
 
-    if zone:
-        yield zone
+    yield from zones.values()
     yield from hostname_store.values()
     yield from record_store.values()
 

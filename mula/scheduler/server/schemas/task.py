@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class TaskStatus(str, enum.Enum):
+class TaskStatus(enum.StrEnum):
     # Task has been created but not yet queued
     PENDING = "pending"
 

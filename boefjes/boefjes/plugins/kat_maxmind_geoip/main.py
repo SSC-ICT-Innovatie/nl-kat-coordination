@@ -5,7 +5,7 @@ import os
 import re
 import shutil
 import tarfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import ip_address
 from os import getenv
 from pathlib import Path
@@ -57,7 +57,7 @@ def create_hash(data: bytes, algo: str) -> str:
 
 def cache_out_of_date() -> bool:
     """Returns True if the file is older than the allowed cache_timout"""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     max_age = int(getenv("GEOIP_CACHE_TIMEOUT", GEOIP_CACHE_TIMEOUT))
     with GEOIP_META_PATH.open() as meta_file:
         meta = json.load(meta_file)
@@ -91,7 +91,7 @@ def refresh_geoip(algo: str) -> dict:
             raise FileNotFoundError("GeoLite2-City.mmdb not found in the tar archive")
 
     metadata = {
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "source": source_url,
         "hash": create_hash(response.content, algo),
         "hash_algorithm": algo,
