@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 import pytest
 from django.core.exceptions import PermissionDenied
 from pytest_django.asserts import assertContains, assertNotContains
@@ -55,8 +57,10 @@ MUTED_FINDING_TREE_DATA = {
 def test_ooi_finding_list(rf, client_member, mock_organization_view_octopoes):
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
-    request = setup_request(rf.get("ooi_findings", {"ooi_id": "Network|testnetwork"}), client_member.user)
-    response = OOIFindingListView.as_view()(request, organization_code=client_member.organization.code)
+    request = setup_request(rf.get("ooi_findings"), client_member.user)
+    response = OOIFindingListView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=None, ooi="Network|testnetwork"
+    )
 
     assert response.status_code == 200
     assert mock_organization_view_octopoes().get_tree.call_count == 1
@@ -100,9 +104,12 @@ def test_mute_finding_button_is_not_visible_without_perms(
 @pytest.mark.parametrize("member", ["superuser_member", "redteam_member"])
 def test_mute_finding_form_view(request, member, rf, mock_organization_view_octopoes):
     member = request.getfixturevalue(member)
+    mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
     response = MuteFindingView.as_view()(
-        setup_request(rf.get("finding_mute", {"ooi_id": "Finding|Network|testnetwork|KAT-000"}), member.user),
+        setup_request(rf.get("finding_mute"), member.user),
         organization_code=member.organization.code,
+        temporal_context=None,
+        ooi="Finding|Network|testnetwork|KAT-000",
     )
 
     assert response.status_code == 200
@@ -118,8 +125,7 @@ def test_mute_finding_form_view_no_perms(request, member, rf, mock_organization_
     member = request.getfixturevalue(member)
     with pytest.raises(PermissionDenied):
         MuteFindingView.as_view()(
-            setup_request(rf.get("finding_mute", {"ooi_id": "Finding|Network|testnetwork|KAT-000"}), member.user),
-            organization_code=member.organization.code,
+            setup_request(rf.get("finding_mute"), member.user), organization_code=member.organization.code
         )
 
 
@@ -349,3 +355,37 @@ def test_findings_list_filtering(
     FindingListView.as_view()(request_filtering, organization_code=member.organization.code)
 
     assert mock_organization_view_octopoes().list_findings.mock_calls[1].kwargs["severities"] == {RiskLevelSeverity.LOW}
+
+
+HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+
+
+def test_mute_findings_bulk_writes_at_the_viewed_time(rf, redteam_member, mock_organization_view_octopoes, mocker):
+    """Muting while viewing a moment in the past records the mute at that moment."""
+    create_oois = mocker.patch("rocky.views.ooi_mute.create_oois")
+    finding = "Finding|Network|testnetwork|KAT-000"
+
+    request = setup_request(
+        rf.post("finding_mute_bulk", {"finding": [finding], "reason": "testing"}), redteam_member.user
+    )
+    response = MuteFindingsBulkView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=HISTORIC_MOMENT
+    )
+
+    assert response.status_code == 302
+    assert create_oois.call_args.args[3] == HISTORIC_MOMENT
+
+
+def test_unmute_findings_bulk_deletes_at_the_viewed_time(rf, redteam_member, mock_organization_view_octopoes):
+    """Unmuting while viewing a moment in the past takes effect at that moment, not now."""
+    finding = "Finding|Network|testnetwork|KAT-000"
+
+    request = setup_request(
+        rf.post("finding_mute_bulk", {"finding": [finding], "unmute": "unmute"}), redteam_member.user
+    )
+    response = MuteFindingsBulkView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=HISTORIC_MOMENT
+    )
+
+    assert response.status_code == 302
+    assert mock_organization_view_octopoes().delete_many.call_args.args[1] == HISTORIC_MOMENT

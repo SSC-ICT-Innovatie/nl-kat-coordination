@@ -4,20 +4,20 @@
 <nav class="tabs" aria-label="{% translate "List of views for OOI" %}">
     <ul>
         <li {% if view == "ooi_detail" %}aria-current="page"{% endif %}>
-            <a href="{% ooi_url 'ooi_detail' ooi.primary_key organization.code query=mandatory_fields %}">{% translate "Overview" %}</a>
+            <a href="{% app_url 'ooi_detail' ooi=ooi.primary_key %}">{% translate "Overview" %}</a>
         </li>
         <li {% if view == "ooi_tree" %}aria-current="page"{% endif %}>
-            <a href="{% ooi_url 'ooi_tree' ooi.primary_key organization.code query=mandatory_fields %}">{% translate "Tree" %}</a>
+            <a href="{% app_url 'ooi_tree' ooi=ooi.primary_key %}">{% translate "Tree" %}</a>
         </li>
         <li {% if view == "graph" %}aria-current="page"{% endif %}>
-            <a href="{% ooi_url 'ooi_graph' ooi.primary_key organization.code query=mandatory_fields %}">{% translate "Graph" %}</a>
+            <a href="{% app_url 'ooi_graph' ooi=ooi.primary_key %}">{% translate "Graph" %}</a>
         </li>
         {% if not ooi|is_finding and not ooi|is_finding_type %}
             <li {% if view == "scan_profile_detail" %}aria-current="page"{% endif %}>
-                <a href="{% ooi_url 'scan_profile_detail' ooi.primary_key organization.code query=mandatory_fields %}">{% translate "Clearance level" %} ({{ ooi.scan_profile.human_readable }}, {{ ooi.scan_profile.scan_profile_type }})</a>
+                <a href="{% app_url 'scan_profile_detail' ooi=ooi.primary_key %}">{% translate "Clearance level" %} ({{ ooi.scan_profile.human_readable }}, {{ ooi.scan_profile.scan_profile_type }})</a>
             </li>
             <li {% if view == "ooi_findings" %}aria-current="page"{% endif %}>
-                <a href="{% ooi_url 'ooi_findings' ooi.primary_key organization.code query=mandatory_fields %}">{% translate "Findings" %}</a>
+                <a href="{% app_url 'ooi_findings' ooi=ooi.primary_key %}">{% translate "Findings" %}</a>
             </li>
         {% endif %}
     </ul>

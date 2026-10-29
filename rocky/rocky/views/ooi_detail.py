@@ -33,6 +33,9 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         return super().post(request, *args, **kwargs)
 
     def set_clearance_level(self) -> None:
+        if self.is_historic_view:
+            messages.error(self.request, _("Clearance levels cannot be set on historic views."))
+            return
         if not self.indemnification_present:
             self.indemnification_error()
             return
@@ -65,11 +68,12 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
         messages.success(self.request, _("Question has been answered."))
 
     def start_boefje_scan(self) -> None:
+        if self.is_historic_view:
+            messages.error(self.request, _("Boefje tasks cannot be started from historic views."))
+            return
         boefje_id = self.request.POST.get("boefje_id")
         boefje = self.katalogus_client.get_plugin(boefje_id)
-        ooi_id = self.request.GET.get("ooi_id")
-        ooi = self.get_single_ooi(pk=ooi_id)
-        self.run_boefje(boefje, ooi)
+        self.run_boefje(boefje, self.ooi)
 
     def get_boefjes_filter_form(self):
         return PossibleBoefjesFilterForm(self.request.GET)
@@ -99,9 +103,6 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        context["ooi"] = self.ooi
-
         try:
             enabled_boefjes = self.katalogus_client.get_enabled_boefjes()
         except KATalogusError:
@@ -152,7 +153,7 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
                 json.dumps(context["current_config"]) if context["current_config"] is not None else ""
             )
 
-        context["related"] = self.get_related_objects(self.observed_at)
+        context["related"] = self.get_related_objects()
 
         context["count_findings_per_severity"] = dict(self.count_findings_per_severity())
         context["severity_summary_totals"] = sum(context["count_findings_per_severity"].values())

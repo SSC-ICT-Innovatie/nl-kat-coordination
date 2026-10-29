@@ -16,15 +16,10 @@
 
                 {% else %}
                     <p>{% translate "Currently no findings have been identified for OOI" %} "{{ ooi.human_readable }}".</p>
-                    <a href="{% ooi_url 'finding_add' ooi.primary_key organization.code %}"
-                       class="button">{% translate "Add finding" %}</a>
+                    <a href="{% app_url 'finding_add' ooi=ooi.primary_key %}" class="button">{% translate "Add finding" %}</a>
                 {% endif %}
                 {{ self }}
             </div>
         </section>
     </main>
 {% endblock content %}
-{% block html_at_end_body %}
-    {{ block.super }}
-    <script src="{% static "js/checkboxToggler.js" %}" nonce="{{ request.csp_nonce }}"></script>
-{% endblock html_at_end_body %}
