@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 from pydantic import ValidationError
 
 from octopoes.models import OOI
-from octopoes.models.ooi.dns.records import DNSCAAAccountURI, DNSCAARecord
+from octopoes.models.ooi.dns.records import CAATAGS, DNSCAAAccountURI, DNSCAARecord
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.findings import Finding, KATFindingType
@@ -27,7 +27,7 @@ def parse_caa_parameters(value: str) -> dict[str, list[str]]:
 def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]) -> Iterator[OOI]:
     findings: list[tuple[str, str]] = []
 
-    if record.tag == "iodef":
+    if record.tag == CAATAGS.IODEF:
         value = record.value.strip()
 
         try:
@@ -64,7 +64,7 @@ def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]
         except (ValueError, ValidationError) as exc:
             findings.append(("KAT-CAA-IODEF", f"Invalid iodef URI in CAA record: {exc}"))
 
-    elif record.tag in ("issue", "issuewild"):
+    elif record.tag in (CAATAGS.ISSUE, CAATAGS.ISSUEWILD):
         parameters = parse_caa_parameters(record.value)
         account_uris = parameters.get("accounturi", [])
 
