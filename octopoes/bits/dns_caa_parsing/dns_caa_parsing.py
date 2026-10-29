@@ -9,6 +9,7 @@ from octopoes.models.ooi.dns.records import CAATAGS, DNSCAAAccountURI, DNSCAARec
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.findings import Finding, KATFindingType
+from octopoes.models.ooi.network import Network
 from octopoes.models.ooi.web import URL
 
 
@@ -29,7 +30,7 @@ def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]
 
     if record.tag == CAATAGS.IODEF:
         value = record.value.strip()
-
+        network = Network(name=record.hostname.tokenized.network.name).reference
         try:
             parsed = urlsplit(value)
             scheme = parsed.scheme.lower()
@@ -45,7 +46,7 @@ def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]
                     if not localpart or not hostname:
                         findings.append(("KAT-CAA-IODEF", "Missing localpart or hostname in CAA iodef mailto URI."))
                     else:
-                        hostnameobj = Hostname(name=hostname.lower(), network=record.hostname.network)
+                        hostnameobj = Hostname(name=hostname.lower(), network=network)
                         emailaddress = EmailAddress(localpart=localpart, hostname=hostnameobj.reference)
 
                         yield hostnameobj
@@ -56,7 +57,7 @@ def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]
                 if not parsed.netloc or not parsed.hostname:
                     findings.append(("KAT-CAA-IODEF", "Malformed HTTP(S) URI in CAA iodef record."))
                 else:
-                    yield URL(network=record.hostname.network, raw=value)
+                    yield URL(network=network, raw=value)
 
             else:
                 findings.append(("KAT-CAA-IODEF", f"Unsupported URI scheme '{scheme}' in CAA iodef record."))
