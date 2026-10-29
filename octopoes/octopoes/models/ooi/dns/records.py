@@ -231,7 +231,7 @@ class DNSCAARecord(DNSRecord):
     # The Value field, expressed as either (1) a contiguous set of characters
     # without interior spaces or (2) a quoted string.
     value: str
-    accounturi: Reference | None = ReferenceField(DNSCAAAccountURI)
+    accounturi: Reference | None = ReferenceField(DNSCAAAccountURI, max_issue_scan_level=1, default=None)
     _natural_key_attrs = ["hostname", "flags", "tag", "value"]
 
     @property
