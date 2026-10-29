@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from inspect import isclass
 from ipaddress import IPv4Address, IPv6Address
@@ -142,7 +142,7 @@ def generate_select_ooi_field(
     if initial:
         select_options.append((initial, initial))
 
-    oois = api_connector.list_objects({related_ooi_type}, datetime.now(timezone.utc)).items
+    oois = api_connector.list_objects({related_ooi_type}, datetime.now(UTC)).items
     select_options.extend([(ooi.primary_key, ooi.primary_key) for ooi in oois])
 
     if field.is_required() and len(oois) == 1:

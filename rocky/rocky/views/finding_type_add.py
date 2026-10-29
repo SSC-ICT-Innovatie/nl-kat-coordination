@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from account.mixins import OrganizationView
@@ -40,7 +40,7 @@ class FindingTypeAddView(OrganizationView, FormView):
         form_data = form.cleaned_data
         # set data
         finding_type = KATFindingType(id=form_data["id"])
-        info, created = OOIInformation.objects.get_or_create(id=f'KATFindingType|{form_data["id"]}')
+        info, created = OOIInformation.objects.get_or_create(id=f"KATFindingType|{form_data['id']}")
         info.data = {
             "title": form_data["title"],
             "description": form_data["description"],
@@ -56,7 +56,7 @@ class FindingTypeAddView(OrganizationView, FormView):
         info.save()
 
         task_id = uuid4()
-        declaration = Declaration(ooi=finding_type, valid_time=datetime.now(timezone.utc), task_id=str(task_id))
+        declaration = Declaration(ooi=finding_type, valid_time=datetime.now(UTC), task_id=str(task_id))
 
         self.bytes_client.add_manual_proof(task_id, BytesClient.raw_from_declarations([declaration]))
         self.api_connector.save_declaration(declaration, sync=True)
