@@ -4,12 +4,14 @@
   "properties": {
     "CONNECT_TIMEOUT": {
       "title": "CONNECT_TIMEOUT",
+      "minimum": 1,
       "maximum": 60,
       "type": "integer",
       "description": "Timeout in seconds for establishing a connection to crt.sh. Defaults to 10."
     },
     "READ_TIMEOUT": {
       "title": "READ_TIMEOUT",
+      "minimum": 1,
       "maximum": 300,
       "type": "integer",
       "description": "Timeout in seconds between bytes received from crt.sh. Defaults to 30."
