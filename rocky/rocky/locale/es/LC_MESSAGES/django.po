@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: OpenKAT\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 14:16+0000\n"
+"POT-Creation-Date: 2026-10-27 13:35+0000\n"
 "PO-Revision-Date: 2026-09-30 19:12+0000\n"
 "Last-Translator: andrea-finalist <andrea.flores@finalist.nl>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -4979,6 +4979,10 @@ msgstr ""
 #: tools/forms/scheduler.py rocky/scheduler.py
 #: rocky/templates/tasks/partials/stats.html
 msgid "Running"
+msgstr ""
+
+#: tools/forms/scheduler.py rocky/scheduler.py
+msgid "Timeout"
 msgstr ""
 
 #: tools/forms/scheduler.py

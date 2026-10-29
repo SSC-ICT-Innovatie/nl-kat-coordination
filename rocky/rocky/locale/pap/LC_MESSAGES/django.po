@@ -4,7 +4,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 14:16+0000\n"
+"POT-Creation-Date: 2026-10-27 13:35+0000\n"
 "PO-Revision-Date: 2026-09-30 19:33+0000\n"
 "Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Papiamento <https://hosted.weblate.org/projects/openkat/nl-"
@@ -5042,6 +5042,10 @@ msgstr "Enfila"
 #: tools/forms/scheduler.py rocky/scheduler.py
 #: rocky/templates/tasks/partials/stats.html
 msgid "Running"
+msgstr ""
+
+#: tools/forms/scheduler.py rocky/scheduler.py
+msgid "Timeout"
 msgstr ""
 
 #: tools/forms/scheduler.py

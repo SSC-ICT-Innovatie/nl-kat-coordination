@@ -10,7 +10,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 14:16+0000\n"
+"POT-Creation-Date: 2026-10-27 13:35+0000\n"
 "PO-Revision-Date: 2026-09-30 19:12+0000\n"
 "Last-Translator: jan klopper <jan@underdark.nl>\n"
 "Language-Team: Tamil <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -5327,6 +5327,10 @@ msgstr "வரிசையில்"
 #: rocky/templates/tasks/partials/stats.html
 msgid "Running"
 msgstr "இயங்கும்"
+
+#: tools/forms/scheduler.py rocky/scheduler.py
+msgid "Timeout"
+msgstr ""
 
 #: tools/forms/scheduler.py
 msgid "Search (in OOI)"

@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 14:16+0000\n"
-"PO-Revision-Date: 2026-10-16 14:51+0000\n"
+"POT-Creation-Date: 2026-10-27 13:35+0000\n"
+"PO-Revision-Date: 2026-10-29 10:51+0000\n"
 "Last-Translator: Wim Benes <fryskefirefox@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Frisian <https://hosted.weblate.org/projects/openkat/nl-kat-"
 "coordination/fy/>\n"
@@ -5519,6 +5519,10 @@ msgstr "Yn de wachtrige"
 msgid "Running"
 msgstr "Rint no"
 
+#: tools/forms/scheduler.py rocky/scheduler.py
+msgid "Timeout"
+msgstr "Time-out"
+
 #: tools/forms/scheduler.py
 msgid "Search (in OOI)"
 msgstr "Sykje (yn OOI)"
@@ -8080,7 +8084,7 @@ msgstr "Kin gjin boarne foar OOI lade: %s út Oktopoes"
 
 #: rocky/views/mixins.py
 msgid "Could not load normalizer metas from bytes"
-msgstr "Kin gjin Normalizer-metagegevens út bytes lade"
+msgstr "Kin Normalizer-metagegevens út bytes net lade"
 
 #: rocky/views/mixins.py
 #, python-format
