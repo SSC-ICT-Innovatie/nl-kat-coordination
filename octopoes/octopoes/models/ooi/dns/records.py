@@ -183,7 +183,7 @@ class CAATAGS(Enum):
 
     Possible values
     ---------------
-    issue, issuewild, iodef, contactemail, contactphone, issuevmc, issuemail
+    issue, issuewild, iodef, contactemail, contactphone, issuevmc, issuemail, tbs
     """
 
     ISSUE = "issue"
@@ -193,9 +193,21 @@ class CAATAGS(Enum):
     CONACTPHONE = "contactphone"
     ISSUEVMC = "issuevmc"
     ISSUEMAIL = "issuemail"
+    TBS = "tbs"
 
     def __str__(self) -> str:
         return self.value
+
+
+class DNSCAAAccountURI(OOI):
+    """
+    Represents the CAA record account uri value.
+    https://www.rfc-editor.org/info/rfc8657/#name-extensions-to-the-caa-recor
+
+    """
+
+    object_type: Literal["DNSCAAAccountURI"] = "DNSCAAAccountURI"
+    uri: str
 
 
 class DNSCAARecord(DNSRecord):
@@ -219,7 +231,16 @@ class DNSCAARecord(DNSRecord):
     # The Value field, expressed as either (1) a contiguous set of characters
     # without interior spaces or (2) a quoted string.
     value: str
+    accounturi: Reference | None = ReferenceField(DNSCAAAccountURI)
     _natural_key_attrs = ["hostname", "flags", "tag", "value"]
+
+    @property
+    def validationmethods(self) -> list[str] | None:
+        for part in self.value.split(";"):
+            key, separator, value = part.strip().partition("=")
+            if separator and key.strip().lower() == "validationmethods":
+                return [method.strip() for method in value.split(",") if method.strip()]
+        return None
 
 
 class DNSLocation(DNSRecord):
