@@ -1,4 +1,4 @@
-from pytest_django.asserts import assertContains
+from pytest_django.asserts import assertContains, assertNotContains
 from reports.views.generate_report import (
     OOISelectionGenerateReportView,
     ReportTypesSelectionGenerateReportView,
@@ -85,7 +85,7 @@ def test_select_query_post_to_select_report_types(
     request = setup_request(
         rf.post(
             "generate_report_select_report_types",
-            {"observed_at": valid_time.strftime("%Y-%m-%d"), "object_selection": "query"},
+            {"observed_at": valid_time.strftime("%Y-%m-%d"), "object_selection": "query", "ooi": "all"},
         ),
         client_member.user,
     )
@@ -98,7 +98,11 @@ def test_select_query_post_to_select_report_types(
     assert response.context_data["selected_oois"] == []
 
     assertContains(response, "You have selected a live set in the previous step.")
-    assertContains(response, "this live set results in 0 objects.")
+    assertContains(response, f"this live set results in {len(listed_hostnames)} objects.")
+
+    # The live set is carried forward as the query, not as one field per object (#3390)
+    assertContains(response, 'name="ooi" value="all"')
+    assertNotContains(response, f'name="ooi" value="{listed_hostnames[0].primary_key}"')
 
 
 def test_change_ooi_selection_for_none_selection(
