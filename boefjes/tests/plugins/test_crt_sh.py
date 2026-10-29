@@ -1,5 +1,9 @@
 import json
 
+import pytest
+import requests
+
+from boefjes.plugins.kat_crt_sh import main
 from boefjes.plugins.kat_crt_sh.normalize import run
 from octopoes.models.ooi.certificate import X509Certificate
 from octopoes.models.ooi.dns.zone import Hostname
@@ -47,3 +51,34 @@ def test_crt_sh_normalizer_only_invalid_identities_still_yields_certificate():
     # The wildcard collapses onto example.com; the email is skipped; the cert survives.
     assert {o.name for o in oois if isinstance(o, Hostname)} == {"example.com"}
     assert any(isinstance(o, X509Certificate) for o in oois)
+
+
+@pytest.mark.parametrize(
+    "exception",
+    [
+        requests.exceptions.ConnectTimeout("Connection timed out"),
+        requests.exceptions.ReadTimeout("Read timed out"),
+        requests.exceptions.ConnectionError("Connection refused"),
+    ],
+)
+def test_crt_sh_unreachable_returns_timeout(mocker, exception):
+    mocker.patch.object(main, "request_certs", side_effect=exception)
+
+    boefje_meta = {"arguments": {"input": {"hostname": {"name": "example.com"}}}}
+
+    results = main.run(boefje_meta)
+
+    assert len(results) == 1
+
+    mime_types, content = results[0]
+
+    assert mime_types == {"error/timeout"}
+    assert "crt.sh is unreachable" in content
+
+
+def test_crt_sh_success_returns_normal_result(mocker):
+    mocker.patch.object(main, "request_certs", return_value="[]")
+
+    boefje_meta = {"arguments": {"input": {"hostname": {"name": "example.com"}}}}
+
+    assert main.run(boefje_meta) == [(set(), "[]")]
