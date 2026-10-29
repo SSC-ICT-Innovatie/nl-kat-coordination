@@ -63,6 +63,29 @@ def test_boefje_input_running(api, tmp_path):
     }
 
 
+def test_boefje_output_timeout(api, tmp_path):
+    """A containerised boefje posting a TIMEOUT output should end up as a timeout task in the scheduler."""
+    scheduler_client = _mocked_scheduler_client(tmp_path)
+    tasks = scheduler_client.pop_items(WorkerManager.Queue("boefje"))
+    scheduler_client.patch_task(tasks[0].id, TaskStatus.RUNNING)
+    bytes_client = mock.MagicMock()
+    bytes_client.save_raws.return_value = {}
+    api.app.dependency_overrides[boefjes.api.get_scheduler_client] = lambda: scheduler_client
+    api.app.dependency_overrides[boefjes.api.get_bytes_client] = lambda: bytes_client
+
+    response = api.post(
+        "/api/v0/tasks/70da7d4f-f41f-4940-901b-d98a92e9014b",
+        json={
+            "status": "TIMEOUT",
+            "files": [{"name": "timeout", "content": "VGltZWQgb3V0", "tags": ["error/timeout"]}],
+        },
+    )
+
+    assert response.status_code == 200
+    assert scheduler_client.get_all_patched_tasks()[-1] == ("70da7d4f-f41f-4940-901b-d98a92e9014b", "timeout")
+    assert "error/timeout" in bytes_client.save_raws.call_args[0][1].files[0].tags
+
+
 def test_boefje_input_not_running(api, tmp_path):
     scheduler_client = _mocked_scheduler_client(tmp_path)
     scheduler_client.pop_items(WorkerManager.Queue("boefje"))

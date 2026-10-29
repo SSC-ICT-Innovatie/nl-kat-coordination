@@ -370,6 +370,20 @@ Good examples of when this usecase is useful are:
 * A local IP, and a Shodan like api which cannot possibly know anything about your local lan.
 * A scan on a ipPort that only handles specific port numbers, or similarly a scan on a given protocol.
 
+If your boefje can catch its own timeout (for example when a host is unreachable or an external API is slow to
+respond), you can return the ``error/timeout`` mimetype together with a human readable message as the raw content::
+
+    def run(boefje_meta):
+        try:
+            ...
+        except TimeoutError as e:
+            return [({"error/timeout"}, f"Boefje timed out: {e}")]
+
+The job will not be marked as completed, but gets the specific ``Timeout`` task state instead of a generic
+``Failed`` state with a stacktrace. The raw file with your message is still stored and downloadable, and
+normalizers will not process it. Since a timeout may succeed when the boefje is rerun at a later date, the
+boefje will simply run again on its regular schedule.
+
 --------------
 
 The final task of creating a boefje is building the OCI image. You can find examples in the ``boefjes/Makefile``. You

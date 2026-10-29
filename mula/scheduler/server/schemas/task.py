@@ -28,6 +28,9 @@ class TaskStatus(enum.StrEnum):
     # Task has been cancelled
     CANCELLED = "cancelled"
 
+    # The boefje caught a timeout itself and returned it through the error/timeout mime-type
+    TIMEOUT = "timeout"
+
 
 class Task(BaseModel):
     id: uuid.UUID | None = None

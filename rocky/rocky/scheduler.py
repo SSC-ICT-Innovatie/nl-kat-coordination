@@ -117,6 +117,9 @@ class TaskStatus(Enum):
     # Task has been cancelled
     CANCELLED = "cancelled"
 
+    # The boefje caught a timeout itself and returned it through the error/timeout mime-type
+    TIMEOUT = "timeout"
+
     @property
     def label(self) -> str:
         return _TASK_STATUS_LABELS[self.value]
@@ -130,6 +133,7 @@ _TASK_STATUS_LABELS = {
     "completed": _("Completed"),
     "failed": _("Failed"),
     "cancelled": _("Cancelled"),
+    "timeout": _("Timeout"),
 }
 
 

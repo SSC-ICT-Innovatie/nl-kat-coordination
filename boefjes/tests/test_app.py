@@ -8,9 +8,11 @@ import pytest
 
 from boefjes.__main__ import get_runtime_manager
 from boefjes.config import Settings
+from boefjes.worker.boefje_handler import LocalBoefjeHandler
 from boefjes.worker.interfaces import BoefjeOutput, File, StatusEnum, WorkerManager
 from boefjes.worker.manager import SchedulerWorkerManager
-from tests.conftest import MockHandler, MockSchedulerClient
+from boefjes.worker.repository import LocalPluginRepository
+from tests.conftest import MockBytesAPIClient, MockHandler, MockSchedulerClient
 from tests.loading import get_dummy_data
 
 
@@ -33,6 +35,30 @@ def test_one_process(manager: SchedulerWorkerManager, item_handler: MockHandler)
         ("70da7d4f-f41f-4940-901b-d98a92e9014c", "completed"),
         ("9071c9fd-2b9f-440f-a524-ef1ca4824fd4", "failed"),
     }
+
+
+def test_one_process_boefje_returns_timeout(tmp_path) -> None:
+    """A boefje returning the error/timeout mime-type itself should end up in the timeout task state."""
+    scheduler_client = MockSchedulerClient(
+        boefje_responses=[get_dummy_data("scheduler/pop_response_boefje_timeout.json")],
+        normalizer_responses=[],
+        log_path=tmp_path / "patch_task_log",
+    )
+    handler = LocalBoefjeHandler(LocalPluginRepository(Path(__file__).parent / "modules"), MockBytesAPIClient())
+    manager = SchedulerWorkerManager(
+        handler, scheduler_client, pool_size=1, poll_interval=0.01, worker_heartbeat=1.0, deduplicate=True
+    )
+
+    with pytest.raises(KeyboardInterrupt):
+        manager.run(WorkerManager.Queue.BOEFJES)
+
+    patched_tasks = scheduler_client.get_all_patched_tasks()
+    assert ("70da7d4f-f41f-4940-901b-d98a92e9014b", "running") in patched_tasks
+    assert ("70da7d4f-f41f-4940-901b-d98a92e9014b", "timeout") in patched_tasks
+
+    saved = [item for item in handler.boefje_storage.get_all() if item[0] == "save_raw"]
+    assert saved[0][1][1].status == StatusEnum.TIMEOUT
+    assert "error/timeout" in saved[0][1][1].files[0].tags
 
 
 def test_two_processes(manager: SchedulerWorkerManager, item_handler: MockHandler) -> None:
