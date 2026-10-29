@@ -20,6 +20,8 @@ from onboarding.views import (
 )
 from pytest_django.asserts import assertContains, assertNotContains
 
+from octopoes.models import Reference
+from octopoes.models.ooi.web import URL
 from tests.conftest import setup_request
 
 
@@ -428,9 +430,6 @@ def test_step_9a_onboarding_ip_address_url_no_crash(
     must not crash get_ooi_pks with a KeyError, and a localhost URL never
     reaches DNS. The report creation is aborted with a user-friendly error
     instead of a 500 or a useless report."""
-    from octopoes.models import Reference
-    from octopoes.models.ooi.web import URL
-
     ip_url = URL(network=network.reference, raw=raw_url, web_url=Reference(web_url_ref))
 
     mocker.patch("account.mixins.OrganizationView.katalogus_client")

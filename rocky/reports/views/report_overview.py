@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 from uuid import UUID
 
@@ -307,7 +307,7 @@ class ReportHistoryView(BreadcrumbsReportOverviewView, SchedulerView, OctopoesVi
 
     def rerun_report(self, report_ooi: Report | AssetReport) -> bool:
         """Rerun an existing Report and its AssetReports."""
-        deadline_at = datetime.now(timezone.utc).isoformat()
+        deadline_at = datetime.now(UTC).isoformat()
         report_recipe_id = str(report_ooi.report_recipe.tokenized.recipe_id)
         filters = {
             "filters": [{"column": "data", "field": "report_recipe_id", "operator": "==", "value": report_recipe_id}]

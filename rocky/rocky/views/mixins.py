@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import cached_property
 from operator import attrgetter
 from typing import Literal, TypedDict, cast
@@ -83,9 +83,9 @@ class OriginData(BaseModel):
         if (observation_date := self.normalizer.get("raw_data", {}).get("boefje_meta", {}).get("ended_at")) is None:
             raise ValueError("Observation date is missing in normalizer meta")
 
-        observation_date = observation_date.replace(tzinfo=timezone.utc)
+        observation_date = observation_date.replace(tzinfo=UTC)
 
-        return observation_date < datetime.now(timezone.utc) - time_delta
+        return observation_date < datetime.now(UTC) - time_delta
 
 
 class Origins(TypedDict):
@@ -105,7 +105,8 @@ class ObservedAtMixin(ContextMixin, View):
 
     @cached_property
     def now(self) -> datetime:
-        return datetime.now(timezone.utc)
+        """Provides a stable 'now' for the duration of this request, to be used for subsequent api calls"""
+        return datetime.now(UTC)
 
     @cached_property
     def is_temporal_view(self) -> bool:

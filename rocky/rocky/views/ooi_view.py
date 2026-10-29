@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 from django.forms import Form
@@ -149,7 +149,7 @@ class BaseOOIDetailView(BreadcrumbsMixin, SingleOOITreeMixin):
         if self.ooi_id is None:
             return None
         try:
-            return self.get_single_ooi(self.ooi_id, observed_at=datetime.now(timezone.utc))
+            return self.get_single_ooi(self.ooi_id, observed_at=self.now)
         except Http404:
             return None
 
@@ -225,7 +225,7 @@ class BaseOOIFormView(SingleOOIMixin, FormView):
         try:
             end_valid_time = form.cleaned_data.pop("end_valid_time", None)
             if end_valid_time is not None:
-                end_valid_time = end_valid_time.replace(tzinfo=timezone.utc)
+                end_valid_time = end_valid_time.replace(tzinfo=UTC)
             new_ooi = self.get_ooi_class().model_validate(form.cleaned_data)
             create_ooi(self.octopoes_api_connector, self.bytes_client, new_ooi, self.observed_at, end_valid_time)
             return redirect(self.get_ooi_success_url(new_ooi))

@@ -1,6 +1,6 @@
 import threading
 from collections.abc import Iterator
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 
@@ -20,7 +20,7 @@ class ExpiringDict:
     return an ExpiredError.
     """
 
-    def __init__(self, lifetime: int = 300, start_time: datetime = datetime.now(timezone.utc)) -> None:
+    def __init__(self, lifetime: int = 300, start_time: datetime = datetime.now(UTC)) -> None:
         self.lifetime: timedelta = timedelta(seconds=lifetime)
         self.start_time = start_time
         self.expiration_time: datetime = start_time + self.lifetime
@@ -41,7 +41,7 @@ class ExpiringDict:
     def reset(self) -> None:
         with self.lock:
             self.cache.clear()
-            self.expiration_time = datetime.now(timezone.utc) + self.lifetime
+            self.expiration_time = datetime.now(UTC) + self.lifetime
 
     @property
     def expiration_enabled(self) -> bool:
@@ -61,17 +61,17 @@ class ExpiringDict:
 
             # If we are enabling expiration, we need to reset the expiration
             if value is True:
-                self.expiration_time = datetime.now(timezone.utc) + self.lifetime
+                self.expiration_time = datetime.now(UTC) + self.lifetime
 
     def _is_expired(self) -> bool:
-        return datetime.now(timezone.utc) > self.expiration_time
+        return datetime.now(UTC) > self.expiration_time
 
     def __getitem__(self, key: str) -> Any:
         with self.lock:
             if self._is_expired() and self.expiration_enabled:
                 # Using this instead of reset(), else we would lock
                 self.cache.clear()
-                self.expiration_time = datetime.now(timezone.utc) + self.lifetime
+                self.expiration_time = datetime.now(UTC) + self.lifetime
 
                 raise ExpiredError
 

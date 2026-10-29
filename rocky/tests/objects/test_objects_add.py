@@ -101,7 +101,7 @@ def _required_single_select_field() -> Mock:
 
 
 def test_select_ooi_field_preselects_when_single_required_option():
-    """A required selector with exactly one available OOI is pre-selected."""
+    """A required selector with exactly one available OOI is preselected."""
     connector = _mock_connector_with_oois(["Network|internet"])
 
     form_field = generate_select_ooi_field(connector, "network", _required_single_select_field(), Mock())
@@ -110,7 +110,7 @@ def test_select_ooi_field_preselects_when_single_required_option():
 
 
 def test_select_ooi_field_no_preselect_when_multiple_options():
-    """A required selector with more than one OOI is not pre-selected."""
+    """A required selector with more than one OOI is not preselected."""
     connector = _mock_connector_with_oois(["Network|internet", "Network|internal"])
 
     form_field = generate_select_ooi_field(connector, "network", _required_single_select_field(), Mock())

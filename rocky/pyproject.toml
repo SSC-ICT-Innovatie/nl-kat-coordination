@@ -3,7 +3,7 @@ name = "rocky"
 version = "0.0.1.dev1"
 description = "OpenKAT's Django front-end"
 authors = [{ name = "Stichting Librekat", email = "maintainer@librekat.nl" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = "EUPL-1.2"
 dependencies = [
     "beautifulsoup4>=4.11.2,<5",
@@ -17,7 +17,7 @@ dependencies = [
     "python-dotenv>=1.0.0,<2",
     "django-password-validators>=1.7.1,<2",
     "django-csp~=4.0",
-    "djangorestframework>=3.17.2,<4",
+    "djangorestframework>=3.18.2,<4",
     "django-tagulous>=2.2.2,<3",
     "drf-standardized-errors>=0.14.1,<0.15",
     "django-weasyprint>=2.4.0,<3",
@@ -53,12 +53,13 @@ dependencies = [
     "weasyprint>=70.0",
     "requests>=2.33.0,<3",
     "attrs>=26.1.0",
-    "pillow>=12.3.0",
-    "brotlicffi>=1.2.0.1",
+    "pillow>=13.0.0",
+    "brotlicffi>=1.2.1.0",
     "urllib3>=2.8.0",
     "idna>=3.15",
     "soupsieve>=2.9",
     "anyio>=4.14.2",
+    "certifi>=2026.10.19",
 ]
 
 [dependency-groups]
@@ -79,7 +80,7 @@ dev = [
     "robotframework-debuglibrary>=2.5.0,<3",
     "robotframework-otp>=1.1.0,<2",
     "robotframework-postgresqldb>=2.0.0,<3",
-    "setuptools>=83.0.0,<84",
+    "setuptools>=84.1.0,<85",
     "sqlparse>=0.6.0",
 ]
 

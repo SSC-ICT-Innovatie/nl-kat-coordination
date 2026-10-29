@@ -5,7 +5,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict
 
 
-class SchedulerType(str, enum.Enum):
+class SchedulerType(enum.StrEnum):
     """Enum for scheduler types."""
 
     UNKNOWN = "unknown"

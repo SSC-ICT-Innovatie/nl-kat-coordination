@@ -1,6 +1,6 @@
 import multiprocessing
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from multiprocessing.context import ForkContext, ForkProcess
 from typing import Any
 from uuid import UUID
@@ -86,7 +86,7 @@ def boefje_output(
         raise HTTPException(status_code=403, detail="Task does not have status running")
 
     boefje_meta.started_at = task.modified_at
-    boefje_meta.ended_at = datetime.now(timezone.utc)
+    boefje_meta.ended_at = datetime.now(UTC)
 
     try:
         bytes_client.login()
@@ -109,6 +109,8 @@ def boefje_output(
         scheduler_client.patch_task(task_id, TaskStatus.COMPLETED)
     elif boefje_output.status == StatusEnum.FAILED:
         scheduler_client.patch_task(task_id, TaskStatus.FAILED)
+    elif boefje_output.status == StatusEnum.TIMEOUT:
+        scheduler_client.patch_task(task_id, TaskStatus.TIMEOUT)
 
     return bytes_response
 

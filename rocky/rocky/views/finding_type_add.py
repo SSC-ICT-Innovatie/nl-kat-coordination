@@ -1,3 +1,4 @@
+
 from uuid import uuid4
 
 from account.mixins import OrganizationView
@@ -45,7 +46,7 @@ class FindingTypeAddView(ObservedAtMixin, OrganizationView, FormView):
         form_data = form.cleaned_data
         # set data
         finding_type = KATFindingType(id=form_data["id"])
-        info, created = OOIInformation.objects.get_or_create(id=f'KATFindingType|{form_data["id"]}')
+        info, created = OOIInformation.objects.get_or_create(id=f"KATFindingType|{form_data['id']}")
         info.data = {
             "title": form_data["title"],
             "description": form_data["description"],

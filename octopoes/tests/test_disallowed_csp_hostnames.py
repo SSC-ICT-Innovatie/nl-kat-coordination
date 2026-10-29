@@ -85,3 +85,22 @@ def test_disallowed_csp_headers_disallow_subdomains():
             ooi=http_header_hostname.reference, finding_type=KATFindingType(id="KAT-DISALLOWED-DOMAIN-IN-CSP").reference
         ),
     ]
+
+
+def test_disallowed_csp_headers_url_shortener_listed_in_mixed_case():
+    # The upstream list spells some shorteners in mixed case ("Hurl.it"); hostnames are compared lowercased.
+    http_header_hostname = HTTPHeaderHostname(
+        hostname=Reference.from_str("Hostname|internet|hurl.it"),
+        header=Reference.from_str(
+            "HTTPHeader|internet|1.1.1.1|tcp|443|https|internet|example.com|https|internet|example.com|443||Content-Security-Policy"
+        ),
+    )
+
+    results = list(run(http_header_hostname, [], {}))
+
+    assert results == [
+        KATFindingType(id="KAT-DISALLOWED-DOMAIN-IN-CSP"),
+        Finding(
+            ooi=http_header_hostname.reference, finding_type=KATFindingType(id="KAT-DISALLOWED-DOMAIN-IN-CSP").reference
+        ),
+    ]

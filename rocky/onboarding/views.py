@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from account.forms import OnboardingOrganizationUpdateForm, OrganizationForm
@@ -205,7 +205,7 @@ class OnboardingSetupScanOOIAddView(
     def get_or_create_url_object(self, url: str) -> OOI:
         network = Network(name="internet")
         url = URL(network=network.reference, raw=url, user_id=self.request.user.id)
-        observed_at = datetime.now(timezone.utc)
+        observed_at = datetime.now(UTC)
         url_ooi, _ = get_or_create_ooi(self.octopoes_api_connector, self.bytes_client, url, observed_at)
         return url_ooi
 
@@ -388,7 +388,7 @@ class OnboardingCreateReportRecipe(
         parent_report_type = self.get_parent_report_type()
         report_recipe = self.create_report_recipe(report_name_format, parent_report_type, None)
 
-        self.create_report_schedule(report_recipe, datetime.now(timezone.utc) + timedelta(minutes=2))
+        self.create_report_schedule(report_recipe, datetime.now(UTC) + timedelta(minutes=2))
         run_findings_dashboard(self.organization)
 
         return redirect(

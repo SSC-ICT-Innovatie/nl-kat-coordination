@@ -1,5 +1,5 @@
 from concurrent import futures
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any, Literal
 
 from opentelemetry import trace
@@ -45,7 +45,7 @@ class ReportScheduler(Scheduler):
             filters=filters.FilterRequest(
                 filters=[
                     filters.Filter(column="scheduler_id", operator="eq", value=self.scheduler_id),
-                    filters.Filter(column="deadline_at", operator="lt", value=datetime.now(timezone.utc)),
+                    filters.Filter(column="deadline_at", operator="lt", value=datetime.now(UTC)),
                     filters.Filter(column="enabled", operator="eq", value=True),
                 ]
             )

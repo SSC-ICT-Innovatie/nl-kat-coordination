@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 12:30+0000\n"
+"POT-Creation-Date: 2026-10-27 13:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3930,6 +3930,7 @@ msgid "Report names:"
 msgstr ""
 
 #: reports/templates/partials/report_names_form.html
+#: rocky/templates/forms/json_schema_form.html
 #: rocky/templates/forms/widgets/checkbox_group_table.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
@@ -4594,8 +4595,8 @@ msgstr ""
 
 #: reports/views/mixins.py
 msgid ""
-"No data could be found for %(report_types). Object(s) did not exist on "
-"%(date)s."
+"No data could be found for %(report_types). Object(s) did not exist on %"
+"(date)s."
 msgstr ""
 
 #: reports/views/multi_report.py
@@ -4980,6 +4981,10 @@ msgstr ""
 msgid "Running"
 msgstr ""
 
+#: tools/forms/scheduler.py rocky/scheduler.py
+msgid "Timeout"
+msgstr ""
+
 #: tools/forms/scheduler.py
 msgid "Search (in OOI)"
 msgstr ""
@@ -5113,9 +5118,9 @@ msgid ""
 "used as the basis for a form for the user. When the user enables this Boefje "
 "they can get the option to give extra information. For example, it can "
 "contain an API key that the script requires.</p> <p>More information about "
-"what the schema.json file looks like can be found <a href='https://docs."
-"openkat.nl/developer_documentation/development_tutorial/creating_a_boefje."
-"html'> here</a>.</p> "
+"what the schema.json file looks like can be found <a href='https://"
+"docs.openkat.nl/developer_documentation/development_tutorial/"
+"creating_a_boefje.html'> here</a>.</p> "
 msgstr ""
 
 #: tools/forms/settings.py
@@ -5674,7 +5679,21 @@ msgid "Privacy Statement"
 msgstr ""
 
 #: rocky/templates/forms/json_schema_form.html
+msgid "Using config from"
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
+msgid "Currently unanswered."
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
 msgid "Fill out this form to answer the Question (again):"
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
+msgid ""
+"Note: an emptied field is stored as an empty answer, not reset to its "
+"default value."
 msgstr ""
 
 #: rocky/templates/graph-d3.html
@@ -6243,6 +6262,7 @@ msgid "An overview of all organizations you are a member of."
 msgstr ""
 
 #: rocky/templates/organizations/organization_list.html
+#: rocky/templates/partials/organizations_menu_dropdown.html
 msgid "Add new organization"
 msgstr ""
 

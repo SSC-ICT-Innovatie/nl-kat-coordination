@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Any
 
 from django import forms
@@ -53,7 +53,7 @@ class ReportScheduleStartDateForm(BaseRockyForm):
     start_date = forms.DateField(
         label=_("Start date"),
         widget=DateInput(format="%Y-%m-%d"),
-        initial=lambda: datetime.now(tz=timezone.utc).date(),
+        initial=lambda: datetime.now(tz=UTC).date(),
         required=True,
         input_formats=["%Y-%m-%d"],
     )
@@ -61,7 +61,7 @@ class ReportScheduleStartDateForm(BaseRockyForm):
     start_time = forms.TimeField(
         label=_("Start time (UTC)"),
         widget=forms.TimeInput(format="%H:%M", attrs={"type": "time"}),
-        initial=lambda: datetime.now(tz=timezone.utc).time(),
+        initial=lambda: datetime.now(tz=UTC).time(),
         required=True,
         input_formats=["%H:%M"],
     )
@@ -95,7 +95,7 @@ class CustomReportScheduleForm(BaseRockyForm):
     start_date = forms.DateField(
         label=_("Start date"),
         widget=DateInput(format="%Y-%m-%d"),
-        initial=lambda: datetime.now(tz=timezone.utc).date(),
+        initial=lambda: datetime.now(tz=UTC).date(),
         required=False,
     )
     repeating_number = forms.IntegerField(initial=1, required=False, min_value=1, max_value=100)
@@ -125,7 +125,7 @@ class CustomReportScheduleForm(BaseRockyForm):
     )
 
     end_date = forms.DateField(
-        label=_(""), widget=forms.HiddenInput(), initial=lambda: datetime.now(tz=timezone.utc).date(), required=False
+        label=_(""), widget=forms.HiddenInput(), initial=lambda: datetime.now(tz=UTC).date(), required=False
     )
 
 

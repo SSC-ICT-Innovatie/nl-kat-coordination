@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from functools import cached_property
 
 import structlog
@@ -294,7 +294,7 @@ class OrganizationAPIMixin:
         try:
             valid_time = self.request.query_params["valid_time"]
         except KeyError:
-            return datetime.now(timezone.utc)
+            return datetime.now(UTC)
         else:
             try:
                 ret = datetime.fromisoformat(valid_time)
@@ -302,6 +302,6 @@ class OrganizationAPIMixin:
                 raise ValidationError(f"Wrong format for valid_time: {valid_time}")
 
             if not ret.tzinfo:
-                ret = ret.replace(tzinfo=timezone.utc)
+                ret = ret.replace(tzinfo=UTC)
 
             return ret

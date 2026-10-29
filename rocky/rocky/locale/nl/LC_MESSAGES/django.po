@@ -16,8 +16,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-02 12:30+0000\n"
-"PO-Revision-Date: 2026-10-14 15:51+0000\n"
+"POT-Creation-Date: 2026-10-14 14:16+0000\n"
+"PO-Revision-Date: 2026-10-16 14:51+0000\n"
 "Last-Translator: Wim Benes <fryskefirefox@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Dutch <https://hosted.weblate.org/projects/openkat/nl-kat-"
 "coordination/nl/>\n"
@@ -4389,6 +4389,7 @@ msgid "Report names:"
 msgstr "Rapportnamen:"
 
 #: reports/templates/partials/report_names_form.html
+#: rocky/templates/forms/json_schema_form.html
 #: rocky/templates/forms/widgets/checkbox_group_table.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
@@ -6310,8 +6311,24 @@ msgid "Privacy Statement"
 msgstr "Privacyverklaring"
 
 #: rocky/templates/forms/json_schema_form.html
+msgid "Using config from"
+msgstr "Met gebruik van configuratie van"
+
+#: rocky/templates/forms/json_schema_form.html
+msgid "Currently unanswered."
+msgstr "Momenteel onbeantwoord."
+
+#: rocky/templates/forms/json_schema_form.html
 msgid "Fill out this form to answer the Question (again):"
 msgstr "Vul dit formulier in om de Vraag (opnieuw) te beoordelen:"
+
+#: rocky/templates/forms/json_schema_form.html
+msgid ""
+"Note: an emptied field is stored as an empty answer, not reset to its "
+"default value."
+msgstr ""
+"Noot: een leeggemaakt veld wordt als een leeg antwoord opgeslagen, niet "
+"hersteld naar zijn standaard waarde."
 
 #: rocky/templates/graph-d3.html
 msgid ""
@@ -6928,6 +6945,7 @@ msgid "An overview of all organizations you are a member of."
 msgstr "Een overzicht van alle organisaties waar u lid van bent."
 
 #: rocky/templates/organizations/organization_list.html
+#: rocky/templates/partials/organizations_menu_dropdown.html
 msgid "Add new organization"
 msgstr "Nieuwe organisatie toevoegen"
 

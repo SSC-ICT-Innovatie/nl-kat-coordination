@@ -1,6 +1,6 @@
 import json
 from collections.abc import Iterable, Mapping, Sequence
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from operator import attrgetter
 from typing import Any, Literal, cast
 from uuid import uuid4
@@ -264,7 +264,7 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
         return report_types, len(report_types)
 
     def get_observed_at(self):
-        return self.observed_at if self.observed_at < datetime.now(timezone.utc) else datetime.now(timezone.utc)
+        return self.observed_at if self.observed_at < datetime.now(UTC) else datetime.now(UTC)
 
     def is_single_report(self) -> bool:
         return len(self.get_report_type_ids()) == 1
@@ -589,8 +589,8 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
     def custom_observed_at(self):
         return (
             self.observed_at.replace(hour=23, minute=59, second=59, microsecond=999999)
-            if self.observed_at < datetime.now(timezone.utc)
-            else datetime.now(timezone.utc).replace(hour=23, minute=59, second=59, microsecond=999999)
+            if self.observed_at < datetime.now(UTC)
+            else datetime.now(UTC).replace(hour=23, minute=59, second=59, microsecond=999999)
         )
 
     def get_report_ooi(self) -> ReportOOI:
@@ -698,7 +698,7 @@ class ViewReportView(ObservedAtMixin, OrganizationView, TemplateView, AddDashboa
         if settings.ASSET_REPORTS:
             oois = self.get_input_oois(list({asset_ooi.input_ooi for asset_ooi in self.report_ooi.input_oois}))
         else:
-            oois = self.get_input_oois(list({input_ooi for input_ooi in self.report_ooi.input_oois}))
+            oois = self.get_input_oois(list({*self.report_ooi.input_oois}))
 
         return report_data, oois, report_types, plugins
 

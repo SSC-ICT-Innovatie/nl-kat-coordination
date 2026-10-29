@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import unquote
 
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
@@ -59,7 +59,7 @@ class UploadRaw(OrganizationPermissionRequiredMixin, BreadcrumbsMixin, Organizat
         input_ooi = form.cleaned_data["ooi"]
         valid_time = None
         if "date" in form.cleaned_data:
-            valid_time = form.cleaned_data["date"].replace(tzinfo=timezone.utc)
+            valid_time = form.cleaned_data["date"].replace(tzinfo=UTC)
 
         try:
             self.bytes_client.upload_raw(
@@ -92,9 +92,7 @@ class UploadRaw(OrganizationPermissionRequiredMixin, BreadcrumbsMixin, Organizat
         return kwargs
 
     def get_ooi_options(self) -> list[tuple[str, str]]:
-        objects = self.octopoes_api_connector.list_objects(
-            set(OOI_TYPES.values()), valid_time=datetime.now(timezone.utc)
-        ).items
+        objects = self.octopoes_api_connector.list_objects(set(OOI_TYPES.values()), valid_time=datetime.now(UTC)).items
 
         options = [(o.primary_key, o.get_ooi_type()) for o in objects]
 

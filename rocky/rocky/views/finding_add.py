@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from django.forms import Form
@@ -104,7 +104,7 @@ class FindingAddView(BaseOOIFormView):
             if x.strip().startswith(("KAT-", "CVE-", "CWE-", "CAPEC-", "RetireJS-", "SNYK-"))
         ]
 
-        observed_at = datetime.combine(form_data.get("date"), datetime.min.time(), tzinfo=timezone.utc)
+        observed_at = datetime.combine(form_data.get("date"), datetime.min.time(), tzinfo=UTC)
 
         # Create finding for each finding type
         ooi_ref = Reference.from_str(ooi_id)

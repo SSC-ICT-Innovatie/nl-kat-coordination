@@ -1,4 +1,5 @@
-from datetime import datetime, timezone
+
+from datetime import UTC, datetime, timedelta
 
 from django.urls import resolve, reverse
 from tools.urlconverters import TemporalContextConverter
@@ -14,7 +15,7 @@ from tests.conftest import setup_request
 def test_observed_at_defaults_to_now(mocker):
     """Without a temporal context (the "now" segment resolves to None), observed_at is the present."""
     mock_mixin_datetime = mocker.patch("rocky.views.mixins.datetime")
-    now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=timezone.utc)
+    now = datetime(2023, 10, 24, 9, 34, 56, 316699, tzinfo=UTC)
     mock_mixin_datetime.now.return_value = now
 
     mixin = ObservedAtMixin()
@@ -29,7 +30,7 @@ def test_observed_at_defaults_to_now(mocker):
 
 def test_observed_at_uses_temporal_context():
     """A temporal context set from the URL segment drives observed_at directly."""
-    moment = datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)
+    moment = datetime(2023, 10, 24, 9, 34, 56, tzinfo=UTC)
 
     mixin = ObservedAtMixin()
     mixin.temporal_context = moment
@@ -45,7 +46,7 @@ def test_temporal_context_converter_to_python():
     converter = TemporalContextConverter()
 
     assert converter.to_python("now") is None
-    assert converter.to_python("at-20231024T093456Z") == datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)
+    assert converter.to_python("at-20231024T093456Z") == datetime(2023, 10, 24, 9, 34, 56, tzinfo=UTC)
 
 
 def test_temporal_context_converter_to_url():
@@ -53,12 +54,12 @@ def test_temporal_context_converter_to_url():
 
     assert converter.to_url(None) == "now"
     assert converter.to_url("now") == "now"
-    assert converter.to_url(datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)) == "at-20231024T093456Z"
+    assert converter.to_url(datetime(2023, 10, 24, 9, 34, 56, tzinfo=UTC)) == "at-20231024T093456Z"
 
 
 def test_observed_at_historic_view_through_url(rf, client_member, mock_organization_view_octopoes):
     """A historic temporal context in the URL renders a historic object list at that valid time."""
-    moment = datetime(2023, 10, 24, 9, 34, 56, tzinfo=timezone.utc)
+    moment = datetime(2023, 10, 24, 9, 34, 56, tzinfo=UTC)
     kwargs = {"organization_code": client_member.organization.code, "temporal_context": moment}
     url = reverse("ooi_list", kwargs=kwargs)
     request = rf.get(url)
