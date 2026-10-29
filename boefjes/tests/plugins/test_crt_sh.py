@@ -1,5 +1,7 @@
 import json
+from pathlib import Path
 
+import jsonschema
 import pytest
 import requests
 
@@ -117,3 +119,12 @@ def test_crt_sh_connection_failure_is_not_reported_as_timeout(mocker, exception)
 
     with pytest.raises(type(exception)):
         main.run(boefje_meta)
+
+
+@pytest.mark.parametrize("key", ["CONNECT_TIMEOUT", "READ_TIMEOUT"])
+@pytest.mark.parametrize("value", [0, -5])
+def test_crt_sh_schema_rejects_non_positive_timeouts(key, value):
+    schema = json.loads((Path(main.__file__).parent / "schema.json").read_text())
+
+    with pytest.raises(jsonschema.ValidationError):
+        jsonschema.validate({key: value}, schema)
