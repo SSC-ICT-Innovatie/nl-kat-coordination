@@ -209,6 +209,8 @@ class DNSCAAAccountURI(OOI):
     object_type: Literal["DNSCAAAccountURI"] = "DNSCAAAccountURI"
     uri: str
 
+    _natural_key_attrs = ["uri"]
+
 
 class DNSCAARecord(DNSRecord):
     """Represents the DNS CAA record.

@@ -47,7 +47,7 @@ def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]
                         findings.append(("KAT-CAA-IODEF", "Missing localpart or hostname in CAA iodef mailto URI."))
                     else:
                         hostnameobj = Hostname(name=hostname.lower(), network=network)
-                        emailaddress = EmailAddress(localpart=localpart, hostname=hostnameobj.reference)
+                        emailaddress = EmailAddress(localpart=localpart, domain=hostnameobj.reference)
 
                         yield hostnameobj
                         yield emailaddress
@@ -88,7 +88,7 @@ def run(record: DNSCAARecord, additional_oois: list[OOI], config: dict[str, Any]
                     findings.append(("KAT-CAA-ACCOUNTURI", f"Invalid accounturi parameter: {exc}"))
 
     for finding_type_id, description in findings:
-        ft = KATFindingType(finding_type_id)
+        ft = KATFindingType(id=finding_type_id)
         yield ft
 
         yield Finding(proof=record.value, finding_type=ft.reference, ooi=record.reference, description=description)
