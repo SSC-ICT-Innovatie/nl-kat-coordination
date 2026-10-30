@@ -1,6 +1,6 @@
 import base64
 from collections.abc import Iterable
-from ipaddress import IPv4Address, IPv6Address, ip_address
+from ipaddress import IPv4Address, ip_address
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
@@ -40,28 +40,30 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         host_element = issue.getElementsByTagName("host")[0]
         host = host_element.firstChild.nodeValue
 
-        ip = ip_address(host_element.attributes["ip"].value)
         path = issue.getElementsByTagName("path")[0].firstChild.nodeValue
 
         yield URL(network=network.reference, raw=f"{host}{path}")
 
         url = urlparse(f"{host}{path}")
 
+        address = ip_address(host_element.attributes["ip"].value)
+
         hostname = None
         # we might be dealing with a request to an IP-address
-        if url.netloc != ip:
+        if url.netloc != str(address):
             hostname = Hostname(name=url.netloc, network=network.reference)
             yield hostname
 
         port = 443 if url.scheme == "https" else 80
 
-        address = ip_address(ip)
         if isinstance(address, IPv4Address):
-            ip = IPAddressV4(address=address, network=network.reference)
-        elif isinstance(address, IPv6Address):
-            ip = IPAddressV6(address=address, network=network.reference)
+            ip_ooi = IPAddressV4(address=address, network=network.reference)
+        else:
+            ip_ooi = IPAddressV6(address=address, network=network.reference)
 
-        ip_port = IPPort(address=ip.reference, protocol=tcp_protocol, port=port)
+        yield ip_ooi
+
+        ip_port = IPPort(address=ip_ooi.reference, protocol=tcp_protocol, port=port)
         yield ip_port
 
         service = Service(name=url.scheme)
@@ -85,7 +87,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield http_resource
         else:
             http_url = IPAddressHTTPURL(
-                network=network.reference, scheme=WebScheme(url.scheme), port=port, path=url.path, netloc=url.netloc
+                network=network.reference,
+                scheme=WebScheme(url.scheme),
+                port=port,
+                path=url.path,
+                netloc=ip_ooi.reference,
             )
 
         if issue.getElementsByTagName("vulnerabilityClassifications"):
