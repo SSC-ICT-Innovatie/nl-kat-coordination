@@ -20,6 +20,7 @@ from octopoes.models.ooi.dns.records import (
     NXDOMAIN,
     DNSAAAARecord,
     DNSARecord,
+    DNSCAAAccountURI,
     DNSCAARecord,
     DNSCNAMERecord,
     DNSGPOSRecord,
@@ -109,6 +110,7 @@ DnsRecordType: TypeAlias = (
     | DNSSOARecord
     | DNSCNAMERecord
     | DNSCAARecord
+    | DNSCAAAccountURI
     | DNSLOCRecord
     | DNSGPOSRecord
     | ResolvedHostname
