@@ -701,5 +701,21 @@
     "risk": "medium",
     "impact": "A cookie without the Secure attribute may be sent over an unencrypted connection and intercepted. Without HttpOnly the cookie is readable by client-side scripts, so an XSS flaw can steal it. Without a restrictive SameSite value the cookie is sent with cross-site requests, enabling CSRF. For session cookies this can lead to session hijacking.",
     "recommendation": "Set the Secure and HttpOnly attributes on all cookies, and set SameSite to Strict or Lax (use None only together with Secure when cross-site use is required)."
+  },
+  "KAT-CAA-IODEF": {
+    "name": "Malformed CAA iodef record.",
+    "description": "The CAA record contains an iodef tag which carries a malformed email address or URL or is malformed itself.",
+    "source": "https://www.rfc-editor.org/rfc/rfc8659.html#name-caa-iodef-property",
+    "risk": "low",
+    "impact": "The iodef (Incident Object Description Exchange Format) statement is dropped. No action will be taken on this URL.",
+    "recommendation": "Fix the URL or mail address syntax."
+  },
+  "KAT-CAA-ACCOUNTURI": {
+    "name": "Malformed CAA Account uri.",
+    "description": "The CAA record contains an account uri which is malformed.",
+    "source": "https://www.rfc-editor.org/rfc/rfc8657.html",
+    "risk": "medium",
+    "impact": "The accounturi statement is dropped. It shall not be used in verification, this could lessens the strength of the validation, or if other valid accounturi's are present, prevent issuing of certificates to this account.",
+    "recommendation": "Fix the accounturi."
   }
 }
