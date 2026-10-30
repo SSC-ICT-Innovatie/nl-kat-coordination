@@ -1,0 +1,92 @@
+{
+  "web-security": {
+    "name": "Web Security",
+    "description": "Security of websites and web applications.",
+    "parent": null
+  },
+  "http-security-headers": {
+    "name": "HTTP Security Headers",
+    "description": "HTTP response header security controls.",
+    "parent": "web-security"
+  },
+  "http-cookies": {
+    "name": "HTTP Cookies",
+    "description": "HTTP cookie security properties.",
+    "parent": "web-security"
+  },
+  "http-exposure": {
+    "name": "HTTP Exposure",
+    "description": "Exposure of web resources and endpoints.",
+    "parent": "web-security"
+  },
+  "tls-certificates": {
+    "name": "TLS and Certificates",
+    "description": "TLS protocols, ciphers and certificates.",
+    "parent": null
+  },
+  "dns-security": {
+    "name": "DNS Security",
+    "description": "DNS records, delegation and DNSSEC.",
+    "parent": null
+  },
+  "email-security": {
+    "name": "Email Security",
+    "description": "Email authentication and domain email security.",
+    "parent": null
+  },
+  "network-exposure": {
+    "name": "Network Exposure",
+    "description": "Exposed network services and ports.",
+    "parent": null
+  },
+  "software-security": {
+    "name": "Software Security",
+    "description": "Software inventory, updates and malware.",
+    "parent": null
+  },
+  "known-vulnerabilities": {
+    "name": "Known Vulnerabilities",
+    "description": "Identified or reported security vulnerabilities.",
+    "parent": null
+  },
+  "information-disclosure": {
+    "name": "Information Disclosure",
+    "description": "Unintended disclosure of technical or sensitive information.",
+    "parent": null
+  },
+  "authentication": {
+    "name": "Authentication and Access Control",
+    "description": "Authentication and access control weaknesses.",
+    "parent": null
+  },
+  "cloud-infrastructure": {
+    "name": "Cloud and Infrastructure",
+    "description": "Cloud services and infrastructure configuration.",
+    "parent": null
+  },
+  "privacy": {
+    "name": "Privacy",
+    "description": "Privacy-related security and data protection.",
+    "parent": null
+  },
+  "ipv6": {
+    "name": "IPv6",
+    "description": "IPv6 availability and connectivity.",
+    "parent": null
+  },
+  "internet-standards": {
+    "name": "Internet Standards",
+    "description": "Compliance with internet standards and routing security.",
+    "parent": null
+  },
+  "other": {
+    "name": "Other Findings",
+    "description": "Findings without a more specific security domain.",
+    "parent": null
+  },
+  "general-configuration": {
+    "name": "General Configuration",
+    "description": "Configuration weaknesses without a more specific technical group.",
+    "parent": null
+  }
+}

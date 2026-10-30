@@ -4871,6 +4871,26 @@ msgid "Show muted and non-muted findings"
 msgstr ""
 
 #: tools/forms/findings.py
+msgid "Filter by group"
+msgstr ""
+
+#: tools/forms/findings.py
+msgid "Only findings assigned to the selected group are shown."
+msgstr ""
+
+#: tools/forms/findings.py
+msgid "Filter by tag"
+msgstr ""
+
+#: tools/forms/findings.py
+msgid "All groups"
+msgstr ""
+
+#: tools/forms/findings.py
+msgid "All tags"
+msgstr ""
+
+#: tools/forms/findings.py
 msgid "Filter by severity"
 msgstr ""
 

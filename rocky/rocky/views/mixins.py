@@ -331,6 +331,8 @@ class FindingList:
         search_string: str | None = None,
         order_by: Literal["score", "finding_type"] = "score",
         asc_desc: Literal["asc", "desc"] = "desc",
+        group: str | None = None,
+        tag: str | None = None,
     ):
         self.octopoes_connector = octopoes_connector
         self.valid_time = valid_time
@@ -340,6 +342,8 @@ class FindingList:
         self.exclude_muted = exclude_muted
         self.only_muted = only_muted
         self.search_string = search_string
+        self.group = group
+        self.tag = tag
         self.order_by = order_by
         self.asc_desc = asc_desc
         self._results: Paginated[OOI] | None = None
@@ -355,6 +359,8 @@ class FindingList:
             only_muted=self.only_muted,
             limit=0,
             search_string=self.search_string,
+            group=self.group,
+            tag=self.tag,
         ).count
 
     def __len__(self):
@@ -374,6 +380,8 @@ class FindingList:
                 offset=offset,
                 limit=limit,
                 search_string=self.search_string,
+                group=self.group,
+                tag=self.tag,
                 order_by=self.order_by,
                 asc_desc=self.asc_desc,
             )

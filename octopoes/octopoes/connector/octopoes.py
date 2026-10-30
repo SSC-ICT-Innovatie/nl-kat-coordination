@@ -341,6 +341,8 @@ class OctopoesAPIConnector:
         search_string: str | None = None,
         order_by: Literal["score", "finding_type"] = "score",
         asc_desc: Literal["asc", "desc"] = "desc",
+        group: str | None = None,
+        tag: str | None = None,
     ) -> Paginated[Finding]:
         params: dict[str, str | int | list[str] | None] = {
             "valid_time": str(valid_time),
@@ -354,6 +356,10 @@ class OctopoesAPIConnector:
         }
         if search_string:
             params["search_string"] = search_string
+        if group:
+            params["group"] = group
+        if tag:
+            params["tag"] = tag
 
         params = {k: v for k, v in params.items() if v is not None}  # filter out None values
         res = self.session.get(f"/{self.client}/findings", params=params)

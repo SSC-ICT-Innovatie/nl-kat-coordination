@@ -25,6 +25,11 @@ RUN adduser --disabled-password --gecos '' --uid "$USER_UID" --gid "$USER_GID" r
 
 WORKDIR /app/rocky
 
+# Use the canonical Boefjes classification definitions in Rocky's filters.
+COPY boefjes/boefjes/plugins/kat_kat_finding_types/finding_type_groups.json \
+     boefjes/boefjes/plugins/kat_kat_finding_types/kat_finding_types.json \
+     /app/boefjes/boefjes/plugins/kat_kat_finding_types/
+
 RUN --mount=type=cache,target=/var/cache/apt \
   apt-get update \
   && apt-get -y upgrade \

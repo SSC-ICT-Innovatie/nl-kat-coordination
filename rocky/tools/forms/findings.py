@@ -1,3 +1,7 @@
+import json
+from functools import lru_cache
+from pathlib import Path
+
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
@@ -13,6 +17,58 @@ MUTED_FINDINGS_CHOICES = (
     ("muted", _("Show muted findings")),
     ("all", _("Show muted and non-muted findings")),
 )
+
+
+# The registry and catalog are copied into the Rocky container at build time.
+# In a source checkout they are read directly from the same Boefjes files.
+FINDING_TYPES_DIR = Path(__file__).resolve().parents[3] / "boefjes/boefjes/plugins/kat_kat_finding_types"
+
+
+@lru_cache(maxsize=1)
+def finding_classification_choices() -> tuple[list[tuple[str, str]], list[tuple[str, str]]]:
+    """Read the group registry and finding type catalog shared with Boefjes.
+
+    These files are copied from Boefjes into the Rocky container at build time
+    (see rocky/Dockerfile) and cached for the lifetime of the process: restart
+    Rocky after changing the registry or catalog. A standalone Rocky checkout
+    without the Boefjes files fails here with a clear message instead of a raw
+    FileNotFoundError deep inside form rendering.
+
+    Group names are displayed verbatim, like finding type names and severity
+    values elsewhere in Rocky; only static labels are translated.
+    """
+    try:
+        registry = json.loads((FINDING_TYPES_DIR / "finding_type_groups.json").read_text(encoding="utf-8"))
+        catalog = json.loads((FINDING_TYPES_DIR / "kat_finding_types.json").read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise RuntimeError(
+            "Could not read the finding type groups registry or the finding type catalog from "
+            f"{FINDING_TYPES_DIR}. Rocky expects these files to be present; in containers they are "
+            "copied from Boefjes at build time (see rocky/Dockerfile), in source checkouts they are "
+            "read from boefjes/boefjes/plugins/kat_kat_finding_types/ relative to the repository root."
+        ) from error
+    group_choices = [(identifier, group["name"]) for identifier, group in registry.items()]
+    tags = sorted({tag for finding_type in catalog.values() for tag in finding_type.get("tags", [])})
+    return group_choices, [(tag, tag.replace("-", " ").capitalize()) for tag in tags]
+
+
+class FindingClassificationForm(BaseRockyForm):
+    group = forms.ChoiceField(
+        label=_("Filter by group"),
+        required=False,
+        # Finding types can belong to multiple groups and groups form a
+        # hierarchy, but the filter matches explicit membership only (see
+        # docs/source/developer-documentation/finding-type-groups.md):
+        # membership is not inherited via parent relations.
+        help_text=_("Only findings assigned to the selected group are shown."),
+    )
+    tag = forms.ChoiceField(label=_("Filter by tag"), required=False)
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        group_choices, tag_choices = finding_classification_choices()
+        self.fields["group"].choices = [("", _("All groups")), *group_choices]
+        self.fields["tag"].choices = [("", _("All tags")), *tag_choices]
 
 
 class FindingSeverityMultiSelectForm(forms.Form):

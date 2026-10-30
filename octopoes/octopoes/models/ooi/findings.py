@@ -4,7 +4,7 @@ from enum import Enum
 from functools import total_ordering
 from typing import Annotated, Literal
 
-from pydantic import AnyUrl, StringConstraints
+from pydantic import AnyUrl, Field, SerializerFunctionWrapHandler, StringConstraints, model_serializer
 
 from octopoes.models import OOI, Reference
 from octopoes.models.persistence import ReferenceField
@@ -123,6 +123,30 @@ class KATFindingType(FindingType):
     """Represents the OpenKAT Finding Types"""
 
     object_type: Literal["KATFindingType"] = "KATFindingType"
+
+    groups: list[str] = Field(default_factory=list)
+    tags: list[str] = Field(default_factory=list)
+
+    @model_serializer(mode="wrap")
+    def serialize_classification(self, handler: SerializerFunctionWrapHandler) -> dict:
+        """Keep absent classification fields absent across API serialization.
+
+        Other normalizers and bits often create KATFindingType(id=...) with no
+        classification. Sending its default [] values would make an incomplete
+        declaration overwrite groups/tags previously supplied by the catalog.
+        An explicitly supplied [] must still be serialized to allow clearing.
+
+        The omitted keys are also what merge_ooi
+        (octopoes/repositories/ooi_repository.py) relies on with its
+        `key not in data_old` clause: without this serializer those keys would
+        always be present, and a merge of a partial declaration would erase
+        stored classification. Keep the two in sync.
+        """
+        data = handler(self)
+        for field in ("groups", "tags"):
+            if field not in self.model_fields_set and not data.get(field):
+                data.pop(field, None)
+        return data
 
 
 class Finding(OOI):
