@@ -1,0 +1,12 @@
+{
+  "id": "kat_wappalyzer_capture_normalize",
+  "name": "Wappalyzer (browser capture)",
+  "description": "Detects software and versions with Wappalyzer over the Playwright browser HAR from webpage-capture, catching resources loaded after JavaScript that the static webpage-analysis HAR misses.",
+  "consumes": [
+    "application/har+json"
+  ],
+  "produces": [
+    "Software",
+    "SoftwareInstance"
+  ]
+}

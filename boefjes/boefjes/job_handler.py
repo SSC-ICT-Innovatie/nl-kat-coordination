@@ -1,6 +1,6 @@
 import os
 from collections.abc import Callable
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal, cast
 
 import docker
@@ -55,7 +55,7 @@ class DockerBoefjeHandler(BoefjeHandler):
 
         stderr_mime_types = _default_mime_types(boefje_meta.boefje)
         task_id = boefje_meta.id
-        boefje_meta.started_at = datetime.now(timezone.utc)
+        boefje_meta.started_at = datetime.now(UTC)
 
         try:
             input_url = str(settings.api).rstrip("/") + f"/api/v0/tasks/{task_id}"
@@ -84,7 +84,7 @@ class DockerBoefjeHandler(BoefjeHandler):
 
             # if status is still running the container didn't call the output API endpoint, so set to status to failed
             if task.status == TaskStatus.RUNNING:
-                boefje_meta.ended_at = datetime.now(timezone.utc)
+                boefje_meta.ended_at = datetime.now(UTC)
                 self.bytes_api_client.save_boefje_meta(boefje_meta)  # The task didn't create a boefje_meta object
                 self.bytes_api_client.save_raw(task_id, container_logs, stderr_mime_types.union({"error/boefje"}))
                 self.scheduler_client.patch_task(task_id, TaskStatus.FAILED)
@@ -103,7 +103,7 @@ class DockerBoefjeHandler(BoefjeHandler):
                     "Container did not manage to save its raw data to bytes, saving the container stderr instead."
                 )
 
-                boefje_meta.ended_at = datetime.now(timezone.utc)
+                boefje_meta.ended_at = datetime.now(UTC)
                 self.bytes_api_client.save_boefje_meta(boefje_meta)
                 self.bytes_api_client.save_raw(task_id, e.stderr, stderr_mime_types)
                 self.scheduler_client.patch_task(task_id, TaskStatus.FAILED)
@@ -147,7 +147,7 @@ class LocalNormalizerHandler(NormalizerHandler):
 
         raw = self.bytes_client.get_raw(normalizer_meta.raw_data.id)
 
-        normalizer_meta.started_at = datetime.now(timezone.utc)
+        normalizer_meta.started_at = datetime.now(UTC)
 
         try:
             results = self.job_runner.run(normalizer_meta, raw)
@@ -231,7 +231,7 @@ class LocalNormalizerHandler(NormalizerHandler):
                     valid_time=cast(datetime, normalizer_meta.raw_data.boefje_meta.ended_at),
                 )
         finally:
-            normalizer_meta.ended_at = datetime.now(timezone.utc)
+            normalizer_meta.ended_at = datetime.now(UTC)
             self.bytes_client.save_normalizer_meta(normalizer_meta)
 
         logger.info("Done with normalizer %s[%s]", normalizer_meta.normalizer.id, normalizer_meta.id)

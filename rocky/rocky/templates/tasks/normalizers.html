@@ -61,7 +61,7 @@
                                         <a href="{% url "normalizer_detail" task.data.raw_data.boefje_meta.organization task.data.normalizer.id %}">{{ task.data.normalizer.id }}</a>
                                     </td>
                                     <td class="nowrap">
-                                        <i class="icon {{ task.status.value }}"></i>&nbsp;<a href="{{ request.path }}?status={{ task.status.value }}">{{ task.status.value|capfirst }}</a>
+                                        <i class="icon {{ task.status.value }}"></i>&nbsp;<a href="{{ request.path }}?status={{ task.status.value }}">{{ task.status.label }}</a>
                                     </td>
                                     <td>{{ task.created_at }}</td>
                                     <td>{{ task.modified_at }}</td>

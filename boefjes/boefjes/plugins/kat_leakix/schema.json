@@ -14,6 +14,41 @@
       "enum": ["strict", "permissive"],
       "default": "strict",
       "description": "Search mode: 'strict' (default) returns only exact matches for the scanned asset. 'permissive' returns all results from the netblock/AS (may include thousands of unrelated assets)."
+    },
+    "LEAKIX_EXTRACT_ASN": {
+      "title": "LEAKIX_EXTRACT_ASN",
+      "type": "string",
+      "enum": ["enabled", "disabled"],
+      "default": "enabled",
+      "description": "Extract the autonomous system (AS number and organization) reported by LeakIX."
+    },
+    "LEAKIX_EXTRACT_CERTIFICATES": {
+      "title": "LEAKIX_EXTRACT_CERTIFICATES",
+      "type": "string",
+      "enum": ["enabled", "disabled"],
+      "default": "enabled",
+      "description": "Extract TLS certificates (X509Certificate) and their SAN hostnames from LeakIX events."
+    },
+    "LEAKIX_EXTRACT_SOFTWARE": {
+      "title": "LEAKIX_EXTRACT_SOFTWARE",
+      "type": "string",
+      "enum": ["enabled", "disabled"],
+      "default": "enabled",
+      "description": "Extract detected software (service software, modules, HTTP Server and X-Powered-By headers, operating system) from LeakIX events."
+    },
+    "LEAKIX_EXTRACT_SSH": {
+      "title": "LEAKIX_EXTRACT_SSH",
+      "type": "string",
+      "enum": ["enabled", "disabled"],
+      "default": "enabled",
+      "description": "Extract SSH server software from SSH banners in LeakIX events."
+    },
+    "LEAKIX_EXTRACT_TLS": {
+      "title": "LEAKIX_EXTRACT_TLS",
+      "type": "string",
+      "enum": ["enabled", "disabled"],
+      "default": "enabled",
+      "description": "Report findings for outdated TLS/SSL protocol versions (SSLv2/SSLv3/TLS 1.0/TLS 1.1) observed by LeakIX."
     }
   },
   "required": [

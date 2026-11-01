@@ -1,0 +1,5 @@
+{
+  "dkim_response": "NXDOMAIN",
+  "dmarc_response": "NXDOMAIN",
+  "dns_records":";QUESTION\nexample.nl. IN LOC\n;ANSWER\nexample.nl. 3600 IN LOC 42 21 54 N 71 06 18 W -24m 30m 10000m 10m\nexample.nl. 3600 IN GPOS -32.6882 116.8652 10.0\n;AUTHORITY\n;ADDITIONAL"
+}

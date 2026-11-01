@@ -1,4 +1,5 @@
 import json
+import logging
 import re
 from collections.abc import Iterable
 from ipaddress import IPv4Address, IPv6Address
@@ -6,6 +7,8 @@ from ipaddress import IPv4Address, IPv6Address
 from dns.message import Message, from_text
 from dns.rdtypes.ANY.CAA import CAA
 from dns.rdtypes.ANY.CNAME import CNAME
+from dns.rdtypes.ANY.GPOS import GPOS
+from dns.rdtypes.ANY.LOC import LOC
 from dns.rdtypes.ANY.MX import MX
 from dns.rdtypes.ANY.NS import NS
 from dns.rdtypes.ANY.SOA import SOA
@@ -21,6 +24,8 @@ from octopoes.models.ooi.dns.records import (
     DNSARecord,
     DNSCAARecord,
     DNSCNAMERecord,
+    DNSGPOSRecord,
+    DNSLOCRecord,
     DNSMXRecord,
     DNSNSRecord,
     DNSRecord,
@@ -29,13 +34,14 @@ from octopoes.models.ooi.dns.records import (
 )
 from octopoes.models.ooi.dns.zone import DNSZone, Hostname
 from octopoes.models.ooi.email_security import DKIMExists, DMARCTXTRecord
+from octopoes.models.ooi.geography import GeographicPoint
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     internet = Network(name="internet")
 
-    zone = None
+    zones: dict[str, DNSZone] = {}
     hostname_store: dict[str, Hostname] = {}
     record_store: dict[str, DNSRecord] = {}
 
@@ -60,8 +66,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     sections = results["dns_records"].split("\n\n")
     responses: list[Message] = []
     for section in sections:
-        lines = section.split("\n")
-        responses.append(from_text("\n".join(lines[1:])))
+        lines = section.splitlines()
+        if ";QUESTION" not in lines:
+            continue  # nothing parseable in this block
+        start = lines.index(";QUESTION")  # skip everything before the question block
+        responses.append(from_text("\n".join(lines[start:])))
 
     # keep track of discovered zones
     zone_links: dict[str, DNSZone] = {}
@@ -75,8 +84,14 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 # the soa is the zone of itself, and the argument hostname
                 if isinstance(rr, SOA):
                     zone = DNSZone(hostname=record_hostname.reference)
+                    zones[record_hostname.name] = zone
                     zone_links[record_hostname.name] = zone
-                    zone_links[input_hostname.name] = zone
+                    # Do not associate an external CNAME target's SOA with
+                    # the original hostname's zone.
+                    if input_hostname.name == record_hostname.name or input_hostname.name.endswith(
+                        "." + record_hostname.name
+                    ):
+                        zone_links[input_hostname.name] = zone
 
                     soa = DNSSOARecord(
                         serial=rr.serial,
@@ -85,6 +100,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                         expire=rr.expire,
                         minimum=rr.minimum,
                         soa_hostname=register_hostname(str(rr.mname)).reference,
+                        rname=str(rr.rname),
                         **default_args,
                     )
                     yield soa
@@ -100,9 +116,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     register_record(DNSAAAARecord(address=ipv6.reference, **default_args))
 
                 if isinstance(rr, TXT):
-                    # TODO: concatenated txt records should be handled better
-                    # see https://www.rfc-editor.org/rfc/rfc1035 3.3.14
-                    default_args["value"] = str(rr).strip('"').replace('" "', "")
+                    # Concatenate TXT character-strings per RFC 1035 3.3.14:
+                    # multiple strings are concatenated without separators.
+                    default_args["value"] = "".join(s.decode() if isinstance(s, bytes) else s for s in rr.strings)
                     register_record(DNSTXTRecord(**default_args))
 
                 if isinstance(rr, MX):
@@ -130,19 +146,50 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     default_args["value"] = record_value[2]
                     register_record(DNSCAARecord(**default_args))
 
+                if isinstance(rr, LOC | GPOS):
+                    default_args.update(
+                        {"value": rr.to_text(), "latitude": rr.float_latitude, "longitude": rr.float_longitude}
+                    )
+                    if isinstance(rr, LOC):
+                        default_args.update(
+                            {
+                                "altitude": rr.altitude,
+                                "horizontal_precision": rr.horizontal_precision,
+                                "vertical_precision": rr.vertical_precision,
+                                "size": rr.size,
+                            }
+                        )
+                        location_record = register_record(DNSLOCRecord(**default_args))
+                    else:
+                        default_args["altitude"] = rr.float_altitude * 100  # cm; converted from meters
+                        location_record = register_record(DNSGPOSRecord(**default_args))
+
+                    geo_point = {
+                        "ooi": location_record.reference,
+                        "latitude": rr.float_latitude,
+                        "longitude": rr.float_longitude,
+                    }
+                    register_record(GeographicPoint(**geo_point))
+
     # link the hostnames to their discovered zones
     for hostname_, zone in zone_links.items():
         hostname_store[hostname_].dns_zone = zone.reference
 
-    if zone:
-        yield zone
+    yield from zones.values()
     yield from hostname_store.values()
     yield from record_store.values()
 
     # DKIM
     dkim_results = results["dkim_response"]
-    if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"] and dkim_results.split("\n")[2] == "rcode NOERROR":
-        yield DKIMExists(hostname=input_hostname.reference)
+    if dkim_results not in ["NXDOMAIN", "Timeout", "DNSSECFAIL"]:
+        try:
+            dkim_response = from_text(dkim_results)
+            if dkim_response.rcode() == 0:  # NOERROR
+                yield DKIMExists(hostname=input_hostname.reference)
+        except Exception:
+            logging.getLogger(__name__).warning(
+                "Could not parse DKIM response for %s", input_hostname.name, exc_info=True
+            )
 
     # DMARC
     dmarc_results = results["dmarc_response"]

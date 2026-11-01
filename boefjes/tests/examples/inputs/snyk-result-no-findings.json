@@ -1,5 +1,4 @@
 {
-  "table_versions": [],
-  "table_vulnerabilities": [],
-  "cve_vulnerabilities": []
+  "vulnerabilities": [],
+  "latest_version": null
 }

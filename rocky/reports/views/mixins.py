@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import structlog
 from django.contrib import messages
@@ -86,7 +86,7 @@ class SaveAggregateReportMixin(BaseReportView):
 
 class SaveMultiReportMixin(BaseReportView):
     def save_report(self, report_names: list) -> Report:
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
 
         observed_at = self.get_observed_at()
         report_type = MultiOrganizationReport(self.octopoes_api_connector)
@@ -109,7 +109,7 @@ class SaveMultiReportMixin(BaseReportView):
             template=report_type.template_path,
             organization_code=self.organization.code,
             organization_name=self.organization.name,
-            organization_tags=set(self.organization.tags.all()),
+            organization_tags={tag.name for tag in self.organization.tags.all()},
             data_raw_id=report_data_raw_id,
             date_generated=now,
             reference_date=observed_at,  # TODO: https://github.com/minvws/nl-kat-coordination/issues/4014

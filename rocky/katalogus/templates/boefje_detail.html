@@ -14,7 +14,7 @@
                     {% if plugin.description %}<p class="emphasized">{{ plugin.description }}</p>{% endif %}
                     <div class="horizontal-view scan-intensity">
                         <span class="de-emphasized">{% translate "Scan level" %}</span>
-                        {% include "partials/scan_level_indicator.html" with value=plugin.scan_level %}
+                        {% include "partials/scan_level_indicator.html" with value=plugin.scan_level scan_level_label=True %}
 
                     </div>
                     <div class="horizontal-view">

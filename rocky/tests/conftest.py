@@ -1,9 +1,10 @@
 import binascii
+import contextlib
 import json
 import logging
 import uuid
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, IPv6Address
 from os import urandom
 from pathlib import Path
@@ -18,6 +19,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.messages.middleware import MessageMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.core.management import call_command
 from django.utils.translation import activate, deactivate
 from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.middleware import OTPMiddleware
@@ -55,6 +57,18 @@ LANG_LIST = [code for code, _ in settings.LANGUAGES]
 logging.getLogger("faker").setLevel(logging.INFO)
 
 
+@pytest.fixture(scope="session", autouse=True)
+def _compile_translations():
+    """Compile .mo files so translation tests work in CI.
+
+    The CI volume mount (..:/app/rocky) overwrites .mo files from the
+    Docker build because .mo files are gitignored. Without recompiling,
+    gettext_lazy strings render as English even inside override("nl").
+    """
+    with contextlib.suppress(Exception):  # gettext not installed, translation tests will fail
+        call_command("compilemessages", verbosity=0)
+
+
 # Copied from https://www.structlog.org/en/stable/testing.html
 @pytest.fixture
 def log_output():
@@ -68,7 +82,7 @@ def fixture_configure_structlog(log_output):
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.fixture(params=LANG_LIST)
@@ -833,14 +847,14 @@ def finding_type_kat_no_two_ipv6() -> KATFindingType:
 def cipher_finding_types() -> list[KATFindingType]:
     return [
         KATFindingType(
-            id="KAT-RECOMMENDATION-BAD-CIPHER",
+            id="KAT-RECOMMENDATION-TLS-CIPHER",
             description="Fake description...",
             recommendation="Fake recommendation...",
             risk_score=3.0,
             risk_severity=RiskLevelSeverity.RECOMMENDATION,
         ),
         KATFindingType(
-            id="KAT-CRITICAL-BAD-CIPHER",
+            id="KAT-CRITICAL-TLS-CIPHER",
             description="Fake description...",
             recommendation="Fake recommendation...",
             risk_score=10.0,
@@ -852,7 +866,7 @@ def cipher_finding_types() -> list[KATFindingType]:
 @pytest.fixture
 def cipher_finding_type() -> KATFindingType:
     return KATFindingType(
-        id="KAT-MEDIUM-BAD-CIPHER",
+        id="KAT-MEDIUM-TLS-CIPHER",
         description="Fake description...",
         recommendation="Fake recommendation...",
         risk_score=6.0,
@@ -981,17 +995,17 @@ def query_data_tls_findings_and_suites(cipher):
         Finding(
             ooi=cipher.reference,
             description="Fake description with cipher_suite_name ECDHE-RSA-AES128-SHA",
-            finding_type=KATFindingType(id="KAT-RECOMMENDATION-BAD-CIPHER").reference,
+            finding_type=KATFindingType(id="KAT-RECOMMENDATION-TLS-CIPHER").reference,
         ),
         Finding(
             ooi=cipher.reference,
             description="Fake description with cipher_suite_name ECDHE-RSA-AES256-SHA",
-            finding_type=KATFindingType(id="KAT-MEDIUM-BAD-CIPHER").reference,
+            finding_type=KATFindingType(id="KAT-MEDIUM-TLS-CIPHER").reference,
         ),
         Finding(
             ooi=cipher.reference,
             description="Fake description...",
-            finding_type=KATFindingType(id="KAT-CRITICAL-BAD-CIPHER").reference,
+            finding_type=KATFindingType(id="KAT-CRITICAL-TLS-CIPHER").reference,
         ),
     ]
 

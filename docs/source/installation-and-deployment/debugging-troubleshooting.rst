@@ -48,6 +48,7 @@ The relevant services for OpenKAT:
 * kat-boefjes.service
 * kat-katalogus.service
 * kat-octopoes-worker.service
+* kat-octopoes-scanlevels.service
 * kat-normalizers.service
 * kat-bytes.service
 

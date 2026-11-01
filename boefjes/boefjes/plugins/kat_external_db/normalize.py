@@ -31,6 +31,22 @@ def follow_path_in_dict(path, path_dict):
     return path_dict
 
 
+def follow_list_path_in_dict(path, path_dict):
+    """Return the list found at path, or an empty list when the path is absent.
+
+    The ip_addresses and domains sections must be imported independently: the
+    runner materializes the result generator, so a KeyError raised while
+    iterating one section discards every OOI already yielded by the other. A
+    response with only domains (or only ip_addresses) must still import what it
+    does contain.
+    """
+    try:
+        return follow_path_in_dict(path=path, path_dict=path_dict)
+    except KeyError:
+        logging.warning("Path %s not found in results, skipping that section.", path)
+        return []
+
+
 def get_indemnification_level(path_dict):
     """Return indemnification level from metadata or default."""
     try:
@@ -49,7 +65,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     network = Network(name=input_ooi["name"])
     addresses_count, blocks_count, hostnames_count = 0, 0, 0
 
-    for address_item in follow_path_in_dict(path=IP_ADDRESS_LIST_PATH, path_dict=results):
+    for address_item in follow_list_path_in_dict(path=IP_ADDRESS_LIST_PATH, path_dict=results):
         interface = ip_interface(follow_path_in_dict(path=IP_ADDRESS_ITEM_PATH, path_dict=address_item))
         indemnification_level = get_indemnification_level(path_dict=address_item)
         address, mask_str = interface.with_prefixlen.split("/")
@@ -74,7 +90,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield DeclaredScanProfile(reference=block.reference, level=indemnification_level)
             blocks_count += 1
 
-    for hostname_data in follow_path_in_dict(path=DOMAIN_LIST_PATH, path_dict=results):
+    for hostname_data in follow_list_path_in_dict(path=DOMAIN_LIST_PATH, path_dict=results):
         hostname = Hostname(
             name=follow_path_in_dict(path=DOMAIN_ITEM_PATH, path_dict=hostname_data), network=network.reference
         )

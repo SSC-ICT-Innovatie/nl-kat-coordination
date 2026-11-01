@@ -1,6 +1,6 @@
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/dns-sec:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-adr-validator:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 COPY --from=registry.gitlab.com/commonground/don/adr-validator:0.2.0 /usr/local/bin/adr-validator /usr/local/bin/

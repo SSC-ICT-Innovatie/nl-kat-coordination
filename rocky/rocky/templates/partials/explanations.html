@@ -29,6 +29,7 @@
                             </td>
                             <td>
                                 L{{ section.level }}
+                                {% if section.given is not None and section.given != section.level %}(↓ L{{ section.given }}){% endif %}
                                 {% if forloop.last %}
                                     {% translate "declared" %}
                                 {% else %}

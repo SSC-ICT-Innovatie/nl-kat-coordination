@@ -46,7 +46,11 @@ class OOIInformationAdmin(admin.ModelAdmin):
 
 
 class OrganizationAdmin(admin.ModelAdmin):
-    list_display = ["name", "code", "tags"]
+    list_display = ["name", "code", "display_tags"]
+
+    @admin.display(description="tags")
+    def display_tags(self, obj):
+        return str(obj.tags)
 
     def add_view(self, request, *args, **kwargs):
         try:

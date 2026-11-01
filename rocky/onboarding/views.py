@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from account.forms import OnboardingOrganizationUpdateForm, OrganizationForm
@@ -205,7 +205,7 @@ class OnboardingSetupScanOOIAddView(
     def get_or_create_url_object(self, url: str) -> OOI:
         network = Network(name="internet")
         url = URL(network=network.reference, raw=url, user_id=self.request.user.id)
-        observed_at = datetime.now(timezone.utc)
+        observed_at = datetime.now(UTC)
         url_ooi, _ = get_or_create_ooi(self.octopoes_api_connector, self.bytes_client, url, observed_at)
         return url_ooi
 
@@ -314,12 +314,10 @@ class OnboardingSetupScanSelectPluginsView(
     plugins: ReportPlugins = DNSReport.plugins
 
     def get_plugins(self) -> dict[str, list[Plugin]]:
-        all_plugins = {}
-        for required_optional, plugin_ids in self.plugins.items():
-            plugins = self.katalogus_client.get_plugins(ids=[plugin_id for plugin_id in plugin_ids])  # type: ignore
-            all_plugins[required_optional] = plugins
-
-        return all_plugins
+        return {
+            "required": self.katalogus_client.get_plugins(ids=list(self.plugins["required"])),
+            "optional": self.katalogus_client.get_plugins(ids=list(self.plugins["optional"])),
+        }
 
     def post(self, request, *args, **kwargs):
         selected_plugins = request.POST.getlist("plugin", [])
@@ -382,11 +380,13 @@ class OnboardingCreateReportRecipe(
     task_type = "report"
 
     def post(self, request, *args, **kwargs):
+        if not self.get_ooi_pks():
+            return self.get(request, *args, **kwargs)
         report_name_format = self.get_initial_report_name()
         parent_report_type = self.get_parent_report_type()
         report_recipe = self.create_report_recipe(report_name_format, parent_report_type, None)
 
-        self.create_report_schedule(report_recipe, datetime.now(timezone.utc) + timedelta(minutes=2))
+        self.create_report_schedule(report_recipe, datetime.now(UTC) + timedelta(minutes=2))
         run_findings_dashboard(self.organization)
 
         return redirect(
@@ -397,7 +397,20 @@ class OnboardingCreateReportRecipe(
     def get_ooi_pks(self) -> list[str]:
         ooi = self.get_ooi(self.request.GET.get("ooi"))
         if ooi.web_url is not None:
-            hostname_ooi = [Hostname(name=ooi.web_url.tokenized["netloc"]["name"], network=ooi.network)]
+            netloc = ooi.web_url.tokenized["netloc"]
+            try:
+                name = netloc["name"]
+            except KeyError:
+                name = None  # IPAddressHTTPURL netloc has "address", not "name"
+            if name is None or name == "localhost" or name.endswith(".localhost"):
+                # A DNS report cannot run on an IP address or localhost, so
+                # bail out with a clear message instead of crashing with a 500
+                # or producing an empty report.
+                messages.error(
+                    self.request, _("The onboarding DNS report requires a hostname, not an IP address or localhost.")
+                )
+                return []
+            hostname_ooi = [Hostname(name=name, network=ooi.network)]
             return [hostname_ooi[0].primary_key]
 
         messages.error(self.request, _("Web URL not found."))

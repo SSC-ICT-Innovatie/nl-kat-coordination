@@ -16,3 +16,10 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+  # Track the pinned Playwright base image so the webpage-capture boefje does not
+  # silently rot on new Playwright releases (#3916). Bump the digest here and the
+  # PLAYWRIGHT_VERSION arg in the Dockerfile together.
+  - package-ecosystem: "docker"
+    directory: "/boefjes/boefjes/plugins/kat_webpage_capture"
+    schedule:
+      interval: "weekly"

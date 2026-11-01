@@ -1,4 +1,3 @@
-import hashlib
 from enum import Enum
 from typing import Literal
 
@@ -12,7 +11,7 @@ class DNSRecord(OOI):
     """Represents the DNS record"""
 
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=2)
-    dns_record_type: Literal["A", "AAAA", "CAA", "CNAME", "MX", "NS", "PTR", "SOA", "SRV", "TXT"]
+    dns_record_type: Literal["A", "AAAA", "CAA", "CNAME", "MX", "NS", "PTR", "SOA", "SRV", "TXT", "LOC", "GPOS"]
     value: str
     ttl: int | None = None  # todo: validation
 
@@ -75,7 +74,7 @@ class DNSMXRecord(DNSRecord):
 
 
 class DNSTXTRecord(DNSRecord):
-    """Represents the DNS TXT riecord.
+    """Represents the DNS TXT record.
 
     Example value
     -------------
@@ -87,9 +86,7 @@ class DNSTXTRecord(DNSRecord):
 
     @property
     def natural_key(self) -> str:
-        sha = hashlib.sha1(self.value.encode("UTF-8")).hexdigest()
-        key = super().natural_key
-        return key.replace(self.value, sha)
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
 
     _reverse_relation_names = {"hostname": "dns_txt_records"}
 
@@ -133,6 +130,7 @@ class DNSSOARecord(DNSRecord):
     dns_record_type: Literal["SOA"] = "SOA"
 
     soa_hostname: Reference = ReferenceField(Hostname)
+    rname: str | None = None
     serial: int | None = None
     retry: int | None = None
     refresh: int | None = None
@@ -222,3 +220,33 @@ class DNSCAARecord(DNSRecord):
     # without interior spaces or (2) a quoted string.
     value: str
     _natural_key_attrs = ["hostname", "flags", "tag", "value"]
+
+
+class DNSLocation(DNSRecord):
+    latitude: float | None = None
+    longitude: float | None = None
+    altitude: float | None = None  # in cm's
+
+    @property
+    def natural_key(self) -> str:
+        return self._natural_key_with_hashed_value(super().natural_key, self.value)
+
+
+class DNSGPOSRecord(DNSLocation):
+    # RFC 1712
+    object_type: Literal["DNSGPOSRecord"] = "DNSGPOSRecord"
+    dns_record_type: Literal["GPOS"] = "GPOS"
+
+    _reverse_relation_names = {"hostname": "dns_gpos_records"}
+
+
+class DNSLOCRecord(DNSLocation):
+    # RFC 1876
+    object_type: Literal["DNSLOCRecord"] = "DNSLOCRecord"
+    dns_record_type: Literal["LOC"] = "LOC"
+
+    horizontal_precision: float | None = None  # in cms
+    vertical_precision: float | None = None  # in cms
+    size: float | None = None  # in cms
+
+    _reverse_relation_names = {"hostname": "dns_loc_records"}

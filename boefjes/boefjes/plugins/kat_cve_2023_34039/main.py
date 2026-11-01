@@ -14,8 +14,14 @@ https://summoning.team/blog/vmware-vrealize-network-insight-ssh-key-rce-cve-2023
 
 """
 
-import os
 import subprocess
+import tempfile
+from pathlib import Path
+
+# Resolve the keys relative to this module. os.walk("keys") used the process
+# CWD (/app/boefje in the OCI image) instead, so it walked a non-existent
+# directory, silently found no keys and always reported "not vulnerable".
+KEYS_DIR = Path(__file__).parent / "keys"
 
 
 def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
@@ -27,13 +33,19 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
     ip = ip_port["address"]["address"]
     port = ip_port["port"]
 
-    for root, dirs, files in os.walk("keys"):
-        for file in files:
-            key_file = str(os.path.join(root, file))
+    for key_file in sorted(p for p in KEYS_DIR.rglob("*") if p.is_file()):
+        # The keys are committed world-readable (mode 0755) and Docker COPY
+        # preserves that mode; OpenSSH refuses a private key with group/world
+        # permissions and exits 255, so every key was skipped. Copy the key to a
+        # private (0600) temp file — NamedTemporaryFile creates it with 0600 —
+        # so ssh will actually use it.
+        with tempfile.NamedTemporaryFile("wb") as tmp:
+            tmp.write(key_file.read_bytes())
+            tmp.flush()
             ssh_command = [
                 "ssh",
                 "-i",
-                key_file,
+                tmp.name,
                 "support@" + ip,
                 "-p",
                 str(port),
@@ -47,19 +59,20 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
             ]
             try:
                 result = subprocess.run(ssh_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                coutput = result.returncode
-                if coutput not in (0, 127):  # 0 = it worked, 127 = `exit` does not exists but we did connect
-                    continue
-                return [
-                    (
-                        set(),
-                        "\n".join(
-                            (str(coutput), f"{key_file} is allowed access to vRealize Network Insight on {ip}:{port}")
-                        ),
-                    ),
-                    ({"openkat/finding"}, "CVE-2023-34039"),
-                ]
-
             except Exception:  # noqa: S112
                 continue
+
+            coutput = result.returncode
+            if coutput not in (0, 127):  # 0 = it worked, 127 = `exit` does not exist but we did connect
+                continue
+
+            key_id = key_file.relative_to(KEYS_DIR)
+            return [
+                (
+                    set(),
+                    "\n".join((str(coutput), f"{key_id} is allowed access to vRealize Network Insight on {ip}:{port}")),
+                ),
+                ({"openkat/finding"}, "CVE-2023-34039"),
+            ]
+
     return [(set(), "No known keys allowed")]

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from io import BytesIO
 
 from pytest_django.asserts import assertContains
@@ -28,7 +28,7 @@ def test_upload_empty(rf, redteam_member, mock_organization_view_octopoes, mock_
     request = setup_request(
         rf.post(
             "upload_raw",
-            {"mime_types": "Hostname", "raw_file": example_file, "ooi_id": network, "date": datetime.now(timezone.utc)},
+            {"mime_types": "Hostname", "raw_file": example_file, "ooi_id": network, "date": datetime.now(UTC)},
         ),
         redteam_member.user,
     )
@@ -43,7 +43,7 @@ def test_upload_raw(rf, redteam_member, mock_organization_view_octopoes, mock_by
     example_file = BytesIO(b"abc")
     example_file.name = "test"
 
-    date = datetime.now(timezone.utc)
+    date = datetime.now(UTC)
 
     request = setup_request(
         rf.post("upload_raw", {"mime_types": "abc/def,ghi", "raw_file": example_file, "ooi_id": network, "date": date}),
@@ -69,7 +69,7 @@ def test_upload_raw_empty_mime_types(rf, redteam_member, mock_bytes_client, mock
     example_file = BytesIO(b"abc")
     example_file.name = "test"
 
-    date = datetime.now(timezone.utc)
+    date = datetime.now(UTC)
 
     request = setup_request(
         rf.post("upload_raw", {"mime_types": "abc,,,,", "raw_file": example_file, "ooi_id": network, "date": date}),

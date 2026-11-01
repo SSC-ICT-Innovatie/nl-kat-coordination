@@ -13,7 +13,15 @@ from httpx import HTTPError
 from pydantic import ValidationError
 
 # A deliberate relative import to make this module self-contained
-from .interfaces import BoefjeHandler, NormalizerHandler, SchedulerClientInterface, Task, TaskStatus, WorkerManager
+from .interfaces import (
+    BoefjeHandler,
+    NormalizerHandler,
+    SchedulerClientInterface,
+    StatusEnum,
+    Task,
+    TaskStatus,
+    WorkerManager,
+)
 
 logger = structlog.get_logger(__name__)
 ctx: ForkContext = multiprocessing.get_context("fork")
@@ -249,6 +257,9 @@ def _start_working(
             start_time = datetime.now()
             out = handler.handle(p_item)
             status = TaskStatus.COMPLETED
+            if isinstance(out, tuple) and out[1].status == StatusEnum.TIMEOUT:
+                # The boefje caught a timeout itself and returned it through the error/timeout mime-type
+                status = TaskStatus.TIMEOUT
         except Exception:  # noqa
             logger.exception("An error occurred handling scheduler item", task=str(p_item.data.id))
         except:  # noqa

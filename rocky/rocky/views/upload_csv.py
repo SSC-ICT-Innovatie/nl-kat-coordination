@@ -1,6 +1,7 @@
 import csv
 import io
-from datetime import datetime, timezone
+import ipaddress
+from datetime import UTC, datetime
 from typing import Any, ClassVar
 from uuid import uuid4
 
@@ -100,10 +101,27 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
 
         return ooi
 
+    def _resolve_ooi_type(self, ooi_type_name: str, values: dict[str, str]) -> type[OOI]:
+        """Resolve the concrete OOI class for a CSV row.
+
+        ``IPAddress`` is a convenience type that autodetects IPv4 or IPv6 per
+        row, so a single CSV file may contain both address families. Any other
+        type is looked up directly in :attr:`ooi_types`.
+        """
+        if ooi_type_name == "IPAddress":
+            address = values.get("address")
+            try:
+                return IPAddressV6 if ipaddress.ip_address(address or "").version == 6 else IPAddressV4
+            except ValueError:
+                # Let pydantic raise the validation error for this row.
+                return IPAddressV4
+
+        return self.ooi_types[ooi_type_name]["type"]
+
     def get_ooi_from_csv(self, ooi_type_name: str, values: dict[str, str]) -> tuple[OOI, int | None, list[Declaration]]:
         key = "clearance"
         level = int(values[key]) if key in values and values[key] in CLEARANCE_VALUES else None
-        ooi_type = self.ooi_types[ooi_type_name]["type"]
+        ooi_type = self._resolve_ooi_type(ooi_type_name, values)
         ooi_fields = [
             (field, model_field.annotation == Reference, model_field.is_required())
             for field, model_field in ooi_type.model_fields.items()
@@ -116,7 +134,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             if is_reference and required:
                 try:
                     referenced_ooi = self.get_or_create_reference(field, values.get(field))
-                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=datetime.now(timezone.utc)))
+                    declarations.append(Declaration(ooi=referenced_ooi, valid_time=datetime.now(UTC)))
                     kwargs[field] = referenced_ooi.reference
                 except IndexError:
                     if required:
@@ -151,7 +169,6 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
         csv_raw_data = csv_file.read()
 
         task_id = uuid4()
-        self.bytes_client.add_manual_proof(task_id, csv_raw_data, manual_mime_types={"manual/csv"})
 
         csv_data = io.StringIO(csv_raw_data.decode("UTF-8"))
         rows_with_error = []
@@ -164,7 +181,7 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
                     ooi, level, declarations = self.get_ooi_from_csv(object_type, row)
                     if declarations:
                         oois.extend(declarations)
-                    oois.append(Declaration(ooi=ooi, valid_time=datetime.now(timezone.utc), task_id=task_id))
+                    oois.append(Declaration(ooi=ooi, valid_time=datetime.now(UTC), task_id=task_id))
                     if isinstance(level, int):
                         self.raise_clearance_level(ooi.reference, level)
                 except ValidationError:
@@ -177,6 +194,10 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
             self.add_success_notification(_("Object(s) successfully added."))
         except (csv.Error, IndexError):
             return self.add_error_notification(CSV_ERRORS["csv_error"])
+
+        # Only store the raw proof after validation succeeds, so failed
+        # uploads don't trigger normalizers that create duplicate objects (#3781)
+        self.bytes_client.add_manual_proof(task_id, csv_raw_data, manual_mime_types={"manual/csv"})
 
         try:
             self.octopoes_api_connector.save_many_declarations(oois, sync=True)

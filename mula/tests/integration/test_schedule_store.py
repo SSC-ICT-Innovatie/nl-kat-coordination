@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from types import SimpleNamespace
 from unittest import mock
 
@@ -46,7 +46,7 @@ class ScheduleStoreTestCase(unittest.TestCase):
 
     def test_create_schedule_explicit_deadline_at(self):
         """When a schedule is created, the deadline_at should be set if it is provided."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         schedule = models.Schedule(
             scheduler_id="test_scheduler_id", organisation=self.organisation.id, data={}, deadline_at=now
         )
@@ -55,7 +55,7 @@ class ScheduleStoreTestCase(unittest.TestCase):
 
     def test_create_schedule_deadline_at_takes_precedence(self):
         """When a schedule is created, the deadline_at should be set if it is provided."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         schedule = models.Schedule(
             scheduler_id="test_scheduler_id",
             schedule="* * * * *",

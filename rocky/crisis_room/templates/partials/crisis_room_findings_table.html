@@ -82,7 +82,7 @@
                                         {% endblocktranslate %}
                                     </p>
                                 </div>
-                                {% include "partials/report_findings_table.html" with finding_types=findings.finding_types report=dashboard_item.report is_crisis_room="yes" %}
+                                {% include "partials/report_findings_table.html" with finding_types=findings.finding_types report=dashboard_item.report organization=dashboard_item.item.dashboard.organization is_dashboard_item="yes" %}
 
                             {% else %}
                                 <p>{% translate "No findings have been identified. Check report for more details." %}</p>

@@ -17,3 +17,17 @@ def test_page_analyzer_normalizer(normalizer_runner):
         "Software|jQuery|3.6.0|cpe:2.3:a:jquery:3.6.0:*:*:*:*:*:*:*:*",
         "Software|jQuery||cpe:2.3:a:jquery:jquery:*:*:*:*:*:*:*:*",
     }
+
+
+def test_normalizer_handles_html_content_type_without_body(normalizer_runner):
+    # Regression: a response with Content-Type: text/html but an empty body
+    # (redirect / Content-Length: 0) must not crash the normalizer. har.html raises
+    # ValueError("No HTML content found") inside analyze_html/analyze_dom/analyze_meta/
+    # analyze_script_src_in_html, so all four must be skipped when there is no body.
+    meta = NormalizerMeta.model_validate_json(get_dummy_data("body-page-analysis-normalize.json"))
+
+    # Must complete without raising.
+    output = normalizer_runner.run(meta, get_dummy_data("empty-html-body.raw"))
+
+    results = [r for obs in output.observations for r in obs.results]
+    assert not any(o.object_type == "Software" for o in results)

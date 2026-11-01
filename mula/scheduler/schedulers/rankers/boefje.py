@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from .ranker import Ranker
@@ -38,9 +38,7 @@ class BoefjeRanker(Ranker):
         # H:M:S portion of a timedelta (0..86399) and drops the days, which
         # made both the `< 0` and `>= max_days_in_seconds` branches unreachable
         # and inverted the decay curve for tasks older than one day.
-        time_since_grace_period = (
-            (datetime.now(timezone.utc) - obj.latest_task.modified_at) - grace_period
-        ).total_seconds()
+        time_since_grace_period = ((datetime.now(UTC) - obj.latest_task.modified_at) - grace_period).total_seconds()
         if time_since_grace_period < 0:
             return -1
 

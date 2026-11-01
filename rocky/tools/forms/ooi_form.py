@@ -1,12 +1,14 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 from inspect import isclass
 from ipaddress import IPv4Address, IPv6Address
 from typing import Any, Literal, TypedDict, Union, get_args, get_origin
 
+from croniter import croniter
 from django import forms
+from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from pydantic import AnyUrl
+from pydantic import AnyUrl, JsonValue
 from pydantic.fields import FieldInfo
 
 from octopoes.connector.octopoes import OctopoesAPIConnector
@@ -32,8 +34,20 @@ class OOIForm(BaseRockyForm):
             self.fields[name] = field
 
     def clean(self):
-        super().clean()["user_id"] = self.user_id
-        return {key: value for key, value in super().clean().items() if value}
+        cleaned_data = super().clean()
+        cleaned_data["user_id"] = self.user_id
+        # Only drop "no input" values (None, ""), not valid falsy values like
+        # {} or [] which JSONField returns for empty dicts/lists (#3933).
+        return {key: value for key, value in cleaned_data.items() if value is not None and value != ""}
+
+    def clean_cron_expression(self):
+        value = self.cleaned_data.get("cron_expression")
+        if value:
+            try:
+                croniter(value)
+            except (ValueError, KeyError) as error:
+                raise ValidationError(_("Invalid cron expression: %(error)s") % {"error": str(error)}) from error
+        return value
 
     def get_fields(self) -> dict[str, forms.fields.Field]:
         return self.generate_form_fields()
@@ -46,18 +60,11 @@ class OOIForm(BaseRockyForm):
             # if annotation is an Union, get the first non-optional type
             optional_type = get_args(annotation)[0] if get_origin(annotation) == Union else None
 
-            if name == "primary_key":
-                continue
-
-            if name == "user_id":
+            if name in ("primary_key", "user_id", "scan_profile"):
                 continue
 
             # skip literals
             if hasattr(annotation, "__origin__") and annotation.__origin__ == Literal:
-                continue
-
-            # skip scan_profile
-            if name == "scan_profile":
                 continue
 
             if hidden_ooi_fields and name in hidden_ooi_fields:
@@ -71,8 +78,17 @@ class OOIForm(BaseRockyForm):
                 fields[name] = generate_ip_field(field)
             elif annotation == AnyUrl:
                 fields[name] = generate_url_field(field)
-            elif annotation is dict or annotation == list[str] or annotation == dict[str, Any]:
-                fields[name] = forms.JSONField(**default_attrs)
+            elif (
+                annotation is dict
+                or annotation == list[str]
+                or annotation == dict[str, Any]
+                or annotation == dict[str, JsonValue]
+            ):
+                # Django's JSONField treats {} and [] as empty values, but for
+                # dict/list fields these are valid values the model accepts.
+                json_field = forms.JSONField(**default_attrs)
+                json_field.empty_values = [None, ""]
+                fields[name] = json_field
             elif annotation is int or (hasattr(annotation, "__args__") and int in annotation.__args__):
                 fields[name] = forms.IntegerField(**default_attrs)
             elif isclass(annotation) and issubclass(annotation, Enum):
@@ -126,15 +142,18 @@ def generate_select_ooi_field(
     if initial:
         select_options.append((initial, initial))
 
-    oois = api_connector.list_objects({related_ooi_type}, datetime.now(timezone.utc)).items
+    oois = api_connector.list_objects({related_ooi_type}, datetime.now(UTC)).items
     select_options.extend([(ooi.primary_key, ooi.primary_key) for ooi in oois])
+
+    if field.is_required() and len(oois) == 1:
+        initial = oois[0].primary_key
 
     if is_multiselect:
         return forms.MultipleChoiceField(
             widget=forms.SelectMultiple(), choices=select_options, initial=initial, **default_attrs
         )
 
-    return forms.CharField(widget=forms.Select(choices=select_options), **default_attrs)
+    return forms.CharField(widget=forms.Select(choices=select_options), initial=initial, **default_attrs)
 
 
 def generate_select_ooi_type(name: str, enumeration: type[Enum], field: FieldInfo) -> forms.fields.Field:

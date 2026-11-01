@@ -1,4 +1,5 @@
 from account.views import LoginRockyView
+from bs4 import BeautifulSoup
 from django.contrib.auth.middleware import AuthenticationMiddleware
 from django.contrib.sessions.middleware import SessionMiddleware
 from django.test import Client
@@ -63,3 +64,18 @@ def test_login(superuser):
     assert not client.login(email="wrong@openkat.nl", password="TestTest123!!")
     assert not client.login(email="admin@openkat.nl", password="Test!!")
     assert client.login(email=superuser.email, password="SuperSuper123!!")
+
+
+def test_login_error_is_inside_error_box(superuser):
+    response = Client().post(
+        "/en/login/",
+        {
+            "auth-username": "wrong@openkat.nl",
+            "auth-password": "TestTest123!!",
+            "login_rocky_view-current_step": "auth",
+        },
+    )
+
+    errors = BeautifulSoup(response.content, "html.parser").select_one(".non-field-errors .error")
+    assert errors is not None
+    assert "Please enter a correct email address and password." in errors.get_text()

@@ -13,7 +13,7 @@ It also gives a lot more flexibility when scaling horizontally.
 
 .. code:: shell
 
-    $ docker run ghcr.io/minvws/openkat/nmap --help
+    $ docker run docker.underdark.nl/librekat/openkat-nmap --help
     Usage: python -m worker [OPTIONS] [INPUT_URL]
 
     Options:
@@ -27,9 +27,9 @@ Additionally, you could start the process with a filter on specific plugin ids, 
 
 .. code:: shell
 
-    $ docker run --network nl-kat-coordination_boefjes ghcr.io/minvws/openkat/nmap -p nmap-udp  # optional filter
+    $ docker run --network nl-kat-coordination_boefjes docker.underdark.nl/librekat/openkat-nmap -p nmap-udp  # optional filter
     1970-17-28T15:26:16.333927 [info] Starting runtime
-    1970-17-28T15:26:16.334173 [info] Configured BoefjeAPI [base_url=http://boefje:8000, outgoing_request_timeout=30, images=['ghcr.io/minvws/openkat/nmap:latest'], plugins=['nmap-udp']]
+    1970-17-28T15:26:16.334173 [info] Configured BoefjeAPI [base_url=http://boefje:8000, outgoing_request_timeout=30, images=['docker.underdark.nl/librekat/openkat-nmap:latest'], plugins=['nmap-udp']]
     1970-17-28T15:26:16.331262 [info] Created worker pool for queue 'boefje'
     1970-17-28T15:26:16.334481 [info] Started listening for tasks from worker pid=16
     1970-17-28T15:26:16.334501 [info] Started listening for tasks from worker pid=17

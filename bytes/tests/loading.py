@@ -1,6 +1,5 @@
 import datetime
 import json
-from datetime import timezone
 from typing import Any
 from uuid import UUID
 
@@ -31,8 +30,8 @@ def get_boefje_meta(
         input_ooi=input_ooi,
         arguments={"domain": "test.org"},
         organization="test",
-        started_at=datetime.datetime(1000, 10, 10, 10, 10, 10, tzinfo=timezone.utc),
-        ended_at=datetime.datetime(1000, 10, 10, 10, 10, 11, tzinfo=timezone.utc),
+        started_at=datetime.datetime(1000, 10, 10, 10, 10, 10, tzinfo=datetime.UTC),
+        ended_at=datetime.datetime(1000, 10, 10, 10, 10, 11, tzinfo=datetime.UTC),
     )
 
 
@@ -41,8 +40,8 @@ def get_normalizer_meta(raw_file_id: UUID = UUID("2c9f47db-dfca-4928-b29f-368e64
         id=UUID("203eedee-a590-43e1-8f80-6d18ffe529f5"),
         raw_data=get_raw_data_meta(raw_file_id),
         normalizer=Normalizer(id="kat_test.main"),
-        started_at=datetime.datetime(year=1001, month=10, day=10, hour=10, minute=10, second=10, tzinfo=timezone.utc),
-        ended_at=datetime.datetime(year=1001, month=10, day=10, hour=10, minute=10, second=12, tzinfo=timezone.utc),
+        started_at=datetime.datetime(year=1001, month=10, day=10, hour=10, minute=10, second=10, tzinfo=datetime.UTC),
+        ended_at=datetime.datetime(year=1001, month=10, day=10, hour=10, minute=10, second=12, tzinfo=datetime.UTC),
     )
 
 

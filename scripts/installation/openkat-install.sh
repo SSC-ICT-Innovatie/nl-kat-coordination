@@ -13,8 +13,8 @@ if [ "$ID" != "debian" ]; then
 fi
 
 # Check Debian version
-if [ "$VERSION_ID" != "12" ]; then
-    echo "Only Debian version 12 is supported"
+if [ "$VERSION_ID" != "12" ] && [ "$VERSION_ID" != "13" ]; then
+    echo "Only Debian versions 12 and 13 are supported"
     exit 1
 fi
 
@@ -29,7 +29,7 @@ debian_version=$VERSION_ID
 echo "Step 0 - Preparations"
 
 echo "Step 0.1 - Removing old install/upgrade files, update system and install curl & sudo when needed..."
-rm -f kat-*.deb kat-debian1[12]-*.tar.gz xtdb-*.deb
+rm -f kat-*.deb kat-debian1[123]-*.tar.gz xtdb-*.deb
 
 echo "Step 0.2 - Update OS and get needed tools"
 if ! command -v sudo; then
@@ -37,12 +37,12 @@ if ! command -v sudo; then
         echo "Sudo could not be found, please first install sudo as root"
         exit 1
     fi
-    apt -y update
-    apt -y install sudo
+    apt-get -y update
+    apt-get -y install sudo
 fi
 
-sudo apt -y update
-sudo apt -y install curl
+sudo apt-get -y update
+sudo apt-get -y install curl
 
 echo "Step 1 - Determine latest xtdb-http-multinode and OpenKAT versions"
 
@@ -71,10 +71,10 @@ curl -LO "https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/releases/down
 
 echo "Step 3 - Install OpenKAT and xtdb"
 tar zvxf kat-*.tar.gz
-sudo apt install -y --no-install-recommends ./kat-*_amd64.deb ./xtdb-http-multinode_*_all.deb
+sudo apt-get install -y --no-install-recommends ./kat-*_amd64.deb ./xtdb-http-multinode_*_all.deb
 
 echo "Step 4 - Setup postgres databases"
-sudo apt -y install postgresql
+sudo apt-get -y install postgresql
 
 sudo systemctl start postgresql
 
@@ -240,7 +240,7 @@ fi
 echo "Step 6 - RabbitMQ-server setup"
 
 echo "Step 6.1 - Install rabbitmq-server"
-sudo apt -y install rabbitmq-server
+sudo apt-get -y install rabbitmq-server
 
 echo "Step 6.2 - Stop rabbitmq-server"
 sudo systemctl stop rabbitmq-server
@@ -292,12 +292,22 @@ if [ -f /usr/lib/systemd/system/kat-rocky-worker.service ]; then
     sudo systemctl enable kat-rocky-worker
 fi
 
+# Kat-octopoes-scanlevels service was introduced in OpenKAT 1.23
+if [ -f /usr/lib/systemd/system/kat-octopoes-scanlevels.service ]; then
+    sudo systemctl enable kat-octopoes-scanlevels
+fi
+
 echo "Step 8 - Restart OpenKAT"
 sudo systemctl restart kat-rocky kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
 
 # Kat-rocky-worker service was introduced in OpenKAT 1.18
 if [ -f /usr/lib/systemd/system/kat-rocky-worker.service ]; then
     sudo systemctl restart kat-rocky-worker
+fi
+
+# Kat-octopoes-scanlevels service was introduced in OpenKAT 1.23
+if [ -f /usr/lib/systemd/system/kat-octopoes-scanlevels.service ]; then
+    sudo systemctl restart kat-octopoes-scanlevels
 fi
 
 echo "Step 9 - End of OpenKAT install script"

@@ -117,6 +117,25 @@ class TaskStatus(Enum):
     # Task has been cancelled
     CANCELLED = "cancelled"
 
+    # The boefje caught a timeout itself and returned it through the error/timeout mime-type
+    TIMEOUT = "timeout"
+
+    @property
+    def label(self) -> str:
+        return _TASK_STATUS_LABELS[self.value]
+
+
+_TASK_STATUS_LABELS = {
+    "pending": _("Pending"),
+    "queued": _("Queued"),
+    "dispatched": _("Dispatched"),
+    "running": _("Running"),
+    "completed": _("Completed"),
+    "failed": _("Failed"),
+    "cancelled": _("Cancelled"),
+    "timeout": _("Timeout"),
+}
+
 
 class Task(BaseModel):
     model_config = ConfigDict(from_attributes=True)

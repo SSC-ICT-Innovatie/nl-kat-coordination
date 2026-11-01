@@ -16,10 +16,7 @@ Supported distributions
 
 We provide Debian packages for Debian and Ubuntu. We support only Debian stable
 and Ubuntu LTS releases and stop supporting the previous version 6 months after
-the release. Currently this means we support Debian 11 (bullseye) and 12
-(bookworm) and Ubuntu 22.04. Debian 12 has been released on 10th of June so we
-will stop providing packages for Debian 11 in December 2023. After Ubuntu 24.04
-is released we will provide Ubuntu 22.02 packages until October 2024.
+the release. Currently this means we support Debian 12 (bookworm), 13 (trixie) and Ubuntu 24.04.
 
 Prerequisites
 =============
@@ -27,7 +24,7 @@ Prerequisites
 We will be using ``sudo`` in this guide, so make sure you have ``sudo`` installed on
 your system.
 
-The packages are built with Ubuntu 22.04 and Debian 11 in mind.
+The packages are built with Ubuntu 24.04 and Debian 12 and 13 in mind.
 They may or may not work on other versions or distributions.
 
 Downloading and installing
@@ -36,7 +33,7 @@ Downloading and installing
 Download the packages for all the components of KAT from `GitHub
 <https://github.com/minvws/nl-kat-coordination/releases/latest>`__. Also download the XTDB
 multinode package from `GitHub
-<https://github.com/dekkers/xtdb-http-multinode/releases/latest>`__.
+<https://github.com/underdarknl/xtdb-http-multinode/releases/latest>`__.
 
 After downloading they can be installed as follows:
 
@@ -294,7 +291,7 @@ After finishing these steps, you should restart KAT to load the new configuratio
 
 .. code-block:: sh
 
-    sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
+    sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker kat-octopoes-scanlevels
 
 Start KAT on system boot
 ========================
@@ -303,7 +300,7 @@ To start KAT when the system boots, enable all KAT services:
 
 .. code-block:: sh
 
-    sudo systemctl enable kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
+    sudo systemctl enable kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker kat-octopoes-scanlevels
 
 .. _debian_prod_configure_reverse_proxy:
 
@@ -371,6 +368,8 @@ the DNS challenge. For more information see the `Caddy documentation
 Note that we don't recommend exposing OpenKAT directly to the internet and
 recommend that you make sure only authorised persons can access OpenKAT.
 
+If you get a 403 'bad request' these are probably from Rocky, which does not
+like your hostname yet. (see: Configure hostname in Rocky)
 
 Start using OpenKAT
 ===================
@@ -426,4 +425,4 @@ Restart all processes:
 
 .. code-block:: sh
 
-    sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker
+    sudo systemctl restart kat-rocky kat-rocky-worker kat-mula kat-bytes kat-boefjes kat-normalizers kat-katalogus kat-octopoes kat-octopoes-worker kat-octopoes-scanlevels

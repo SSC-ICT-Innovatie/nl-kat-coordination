@@ -1,6 +1,6 @@
 FROM openkat/boefje-base:latest
 
-ARG OCI_IMAGE=ghcr.io/minvws/openkat/nmap:latest
+ARG OCI_IMAGE=docker.underdark.nl/librekat/openkat-nmap:latest
 ENV OCI_IMAGE=$OCI_IMAGE
 
 USER root

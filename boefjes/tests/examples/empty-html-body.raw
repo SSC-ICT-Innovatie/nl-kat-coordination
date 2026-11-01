@@ -1,0 +1,26 @@
+{
+  "log": {
+    "version": "1.2",
+    "creator": {"name": "test", "version": "1.0"},
+    "entries": [
+      {
+        "startedDateTime": "2026-08-10T10:15:37.000Z",
+        "time": 0,
+        "request": {"method": "GET", "url": "http://134.209.85.72/", "httpVersion": "HTTP/1.1", "headers": [], "queryString": [], "cookies": [], "headersSize": -1, "bodySize": -1},
+        "response": {
+          "status": 301, "statusText": "Moved Permanently", "httpVersion": "HTTP/1.1",
+          "cookies": [],
+          "headers": [
+            {"name": "Content-Type", "value": "text/html; charset=UTF-8"},
+            {"name": "Content-Length", "value": "0"},
+            {"name": "location", "value": "https://example.com"}
+          ],
+          "content": {"size": 0, "mimeType": "text/html", "text": ""},
+          "redirectURL": "https://example.com", "headersSize": -1, "bodySize": 0
+        },
+        "cache": {},
+        "timings": {"send": 0, "wait": 0, "receive": 0}
+      }
+    ]
+  }
+}
