@@ -78,7 +78,7 @@ jobs:
         run: python "${{ github.workspace }}/.github/scripts/coverage_file_fixer.py" "${{ matrix.module['name'] }}-coverage/coverage.xml" "${{ matrix.module['prefix_path'] }}"
 
       - name: Upload fixed coverage file
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: "${{ matrix.module['name'] }}-coverage-fixed"
           path: "${{ matrix.module['name'] }}-coverage/coverage.xml"
@@ -105,6 +105,6 @@ jobs:
           pattern: "*-coverage-fixed"
 
       - name: SonarCloud
-        uses: SonarSource/sonarqube-scan-action@ba9859eae8dd6bd29e412f25ddbbef3d032000f4 # v8.2.2
+        uses: SonarSource/sonarqube-scan-action@4d1dc0c91ee400dcf8a6dddf2f705ac36542e304 # v8.4.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
