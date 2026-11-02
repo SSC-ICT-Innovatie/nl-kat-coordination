@@ -25,7 +25,7 @@ task_buttons.forEach((button) => {
   const expando_row = button.closest("tr").nextElementSibling;
   var json_url = "";
 
-  if (task_status == "failed" || task_status == "completed") {
+  if (["completed", "failed", "timeout"].includes(task_status)) {
     if (task_type == "boefje") {
       json_url =
         "/" +

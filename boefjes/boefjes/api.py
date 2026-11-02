@@ -109,6 +109,8 @@ def boefje_output(
         scheduler_client.patch_task(task_id, TaskStatus.COMPLETED)
     elif boefje_output.status == StatusEnum.FAILED:
         scheduler_client.patch_task(task_id, TaskStatus.FAILED)
+    elif boefje_output.status == StatusEnum.TIMEOUT:
+        scheduler_client.patch_task(task_id, TaskStatus.TIMEOUT)
 
     return bytes_response
 

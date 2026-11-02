@@ -19,6 +19,7 @@ class TaskFilterForm(forms.Form):
             ("pending", _("Pending")),
             ("queued", _("Queued")),
             ("running", _("Running")),
+            ("timeout", _("Timeout")),
         ),
         required=False,
     )

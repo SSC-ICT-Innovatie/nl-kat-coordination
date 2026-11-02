@@ -92,6 +92,25 @@ def test_handle_boefje_with_exception(mocker):
     assert set(raw_call_args[0][1].files[0].tags) == {"error/boefje", "boefje/dummy_boefje_runtime_exception"}
 
 
+def test_handle_boefje_with_timeout_returned_by_boefje(mocker):
+    """A boefje that catches its own timeout returns the error/timeout mime-type with a clean message. The run
+    does not raise, so the output is saved to Bytes, but the task should end up in the TIMEOUT state."""
+    mocker.patch("boefjes.clients.scheduler_client.get_environment_settings", return_value={})
+    mock_bytes_api_client = mocker.patch("boefjes.job_handler.bytes_api_client")
+
+    task = get_task(boefje_id="dummy_boefje_timeout")
+
+    output = LocalBoefjeHandler(LocalPluginRepository(Path(__file__).parent / "modules"), mock_bytes_api_client).handle(
+        task
+    )
+
+    assert output is not None
+    assert mock_bytes_api_client.save_output.call_args[0][1].status == StatusEnum.TIMEOUT
+    contents = base64.b64decode(output[1].files[0].content).decode()
+    assert contents == "Timed out after 30 seconds"
+    assert "error/timeout" in output[1].files[0].tags
+
+
 def test_exception_raised_unsupported_return_type_normalizer(mock_normalizer_runner):
     meta = NormalizerMeta.model_validate_json(get_dummy_data("dns-normalize.json"))
     meta.raw_data.boefje_meta.input_ooi = None

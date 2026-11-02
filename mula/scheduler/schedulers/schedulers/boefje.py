@@ -637,20 +637,24 @@ class BoefjeScheduler(Scheduler):
             True if the task is still running, False otherwise.
         """
         # Is task still running according to the datastore?
-        if task_db is not None and task_db.status not in [models.TaskStatus.FAILED, models.TaskStatus.COMPLETED]:
+        if task_db is not None and task_db.status not in [
+            models.TaskStatus.FAILED,
+            models.TaskStatus.COMPLETED,
+            models.TaskStatus.TIMEOUT,
+        ]:
             self.logger.debug(
                 "Task is still running, according to the datastore", task_id=task_db.id, scheduler_id=self.scheduler_id
             )
             return True
 
-        # Task has been finished (failed, or succeeded) according to
+        # Task has been finished (failed, succeeded or timed out) according to
         # the datastore, but we have no results of it in bytes, meaning
         # we have a problem. However when the grace period has been reached we
         # should not raise an error.
         if (
             task_bytes is None
             and task_db is not None
-            and task_db.status in [models.TaskStatus.COMPLETED, models.TaskStatus.FAILED]
+            and task_db.status in [models.TaskStatus.COMPLETED, models.TaskStatus.FAILED, models.TaskStatus.TIMEOUT]
             and (
                 task_db.modified_at is not None
                 and task_db.modified_at > datetime.now(UTC) - timedelta(seconds=self.ctx.config.pq_grace_period)

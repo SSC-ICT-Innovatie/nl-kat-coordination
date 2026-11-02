@@ -242,6 +242,40 @@ class BoefjeSchedulerTestCase(BoefjeSchedulerBaseTestCase):
         is_running = self.scheduler.has_boefje_task_started_running(task_db_second, bytes_task, boefje_task)
         self.assertFalse(is_running)
 
+    def test_has_boefje_task_started_running_datastore_timeout(self):
+        """When the task is found in the datastore with the timeout status,
+        the task is finished and should not block rescheduling.
+        """
+        # Arrange
+        scan_profile = ScanProfileFactory(level=0)
+        ooi = OOIFactory(scan_profile=scan_profile)
+        boefje = BoefjeFactory()
+        boefje_task = models.BoefjeTask(boefje=boefje, input_ooi=ooi.primary_key, organization=self.organisation.id)
+
+        task_db = models.Task(
+            scheduler_id=self.scheduler.scheduler_id,
+            organisation=self.organisation.id,
+            priority=1,
+            status=models.TaskStatus.TIMEOUT,
+            type=models.BoefjeTask.type,
+            hash=boefje_task.hash,
+            data=boefje_task.model_dump(),
+            created_at=datetime.now(UTC),
+            modified_at=datetime.now(UTC),
+        )
+
+        bytes_task = BoefjeMetaFactory(boefje=boefje, input_ooi=ooi.primary_key, ended_at=datetime.now(UTC))
+
+        # Mock
+        self.mock_get_latest_task_by_hash.return_value = task_db
+        self.mock_get_last_run_boefje.return_value = bytes_task
+
+        # Act
+        is_running = self.scheduler.has_boefje_task_started_running(task_db, bytes_task, boefje_task)
+
+        # Assert
+        self.assertFalse(is_running)
+
     def test_has_boefje_task_started_running_datastore_exception(self):
         # Arrange
         scan_profile = ScanProfileFactory(level=0)

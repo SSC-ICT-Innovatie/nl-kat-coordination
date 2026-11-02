@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from bytes.models import BoefjeMeta, RawData
+from bytes.models import BoefjeMeta, MimeType, RawData
 
 
 class BytesFileNotFoundException(FileNotFoundError):
@@ -14,5 +14,5 @@ class RawRepository:
     def get_raw(self, raw_id: UUID, boefje_meta: BoefjeMeta) -> RawData:
         raise NotImplementedError()
 
-    def get_raws(self, raw_metas_pairs: list[tuple[UUID, BoefjeMeta]]) -> list[tuple[UUID, RawData]]:
+    def get_raws(self, raw_metas_pairs: list[tuple[UUID, BoefjeMeta, list[MimeType]]]) -> list[tuple[UUID, RawData]]:
         raise NotImplementedError()
