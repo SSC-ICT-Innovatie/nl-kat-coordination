@@ -44,6 +44,7 @@ jobs:
 
   prepare-images:
     # Fetches the various build-imges from the registry and stores them locally.
+    permissions: {}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
