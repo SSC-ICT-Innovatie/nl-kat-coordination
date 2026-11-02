@@ -49,12 +49,15 @@ jobs:
       matrix:
         dist: [debian12, debian13, ubuntu24.04]
     steps:
-      - name: Log in to registry
-        uses: docker/login-action@c94ce9fb3da03f3c5ad7d5d99e0b4e48a4c10d3a # v3.7.0
-        with:
-          registry: docker.underdark.nl
-          username: ${{ secrets.librekat_user }}
-          password: ${{ secrets.librekat_password }}
+      - name: Login to registry
+        env:
+          REGISTRY_USER: ${{ secrets.librekat_user }}
+          REGISTRY_PASSWORD: ${{ secrets.librekat_password }}
+        run: |
+          echo "$REGISTRY_PASSWORD" |
+            docker login docker.underdark.nl \
+              --username "$REGISTRY_USER" \
+              --password-stdin
 
       - name: Pull and export build image
         run: |
