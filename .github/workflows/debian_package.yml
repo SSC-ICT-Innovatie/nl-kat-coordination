@@ -45,6 +45,7 @@ jobs:
   prepare-images:
     # Fetches the various build-imges from the registry and stores them locally.
     permissions: {}
+    needs: changes
     if: ${{ github.event_name == 'push' || (needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '') }}
     runs-on: ubuntu-24.04
     strategy:
