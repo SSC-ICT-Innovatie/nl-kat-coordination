@@ -27,7 +27,7 @@ def ooi_type_input_choices():
     return [{"value": ooi_type, "text": ooi_type} for ooi_type in ooi_types]
 
 
-SUBNET_OOI_TYPES = {"NetBlock", "IPV4NetBlock", "IPV6NetBlock"}
+SUBNET_OOI_TYPES = {"IPV4NetBlock", "IPV6NetBlock"}
 
 
 class OOIAddTypeSelectView(OrganizationView, TemplateView):
