@@ -24,6 +24,9 @@ For now, click on 'Add object' to manually add an object.
 On the next page, you can select the type of object you want to add. Choose the option that suits you.
 For this demonstration we will add a hostname. Click on "Add object" to continue.
 
+.. note:: To add a subnet, select *IPV4NetBlock* or *IPV6NetBlock* in the type list. Both open a dedicated
+   two-step form that shows the computed IP range before adding; see :doc:`objects`.
+
 .. image:: img/add-object-02.png
   :alt: Select object type
 
