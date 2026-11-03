@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.edit import FormView
-from tools.forms.subnet import SubnetAddForm
+from tools.forms.subnet import MIN_SCANNABLE_PREFIXLEN_V4, MIN_SCANNABLE_PREFIXLEN_V6, SubnetAddForm
 from tools.ooi_helpers import create_oois
 from tools.view_helpers import get_ooi_url
 
@@ -72,6 +72,8 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
         for field_name in ("cidr", "network", "name"):
             form.fields[field_name].widget = forms.HiddenInput()
 
+        min_prefixlen = MIN_SCANNABLE_PREFIXLEN_V6 if network.version == 6 else MIN_SCANNABLE_PREFIXLEN_V4
+
         context = self.get_context_data(
             form=form,
             step=2,
@@ -82,6 +84,9 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
             # (e.g. 192.168.1.5/24); show how it was interpreted.
             input_was_normalized=network.with_prefixlen != cidr.strip(),
             mask=network.prefixlen,
+            # Ranges larger than this are skipped by the nmap boefjes by default.
+            range_skipped_by_nmap=network.prefixlen < min_prefixlen,
+            min_scannable_prefixlen=min_prefixlen,
         )
         return self.render_to_response(context)
 

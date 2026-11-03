@@ -126,8 +126,10 @@ def test_subnet_add_get_without_user_indemnification_shows_disabled_form(
     assertContains(response, "disabled")
 
 
-def test_subnet_add_too_large_cidr_rejected(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
-    """A range bigger than the nmap boefjes scan by default is rejected at step 1."""
+def test_subnet_add_review_step_warns_on_large_range(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """A range larger than the nmap boefjes scan by default triggers a non-blocking notice."""
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
@@ -137,9 +139,10 @@ def test_subnet_add_too_large_cidr_rejected(rf, redteam_member, mock_organizatio
     response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 200
-    assertContains(response, "Subnet is too large for scanning")
-    assertContains(response, "/22")
-    mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+    assertContains(response, "Nmap skips ranges larger than a /22")
+    assertContains(response, "16777216 addresses")
+    # The subnet is still reviewable and submittable
+    assertContains(response, "Add subnet")
 
 
 def test_subnet_add_clearance_capped_at_member_maximum(

@@ -7,7 +7,7 @@ from tools.forms.base import BaseRockyForm
 
 # The smallest mask the nmap range boefjes scan by default (MIN_VLSM_IPV4 in
 # kat_nmap_ip_range/kat_nmap_tcp); larger ranges are skipped with a logged
-# UnacceptedVSLM, so they are rejected here.
+# UnacceptedVSLM.
 MIN_SCANNABLE_PREFIXLEN_V4 = 22
 MIN_SCANNABLE_PREFIXLEN_V6 = 118
 
@@ -31,17 +31,7 @@ class SubnetAddForm(BaseRockyForm):
     def clean_cidr(self) -> str:
         cidr = self.cleaned_data["cidr"]
         try:
-            network = ipaddress.ip_network(cidr, strict=False)
+            ipaddress.ip_network(cidr, strict=False)
         except ValueError as error:
             raise forms.ValidationError(_("Enter a valid CIDR, e.g. 192.168.5.0/24.")) from error
-
-        min_prefixlen = MIN_SCANNABLE_PREFIXLEN_V6 if network.version == 6 else MIN_SCANNABLE_PREFIXLEN_V4
-        if network.prefixlen < min_prefixlen:
-            raise forms.ValidationError(
-                _(
-                    "Subnet is too large for scanning. Nmap skips ranges larger than a /%(mask)s; "
-                    "add smaller blocks instead."
-                )
-                % {"mask": min_prefixlen}
-            )
         return cidr
