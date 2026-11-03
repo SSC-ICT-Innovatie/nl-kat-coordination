@@ -126,6 +126,22 @@ def test_subnet_add_get_without_user_indemnification_shows_disabled_form(
     assertContains(response, "disabled")
 
 
+def test_subnet_add_too_large_cidr_rejected(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """A range bigger than the nmap boefjes scan by default is rejected at step 1."""
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = setup_request(
+        rf.post("ooi_add_subnet", {"step": "1", "cidr": "10.0.0.0/8", "network": "internet", "name": ""}),
+        redteam_member.user,
+    )
+    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "Subnet is too large for scanning")
+    assertContains(response, "/22")
+    mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+
+
 def test_subnet_add_clearance_capped_at_member_maximum(
     rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
 ):
