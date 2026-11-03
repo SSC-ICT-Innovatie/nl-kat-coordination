@@ -9,8 +9,8 @@ from uuid import UUID
 
 import pytest
 
-from boefjes.worker.boefje_handler import LocalBoefjeHandler
-from boefjes.worker.interfaces import StatusEnum, Task, TaskStatus
+from boefjes.worker.boefje_handler import LocalBoefjeHandler, sweep_boefje_origins
+from boefjes.worker.interfaces import BoefjeOutput, File, StatusEnum, Task, TaskStatus
 from boefjes.worker.job_models import BoefjeMeta, InvalidReturnValueNormalizer, NormalizerMeta
 from boefjes.worker.models import Bit, Boefje, Normalizer, PluginType
 from boefjes.worker.repository import LocalPluginRepository
@@ -159,3 +159,52 @@ def test_correct_local_runner_hash(mock_local_repository) -> None:
     assert boefje_resource_1.boefje.runnable_hash == "7a6de035b9b3f3de1534582df3a1024476d62aad4fce51b7ffa9f13dd92dcbd2"
     assert boefje_resource_2.boefje.runnable_hash == "125d118d21c25ca522fc436cbe1ac8af336b7a973423d23ca02ce287a6c07b2d"
     assert boefje_resource_3.boefje.runnable_hash == "3fceaf2422bd6d3975e73d5d7d297e9c4a70efce60fccfab761235f08b6891b4"
+
+
+def test_sweep_boefje_origins_deletes_superseded_origins(mocker):
+    factory = mocker.patch("boefjes.worker.boefje_handler.get_octopoes_api_connector")
+    meta = BoefjeMeta(
+        id=uuid.uuid4(),
+        boefje={"id": "test-boefje"},
+        input_ooi="Network|internet",
+        arguments={},
+        organization="_dev",
+        ended_at=datetime.now(UTC),
+    )
+    output = BoefjeOutput(
+        status=StatusEnum.COMPLETED, files=[File(name="0", content="", tags={"text/plain"})]
+    )
+
+    sweep_boefje_origins(meta, output)
+
+    connector = factory.return_value
+    connector.delete_origins.assert_called_once()
+    assert connector.delete_origins.call_args.kwargs["source_method"] == "test-boefje"
+    assert connector.delete_origins.call_args.kwargs["valid_time"] == meta.ended_at
+
+
+def test_sweep_boefje_origins_skips_error_output(mocker):
+    factory = mocker.patch("boefjes.worker.boefje_handler.get_octopoes_api_connector")
+    meta = BoefjeMeta(
+        id=uuid.uuid4(),
+        boefje={"id": "test-boefje"},
+        input_ooi="Network|internet",
+        arguments={},
+        organization="_dev",
+        ended_at=datetime.now(UTC),
+    )
+    output = BoefjeOutput(status=StatusEnum.FAILED, files=[File(name="0", content="", tags={"error/boefje"})])
+
+    sweep_boefje_origins(meta, output)
+
+    factory.assert_not_called()
+
+
+def test_sweep_boefje_origins_skips_missing_input_ooi(mocker):
+    factory = mocker.patch("boefjes.worker.boefje_handler.get_octopoes_api_connector")
+    meta = BoefjeMeta(id=uuid.uuid4(), boefje={"id": "test-boefje"}, arguments={}, organization="_dev")
+    output = BoefjeOutput(status=StatusEnum.COMPLETED, files=[File(name="0", content="", tags={"text/plain"})])
+
+    sweep_boefje_origins(meta, output)
+
+    factory.assert_not_called()

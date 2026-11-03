@@ -23,6 +23,7 @@ class _BaseObservation(BaseModel):
     method: str
     source: Reference
     source_method: str | None
+    raw_file: str | None = None
     result: list[OOIType]
     valid_time: AwareDatetime
     task_id: uuid.UUID

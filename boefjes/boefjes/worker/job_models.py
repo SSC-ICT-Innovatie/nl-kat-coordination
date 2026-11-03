@@ -47,6 +47,7 @@ class RawDataMeta(BaseModel):
     id: UUID
     boefje_meta: BoefjeMeta
     mime_types: list[dict[str, str]]
+    name: str | None = None
 
 
 class Normalizer(BaseModel):
