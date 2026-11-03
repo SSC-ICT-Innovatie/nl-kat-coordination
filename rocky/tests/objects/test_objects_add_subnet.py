@@ -20,8 +20,29 @@ def test_subnet_add_review_step(rf, redteam_member, mock_organization_view_octop
     assertContains(response, "192.168.5.0")
     assertContains(response, "192.168.5.255")
     assertContains(response, "256 addresses")
+    # Canonical input: no normalization notice
+    assertNotContains(response, "was interpreted as the subnet")
     # Nothing saved while reviewing
     mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+
+
+def test_subnet_add_review_step_normalizes_host_bits(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """An interface address with host bits set is normalized, and the review step says so."""
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = setup_request(
+        rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.77/24", "network": "internet", "name": ""}),
+        redteam_member.user,
+    )
+    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "was interpreted as the subnet")
+    assertContains(response, "192.168.5.0/24")
+    # The review shows the canonical start IP
+    assertContains(response, "Start IP")
 
 
 def test_subnet_add_confirm_saves_batch_and_clearance(

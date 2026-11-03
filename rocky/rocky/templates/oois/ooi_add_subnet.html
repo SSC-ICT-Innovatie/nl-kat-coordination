@@ -26,6 +26,11 @@
                     {% csrf_token %}
                     {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
                     {% if step == 2 %}
+                        {% if input_was_normalized %}
+                            <p class="warning">
+                                {% blocktranslate with cidr=form.cidr.value normalized=start_ip %}Your input "{{ cidr }}" was interpreted as the subnet {{ normalized }}/{{ mask }}.{% endblocktranslate %}
+                            </p>
+                        {% endif %}
                         <fieldset>
                             <div>
                                 <label>{% translate "Subnet (CIDR)" %}</label>

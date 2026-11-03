@@ -67,7 +67,8 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
 
     def render_review(self, form):
         """Show the computed IP range and the clearance level select."""
-        network = ipaddress.ip_network(form.cleaned_data["cidr"], strict=False)
+        cidr = form.cleaned_data["cidr"]
+        network = ipaddress.ip_network(cidr, strict=False)
         for field_name in ("cidr", "network", "name"):
             form.fields[field_name].widget = forms.HiddenInput()
 
@@ -77,6 +78,10 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
             start_ip=str(network.network_address),
             end_ip=str(network.broadcast_address),
             num_ips=network.num_addresses,
+            # The user may have typed an interface address with host bits set
+            # (e.g. 192.168.1.5/24); show how it was interpreted.
+            input_was_normalized=network.with_prefixlen != cidr.strip(),
+            mask=network.prefixlen,
         )
         return self.render_to_response(context)
 
