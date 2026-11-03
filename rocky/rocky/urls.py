@@ -36,6 +36,7 @@ from rocky.views.organization_member_add import (
 from rocky.views.organization_member_edit import OrganizationMemberEditView
 from rocky.views.organization_member_list import OrganizationMemberListView
 from rocky.views.organization_settings import OrganizationSettingsView
+from rocky.views.paste_objects import PasteObjects
 from rocky.views.privacy_statement import PrivacyStatementView
 from rocky.views.scan_profile import ScanProfileDetailView
 from rocky.views.scans import ScanListView
@@ -133,6 +134,7 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/objects/scan-profile/", ScanProfileDetailView.as_view(), name="scan_profile_detail"),
     path("<organization_code>/objects/scans/", ScanListView.as_view(), name="scan_list"),
     path("<organization_code>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),
+    path("<organization_code>/objects/paste/", PasteObjects.as_view(), name="paste_objects"),
     path("<organization_code>/objects/upload/raw/", UploadRaw.as_view(), name="upload_raw"),
     path("<organization_code>/objects/upload/raw/<mime_type>", UploadRaw.as_view(), name="upload_raw_typed"),
     path("<organization_code>/tasks/", BoefjesTaskListView.as_view(), name="task_list"),

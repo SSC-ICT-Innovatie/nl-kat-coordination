@@ -23,6 +23,9 @@
                     <li>
                         <a href="{% url 'upload_csv' organization.code %}"><span class="icon ti-file-upload" aria-hidden="true"></span>{% translate "Upload CSV" %}</a>
                     </li>
+                    <li>
+                        <a href="{% url 'paste_objects' organization.code %}"><span class="icon ti-clipboard-text" aria-hidden="true"></span>{% translate "Paste objects" %}</a>
+                    </li>
                 </ul>
             </div>
         </div>

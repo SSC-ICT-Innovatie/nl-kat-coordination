@@ -1,0 +1,96 @@
+{% extends "layouts/base.html" %}
+
+{% load static %}
+{% load i18n %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div class="layout-form">
+                <h1>{% translate "Paste objects" %}</h1>
+                <p>
+                    {% translate "Add multiple hosts in one go. Each line may contain an IPv4 or IPv6 address, a hostname, or a URL — the type is detected automatically." %}
+                </p>
+                <p>{% translate "These are the criteria for adding objects:" %}</p>
+                <ul>
+                    <li>{% translate "One object per line, or separated by commas. A single line may contain multiple values." %}</li>
+                    <li>{% translate "A value starting with http:// or https:// is added as a URL." %}</li>
+                    <li>{% translate "An IPv4 or IPv6 address is added as an IP address." %}</li>
+                    <li>{% translate "Anything else must be a valid hostname and is added as a hostname." %}</li>
+                    <li>{% translate "Lines that fail validation are reported back; all valid objects are still added." %}</li>
+                </ul>
+                <form novalidate method="post" class="help">
+                    {% csrf_token %}
+                    {% for field in form %}
+                        {% include "partials/form/field_input_wrapper.html" %}
+
+                    {% endfor %}
+                    <div id="paste-preview" hidden>
+                        <h2>{% translate "Detected objects" %}</h2>
+                        <ul id="paste-preview-entries">
+                        </ul>
+                    </div>
+                    <button type="submit">{% translate "Add objects" %}</button>
+                </form>
+            </div>
+        </section>
+    </main>
+    <script nonce="{{ request.csp_nonce }}">
+        (function () {
+            var textarea = document.getElementById("id_objects");
+            var preview = document.getElementById("paste-preview");
+            var entries = document.getElementById("paste-preview-entries");
+            if (!textarea) {
+                return;
+            }
+            // Mirrors the server-side parser: URL (scheme present) > IPv4/IPv6 > hostname.
+            function classify(value) {
+                if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value)) {
+                    return "URL";
+                }
+                if (/^(\d{1,3}\.){3}\d{1,3}$/.test(value) && value.split(".").every(function (octet) {
+                    return Number(octet) <= 255;
+                })) {
+                    return "IPv4";
+                }
+                if (/^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/.test(value) && value.indexOf(":") !== -1) {
+                    return "IPv6";
+                }
+                if (/^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(value)) {
+                    return "Hostname";
+                }
+                return "invalid";
+            }
+
+            function renderPreview() {
+                var lines = textarea.value.split("\n");
+                entries.textContent = "";
+                var count = 0;
+                lines.forEach(function (line, index) {
+                    line.split(/[,\s]+/).forEach(function (value) {
+                        if (!value) {
+                            return;
+                        }
+                        count++;
+                        var li = document.createElement("li");
+                        var number = document.createElement("span");
+                        number.textContent = index + 1;
+                        var val = document.createElement("span");
+                        val.textContent = value;
+                        var type = document.createElement("span");
+                        type.textContent = classify(value);
+                        li.appendChild(number);
+                        li.appendChild(val);
+                        li.appendChild(type);
+                        entries.appendChild(li);
+                    });
+                });
+                preview.hidden = count === 0;
+            }
+
+            textarea.addEventListener("input", renderPreview);
+        })();
+    </script>
+{% endblock content %}
