@@ -1,4 +1,13 @@
+import subprocess
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+
+from boefjes.plugins.kat_testssl_sh_ciphers.main import run as boefje_run
 from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
+from octopoes.models import Reference
+from octopoes.models.ooi.service import HostnameService
 from tests.loading import get_dummy_data
 
 input_ooi = {
@@ -34,28 +43,28 @@ def test_ciphered_service():
                 "cipher_suite_alias": "TLS_AES_256_GCM_SHA384",
                 "encryption_algorithm": "AESGCM",
                 "cipher_suite_name": "TLS_AES_256_GCM_SHA384",
-                "key_size": 253,
-                "bits": 256,
+                "encryption_bits": 256,
                 "key_exchange_algorithm": "ECDH",
                 "cipher_suite_code": "x1302",
+                "characteristics": [],
             },
             {
                 "cipher_suite_alias": "TLS_CHACHA20_POLY1305_SHA256",
                 "encryption_algorithm": "ChaCha20",
                 "cipher_suite_name": "TLS_CHACHA20_POLY1305_SHA256",
-                "key_size": 253,
-                "bits": 256,
+                "encryption_bits": 256,
                 "key_exchange_algorithm": "ECDH",
                 "cipher_suite_code": "x1303",
+                "characteristics": [],
             },
             {
                 "cipher_suite_alias": "TLS_AES_128_GCM_SHA256",
                 "encryption_algorithm": "AESGCM",
                 "cipher_suite_name": "TLS_AES_128_GCM_SHA256",
-                "key_size": 253,
-                "bits": 128,
+                "encryption_bits": 128,
                 "key_exchange_algorithm": "ECDH",
                 "cipher_suite_code": "x1301",
+                "characteristics": [],
             },
         ],
         "TLSv1.2": [
@@ -63,48 +72,228 @@ def test_ciphered_service():
                 "cipher_suite_alias": "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
                 "encryption_algorithm": "AESGCM",
                 "cipher_suite_name": "ECDHE-RSA-AES256-GCM-SHA384",
-                "key_size": 521,
-                "bits": 256,
+                "key_exchange_bits": 521,
+                "encryption_bits": 256,
                 "key_exchange_algorithm": "ECDH",
                 "cipher_suite_code": "xc030",
+                "characteristics": ["RSA", "FORWARD_SECRECY"],
             },
             {
                 "cipher_suite_alias": "TLS_DHE_RSA_WITH_AES_256_GCM_SHA384",
                 "encryption_algorithm": "AESGCM",
                 "cipher_suite_name": "DHE-RSA-AES256-GCM-SHA384",
-                "key_size": 2048,
-                "bits": 256,
+                "key_exchange_bits": 2048,
+                "encryption_bits": 256,
                 "key_exchange_algorithm": "DH",
                 "cipher_suite_code": "x9f",
+                "characteristics": ["RSA", "FORWARD_SECRECY"],
             },
             {
                 "cipher_suite_alias": "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305_SHA256",
                 "encryption_algorithm": "ChaCha20",
                 "cipher_suite_name": "ECDHE-RSA-CHACHA20-POLY1305",
-                "key_size": 521,
-                "bits": 256,
+                "key_exchange_bits": 521,
+                "encryption_bits": 256,
                 "key_exchange_algorithm": "ECDH",
                 "cipher_suite_code": "xcca8",
+                "characteristics": ["RSA", "FORWARD_SECRECY"],
             },
             {
                 "cipher_suite_alias": "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
                 "encryption_algorithm": "AESGCM",
                 "cipher_suite_name": "ECDHE-RSA-AES128-GCM-SHA256",
-                "key_size": 521,
-                "bits": 128,
+                "key_exchange_bits": 521,
+                "encryption_bits": 128,
                 "key_exchange_algorithm": "ECDH",
                 "cipher_suite_code": "xc02f",
+                "characteristics": ["RSA", "FORWARD_SECRECY"],
             },
             {
                 "cipher_suite_alias": "TLS_DHE_RSA_WITH_AES_128_GCM_SHA256",
                 "encryption_algorithm": "AESGCM",
                 "cipher_suite_name": "DHE-RSA-AES128-GCM-SHA256",
-                "key_size": 2048,
-                "bits": 128,
+                "key_exchange_bits": 2048,
+                "encryption_bits": 128,
                 "key_exchange_algorithm": "DH",
                 "cipher_suite_code": "x9e",
+                "characteristics": ["RSA", "FORWARD_SECRECY"],
             },
         ],
     }
     assert len(oois) == 1
     assert oois[0].suites == expected_suites
+
+
+def test_ciphered_website_preserves_hostname_in_identity():
+    hostname_service_input = {
+        "object_type": "HostnameService",
+        "primary_key": "HostnameService|internet|192.0.2.10|tcp|443|https|internet|example.com",
+        "ip_service": {
+            "ip_port": {
+                "address": {"network": {"name": "internet"}, "address": "192.0.2.10"},
+                "protocol": "tcp",
+                "port": "443",
+            },
+            "service": {"name": "https"},
+        },
+        "hostname": {"network": {"name": "internet"}, "name": "example.com"},
+    }
+
+    oois = list(run(hostname_service_input, get_dummy_data("inputs/testssl-sh-ciphered.json")))
+
+    assert len(oois) == 1
+    assert oois[0].hostname.natural_key == "internet|example.com"
+    assert oois[0].ip_service.natural_key == "internet|192.0.2.10|tcp|443|https"
+    assert oois[0].reference.natural_key == "internet|192.0.2.10|tcp|443|https|internet|example.com"
+    assert "TLSv1.3" in oois[0].suites
+    assert "key_exchange_bits" not in oois[0].suites["TLSv1.3"][0]
+
+
+def test_unknown_cipher_finding_is_ignored_instead_of_crashing():
+    raw = b'[{"id":"cipher-tls1_3_x1301","severity":"OK","finding":"TLSv1.3 x1301 TLS_AES_128_GCM_SHA256 ECDH"}]'
+    assert list(run(input_ooi, raw)) == []
+
+
+def test_server_preference_is_preserved():
+    raw = (
+        b'[{"id":"cipher-tls1_2_xc02f","finding":"TLSv1.2 xc02f '
+        b"ECDHE-RSA-AES128-GCM-SHA256 ECDH 521 AESGCM 128 "
+        b'TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"},'
+        b'{"id":"cipher_order-tls1_2","finding":"ECDHE-RSA-AES128-GCM-SHA256"}]'
+    )
+    oois = list(run(input_ooi, raw))
+    assert oois[0].server_preference == {"TLSv1.2": "ECDHE-RSA-AES128-GCM-SHA256"}
+
+
+def test_ciphered_hostname_service_identity_includes_hostname_and_ip_service():
+    input_a = {
+        "object_type": "HostnameService",
+        "primary_key": "HostnameService|internet|192.0.2.10|tcp|443|https|internet|a.example",
+    }
+    input_b = {
+        "object_type": "HostnameService",
+        "primary_key": "HostnameService|internet|192.0.2.10|tcp|443|https|internet|b.example",
+    }
+
+    cipher_a = list(run(input_a, get_dummy_data("inputs/testssl-sh-ciphered.json")))[0]
+    cipher_b = list(run(input_b, get_dummy_data("inputs/testssl-sh-ciphered.json")))[0]
+
+    assert cipher_a.reference.natural_key != cipher_b.reference.natural_key
+    assert cipher_a.ip_service.natural_key == cipher_b.ip_service.natural_key
+    assert cipher_a.hostname.natural_key == "internet|a.example"
+    assert cipher_b.hostname.natural_key == "internet|b.example"
+
+
+def test_hostname_service_identity_distinguishes_sni_hosts_on_same_ip_service():
+    a = HostnameService(
+        ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),
+        hostname=Reference.from_str("Hostname|internet|a.example"),
+    )
+
+    b = HostnameService(
+        ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),
+        hostname=Reference.from_str("Hostname|internet|b.example"),
+    )
+
+    assert a.natural_key != b.natural_key
+
+
+def test_normalizer_rejects_non_array_json():
+    with pytest.raises(ValueError, match="expected an array"):
+        list(run(input_ooi, b'{"finding":"not-an-array"}'))
+
+
+def test_normalizer_rejects_malformed_json():
+    with pytest.raises(ValueError):
+        list(run(input_ooi, b"not-json"))
+
+
+def test_normalizer_ignores_unknown_future_cipher_format():
+    raw = b"""[
+        {"id":"cipher-tls1_3_xffff","finding":"TLSv1.3 xffff future-format"},
+        {"id":"unknown-future-record","finding":"future format"}
+    ]"""
+    assert list(run(input_ooi, raw)) == []
+
+
+def test_normalizer_marks_weak_cipher_characteristics():
+    raw = b"""[
+        {"id":"cipher-tls1_2_x0010",
+        "finding":"TLSv1.2 x0010 ECDHE-RSA-DES-CBC3-SHA ECDH 521 3DES 168 TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA"}
+    ]"""
+    result = list(run(input_ooi, raw))
+
+    assert result[0].suites["TLSv1.2"][0]["characteristics"] == ["3DES", "CBC", "RSA", "FORWARD_SECRECY"]
+
+
+def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip(tmp_path):
+    input_ooi = {
+        "object_type": "HostnameService",
+        "hostname": {"name": "one.one.one.one"},
+        "ip_service": {
+            "ip_port": {"address": {"address": "2606:4700:4700::1111"}, "port": 443},
+            "service": {"name": "https"},
+        },
+    }
+
+    boefje_meta = {"arguments": {"input": input_ooi, "oci_arguments": ["--jsonfile", str(tmp_path / "output.json")]}}
+
+    def fake_run(command, **kwargs):
+        jsonfile = command[command.index("--jsonfile") + 1]
+        Path(jsonfile).write_bytes(b"[]")
+        return subprocess.CompletedProcess(command, 0)
+
+    with patch("boefjes.plugins.kat_testssl_sh_ciphers.main.subprocess.run", side_effect=fake_run) as mock_run:
+        boefje_run(boefje_meta)
+
+    command = mock_run.call_args.args[0]
+
+    assert "-6" in command
+    assert "--ip" in command
+    assert command[command.index("--ip") + 1] == "[2606:4700:4700::1111]"
+    assert "one.one.one.one:443" in command
+    assert "timeout" not in mock_run.call_args.kwargs
+
+
+def test_sslv3_ciphers_are_kept():
+    raw = (
+        b'[{"id":"cipher-ssl3_xc014","severity":"LOW","finding":"SSLv3   xc014   ECDHE-RSA-AES256-SHA'
+        b'              ECDH 256   AES         256      TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA"}]'
+    )
+    oois = list(run(input_ooi, raw))
+    assert list(oois[0].suites) == ["SSLv3"]
+    assert oois[0].suites["SSLv3"][0]["cipher_suite_name"] == "ECDHE-RSA-AES256-SHA"
+
+
+def test_export_and_null_ciphers_are_kept():
+    raw = (
+        b'[{"id":"cipher-ssl3_x03","severity":"CRITICAL","finding":"SSLv3   x03     EXP-RC4-MD5'
+        b'                       RSA(512)   RC4         40,exp   TLS_RSA_EXPORT_WITH_RC4_40_MD5"},'
+        b'{"id":"cipher-ssl3_x01","severity":"CRITICAL","finding":"SSLv3   x01     NULL-MD5'
+        b'                          RSA        None        None     TLS_RSA_WITH_NULL_MD5"}]'
+    )
+    suites = {s["cipher_suite_name"]: s for s in list(run(input_ooi, raw))[0].suites["SSLv3"]}
+    assert suites["EXP-RC4-MD5"]["encryption_bits"] == 40
+    assert "EXPORT" in suites["EXP-RC4-MD5"]["characteristics"]
+    assert suites["NULL-MD5"]["encryption_bits"] == 0
+    assert "NULL" in suites["NULL-MD5"]["characteristics"]
+
+
+# real testssl 3.2.4 line from tls-v1-0.badssl.com
+def test_tls_1_0_ciphers_are_kept():
+    raw = (
+        b'[{"id":"cipher-tls1_xc013","severity":"LOW","finding":"TLSv1   xc013   ECDHE-RSA-AES128-SHA'
+        b'              ECDH 256   AES         128      TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"}]'
+    )
+    oois = list(run(input_ooi, raw))
+    assert list(oois[0].suites) == ["TLSv1"]
+    assert oois[0].suites["TLSv1"][0]["cipher_suite_name"] == "ECDHE-RSA-AES128-SHA"
+
+
+# keys already in XTDB and from the IPService path have no hostname
+def test_tls_cipher_without_hostname_is_human_readable():
+    assert Reference.from_str("TLSCipher|internet|1.2.3.4|tcp|443|https").human_readable == "Ciphers of 1.2.3.4:443"
+    assert (
+        Reference.from_str("Finding|TLSCipher|internet|1.2.3.4|tcp|443|https|KAT-CRITICAL-BAD-CIPHER").human_readable
+        == "KAT-CRITICAL-BAD-CIPHER @ Ciphers of 1.2.3.4:443"
+    )

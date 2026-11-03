@@ -43,8 +43,8 @@
                                 <td>{{ protocol }}</td>
                                 <td>{{ suite.cipher_suite_alias }}</td>
                                 <td>{{ suite.encryption_algorithm }}</td>
-                                <td>{{ suite.bits }}</td>
-                                <td>{{ suite.key_size }}</td>
+                                <td>{{ suite.encryption_bits|default_if_none:"" }}</td>
+                                <td>{{ suite.key_exchange_bits|default_if_none:"" }}</td>
                                 <td>{{ suite.cipher_suite_code }}</td>
                             </tr>
                         {% endfor %}

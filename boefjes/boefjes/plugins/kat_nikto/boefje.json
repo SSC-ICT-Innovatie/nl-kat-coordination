@@ -1,7 +1,7 @@
 {
   "id": "nikto",
   "name": "Nikto",
-  "description": "Uses Nikto",
+  "description": "Checks for HTTP headers, software versions in headers, TLS certificates and known exposed files.",
   "consumes": ["Website"],
   "environment_keys": ["HTTP_PROXY", "USERAGENT", "TUNING", "MAX_TIME"],
   "scan_level": 3,

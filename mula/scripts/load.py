@@ -2,7 +2,7 @@ import argparse
 import csv
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -80,7 +80,7 @@ def create_oois(orgs: list[dict[str, Any]], ooi_num: int = 10) -> None:
                         "reference": f"Hostname|internet|{name}",
                     },
                 },
-                "valid_time": datetime.now(timezone.utc).isoformat(),
+                "valid_time": datetime.now(UTC).isoformat(),
                 "method": None,
                 "task_id": str(uuid.uuid4()),
             }
@@ -103,7 +103,7 @@ def create_oois(orgs: list[dict[str, Any]], ooi_num: int = 10) -> None:
 
             resp_octopoes_scan_profile = octopoes_client.put(
                 url=f"/{org.get('id')}/scan_profiles",
-                params={"valid_time": str(datetime.now(timezone.utc))},
+                params={"valid_time": str(datetime.now(UTC))},
                 json={
                     "scan_profile_type": "declared",
                     "reference": declaration.get("ooi").get("scan_profile").get("reference"),

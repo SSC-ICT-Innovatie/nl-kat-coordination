@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
-from enum import Enum
+from datetime import UTC, datetime, timedelta
+from enum import Enum, StrEnum
 from typing import Literal
 
 from octopoes.models import OOI, Reference
@@ -10,16 +10,26 @@ from octopoes.models.ooi.network import IPAddress
 from octopoes.models.persistence import ReferenceField
 
 
+class SignatureVerificationStatus(StrEnum):
+    VERIFIED = "verified"
+    ISSUER_NAME_MISMATCH = "issuer_name_mismatch"  # The issuer distinguished name does not match.
+    INVALID_SIGNATURE = "invalid_signature"  # The signature is invalid.
+    UNSUPPORTED_ALGORITHM = "unsupported_algorithm"  # The verification algorithm is unsupported.
+    INVALID_PARAMETERS = "invalid_parameters"  # The certificate parameters are invalid.
+    UNSUPPORTED_KEY_TYPE = "unsupported_key_type"  # The issuer uses an unsupported public-key type.
+
+
 class AlgorithmType(Enum):
     """Represents the Algorithm Type from TLS certificates.
 
     Possible values
     ---------------
-    RSA, ECC
+    RSA, ECC, EdDSA
     """
 
     RSA = "RSA"
     ECC = "ECC"
+    EDDSA = "EdDSA"
 
 
 class X509Certificate(OOI):
@@ -35,6 +45,7 @@ class X509Certificate(OOI):
 
     subject: str | None = None
     issuer: str | None = None
+    issuer_distinguished_name: str | None = None
     valid_from: str
     valid_until: str
     pk_algorithm: str | None = None
@@ -54,15 +65,32 @@ class X509Certificate(OOI):
 
         # Treat naive timestamps as UTC
         if valid_until.tzinfo is None:
-            valid_until = valid_until.replace(tzinfo=timezone.utc)
+            valid_until = valid_until.replace(tzinfo=UTC)
 
-        return datetime.now(timezone.utc) > valid_until
+        return datetime.now(UTC) > valid_until
 
     _reverse_relation_names = {"signed_by": "signed_certificates"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return f"{reference.tokenized.issuer} ({reference.tokenized.serial_number})"
+
+
+class CertificateIssuerCandidate(OOI):
+    """A certificate whose subject matches another certificate's claimed issuer.
+
+    Verification status records whether the candidate's public key
+    successfully verifies the certificate's signature.
+    """
+
+    object_type: Literal["CertificateIssuerCandidate"] = "CertificateIssuerCandidate"
+
+    certificate: Reference = ReferenceField(X509Certificate, max_issue_scan_level=1, max_inherit_scan_level=0)
+    candidate_issuer: Reference = ReferenceField(X509Certificate, max_issue_scan_level=1, max_inherit_scan_level=0)
+
+    verification_status: SignatureVerificationStatus
+
+    _natural_key_attrs = ["certificate", "candidate_issuer"]
 
 
 class SubjectAlternativeName(OOI):
@@ -140,6 +168,7 @@ class SubjectAlternativeNameQualifier(SubjectAlternativeName):
 
 
 X509Certificate.model_rebuild()
+CertificateIssuerCandidate.model_rebuild()
 SubjectAlternativeNameHostname.model_rebuild()
 SubjectAlternativeNameIP.model_rebuild()
 SubjectAlternativeNameQualifier.model_rebuild()

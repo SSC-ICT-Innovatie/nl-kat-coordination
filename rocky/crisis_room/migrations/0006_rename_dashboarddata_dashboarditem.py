@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from django.db import migrations, models
 
@@ -56,7 +56,7 @@ def change_query_params(apps, _schema_editor):
     for dashboard_item in dashboard_items:
         if dashboard_item.query:
             query = json.loads(dashboard_item.query)
-            new_query["observed_at"] = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+            new_query["observed_at"] = datetime.now(UTC).strftime("%Y-%m-%d")
             new_query["ooi_type"] = query.get("ooi_types", [])
             new_query["clearance_level"] = query.get("scan_level", [])
             new_query["clearance_type"] = query.get("scan_profile_type", [])

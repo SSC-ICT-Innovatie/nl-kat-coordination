@@ -10,8 +10,8 @@ if [ "$ID" != "debian" ]; then
 fi
 
 # Check Debian version
-if [ "$VERSION_ID" != "12" ]; then
-    echo "Only Debian version 12 is supported"
+if [ "$VERSION_ID" != "12" ] && [ "$VERSION_ID" != "13" ]; then
+    echo "Only Debian versions 12 and 13 are supported"
     exit 1
 fi
 
@@ -34,6 +34,11 @@ sudo systemctl stop xtdb-http-multinode kat-rocky kat-mula kat-bytes kat-boefjes
 # Kat-rocky-worker service was introduced in OpenKAT 1.18
 if [ -f /usr/lib/systemd/system/kat-rocky-worker.service ]; then
     sudo systemctl stop kat-rocky-worker
+fi
+
+# Kat-octopoes-scanlevels service was introduced in OpenKAT 1.23
+if [ -f /usr/lib/systemd/system/kat-octopoes-scanlevels.service ]; then
+    sudo systemctl stop kat-octopoes-scanlevels
 fi
 
 echo "Delete XTDB databases"
@@ -96,6 +101,11 @@ sudo systemctl start xtdb-http-multinode kat-rocky kat-mula kat-bytes kat-boefje
 # Kat-rocky-worker service was introduced in OpenKAT 1.18
 if [ -f /usr/lib/systemd/system/kat-rocky-worker.service ]; then
     sudo systemctl start kat-rocky-worker
+fi
+
+# Kat-octopoes-scanlevels service was introduced in OpenKAT 1.23
+if [ -f /usr/lib/systemd/system/kat-octopoes-scanlevels.service ]; then
+    sudo systemctl start kat-octopoes-scanlevels
 fi
 
 popd

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from account.mixins import OrganizationPermissionRequiredMixin
 from django.http import HttpResponseRedirect
@@ -19,7 +19,7 @@ class OOIDeleteView(OrganizationPermissionRequiredMixin, SingleOOIMixin, Templat
         self.ooi = self.get_ooi()
 
     def delete(self, request):
-        self.octopoes_api_connector.delete(self.ooi.reference, valid_time=datetime.now(timezone.utc), sync=True)
+        self.octopoes_api_connector.delete(self.ooi.reference, valid_time=datetime.now(UTC), sync=True)
         return HttpResponseRedirect(self.get_success_url())
 
     # Add support for browsers which only accept GET and POST for now.

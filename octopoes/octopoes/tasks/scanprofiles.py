@@ -1,6 +1,6 @@
 import time
 import timeit
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from logging import config
 from pathlib import Path
 
@@ -86,7 +86,7 @@ def recalculate_scan_profiles_for_org(recalc_org: dict) -> int | None:
         )
 
     try:
-        recalc_org["octopoes"].recalculate_scan_profiles(datetime.now(timezone.utc))
+        recalc_org["octopoes"].recalculate_scan_profiles(datetime.now(UTC))
         transactions = recalc_org["octopoes"].session.commit()
         duration = timeit.default_timer() - timer
         max_id = recalc_org["octopoes"].session.client.latest_completed_tx()

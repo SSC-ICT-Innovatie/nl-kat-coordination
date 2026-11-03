@@ -1,3 +1,3 @@
 # SSL Test Ciphers
 
-testssl.sh is a free command line tool that checks a server's service on any port for the support of TLS/SSL ciphers, protocols as well as some cryptographic flaws. This boefje uses SSL Test to gather information about SSL Cipher Suites.
+testssl.sh checks TLS/SSL services for supported cipher suites and server cipher preference. This Boefje scans the exact IP represented by the input while retaining the hostname as the TLS/SNI identity when a `HostnameService` is available. A hostname with multiple IP addresses is therefore represented by separate `TLSCipher` observations. IPService-only inputs remain supported when no hostname is known.

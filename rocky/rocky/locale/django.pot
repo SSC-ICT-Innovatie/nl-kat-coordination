@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-03 13:50+0000\n"
+"POT-Creation-Date: 2026-11-03 16:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -40,7 +40,8 @@ msgstr ""
 #: reports/templates/report_overview/report_history_table.html
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/report_overview/subreports_table.html
-#: tools/forms/boefje.py rocky/templates/organizations/organization_list.html
+#: tools/forms/boefje.py tools/forms/subnet.py
+#: rocky/templates/organizations/organization_list.html
 #: rocky/templates/organizations/organization_settings.html
 #: rocky/templates/partials/ooi_detail_related_object.html
 msgid "Name"
@@ -418,6 +419,7 @@ msgstr ""
 
 #: account/templates/password_reset.html
 #: account/templates/password_reset_confirm.html
+#: rocky/templates/oois/ooi_add_subnet.html
 msgid "Back"
 msgstr ""
 
@@ -1205,7 +1207,8 @@ msgstr ""
 #: tools/view_helpers.py rocky/templates/admin/delete_confirmation.html
 #: rocky/templates/admin/delete_selected_confirmation.html
 #: rocky/templates/dashboard_client.html rocky/templates/dashboard_redteam.html
-#: rocky/templates/header.html rocky/views/ooi_add.py rocky/views/ooi_list.py
+#: rocky/templates/header.html rocky/views/ooi_add.py
+#: rocky/views/ooi_add_subnet.py rocky/views/ooi_list.py
 #: rocky/views/ooi_view.py rocky/views/upload_csv.py rocky/views/upload_raw.py
 msgid "Objects"
 msgstr ""
@@ -1308,7 +1311,8 @@ msgstr ""
 #: katalogus/templates/change_clearance_level.html onboarding/forms.py
 #: reports/templates/partials/report_ooi_list.html
 #: reports/templates/summary/ooi_selection.html tools/forms/boefje.py
-#: tools/forms/ooi.py rocky/templates/oois/ooi_page_tabs.html
+#: tools/forms/ooi.py tools/forms/subnet.py
+#: rocky/templates/oois/ooi_page_tabs.html
 #: rocky/templates/partials/explanations.html
 #: rocky/templates/scan_profiles/scan_profile_detail.html rocky/views/mixins.py
 msgid "Clearance level"
@@ -2187,6 +2191,12 @@ msgstr ""
 
 #: onboarding/forms.py
 msgid "Please enter a valid URL starting with 'http://' or 'https://'."
+msgstr ""
+
+#: onboarding/forms.py onboarding/views.py
+msgid ""
+"The onboarding DNS report requires a hostname, not an IP address or "
+"localhost."
 msgstr ""
 
 #: onboarding/templates/partials/onboarding_header.html
@@ -3924,6 +3934,7 @@ msgid "Report names:"
 msgstr ""
 
 #: reports/templates/partials/report_names_form.html
+#: rocky/templates/forms/json_schema_form.html
 #: rocky/templates/forms/widgets/checkbox_group_table.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/edit_ooi_clearance_level_modal.html
@@ -4161,7 +4172,8 @@ msgid "Low"
 msgstr ""
 
 #: reports/templates/partials/report_severity_totals_table.html
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Pending"
 msgstr ""
 
@@ -4613,13 +4625,13 @@ msgstr ""
 
 #: reports/views/report_overview.py
 msgid ""
-"Schedule disabled successfully. '{}' will not be generated automatically "
-"until the schedule is enabled again."
+"Schedule enabled successfully. '{}' will be generated according to schedule."
 msgstr ""
 
 #: reports/views/report_overview.py
 msgid ""
-"Schedule enabled successfully. '{}' will be generated according to schedule."
+"Schedule disabled successfully. '{}' will not be generated automatically "
+"until the schedule is enabled again."
 msgstr ""
 
 #: reports/views/report_overview.py
@@ -4909,6 +4921,11 @@ msgid "Expires by (UTC)"
 msgstr ""
 
 #: tools/forms/ooi_form.py
+#, python-format
+msgid "Invalid cron expression: %(error)s"
+msgstr ""
+
+#: tools/forms/ooi_form.py
 msgid "option"
 msgstr ""
 
@@ -4938,28 +4955,39 @@ msgstr ""
 msgid "To"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Cancelled"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Completed"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Dispatched"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Failed"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Queued"
 msgstr ""
 
-#: tools/forms/scheduler.py rocky/templates/tasks/partials/stats.html
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
 msgid "Running"
+msgstr ""
+
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
+msgid "Timeout"
 msgstr ""
 
 #: tools/forms/scheduler.py
@@ -5124,6 +5152,28 @@ msgstr ""
 
 #: tools/forms/settings.py
 msgid "Depth of the tree."
+msgstr ""
+
+#: tools/forms/subnet.py rocky/templates/oois/ooi_add_subnet.html
+msgid "Subnet (CIDR)"
+msgstr ""
+
+#: tools/forms/subnet.py
+msgid "For example 192.168.5.0/24."
+msgstr ""
+
+#: tools/forms/subnet.py rocky/templates/oois/ooi_add_subnet.html
+msgid "Network"
+msgstr ""
+
+#: tools/forms/subnet.py
+msgid "Enter a valid CIDR, e.g. 192.168.5.0/24."
+msgstr ""
+
+#: tools/forms/subnet.py
+msgid ""
+"A subnet must contain more than one address. Add a single IP address as an "
+"IP address object."
 msgstr ""
 
 #: tools/forms/upload_csv.py
@@ -5656,7 +5706,21 @@ msgid "Privacy Statement"
 msgstr ""
 
 #: rocky/templates/forms/json_schema_form.html
+msgid "Using config from"
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
+msgid "Currently unanswered."
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
 msgid "Fill out this form to answer the Question (again):"
+msgstr ""
+
+#: rocky/templates/forms/json_schema_form.html
+msgid ""
+"Note: an emptied field is stored as an empty answer, not reset to its "
+"default value."
 msgstr ""
 
 #: rocky/templates/graph-d3.html
@@ -5824,6 +5888,72 @@ msgstr ""
 #: rocky/templates/oois/ooi_add.html
 #, python-format
 msgid "Add %(display_type)s"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Add a subnet"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid ""
+"Step 2 of 2: review the computed IP range and optionally set a clearance "
+"level. The subnet is added on submit."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Step 1 of 2: enter the subnet in CIDR notation."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"You must accept indemnification for organization %(organization_name)s "
+"before you can add subnets."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Go to indemnification settings"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"Your input \"%(cidr)s\" was interpreted as the subnet %(normalized)s/"
+"%(mask)s."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"With their default settings the nmap boefjes skip ranges larger than a /"
+"%(min_mask)s. Consider adding smaller blocks instead."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Start IP"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "End IP"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Number of IPs added"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid "%(counter)s address"
+msgid_plural "%(counter)s addresses"
+msgstr[0] ""
+msgstr[1] ""
+
+#: rocky/templates/oois/ooi_add_subnet.html rocky/views/ooi_add_subnet.py
+msgid "Add subnet"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Next — review"
 msgstr ""
 
 #: rocky/templates/oois/ooi_add_type_select.html
@@ -6225,6 +6355,7 @@ msgid "An overview of all organizations you are a member of."
 msgstr ""
 
 #: rocky/templates/organizations/organization_list.html
+#: rocky/templates/partials/organizations_menu_dropdown.html
 msgid "Add new organization"
 msgstr ""
 
@@ -7309,6 +7440,14 @@ msgstr ""
 #: rocky/views/ooi_add.py
 #, python-format
 msgid "Add %(ooi_type)s"
+msgstr ""
+
+#: rocky/views/ooi_add_subnet.py
+msgid "You must accept indemnification before adding subnets."
+msgstr ""
+
+#: rocky/views/ooi_add_subnet.py
+msgid "Subnet added."
 msgstr ""
 
 #: rocky/views/ooi_detail.py

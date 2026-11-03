@@ -1,5 +1,16 @@
+import datetime
+
+import pytest
+from pydantic import ValidationError
+
 from octopoes.models import OOI, Reference
+from octopoes.models.ooi.dns.records import DNSTXTRecord
+from octopoes.models.ooi.dns.zone import Hostname
+from octopoes.models.ooi.network import Network
+from octopoes.models.ooi.reports import AssetReport
 from octopoes.models.ooi.software import Software, SoftwareInstance
+from octopoes.models.ooi.web import URL, HTTPHeader
+from octopoes.models.types import get_concrete_types
 
 
 def test_escaper_only_touches_the_separator():
@@ -54,9 +65,6 @@ def test_clean_values_are_untouched():
 
 
 def test_pipe_in_url_stays_clean_at_rest_and_is_escaped_in_the_key():
-    from octopoes.models.ooi.network import Network
-    from octopoes.models.ooi.web import URL
-
     url = URL(network=Network(name="internet").reference, raw="https://example.com/a|b")
 
     assert str(url.raw) == "https://example.com/a|b"  # value untouched
@@ -67,9 +75,6 @@ def test_pipe_in_url_stays_clean_at_rest_and_is_escaped_in_the_key():
 def test_percent_encoding_in_url_is_not_double_encoded():
     # |-only escaping leaves legitimate percent-encoding intact (regression guard against a
     # %-escaping scheme that would re-key every existing URL).
-    from octopoes.models.ooi.network import Network
-    from octopoes.models.ooi.web import URL
-
     url = URL(network=Network(name="internet").reference, raw="https://example.com/a%20b")
 
     assert url.primary_key == "URL|internet|https://example.com/a%20b"
@@ -92,9 +97,6 @@ def test_documented_collision_is_semantically_correct_for_urls():
     # For a URL the collision above is actually the right behaviour: "%7C" is the percent-encoding of
     # "|", so `.../a|b` and `.../a%7Cb` are the same URL and sharing a primary key is correct. This is
     # the reason |-only was preferred over %-escaping, which would instead mangle the URL's own encoding.
-    from octopoes.models.ooi.network import Network
-    from octopoes.models.ooi.web import URL
-
     network = Network(name="internet").reference
     raw_pipe = URL(network=network, raw="https://example.com/a|b")
     percent_encoded = URL(network=network, raw="https://example.com/a%7Cb")
@@ -103,8 +105,6 @@ def test_documented_collision_is_semantically_correct_for_urls():
 
 
 def test_pipe_in_http_header_key_is_escaped():
-    from octopoes.models.ooi.web import HTTPHeader
-
     resource = Reference.from_str("HTTPResource|internet|1.2.3.4|tcp|443|https|internet|x.nl|https|internet|x.nl|443|/")
     header = HTTPHeader(resource=resource, key="X-Evil|Header", value="v")
 
@@ -116,10 +116,6 @@ def test_pipe_in_http_header_key_is_escaped():
 def test_hashing_record_survives_a_piped_value():
     # DNS records hash their (attacker-controlled) value into the key. The value is escaped before the
     # hash-replace, so a pipe can neither corrupt the key nor slip past the hashing.
-    from octopoes.models.ooi.dns.records import DNSTXTRecord
-    from octopoes.models.ooi.dns.zone import Hostname
-    from octopoes.models.ooi.network import Network
-
     hostname = Hostname(network=Network(name="internet").reference, name="example.com")
     record = DNSTXTRecord(hostname=hostname.reference, value="a|b|c")
 
@@ -131,10 +127,6 @@ def test_hashing_record_survives_a_piped_value():
 def test_hashing_record_value_that_also_occurs_in_the_hostname_only_hashes_the_value():
     # key.replace() used to rewrite every occurrence, so a value like "com" also mangled the "com"
     # inside "example.com". Only the value's own (trailing) slot must be hashed.
-    from octopoes.models.ooi.dns.records import DNSTXTRecord
-    from octopoes.models.ooi.dns.zone import Hostname
-    from octopoes.models.ooi.network import Network
-
     hostname = Hostname(network=Network(name="internet").reference, name="example.com")
     record = DNSTXTRecord(hostname=hostname.reference, value="com")
 
@@ -143,9 +135,6 @@ def test_hashing_record_value_that_also_occurs_in_the_hostname_only_hashes_the_v
 
 
 def test_non_numeric_version_is_rejected_not_stringified():
-    import pytest
-    from pydantic import ValidationError
-
     # A numeric version is coerced, but a structurally wrong value must surface as an error instead of
     # being stored as "['1.0']" / "True".
     with pytest.raises(ValidationError):
@@ -156,10 +145,6 @@ def test_non_numeric_version_is_rejected_not_stringified():
 
 def test_hashing_record_with_empty_value_is_not_corrupted():
     # An empty value must not turn the hash-replace into a no-op that mangles the key (Jan's guard).
-    from octopoes.models.ooi.dns.records import DNSTXTRecord
-    from octopoes.models.ooi.dns.zone import Hostname
-    from octopoes.models.ooi.network import Network
-
     hostname = Hostname(network=Network(name="internet").reference, name="example.com")
     record = DNSTXTRecord(hostname=hostname.reference, value="")
 
@@ -170,11 +155,7 @@ def test_reference_held_in_a_plain_string_field_is_not_escaped():
     # AssetReport.input_ooi is a plain `str` that holds a full OOI reference, so its pipes are
     # structural and must survive into the key unescaped. Regression guard for the report-runner break:
     # the base leaf-escaping used to corrupt the embedded reference (Hostname|... -> Hostname%7C...).
-    import datetime
-
-    from octopoes.models.ooi.reports import AssetReport
-
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     report = AssetReport(
         name="r",
         date_generated=now,
@@ -195,7 +176,5 @@ def test_reference_held_in_a_plain_string_field_is_not_escaped():
 def test_every_concrete_type_uses_the_base_escaper():
     # No concrete OOI type may weaken the sanitisation by shadowing the escaper with a no-op; the
     # single-spot guarantee (issue #5299) depends on every type sharing the base implementation.
-    from octopoes.models.types import get_concrete_types
-
     for ooi_type in get_concrete_types():
         assert ooi_type._escape_natural_key_part("a|b") == "a%7Cb"

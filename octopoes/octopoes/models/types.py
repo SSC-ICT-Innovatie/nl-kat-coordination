@@ -9,6 +9,7 @@ from pydantic.fields import FieldInfo
 from octopoes.models import OOI, Reference
 from octopoes.models.exception import TypeNotFound
 from octopoes.models.ooi.certificate import (
+    CertificateIssuerCandidate,
     SubjectAlternativeNameHostname,
     SubjectAlternativeNameIP,
     SubjectAlternativeNameQualifier,
@@ -69,7 +70,7 @@ from octopoes.models.ooi.network import (
 from octopoes.models.ooi.question import Question
 from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.ooi.scans import ExternalScan
-from octopoes.models.ooi.service import IPService, Service, TLSCipher
+from octopoes.models.ooi.service import HostnameService, IPService, Service, TLSCipher
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.ooi.web import (
     RESTAPI,
@@ -91,7 +92,11 @@ from octopoes.models.ooi.web import (
 )
 
 CertificateType: TypeAlias = (
-    X509Certificate | SubjectAlternativeNameHostname | SubjectAlternativeNameIP | SubjectAlternativeNameQualifier
+    X509Certificate
+    | SubjectAlternativeNameHostname
+    | SubjectAlternativeNameIP
+    | SubjectAlternativeNameQualifier
+    | CertificateIssuerCandidate
 )
 DnsType: TypeAlias = DNSZone | Hostname
 DnsRecordType: TypeAlias = (
@@ -125,7 +130,7 @@ ConcreteNetworkType: TypeAlias = (
     Network | IPAddressV4 | IPAddressV6 | AutonomousSystem | IPV4NetBlock | IPV6NetBlock | IPPort
 )
 NetworkType: TypeAlias = ConcreteNetworkType | IPAddress
-ServiceType: TypeAlias = Service | IPService | TLSCipher
+ServiceType: TypeAlias = Service | IPService | HostnameService | TLSCipher
 SoftwareType: TypeAlias = Software | SoftwareInstance
 WebType: TypeAlias = (
     Website

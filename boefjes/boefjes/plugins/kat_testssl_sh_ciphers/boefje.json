@@ -1,8 +1,9 @@
 {
   "id": "testssl-sh-ciphers",
   "name": "Testssl.sh Ciphers",
-  "description": "Checks the SSL and TLS ciphers of a website for any insecure ciphers that are offered.",
+  "description": "Collects TLS/SSL cipher-suite support and server-preference information for a service at a specific IP and port, preserving hostname/SNI context when available.",
   "consumes": [
+    "HostnameService",
     "IPService"
   ],
   "scan_level": 2,

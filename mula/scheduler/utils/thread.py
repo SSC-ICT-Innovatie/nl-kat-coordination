@@ -54,7 +54,7 @@ class ThreadRunner(threading.Thread):
         self.loop: bool = loop
         self.exception: Exception | None = None
         self.callback: Callable[[], Any] | None = callback
-        self.callback_args: tuple | None = callback_args
+        self.callback_args: tuple[Any, ...] = callback_args or ()
 
         super().__init__(target=self._target, daemon=daemon)
 

@@ -11,10 +11,11 @@ from rocky.views.bytes_raw import BytesRawView
 from rocky.views.finding_add import FindingAddView
 from rocky.views.finding_list import FindingListView
 from rocky.views.finding_type_add import FindingTypeAddView
-from rocky.views.health import Health, HealthChecks
+from rocky.views.health import GlobalHealthChecks, GlobalHealthView, Health, HealthChecks
 from rocky.views.indemnification_add import IndemnificationAddView
 from rocky.views.landing_page import LandingPageView
 from rocky.views.ooi_add import OOIAddTypeSelectView, OOIAddView
+from rocky.views.ooi_add_subnet import SubnetAddView
 from rocky.views.ooi_delete import OOIDeleteView
 from rocky.views.ooi_detail import OOIDetailView
 from rocky.views.ooi_detail_related_object import OOIRelatedObjectAddView
@@ -62,6 +63,8 @@ router.register(r"report-recipe", ReportRecipeViewSet, basename="report-recipe")
 urlpatterns = [
     path("i18n/", include("django.conf.urls.i18n")),
     path("api/v1/", include(router.urls)),
+    path("api/v1/health", GlobalHealthView.as_view(), name="global_health"),
+    path("api/v1/health/", GlobalHealthView.as_view()),
     path("<organization_code>/health/", Health.as_view(), name="health"),
     path("", include(tf_urls)),
     path("robots.txt", TemplateView.as_view(template_name="robots.txt", content_type="text/plain")),
@@ -74,6 +77,7 @@ urlpatterns += i18n_patterns(
     path("crisis-room/", include("crisis_room.urls"), name="crisis_room"),
     path("<organization_code>/crisis-room/", include("crisis_room.urls_org"), name="crisis_room_org"),
     path("privacy-statement/", PrivacyStatementView.as_view(), name="privacy_statement"),
+    path("health/v1/", GlobalHealthChecks.as_view(), name="global_health_beautified"),
     path("tasks/", AllBoefjesTaskListView.as_view(), name="all_task_list"),
     path("tasks/boefjes", AllBoefjesTaskListView.as_view(), name="all_boefjes_task_list"),
     path("tasks/normalizers", AllNormalizersTaskListView.as_view(), name="all_normalizers_task_list"),
@@ -121,6 +125,7 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/objects/add/", OOIAddTypeSelectView.as_view(), name="ooi_add_type_select"),
     path("<organization_code>/objects/add-related/", OOIRelatedObjectAddView.as_view(), name="ooi_add_related"),
     path("<organization_code>/objects/add/<ooi_type>/", OOIAddView.as_view(), name="ooi_add"),
+    path("<organization_code>/objects/add-subnet/", SubnetAddView.as_view(), name="ooi_add_subnet"),
     path("<organization_code>/objects/edit/", OOIEditView.as_view(), name="ooi_edit"),
     path("<organization_code>/objects/delete/", OOIDeleteView.as_view(), name="ooi_delete"),
     path("<organization_code>/objects/detail/", OOIDetailView.as_view(), name="ooi_detail"),

@@ -28,6 +28,7 @@ class TaskStatus(Enum):
     COMPLETED = "completed"
     FAILED = "failed"
     CANCELLED = "cancelled"
+    TIMEOUT = "timeout"
 
 
 class Task(BaseModel):
@@ -51,6 +52,7 @@ class TaskPop(BaseModel):
 class StatusEnum(str, Enum):
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
+    TIMEOUT = "TIMEOUT"
 
 
 class File(BaseModel):

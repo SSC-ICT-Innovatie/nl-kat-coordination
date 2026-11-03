@@ -5,7 +5,7 @@ import logging
 import os
 import pathlib
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import httpx
 
@@ -80,7 +80,7 @@ def run() -> None:
             last_update = datetime.fromisoformat(json.load(f)["last_update"])
         logger.info("Last update was %s", last_update.astimezone())
 
-    update_timestamp = datetime.now(timezone.utc)
+    update_timestamp = datetime.now(UTC)
     update_timestamp = update_timestamp.replace(microsecond=0)
 
     if last_update and update_timestamp - last_update > timedelta(days=120):

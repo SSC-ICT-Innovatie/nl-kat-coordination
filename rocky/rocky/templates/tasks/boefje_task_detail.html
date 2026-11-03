@@ -19,7 +19,7 @@
             </div>
             <div>
                 <h2>RAW file</h2>
-                {% if task.status.value in "completed,failed" %}
+                {% if task.status.value in "completed,failed,timeout" %}
                     <a href="{% url 'bytes_raw' organization_code=organization.code boefje_meta_id=task.id %}">{% translate "Download meta and raw data" %}</a>
                 {% else %}
                     <a href="{% url 'download_task_meta' organization_code=organization.code task_id=task.id %}">{% translate "Download meta data" %}</a>

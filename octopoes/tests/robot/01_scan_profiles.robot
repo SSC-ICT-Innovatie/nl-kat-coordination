@@ -65,7 +65,7 @@ Setup Test
 Set Scan Profile To Empty
     [Arguments]    ${reference}
     ${validtime}    Get Valid Time Params
-    ${sync}      Get Sync Params
+    ${sync}    Get Sync Params
     ${params}    Create Dictionary    &{validtime}    &{sync}
     ${data}    Create Dictionary    reference=${reference}    scan_profile_type=empty
     ${response}    Put

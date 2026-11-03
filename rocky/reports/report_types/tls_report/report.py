@@ -10,7 +10,13 @@ from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from octopoes.models.ooi.service import IPService
 from reports.report_types.definitions import Report
 
-CIPHER_FINDINGS = ["KAT-RECOMMENDATION-BAD-CIPHER", "KAT-MEDIUM-BAD-CIPHER", "KAT-CRITICAL-BAD-CIPHER"]
+CIPHER_FINDINGS = [
+    "KAT-RECOMMENDATION-TLS-CIPHER",
+    "KAT-LOW-TLS-CIPHER",
+    "KAT-MEDIUM-TLS-CIPHER",
+    "KAT-HIGH-TLS-CIPHER",
+    "KAT-CRITICAL-TLS-CIPHER",
+]
 
 
 class TLSReport(Report):
@@ -68,6 +74,10 @@ class TLSReport(Report):
 
             for protocol, cipher_suites in suites.items():
                 for suite in cipher_suites:
+                    # TLSCiphers stored before #5470 use "bits" and "key_size"
+                    suite.setdefault("encryption_bits", suite.get("bits"))
+                    suite.setdefault("key_exchange_bits", suite.get("key_size"))
+
                     for finding in findings:
                         if finding.description and suite["cipher_suite_name"] in finding.description:
                             suites_with_findings.append(suite["cipher_suite_name"])

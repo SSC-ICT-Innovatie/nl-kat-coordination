@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from account.mixins import OrganizationAPIMixin
@@ -145,7 +145,7 @@ class ReportRecipeViewSet(OrganizationAPIMixin, viewsets.ModelViewSet):
             ).model_dump()
 
             if not deadline_at:
-                deadline_at = datetime.now(timezone.utc).date().isoformat()
+                deadline_at = datetime.now(UTC).date().isoformat()
 
             schedule_request = ScheduleRequest(
                 scheduler_id="report",
@@ -165,7 +165,7 @@ class ReportRecipeViewSet(OrganizationAPIMixin, viewsets.ModelViewSet):
         if not schedule_id:
             raise APIException("Schedule for recipe does not exist")
 
-        deadline_at = serializer.validated_data.pop("start_date", datetime.now(timezone.utc).date().isoformat())
+        deadline_at = serializer.validated_data.pop("start_date", datetime.now(UTC).date().isoformat())
         report_recipe = ReportRecipe.model_validate({"recipe_id": self.kwargs["pk"], **serializer.validated_data})
 
         create_ooi(

@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from enum import Enum
 
 from django.utils.translation import gettext_lazy as _
@@ -46,7 +46,7 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
 
         # If the cron_expression of the ReportRecipe is changed, the scheduler must also be updated
         if report_recipe_id and cron_expression:
-            deadline_at = datetime.now(timezone.utc).isoformat()
+            deadline_at = datetime.now(UTC).isoformat()
             filters = {
                 "filters": [
                     {"column": "data", "field": "report_recipe_id", "operator": "eq", "value": report_recipe_id}

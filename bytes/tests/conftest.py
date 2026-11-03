@@ -42,7 +42,8 @@ def settings(tmpdir):
 
 @pytest.fixture
 def test_client(settings: Settings) -> TestClient:
-    from bytes.api import app  # import creates a Settings object requiring proper env variables
+    # import creates a Settings object requiring proper env variables
+    from bytes.api import app  # noqa: PLC0415
 
     return TestClient(app)
 

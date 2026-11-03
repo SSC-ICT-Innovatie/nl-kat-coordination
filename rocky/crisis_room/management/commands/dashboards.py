@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -35,7 +35,7 @@ def create_findings_dashboard_recipe(
         with path.open("r") as recipe_seeder:
             recipe_default = json.load(recipe_seeder)
 
-        valid_time = datetime.now(timezone.utc)
+        valid_time = datetime.now(UTC)
         if octopoes_client is None:
             octopoes_client = OctopoesAPIConnector(
                 settings.OCTOPOES_API, organization.code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
@@ -57,7 +57,7 @@ def create_findings_dashboard_recipe(
 
 def schedule_recipe(organization: Organization, recipe: ReportRecipe) -> None:
     try:
-        valid_time = datetime.now(timezone.utc)
+        valid_time = datetime.now(UTC)
         recipe_id = str(recipe.recipe_id)
 
         report_task = ReportTask(organisation_id=organization.code, report_recipe_id=recipe_id).model_dump()
@@ -80,7 +80,7 @@ def schedule_recipe(organization: Organization, recipe: ReportRecipe) -> None:
 def reschedule_recipe(organization: Organization, recipe_id: str) -> None:
     try:
         scheduler_connector = scheduler_client(organization.code)
-        deadline_at = datetime.now(timezone.utc).isoformat()
+        deadline_at = datetime.now(UTC).isoformat()
 
         filters = {"filters": [{"column": "data", "field": "report_recipe_id", "operator": "==", "value": recipe_id}]}
 

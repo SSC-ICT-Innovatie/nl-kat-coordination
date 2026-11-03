@@ -6,7 +6,7 @@ https://github.com/minvws/nl-kat-coordination/issues/2875"""
 import json
 import logging.config
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -41,7 +41,7 @@ def upgrade(organisation_repository: OrganisationStorage, valid_time: datetime |
     meaning that it can be rerun until there are no, or only expected, exceptions.
     """
     if valid_time is None:
-        valid_time = datetime.now(timezone.utc)
+        valid_time = datetime.now(UTC)
 
     bytes_client = get_bytes_client()
     bytes_client.login()
@@ -102,9 +102,7 @@ def migrate_organisation(
     while True:
         # We loop through the paginated API until we reach the end
 
-        origins = connector.list_origins(
-            valid_time, method=[x for x in boefjes_per_normalizer], offset=offset, limit=page_size
-        )
+        origins = connector.list_origins(valid_time, method=[*boefjes_per_normalizer], offset=offset, limit=page_size)
         logger.info("Processing %s origins", len(origins))
 
         for origin in origins:

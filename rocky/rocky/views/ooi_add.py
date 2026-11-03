@@ -27,11 +27,16 @@ def ooi_type_input_choices():
     return [{"value": ooi_type, "text": ooi_type} for ooi_type in ooi_types]
 
 
+SUBNET_OOI_TYPES = {"IPV4NetBlock", "IPV6NetBlock"}
+
+
 class OOIAddTypeSelectView(OrganizationView, TemplateView):
     template_name = "oois/ooi_add_type_select.html"
 
     def get(self, request, *args, **kwargs):
         if "add_ooi_type" in request.GET and existing_ooi_type(request.GET["add_ooi_type"]):
+            if request.GET["add_ooi_type"] in SUBNET_OOI_TYPES:
+                return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
             return redirect(
                 reverse(
                     "ooi_add",
@@ -58,6 +63,13 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
 
 class OOIAddView(BaseOOIFormView):
     template_name = "oois/ooi_add.html"
+
+    def get(self, request, *args, **kwargs):
+        # NetBlocks cannot be added through the generic form (required start
+        # IP relation); route them to the dedicated subnet flow.
+        if kwargs.get("ooi_type") in SUBNET_OOI_TYPES:
+            return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
+        return super().get(request, *args, **kwargs)
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

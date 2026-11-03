@@ -3,7 +3,7 @@ name = "openkat"
 version = "0.0.1.dev1"
 description = "OpenKAT"
 authors = [{ name = "Stichting LibreKAT", email = "maintainer@librekat.nl" }]
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 readme = "README.rst"
 license = "EUPL-1.2"
 dependencies = [
@@ -20,16 +20,17 @@ dependencies = [
     "requests>=2.33.0,<3",
     "attrs>=26.1.0",
     "python-dotenv>=1.2.2",
-    "urllib3>=2.7.0",
+    "urllib3>=2.8.0",
     "idna>=3.15",
     "pydantic-settings>=2.14.2",
+    "certifi>=2026.10.19",
 ]
 
 [tool.uv]
 package = false
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.11"
 plugins = ["pydantic.mypy"]
 strict = true
 disallow_subclassing_any = false
@@ -73,7 +74,7 @@ extend-exclude = [
 line-length = 120
 
 # Support Python 3.10 and higher
-target-version = "py310"
+target-version = "py311"
 
 [tool.ruff.format]
 skip-magic-trailing-comma = true

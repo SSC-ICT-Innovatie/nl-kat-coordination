@@ -23,7 +23,7 @@
                         {% include "partials/current_config.html" with config=current_config %}
 
                     {% endif %}
-                    {% include "forms/json_schema_form.html" with json_schema=ooi.json_schema %}
+                    {% include "forms/json_schema_form.html" with json_schema=ooi.json_schema current_config=current_config_json current_config_pk=current_config_pk %}
 
                 {% endif %}
             </div>

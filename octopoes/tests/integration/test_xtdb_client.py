@@ -1,6 +1,6 @@
 import logging
 import os
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 
@@ -220,13 +220,13 @@ def test_query_where_in(xtdb_session: XTDBSession, valid_time: datetime):
 
 def test_entity_history(xtdb_session: XTDBSession, valid_time: datetime):
     network = Network(name="testnetwork")
-    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(timezone.utc))
+    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(UTC))
     xtdb_session.commit()
 
-    xtdb_session.add((OperationType.DELETE, str(network.reference), datetime.now(timezone.utc)))
+    xtdb_session.add((OperationType.DELETE, str(network.reference), datetime.now(UTC)))
     xtdb_session.commit()
 
-    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(timezone.utc))
+    xtdb_session.put(XTDBOOIRepository.serialize(network), datetime.now(UTC))
     xtdb_session.commit()
 
     history = xtdb_session.client.get_entity_history(str(network.reference), with_docs=True)

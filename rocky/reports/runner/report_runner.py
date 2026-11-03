@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from string import Template
 from typing import Any
 
@@ -32,7 +32,7 @@ class LocalReportRunner(ReportRunner):
     def run(self, report_task: ReportTask) -> None:
         organization = Organization.objects.get(code=report_task.organisation_id)
         # TODO: https://github.com/minvws/nl-kat-coordination/issues/4014
-        valid_time = self.valid_time or datetime.now(timezone.utc)
+        valid_time = self.valid_time or datetime.now(UTC)
         connector = OctopoesAPIConnector(
             settings.OCTOPOES_API, report_task.organisation_id, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT
         )
@@ -43,7 +43,7 @@ class LocalReportRunner(ReportRunner):
         elif query := recipe.input_recipe.get("query"):
             oois = connector.list_objects(
                 types={type_by_name(ooi_type) for ooi_type in query["ooi_types"]},
-                valid_time=datetime.now(tz=timezone.utc),
+                valid_time=datetime.now(tz=UTC),
                 scan_level={ScanLevel(level) for level in query["scan_level"]},
                 scan_profile_type={ScanProfileType(scan_type) for scan_type in query["scan_type"]},
                 search_string=query["search_string"],
