@@ -8,11 +8,20 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.generic.edit import FormView
+from pydantic import ValidationError as PydanticValidationError
 from tools.forms.subnet import MIN_SCANNABLE_PREFIXLEN_V4, MIN_SCANNABLE_PREFIXLEN_V6, SubnetAddForm
 from tools.ooi_helpers import create_oois
 from tools.view_helpers import get_ooi_url
 
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPV4NetBlock, IPV6NetBlock, Network
+
+
+def _try_parse_ip(cidr: str):
+    """Return the address of an ip_interface notation, or None if it does not parse."""
+    try:
+        return ipaddress.ip_interface(cidr.strip()).ip
+    except ValueError:
+        return None
 
 
 class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
@@ -29,7 +38,7 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
     form_class = SubnetAddForm
 
     def post(self, request, *args, **kwargs):
-        if not self.user_indemnification_present:
+        if not self.indemnification_present:
             messages.error(request, _("You must accept indemnification before adding subnets."))
             return redirect("indemnification_add", organization_code=self.organization.code)
         return super().post(request, *args, **kwargs)
@@ -44,7 +53,7 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
             choices = [(str(level), f"L{level}") for level in range(self.organization_member.max_clearance_level + 1)]
             form.fields["clearance_level"].choices = choices
 
-        if not self.user_indemnification_present:
+        if not self.indemnification_present:
             # Render the form, but keep it inert until indemnification is accepted.
             for field in form.fields.values():
                 field.disabled = True
@@ -57,12 +66,30 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
 
     def form_valid(self, form):
         if self.request.POST.get("step") == "2":
-            return self.save_subnet(form)
+            try:
+                return self.save_subnet(form)
+            except PydanticValidationError as exception:
+                # Mirror BaseOOIFormView: surface model validation errors on the form.
+                for error in exception.errors():
+                    form.add_error(error["loc"][0], error["msg"])
+                return self.form_invalid(form)
+            except Exception as exception:
+                form.add_error("__all__", str(exception))
+                return self.form_invalid(form)
         return self.render_review(form)
 
     def form_invalid(self, form):
-        # On invalid input always return to the entry step; the bound form
-        # re-fills what the user entered and shows the field errors.
+        # When only the clearance level is invalid (e.g. it was lowered between
+        # the two steps), re-render the review step so the error is visible;
+        # step 1 does not show that field. Any other invalid input returns to
+        # the entry step with the errors attached.
+        step_2_fields = ("cidr", "network", "name")
+        if (
+            self.request.POST.get("step") == "2"
+            and form.has_error("clearance_level")
+            and not any(form.has_error(field) for field in step_2_fields)
+        ):
+            return self.render_review(form)
         return self.render_to_response(self.get_context_data(form=form))
 
     def render_review(self, form):
@@ -81,8 +108,10 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
             end_ip=str(network.broadcast_address),
             num_ips=network.num_addresses,
             # The user may have typed an interface address with host bits set
-            # (e.g. 192.168.1.5/24); show how it was interpreted.
-            input_was_normalized=network.with_prefixlen != cidr.strip(),
+            # (e.g. 192.168.1.5/24); show how it was interpreted. Compare with
+            # the network address instead of the string, so equivalent notations
+            # (2001:0db8::/32) without host bits do not trigger the notice.
+            input_was_normalized=(_try_parse_ip(cidr) is not None and network.network_address != _try_parse_ip(cidr)),
             mask=network.prefixlen,
             # Ranges larger than this are skipped by the nmap boefjes by default.
             range_skipped_by_nmap=network.prefixlen < min_prefixlen,
@@ -128,7 +157,7 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["step"] = kwargs.get("step", 1)
-        context["indemnification_required"] = not self.user_indemnification_present
+        context["indemnification_required"] = not self.indemnification_present
         context["can_set_clearance_level"] = self.can_set_clearance_level
         context["breadcrumbs"] = [
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},

@@ -1,3 +1,4 @@
+import pytest
 from django.urls import reverse
 from pytest_django.asserts import assertContains, assertNotContains
 from tools.models import Indemnification
@@ -94,11 +95,29 @@ def test_subnet_add_confirm_without_clearance(rf, client_member, mock_organizati
     mock_organization_view_octopoes().save_scan_profile.assert_not_called()
 
 
-def test_subnet_add_blocks_post_without_user_indemnification(
+def test_subnet_add_relies_on_organization_indemnification(
+    rf, redteam_member, admin_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """Only admins can accept indemnification, so a red teamer relies on the organization's indemnification."""
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+    Indemnification.objects.filter(user=redteam_member.user, organization=redteam_member.organization).delete()
+
+    request = setup_request(
+        rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
+        redteam_member.user,
+    )
+    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    assert "IPV4NetBlock" in response.url
+    mock_organization_view_octopoes().save_many_declarations.assert_called_once()
+
+
+def test_subnet_add_blocks_post_without_organization_indemnification(
     rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
 ):
-    """A user who did not accept indemnification themselves is redirected and nothing is saved."""
-    Indemnification.objects.filter(user=redteam_member.user, organization=redteam_member.organization).delete()
+    """When nobody in the organization accepted indemnification, nothing is saved."""
+    Indemnification.objects.filter(organization=redteam_member.organization).delete()
 
     request = setup_request(
         rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet"}), redteam_member.user
@@ -112,18 +131,77 @@ def test_subnet_add_blocks_post_without_user_indemnification(
     mock_organization_view_octopoes().save_many_declarations.assert_not_called()
 
 
-def test_subnet_add_get_without_user_indemnification_shows_disabled_form(
+def test_subnet_add_get_without_organization_indemnification_shows_disabled_form(
     rf, redteam_member, mock_organization_view_octopoes
 ):
     mock_organization_view_octopoes().list_objects.return_value.items = []
-    Indemnification.objects.filter(user=redteam_member.user, organization=redteam_member.organization).delete()
+    Indemnification.objects.filter(organization=redteam_member.organization).delete()
 
     request = setup_request(rf.get("ooi_add_subnet"), redteam_member.user)
     response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 200
     assertContains(response, "indemnification")
-    assertContains(response, "disabled")
+    assertContains(response, 'type="submit" disabled')
+
+
+@pytest.mark.parametrize("cidr", ["10.0.0.1/32", "10.0.0.1", "2001:db8::1/128"])
+def test_subnet_add_rejects_single_address(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client, cidr
+):
+    """A /32 or /128 is a single IP address, which a NetBlock cannot hold (mask < 32 / < 128)."""
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = setup_request(
+        rf.post("ooi_add_subnet", {"step": "2", "cidr": cidr, "network": "internet", "name": ""}), redteam_member.user
+    )
+    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "more than one address")
+    mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+
+
+def test_subnet_add_review_step_shows_clearance_error(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """An invalid clearance level on step 2 re-renders the review step with the error visible."""
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+    redteam_member.acknowledged_clearance_level = 1
+    redteam_member.save()
+
+    request = setup_request(
+        rf.post(
+            "ooi_add_subnet",
+            {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": "", "clearance_level": "2"},
+        ),
+        redteam_member.user,
+    )
+    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    # Still on the review step, where the error is rendered
+    assertContains(response, "Start IP")
+    assertContains(response, "Select a valid choice")
+    mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+
+
+def test_subnet_add_review_step_no_notice_for_equivalent_notation(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """Equivalent notations without host bits (netmask form, case differences) do not trigger the notice."""
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = setup_request(
+        rf.post(
+            "ooi_add_subnet", {"step": "1", "cidr": "192.168.5.0/255.255.255.0", "network": "internet", "name": ""}
+        ),
+        redteam_member.user,
+    )
+    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    assertNotContains(response, "was interpreted as the subnet")
 
 
 def test_subnet_add_review_step_warns_on_large_range(
@@ -139,7 +217,7 @@ def test_subnet_add_review_step_warns_on_large_range(
     response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 200
-    assertContains(response, "Nmap skips ranges larger than a /22")
+    assertContains(response, "nmap boefjes skip ranges larger than a /22")
     assertContains(response, "16777216 addresses")
     # The subnet is still reviewable and submittable
     assertContains(response, "Add subnet")

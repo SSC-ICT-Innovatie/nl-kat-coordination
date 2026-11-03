@@ -125,11 +125,6 @@ class OrganizationView(ContextMixin, View):
         return Indemnification.objects.filter(organization=self.organization).exists()
 
     @cached_property
-    def user_indemnification_present(self) -> bool:
-        """Whether this user (not just any member of the organization) accepted indemnification."""
-        return Indemnification.objects.filter(user=self.request.user, organization=self.organization).exists()
-
-    @cached_property
     def octopoes_api_connector(self) -> OctopoesAPIConnector:
         return OctopoesAPIConnector(
             settings.OCTOPOES_API, self.organization.code, timeout=settings.ROCKY_OUTGOING_REQUEST_TIMEOUT

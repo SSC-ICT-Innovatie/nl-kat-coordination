@@ -64,6 +64,13 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
 class OOIAddView(BaseOOIFormView):
     template_name = "oois/ooi_add.html"
 
+    def get(self, request, *args, **kwargs):
+        # NetBlocks cannot be added through the generic form (required start
+        # IP relation); route them to the dedicated subnet flow.
+        if kwargs.get("ooi_type") in SUBNET_OOI_TYPES:
+            return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
+        return super().get(request, *args, **kwargs)
+
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
         self.ooi_class = self.get_ooi_class()

@@ -31,7 +31,12 @@ class SubnetAddForm(BaseRockyForm):
     def clean_cidr(self) -> str:
         cidr = self.cleaned_data["cidr"]
         try:
-            ipaddress.ip_network(cidr, strict=False)
+            network = ipaddress.ip_network(cidr, strict=False)
         except ValueError as error:
             raise forms.ValidationError(_("Enter a valid CIDR, e.g. 192.168.5.0/24.")) from error
+        if network.prefixlen == network.max_prefixlen:
+            # A NetBlock mask must be < 32 (IPv4) or < 128 (IPv6); a single address is an IPAddress object.
+            raise forms.ValidationError(
+                _("A subnet must contain more than one address. Add a single IP address as an IP address object.")
+            )
         return cidr

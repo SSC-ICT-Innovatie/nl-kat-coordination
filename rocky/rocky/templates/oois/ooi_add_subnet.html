@@ -33,7 +33,7 @@
                         {% endif %}
                         {% if range_skipped_by_nmap %}
                             <p class="warning">
-                                {% blocktranslate with min_mask=min_scannable_prefixlen %}Nmap skips ranges larger than a /{{ min_mask }} by default; this range will not be scanned. Consider adding smaller blocks instead.{% endblocktranslate %}
+                                {% blocktranslate with min_mask=min_scannable_prefixlen %}With their default settings the nmap boefjes skip ranges larger than a /{{ min_mask }}. Consider adding smaller blocks instead.{% endblocktranslate %}
                             </p>
                         {% endif %}
                         <fieldset>
@@ -64,7 +64,7 @@
                         {{ form.network }}
                         {{ form.name }}
                         <input type="hidden" name="step" value="2">
-                        {% if can_set_clearance_level %}
+                        {% if can_set_clearance_level or form.clearance_level.errors %}
                             {% include "partials/form/field_input_wrapper.html" with field=form.clearance_level %}
 
                         {% endif %}
