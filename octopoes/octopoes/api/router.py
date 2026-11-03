@@ -468,9 +468,11 @@ def list_findings(
     search_string: str | None = None,
     order_by: Literal["score", "finding_type"] = "score",
     asc_desc: Literal["asc", "desc"] = "desc",
+    group: str | None = None,
+    tag: str | None = None,
 ) -> Paginated[Finding]:
     return octopoes.ooi_repository.list_findings(
-        severities, valid_time, exclude_muted, only_muted, offset, limit, search_string, order_by, asc_desc
+        severities, valid_time, exclude_muted, only_muted, offset, limit, search_string, order_by, asc_desc, group, tag
     )
 
 

@@ -10,6 +10,7 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 from django.views.generic import ListView
 from tools.forms.findings import (
+    FindingClassificationForm,
     FindingSearchForm,
     FindingSeverityMultiSelectForm,
     MutedFindingSelectionForm,
@@ -78,6 +79,10 @@ class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
         self.only_muted = self.muted_findings == "muted"
 
         self.search_string = request.GET.get("search", "")
+        self.classification_filter = FindingClassificationForm(request.GET)
+        self.classification_filter.is_valid()
+        self.group = self.classification_filter.cleaned_data.get("group") or None
+        self.tag = self.classification_filter.cleaned_data.get("tag") or None
 
     @property
     def count_active_filters(self):
@@ -86,6 +91,8 @@ class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
             + (1 if self.muted_findings else 0)
             + self.count_observed_at_filter()
             + (1 if self.search_string else 0)
+            + (1 if self.group else 0)
+            + (1 if self.tag else 0)
         )
 
     def get_queryset(self) -> FindingList:
@@ -98,6 +105,8 @@ class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
             "exclude_muted": self.exclude_muted,
             "only_muted": self.only_muted,
             "search_string": self.search_string,
+            "group": self.group,
+            "tag": self.tag,
             "order_by": self.order_by,
             "asc_desc": self.sorting_order,
         }
@@ -116,6 +125,7 @@ class FindingListFilter(OctopoesView, SeveritiesMixin, ListView):
         context["muted_findings_filter"] = MutedFindingSelectionForm(self.request.GET)
         context["table_columns"] = FINDING_LIST_COLUMNS
         context["finding_search_form"] = FindingSearchForm(self.request.GET)
+        context["classification_filter"] = self.classification_filter
         context["active_filters_counter"] = self.count_active_filters
         context["order_by"] = self.order_by
         context["order_by_severity_form"] = OrderBySeverityForm(self.request.GET)

@@ -15,6 +15,7 @@
         {% include "partials/form/fieldset.html" with fields=severity_filter fieldset_class="filter-fields-direction column" %}
         {% include "partials/form/fieldset.html" with fields=muted_findings_filter fieldset_class="filter-fields-direction column" %}
         {% include "partials/form/fieldset.html" with fields=finding_search_form %}
+        {% include "partials/form/fieldset.html" with fields=classification_filter %}
 
         {{ order_by_severity_form }}
         {{ order_by_finding_type_form }}

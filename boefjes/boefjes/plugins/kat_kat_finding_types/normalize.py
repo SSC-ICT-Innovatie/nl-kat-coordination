@@ -53,5 +53,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             recommendation=finding_type_information.get("recommendation", None),
             risk_severity=risk_severity,
             risk_score=risk_score,
+            groups=finding_type_information.get("groups") or [],
+            tags=finding_type_information.get("tags") or [],
         )
     )

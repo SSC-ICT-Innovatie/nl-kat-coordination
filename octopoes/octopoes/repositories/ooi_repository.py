@@ -43,9 +43,18 @@ def merge_ooi(ooi_new: OOI, ooi_old: OOI) -> tuple[OOI, bool]:
     # Trim new None values
     clean_new = {key: val for key, val in data_new.items() if val is not None}
 
+    # `key not in data_old` matters only for models that omit unset fields
+    # during serialization, currently KATFindingType (see the
+    # serialize_classification model serializer in
+    # octopoes/models/ooi/findings.py). A partial KATFindingType declaration
+    # carries no groups/tags keys, so those keys are absent from data_old's
+    # keyspace here only when the stored OOI lacks them: the omission must
+    # count as a change, otherwise a backfilling declaration would be
+    # considered unchanged and the metadata never stored. Do not "simplify"
+    # this clause away without keeping that serializer in sync.
     changed = False
     for key, value in clean_new.items():
-        if key in data_old and data_old[key] != value:
+        if key not in data_old or data_old[key] != value:
             changed = True
             break
 
@@ -157,6 +166,8 @@ class OOIRepository(Repository):
         search_string: str | None = None,
         order_by: Literal["score", "finding_type"] = "score",
         asc_desc: Literal["asc", "desc"] = "desc",
+        group: str | None = None,
+        tag: str | None = None,
     ) -> Paginated[Finding]:
         raise NotImplementedError
 
@@ -887,6 +898,8 @@ class XTDBOOIRepository(OOIRepository):
         search_string: str | None = None,
         order_by: Literal["score", "finding_type"] = "score",
         asc_desc: Literal["asc", "desc"] = "desc",
+        group: str | None = None,
+        tag: str | None = None,
     ) -> Paginated[Finding]:
         # clause to find risk_severity
         concrete_finding_types = to_concrete({FindingType})
@@ -916,6 +929,18 @@ class XTDBOOIRepository(OOIRepository):
             else ""
         )
 
+        # XTDB indexes individual values of vector-valued attributes, so a
+        # triple matches one group/tag without matching the entire array.
+        # Reuse these clauses for both count and page retrieval.
+        classification_clauses = " ".join(
+            clause
+            for clause in (
+                f"[?finding_type :KATFindingType/groups {str_val(group)}]" if group else "",
+                f"[?finding_type :KATFindingType/tags {str_val(tag)}]" if tag else "",
+            )
+            if clause
+        )
+
         order_statement = f":order-by [[?{order_by} :{asc_desc}]]"
 
         severity_values = ", ".join([str_val(severity.value) for severity in severities])
@@ -930,6 +955,7 @@ class XTDBOOIRepository(OOIRepository):
                             {search_statement}
                             [(== ?severity severities_)]
                             {or_severities}
+                            {classification_clauses}
                             {muted_clause}]
                 }}
                 :in-args [[{severity_values}]]
@@ -953,6 +979,7 @@ class XTDBOOIRepository(OOIRepository):
                             [(== ?severity severities_)]
                             {or_severities}
                             {or_scores}
+                            {classification_clauses}
                             {muted_clause}
                             {search_statement}]
                     :limit {limit}
@@ -964,10 +991,11 @@ class XTDBOOIRepository(OOIRepository):
         """
         res = self.query(finding_query, valid_time)
 
-        # if the resultset is smaller than the requested limit, we know the count
-        if len(res) < limit:
-            count = len(res) + offset
-        else:  # if the resultset is the same size as the requested limit, lets ask the db for the total count
+        # Only infer the total from a short first page. A page beyond the
+        # available results does not reveal the total count.
+        if offset == 0 and len(res) < limit:
+            count = len(res)
+        else:
             res_count = self.session.client.query(count_query, valid_time)
             count = res_count[0][0] if res_count else 0
         return Paginated(count=count, items=[x[0] for x in res])
