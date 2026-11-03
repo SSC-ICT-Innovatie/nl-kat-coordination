@@ -87,8 +87,8 @@ jobs:
           load: true
           push: true
           tags: localhost:5000/openkat/boefje-base:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=boefje-base
+          cache-to: type=gha,scope=boefje-base,mode=max
 
       - name: Docker meta
         id: meta
@@ -121,5 +121,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-contexts: |
             openkat/boefje-base:latest=docker-image://localhost:5000/openkat/boefje-base:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,scope=${{ matrix.image }},mode=max
