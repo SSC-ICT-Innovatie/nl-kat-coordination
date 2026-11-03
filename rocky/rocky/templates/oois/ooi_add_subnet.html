@@ -1,0 +1,79 @@
+{% extends "layouts/base.html" %}
+
+{% load i18n %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <article>
+            <div class="layout-form">
+                <h1>{% translate "Add a subnet" %}</h1>
+                <p>
+                    {% if step == 2 %}
+                        {% translate "Step 2 of 2: review the computed IP range and optionally set a clearance level. The subnet is added on submit." %}
+                    {% else %}
+                        {% translate "Step 1 of 2: enter the subnet in CIDR notation." %}
+                    {% endif %}
+                </p>
+                {% if indemnification_required %}
+                    <p class="warning">
+                        {% blocktranslate with organization_name=organization.name %}You must accept indemnification for organization {{ organization_name }} before you can add subnets.{% endblocktranslate %}
+                        <a href="{% url "indemnification_add" organization_code=organization.code %}">{% translate "Go to indemnification settings" %}</a>
+                    </p>
+                {% endif %}
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
+                    {% if step == 2 %}
+                        <fieldset>
+                            <div>
+                                <label>{% translate "Subnet (CIDR)" %}</label>
+                                <p>{{ form.cidr.value }}</p>
+                            </div>
+                            <div>
+                                <label>{% translate "Start IP" %}</label>
+                                <p>{{ start_ip }}</p>
+                            </div>
+                            <div>
+                                <label>{% translate "End IP" %}</label>
+                                <p>{{ end_ip }}</p>
+                            </div>
+                            <div>
+                                <label>{% translate "Number of IPs added" %}</label>
+                                <p>
+                                    {% blocktranslate count counter=num_ips %}{{ counter }} address{% plural %}{{ counter }} addresses{% endblocktranslate %}
+                                </p>
+                            </div>
+                            <div>
+                                <label>{% translate "Network" %}</label>
+                                <p>{{ form.network.value }}</p>
+                            </div>
+                        </fieldset>
+                        {{ form.cidr }}
+                        {{ form.network }}
+                        {{ form.name }}
+                        <input type="hidden" name="step" value="2">
+                        {% if can_set_clearance_level %}
+                            {% include "partials/form/field_input_wrapper.html" with field=form.clearance_level %}
+
+                        {% endif %}
+                        <button type="submit">{% translate "Add subnet" %}</button>
+                        <a href="{% url "ooi_add_subnet" organization_code=organization.code %}">{% translate "Back" %}</a>
+                    {% else %}
+                        <fieldset>
+                            {% for field in form %}
+                                {% if field.name != "clearance_level" %}
+                                    {% include "partials/form/field_input_wrapper.html" %}
+
+                                {% endif %}
+                            {% endfor %}
+                        </fieldset>
+                        <input type="hidden" name="step" value="1">
+                        <button type="submit" {% if indemnification_required %}disabled{% endif %}>{% translate "Next — review" %}</button>
+                    {% endif %}
+                </form>
+            </div>
+        </article>
+    </main>
+{% endblock content %}
