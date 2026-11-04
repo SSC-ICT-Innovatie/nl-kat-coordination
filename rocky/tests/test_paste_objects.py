@@ -38,7 +38,9 @@ def test_paste_objects_mixed_blob(rf, redteam_member, mock_organization_view_oct
     assert object_types == {"Network", "IPAddressV4", "IPAddressV6", "Hostname", "URL"}
 
     task_id = mock_bytes_client().add_manual_proof.call_args[0][0]
-    mock_bytes_client().add_manual_proof.assert_called_once_with(task_id, MIXED_BLOB, manual_mime_types={"manual/txt"})
+    mock_bytes_client().add_manual_proof.assert_called_once_with(
+        task_id, MIXED_BLOB.encode("utf-8"), manual_mime_types={"manual/txt"}
+    )
 
     messages = list(request._messages)
     assert "successfully added" in messages[0].message

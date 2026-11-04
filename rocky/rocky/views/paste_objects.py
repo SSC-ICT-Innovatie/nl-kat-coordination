@@ -69,7 +69,7 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
             return False
 
         network = Network(name=network_name)
-        raw_text = form.cleaned_data["objects"]
+        raw_input = form.cleaned_data["objects"].encode("utf-8")
         task_id = uuid4()
         valid_time = datetime.now(UTC)
 
@@ -80,7 +80,7 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
 
         # The raw paste is stored as evidence so it stays auditable,
         # mirroring the CSV upload flow.
-        self.bytes_client.add_manual_proof(task_id, raw_text, manual_mime_types={PASTE_OBJECTS_MIME_TYPE})
+        self.bytes_client.add_manual_proof(task_id, raw_input, manual_mime_types={PASTE_OBJECTS_MIME_TYPE})
 
         try:
             self.octopoes_api_connector.save_many_declarations(declarations, sync=True)
