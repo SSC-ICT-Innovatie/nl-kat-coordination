@@ -34,6 +34,14 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
     form_class = PasteObjectsForm
     permission_required = "tools.can_scan_organization"
 
+    def get_form(self, form_class=None) -> PasteObjectsForm:
+        form = super().get_form(form_class)
+
+        networks = self.octopoes_api_connector.list_objects({Network}, datetime.now(UTC)).items
+        form.fields["network"].choices = sorted({("internet", "internet")} | {(n.name, n.name) for n in networks})
+
+        return form
+
     def get_success_url(self):
         return reverse_lazy("ooi_list", kwargs={"organization_code": self.organization.code})
 

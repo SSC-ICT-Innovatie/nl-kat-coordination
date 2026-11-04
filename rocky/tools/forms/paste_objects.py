@@ -20,11 +20,8 @@ class PasteObjectsForm(BaseRockyForm):
         ),
         required=True,
     )
-    network = forms.CharField(
-        label=_("Network"),
-        initial="internet",
-        help_text=_("Created objects belong to this network. Defaults to internet."),
-        required=True,
+    network = forms.ChoiceField(
+        label=_("Network"), choices=[], help_text=_("Created objects belong to this network."), required=True
     )
     clearance_level = forms.ChoiceField(
         label=_("Clearance level"),
