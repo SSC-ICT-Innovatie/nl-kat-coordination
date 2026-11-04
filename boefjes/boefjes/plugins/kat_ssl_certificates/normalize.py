@@ -87,10 +87,11 @@ def _anchored(
 
 def is_part_of_wildcard(hostname: str, wildcard: str) -> bool:
     # according to rfc2459 wildcard certificates can only be used for subdomains
+    if not wildcard.startswith("*"):
+        return False
     wildcard_domain = wildcard[2:].rstrip(".")
     higher_level_domain = ".".join(hostname.split(".")[1:])
     return wildcard_domain == higher_level_domain
-
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     """Parse openssl s_client output into certificates and certificate chains.

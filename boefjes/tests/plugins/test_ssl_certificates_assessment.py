@@ -289,6 +289,17 @@ def test_mismatch_falls_back_to_common_name(no_trust_store):
     assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings
 
 
+def test_non_wildcard_san_does_not_cover_sibling_subdomains(no_trust_store):
+    # A SAN without the * prefix is not a wildcard: before the check, a SAN
+    # m.example.com matched www.example.com (wildcard[2:] on a non-wildcard
+    # happens to equal the parent domain) and suppressed the mismatch.
+    leaf, _ = make_cert("m.example.com", dns_names=["m.example.com"])
+
+    findings = finding_types(oois_for(leaf, input_ooi=host_input("www.example.com")))
+
+    assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings
+
+
 def test_null_sni_presentation_is_never_assessed_for_mismatch(no_trust_store):
     # A connection without a server name claims nothing about a name.
     leaf, _ = make_cert("example.com", dns_names=["*.other.example.com"])
