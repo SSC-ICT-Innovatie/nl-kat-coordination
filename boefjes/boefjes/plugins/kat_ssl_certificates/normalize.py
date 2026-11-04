@@ -12,7 +12,7 @@ from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
 from cryptography.x509.oid import NameOID
 
-from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
     SignatureVerificationStatus,
@@ -26,7 +26,7 @@ from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from octopoes.models.ooi.service import HostnameIPService
-from octopoes.models.ooi.web import Website
+
 
 CERTIFICATE_RE = re.compile(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", flags=re.DOTALL)
 HOSTNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.?$")
@@ -302,19 +302,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 yield SubjectAlternativeNameIPV2(certificate=ooi.reference, address=ip_ooi.reference)
 
     yield from certificates.values()
-
-    # Keep the pre-existing Website objects supported across scans; this is
-    # the only thing re-affirming them until the step-9 sweep. The leaf is
-    # the first presented certificate.
-    if input_hostname is not None and ordered_references:
-        website = Website(
-            ip_service=ip_service_reference,
-            hostname=Reference.from_str(
-                f"Hostname|{tokenized.hostname.network.name}|{input_hostname}"
-            ),
-            certificate=ordered_references[0],
-        )
-        yield NormalizerAffirmation(ooi=website)
 
     # A malformed entry produces no certificate; the finding carries its
     # position and raw hash as proof.

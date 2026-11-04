@@ -2,7 +2,7 @@ from boefjes.plugins.kat_security_txt_downloader.normalize import run
 from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPPort, Network
-from octopoes.models.ooi.service import IPService, Service
+from octopoes.models.ooi.service import HostnameIPService, IPService, Service
 from octopoes.models.ooi.web import URL, SecurityTXT, Website
 from tests.loading import get_dummy_data
 
@@ -59,6 +59,14 @@ def test_security_txt_different_website():
     expected.append(port)
     ip_service = IPService(ip_port=port.reference, service=Service(name="https").reference)
     expected.append(ip_service)
+    # The name binding is yielded alongside the Website (the discovery bit
+    # dedups on the same key).
+    expected.append(
+        HostnameIPService(
+            ip_service=ip_service.reference,
+            hostname=Hostname(name="www.example.com", network=Network(name="internet").reference).reference,
+        )
+    )
     website = Website(
         ip_service=ip_service.reference,
         hostname=Hostname(name="www.example.com", network=Network(name="internet").reference).reference,

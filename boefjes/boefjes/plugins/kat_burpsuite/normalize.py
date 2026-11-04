@@ -7,11 +7,12 @@ from bs4 import BeautifulSoup
 from defusedxml import minidom
 
 from boefjes.normalizer_models import NormalizerOutput
+from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CAPECFindingType, CVEFindingType, CWEFindingType, Finding
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, Protocol
-from octopoes.models.ooi.service import IPService, Service
-from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, IPAddressHTTPURL, WebScheme, Website
+from octopoes.models.ooi.service import HostnameIPService, IPService, Service
+from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, IPAddressHTTPURL, Website, WebScheme
 
 
 def find_network(data: dict) -> dict:
@@ -81,11 +82,23 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 path=url.path,
                 netloc=hostname.reference,
             )
+            # The name binding is yielded (the general rule), and the
+            # Website too: HTTPResource references it, so it must be
+            # yielded here rather than left to the discovery bit.
+            hostname_ip_service = HostnameIPService(
+                ip_service=ip_service.reference, hostname=hostname.reference
+            )
+            yield hostname_ip_service
             website = Website(hostname=hostname.reference, ip_service=ip_service.reference)
             yield website
             http_resource = HTTPResource(website=website.reference, web_url=http_url.reference)
             yield http_resource
         else:
+            # The request targeted the bare IP: no name was bound, so no
+            # HostnameIPService — but the endpoint is still web-served.
+            # The placeholder Website (hostname = the IP) is what
+            # HTTPResource and the header-analysis ecosystem reference;
+            # the discovery bit dedups on the same canonical key.
             http_url = IPAddressHTTPURL(
                 network=network.reference,
                 scheme=WebScheme(url.scheme),
@@ -93,6 +106,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 path=url.path,
                 netloc=ip_ooi.reference,
             )
+            website = Website(ip_service=ip_service.reference, hostname=Reference.from_str(
+                f"Hostname|{network.name}|{ip}"
+            ))
+            yield website
+            http_resource = HTTPResource(website=website.reference, web_url=http_url.reference)
+            yield http_resource
 
         if issue.getElementsByTagName("vulnerabilityClassifications"):
             vulnerability_classifications = issue.getElementsByTagName("vulnerabilityClassifications")[
