@@ -196,13 +196,16 @@ def test_malformed_entry_yields_finding_with_proof(root_and_leaf):
     # evidenced by the finding, not by an object.
     assert len(chains) == 1
     assert len(chains[0].presented_certificates) == 1
-    assert len(findings) == 1
-    assert str(findings[0].finding_type) == "KATFindingType|KAT-UNPARSEABLE-CERTIFICATE"
-    assert findings[0].ooi == chains[0].reference
+    # The leaf-only presentation is also incomplete (its issuer is neither
+    # presented nor trusted); the unparseable finding is about entry 1.
+    assert len(findings) == 2
+    unparseable = [f for f in findings if str(f.finding_type) == "KATFindingType|KAT-UNPARSEABLE-CERTIFICATE"]
+    assert len(unparseable) == 1
+    assert unparseable[0].ooi == chains[0].reference
     # No dynamic description; the predefined finding type carries the text.
-    assert findings[0].description is None
-    assert "position=1" in findings[0].proof
-    assert "raw_hash=" in findings[0].proof
+    assert unparseable[0].description is None
+    assert "position=1" in unparseable[0].proof
+    assert "raw_hash=" in unparseable[0].proof
 
 
 def test_certificate_v2_fields(root_and_leaf):

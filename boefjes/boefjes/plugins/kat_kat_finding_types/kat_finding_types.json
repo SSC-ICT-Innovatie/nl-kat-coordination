@@ -439,6 +439,22 @@
     "impact": "A broken certificate presentation can prevent clients from validating the service's certificate. If the entry is a corrupted transmission it may be transient; if the server consistently presents malformed data, TLS connections may fail or be vulnerable to downgrade attacks.",
     "recommendation": "Inspect the certificate chain served by this endpoint and reissue or correctly deploy its certificates."
   },
+  "KAT-INCOMPLETE-CERTIFICATE-CHAIN": {
+    "name": "Incomplete certificate chain",
+    "description": "The certificate chain presented by this service does not verifiably terminate at a certificate authority trusted by clients.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-6",
+    "risk": "high",
+    "impact": "Clients cannot build a trusted path from the certificates the server sent, so connections fail certificate validation or rely on the client chasing the missing issuer (which many clients, and non-HTTP clients in particular, do not do).",
+    "recommendation": "Configure the service to present the full chain: the leaf certificate followed by every intermediate, up to (but excluding) the root."
+  },
+  "KAT-SELF-SIGNED-CERTIFICATE": {
+    "name": "Self-signed certificate",
+    "description": "The certificate presented by this service is self-signed: it issues nothing else in the presentation and is its own issuer.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280",
+    "risk": "low",
+    "impact": "Common for internal services and admin interfaces. No third party has verified the identity behind the certificate, and clients that do not have the certificate distributed explicitly see certificate warnings.",
+    "recommendation": "For user-facing services, obtain a certificate from a certificate authority clients trust; for internal services where it is intentional, distribute the certificate to the clients that need it."
+  },
   "KAT-NO-DMARC": {
     "name": "No DMARC records found",
     "description": "This hostname does not have a DMARC record.",

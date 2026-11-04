@@ -1,12 +1,16 @@
 import base64
 import hashlib
 import re
+import ssl
 from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
+from functools import cache
 
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
-from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
+from cryptography.x509.oid import NameOID
 
 from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
 from octopoes.models import Reference
@@ -26,6 +30,66 @@ from octopoes.models.ooi.web import Website
 
 CERTIFICATE_RE = re.compile(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", flags=re.DOTALL)
 HOSTNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.?$")
+
+# Renewal practice: a certificate should be renewed at two-thirds of its
+# lifetime. "Expiring soon" means the un-renewed certificate is past that
+# point. The detection lag (about a scan interval) is subtracted so the
+# finding is only raised when it is observable in time.
+RENEWAL_FRACTION = 3
+DETECTION_LAG = timedelta(days=2)
+
+
+@cache
+def _trust_anchors() -> tuple[x509.Certificate, ...]:
+    """The system trust store of the worker image, loaded through the
+    standard SSL context (/etc/ssl/certs/ca-certificates.crt on Debian)."""
+    try:
+        context = ssl.create_default_context()
+        return tuple(x509.load_der_x509_certificate(der) for der in context.get_ca_certs(binary_form=True))
+    except OSError:
+        return ()
+
+
+def _issued_by(certificate: x509.Certificate, issuer: x509.Certificate) -> bool:
+    """Name match plus signature verification (RFC 5280 §6 path building's
+    basic step). Unsupported algorithms count as "not issued by"."""
+    try:
+        certificate.verify_directly_issued_by(issuer)
+        return True
+    except (ValueError, TypeError, InvalidSignature, UnsupportedAlgorithm):
+        return False
+
+
+def _anchored(
+    certificate: x509.Certificate,
+    presented: list[x509.Certificate],
+    anchor_fingerprints: set[bytes],
+    visiting: tuple,
+) -> bool:
+    """Whether a client can reach a trust anchor from this certificate using
+    the presentation and the trust store. A certificate is anchored when it
+    is a trust anchor, verifies against one, or verifies against another
+    presented certificate that is itself anchored (recursively, with cycle
+    protection for cross-signed intermediates). Issuing itself does not
+    count: that is what makes a self-signed leaf incomplete."""
+    if certificate.fingerprint(hashes.SHA256()) in anchor_fingerprints:
+        return True
+    if any(_issued_by(certificate, anchor) for anchor in _trust_anchors()):
+        return True
+    return any(
+        other is not certificate
+        and other not in visiting
+        and _issued_by(certificate, other)
+        and _anchored(other, presented, anchor_fingerprints, visiting + (certificate,))
+        for other in presented
+    )
+
+
+def is_part_of_wildcard(hostname: str, wildcard: str) -> bool:
+    # according to rfc2459 wildcard certificates can only be used for subdomains
+    wildcard_domain = wildcard[2:].rstrip(".")
+    higher_level_domain = ".".join(hostname.split(".")[1:])
+    return wildcard_domain == higher_level_domain
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
@@ -93,6 +157,123 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         **{("hostname_ip_service" if object_type == "HostnameIPService" else "ip_service"): endpoint},
     )
     yield chain
+
+    # --- Assessment of the presentation. These findings are properties of
+    # what was just observed, and only a live observation knows which
+    # certificates the endpoint currently presents: a bit would also fire on
+    # objects from renewals long past. Bound to the chain per the
+    # capability-variant rule, except expiry, which is about the certificate
+    # itself. ---
+    now = datetime.now(UTC)
+    expired = []
+    expiring = []
+    for ooi, parsed_cert in pairs:
+        valid_until = parsed_cert.not_valid_after_utc
+        lifetime = valid_until - parsed_cert.not_valid_before_utc
+        remaining = valid_until - now
+        if remaining <= timedelta(0):
+            expired.append(
+                (
+                    ooi.reference,
+                    f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until}.",
+                )
+            )
+            continue
+        renewal_point = lifetime / RENEWAL_FRACTION - DETECTION_LAG
+        if renewal_point > timedelta(0) and remaining < renewal_point:
+            expiring.append(
+                (
+                    ooi.reference,
+                    f"TLS certificate {ooi.fingerprint[:16]} is past its renewal point: it expires "
+                    f"at {ooi.valid_until}, in {remaining.days} days. If renewal is automated, the automation "
+                    "has not replaced it.",
+                )
+            )
+    for finding_id, targets in (("KAT-CERTIFICATE-EXPIRED", expired), ("KAT-CERTIFICATE-EXPIRING-SOON", expiring)):
+        if targets:
+            ft = KATFindingType(id=finding_id)
+            yield ft
+            for ooi_reference, description in targets:
+                yield Finding(ooi=ooi_reference, finding_type=ft.reference, description=description)
+
+    anchors = _trust_anchors()
+    if anchors:
+        anchor_fingerprints = {anchor.fingerprint(hashes.SHA256()) for anchor in anchors}
+        parsed_certs = [parsed for _, parsed in pairs]
+
+        # The leaf is the certificate that issues nobody else in the
+        # presentation. A self-signed leaf gets its own finding (one meaning
+        # per type) and is not counted as an incomplete chain: it is not a
+        # CA-issued chain missing something, it is not a chain at all.
+        leaf_pairs = [
+            (ooi, parsed)
+            for ooi, parsed in pairs
+            if not any(_issued_by(other_parsed, parsed) for other_ooi, other_parsed in pairs if other_ooi is not ooi)
+        ]
+        if len(leaf_pairs) == 1:
+            leaf_ooi, leaf = leaf_pairs[0]
+            if leaf.subject == leaf.issuer and leaf.fingerprint(hashes.SHA256()) not in anchor_fingerprints:
+                ft = KATFindingType(id="KAT-SELF-SIGNED-CERTIFICATE")
+                yield ft
+                yield Finding(
+                    ooi=chain.reference,
+                    finding_type=ft.reference,
+                    description=f"The certificate presented for this service is self-signed: "
+                    f"{leaf_ooi.fingerprint[:16]} (subject {leaf.subject.rfc4514_string()}).",
+                )
+            else:
+                unanchored = [
+                    (ooi, parsed)
+                    for ooi, parsed in pairs
+                    if not _anchored(parsed, parsed_certs, anchor_fingerprints, ())
+                ]
+                if unanchored:
+                    ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
+                    yield ft
+                    details = "; ".join(
+                        f"{parsed.subject.rfc4514_string()} ({ooi.fingerprint[:16]})" for ooi, parsed in unanchored
+                    )
+                    yield Finding(
+                        ooi=chain.reference,
+                        finding_type=ft.reference,
+                        description="The presented certificate chain does not verifiably terminate at a trusted "
+                        f"root for: {details}.",
+                    )
+
+    # Hostname mismatch: the server name of the presentation against the
+    # leaf's names (SAN if present, else the common name, as clients fall
+    # back). A connection without a server name claims nothing and is never
+    # assessed; the finding binds to the chain because a HostnameIPService
+    # has a presentation per client capability variant.
+    if input_hostname is not None and pairs:
+        hostname = input_hostname.rstrip(".")
+        # The leaf is the certificate that issues nobody else in the
+        # presentation.
+        leaf_pairs = [
+            (ooi, parsed)
+            for ooi, parsed in pairs
+            if not any(_issued_by(other_parsed, parsed) for other_ooi, other_parsed in pairs if other_ooi is not ooi)
+        ]
+        if len(leaf_pairs) == 1:
+            leaf_ooi, leaf = leaf_pairs[0]
+            try:
+                names = {
+                    name.value.rstrip(".").lower()
+                    for name in leaf.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+                    if isinstance(name, x509.DNSName)
+                }
+            except x509.ExtensionNotFound:
+                names = {attribute.value for attribute in leaf.subject.get_attributes_for_oid(NameOID.COMMON_NAME)}
+            host = hostname.lower()
+            if host not in names and not any(is_part_of_wildcard(host, wildcard) for wildcard in names):
+                ft = KATFindingType(id="KAT-SSL-CERT-HOSTNAME-MISMATCH")
+                yield ft
+                yield Finding(
+                    ooi=chain.reference,
+                    finding_type=ft.reference,
+                    description=f"The hostname {hostname} does not match the certificate "
+                    f"{leaf_ooi.fingerprint[:16]} presented for it (names: {', '.join(sorted(names)) or 'none'}).",
+                )
 
     network = Reference.from_str(f"Network|{network_name}")
 
