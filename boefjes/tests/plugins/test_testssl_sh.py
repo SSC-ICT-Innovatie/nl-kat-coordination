@@ -184,6 +184,31 @@ def test_ciphered_hostname_service_identity_includes_hostname_and_ip_service():
     assert cipher_b.hostname.natural_key == "internet|b.example"
 
 
+def test_cipher_links_to_hostname_ip_service_on_sni_input():
+    """The additive hostname_ip_service reference is set for HostnameIPService
+    inputs, pointing at the input object itself."""
+    input_ooi = {
+        "object_type": "HostnameIPService",
+        "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|a.example",
+    }
+
+    cipher = list(run(input_ooi, get_dummy_data("inputs/testssl-sh-ciphered.json")))[0]
+
+    assert cipher.hostname_ip_service is not None
+    assert str(cipher.hostname_ip_service) == (
+        "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|a.example"
+    )
+
+
+def test_cipher_hostname_ip_service_is_none_for_ip_service_input():
+    """A bare IPService input is a connection without a server name; the
+    additive reference stays unset."""
+    oois = list(run(input_ooi, get_dummy_data("inputs/testssl-sh-ciphered.json")))
+
+    assert len(oois) == 1
+    assert oois[0].hostname_ip_service is None
+
+
 def test_hostname_service_identity_distinguishes_sni_hosts_on_same_ip_service():
     a = HostnameIPService(
         ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),

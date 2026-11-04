@@ -77,12 +77,22 @@ class TLSCipher(OOI):
     hostname: Reference | None = ReferenceField(
         Hostname, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
     )
+    # Link to the HostnameIPService when the observation was made for a
+    # specific server name. Additive: not part of the natural key, so
+    # existing TLSCipher identities are unaffected.
+    hostname_ip_service: Reference | None = ReferenceField(
+        HostnameIPService, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
+    )
     suites: dict
     server_preference: dict[str, str] = Field(default_factory=dict)
 
     _natural_key_attrs = ["ip_service"]
 
-    _reverse_relation_names = {"ip_service": "ciphers", "hostname": "ciphers"}
+    _reverse_relation_names = {
+        "ip_service": "ciphers",
+        "hostname": "ciphers",
+        "hostname_ip_service": "ciphers",
+    }
 
     @property
     def natural_key(self) -> str:
@@ -105,3 +115,6 @@ class TLSCipher(OOI):
             return f"Ciphers of {hostname}:{address}:{port}"
 
         return f"Ciphers of {address}:{port}"
+
+
+TLSCipher.model_rebuild()
