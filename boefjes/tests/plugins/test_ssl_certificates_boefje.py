@@ -26,7 +26,9 @@ def _meta(ip: str, port: int = 443, service_name: str = "https", input_type: str
 
 
 def _fake_run(returncode: int = 0, stdout: bytes = b"", stderr: bytes = b""):
+    """Fake subprocess.run that accepts the timeout kwarg."""
     def fake_run(cmd, capture_output=False, timeout=None):
+        assert capture_output is True
         return subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr=stderr)
 
     return fake_run
@@ -111,17 +113,6 @@ def test_sni_still_sent_for_legacy_website_input(monkeypatch):
     assert captured["cmd"][idx + 1] == "example.com"
 
 
-def test_failure_records_output(monkeypatch):
-    """A failed handshake records the raw output (empty stdout, but the
-    task succeeds): the reason lives in Bytes with the task, nothing
-    retries."""
-    monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stderr=b"connect:errno=101\nNetwork unreachable\n"))
-
-    output = main.run(_meta("192.0.2.1"))
-
-    assert output == [({"openkat/ssl-certificates-output"}, "")]
-
-
 def test_nonzero_exit_with_certificates_returns_output(monkeypatch):
     """A failed TLS handshake still yields the certificate chain (#5417)."""
     monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stdout=PEM_OUTPUT, stderr=b"handshake failure"))
@@ -129,17 +120,6 @@ def test_nonzero_exit_with_certificates_returns_output(monkeypatch):
     output = main.run(_meta("192.0.2.1"))
 
     assert output == [({"openkat/ssl-certificates-output"}, PEM_OUTPUT.decode())]
-
-
-def test_non_tls_service_returns_raw_output(monkeypatch):
-    """A service that does not do TLS yields its raw openssl output: the
-    failure reason lives in the output, the normalizer reads no PEM and
-    observes nothing. No crash, no deschedule, no retry storm."""
-    monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stderr=b"connect:errno=104\nConnection reset by peer\n"))
-
-    output = main.run(_meta("192.0.2.1", service_name="http"))
-
-    assert output == [({"openkat/ssl-certificates-output"}, "")]
 
 
 def test_tcpwrapped_service_is_attempted(monkeypatch):
@@ -151,16 +131,46 @@ def test_tcpwrapped_service_is_attempted(monkeypatch):
 
     monkeypatch.setattr(main.subprocess, "run", fake_run)
 
-    output = main.run(_meta("192.0.2.1", service_name="tcpwrapped"))
+    mime, message = main.run(_meta("192.0.2.1", service_name="tcpwrapped"))[0]
 
     assert "-host" in captured["cmd"]
-    assert output == [({"openkat/ssl-certificates-output"}, "")]
+    assert mime == {"info/boefje"}
+    assert "alert handshake failure" in message
 
 
-def test_blackholed_address_returns_partial_output_within_timeout(monkeypatch):
-    """A silent blackhole (no SYN-ACK, no response) must not hang the
-    worker: subprocess.TimeoutExpired is raised, and the partial output is
-    recorded."""
+def test_non_tls_service_records_info_message(monkeypatch):
+    """A service that answers but presents no certificate (no TLS,
+    tcpwrapped) yields info/boefje: expected and non-actionable, the
+    normalizer is skipped, nothing is deleted."""
+    monkeypatch.setattr(
+        main.subprocess, "run", _fake_run(1, stdout=b"", stderr=b"alert handshake failure")
+    )
+
+    output = main.run(_meta("192.0.2.1", service_name="tcpwrapped"))
+
+    mime, message = output[0]
+    assert mime == {"info/boefje"}
+    assert message.startswith("No certificate presented by 192.0.2.1:443")
+    assert "alert handshake failure" in message
+
+
+def test_connection_failure_records_error(monkeypatch):
+    """A failed connection (refused, unreachable) surfaces as error/boefje:
+    a task failure with the reason in Bytes, and no normalization (nothing
+    previously observed gets deleted)."""
+    monkeypatch.setattr(
+        main.subprocess, "run", _fake_run(1, stdout=b"", stderr=b"connect:errno=101\nNetwork unreachable\n")
+    )
+
+    mime, message = main.run(_meta("192.0.2.1"))[0]
+
+    assert mime == {"error/boefje"}
+    assert "errno=101" in message
+
+
+def test_timeout_records_timeout_message(monkeypatch):
+    """A blackhole (no SYN-ACK, no response) yields error/timeout: a
+    rerunnable task state with the reason, not a hang (#5553/#5563)."""
 
     def hanging_run(cmd, capture_output=False, timeout=None):
         time.sleep(timeout + 0.1)  # outlive the boefje timeout
@@ -174,7 +184,10 @@ def test_blackholed_address_returns_partial_output_within_timeout(monkeypatch):
     elapsed = time.monotonic() - started
 
     assert elapsed < 5  # bounded: did not wait for the fake 60s hang
-    assert output == [({"openkat/ssl-certificates-output"}, "partial output before hang")]
+    mime, message = output[0]
+    assert mime == {"error/timeout"}
+    assert "timed out after 1s" in message
+    assert "partial output before hang" in message
 
 
 def test_tls_capable_service_names_are_attempted(monkeypatch):

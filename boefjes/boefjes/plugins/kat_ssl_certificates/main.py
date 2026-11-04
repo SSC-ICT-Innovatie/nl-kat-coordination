@@ -31,13 +31,17 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         + server_name_args
     )
 
-    # Every input is attempted: a service on any port may do TLS. openssl
-    # exits non-zero when the handshake fails, but its output is the
-    # observation either way — the chain on success, the reason (no TLS,
-    # handshake failure, tcpwrapped) on failure. The normalizer reads the
-    # PEM blocks and treats their absence as "nothing to observe"; a task
-    # failure would only cause pointless retries against a service that
-    # simply does not do TLS.
+    # Every input is attempted: a service on any port may do TLS. The
+    # output's mime type carries the meaning, per the established
+    # error-code vocabulary:
+    #   error/timeout  — the connection or handshake exceeded the timeout
+    #                    (rerunnable; distinct task state per #5553)
+    #   error/boefje   — the connection itself failed (refused, unreachable,
+    #                    DNS failure); surfaces as a task failure
+    #   info/boefje    — the service answered but presented no certificate
+    #                    (no TLS, tcpwrapped); expected and non-actionable,
+    #                    the normalizer is skipped
+    #   openkat/ssl-certificates-output — the presentation itself
     #
     # The timeout catches silent blackholes (no SYN-ACK, no response at
     # all): without it, s_client hangs forever and the worker never
@@ -45,6 +49,22 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     try:
         output = subprocess.run(cmd, capture_output=True, timeout=BOEFJE_TIMEOUT_SECONDS)
     except subprocess.TimeoutExpired as e:
-        return [({"openkat/ssl-certificates-output"}, (e.stdout or b"").decode(errors="replace"))]
+        partial = (e.stdout or b"").decode(errors="replace")
+        message = f"TLS handshake with {host}:{port} timed out after {BOEFJE_TIMEOUT_SECONDS}s"
+        return [({"error/timeout"}, f"{message}\n{partial}".strip())]
+
+    if b"-----BEGIN CERTIFICATE-----" not in output.stdout:
+        combined = (output.stderr or b"") + (output.stdout or b"")
+        if b"connect:" in combined or b"Connection refused" in combined or b"Network is unreachable" in combined:
+            # The TCP connection itself failed: a task failure with the
+            # reason in Bytes, and no normalization (nothing previously
+            # observed gets deleted).
+            return [({"error/boefje"}, combined.decode(errors="replace").strip())]
+
+        # The TCP connection succeeded but no certificate was presented:
+        # no TLS on this service, or it closed the connection (tcpwrapped).
+        # Expected and non-actionable: the normalizer is skipped.
+        reason = (output.stderr or output.stdout or b"no response").decode(errors="replace").strip()
+        return [({"info/boefje"}, f"No certificate presented by {host}:{port}\n{reason}".strip())]
 
     return [({"openkat/ssl-certificates-output"}, output.stdout.decode(errors="replace"))]
