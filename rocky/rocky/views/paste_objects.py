@@ -14,6 +14,7 @@ from tools.forms.paste_objects import PasteObjectsForm
 from tools.ooi_blob import parse_ooi_blob
 
 from octopoes.api.models import Declaration
+from octopoes.connector import ConnectorException
 from octopoes.models.ooi.network import Network
 
 PASTE_OBJECTS_MIME_TYPE = "manual/txt"
@@ -99,7 +100,7 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
                 declarations.append(Declaration(ooi=dependency, valid_time=valid_time, task_id=task_id))
             declarations.append(Declaration(ooi=entry.ooi, valid_time=valid_time, task_id=task_id))
 
-        self.raise_clearances(form, parsed)
+        self.declare_clearances(form, parsed)
 
         # The raw paste is stored as evidence so it stays auditable,
         # mirroring the CSV upload flow.
@@ -107,7 +108,7 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
 
         try:
             self.octopoes_api_connector.save_many_declarations(declarations, sync=True)
-        except HTTPError:
+        except (HTTPError, ConnectorException):
             return self.add_error_notification(_("Failed to save data from the pasted objects"))
 
         counts: dict[str, int] = {}
@@ -117,8 +118,12 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
 
         return self.add_success_notification(_("Object(s) successfully added: ") + summary)
 
-    def raise_clearances(self, form, parsed) -> None:
-        """Request a clearance level for all parsed objects at once (best effort)."""
+    def declare_clearances(self, form, parsed) -> None:
+        """Declare a clearance level for all parsed objects at once (best effort).
+
+        A declared profile can override or lower an existing level, hence
+        "declare" rather than "raise" (cf. underdarknl's review note).
+        """
         level = form.cleaned_data["clearance_level"]
         if level == "":
             return
