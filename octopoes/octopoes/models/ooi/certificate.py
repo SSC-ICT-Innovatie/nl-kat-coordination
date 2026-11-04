@@ -170,21 +170,23 @@ class SubjectAlternativeNameQualifier(SubjectAlternativeName):
 
 class X509CertificateV2(OOI):
     """An X.509 certificate, identified by the SHA-256 fingerprint of its
-    DER encoding when the bytes were observed.
+    DER encoding.
 
     Fixes the identity problems of X509Certificate: the fingerprint is a
     collision-free content address (lowercase hex SHA-256 of the DER
-    encoding), and serial_number is the actual serial number.
+    encoding), and serial_number is the actual serial number. The
+    fingerprint is the identity: every writer observes it, whether by
+    computing it from the presented bytes or by obtaining the certificate
+    (or its hash) from a third-party source. There is no fallback — a
+    certificate that cannot be tied to its SHA-256 is not written.
 
     subject and issuer are RFC4514 distinguished names. Sources that parse
     the DER provide the full DN; API-based sources provide the DN as their
     API renders it, which may be partial or non-canonical — comparisons
     between DNs are only meaningful within one source.
 
-    The full certificate is carried in raw when it was observed; API-based
-    sources that only see metadata emit V2 without raw and without a
-    fingerprint — their identity is the (issuer, serial) pair they used to
-    write V1 with.
+    The full certificate is carried in raw when the bytes were observed;
+    a source that saw only the fingerprint and metadata leaves it unset.
 
     There is exactly one active certificate object version: V1 is
     deprecated and no longer written.
@@ -226,17 +228,6 @@ class X509CertificateV2(OOI):
     _natural_key_attrs = ["fingerprint"]
 
     _reverse_relation_names = {"signed_by": "signed_certificates_v2"}
-
-    @property
-    def natural_key(self) -> str:
-        # Identity with observed bytes: the content address. API-based
-        # sources without DER fall back to the (issuer, serial) pair —
-        # the same identity the deprecated V1 used, minus its collisions
-        # with the org-name issuer. A source providing neither is
-        # rejected at construction time by the normalizer.
-        if self.fingerprint is not None:
-            return self.fingerprint
-        return f"{self.issuer or ''}|{self.serial_number or ''}"
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:

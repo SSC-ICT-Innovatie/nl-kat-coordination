@@ -1,6 +1,12 @@
+import base64
+import hashlib
 import json
 import logging
 from collections.abc import Iterable
+
+from cryptography import x509
+from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
 
 from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models.ooi.certificate import X509CertificateV2
@@ -27,10 +33,34 @@ def _clean_identity(identity: str) -> str | None:
     return name
 
 
+def _load_certificate(body: str) -> x509.Certificate:
+    """Parse the downloaded /?d=<id> body. It is observed to be PEM; tolerate
+    a bare DER body in case crt.sh changes its mind."""
+    data = body.strip().encode()
+    if data.startswith(b"-----BEGIN CERTIFICATE-----"):
+        return x509.load_pem_x509_certificate(data)
+    return x509.load_der_x509_certificate(data)
+
+
+def _pk_algorithm(public_key) -> str:
+    """Same semantics as the ssl_certificates normalizer: a free-string
+    family, no sizes (not comparable across families, derivable from raw)."""
+    if isinstance(public_key, rsa.RSAPublicKey):
+        return "RSA"
+    if isinstance(public_key, ec.EllipticCurvePublicKey):
+        return f"EC {public_key.curve.name}"
+    if isinstance(public_key, ed25519.Ed25519PublicKey):
+        return "Ed25519"
+    if isinstance(public_key, ed448.Ed448PublicKey):
+        return "Ed448"
+    if isinstance(public_key, mldsa.MLDSA44PublicKey | mldsa.MLDSA65PublicKey | mldsa.MLDSA87PublicKey):
+        return type(public_key).__name__.removesuffix("PublicKey").upper().replace("MLDSA", "ML-DSA-")
+    return type(public_key).__name__
+
+
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     results = json.loads(raw)
     fqdn = input_ooi["hostname"]["name"]
-    current = fqdn.lstrip(".")
 
     network = Network(name="internet")  # crt.sh only ever sees the Internet
     network_reference = network.reference
@@ -55,20 +85,26 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             yield hostname
             unique_domains.add(name)
 
-        # Yield only current certs.
+        pem = certificate.get("pem")
+        if not pem:
+            # No PEM downloaded (historical entry, rate limit, or download
+            # failure): no certificate is emitted. A placeholder without a
+            # fingerprint would get a degenerate primary key — never write one.
+            continue
+        try:
+            parsed = _load_certificate(pem)
+        except (ValueError, TypeError):
+            logger.warning("Skipping unparseable certificate body for crt.sh entry %s", certificate.get("id"))
+            continue
+
+        der = parsed.public_bytes(serialization.Encoding.DER)
         yield X509CertificateV2(
-            subject=f"CN={common_name}",
-            issuer=certificate["issuer_name"],
-            serial_number=format(int(certificate["serial_number"], 16), "x"),
-            valid_from=certificate["not_before"],
-            valid_until=certificate["not_after"],
+            fingerprint=hashlib.sha256(der).hexdigest(),
+            raw=base64.b64encode(der).decode(),
+            subject=parsed.subject.rfc4514_string(),
+            issuer=parsed.issuer.rfc4514_string(),
+            serial_number=format(parsed.serial_number, "x"),
+            valid_from=parsed.not_valid_before_utc.isoformat(),
+            valid_until=parsed.not_valid_after_utc.isoformat(),
+            pk_algorithm=_pk_algorithm(parsed.public_key()),
         )
-        # walk over the common_name. which might be unrelated to the requested domain, or it might be a parent domain
-        # which our dns Boefje should also have picked up.
-        # wildcards also trigger here, and won't be visible from a DNS query
-        common_identity = _clean_identity(common_name)
-        if common_identity is not None and (common_identity.endswith(current) or common_identity not in unique_domains):
-            try:
-                yield Hostname(name=common_identity, network=network_reference)
-            except ValueError:
-                logger.debug("Skipping invalid crt.sh common_name %r", common_name)
