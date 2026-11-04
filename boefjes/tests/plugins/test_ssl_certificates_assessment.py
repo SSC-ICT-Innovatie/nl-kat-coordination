@@ -129,6 +129,26 @@ def test_full_chain_with_trusted_root_is_complete(trust_store):
     assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" not in findings
 
 
+def test_extra_cross_sign_by_retired_root_does_not_flag_the_presentation(trust_store):
+    # hasecon's M2 (#5585): leaf -> intermediate -> trusted root, PLUS a
+    # cross-sign by a root that is not (or no longer) trusted. Every client
+    # validates the leaf and silently ignores the extra certificate; only
+    # the leaf's path to a root decides incompleteness.
+    trusted_root, trusted_root_key = make_cert("Trusted Root CA")
+    trust_store[hashlib.sha256(trusted_root.public_bytes(serialization.Encoding.DER)).hexdigest()] = trusted_root
+    intermediate, intermediate_key = make_cert(
+        "Test Intermediate CA", issuer_cert=trusted_root, issuer_key=trusted_root_key
+    )
+    leaf, _ = make_cert("example.com", issuer_cert=intermediate, issuer_key=intermediate_key)
+
+    retired_root, retired_root_key = make_cert("Retired Root CA")
+    cross_sign, _ = make_cert("Test Intermediate CA", issuer_cert=retired_root, issuer_key=retired_root_key)
+
+    findings = finding_types(oois_for(leaf, cross_sign))
+
+    assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" not in findings
+
+
 def test_root_in_store_anchors_directly(trust_store):
     root, root_key = make_cert("Test Root CA")
     trust_store[hashlib.sha256(root.public_bytes(serialization.Encoding.DER)).hexdigest()] = root

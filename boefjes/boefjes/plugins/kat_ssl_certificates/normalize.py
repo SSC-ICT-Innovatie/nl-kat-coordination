@@ -221,24 +221,20 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     description=f"The certificate presented for this service is self-signed: "
                     f"{leaf_ooi.fingerprint[:16]} (subject {leaf.subject.rfc4514_string()}).",
                 )
-            else:
-                unanchored = [
-                    (ooi, parsed)
-                    for ooi, parsed in pairs
-                    if not _anchored(parsed, parsed_certs, anchor_fingerprints, ())
-                ]
-                if unanchored:
-                    ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
-                    yield ft
-                    details = "; ".join(
-                        f"{parsed.subject.rfc4514_string()} ({ooi.fingerprint[:16]})" for ooi, parsed in unanchored
-                    )
-                    yield Finding(
-                        ooi=chain.reference,
-                        finding_type=ft.reference,
-                        description="The presented certificate chain does not verifiably terminate at a trusted "
-                        f"root for: {details}.",
-                    )
+            elif not _anchored(leaf, parsed_certs, anchor_fingerprints, ()):
+                # Only the leaf's path to a root matters: extra presented
+                # certificates (cross-signs, alternate chains) are means,
+                # not obligations. A client validates the leaf; an
+                # unanchored cross-sign does not make the presentation
+                # incomplete (the classic LE long-chain shape).
+                ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
+                yield ft
+                yield Finding(
+                    ooi=chain.reference,
+                    finding_type=ft.reference,
+                    description="The presented certificate chain does not verifiably terminate at a trusted "
+                    f"root for: {leaf.subject.rfc4514_string()} ({leaf_ooi.fingerprint[:16]}).",
+                )
 
     # Hostname mismatch: the server name of the presentation against the
     # leaf's names (SAN if present, else the common name, as clients fall
