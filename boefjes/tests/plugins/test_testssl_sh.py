@@ -7,7 +7,7 @@ import pytest
 from boefjes.plugins.kat_testssl_sh_ciphers.main import run as boefje_run
 from boefjes.plugins.kat_testssl_sh_ciphers.normalize import run
 from octopoes.models import Reference
-from octopoes.models.ooi.service import HostnameService
+from octopoes.models.ooi.service import HostnameIPService
 from tests.loading import get_dummy_data
 
 input_ooi = {
@@ -126,8 +126,8 @@ def test_ciphered_service():
 
 def test_ciphered_website_preserves_hostname_in_identity():
     hostname_service_input = {
-        "object_type": "HostnameService",
-        "primary_key": "HostnameService|internet|192.0.2.10|tcp|443|https|internet|example.com",
+        "object_type": "HostnameIPService",
+        "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|example.com",
         "ip_service": {
             "ip_port": {
                 "address": {"network": {"name": "internet"}, "address": "192.0.2.10"},
@@ -167,12 +167,12 @@ def test_server_preference_is_preserved():
 
 def test_ciphered_hostname_service_identity_includes_hostname_and_ip_service():
     input_a = {
-        "object_type": "HostnameService",
-        "primary_key": "HostnameService|internet|192.0.2.10|tcp|443|https|internet|a.example",
+        "object_type": "HostnameIPService",
+        "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|a.example",
     }
     input_b = {
-        "object_type": "HostnameService",
-        "primary_key": "HostnameService|internet|192.0.2.10|tcp|443|https|internet|b.example",
+        "object_type": "HostnameIPService",
+        "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|b.example",
     }
 
     cipher_a = list(run(input_a, get_dummy_data("inputs/testssl-sh-ciphered.json")))[0]
@@ -185,12 +185,12 @@ def test_ciphered_hostname_service_identity_includes_hostname_and_ip_service():
 
 
 def test_hostname_service_identity_distinguishes_sni_hosts_on_same_ip_service():
-    a = HostnameService(
+    a = HostnameIPService(
         ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),
         hostname=Reference.from_str("Hostname|internet|a.example"),
     )
 
-    b = HostnameService(
+    b = HostnameIPService(
         ip_service=Reference.from_str("IPService|internet|192.0.2.10|tcp|443|https"),
         hostname=Reference.from_str("Hostname|internet|b.example"),
     )
@@ -228,7 +228,7 @@ def test_normalizer_marks_weak_cipher_characteristics():
 
 def test_hostname_service_with_ipv6_uses_ipv6_and_exact_ip(tmp_path):
     input_ooi = {
-        "object_type": "HostnameService",
+        "object_type": "HostnameIPService",
         "hostname": {"name": "one.one.one.one"},
         "ip_service": {
             "ip_port": {"address": {"address": "2606:4700:4700::1111"}, "port": 443},

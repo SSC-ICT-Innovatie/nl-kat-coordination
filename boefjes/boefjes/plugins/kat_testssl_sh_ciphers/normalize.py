@@ -146,7 +146,7 @@ def _parse_server_preference(output: list[dict]) -> dict[str, str]:
 
 def _references(input_ooi: dict) -> tuple[Reference, Reference | None]:
     primary_reference = Reference.from_str(input_ooi["primary_key"])
-    if input_ooi.get("object_type") == "HostnameService":
+    if input_ooi.get("object_type") == "HostnameIPService":
         tokenized = primary_reference.tokenized
         ip_service = tokenized.ip_service
         hostname = tokenized.hostname

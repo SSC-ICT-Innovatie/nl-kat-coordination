@@ -39,21 +39,24 @@ class IPService(OOI):
         return f"{t.service.name}://{ip_address}:{t.ip_port.port}/{t.ip_port.protocol}"
 
 
-class HostnameService(OOI):
+class HostnameIPService(OOI):
     """A named service exposed by an IP service.
 
     This is the generic hostname-to-IPService relationship used when a
     protocol may depend on the hostname (for example TLS SNI). It is not
     specific to HTTP.
+
+    Formerly named HostnameService; renamed because the object captures the
+    full (hostname, IP, port, service) tuple, symmetric with IPService.
     """
 
-    object_type: Literal["HostnameService"] = "HostnameService"
+    object_type: Literal["HostnameIPService"] = "HostnameIPService"
 
     ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
 
     _natural_key_attrs = ["ip_service", "hostname"]
-    _reverse_relation_names = {"ip_service": "hostname_services", "hostname": "services"}
+    _reverse_relation_names = {"ip_service": "hostname_ip_services", "hostname": "services"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
