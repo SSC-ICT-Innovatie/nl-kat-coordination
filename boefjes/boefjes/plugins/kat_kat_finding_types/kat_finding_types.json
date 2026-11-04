@@ -447,6 +447,14 @@
     "impact": "Clients cannot build a trusted path from the certificates the server sent, so connections fail certificate validation or rely on the client chasing the missing issuer (which many clients, and non-HTTP clients in particular, do not do).",
     "recommendation": "Configure the service to present the full chain: the leaf certificate followed by every intermediate, up to (but excluding) the root."
   },
+  "KAT-HTTPS-NOT-AVAILABLE": {
+    "name": "HTTPS is not available",
+    "description": "HTTP port is open, but HTTPS port is not open.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc7231#section-2.7.2",
+    "risk": "medium",
+    "impact": "Users may not connect over a secured connection to your server; traffic is sent in cleartext and is readable by anyone with the ability to intercept it.",
+    "recommendation": "Enable HTTPS on the web server and redirect plain HTTP to it."
+  },
   "KAT-SELF-SIGNED-CERTIFICATE": {
     "name": "Self-signed certificate",
     "description": "The certificate presented by this service is self-signed: it issues nothing else in the presentation and is its own issuer.",
