@@ -20,7 +20,7 @@ The table gives an overview on the following items:
 The objects can be filtered by object type, clearance level and clearance type.
 The search functionality can also be used to search for specific objects, such as hostnames.
 
-More information on objects is provided by clicking on the object. This will give an overview page with all information for the specific object. The object details page is further described below.
+More information on objects is provided by clicking on the object. This will give an overview page with all information for the specific object. The object details page is further described below. 
 
 Adding (multiple) objects
 -------------------------
