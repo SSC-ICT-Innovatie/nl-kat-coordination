@@ -7,6 +7,7 @@ from typing import Literal
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddress
+from octopoes.models.ooi.service import HostnameIPService, IPService
 from octopoes.models.persistence import ReferenceField
 
 
@@ -167,8 +168,133 @@ class SubjectAlternativeNameQualifier(SubjectAlternativeName):
         return reference.tokenized.name
 
 
+class X509CertificateV2(OOI):
+    """An X.509 certificate, identified by the SHA-256 fingerprint of its DER encoding.
+
+    Fixes the identity problems of X509Certificate: the fingerprint is a
+    collision-free content address (lowercase hex SHA-256 of the DER encoding),
+    the issuer is the full RFC4514 distinguished name, and serial_number is the
+    actual serial number. The full certificate is carried in raw.
+
+    Only collectors holding the actual certificate bytes can emit this object
+    (e.g. the SSL certificates boefje); API-based sources without DER keep
+    writing the legacy X509Certificate.
+    """
+
+    object_type: Literal["X509CertificateV2"] = "X509CertificateV2"
+
+    # Identity: lowercase hex SHA-256 of the DER encoding (the hash of raw).
+    fingerprint: str
+
+    # The full certificate: base64-encoded DER, no PEM armor. Mandatory.
+    raw: str
+
+    # Full RFC4514 distinguished names.
+    subject: str | None = None
+    issuer: str | None = None
+
+    # Actual serial number (hex), if the source could provide it.
+    serial_number: str | None = None
+
+    valid_from: str
+    valid_until: str
+
+    # Public-key algorithm family as a free string, e.g. "RSA", "EC", "Ed25519",
+    # "ML-DSA-65". Deliberately not an enum: families evolve (PQC), and sizes
+    # are only comparable within a family, so they are not stored.
+    pk_algorithm: str | None = None
+
+    # Verified issuer relationship, set by the normalizer after cryptographic
+    # verification. Supports aggregation queries such as revocation impact.
+    signed_by: Reference | None = ReferenceField(
+        "X509CertificateV2", max_issue_scan_level=1, max_inherit_scan_level=0, default=None
+    )
+
+    _natural_key_attrs = ["fingerprint"]
+
+    _reverse_relation_names = {"signed_by": "signed_certificates_v2"}
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        return f"Certificate {reference.tokenized.fingerprint[:16]}"
+
+
+class TLSCertificateChain(OOI):
+    """A certificate presentation observed at a TLS endpoint.
+
+    Records what the server actually transmitted for a specific server name —
+    not a reconstructed trust path. The endpoint is a HostnameIPService; a
+    connection made without SNI is a presentation of the IPService itself
+    (exactly one of the two references is set): it is valid for the null
+    server name only, not for the service's other hostnames.
+
+    presented_certificates is ordered leaf-first as received. Entries that
+    failed to parse produce no certificate object; the normalizer emits a
+    Finding on the chain for each, with position and raw hash as proof.
+
+    Note: XTDB stores multi-valued attributes as sets, so the transmitted
+    order is not guaranteed to survive traversal. The order is preserved in
+    the presentation_hash (computed over the ordered entries at observation
+    time) and the wire order is re-derivable from raw scanner output in
+    Bytes. Chain-completeness assessment does not depend on intermediate
+    ordering; the leaf is always the first entry presented.
+    """
+
+    object_type: Literal["TLSCertificateChain"] = "TLSCertificateChain"
+
+    # The endpoint this presentation was observed on. SNI-qualified endpoints
+    # reference the HostnameIPService; connections without a server name
+    # reference the IPService. Exactly one of the two is set.
+    hostname_ip_service: Reference | None = ReferenceField(HostnameIPService, default=None,
+                                                           max_issue_scan_level=0, max_inherit_scan_level=4)
+    ip_service: Reference | None = ReferenceField(IPService, default=None,
+                                                  max_issue_scan_level=0, max_inherit_scan_level=4)
+
+    # Full chain hash: SHA-256 over length-prefixed SHA-256 hashes of every raw
+    # presented entry, in wire order — including entries that failed to parse.
+    # Not just the leaf; excludes client capabilities and observation time.
+    # Part of the OOI's identity. Computed by the normalizer, not the model.
+    presentation_hash: str
+
+    # The certificates that parsed, leaf-first as transmitted. Entries that
+    # failed to parse produce no certificate object; the normalizer emits a
+    # Finding on the chain for each, with position and raw hash as proof.
+    presented_certificates: list[Reference] = ReferenceField(
+        X509CertificateV2, default_factory=list, max_issue_scan_level=1, max_inherit_scan_level=0
+    )
+
+    _natural_key_attrs = ["ip_service", "presentation_hash"]
+
+    @property
+    def natural_key(self) -> str:
+        # Mirror TLSCipher: the key is the endpoint's key plus the presentation
+        # hash. SNI-qualified endpoints key on the HostnameIPService (which
+        # embeds the IPService key); null-SNI presentations key on the
+        # IPService itself.
+        if self.hostname_ip_service is not None:
+            return f"{self.hostname_ip_service.natural_key}|{self.presentation_hash}"
+        return f"{self.ip_service.natural_key}|{self.presentation_hash}"
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        # The reference is a tokenized natural key of an IPService (which is
+        # network|address|protocol|port|service) plus the presentation hash:
+        #   network|address|protocol|port|service|presentation_hash
+        # or, SNI-qualified, with the hostname's network|hostname appended
+        # before the presentation hash:
+        #   network|address|protocol|port|service|hn_network|hostname|presentation_hash
+        parts = reference.natural_key.split("|")
+        address = parts[1]
+        port = parts[3]
+        if len(parts) == 8:
+            return f"Certificate chain of {parts[6]}:{port} @ {address}"
+        return f"Certificate chain of {address}:{port}"
+
+
 X509Certificate.model_rebuild()
 CertificateIssuerCandidate.model_rebuild()
+X509CertificateV2.model_rebuild()
+TLSCertificateChain.model_rebuild()
 SubjectAlternativeNameHostname.model_rebuild()
 SubjectAlternativeNameIP.model_rebuild()
 SubjectAlternativeNameQualifier.model_rebuild()

@@ -13,7 +13,9 @@ from octopoes.models.ooi.certificate import (
     SubjectAlternativeNameHostname,
     SubjectAlternativeNameIP,
     SubjectAlternativeNameQualifier,
+    TLSCertificateChain,
     X509Certificate,
+    X509CertificateV2,
 )
 from octopoes.models.ooi.config import Config
 from octopoes.models.ooi.dns.records import (
@@ -94,6 +96,8 @@ from octopoes.models.ooi.web import (
 
 CertificateType: TypeAlias = (
     X509Certificate
+    | X509CertificateV2
+    | TLSCertificateChain
     | SubjectAlternativeNameHostname
     | SubjectAlternativeNameIP
     | SubjectAlternativeNameQualifier
