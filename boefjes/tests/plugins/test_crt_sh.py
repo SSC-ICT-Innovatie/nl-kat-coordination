@@ -72,7 +72,7 @@ def test_crt_sh_normalizer_parses_the_downloaded_certificate():
     assert certificate.subject == "CN=example.com"
     assert certificate.issuer == "CN=example.com"
     assert certificate.serial_number == format(cert.serial_number, "x")
-    assert certificate.valid_until == cert.not_valid_after_utc.isoformat()
+    assert certificate.valid_until == cert.not_valid_after_utc
     assert certificate.pk_algorithm == "RSA"
     # The hostnames come from the CT identities, not the certificate.
     assert {o.name for o in oois if isinstance(o, Hostname)} == {"example.com", "www.example.com"}

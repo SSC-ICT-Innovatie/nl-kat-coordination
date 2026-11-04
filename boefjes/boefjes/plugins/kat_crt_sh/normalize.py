@@ -104,7 +104,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             subject=parsed.subject.rfc4514_string(),
             issuer=parsed.issuer.rfc4514_string(),
             serial_number=format(parsed.serial_number, "x"),
-            valid_from=parsed.not_valid_before_utc.isoformat(),
-            valid_until=parsed.not_valid_after_utc.isoformat(),
+            valid_from=parsed.not_valid_before_utc,
+            valid_until=parsed.not_valid_after_utc,
             pk_algorithm=_pk_algorithm(parsed.public_key()),
         )

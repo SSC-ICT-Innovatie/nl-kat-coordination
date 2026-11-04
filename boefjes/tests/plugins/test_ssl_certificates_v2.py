@@ -218,7 +218,7 @@ def test_certificate_v2_fields(root_and_leaf):
     assert x509.load_der_x509_certificate(der)
     assert leaf.pk_algorithm == "RSA"
     assert leaf.serial_number == format(leaf_cert.serial_number, "x")
-    assert leaf.valid_until == leaf_cert.not_valid_after_utc.isoformat()
+    assert leaf.valid_until == leaf_cert.not_valid_after_utc
 
 
 def test_ecdsa_certificate_algorithm(root_and_leaf):

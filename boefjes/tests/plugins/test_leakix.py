@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 
 import pytest
 import requests
@@ -178,7 +179,7 @@ def test_certificate_extraction_keeps_newest_observation_per_endpoint():
     assert certificate.fingerprint == "3f2a1b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708"
     assert certificate.serial_number is None
     assert certificate.pk_algorithm == "RSA"
-    assert certificate.valid_until == "2026-08-13T00:00:00Z"
+    assert certificate.valid_until == datetime(2026, 8, 13, tzinfo=UTC)
 
 
 def test_certificate_sans_feed_hostname_discovery():

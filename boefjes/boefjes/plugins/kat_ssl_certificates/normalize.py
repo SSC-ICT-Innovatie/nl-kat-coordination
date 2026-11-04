@@ -175,7 +175,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             expired.append(
                 (
                     ooi.reference,
-                    f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until}.",
+                    f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until.isoformat()}.",
                 )
             )
             continue
@@ -185,7 +185,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 (
                     ooi.reference,
                     f"TLS certificate {ooi.fingerprint[:16]} is past its renewal point: it expires "
-                    f"at {ooi.valid_until}, in {remaining.days} days. If renewal is automated, the automation "
+                    f"at {ooi.valid_until.isoformat()}, in {remaining.days} days. If renewal is automated, the automation "
                     "has not replaced it.",
                 )
             )
@@ -334,8 +334,8 @@ def certificate_ooi(der: bytes, parsed: x509.Certificate) -> X509CertificateV2:
         subject=parsed.subject.rfc4514_string(),
         issuer=parsed.issuer.rfc4514_string(),
         serial_number=format(parsed.serial_number, "x"),
-        valid_from=parsed.not_valid_before_utc.isoformat(),
-        valid_until=parsed.not_valid_after_utc.isoformat(),
+        valid_from=parsed.not_valid_before_utc,
+        valid_until=parsed.not_valid_after_utc,
         pk_algorithm=pk_algorithm(parsed.public_key()),
         signed_by=None,
     )

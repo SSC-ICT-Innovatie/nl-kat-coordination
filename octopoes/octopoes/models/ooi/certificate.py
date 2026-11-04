@@ -214,8 +214,11 @@ class X509CertificateV2(OOI):
     # rendering serials differently convert at their boundary.
     serial_number: str | None = None
 
-    valid_from: str
-    valid_until: str
+    # Typed datetimes (underdarknl, #5585): xtdb stores them natively and
+    # the fields become range-queryable. Sources pass datetime objects;
+    # pydantic coerces ISO strings for hand-declared instances.
+    valid_from: datetime
+    valid_until: datetime
 
     # Public-key algorithm family as a free string, e.g. "RSA", "EC", "Ed25519",
     # "ML-DSA-65". Deliberately not an enum: families evolve (PQC), and sizes

@@ -370,9 +370,15 @@ def get_certificate_data(event) -> dict | None:
     if not_before.startswith(GO_ZERO_TIME_PREFIX) or not_after.startswith(GO_ZERO_TIME_PREFIX):
         return None
     # A validity date that cannot be parsed must skip this certificate, not abort the run.
+    # Parsed here so the model's typed datetime fields receive datetimes
+    # (naive values are stamped UTC: the API renders no zone). The dict is
+    # copied first: it may be a shared fixture, and re-running on an event
+    # whose bounds are already datetimes must not hit .startswith again.
+    certificate_data = dict(certificate_data)
     try:
-        parse_datetime(not_before)
-        parse_datetime(not_after)
+        for bound in ("not_before", "not_after"):
+            parsed = parse_datetime(certificate_data[bound])
+            certificate_data[bound] = parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
     except (ValueError, OverflowError, TypeError):
         return None
     return certificate_data
