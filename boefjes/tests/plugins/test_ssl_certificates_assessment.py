@@ -179,7 +179,7 @@ def test_trusted_root_presented_alone_fires_nothing(trust_store):
     # A trust anchor presented by itself is neither self-signed (excluded)
     # nor incomplete (it anchors). Its name covers the presentation's to
     # keep the mismatch check out of the way.
-    root, _ = make_cert("example.com")
+    root, _ = make_cert("example.com", dns_names=["example.com"])
     trust_store[hashlib.sha256(root.public_bytes(serialization.Encoding.DER)).hexdigest()] = root
 
     findings = finding_types(oois_for(root))
@@ -189,7 +189,7 @@ def test_trusted_root_presented_alone_fires_nothing(trust_store):
 
 def test_no_trust_store_assesses_nothing(no_trust_store):
     root, root_key = make_cert("Test Root CA")
-    leaf, _ = make_cert("example.com", issuer_cert=root, issuer_key=root_key)
+    leaf, _ = make_cert("example.com", issuer_cert=root, issuer_key=root_key, dns_names=["example.com"])
 
     findings = finding_types(oois_for(leaf, root))
 
@@ -277,16 +277,15 @@ def test_hostname_covered_by_san_does_not_fire(no_trust_store):
     assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" not in findings
 
 
-def test_mismatch_falls_back_to_common_name(no_trust_store):
-    # No SAN extension: clients fall back to the CN; covered CN means no
-    # mismatch, uncovered CN means mismatch.
-    covered, _ = make_cert("example.com")
-    findings = finding_types(oois_for(covered))
-    assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" not in findings
-
-    other, _ = make_cert("other.example.com")
-    findings = finding_types(oois_for(other))
-    assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings
+def test_sanless_certificate_fires_mismatch(no_trust_store):
+    # Modern clients ignore the common name (RFC 6125 leaves the CN to
+    # legacy clients), so a certificate without a SAN is rejected regardless
+    # of its CN — matching V1, where a SAN-less certificate fired the
+    # mismatch. Even a CN identical to the visited name does not save it.
+    for cn in ("example.com", "Example.com"):
+        leaf, _ = make_cert(cn)
+        findings = finding_types(oois_for(leaf))
+        assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings, cn
 
 
 def test_non_wildcard_san_does_not_cover_sibling_subdomains(no_trust_store):

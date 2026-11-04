@@ -10,7 +10,6 @@ from cryptography import x509
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
-from cryptography.x509.oid import NameOID
 
 from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
@@ -238,10 +237,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 )
 
     # Hostname mismatch: the server name of the presentation against the
-    # leaf's names (SAN if present, else the common name, as clients fall
-    # back). A connection without a server name claims nothing and is never
-    # assessed; the finding binds to the chain because a HostnameIPService
-    # has a presentation per client capability variant.
+    # leaf's SAN names. A connection without a server name claims nothing
+    # and is never assessed; the finding binds to the chain because a
+    # HostnameIPService has a presentation per client capability variant.
     if input_hostname is not None and pairs:
         hostname = input_hostname.rstrip(".")
         # The leaf is the certificate that issues nobody else in the
@@ -253,6 +251,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         ]
         if len(leaf_pairs) == 1:
             leaf_ooi, leaf = leaf_pairs[0]
+            # The names a client may match against are the SAN's DNS names
+            # (RFC 6125 6.4.4 permits a CN fallback only for legacy clients;
+            # modern clients ignore the common name, so a SAN-less
+            # certificate is rejected regardless of its CN). A certificate
+            # without a SAN therefore never matches — matching V1's
+            # behavior, where a SAN-less certificate fired the mismatch.
             try:
                 names = {
                     name.value.rstrip(".").lower()
@@ -260,7 +264,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                     if isinstance(name, x509.DNSName)
                 }
             except x509.ExtensionNotFound:
-                names = {attribute.value for attribute in leaf.subject.get_attributes_for_oid(NameOID.COMMON_NAME)}
+                names = set()
             host = hostname.lower()
             if host not in names and not any(is_part_of_wildcard(host, wildcard) for wildcard in names):
                 ft = KATFindingType(id="KAT-SSL-CERT-HOSTNAME-MISMATCH")
