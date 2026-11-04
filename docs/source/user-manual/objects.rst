@@ -22,10 +22,25 @@ The search functionality can also be used to search for specific objects, such a
 
 More information on objects is provided by clicking on the object. This will give an overview page with all information for the specific object. The object details page is further described below.
 
-Adding a subnet
----------------
+Adding (multiple) objects
+-------------------------
 
-Subnets are added through a dedicated two-step form. On the Add object page, select *IPV4NetBlock* or
+The easiest way to add one or more objects is by pasting a list. This is available through the *Paste objects* option in the
+Add menu on the Objects page, and through the link on the Add object page when adding a single Object.
+
+In the first step, paste your objects into the text field and choose a network. Each value may be an IPv4 or IPv6
+address, a subnet in CIDR notation (for example ``192.0.2.0/24``), a hostname, or a URL; the type of each value is
+detected automatically. Values may be separated by newlines, commas or spaces.
+
+The second step shows every value with its detected object type for review. Lines that could not be interpreted are
+listed and will not be added; all other objects are. On this page you can also set a clearance level for all objects
+at once, up to your own maximum. Submitting adds the objects in one batch, and the pasted text is stored as evidence
+with the objects.
+
+Adding a single subnet
+----------------------
+
+A single subnet can also be added through a dedicated two-step form. On the Add menu on the Objects page, select *IPV4NetBlock* or
 *IPV6NetBlock*; both open the same form, and the address family follows from the CIDR you enter.
 
 In the first step, enter the subnet in CIDR notation (for example ``192.168.5.0/24``), a network, and an optional name.
@@ -39,21 +54,6 @@ your organization; without it the form is disabled. See :doc:`basic-concepts/sca
 
 .. note:: Ranges larger than a /22 (IPv4) or /118 (IPv6) are skipped by the nmap boefjes by default. To have such
    a range scanned, add smaller blocks instead.
-
-Pasting multiple objects
-------------------------
-
-Multiple objects can be added at once by pasting a list. This is available through the *Paste objects* option in the
-Add menu on the Objects page, and through the link on the Add object page.
-
-In the first step, paste your objects into the text field and choose a network. Each value may be an IPv4 or IPv6
-address, a subnet in CIDR notation (for example ``192.0.2.0/24``), a hostname, or a URL; the type of each value is
-detected automatically. Values may be separated by newlines, commas or spaces.
-
-The second step shows every value with its detected object type for review. Lines that could not be interpreted are
-listed and will not be added; all other objects are. On this page you can also set a clearance level for all objects
-at once, up to your own maximum. Submitting adds the objects in one batch, and the pasted text is stored as evidence
-with the objects.
 
 
 Object details
