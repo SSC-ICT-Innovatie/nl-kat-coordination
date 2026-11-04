@@ -3,7 +3,6 @@
   "name": "SSL certificates",
   "description": "Parses openssl s_client output into X.509 certificates (fingerprint-identified) and certificate chains per presentation.",
   "consumes": [
-    "boefje/ssl-certificates",
     "openkat/ssl-certificates-output"
   ],
   "produces": [
