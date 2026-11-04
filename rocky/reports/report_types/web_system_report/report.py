@@ -13,6 +13,19 @@ from octopoes.models.ooi.findings import KATFindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from reports.report_types.definitions import Report
 
+# Certificate findings bind to the certificate (expiry) and the presented
+# chain (incompleteness, name mismatch) of services named by this hostname.
+# Named constants so tests can pin them against the model: a wrong reverse
+# name here 400s every web, aggregate and multi report.
+CERTIFICATE_FINDING_TYPES_QUERY = (
+    "Hostname.<hostname[is HostnameIPService].<hostname_ip_service[is TLSCertificateChain]"
+    ".presented_certificates[is X509CertificateV2].<ooi[is Finding].finding_type"
+)
+CHAIN_FINDING_TYPES_QUERY = (
+    "Hostname.<hostname[is HostnameIPService].<hostname_ip_service[is TLSCertificateChain]"
+    ".<ooi[is Finding].finding_type"
+)
+
 
 @dataclass
 class WebCheck:
@@ -157,20 +170,12 @@ class WebSystemReport(Report):
         # Certificate findings bind to the certificate (expiry) and the
         # presented chain (incompleteness, name mismatch) of services named
         # by this hostname.
-        query = (
-            "Hostname.<hostname[is HostnameIPService].<hostname_ip_services[is TLSCertificateChain]"
-            ".presented_certificates[is X509CertificateV2].<ooi[is Finding].finding_type"
-        )
         certificate_finding_types = self.group_finding_types_by_source(
-            self.octopoes_api_connector.query_many(query, valid_time, all_hostnames),
+            self.octopoes_api_connector.query_many(CERTIFICATE_FINDING_TYPES_QUERY, valid_time, all_hostnames),
             ["KAT-CERTIFICATE-EXPIRED", "KAT-CERTIFICATE-EXPIRING-SOON"],
         )
-        query = (
-            "Hostname.<hostname[is HostnameIPService].<hostname_ip_services[is TLSCertificateChain]"
-            ".<ooi[is Finding].finding_type"
-        )
         chain_finding_types = self.group_finding_types_by_source(
-            self.octopoes_api_connector.query_many(query, valid_time, all_hostnames),
+            self.octopoes_api_connector.query_many(CHAIN_FINDING_TYPES_QUERY, valid_time, all_hostnames),
             ["KAT-INCOMPLETE-CERTIFICATE-CHAIN", "KAT-SSL-CERT-HOSTNAME-MISMATCH"],
         )
 

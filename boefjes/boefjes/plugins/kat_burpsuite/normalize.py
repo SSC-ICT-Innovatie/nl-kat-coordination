@@ -107,7 +107,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 netloc=ip_ooi.reference,
             )
             website = Website(ip_service=ip_service.reference, hostname=Reference.from_str(
-                f"Hostname|{network.name}|{ip}"
+                f"Hostname|{network.name}|{address}"
             ))
             yield website
             http_resource = HTTPResource(website=website.reference, web_url=http_url.reference)
