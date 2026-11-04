@@ -17,6 +17,12 @@ def test_web_report_no_findings(mock_octopoes_api_connector, valid_time, hostnam
             hostname.reference: []
         },
         "Hostname.<hostname[is Website].certificate.<ooi[is Finding].finding_type": {hostname.reference: []},
+        "Hostname.<hostname[is HostnameIPService].<hostname_ip_services[is TLSCertificateChain]"
+        ".presented_certificates[is X509CertificateV2].<ooi[is Finding].finding_type": {
+            hostname.reference: []
+        },
+        "Hostname.<hostname[is HostnameIPService].<hostname_ip_services[is TLSCertificateChain]"
+        ".<ooi[is Finding].finding_type": {hostname.reference: []},
     }
 
     report = WebSystemReport(mock_octopoes_api_connector)
@@ -42,10 +48,13 @@ def test_web_report_all_findings(
         },
         "Hostname.<hostname[is Website].<ooi[is Finding].finding_type": {hostname.reference: web_report_finding_types},
         "Hostname.<hostname[is Website].<website[is SecurityTXT]": {hostname.reference: []},
-        "Hostname.<hostname[is ResolvedHostname].address.<address[is IPPort].<ooi[is Finding].finding_type": {
+        "Hostname.<hostname[is HostnameIPService].<hostname_ip_services[is TLSCertificateChain]"
+        ".presented_certificates[is X509CertificateV2].<ooi[is Finding].finding_type": {
             hostname.reference: web_report_finding_types
         },
-        "Hostname.<hostname[is Website].certificate.<ooi[is Finding].finding_type": {
+        "Hostname.<hostname[is HostnameIPService].<hostname_ip_services[is TLSCertificateChain]"
+        ".<ooi[is Finding].finding_type": {hostname.reference: web_report_finding_types},
+        "Hostname.<hostname[is ResolvedHostname].address.<address[is IPPort].<ooi[is Finding].finding_type": {
             hostname.reference: web_report_finding_types
         },
     }
