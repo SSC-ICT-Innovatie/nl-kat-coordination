@@ -1,0 +1,13 @@
+{
+  "id": "kat_archive_unpacker",
+  "name": "Archive unpacker",
+  "description": "Unpacks the members of a zip, tar or gzip archive into separate raw files, each tagged with a guessed mime type, so downstream content normalizers run on the archive contents. Decompression-bomb limits (file count, per-file size, total size) are enforced.",
+  "consumes": [
+    "application/zip",
+    "application/x-zip-compressed",
+    "application/x-tar",
+    "application/gzip",
+    "application/x-gzip"
+  ],
+  "produces": []
+}
