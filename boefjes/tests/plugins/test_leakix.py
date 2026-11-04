@@ -1,8 +1,11 @@
 import json
 
+import pytest
+import requests
 from pydantic import TypeAdapter
 
 import boefjes.plugins.kat_leakix.normalize as leakix_normalize
+from boefjes.plugins.kat_leakix import main
 from boefjes.plugins.kat_leakix.normalize import run
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
@@ -336,3 +339,41 @@ def test_software_pipe_never_reaches_a_primary_key():
     # Positive control: the clean product from the first header is still extracted.
     oois, _, _ = leakix_normalize.extract_software(events[0], host)
     assert any(isinstance(o, Software) and o.name == "Apache" for o in oois)
+
+
+def test_leakix_timeout_is_reported_as_error_timeout(mocker):
+    """A timed-out scan is a rerunnable state: error/timeout marks the task
+    TIMEOUT for the scheduler to reschedule."""
+    mocker.patch.object(main, "get_host_results", side_effect=requests.exceptions.ReadTimeout("timed out"))
+
+    results = main.run({"input_ooi": "IPAddressV4|internet|192.0.2.1"})
+
+    assert results == [({"error/timeout"}, "LeakIX timed out for IPAddressV4|internet|192.0.2.1: ReadTimeout")]
+
+
+@pytest.mark.parametrize(
+    "exception",
+    [
+        requests.exceptions.ConnectionError("Name or service not known"),
+        requests.exceptions.HTTPError("401 Client Error: Unauthorized"),
+    ],
+)
+def test_leakix_request_failure_is_reported_as_error_boefje(mocker, exception):
+    """Refused connections, DNS failures and HTTP error statuses (LeakIX
+    answers 401 without a key) are error/boefje: reason in the raw bytes,
+    no normalizer runs."""
+    mocker.patch.object(main, "get_host_results", side_effect=exception)
+
+    results = main.run({"input_ooi": "IPAddressV4|internet|192.0.2.1"})
+
+    mime_types, content = results[0]
+    assert mime_types == {"error/boefje"}
+    assert "LeakIX request failed for IPAddressV4|internet|192.0.2.1" in content
+
+
+def test_leakix_hostname_search_failure_is_reported(mocker):
+    mocker.patch.object(main, "get_search_results", side_effect=requests.exceptions.ReadTimeout("timed out"))
+
+    results = main.run({"input_ooi": "Hostname|internet|example.com"})
+
+    assert results[0][0] == {"error/timeout"}

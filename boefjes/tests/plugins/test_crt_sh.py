@@ -137,6 +137,30 @@ def test_crt_sh_timeout_returns_timeout(mocker, exception):
     assert "crt.sh timed out for example.com" in content
 
 
+@pytest.mark.parametrize(
+    "exception",
+    [
+        requests.exceptions.SSLError("certificate verify failed"),
+        requests.exceptions.ConnectionError("Name or service not known"),
+        requests.exceptions.HTTPError("429 Client Error: Too Many Requests"),
+    ],
+)
+def test_crt_sh_connection_failure_is_reported_as_error_boefje(mocker, exception):
+    # Anything that is not a timeout — refused connections, DNS failures,
+    # TLS errors, and crt.sh's aggressive 429 rate limiting — is an
+    # error/boefje: the reason travels in the raw bytes, no normalizer runs.
+    mocker.patch.object(main, "request_certs", side_effect=exception)
+
+    boefje_meta = {"arguments": {"input": {"hostname": {"name": "example.com"}}}}
+
+    results = main.run(boefje_meta)
+
+    assert len(results) == 1
+    mime_types, content = results[0]
+    assert mime_types == {"error/boefje"}
+    assert "crt.sh request failed for example.com" in content
+
+
 def test_crt_sh_success_returns_normal_result(mocker):
     mocker.patch.object(main, "request_certs", return_value="[]")
 

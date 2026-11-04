@@ -93,6 +93,11 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         # ConnectionError (DNS failure, refused connection) and SSLError are failures,
         # not timeouts, and should surface as error/boefje instead.
         return [({"error/timeout"}, f"crt.sh timed out for {fqdn}: {type(exc).__name__}")]
+    except requests.exceptions.RequestException as exc:
+        # The request itself failed (refused, DNS, HTTP error status such as
+        # crt.sh's aggressive 429 rate limiting): the reason is carried in the
+        # raw bytes, normalizers skip error mimes.
+        return [({"error/boefje"}, f"crt.sh request failed for {fqdn}: {exc}")]
 
     entries = json.loads(results)
 
