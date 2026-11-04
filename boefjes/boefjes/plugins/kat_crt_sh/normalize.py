@@ -1,12 +1,9 @@
-import datetime
 import json
 import logging
 from collections.abc import Iterable
 
-from dateutil.parser import parse
-
 from boefjes.normalizer_models import NormalizerOutput
-from octopoes.models.ooi.certificate import X509Certificate
+from octopoes.models.ooi.certificate import X509CertificateV2
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import Network
 
@@ -59,16 +56,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             unique_domains.add(name)
 
         # Yield only current certs.
-        expires_in = parse(certificate["not_after"]).astimezone(datetime.UTC) - datetime.datetime.now(datetime.UTC)
-        if expires_in.total_seconds() > 0:
-            yield X509Certificate(
-                subject=common_name,
-                issuer=certificate["issuer_name"],
-                valid_from=certificate["not_before"],
-                valid_until=certificate["not_after"],
-                serial_number=certificate["serial_number"].upper(),
-                expires_in=expires_in,
-            )
+        yield X509CertificateV2(
+            subject=f"CN={common_name}",
+            issuer=certificate["issuer_name"],
+            serial_number=format(int(certificate["serial_number"], 16), "x"),
+            valid_from=certificate["not_before"],
+            valid_until=certificate["not_after"],
+        )
         # walk over the common_name. which might be unrelated to the requested domain, or it might be a parent domain
         # which our dns Boefje should also have picked up.
         # wildcards also trigger here, and won't be visible from a DNS query

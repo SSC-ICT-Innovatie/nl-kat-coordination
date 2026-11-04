@@ -7,7 +7,7 @@ import requests
 
 from boefjes.plugins.kat_crt_sh import main
 from boefjes.plugins.kat_crt_sh.normalize import run
-from octopoes.models.ooi.certificate import X509Certificate
+from octopoes.models.ooi.certificate import X509CertificateV2
 from octopoes.models.ooi.dns.zone import Hostname
 
 input_ooi = {"hostname": {"name": "example.com"}}
@@ -42,7 +42,7 @@ def test_crt_sh_normalizer_wildcard_and_email_identities_do_not_crash():
     # invalid identity (containing '*' or '@') leaks through.
     assert hostname_names == {"example.com", "www.example.com"}
     # The certificate itself is still yielded.
-    assert any(isinstance(o, X509Certificate) for o in oois)
+    assert any(isinstance(o, X509CertificateV2) for o in oois)
 
 
 def test_crt_sh_normalizer_only_invalid_identities_still_yields_certificate():
@@ -52,7 +52,7 @@ def test_crt_sh_normalizer_only_invalid_identities_still_yields_certificate():
 
     # The wildcard collapses onto example.com; the email is skipped; the cert survives.
     assert {o.name for o in oois if isinstance(o, Hostname)} == {"example.com"}
-    assert any(isinstance(o, X509Certificate) for o in oois)
+    assert any(isinstance(o, X509CertificateV2) for o in oois)
 
 
 @pytest.mark.parametrize(

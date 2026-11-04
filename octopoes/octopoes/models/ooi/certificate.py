@@ -174,11 +174,17 @@ class X509CertificateV2(OOI):
 
     Fixes the identity problems of X509Certificate: the fingerprint is a
     collision-free content address (lowercase hex SHA-256 of the DER
-    encoding), the issuer is the full RFC4514 distinguished name, and
-    serial_number is the actual serial number. The full certificate is
-    carried in raw when it was observed; API-based sources that only see
-    metadata emit V2 without raw and without a fingerprint — their
-    identity is the (issuer, serial) pair they used to write V1 with.
+    encoding), and serial_number is the actual serial number.
+
+    subject and issuer are RFC4514 distinguished names. Sources that parse
+    the DER provide the full DN; API-based sources provide the DN as their
+    API renders it, which may be partial or non-canonical — comparisons
+    between DNs are only meaningful within one source.
+
+    The full certificate is carried in raw when it was observed; API-based
+    sources that only see metadata emit V2 without raw and without a
+    fingerprint — their identity is the (issuer, serial) pair they used to
+    write V1 with.
 
     There is exactly one active certificate object version: V1 is
     deprecated and no longer written.
@@ -198,7 +204,9 @@ class X509CertificateV2(OOI):
     subject: str | None = None
     issuer: str | None = None
 
-    # Actual serial number (hex), if the source could provide it.
+    # Actual serial number: lowercase hex, minimal (no leading zeros),
+    # normalized by the writer. The DER path uses format(n, "x"); sources
+    # rendering serials differently convert at their boundary.
     serial_number: str | None = None
 
     valid_from: str
