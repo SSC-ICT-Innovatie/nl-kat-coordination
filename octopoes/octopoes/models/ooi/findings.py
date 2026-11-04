@@ -119,6 +119,17 @@ class SnykFindingType(FindingType):
     id: Annotated[str, StringConstraints(strip_whitespace=True, to_upper=True)]
 
 
+class WPVulnFindingType(FindingType):
+    """Represents the WPVulnDB (wpscan.com) Finding Types.
+
+    The id is the WPVulnDB vulnerability id as reported by wpscan, which is
+    unique per vulnerability — so N distinct vulnerabilities yield N distinct
+    finding types and N distinct Findings, rather than collapsing to one.
+    """
+
+    object_type: Literal["WPVulnFindingType"] = "WPVulnFindingType"
+
+
 class KATFindingType(FindingType):
     """Represents the OpenKAT Finding Types"""
 
