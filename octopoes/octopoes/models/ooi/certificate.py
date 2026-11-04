@@ -82,6 +82,9 @@ class CertificateIssuerCandidate(OOI):
 
     Verification status records whether the candidate's public key
     successfully verifies the certificate's signature.
+
+    Never yielded since the V2 pipeline replaced candidate objects with
+    signed_by edges; kept for historical data.
     """
 
     object_type: Literal["CertificateIssuerCandidate"] = "CertificateIssuerCandidate"
