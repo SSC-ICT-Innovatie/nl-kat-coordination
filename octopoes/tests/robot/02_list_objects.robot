@@ -10,7 +10,7 @@ List Objects
     Insert Normalizer Output
     Await Sync
     Object List Should Contain    ${REF_HOSTNAME}
-    Total Object Count Should Be    ${6}
+    Total Object Count Should Be    ${8}
 
 List Objects With Filter
     Insert Normalizer Output
@@ -30,8 +30,8 @@ List Random Objects With Filter
     Recalculate Scan Profiles
     Await Sync
     Length Of Random Object List With Filter Should Be    ${1}    ${5}
-    Length Of Random Object List With Filter Should Be    ${0}    ${9}
-    Length Of Random Object List With Filter Should Be    ${{ [1,0] }}    ${10}
+    Length Of Random Object List With Filter Should Be    ${0}    ${11}
+    Length Of Random Object List With Filter Should Be    ${{ [1,0] }}    ${12}
     Length Of Random Object List With Filter Should Be    ${{ [2,3] }}    ${0}
 
 Load Bulk
