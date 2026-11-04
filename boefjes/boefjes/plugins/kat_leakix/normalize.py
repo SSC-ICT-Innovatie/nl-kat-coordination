@@ -9,9 +9,9 @@ from dateutil.parser import parse as parse_datetime
 from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
-    SubjectAlternativeNameHostname,
-    SubjectAlternativeNameQualifier,
-    X509Certificate,
+    SubjectAlternativeNameHostnameV2,
+    SubjectAlternativeNameQualifierV2,
+    X509CertificateV2,
 )
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CVEFindingType, Finding, KATFindingType
@@ -395,32 +395,37 @@ def collect_certificate_candidate(event, candidates: dict) -> None:
 
 
 def extract_certificate(event, network_reference):
-    """Build the X509Certificate and its SAN hostnames; expiry findings come
-    from the existing expiring-certificate bit, SAN hostnames feed asset discovery."""
+    """Build the X509CertificateV2 and its SAN hostnames; expiry findings come
+    from the bit at run time, SAN hostnames feed asset discovery.
+
+    l9format has no serial number and no full subject DN: the fingerprint is
+    the certificate's identity (it is the lowercase SHA-256 of the DER —
+    verified against a live capture — so leakix certificates dedup with the
+    same certificate seen through the DER path), the subject is rendered as
+    a CN= DN from the API's common_name, and the issuer stays as the API
+    renders it.
+    """
     certificate_data = get_certificate_data(event)
     if not certificate_data:
         return
 
-    valid_until = certificate_data["not_after"]
-    certificate = X509Certificate(
-        subject=certificate_data.get("cn") or None,
+    certificate = X509CertificateV2(
+        fingerprint=certificate_data["fingerprint"],
+        subject=f"CN={certificate_data['cn']}" if certificate_data.get("cn") else None,
         issuer=certificate_data.get("issuer_name") or None,
         valid_from=certificate_data["not_before"],
-        valid_until=valid_until,
+        valid_until=certificate_data["not_after"],
         pk_algorithm=certificate_data.get("key_algo") or None,
-        pk_size=certificate_data.get("key_size") or None,
-        serial_number=certificate_data["fingerprint"],
-        expires_in=parse_datetime(valid_until).astimezone(UTC) - datetime.now(UTC),
     )
     yield certificate
 
     for san in certificate_data.get("domain") or []:
         if "*" in san:
-            yield SubjectAlternativeNameQualifier(name=san, certificate=certificate.reference)
+            yield SubjectAlternativeNameQualifierV2(name=san, certificate=certificate.reference)
         else:
             hostname = Hostname(name=san, network=network_reference)
             yield hostname
-            yield SubjectAlternativeNameHostname(hostname=hostname.reference, certificate=certificate.reference)
+            yield SubjectAlternativeNameHostnameV2(hostname=hostname.reference, certificate=certificate.reference)
 
 
 def handle_leak(event, event_ooi_reference, software_ooi):

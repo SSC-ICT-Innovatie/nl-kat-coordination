@@ -1,5 +1,4 @@
 import json
-from datetime import UTC, datetime
 
 from pydantic import TypeAdapter
 
@@ -7,9 +6,9 @@ import boefjes.plugins.kat_leakix.normalize as leakix_normalize
 from boefjes.plugins.kat_leakix.normalize import run
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
-    SubjectAlternativeNameHostname,
-    SubjectAlternativeNameQualifier,
-    X509Certificate,
+    SubjectAlternativeNameHostnameV2,
+    SubjectAlternativeNameQualifierV2,
+    X509CertificateV2,
 )
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import AutonomousSystem, IPAddressV4, IPPort
@@ -17,24 +16,8 @@ from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.types import OOIType
 from tests.loading import get_dummy_data
 
-# The example.com fixture was captured on 2024-02-14; freezing the clock there
-# keeps time-derived attributes (X509Certificate.expires_in) deterministic so
-# the full-output snapshot can be compared byte-for-byte.
-FIXTURE_CAPTURE_TIME = datetime(2024, 2, 14, 13, 0, 0, tzinfo=UTC)
 
-
-class FixedDatetime(datetime):
-    @classmethod
-    def now(cls, tz=None):
-        return FIXTURE_CAPTURE_TIME if tz else FIXTURE_CAPTURE_TIME.replace(tzinfo=None)
-
-
-def freeze_normalizer_clock(monkeypatch):
-    monkeypatch.setattr(leakix_normalize, "datetime", FixedDatetime)
-
-
-def test_output(monkeypatch):
-    freeze_normalizer_clock(monkeypatch)
+def test_output():
     input_ooi = TypeAdapter(OOIType).validate_python(
         {
             "object_type": "HostnameHTTPURL",
@@ -57,8 +40,7 @@ def _get_hostname_input_ooi():
     )
 
 
-def test_leak_findings_are_enriched(monkeypatch):
-    freeze_normalizer_clock(monkeypatch)
+def test_leak_findings_are_enriched():
     input_ooi = _get_hostname_input_ooi()
 
     output = list(run(input_ooi.serialize(), get_dummy_data("raw/leakix-example.com.json")))
@@ -80,9 +62,8 @@ def test_leak_findings_are_enriched(monkeypatch):
     assert any(f.description and "First seen: " in f.description for f in findings)
 
 
-def test_leak_findings_bind_to_the_scanned_asset_not_the_software(monkeypatch):
+def test_leak_findings_bind_to_the_scanned_asset_not_the_software():
     """A leak is a property of the host, not of the software product (#3211)."""
-    freeze_normalizer_clock(monkeypatch)
     input_ooi = _get_hostname_input_ooi()
 
     output = list(run(input_ooi.serialize(), get_dummy_data("raw/leakix-example.com.json")))
@@ -181,7 +162,7 @@ def test_cve_tags_bind_to_software():
 
 def test_certificate_extraction_keeps_newest_observation_per_endpoint():
     output = _run_enrichment_fixture()
-    certificates = [o for o in output if isinstance(o, X509Certificate)]
+    certificates = [o for o in output if isinstance(o, X509CertificateV2)]
 
     # Two observations exist for example.com:443 (a renewed R12 certificate and
     # the older R11 one); only the newest may be emitted so the old certificate
@@ -189,18 +170,19 @@ def test_certificate_extraction_keeps_newest_observation_per_endpoint():
     assert len(certificates) == 1
     certificate = certificates[0]
     assert certificate.issuer == "R12"
-    assert certificate.subject == "example.com"
-    assert certificate.serial_number == "3f2a1b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708"
+    assert certificate.subject == "CN=example.com"
+    # No serial exists in l9format: the fingerprint is the identity.
+    assert certificate.fingerprint == "3f2a1b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708"
+    assert certificate.serial_number is None
     assert certificate.pk_algorithm == "RSA"
-    assert certificate.pk_size == 2048
     assert certificate.valid_until == "2026-08-13T00:00:00Z"
 
 
 def test_certificate_sans_feed_hostname_discovery():
     output = _run_enrichment_fixture()
 
-    san_hostnames = [o for o in output if isinstance(o, SubjectAlternativeNameHostname)]
-    san_qualifiers = [o for o in output if isinstance(o, SubjectAlternativeNameQualifier)]
+    san_hostnames = [o for o in output if isinstance(o, SubjectAlternativeNameHostnameV2)]
+    san_qualifiers = [o for o in output if isinstance(o, SubjectAlternativeNameQualifierV2)]
     hostnames = {o.name for o in output if isinstance(o, Hostname)}
 
     assert len(san_hostnames) == 2
@@ -256,7 +238,7 @@ def test_components_can_be_disabled():
     )
 
     assert not any(isinstance(o, AutonomousSystem) for o in output)
-    assert not any(isinstance(o, X509Certificate) for o in output)
+    assert not any(isinstance(o, X509CertificateV2) for o in output)
     assert not any(isinstance(o, Software) for o in output)
     assert not any(o.object_type == "Finding" and "KAT-TLS" in str(o.finding_type) for o in output)
 
@@ -280,7 +262,7 @@ def _run_hostdetails_fixture():
 
 def test_hostdetails_capture_keeps_newest_certificate_per_endpoint():
     output = _run_hostdetails_fixture()
-    certificates = {c.serial_number[:8]: c for c in output if isinstance(c, X509Certificate)}
+    certificates = {c.fingerprint[:8]: c for c in output if isinstance(c, X509CertificateV2)}
 
     # The capture holds three distinct certificates; the renewed-away one
     # (expired 2026-06-14, last seen 2026-05-09) must not be emitted, the
@@ -291,7 +273,9 @@ def test_hostdetails_capture_keeps_newest_certificate_per_endpoint():
     assert certificates["5ec5563e"].issuer == "R13"
 
     # The wildcard SAN from the live certificate becomes a qualifier
-    assert any(o.name == "*.example.org" for o in output if isinstance(o, SubjectAlternativeNameQualifier))
+    assert any(
+        o.name == "*.example.org" for o in output if isinstance(o, SubjectAlternativeNameQualifierV2)
+    )
 
 
 def test_hostdetails_capture_emits_conflicting_as_but_no_netblocks():
@@ -318,9 +302,8 @@ def test_hostdetails_capture_leak_binding_and_software():
     assert ("Debian", None) in software  # service.software.os
 
 
-def test_old_format_enables_all_components(monkeypatch):
+def test_old_format_enables_all_components():
     """Raw files from before the component toggles existed extract everything."""
-    freeze_normalizer_clock(monkeypatch)
     input_ooi = _get_hostname_input_ooi()
 
     output = list(run(input_ooi.serialize(), get_dummy_data("raw/leakix-example.com.json")))
@@ -328,7 +311,7 @@ def test_old_format_enables_all_components(monkeypatch):
     assert any(isinstance(o, AutonomousSystem) for o in output)
     assert any(isinstance(o, Software) for o in output)
     # The old-format fixture contains five events with real certificates
-    assert any(isinstance(o, X509Certificate) for o in output)
+    assert any(isinstance(o, X509CertificateV2) for o in output)
 
 
 def test_software_pipe_never_reaches_a_primary_key():
