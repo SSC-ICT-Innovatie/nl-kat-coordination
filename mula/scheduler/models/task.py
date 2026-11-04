@@ -148,10 +148,12 @@ class NormalizerTask(BaseModel):
     @property
     def hash(self) -> str:
         """Make NormalizerTask hashable, so that we can de-duplicate it when
-        used in the PriorityQueue. We hash the combination of the attributes
-        normalizer.id since this combination is unique."""
+        used in the PriorityQueue. We hash the combination of normalizer.id,
+        raw_data.id and organization since this combination is unique. The raw
+        data id is included because a boefje run may produce multiple raw files
+        that trigger the same normalizer (#5581)."""
         return mmh3.hash_bytes(
-            f"{self.normalizer.id}-{self.raw_data.boefje_meta.id}-{self.raw_data.boefje_meta.organization}"
+            f"{self.normalizer.id}-{self.raw_data.id}-{self.raw_data.boefje_meta.organization}"
         ).hex()
 
 

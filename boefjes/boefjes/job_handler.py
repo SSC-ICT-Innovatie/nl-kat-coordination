@@ -145,6 +145,25 @@ class LocalNormalizerHandler(NormalizerHandler):
         normalizer_meta = task.data
         logger.info("Handling normalizer %s[%s]", normalizer_meta.normalizer.id, normalizer_meta.id)
 
+        # A newer run of the same boefje on the same input may have completed while this task was
+        # queued. Its origins are swept, and results this task would produce would resurrect as
+        # orphaned OOIs, so skip it. (#5581)
+        boefje_meta = normalizer_meta.raw_data.boefje_meta
+        latest = self.bytes_client.get_boefje_metas(
+            boefje_meta.organization, boefje_id=boefje_meta.boefje.id, input_ooi=boefje_meta.input_ooi
+        )
+        if latest and latest[0].id != boefje_meta.id:
+            logger.info(
+                "Skipping normalizer %s[%s]: boefje run %s was superseded by run %s",
+                normalizer_meta.normalizer.id,
+                normalizer_meta.id,
+                boefje_meta.id,
+                latest[0].id,
+            )
+            normalizer_meta.ended_at = datetime.now(UTC)
+            self.bytes_client.save_normalizer_meta(normalizer_meta)
+            return
+
         raw = self.bytes_client.get_raw(normalizer_meta.raw_data.id)
 
         normalizer_meta.started_at = datetime.now(UTC)
@@ -167,6 +186,7 @@ class LocalNormalizerHandler(NormalizerHandler):
                         method=normalizer_meta.normalizer.id,
                         source=reference,
                         source_method=normalizer_meta.raw_data.boefje_meta.boefje.id,
+                        raw_file=normalizer_meta.raw_data.name,
                         task_id=normalizer_meta.id,
                         valid_time=normalizer_meta.raw_data.boefje_meta.ended_at,
                         result=[ooi for ooi in observation.results if ooi.primary_key != observation.input_ooi],
@@ -206,6 +226,7 @@ class LocalNormalizerHandler(NormalizerHandler):
                         method=normalizer_meta.normalizer.id,
                         source=Reference.from_str(normalizer_meta.raw_data.boefje_meta.input_ooi),
                         source_method=normalizer_meta.raw_data.boefje_meta.boefje.id,
+                        raw_file=normalizer_meta.raw_data.name,
                         task_id=normalizer_meta.id,
                         valid_time=normalizer_meta.raw_data.boefje_meta.ended_at,
                         result=[],

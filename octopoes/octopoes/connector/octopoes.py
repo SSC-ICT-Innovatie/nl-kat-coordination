@@ -199,6 +199,7 @@ class OctopoesAPIConnector:
         offset: int = DEFAULT_OFFSET,
         limit: int = DEFAULT_LIMIT,
         source: Reference | None = None,
+        source_method: str | None = None,
         result: Reference | None = None,
         method: str | list[str] | None = None,
         task_id: UUID | None = None,
@@ -207,6 +208,7 @@ class OctopoesAPIConnector:
         params = {
             "valid_time": str(valid_time),
             "source": source,
+            "source_method": source_method,
             "result": result,
             "offset": offset,
             "limit": limit,
@@ -228,6 +230,21 @@ class OctopoesAPIConnector:
         self.logger.info(
             "Deleted origin", origin_id=origin_id, valid_time=valid_time, event_code=ORIGIN_DELETED, sync=sync
         )
+
+    def delete_origins(self, source: Reference, source_method: str, valid_time: datetime, sync: bool = False) -> int:
+        """Delete all origins reachable through `source_method` starting from `source` and return the number
+        of deleted origins. Used to garbage-collect the origins of a superseded boefje run (#5581)."""
+        params = {"valid_time": str(valid_time), "source": str(source), "source_method": source_method}
+        if sync:
+            params["sync"] = "true"
+        res = self.session.delete(f"/{self.client}/origins", params=params)
+
+        deleted = int(res.json() or 0)
+        self.logger.info(
+            "Deleted %d origins", deleted, source=source, source_method=source_method, valid_time=valid_time, sync=sync
+        )
+
+        return deleted
 
     def save_observation(self, observation: Observation, sync: bool = False) -> None:
         params = {}

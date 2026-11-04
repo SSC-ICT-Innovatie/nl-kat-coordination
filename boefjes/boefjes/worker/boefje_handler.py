@@ -6,6 +6,9 @@ from typing import Literal
 
 import structlog
 
+from boefjes.clients.scheduler_client import get_octopoes_api_connector
+from octopoes.models import Reference
+
 from .interfaces import BoefjeHandler, BoefjeOutput, BoefjeStorageInterface, File, JobRuntimeError, StatusEnum, Task
 from .job_models import BoefjeMeta
 from .repository import BoefjeResource, LocalPluginRepository, _default_mime_types
@@ -18,6 +21,36 @@ MIMETYPE_MIN_LENGTH = 5  # two chars before, and 2 chars after the slash ought t
 ERROR_MIMETYPE = "error/boefje"
 # Mime-type a boefje can return itself (with a human readable message as raw content) to signal it caught a timeout
 TIMEOUT_MIMETYPE = "error/timeout"
+
+
+def sweep_boefje_origins(boefje_meta: BoefjeMeta, boefje_output: BoefjeOutput) -> None:
+    """Garbage-collect octopoes origins produced by earlier runs of this boefje on this input OOI.
+
+    Called before new raw files are saved: the deletion commits at the new run's valid time, ahead
+    of any normalizer results the new raw files will trigger, so superseded origins are removed
+    while the new observations are unaffected. Raw files carrying an "error/" mime-type never
+    trigger normalizers, so an output containing only errors does not wipe the previous run's
+    results. A failing sweep must not break saving the output, hence the broad except. (#5581)
+    """
+    if not boefje_meta.input_ooi:
+        return
+
+    files = boefje_output.files or []
+    if not any(not any(tag.startswith("error/") for tag in file.tags or []) for file in files):
+        return
+
+    try:
+        connector = get_octopoes_api_connector(boefje_meta.organization)
+        connector.delete_origins(
+            source=Reference.from_str(boefje_meta.input_ooi),
+            source_method=boefje_meta.boefje.id,
+            valid_time=boefje_meta.ended_at or datetime.now(UTC),
+            sync=True,
+        )
+    except Exception:
+        logger.exception(
+            "Failed to sweep superseded origins for boefje %s[%s]", boefje_meta.boefje.id, boefje_meta.id
+        )
 
 
 class TemporaryEnvironment:
@@ -45,6 +78,7 @@ def _copy_raw_files(
         new_boefje_meta.started_at = boefje_meta.started_at
         new_boefje_meta.ended_at = boefje_meta.ended_at
 
+        sweep_boefje_origins(new_boefje_meta, boefje_output)
         storage.save_output(new_boefje_meta, boefje_output)
 
         logger.info("Saved raw files boefje %s[%s]", new_boefje_meta.boefje.id, new_boefje_meta.id)
@@ -137,6 +171,7 @@ class LocalBoefjeHandler(BoefjeHandler):
             status = StatusEnum.COMPLETED
 
         boefje_output = BoefjeOutput(status=status, files=files)
+        sweep_boefje_origins(boefje_meta, boefje_output)
         raw_file_ids = self.boefje_storage.save_output(boefje_meta, boefje_output)
 
         logger.info("Saved %s raw files for boefje %s[%s]", len(raw_file_ids), boefje_meta.boefje.id, boefje_meta.id)

@@ -48,6 +48,7 @@ def test_job_handler_respects_whitelist(normalizer_runner, mocker):
     octopoes = mocker.Mock()
 
     meta = NormalizerMeta.model_validate_json(get_dummy_data("external_db.json"))
+    bytes_mock.get_boefje_metas.return_value = [meta.raw_data.boefje_meta]
     task = Task(
         id=uuid.uuid4().hex,
         scheduler_id="test",
