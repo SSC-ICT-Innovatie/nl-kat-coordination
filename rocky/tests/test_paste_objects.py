@@ -121,3 +121,55 @@ def test_paste_objects_network(rf, redteam_member, mock_organization_view_octopo
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
     network_declaration = next(declaration for declaration in declarations if declaration.ooi.object_type == "Network")
     assert network_declaration.ooi.name == network_name
+
+
+def test_paste_objects_subnet(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """A CIDR becomes an IPV4NetBlock with its start IP declared alongside it."""
+    request = setup_request(
+        rf.post(
+            "paste_objects", {"objects": "192.0.2.0/24\n2001:db8::/32", "network": "internet", "clearance_level": ""}
+        ),
+        redteam_member.user,
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
+    object_types = [declaration.ooi.object_type for declaration in declarations]
+    # Order matters: a start IP is declared before its netblock.
+    assert object_types == ["Network", "IPAddressV4", "IPV4NetBlock", "IPAddressV6", "IPV6NetBlock"]
+
+    netblock = next(declaration.ooi for declaration in declarations if declaration.ooi.object_type == "IPV4NetBlock")
+    assert netblock.mask == 24
+    assert netblock.start_ip.tokenized.address == "192.0.2.0"
+
+
+def test_paste_objects_single_address_cidr(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """A /32 or /128 contains a single address and becomes an IP address object.
+
+    This mirrors the rule enforced by the dedicated subnet form
+    (SubnetAddForm) added on main.
+    """
+    request = setup_request(
+        rf.post("paste_objects", {"objects": "192.0.2.10/32", "network": "internet", "clearance_level": ""}),
+        redteam_member.user,
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
+    assert {declaration.ooi.object_type for declaration in declarations} == {"Network", "IPAddressV4"}
+
+
+def test_paste_objects_invalid_subnet(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """An invalid CIDR is reported per line, like other invalid values."""
+    request = setup_request(
+        rf.post("paste_objects", {"objects": "192.0.2.0/33", "network": "internet", "clearance_level": ""}),
+        redteam_member.user,
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    assert mock_organization_view_octopoes().save_many_declarations.call_count == 0
+    messages = list(request._messages)
+    assert "could not be created for line number(s): 1" in messages[0].message

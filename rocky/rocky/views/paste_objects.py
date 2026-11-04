@@ -74,7 +74,10 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         valid_time = datetime.now(UTC)
 
         declarations = [Declaration(ooi=network, valid_time=valid_time, task_id=task_id)]
-        declarations.extend(Declaration(ooi=ooi, valid_time=valid_time, task_id=task_id) for _, ooi in parsed)
+        for entry in parsed:
+            for dependency in entry.dependencies:
+                declarations.append(Declaration(ooi=dependency, valid_time=valid_time, task_id=task_id))
+            declarations.append(Declaration(ooi=entry.ooi, valid_time=valid_time, task_id=task_id))
 
         self.raise_clearances(form, parsed)
 
@@ -88,8 +91,8 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
             return self.add_error_notification(_("Failed to save data from the pasted objects"))
 
         counts: dict[str, int] = {}
-        for line_number, ooi in parsed:
-            counts[ooi.object_type] = counts.get(ooi.object_type, 0) + 1
+        for entry in parsed:
+            counts[entry.ooi.object_type] = counts.get(entry.ooi.object_type, 0) + 1
         summary = ", ".join(f"{count} × {object_type}" for object_type, count in sorted(counts.items()))
 
         return self.add_success_notification(_("Object(s) successfully added: ") + summary)
@@ -100,6 +103,6 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         if level == "":
             return
         try:
-            self.raise_clearance_levels([ooi.reference for _, ooi in parsed], int(level))
+            self.raise_clearance_levels([entry.ooi.reference for entry in parsed], int(level))
         except Exception:  # noqa: BLE001 - a failing clearance request should not block object creation
             self.add_error_notification(_("Could not set the requested clearance level."))
