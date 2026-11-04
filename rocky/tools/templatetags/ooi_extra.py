@@ -9,6 +9,7 @@ from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import OOI, Reference, ScanLevel
 from octopoes.models.ooi.findings import Finding, FindingType
+from tools.ooi_helpers import finding_display_proof, is_legacy_tls_cipher_finding
 from tools.view_helpers import get_ooi_url
 
 register = template.Library()
@@ -47,6 +48,16 @@ def get_type(x: Any) -> Any:
 @register.simple_tag()
 def ooi_url(routename: str, ooi_id: str, organization_code: str, **kwargs: str) -> str:
     return get_ooi_url(routename, ooi_id, organization_code, **kwargs)
+
+
+@register.filter()
+def display_proof(finding: Finding) -> str | None:
+    return finding_display_proof(finding)
+
+
+@register.filter()
+def is_legacy_cipher_finding(finding: Finding) -> bool:
+    return is_legacy_tls_cipher_finding(finding)
 
 
 @register.filter()
