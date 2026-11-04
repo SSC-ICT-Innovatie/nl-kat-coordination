@@ -431,6 +431,14 @@
     "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service. Modern clients also refuse to connect to sites using expired certificates.",
     "recommendation": "Replace the certificate with a valid one."
   },
+  "KAT-UNPARSEABLE-CERTIFICATE": {
+    "name": "Unparseable certificate in chain",
+    "description": "An entry in the certificate chain presented by this service could not be parsed as an X.509 certificate.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1",
+    "risk": "high",
+    "impact": "A broken certificate presentation can prevent clients from validating the service's certificate. If the entry is a corrupted transmission it may be transient; if the server consistently presents malformed data, TLS connections may fail or be vulnerable to downgrade attacks.",
+    "recommendation": "Inspect the certificate chain served by this endpoint and reissue or correctly deploy its certificates."
+  },
   "KAT-NO-DMARC": {
     "name": "No DMARC records found",
     "description": "This hostname does not have a DMARC record.",

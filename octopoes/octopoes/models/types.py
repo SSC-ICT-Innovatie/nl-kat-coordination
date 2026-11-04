@@ -11,8 +11,11 @@ from octopoes.models.exception import TypeNotFound
 from octopoes.models.ooi.certificate import (
     CertificateIssuerCandidate,
     SubjectAlternativeNameHostname,
+    SubjectAlternativeNameHostnameV2,
     SubjectAlternativeNameIP,
+    SubjectAlternativeNameIPV2,
     SubjectAlternativeNameQualifier,
+    SubjectAlternativeNameQualifierV2,
     TLSCertificateChain,
     X509Certificate,
     X509CertificateV2,
@@ -100,7 +103,10 @@ CertificateType: TypeAlias = (
     | TLSCertificateChain
     | SubjectAlternativeNameHostname
     | SubjectAlternativeNameIP
+    | SubjectAlternativeNameIPV2
     | SubjectAlternativeNameQualifier
+    | SubjectAlternativeNameHostnameV2
+    | SubjectAlternativeNameQualifierV2
     | CertificateIssuerCandidate
 )
 DnsType: TypeAlias = DNSZone | Hostname

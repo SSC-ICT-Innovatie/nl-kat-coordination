@@ -169,25 +169,30 @@ class SubjectAlternativeNameQualifier(SubjectAlternativeName):
 
 
 class X509CertificateV2(OOI):
-    """An X.509 certificate, identified by the SHA-256 fingerprint of its DER encoding.
+    """An X.509 certificate, identified by the SHA-256 fingerprint of its
+    DER encoding when the bytes were observed.
 
     Fixes the identity problems of X509Certificate: the fingerprint is a
-    collision-free content address (lowercase hex SHA-256 of the DER encoding),
-    the issuer is the full RFC4514 distinguished name, and serial_number is the
-    actual serial number. The full certificate is carried in raw.
+    collision-free content address (lowercase hex SHA-256 of the DER
+    encoding), the issuer is the full RFC4514 distinguished name, and
+    serial_number is the actual serial number. The full certificate is
+    carried in raw when it was observed; API-based sources that only see
+    metadata emit V2 without raw and without a fingerprint — their
+    identity is the (issuer, serial) pair they used to write V1 with.
 
-    Only collectors holding the actual certificate bytes can emit this object
-    (e.g. the SSL certificates boefje); API-based sources without DER keep
-    writing the legacy X509Certificate.
+    There is exactly one active certificate object version: V1 is
+    deprecated and no longer written.
     """
 
     object_type: Literal["X509CertificateV2"] = "X509CertificateV2"
 
-    # Identity: lowercase hex SHA-256 of the DER encoding (the hash of raw).
-    fingerprint: str
+    # Identity when the bytes were observed: lowercase hex SHA-256 of the
+    # DER encoding (the hash of raw).
+    fingerprint: str | None = None
 
-    # The full certificate: base64-encoded DER, no PEM armor. Mandatory.
-    raw: str
+    # The full certificate: base64-encoded DER, no PEM armor. Filled when
+    # the bytes were observed; API sources leave it unset.
+    raw: str | None = None
 
     # Full RFC4514 distinguished names.
     subject: str | None = None
@@ -214,9 +219,79 @@ class X509CertificateV2(OOI):
 
     _reverse_relation_names = {"signed_by": "signed_certificates_v2"}
 
+    @property
+    def natural_key(self) -> str:
+        # Identity with observed bytes: the content address. API-based
+        # sources without DER fall back to the (issuer, serial) pair —
+        # the same identity the deprecated V1 used, minus its collisions
+        # with the org-name issuer. A source providing neither is
+        # rejected at construction time by the normalizer.
+        if self.fingerprint is not None:
+            return self.fingerprint
+        return f"{self.issuer or ''}|{self.serial_number or ''}"
+
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        return f"Certificate {reference.tokenized.fingerprint[:16]}"
+        return f"Certificate {reference.natural_key[:16]}"
+
+
+class SubjectAlternativeNameIPV2(OOI):
+    """A subject alternative name that is an IP address, on an
+    X509CertificateV2.
+
+    Mirrors SubjectAlternativeNameIP for the fingerprint-identified
+    certificate.
+    """
+
+    object_type: Literal["SubjectAlternativeNameIPV2"] = "SubjectAlternativeNameIPV2"
+
+    certificate: Reference = ReferenceField(X509CertificateV2, max_issue_scan_level=1, max_inherit_scan_level=0)
+    address: Reference = ReferenceField(IPAddress, max_issue_scan_level=4, max_inherit_scan_level=0)
+
+    _natural_key_attrs = ["certificate", "address"]
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        return reference.tokenized.address.address
+
+
+class SubjectAlternativeNameHostnameV2(OOI):
+    """A subject alternative name that is a hostname, on an X509CertificateV2.
+
+    Mirrors SubjectAlternativeNameHostname for the fingerprint-identified
+    certificate.
+    """
+
+    object_type: Literal["SubjectAlternativeNameHostnameV2"] = "SubjectAlternativeNameHostnameV2"
+
+    certificate: Reference = ReferenceField(X509CertificateV2, max_issue_scan_level=1, max_inherit_scan_level=0)
+    hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=1, max_inherit_scan_level=0)
+
+    _natural_key_attrs = ["certificate", "hostname"]
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        return reference.tokenized.hostname.name
+
+
+class SubjectAlternativeNameQualifierV2(OOI):
+    """A subject alternative name that is not a plain hostname (e.g. a
+    wildcard), on an X509CertificateV2.
+
+    Mirrors SubjectAlternativeNameQualifier for the fingerprint-identified
+    certificate.
+    """
+
+    object_type: Literal["SubjectAlternativeNameQualifierV2"] = "SubjectAlternativeNameQualifierV2"
+
+    certificate: Reference = ReferenceField(X509CertificateV2, max_issue_scan_level=1, max_inherit_scan_level=0)
+    name: str
+
+    _natural_key_attrs = ["certificate", "name"]
+
+    @classmethod
+    def format_reference_human_readable(cls, reference: Reference) -> str:
+        return reference.tokenized.name
 
 
 class TLSCertificateChain(OOI):
@@ -298,3 +373,6 @@ TLSCertificateChain.model_rebuild()
 SubjectAlternativeNameHostname.model_rebuild()
 SubjectAlternativeNameIP.model_rebuild()
 SubjectAlternativeNameQualifier.model_rebuild()
+SubjectAlternativeNameHostnameV2.model_rebuild()
+SubjectAlternativeNameIPV2.model_rebuild()
+SubjectAlternativeNameQualifierV2.model_rebuild()
