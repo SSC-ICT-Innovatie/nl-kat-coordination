@@ -76,6 +76,25 @@ def test_normalizer_extracts_software_from_cpes():
     assert all(si.ooi.class_ == "IPService" for si in instances)
 
 
+def test_normalizer_keeps_port_and_service_for_tcpwrapped():
+    """A tcpwrapped service identification must not suppress the port or the
+    service observation: the port is open, and "tcpwrapped" is nmap's actual
+    identification of an unidentified open port (a TCP wrapper, an SNI proxy
+    dropping non-matching connections, or similar behavior)."""
+    input_ooi = IPAddressV4(network=Network(name="internet").reference, address="134.209.85.72")
+    output = list(run(input_ooi.serialize(), get_dummy_data("raw/nmap_tcpwrapped.xml")))
+
+    ip_ports = [ooi for ooi in output if ooi.object_type == "IPPort"]
+    services = [ooi for ooi in output if ooi.object_type == "Service"]
+    ip_services = [ooi for ooi in output if ooi.object_type == "IPService"]
+
+    assert len(ip_ports) == 1
+    assert ip_ports[0].port == 25
+    assert len(services) == 1
+    assert services[0].name == "tcpwrapped"
+    assert len(ip_services) == 1
+
+
 def get_pattern():
     max_65535 = r"(6553[0-5]|655[0-2]\d|65[0-4]\d{2}|6[0-4]\d{3}|[1-5]\d{4}|\d{1,4})"
     max_65535_or_port_range = f"({max_65535}|{max_65535}-{max_65535})"

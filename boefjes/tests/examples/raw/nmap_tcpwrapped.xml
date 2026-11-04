@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<!-- An open port where the service accepted the connection and closed it
+     without a payload exchange: nmap identifies it as "tcpwrapped". The same
+     pattern is produced by TCP wrappers, SNI proxies that drop non-matching
+     connections, and similar behavior. -->
+<nmaprun scanner="nmap" args="nmap">
+<host>
+<status state="up"/>
+<address addr="134.209.85.72" addrtype="ipv4"/>
+<hostnames/>
+<ports>
+<port protocol="tcp" portid="25"><state state="open" reason="syn-ack" reason_ttl="52"/><service name="tcpwrapped" method="probed" conf="3"/></port>
+</ports>
+</host>
+<runstats><finished/></runstats>
+</nmaprun>
