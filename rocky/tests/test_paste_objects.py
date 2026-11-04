@@ -173,3 +173,16 @@ def test_paste_objects_invalid_subnet(rf, redteam_member, mock_organization_view
     assert mock_organization_view_octopoes().save_many_declarations.call_count == 0
     messages = list(request._messages)
     assert "could not be created for line number(s): 1" in messages[0].message
+
+
+def test_paste_objects_bracketed_ipv6(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """Bracketed IPv6, the notation used in URLs, is recognized as an address."""
+    request = setup_request(
+        rf.post("paste_objects", {"objects": "[2001:db8::1]", "network": "internet", "clearance_level": ""}),
+        redteam_member.user,
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
+    assert {declaration.ooi.object_type for declaration in declarations} == {"Network", "IPAddressV6"}

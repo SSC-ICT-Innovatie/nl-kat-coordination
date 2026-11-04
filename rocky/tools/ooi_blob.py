@@ -79,13 +79,15 @@ def classify_ooi(value: str, network: Network) -> tuple[OOI, list[OOI]]:
             [start_ip],
         )
     try:
-        version = ipaddress.ip_address(value).version
+        # Tolerate bracketed IPv6, the notation used in URLs (e.g. [2001:db8::1]).
+        address = value.strip("[]")
+        version = ipaddress.ip_address(address).version
     except ValueError:
         # Not an IP address: must be a valid hostname (pydantic validates).
         return Hostname(name=value, network=network.reference), []
     if version == 6:
-        return IPAddressV6(address=value, network=network.reference), []
-    return IPAddressV4(address=value, network=network.reference), []
+        return IPAddressV6(address=address, network=network.reference), []
+    return IPAddressV4(address=address, network=network.reference), []
 
 
 def parse_ooi_blob(text: str, network_name: str = "internet") -> tuple[list[ParsedEntry], dict[int, str]]:
