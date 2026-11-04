@@ -2,6 +2,7 @@ from datetime import UTC, datetime
 from uuid import uuid4
 
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
+from django import forms
 from django.contrib import messages
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -19,11 +20,13 @@ PASTE_OBJECTS_MIME_TYPE = "manual/txt"
 
 
 class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
-    """Add objects by pasting a blob of IPv4/IPv6 addresses, hostnames and URLs.
+    """Add objects by pasting a blob of IPv4/IPv6 addresses, subnets, hostnames and URLs.
 
-    The type of each value is detected automatically (see
+    Works in two steps, like the dedicated subnet form: step 1 takes the
+    pasted blob, step 2 shows the detected object types for review. The
+    type of each value is detected automatically (see
     :mod:`tools.ooi_blob`), so users do not have to pick an object type
-    upfront like the single-object or CSV upload flows require.
+    upfront like the single-object flow requires.
     """
 
     template_name = "paste_objects.html"
@@ -35,6 +38,9 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["step"] = kwargs.get("step", 1)
+        context["parsed"] = kwargs.get("parsed")
+        context["errors"] = kwargs.get("errors", {})
         context["breadcrumbs"] = [
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
@@ -45,9 +51,25 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         return context
 
     def form_valid(self, form):
-        if not self.process_blob(form):
-            return redirect("paste_objects", organization_code=self.organization.code)
-        return super().form_valid(form)
+        if self.request.POST.get("step") == "2":
+            if not self.process_blob(form):
+                return redirect("paste_objects", organization_code=self.organization.code)
+            return super().form_valid(form)
+        return self.render_review(form)
+
+    def render_review(self, form):
+        """Show the detected object types per line and the clearance level select."""
+        parsed, errors = parse_ooi_blob(form.cleaned_data["objects"], form.cleaned_data["network"])
+
+        if not parsed:
+            line_numbers = ", ".join(map(str, sorted(errors)))
+            form.add_error("objects", _("Object(s) could not be created for line number(s): ") + line_numbers)
+            return self.render_to_response(self.get_context_data(form=form, step=1))
+
+        for field_name in ("objects", "network"):
+            form.fields[field_name].widget = forms.HiddenInput()
+
+        return self.render_to_response(self.get_context_data(form=form, step=2, parsed=parsed, errors=errors))
 
     def add_error_notification(self, error_message):
         messages.add_message(self.request, messages.ERROR, error_message)
@@ -61,11 +83,9 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         network_name = form.cleaned_data["network"]
         parsed, errors = parse_ooi_blob(form.cleaned_data["objects"], network_name)
 
-        if errors:
+        if not parsed:
             line_numbers = ", ".join(map(str, sorted(errors)))
             self.add_error_notification(_("Object(s) could not be created for line number(s): ") + line_numbers)
-
-        if not parsed:
             return False
 
         network = Network(name=network_name)

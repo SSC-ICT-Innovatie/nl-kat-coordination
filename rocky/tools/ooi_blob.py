@@ -28,9 +28,10 @@ SCHEME_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
 
 
 class ParsedEntry(NamedTuple):
-    """One valid value from the blob: source line, the OOI it maps to, and OOIs to declare alongside it."""
+    """One valid blob value: source line, original value, its OOI, and OOIs to declare alongside it."""
 
     line_number: int
+    value: str
     ooi: OOI
     dependencies: list[OOI]
 
@@ -104,7 +105,7 @@ def parse_ooi_blob(text: str, network_name: str = "internet") -> tuple[list[Pars
     for line_number, value in split_blob(text):
         try:
             ooi, dependencies = classify_ooi(value, network)
-            parsed.append(ParsedEntry(line_number=line_number, ooi=ooi, dependencies=dependencies))
+            parsed.append(ParsedEntry(line_number=line_number, value=value, ooi=ooi, dependencies=dependencies))
         except (ValidationError, ValueError):
             errors[line_number] = _format_error(value)
 

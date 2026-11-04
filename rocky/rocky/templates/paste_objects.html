@@ -11,87 +11,71 @@
             <div class="layout-form">
                 <h1>{% translate "Paste objects" %}</h1>
                 <p>
-                    {% translate "Add multiple hosts in one go. Each line may contain an IPv4 or IPv6 address, a hostname, or a URL — the type is detected automatically." %}
+                    {% if step == 2 %}
+                        {% translate "Step 2 of 2: review the detected object types and optionally set a clearance level. The objects are added on submit." %}
+                    {% else %}
+                        {% translate "Step 1 of 2: paste your objects. Each line may contain an IPv4 or IPv6 address, a subnet, a hostname, or a URL — the type is detected automatically." %}
+                    {% endif %}
                 </p>
-                <p>{% translate "These are the criteria for adding objects:" %}</p>
-                <ul>
-                    <li>{% translate "One object per line, or separated by commas. A single line may contain multiple values." %}</li>
-                    <li>{% translate "A value starting with http:// or https:// is added as a URL." %}</li>
-                    <li>{% translate "A subnet in CIDR notation (e.g. 192.0.2.0/24) is added as a netblock." %}</li>
-                    <li>{% translate "An IPv4 or IPv6 address is added as an IP address." %}</li>
-                    <li>{% translate "Anything else must be a valid hostname and is added as a hostname." %}</li>
-                    <li>{% translate "Lines that fail validation are reported back; all valid objects are still added." %}</li>
-                </ul>
+                {% if step == 1 %}
+                    <p>{% translate "These are the criteria for adding objects:" %}</p>
+                    <ul>
+                        <li>{% translate "One object per line, or separated by commas. A single line may contain multiple values." %}</li>
+                        <li>{% translate "A value starting with http:// or https:// is added as a URL." %}</li>
+                        <li>{% translate "A subnet in CIDR notation (e.g. 192.0.2.0/24) is added as a netblock." %}</li>
+                        <li>{% translate "An IPv4 or IPv6 address is added as an IP address." %}</li>
+                        <li>{% translate "Anything else must be a valid hostname and is added as a hostname." %}</li>
+                    </ul>
+                {% endif %}
                 <form novalidate method="post" class="help">
                     {% csrf_token %}
-                    {% for field in form %}
-                        {% include "partials/form/field_input_wrapper.html" %}
+                    {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
+                    {% if step == 2 %}
+                        {% if errors %}
+                            <div class="warning">
+                                {% translate "These lines could not be interpreted and will not be added:" %}
+                                <ul>
+                                    {% for line_number, error in errors.items %}<li>{{ line_number }}. {{ error }}</li>{% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        <fieldset>
+                            <div>
+                                <label>{% translate "Objects" %}</label>
+                                <ul>
+                                    {% for entry in parsed %}
+                                        <li>
+                                            {{ entry.line_number }}. <code>{{ entry.value }}</code> → {{ entry.ooi.object_type }}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div>
+                                <label>{% translate "Network" %}</label>
+                                <p>{{ form.network.value }}</p>
+                            </div>
+                        </fieldset>
+                        {{ form.objects }}
+                        {{ form.network }}
+                        <input type="hidden" name="step" value="2">
+                        {% include "partials/form/field_input_wrapper.html" with field=form.clearance_level %}
 
-                    {% endfor %}
-                    <div id="paste-preview" hidden>
-                        <h2>{% translate "Detected objects" %}</h2>
-                        <ul id="paste-preview-entries">
-                        </ul>
-                    </div>
-                    <button type="submit">{% translate "Add objects" %}</button>
+                        <button type="submit">{% translate "Add objects" %}</button>
+                        <a href="{% url "paste_objects" organization_code=organization.code %}">{% translate "Back" %}</a>
+                    {% else %}
+                        <fieldset>
+                            {% for field in form %}
+                                {% if field.name != "clearance_level" %}
+                                    {% include "partials/form/field_input_wrapper.html" %}
+
+                                {% endif %}
+                            {% endfor %}
+                        </fieldset>
+                        <input type="hidden" name="step" value="1">
+                        <button type="submit">{% translate "Next — review" %}</button>
+                    {% endif %}
                 </form>
             </div>
         </section>
     </main>
-    <script nonce="{{ request.csp_nonce }}">
-        (function () {
-            var textarea = document.getElementById("id_objects");
-            var preview = document.getElementById("paste-preview");
-            var entries = document.getElementById("paste-preview-entries");
-            if (!textarea) {
-                return;
-            }
-            // Mirrors the server-side parser: URL (scheme present) > IPv4/IPv6 > hostname.
-            function classify(value) {
-                if (/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//.test(value)) {
-                    return "URL";
-                }
-                if (/^(\d{1,3}\.){3}\d{1,3}$/.test(value) && value.split(".").every(function (octet) {
-                    return Number(octet) <= 255;
-                })) {
-                    return "IPv4";
-                }
-                if (/^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/.test(value) && value.indexOf(":") !== -1) {
-                    return "IPv6";
-                }
-                if (/^([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/.test(value)) {
-                    return "Hostname";
-                }
-                return "invalid";
-            }
-
-            function renderPreview() {
-                var lines = textarea.value.split("\n");
-                entries.textContent = "";
-                var count = 0;
-                lines.forEach(function (line, index) {
-                    line.split(/[,\s]+/).forEach(function (value) {
-                        if (!value) {
-                            return;
-                        }
-                        count++;
-                        var li = document.createElement("li");
-                        var number = document.createElement("span");
-                        number.textContent = index + 1;
-                        var val = document.createElement("span");
-                        val.textContent = value;
-                        var type = document.createElement("span");
-                        type.textContent = classify(value);
-                        li.appendChild(number);
-                        li.appendChild(val);
-                        li.appendChild(type);
-                        entries.appendChild(li);
-                    });
-                });
-                preview.hidden = count === 0;
-            }
-
-            textarea.addEventListener("input", renderPreview);
-        })();
-    </script>
 {% endblock content %}
