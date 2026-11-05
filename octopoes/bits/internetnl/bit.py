@@ -18,6 +18,16 @@ BIT = BitDefinition(
         BitParameterDefinition(
             ooi_type=Finding, relation_path="ooi [is HostnameHTTPURL].netloc"
         ),  # findings on weburls
+        BitParameterDefinition(
+            ooi_type=Finding,
+            relation_path="ooi [is IPAddress]",  # findings on the address (HTTPS-NOT-AVAILABLE)
+        ),
+        BitParameterDefinition(
+            # chain-bound findings (hostname mismatch) on services named by
+            # this hostname
+            ooi_type=Finding,
+            relation_path="ooi [is TLSCertificateChain].hostname_ip_service.hostname",
+        ),
         BitParameterDefinition(ooi_type=Website, relation_path="hostname"),  # only websites have to comply
     ],
     module="bits.internetnl.internetnl",

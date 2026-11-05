@@ -144,9 +144,14 @@ def _parse_server_preference(output: list[dict]) -> dict[str, str]:
     return preferences
 
 
-def _references(input_ooi: dict) -> tuple[Reference, Reference | None]:
+def _references(input_ooi: dict) -> tuple[Reference, Reference | None, Reference | None]:
+    """Resolve the input to (ip_service, hostname, hostname_ip_service).
+
+    A HostnameIPService input yields all three; a bare IPService input (a
+    connection without a server name) yields only the IPService.
+    """
     primary_reference = Reference.from_str(input_ooi["primary_key"])
-    if input_ooi.get("object_type") == "HostnameService":
+    if input_ooi.get("object_type") == "HostnameIPService":
         tokenized = primary_reference.tokenized
         ip_service = tokenized.ip_service
         hostname = tokenized.hostname
@@ -155,14 +160,14 @@ def _references(input_ooi: dict) -> tuple[Reference, Reference | None]:
             f"{ip_service.ip_port.protocol}|{ip_service.ip_port.port}|{ip_service.service.name}"
         )
         hostname_reference = Reference.from_str(f"Hostname|{hostname.network.name}|{hostname.name}")
-        return ip_service_reference, hostname_reference
+        return ip_service_reference, hostname_reference, primary_reference
 
     # Backwards compatibility for old IPService normalizer invocations.
-    return primary_reference, None
+    return primary_reference, None, None
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    ip_service_reference, hostname_reference = _references(input_ooi)
+    ip_service_reference, hostname_reference, hostname_ip_service_reference = _references(input_ooi)
     output = json.loads(raw)
     if not isinstance(output, list):
         raise ValueError("Unexpected testssl JSON: expected an array of findings")
@@ -181,6 +186,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield TLSCipher(
             ip_service=ip_service_reference,
             hostname=hostname_reference,
+            hostname_ip_service=hostname_ip_service_reference,
             suites=tls_dict,
             server_preference=_parse_server_preference(output),
         )

@@ -1,95 +1,383 @@
-import datetime
-import ipaddress
-import logging
+import base64
+import hashlib
 import re
-from collections import defaultdict
+import ssl
 from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
+from functools import cache
 
 from cryptography import x509
 from cryptography.exceptions import InvalidSignature, UnsupportedAlgorithm
-from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, rsa
-from dateutil.parser import parse
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import ec, ed448, ed25519, mldsa, rsa
 
-from boefjes.normalizer_models import NormalizerAffirmation, NormalizerOutput
+from boefjes.normalizer_models import NormalizerOutput
 from octopoes.models import Reference
 from octopoes.models.ooi.certificate import (
-    AlgorithmType,
-    CertificateIssuerCandidate,
     SignatureVerificationStatus,
-    SubjectAlternativeName,
-    SubjectAlternativeNameHostname,
-    SubjectAlternativeNameIP,
-    SubjectAlternativeNameQualifier,
-    X509Certificate,
+    SubjectAlternativeNameHostnameV2,
+    SubjectAlternativeNameIPV2,
+    SubjectAlternativeNameQualifierV2,
+    TLSCertificateChain,
+    X509CertificateV2,
 )
 from octopoes.models.ooi.dns.zone import Hostname
-from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, PortState, Protocol
-from octopoes.models.ooi.service import IPService, Service
-from octopoes.models.ooi.web import Website
+from octopoes.models.ooi.findings import Finding, KATFindingType
+from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
+from octopoes.models.ooi.service import HostnameIPService
+
+CERTIFICATE_RE = re.compile(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", flags=re.DOTALL)
+HOSTNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.?$")
+
+# Renewal practice: a certificate should be renewed at two-thirds of its
+# lifetime. "Expiring soon" means the un-renewed certificate is past that
+# point. The detection lag (about a scan interval) is subtracted so the
+# finding is only raised when it is observable in time.
+RENEWAL_FRACTION = 3
+DETECTION_LAG = timedelta(days=2)
+
+
+@cache
+def _trust_anchors() -> tuple[x509.Certificate, ...]:
+    """The system trust store of the worker image, loaded through the
+    standard SSL context (/etc/ssl/certs/ca-certificates.crt on Debian)."""
+    try:
+        context = ssl.create_default_context()
+        return tuple(x509.load_der_x509_certificate(der) for der in context.get_ca_certs(binary_form=True))
+    except OSError:
+        return ()
+
+
+def _issued_by(certificate: x509.Certificate, issuer: x509.Certificate) -> bool:
+    """Name match plus signature verification (RFC 5280 §6 path building's
+    basic step). Unsupported algorithms count as "not issued by"."""
+    try:
+        certificate.verify_directly_issued_by(issuer)
+        return True
+    except (ValueError, TypeError, InvalidSignature, UnsupportedAlgorithm):
+        return False
+
+
+def _anchored(
+    certificate: x509.Certificate, presented: list[x509.Certificate], anchor_fingerprints: set[bytes], visiting: tuple
+) -> bool:
+    """Whether a client can reach a trust anchor from this certificate using
+    the presentation and the trust store. A certificate is anchored when it
+    is a trust anchor, verifies against one, or verifies against another
+    presented certificate that is itself anchored (recursively, with cycle
+    protection for cross-signed intermediates). Issuing itself does not
+    count: that is what makes a self-signed leaf incomplete."""
+    if certificate.fingerprint(hashes.SHA256()) in anchor_fingerprints:
+        return True
+    if any(_issued_by(certificate, anchor) for anchor in _trust_anchors()):
+        return True
+    return any(
+        other is not certificate
+        and other not in visiting
+        and _issued_by(certificate, other)
+        and _anchored(other, presented, anchor_fingerprints, visiting + (certificate,))
+        for other in presented
+    )
+
+
+def is_part_of_wildcard(hostname: str, wildcard: str) -> bool:
+    # according to rfc2459 wildcard certificates can only be used for subdomains
+    if not wildcard.startswith("*"):
+        return False
+    wildcard_domain = wildcard[2:].rstrip(".")
+    higher_level_domain = ".".join(hostname.split(".")[1:])
+    return wildcard_domain == higher_level_domain
 
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
-    contents = raw.decode(errors="replace")
+    """Parse openssl s_client output into certificates and certificate chains.
 
-    if "-----BEGIN CERTIFICATE-----" not in contents:
+    A HostnameIPService input is a connection for that server name; a bare
+    IPService input is a connection without a server name, whose presentation
+    is valid for the null server name only.
+    """
+    object_type = input_ooi.get("object_type")
+    if object_type not in ("IPService", "HostnameIPService"):
         return
 
-    pk = input_ooi["primary_key"]
+    endpoint = Reference.from_str(input_ooi["primary_key"])
+    tokenized = endpoint.tokenized
+    ip_service_token = tokenized if object_type == "IPService" else tokenized.ip_service
+    network_name = ip_service_token.ip_port.address.network.name
+    ip_service_reference = (
+        endpoint
+        if object_type == "IPService"
+        else Reference.from_str(
+            f"IPService|{network_name}|{ip_service_token.ip_port.address.address}|"
+            f"{ip_service_token.ip_port.protocol}|{ip_service_token.ip_port.port}|{ip_service_token.service.name}"
+        )
+    )
+    input_hostname = tokenized.hostname.name if object_type == "HostnameIPService" else None
 
-    # extract all certificates
-    certificates, certificate_subject_alternative_names, hostnames, issuer_candidates = read_certificates(
-        contents, Reference.from_str(pk)
+    contents = raw.decode(errors="replace")
+
+    # Entries in wire order: (position, raw bytes, parsed certificate or None).
+    entries = [
+        (position, *parse_certificate(block.group().encode()))
+        for position, block in enumerate(CERTIFICATE_RE.finditer(contents))
+    ]
+    if not entries:
+        return
+
+    parsed_entries = [(position, der, parsed) for position, der, parsed in entries if parsed is not None]
+
+    # Content-addressed certificates: identical certificates dedup via the
+    # fingerprint key; every presented position keeps its own reference.
+    certificates: dict[str, X509CertificateV2] = {}
+    parsed_by_ooi: dict[str, x509.Certificate] = {}
+    for _position, der, parsed in parsed_entries:
+        fingerprint = hashlib.sha256(der).hexdigest()
+        if fingerprint not in certificates:
+            certificates[fingerprint] = certificate_ooi(der, parsed)
+            parsed_by_ooi[fingerprint] = parsed
+
+    # Issuer relationships within this presentation: verify each candidate
+    # and set signed_by on the first verified issuer in wire order.
+    pairs = [(certificates[f], parsed_by_ooi[f]) for f in certificates]
+    ordered_references = [ooi.reference for ooi, _ in pairs]
+    for ooi, parsed in pairs:
+        for candidate_ooi, candidate_parsed in pairs:
+            if candidate_ooi is ooi:
+                continue
+            if verify_certificate_signature(parsed, candidate_parsed) == SignatureVerificationStatus.VERIFIED:
+                ooi.signed_by = candidate_ooi.reference
+                break
+
+    chain = TLSCertificateChain(
+        presentation_hash=presentation_hash(entries),
+        presented_certificates=ordered_references,
+        **{("hostname_ip_service" if object_type == "HostnameIPService" else "ip_service"): endpoint},
+    )
+    yield chain
+
+    # --- Assessment of the presentation. These findings are properties of
+    # what was just observed, and only a live observation knows which
+    # certificates the endpoint currently presents: a bit would also fire on
+    # objects from renewals long past. Bound to the chain per the
+    # capability-variant rule, except expiry, which is about the certificate
+    # itself. ---
+    now = datetime.now(UTC)
+    expired = []
+    expiring = []
+    for ooi, parsed_cert in pairs:
+        assert ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
+        valid_until = parsed_cert.not_valid_after_utc
+        lifetime = valid_until - parsed_cert.not_valid_before_utc
+        remaining = valid_until - now
+        if remaining <= timedelta(0):
+            expired.append(
+                (ooi.reference, f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until.isoformat()}.")
+            )
+            continue
+        renewal_point = lifetime / RENEWAL_FRACTION - DETECTION_LAG
+        if renewal_point > timedelta(0) and remaining < renewal_point:
+            expiring.append(
+                (
+                    ooi.reference,
+                    f"TLS certificate {ooi.fingerprint[:16]} is past its renewal point: it expires at"
+                    f" {ooi.valid_until.isoformat()}, in {remaining.days} days. If renewal is automated, the"
+                    " automation has not replaced it.",
+                )
+            )
+    for finding_id, targets in (("KAT-CERTIFICATE-EXPIRED", expired), ("KAT-CERTIFICATE-EXPIRING-SOON", expiring)):
+        if targets:
+            ft = KATFindingType(id=finding_id)
+            yield ft
+            for ooi_reference, description in targets:
+                yield Finding(ooi=ooi_reference, finding_type=ft.reference, description=description)
+
+    anchors = _trust_anchors()
+    if anchors:
+        anchor_fingerprints = {anchor.fingerprint(hashes.SHA256()) for anchor in anchors}
+        parsed_certs = [parsed for _, parsed in pairs]
+
+        # The leaf is the certificate that issues nobody else in the
+        # presentation. A self-signed leaf gets its own finding (one meaning
+        # per type) and is not counted as an incomplete chain: it is not a
+        # CA-issued chain missing something, it is not a chain at all.
+        leaf_pairs = [
+            (ooi, parsed)
+            for ooi, parsed in pairs
+            if not any(_issued_by(other_parsed, parsed) for other_ooi, other_parsed in pairs if other_ooi is not ooi)
+        ]
+        if len(leaf_pairs) == 1:
+            leaf_ooi, leaf = leaf_pairs[0]
+            assert leaf_ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
+            if leaf.subject == leaf.issuer and leaf.fingerprint(hashes.SHA256()) not in anchor_fingerprints:
+                ft = KATFindingType(id="KAT-SELF-SIGNED-CERTIFICATE")
+                yield ft
+                yield Finding(
+                    ooi=chain.reference,
+                    finding_type=ft.reference,
+                    description=f"The certificate presented for this service is self-signed: "
+                    f"{leaf_ooi.fingerprint[:16]} (subject {leaf.subject.rfc4514_string()}).",
+                )
+            elif not _anchored(leaf, parsed_certs, anchor_fingerprints, ()):
+                # Only the leaf's path to a root matters: extra presented
+                # certificates (cross-signs, alternate chains) are means,
+                # not obligations. A client validates the leaf; an
+                # unanchored cross-sign does not make the presentation
+                # incomplete (the classic LE long-chain shape).
+                ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
+                yield ft
+                yield Finding(
+                    ooi=chain.reference,
+                    finding_type=ft.reference,
+                    description="The presented certificate chain does not verifiably terminate at a trusted "
+                    f"root for: {leaf.subject.rfc4514_string()} ({leaf_ooi.fingerprint[:16]}).",
+                )
+
+    # Hostname mismatch: the server name of the presentation against the
+    # leaf's SAN names. A connection without a server name claims nothing
+    # and is never assessed; the finding binds to the chain because a
+    # HostnameIPService has a presentation per client capability variant.
+    if input_hostname is not None and pairs:
+        hostname = input_hostname.rstrip(".")
+        # The leaf is the certificate that issues nobody else in the
+        # presentation.
+        leaf_pairs = [
+            (ooi, parsed)
+            for ooi, parsed in pairs
+            if not any(_issued_by(other_parsed, parsed) for other_ooi, other_parsed in pairs if other_ooi is not ooi)
+        ]
+        if len(leaf_pairs) == 1:
+            leaf_ooi, leaf = leaf_pairs[0]
+            assert leaf_ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
+            # The names a client may match against are the SAN's DNS names
+            # (RFC 6125 6.4.4 permits a CN fallback only for legacy clients;
+            # modern clients ignore the common name, so a SAN-less
+            # certificate is rejected regardless of its CN). A certificate
+            # without a SAN therefore never matches — matching V1's
+            # behavior, where a SAN-less certificate fired the mismatch.
+            try:
+                names = {
+                    name.value.rstrip(".").lower()
+                    for name in leaf.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+                    if isinstance(name, x509.DNSName)
+                }
+            except x509.ExtensionNotFound:
+                names = set()
+            host = hostname.lower()
+            if host not in names and not any(is_part_of_wildcard(host, wildcard) for wildcard in names):
+                ft = KATFindingType(id="KAT-SSL-CERT-HOSTNAME-MISMATCH")
+                yield ft
+                yield Finding(
+                    ooi=chain.reference,
+                    finding_type=ft.reference,
+                    description=f"The hostname {hostname} does not match the certificate "
+                    f"{leaf_ooi.fingerprint[:16]} presented for it (names: {', '.join(sorted(names)) or 'none'}).",
+                )
+
+    network = Reference.from_str(f"Network|{network_name}")
+
+    # SANs are declared per certificate: hostnames (for DNS scheduling),
+    # non-hostname names (wildcards), and IP addresses — the objects the
+    # GUI and the hostname-mismatch bit consume. A HostnameIPService is
+    # yielded from the presentation itself: the server at this IP claimed
+    # this name; it converges with the discovery bit's DNS-derived pair
+    # via the natural key.
+    for ooi, parsed in pairs:
+        for name in subject_alternative_names(parsed):
+            if isinstance(name, x509.DNSName):
+                if "*" not in name.value and HOSTNAME_RE.fullmatch(name.value):
+                    hostname = Hostname(name=name.value, network=network)
+                    yield hostname
+                    yield SubjectAlternativeNameHostnameV2(certificate=ooi.reference, hostname=hostname.reference)
+                    yield HostnameIPService(ip_service=ip_service_reference, hostname=hostname.reference)
+                else:
+                    yield SubjectAlternativeNameQualifierV2(certificate=ooi.reference, name=name.value)
+            elif isinstance(name, x509.IPAddress):
+                ip_ooi = (
+                    IPAddressV4(network=network, address=name.value)
+                    if name.value.version == 4
+                    else IPAddressV6(network=network, address=name.value)
+                )
+                yield SubjectAlternativeNameIPV2(certificate=ooi.reference, address=ip_ooi.reference)
+
+    yield from certificates.values()
+
+    # A malformed entry produces no certificate; the finding carries its
+    # position and raw hash as proof.
+    malformed = [(position, der) for position, der, parsed in entries if parsed is None]
+    if malformed:
+        finding_type = KATFindingType(id="KAT-UNPARSEABLE-CERTIFICATE")
+        yield finding_type
+        for position, der in malformed:
+            yield Finding(
+                finding_type=finding_type.reference,
+                ooi=chain.reference,
+                proof=f"position={position};raw_hash={hashlib.sha256(der).hexdigest()}",
+            )
+
+
+def parse_certificate(pem: bytes) -> tuple[bytes, x509.Certificate | None]:
+    """Decode one PEM block to (raw bytes, certificate or None)."""
+    try:
+        parsed = x509.load_pem_x509_certificate(pem)
+        return parsed.public_bytes(serialization.Encoding.DER), parsed
+    except (ValueError, TypeError):
+        return pem, None
+
+
+def certificate_ooi(der: bytes, parsed: x509.Certificate) -> X509CertificateV2:
+    return X509CertificateV2(
+        fingerprint=hashlib.sha256(der).hexdigest(),
+        raw=base64.b64encode(der).decode(),
+        subject=parsed.subject.rfc4514_string(),
+        issuer=parsed.issuer.rfc4514_string(),
+        serial_number=format(parsed.serial_number, "x"),
+        valid_from=parsed.not_valid_before_utc,
+        valid_until=parsed.not_valid_after_utc,
+        pk_algorithm=pk_algorithm(parsed.public_key()),
+        signed_by=None,
     )
 
-    # connect server certificate to website
-    if certificates:
-        tokenized = Reference.from_str(pk).tokenized
-        addr = ipaddress.ip_address(tokenized.ip_service.ip_port.address.address)
-        network = Network(name=tokenized.ip_service.ip_port.address.network.name)
-        if isinstance(addr, ipaddress.IPv4Address):
-            ip_address = IPAddressV4(address=addr, network=network.reference)
-        else:
-            ip_address = IPAddressV6(address=addr, network=network.reference)
 
-        ip_port = IPPort(
-            address=ip_address.reference,
-            protocol=Protocol(tokenized.ip_service.ip_port.protocol),
-            port=int(tokenized.ip_service.ip_port.port),
-            state=PortState.OPEN,
-        )
-        ip_service = IPService(
-            ip_port=ip_port.reference, service=Service(name=tokenized.ip_service.service.name).reference
-        )
-        hostname = Hostname(
-            network=Network(name=tokenized.hostname.network.name).reference, name=tokenized.hostname.name
-        )
-        website = Website(
-            ip_service=ip_service.reference, hostname=hostname.reference, certificate=certificates[0].reference
-        )
-
-        # update website
-        yield NormalizerAffirmation(ooi=website)
-
-    # Yield certificates after their chain relationships have been resolved.
-    yield from certificates
-
-    # add all hostnames
-    yield from hostnames
-
-    # add all subject alternative names
-    yield from certificate_subject_alternative_names
-
-    # add all issuer candidates, both verified and invalid signatures
-    yield from issuer_candidates
+def presentation_hash(entries: list[tuple[int, bytes, x509.Certificate | None]]) -> str:
+    """SHA-256 over length-prefixed SHA-256 hashes of every raw presented
+    entry, in wire order — including entries that failed to parse."""
+    digest = hashlib.sha256()
+    for _position, der, _parsed in sorted(entries):
+        h = hashlib.sha256(der).hexdigest().encode()
+        digest.update(len(h).to_bytes(4, "big"))
+        digest.update(h)
+    return digest.hexdigest()
 
 
-# The caller should check the issuer claim first, and only attempt cryptographic verification for
-# candidates whose subject matches.
-def _verify_certificate_signature(
+def pk_algorithm(public_key) -> str:
+    """Free-string algorithm family. Sizes are deliberately absent: they are
+    only comparable within a family and are derivable from the raw DER."""
+    if isinstance(public_key, rsa.RSAPublicKey):
+        return "RSA"
+    if isinstance(public_key, ec.EllipticCurvePublicKey):
+        return f"EC {public_key.curve.name}"
+    if isinstance(public_key, ed25519.Ed25519PublicKey):
+        return "Ed25519"
+    if isinstance(public_key, ed448.Ed448PublicKey):
+        return "Ed448"
+    if isinstance(public_key, mldsa.MLDSA44PublicKey | mldsa.MLDSA65PublicKey | mldsa.MLDSA87PublicKey):
+        return type(public_key).__name__.removesuffix("PublicKey").upper().replace("MLDSA", "ML-DSA-")
+    return type(public_key).__name__
+
+
+def subject_alternative_names(parsed: x509.Certificate) -> list:
+    try:
+        return list(parsed.extensions.get_extension_for_class(x509.SubjectAlternativeName).value)
+    except x509.ExtensionNotFound:
+        return []
+
+
+def verify_certificate_signature(
     certificate: x509.Certificate, issuer: x509.Certificate
 ) -> SignatureVerificationStatus:
+    """Verify the certificate's signature with the issuer's public key. The
+    caller should check the issuer claim first, and only attempt
+    cryptographic verification for candidates whose subject matches."""
     try:
         # Keep mismatched certificates out of the candidate relationships.
         if certificate.issuer != issuer.subject:
@@ -104,15 +392,19 @@ def _verify_certificate_signature(
                 certificate.signature_algorithm_parameters,
                 certificate.signature_hash_algorithm,
             )
-
         elif isinstance(issuer_public_key, ec.EllipticCurvePublicKey):
             issuer_public_key.verify(
                 certificate.signature, certificate.tbs_certificate_bytes, ec.ECDSA(certificate.signature_hash_algorithm)
             )
-
-        elif isinstance(issuer_public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
+        elif isinstance(
+            issuer_public_key,
+            ed25519.Ed25519PublicKey
+            | ed448.Ed448PublicKey
+            | mldsa.MLDSA44PublicKey
+            | mldsa.MLDSA65PublicKey
+            | mldsa.MLDSA87PublicKey,
+        ):
             issuer_public_key.verify(certificate.signature, certificate.tbs_certificate_bytes)
-
         else:
             return SignatureVerificationStatus.UNSUPPORTED_KEY_TYPE
 
@@ -124,165 +416,3 @@ def _verify_certificate_signature(
         return SignatureVerificationStatus.INVALID_PARAMETERS
 
     return SignatureVerificationStatus.VERIFIED
-
-
-def read_certificates(
-    contents: str, website_reference: Reference
-) -> tuple[list[X509Certificate], list[SubjectAlternativeName], list[Hostname], list[CertificateIssuerCandidate]]:
-    # iterate through the PEM certificates and decode them
-    certificates = []
-    parsed_certificates = []
-    certificate_subject_alternative_names = []
-    hostnames = []
-    seen_certificates = set()
-
-    for m in re.finditer(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", contents, flags=re.DOTALL):
-        pem_contents = m.group()
-
-        try:
-            cert = x509.load_pem_x509_certificate(pem_contents.encode(), default_backend())
-        except ValueError:
-            logging.warning("Unable to parse PEM certificate, skipping it")
-            continue
-
-        certificate_der = cert.public_bytes(serialization.Encoding.DER)
-
-        if certificate_der in seen_certificates:
-            continue
-
-        seen_certificates.add(certificate_der)
-
-        try:
-            subject = cert.subject.get_attributes_for_oid(x509.OID_COMMON_NAME)[0].value
-        except IndexError:
-            subject = None
-
-        # get the issuer organization name, if available
-        issuer_attributes = cert.issuer.get_attributes_for_oid(x509.OID_ORGANIZATION_NAME)
-
-        # Catch cases where no OrganizationName is present in the issuer field
-        issuer = issuer_attributes[0].value if issuer_attributes else None
-
-        try:
-            subject_alternative_names = list(
-                cert.extensions.get_extension_for_oid(x509.OID_SUBJECT_ALTERNATIVE_NAME).value
-            )
-        except x509.ExtensionNotFound:
-            subject_alternative_names = []
-
-        valid_from = cert.not_valid_before_utc.isoformat()
-        valid_until = cert.not_valid_after_utc.isoformat()
-
-        public_key = cert.public_key()
-
-        logging.info("Parsing certificate of type %s", type(public_key))
-
-        if isinstance(public_key, rsa.RSAPublicKey):
-            pk_algorithm = str(AlgorithmType.RSA)
-            pk_size = public_key.key_size
-            pk_number = public_key.public_numbers().n.to_bytes(pk_size // 8, "big").hex()
-        elif isinstance(public_key, ec.EllipticCurvePublicKey):
-            pk_algorithm = str(AlgorithmType.ECC)
-            pk_size = public_key.key_size
-            pk_number = hex(public_key.public_numbers().x) + hex(public_key.public_numbers().y)
-        elif isinstance(public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
-            pk_algorithm = str(AlgorithmType.EDDSA)
-            pk_size = None
-            pk_number = public_key.public_bytes(serialization.Encoding.Raw, serialization.PublicFormat.Raw).hex()
-        else:
-            pk_algorithm = None
-            pk_size = None
-            pk_number = None
-
-        certificate = X509Certificate(
-            subject=subject,
-            issuer=issuer,
-            issuer_distinguished_name=cert.issuer.rfc4514_string(),
-            valid_from=valid_from,
-            valid_until=valid_until,
-            pk_algorithm=pk_algorithm,
-            pk_size=pk_size,
-            pk_number=pk_number,
-            website=website_reference,
-            serial_number=cert.serial_number.to_bytes(20, "big").hex(),
-            expires_in=parse(valid_until).astimezone(datetime.UTC) - datetime.datetime.now(datetime.UTC),
-        )
-
-        certificates.append(certificate)
-        parsed_certificates.append((certificate, cert))
-
-        # Process the subject alternative names for this certificate on the Network object it belongs to.
-        network_reference = Network(name=website_reference.tokenized.hostname.network.name).reference
-        certificate_reference = certificate.reference
-
-        for name in subject_alternative_names:
-            san = None
-
-            if isinstance(name, x509.DNSName):
-                if "*" not in name.value:
-                    hostname = Hostname(network=network_reference, name=name.value)
-                    hostnames.append(hostname)
-
-                    san = SubjectAlternativeNameHostname(hostname=hostname.reference, certificate=certificate_reference)
-                else:
-                    san = SubjectAlternativeNameQualifier(name=name.value, certificate=certificate_reference)
-
-            elif isinstance(name, x509.IPAddress):
-                if isinstance(name.value, ipaddress.IPv4Address):
-                    address = IPAddressV4(network=network_reference, address=name.value)
-                else:
-                    address = IPAddressV6(network=network_reference, address=name.value)
-
-                san = SubjectAlternativeNameIP(address=address.reference, certificate=certificate_reference)
-
-            if san is not None:
-                certificate_subject_alternative_names.append(san)
-
-    # Detect different certificates that share the same OpenKAT reference.
-    # The current natural key uses issuer organization + serial number,
-    # which does not always uniquely identify an X.509 certificate.
-    references_to_der = defaultdict(set)
-
-    for certificate, parsed_certificate in parsed_certificates:
-        references_to_der[certificate.reference].add(parsed_certificate.public_bytes(serialization.Encoding.DER))
-
-    ambiguous_references = {reference for reference, der_values in references_to_der.items() if len(der_values) > 1}
-
-    for reference in ambiguous_references:
-        logging.warning(
-            "Multiple distinct X.509 certificates share reference %s; skipping ambiguous issuer relationships",
-            reference,
-        )
-
-    # Link certificates using the claimed issuer name and independently
-    # verify each matching issuer candidate.
-    issuer_candidates = []
-
-    for certificate, cert in parsed_certificates:
-        for candidate, candidate_cert in parsed_certificates:
-            # Matching distinguished names establish candidacy, not proof.
-            if cert.issuer != candidate_cert.subject:
-                continue
-
-            # We cannot reliably represent this relationship when either
-            # certificate reference identifies multiple distinct certificates.
-            if certificate.reference in ambiguous_references or candidate.reference in ambiguous_references:
-                continue
-
-            status = _verify_certificate_signature(cert, candidate_cert)
-
-            issuer_candidates.append(
-                CertificateIssuerCandidate(
-                    certificate=certificate.reference, candidate_issuer=candidate.reference, verification_status=status
-                )
-            )
-
-            # A self-signed certificate must not reference itself via signed_by.
-            if (
-                status == SignatureVerificationStatus.VERIFIED
-                and certificate.reference != candidate.reference
-                and certificate.signed_by is None
-            ):
-                certificate.signed_by = candidate.reference
-
-    return certificates, certificate_subject_alternative_names, hostnames, issuer_candidates
