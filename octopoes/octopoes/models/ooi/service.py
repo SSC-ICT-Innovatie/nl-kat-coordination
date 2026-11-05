@@ -39,34 +39,6 @@ class IPService(OOI):
         return f"{t.service.name}://{ip_address}:{t.ip_port.port}/{t.ip_port.protocol}"
 
 
-class HostnameService(OOI):
-    """Deprecated: renamed to HostnameIPService.
-
-    Kept unchanged so documents stored before the rename still materialize
-    and historic references keep resolving (underdarknl, #5585). Nothing
-    writes this type anymore; new observations produce HostnameIPService.
-    """
-
-    object_type: Literal["HostnameService"] = "HostnameService"
-
-    ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
-    hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
-
-    _natural_key_attrs = ["ip_service", "hostname"]
-    _reverse_relation_names = {"ip_service": "hostname_services", "hostname": "services"}
-
-    @classmethod
-    def format_reference_human_readable(cls, reference: Reference) -> str:
-        # Natural key:
-        #   network|address|protocol|port|service
-        # or
-        #   network|address|protocol|port|service|hostname_network|hostname
-        t = reference.tokenized
-        address = t.ip_service.ip_port.address.address
-        port = t.ip_service.ip_port.port
-        return f"{t.ip_service.service.name}://{t.hostname.name}:{port} @ {address}"
-
-
 class HostnameIPService(OOI):
     """A named service exposed by an IP service.
 

@@ -76,7 +76,7 @@ from octopoes.models.ooi.network import (
 from octopoes.models.ooi.question import Question
 from octopoes.models.ooi.reports import AssetReport, HydratedReport, Report, ReportData, ReportRecipe
 from octopoes.models.ooi.scans import ExternalScan
-from octopoes.models.ooi.service import HostnameIPService, HostnameService, IPService, Service, TLSCipher
+from octopoes.models.ooi.service import HostnameIPService, IPService, Service, TLSCipher
 from octopoes.models.ooi.software import Software, SoftwareInstance
 from octopoes.models.ooi.web import (
     RESTAPI,
@@ -142,7 +142,7 @@ ConcreteNetworkType: TypeAlias = (
     Network | IPAddressV4 | IPAddressV6 | AutonomousSystem | IPV4NetBlock | IPV6NetBlock | IPPort
 )
 NetworkType: TypeAlias = ConcreteNetworkType | IPAddress
-ServiceType: TypeAlias = Service | IPService | HostnameService | HostnameIPService | TLSCipher
+ServiceType: TypeAlias = Service | IPService | HostnameIPService | TLSCipher
 SoftwareType: TypeAlias = Software | SoftwareInstance
 WebType: TypeAlias = (
     Website
