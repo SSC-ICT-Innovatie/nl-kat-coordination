@@ -10,7 +10,7 @@ List Objects
     Insert Normalizer Output
     Await Sync
     Object List Should Contain    ${REF_HOSTNAME}
-    Total Object Count Should Be    ${8}
+    Total Object Count Should Be    ${6}
 
 List Objects With Filter
     Insert Normalizer Output
@@ -31,7 +31,7 @@ List Random Objects With Filter
     Await Sync
     Length Of Random Object List With Filter Should Be    ${1}    ${5}
     Length Of Random Object List With Filter Should Be    ${0}    ${11}
-    Length Of Random Object List With Filter Should Be    ${{ [1,0] }}    ${12}
+    Length Of Random Object List With Filter Should Be    ${{ [1,0] }}    ${16}
     Length Of Random Object List With Filter Should Be    ${{ [2,3] }}    ${0}
 
 Load Bulk
@@ -66,7 +66,7 @@ Get Objects With SearchString example.com
 
 Length Of Random Object List With Filter Should Be
     [Arguments]    ${scan_levels}    ${expected_length}
-    ${params}    Create Dictionary    scan_level=${scan_levels}    amount=10    valid_time=${VALID_TIME}
+    ${params}    Create Dictionary    scan_level=${scan_levels}    amount=50    valid_time=${VALID_TIME}
     ${response}    Get    ${OCTOPOES_URI}/objects/random    params=${params}
     Should Be Equal As Integers    ${response.status_code}    200
     Length Should Be    ${response.json()}    ${expected_length}
