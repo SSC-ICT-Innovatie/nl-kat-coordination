@@ -50,6 +50,7 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
         context = super().get_context_data(**kwargs)
 
         context["ooi_types"] = ooi_type_input_choices()
+        context["paste_objects_url"] = reverse("paste_objects", kwargs={"organization_code": self.organization.code})
         context["breadcrumbs"] = [
             {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
