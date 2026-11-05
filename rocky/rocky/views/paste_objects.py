@@ -10,7 +10,7 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError
-from tools.forms.paste_objects import PasteObjectsForm
+from tools.forms.paste_objects import CLEARANCE_LEVEL_CHOICES, PasteObjectsForm
 from tools.ooi_blob import parse_ooi_blob
 
 from octopoes.api.models import Declaration
@@ -40,7 +40,16 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         networks = self.octopoes_api_connector.list_objects({Network}, datetime.now(UTC)).items
         form.fields["network"].choices = sorted({("internet", "internet")} | {(n.name, n.name) for n in networks})
 
+        # Like SubnetAddView: only members who may set clearance levels get levels,
+        # and only up to their own maximum ("" = unchanged is always offered).
+        max_level = self.organization_member.max_clearance_level if self.can_set_clearance_level else -1
+        form.fields["clearance_level"].choices = CLEARANCE_LEVEL_CHOICES[: max_level + 2]
+
         return form
+
+    @property
+    def can_set_clearance_level(self) -> bool:
+        return self.may_update_clearance_level and self.organization_member.has_perm("tools.can_set_clearance_level")
 
     def get_success_url(self):
         return reverse_lazy("ooi_list", kwargs={"organization_code": self.organization.code})
@@ -133,7 +142,7 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         "declare" rather than "raise" (cf. underdarknl's review note).
         """
         level = form.cleaned_data["clearance_level"]
-        if level == "":
+        if level == "" or not self.can_set_clearance_level:
             return
         try:
             self.raise_clearance_levels([entry.ooi.reference for entry in parsed], int(level))

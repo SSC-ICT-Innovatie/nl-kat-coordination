@@ -1,5 +1,5 @@
 import pytest
-from pytest_django.asserts import assertContains
+from pytest_django.asserts import assertContains, assertNotContains
 
 from octopoes.models.ooi.network import Network
 from rocky.views.paste_objects import PasteObjects
@@ -276,3 +276,51 @@ def test_paste_objects_single_label_hostname(rf, redteam_member, mock_organizati
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
     hostnames = {declaration.ooi.name for declaration in declarations if declaration.ooi.object_type == "Hostname"}
     assert hostnames == {"aaaa", "localhost"}
+
+
+def test_paste_objects_client_cannot_declare_clearance(
+    rf, client_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """A member without tools.can_set_clearance_level cannot declare levels (H1).
+
+    The clearance choices are empty for them, and a posted level is
+    ignored instead of being declared.
+    """
+    client_member.acknowledged_clearance_level = 2
+    client_member.trusted_clearance_level = 2
+    client_member.save()
+
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = paste_request(
+        rf,
+        client_member,
+        "example.com",
+        step="2",
+        clearance_level="2",
+        mock_organization_view_octopoes=mock_organization_view_octopoes,
+    )
+    response = PasteObjects.as_view()(request, organization_code=client_member.organization.code)
+
+    # The posted level is not even a valid choice for a client member,
+    # so the form re-renders (back at step 1) and nothing is declared.
+    assert response.status_code == 200
+    assertNotContains(response, "Step 2 of 2")
+    mock_organization_view_octopoes().save_many_scan_profiles.assert_not_called()
+    mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+
+
+def test_paste_objects_clearance_choices_limited_by_max_level(rf, redteam_member, mock_organization_view_octopoes):
+    """The clearance dropdown only offers levels up to the member's maximum (M1)."""
+    redteam_member.acknowledged_clearance_level = 1
+    redteam_member.trusted_clearance_level = 1
+    redteam_member.save()
+
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = setup_request(rf.get("paste_objects"), redteam_member.user)
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    choices = [value for value, _label in response.context_data["form"].fields["clearance_level"].choices]
+    assert choices == ["", "0", "1"]
