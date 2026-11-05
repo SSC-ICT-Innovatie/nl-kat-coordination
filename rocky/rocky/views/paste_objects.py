@@ -10,11 +10,12 @@ from django.urls.base import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.generic.edit import FormView
 from httpx import HTTPError
-from tools.forms.paste_objects import CLEARANCE_LEVEL_CHOICES, PasteObjectsForm
-from tools.ooi_blob import parse_ooi_blob
+from tools.forms.paste_objects import CLEARANCE_LEVEL_CHOICES, CLEARANCE_LEVEL_EMPTY_LABEL, PasteObjectsForm
+from tools.ooi_blob import parse_ooi_blob, subnet_notices
 
 from octopoes.api.models import Declaration
 from octopoes.connector import ConnectorException
+from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.network import Network
 
 PASTE_OBJECTS_MIME_TYPE = "manual/txt"
@@ -43,7 +44,9 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         # Like SubnetAddView: only members who may set clearance levels get levels,
         # and only up to their own maximum ("" = unchanged is always offered).
         max_level = self.organization_member.max_clearance_level if self.can_set_clearance_level else -1
-        form.fields["clearance_level"].choices = CLEARANCE_LEVEL_CHOICES[: max_level + 2]
+        form.fields["clearance_level"].choices = [("", CLEARANCE_LEVEL_EMPTY_LABEL)] + CLEARANCE_LEVEL_CHOICES[
+            : max_level + 1
+        ]
 
         return form
 
@@ -87,7 +90,9 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         for field_name in ("objects", "network"):
             form.fields[field_name].widget = forms.HiddenInput()
 
-        return self.render_to_response(self.get_context_data(form=form, step=2, parsed=parsed, errors=errors))
+        return self.render_to_response(
+            self.get_context_data(form=form, step=2, parsed=parsed, errors=errors, notices=subnet_notices(parsed))
+        )
 
     def add_error_notification(self, error_message):
         messages.add_message(self.request, messages.ERROR, error_message)
@@ -106,18 +111,29 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
             self.add_error_notification(_("Object(s) could not be created for line number(s): ") + line_numbers)
             return False
 
+        # Deduplicate: the same value may appear more than once in the
+        # paste, but objects are identified by their natural key.
+        unique_entries = list({entry.ooi.reference: entry for entry in parsed}.values())
         network = Network(name=network_name)
         raw_input = form.cleaned_data["objects"].encode("utf-8")
         task_id = uuid4()
         valid_time = datetime.now(UTC)
 
-        declarations = [Declaration(ooi=network, valid_time=valid_time, task_id=task_id)]
-        for entry in parsed:
+        try:
+            self.octopoes_api_connector.get(network.reference, valid_time)
+            network_declarations: list[Declaration] = []  # already known; do not redeclare
+        except ObjectNotFoundException:
+            network_declarations = [Declaration(ooi=network, valid_time=valid_time, task_id=task_id)]
+        except (HTTPError, ConnectorException):
+            return self.add_error_notification(_("Failed to save data from the pasted objects"))
+
+        declarations = list(network_declarations)
+        # Each entry's dependencies (e.g. a netblock's start IP) are
+        # declared just before the entry itself.
+        for entry in unique_entries:
             for dependency in entry.dependencies:
                 declarations.append(Declaration(ooi=dependency, valid_time=valid_time, task_id=task_id))
             declarations.append(Declaration(ooi=entry.ooi, valid_time=valid_time, task_id=task_id))
-
-        self.declare_clearances(form, parsed)
 
         # The raw paste is stored as evidence so it stays auditable,
         # mirroring the CSV upload flow.
@@ -128,8 +144,12 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
         except (HTTPError, ConnectorException):
             return self.add_error_notification(_("Failed to save data from the pasted objects"))
 
+        # Only after the objects exist: a declared profile for an object
+        # that failed to save would linger as an orphan.
+        self.declare_clearances(form, unique_entries)
+
         counts: dict[str, int] = {}
-        for entry in parsed:
+        for entry in unique_entries:
             counts[entry.ooi.object_type] = counts.get(entry.ooi.object_type, 0) + 1
         summary = ", ".join(f"{count} × {object_type}" for object_type, count in sorted(counts.items()))
 

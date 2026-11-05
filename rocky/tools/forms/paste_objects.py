@@ -3,9 +3,8 @@ from django.utils.translation import gettext_lazy as _
 
 from tools.forms.base import BaseRockyForm
 
-CLEARANCE_LEVEL_CHOICES = [("", "--- Unchanged (no scan level requested) ----")] + [
-    (str(level), f"L{level}") for level in range(5)
-]
+CLEARANCE_LEVEL_EMPTY_LABEL = _("--- Unchanged (no scan level requested) ----")
+CLEARANCE_LEVEL_CHOICES = [(str(level), f"L{level}") for level in range(5)]
 
 
 class PasteObjectsForm(BaseRockyForm):
@@ -16,7 +15,7 @@ class PasteObjectsForm(BaseRockyForm):
         ),
         help_text=_(
             "One object per line, or separated by commas. Each value may be an IPv4 or IPv6 address, "
-            "a hostname or a URL. The type of each value is detected automatically."
+            "a subnet, a hostname or a URL. The type of each value is detected automatically."
         ),
         required=True,
     )
@@ -25,6 +24,8 @@ class PasteObjectsForm(BaseRockyForm):
     )
     clearance_level = forms.ChoiceField(
         label=_("Clearance level"),
+        # The full list (including the empty option) is built per member
+        # in the view, based on the member's maximum level.
         choices=CLEARANCE_LEVEL_CHOICES,
         help_text=_("Requested scan level for the new objects. Other values are ignored."),
         required=False,

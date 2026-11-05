@@ -22,6 +22,7 @@ from octopoes.models import OOI
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPV4NetBlock, IPV6NetBlock, Network
 from octopoes.models.ooi.web import URL
+from tools.forms.subnet import MIN_SCANNABLE_PREFIXLEN_V4, MIN_SCANNABLE_PREFIXLEN_V6
 
 SEPARATOR_PATTERN = re.compile(r"[,\s]+")
 SCHEME_PATTERN = re.compile(r"^[a-zA-Z][a-zA-Z0-9+.-]*://")
@@ -91,25 +92,51 @@ def classify_ooi(value: str, network: Network) -> tuple[OOI, list[OOI]]:
     return IPAddressV4(address=address, network=network.reference), []
 
 
-def parse_ooi_blob(text: str, network_name: str = "internet") -> tuple[list[ParsedEntry], dict[int, str]]:
+def parse_ooi_blob(text: str, network_name: str = "internet") -> tuple[list[ParsedEntry], dict[int, list[str]]]:
     """Parse pasted text into OOIs.
 
     Returns a ``(parsed, errors)`` tuple where ``parsed`` is a list of
     :class:`ParsedEntry` for every valid value, and ``errors`` maps the
-    line number of every invalid value to an error message.
+    line number of each invalid value to its error message. A line can
+    contain multiple values, so an error list per line may be longer
+    than one.
     """
     network = Network(name=network_name)
     parsed: list[ParsedEntry] = []
-    errors: dict[int, str] = {}
+    errors: dict[int, list[str]] = {}
 
     for line_number, value in split_blob(text):
         try:
             ooi, dependencies = classify_ooi(value, network)
             parsed.append(ParsedEntry(line_number=line_number, value=value, ooi=ooi, dependencies=dependencies))
         except (ValidationError, ValueError):
-            errors[line_number] = _format_error(value)
+            errors.setdefault(line_number, []).append(_format_error(value))
 
     return parsed, errors
+
+
+def subnet_notices(entries: list[ParsedEntry]) -> dict[int, dict]:
+    """Build review-page notices for pasted subnets.
+
+    Returns per-line info for entries whose input had host bits set
+    (normalized to the subnet) and for ranges the nmap boefjes skip by
+    default, mirroring the warnings of the dedicated subnet form.
+    """
+    notices: dict[int, dict] = {}
+    for entry in entries:
+        if entry.ooi.object_type not in ("IPV4NetBlock", "IPV6NetBlock"):
+            continue
+        is_v6 = entry.ooi.object_type == "IPV6NetBlock"
+        ip_interface = ipaddress.ip_interface(f"{entry.ooi.start_ip.tokenized.address}/{entry.ooi.mask}")
+        min_prefixlen = MIN_SCANNABLE_PREFIXLEN_V6 if is_v6 else MIN_SCANNABLE_PREFIXLEN_V4
+        notices[entry.line_number] = {
+            "normalized": entry.value.rstrip("/") != str(ip_interface.network),
+            "network_address": str(ip_interface.network.network_address),
+            "mask": entry.ooi.mask,
+            "range_skipped_by_nmap": entry.ooi.mask < min_prefixlen,
+            "min_scannable_prefixlen": min_prefixlen,
+        }
+    return notices
 
 
 def _format_error(value: str) -> str:

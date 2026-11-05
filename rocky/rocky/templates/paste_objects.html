@@ -2,6 +2,7 @@
 
 {% load static %}
 {% load i18n %}
+{% load ooi_extra %}
 
 {% block content %}
     {% include "header.html" %}
@@ -35,7 +36,9 @@
                             <div class="warning">
                                 {% translate "These lines could not be interpreted and will not be added:" %}
                                 <ul>
-                                    {% for line_number, error in errors.items %}<li>{{ line_number }}. {{ error }}</li>{% endfor %}
+                                    {% for line_number, line_errors in errors.items %}
+                                        {% for error in line_errors %}<li>{{ line_number }}. {{ error }}</li>{% endfor %}
+                                    {% endfor %}
                                 </ul>
                             </div>
                         {% endif %}
@@ -46,6 +49,16 @@
                                     {% for entry in parsed %}
                                         <li>
                                             {{ entry.line_number }}. <code>{{ entry.value }}</code> → {{ entry.ooi.object_type }}
+                                            {% if notices|get_item:entry.line_number %}
+                                                {% with notice=notices|get_item:entry.line_number %}
+                                                    {% if notice.normalized %}
+                                                        ({% blocktranslate with network_address=notice.network_address mask=notice.mask %}interpreted as {{ network_address }}/{{ mask }}{% endblocktranslate %})
+                                                    {% endif %}
+                                                    {% if notice.range_skipped_by_nmap %}
+                                                        <span class="warning">{% blocktranslate with min_mask=notice.min_scannable_prefixlen %}nmap skips ranges larger than a /{{ min_mask }} by default{% endblocktranslate %}</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endif %}
                                         </li>
                                     {% endfor %}
                                 </ul>

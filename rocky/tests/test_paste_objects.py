@@ -1,6 +1,7 @@
 import pytest
 from pytest_django.asserts import assertContains, assertNotContains
 
+from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.network import Network
 from rocky.views.paste_objects import PasteObjects
 from tests.conftest import setup_request
@@ -15,10 +16,17 @@ not_a_valid_host!!"""
 
 
 def paste_request(
-    rf, redteam_member, objects, step="1", network="internet", clearance_level="", mock_organization_view_octopoes=None
+    rf,
+    redteam_member,
+    objects,
+    step="1",
+    network="internet",
+    clearance_level="",
+    networks=None,
+    mock_organization_view_octopoes=None,
 ):
     if mock_organization_view_octopoes is not None:
-        mock_organization_view_octopoes().list_objects.return_value.items = []
+        mock_organization_view_octopoes().list_objects.return_value.items = networks or []
     return setup_request(
         rf.post(
             "paste_objects", {"objects": objects, "network": network, "clearance_level": clearance_level, "step": step}
@@ -66,7 +74,8 @@ def test_paste_objects_mixed_blob(rf, redteam_member, mock_organization_view_oct
 
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
     object_types = {declaration.ooi.object_type for declaration in declarations}
-    assert object_types == {"Network", "IPAddressV4", "IPAddressV6", "Hostname", "URL"}
+    # The network already exists (connector.get succeeds), so it is not redeclared.
+    assert object_types == {"IPAddressV4", "IPAddressV6", "Hostname", "URL"}
 
     task_id = mock_bytes_client().add_manual_proof.call_args[0][0]
     mock_bytes_client().add_manual_proof.assert_called_once_with(
@@ -128,7 +137,7 @@ def test_paste_objects_partial_success(rf, redteam_member, mock_organization_vie
     assert mock_organization_view_octopoes().save_many_declarations.call_count == 1
 
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
-    assert {declaration.ooi.object_type for declaration in declarations} == {"Network", "IPAddressV4"}
+    assert {declaration.ooi.object_type for declaration in declarations} == {"IPAddressV4"}
 
 
 def test_paste_objects_clearance(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
@@ -160,7 +169,47 @@ def test_paste_objects_separators(rf, redteam_member, mock_organization_view_oct
 
     assert response.status_code == 302
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
-    assert len(declarations) == 4  # Network + 2 IPs + hostname
+    assert len(declarations) == 3  # 2 IPs + hostname; network exists so it is not redeclared
+
+
+def test_paste_objects_duplicates_deduplicated(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """The same value pasted more than once yields one object (M2)."""
+    request = paste_request(
+        rf,
+        redteam_member,
+        "dup.example.com\ndup.example.com\nok.example.com",
+        step="2",
+        mock_organization_view_octopoes=mock_organization_view_octopoes,
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
+    names = [declaration.ooi.name for declaration in declarations if declaration.ooi.object_type == "Hostname"]
+    assert sorted(names) == ["dup.example.com", "ok.example.com"]
+
+    messages = list(request._messages)
+    assert "2 × Hostname" in messages[0].message
+
+
+def test_paste_objects_unknown_network_declared(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """If the selected network does not exist yet, it is declared first.
+
+    The dropdown normally lists known networks, but a fresh organization
+    may not have internet yet; the reference still has to resolve.
+    """
+    mock_organization_view_octopoes().get.side_effect = ObjectNotFoundException("not found")
+    mock_organization_view_octopoes().list_objects.return_value.items = []
+
+    request = paste_request(
+        rf, redteam_member, "example.com", step="2", mock_organization_view_octopoes=mock_organization_view_octopoes
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
+    assert declarations[0].ooi.object_type == "Network"
+    assert declarations[0].ooi.name == "internet"
 
 
 @pytest.mark.parametrize("network_name", ["internet", "darknet"])
@@ -172,13 +221,27 @@ def test_paste_objects_network(rf, redteam_member, mock_organization_view_octopo
     """
     mock_organization_view_octopoes().list_objects.return_value.items = [Network(name="darknet")]
 
-    request = paste_request(rf, redteam_member, "example.com", step="2", network=network_name)
+    request = paste_request(
+        rf,
+        redteam_member,
+        "example.com",
+        step="2",
+        network=network_name,
+        networks=[Network(name="darknet")],
+        mock_organization_view_octopoes=mock_organization_view_octopoes,
+    )
     response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
 
     assert response.status_code == 302
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
-    network_declaration = next(declaration for declaration in declarations if declaration.ooi.object_type == "Network")
-    assert network_declaration.ooi.name == network_name
+    # The network reference is used for every object; the Network OOI
+    # itself is only declared when absent, which test_paste_objects_
+    # unknown_network_declared covers.
+    assert all(
+        declaration.ooi.network.tokenized.name == network_name
+        for declaration in declarations
+        if hasattr(declaration.ooi, "network")
+    )
 
 
 def test_paste_objects_network_choices(rf, redteam_member, mock_organization_view_octopoes):
@@ -212,8 +275,9 @@ def test_paste_objects_subnet(rf, redteam_member, mock_organization_view_octopoe
     assert response.status_code == 302
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
     object_types = [declaration.ooi.object_type for declaration in declarations]
-    # Order matters: a start IP is declared before its netblock.
-    assert object_types == ["Network", "IPAddressV4", "IPV4NetBlock", "IPAddressV6", "IPV6NetBlock"]
+    # Order matters: a start IP is declared before its netblock. The
+    # network already exists, so it is not redeclared.
+    assert object_types == ["IPAddressV4", "IPV4NetBlock", "IPAddressV6", "IPV6NetBlock"]
 
     netblock = next(declaration.ooi for declaration in declarations if declaration.ooi.object_type == "IPV4NetBlock")
     assert netblock.mask == 24
@@ -233,7 +297,7 @@ def test_paste_objects_single_address_cidr(rf, redteam_member, mock_organization
 
     assert response.status_code == 302
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
-    assert {declaration.ooi.object_type for declaration in declarations} == {"Network", "IPAddressV4"}
+    assert {declaration.ooi.object_type for declaration in declarations} == {"IPAddressV4"}
 
 
 def test_paste_objects_invalid_subnet(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
@@ -249,6 +313,21 @@ def test_paste_objects_invalid_subnet(rf, redteam_member, mock_organization_view
     assert "could not be created for line number(s): 1" in messages[0].message
 
 
+def test_paste_objects_subnet_notices(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """The review shows normalized subnets and warns for nmap-skipped ranges (M4)."""
+    request = paste_request(
+        rf, redteam_member, "10.0.0.5/8\n192.0.2.0/24", mock_organization_view_octopoes=mock_organization_view_octopoes
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    # 10.0.0.5/8 has host bits: shown as interpreted, and 10.0.0.0/8 > /22
+    assertContains(response, "interpreted as 10.0.0.0/8")
+    assertContains(response, "nmap skips ranges larger than a /22 by default")
+    # 192.0.2.0/24 is canonical and scannable: no notices
+    assertNotContains(response, "interpreted as 192.0.2.0/24")
+
+
 def test_paste_objects_bracketed_ipv6(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
     """Bracketed IPv6, the notation used in URLs, is recognized as an address."""
     request = paste_request(
@@ -258,7 +337,7 @@ def test_paste_objects_bracketed_ipv6(rf, redteam_member, mock_organization_view
 
     assert response.status_code == 302
     declarations = mock_organization_view_octopoes().save_many_declarations.call_args[0][0]
-    assert {declaration.ooi.object_type for declaration in declarations} == {"Network", "IPAddressV6"}
+    assert {declaration.ooi.object_type for declaration in declarations} == {"IPAddressV6"}
 
 
 def test_paste_objects_single_label_hostname(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
