@@ -14,7 +14,7 @@
             {% endblocktranslate %}
         </p>
         <h2>
-            {% blocktranslate trimmed count counter=oois|length %}
+            {% blocktranslate trimmed count counter=total_oois %}
                 Selected object ({{ total_oois }})
             {% plural %}
                 Selected objects ({{ total_oois }})
@@ -41,7 +41,7 @@
                     </ul>
                 </div>
             {% else %}
-                {% blocktranslate trimmed count counter=oois|length %}
+                {% blocktranslate trimmed count counter=total_oois %}
                     You have selected {{ total_oois }} object in the previous step.
                 {% plural %}
                     You have selected {{ total_oois }} objects in the previous step.

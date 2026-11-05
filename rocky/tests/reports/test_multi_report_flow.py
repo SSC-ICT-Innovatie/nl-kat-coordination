@@ -1,6 +1,6 @@
 import json
 
-from pytest_django.asserts import assertContains
+from pytest_django.asserts import assertContains, assertNotContains
 from reports.views.base import ViewReportView
 from reports.views.multi_report import (
     MultiReportView,
@@ -56,7 +56,7 @@ def test_multi_report_select_oois_with_query(
     request = setup_request(
         rf.post(
             "multi_report_select_report_types",
-            {"observed_at": valid_time.strftime("%Y-%m-%d"), "object_selection": "query"},
+            {"observed_at": valid_time.strftime("%Y-%m-%d"), "object_selection": "query", "ooi": "all"},
         ),
         client_member.user,
     )
@@ -67,7 +67,11 @@ def test_multi_report_select_oois_with_query(
     assert response.context_data["selected_oois"] == []
 
     assertContains(response, "You have selected a live set in the previous step.")
-    assertContains(response, "this live set results in 0 objects.")
+    assertContains(response, "this live set results in 2 objects.")
+
+    # The live set is carried forward as the query, not as one field per object (#3390)
+    assertContains(response, 'name="ooi" value="all"')
+    assertNotContains(response, f'name="ooi" value="{oois[0].primary_key}"')
 
 
 def test_multi_report_change_ooi_selection(
