@@ -9,6 +9,8 @@
                 <dd>
                     {% if key == "owner" and value.is_inactive %}
                         <s title="{% translate "Inactive" %}">{{ value }}</s>
+                    {% elif key == "Proof" %}
+                        {{ value|linebreaksbr }}
                     {% else %}
                         {{ value }}
                     {% endif %}
