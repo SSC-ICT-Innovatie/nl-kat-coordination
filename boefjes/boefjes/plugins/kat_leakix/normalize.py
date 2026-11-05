@@ -378,7 +378,7 @@ def get_certificate_data(event) -> dict | None:
     try:
         for bound in ("not_before", "not_after"):
             parsed = parse_datetime(certificate_data[bound])
-            certificate_data[bound] = parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+            certificate_data[bound] = (parsed if parsed.tzinfo else parsed.replace(tzinfo=UTC)).astimezone(UTC)
     except (ValueError, OverflowError, TypeError):
         return None
     return certificate_data

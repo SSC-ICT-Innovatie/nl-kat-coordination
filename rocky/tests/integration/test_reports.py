@@ -36,6 +36,8 @@ def test_web_report(octopoes_api_connector: OctopoesAPIConnector, valid_time):
         "has_certificates": True,
         "certificates_not_expired": True,
         "certificates_not_expiring_soon": True,
+        "chain_complete": True,
+        "names_match": True,
     }
 
     finding = Finding(
