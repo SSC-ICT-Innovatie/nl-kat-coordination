@@ -431,6 +431,7 @@ $RECYCLE.BIN/
 *.tar.gz
 .password-store
 .envrc
+.devin/
 deployment/github_config.sh
 
 nl-kat-*
