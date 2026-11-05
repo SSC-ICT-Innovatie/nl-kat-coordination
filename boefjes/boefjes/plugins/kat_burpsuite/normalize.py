@@ -12,7 +12,7 @@ from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CAPECFindingType, CVEFindingType, CWEFindingType, Finding
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, Protocol
 from octopoes.models.ooi.service import HostnameIPService, IPService, Service
-from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, IPAddressHTTPURL, Website, WebScheme
+from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, IPAddressHTTPURL, WebScheme, Website
 
 
 def find_network(data: dict) -> dict:
@@ -85,9 +85,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             # The name binding is yielded (the general rule), and the
             # Website too: HTTPResource references it, so it must be
             # yielded here rather than left to the discovery bit.
-            hostname_ip_service = HostnameIPService(
-                ip_service=ip_service.reference, hostname=hostname.reference
-            )
+            hostname_ip_service = HostnameIPService(ip_service=ip_service.reference, hostname=hostname.reference)
             yield hostname_ip_service
             website = Website(hostname=hostname.reference, ip_service=ip_service.reference)
             yield website
@@ -106,9 +104,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 path=url.path,
                 netloc=ip_ooi.reference,
             )
-            website = Website(ip_service=ip_service.reference, hostname=Reference.from_str(
-                f"Hostname|{network.name}|{address}"
-            ))
+            website = Website(
+                ip_service=ip_service.reference, hostname=Reference.from_str(f"Hostname|{network.name}|{address}")
+            )
             yield website
             http_resource = HTTPResource(website=website.reference, web_url=http_url.reference)
             yield http_resource

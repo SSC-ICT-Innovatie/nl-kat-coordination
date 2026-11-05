@@ -91,9 +91,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             # Website: the SecurityTXT references it, so it must be yielded
             # here — it cannot dangle on the discovery bit. The
             # HostnameIPService accompanies it (same roots).
-            hostname_ip_service = HostnameIPService(
-                ip_service=ip_service.reference, hostname=hostname.reference
-            )
+            hostname_ip_service = HostnameIPService(ip_service=ip_service.reference, hostname=hostname.reference)
             yield hostname_ip_service
             website = Website(hostname=hostname.reference, ip_service=ip_service.reference)
             yield website

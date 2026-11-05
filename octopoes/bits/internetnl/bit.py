@@ -19,7 +19,8 @@ BIT = BitDefinition(
             ooi_type=Finding, relation_path="ooi [is HostnameHTTPURL].netloc"
         ),  # findings on weburls
         BitParameterDefinition(
-            ooi_type=Finding, relation_path="ooi [is IPAddress]"  # findings on the address (HTTPS-NOT-AVAILABLE)
+            ooi_type=Finding,
+            relation_path="ooi [is IPAddress]",  # findings on the address (HTTPS-NOT-AVAILABLE)
         ),
         BitParameterDefinition(
             # chain-bound findings (hostname mismatch) on services named by

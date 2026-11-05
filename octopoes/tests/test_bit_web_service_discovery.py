@@ -16,8 +16,7 @@ def _ip_service(ip: str, port: int, service: str) -> IPService:
 
 def _his(ip: str, port: int, service: str, hostname: str) -> HostnameIPService:
     return HostnameIPService(
-        ip_service=f"IPService|internet|{ip}|tcp|{port}|{service}",
-        hostname=f"Hostname|internet|{hostname}",
+        ip_service=f"IPService|internet|{ip}|tcp|{port}|{service}", hostname=f"Hostname|internet|{hostname}"
     )
 
 
@@ -35,7 +34,10 @@ def test_named_web_service_yields_canonical_website():
 def _his_ip_service_for(his: HostnameIPService) -> IPService:
     tokenized = his.reference.tokenized
     ip_port = tokenized.ip_service.ip_port
-    return IPService(ip_port=f"IPPort|{ip_port.address.network.name}|{ip_port.address.address}|{ip_port.protocol}|{ip_port.port}", service=f"Service|{tokenized.ip_service.service.name}")
+    return IPService(
+        ip_port=f"IPPort|{ip_port.address.network.name}|{ip_port.address.address}|{ip_port.protocol}|{ip_port.port}",
+        service=f"Service|{tokenized.ip_service.service.name}",
+    )
 
 
 def test_multiple_names_yield_multiple_websites():
@@ -61,9 +63,7 @@ def test_null_sni_web_service_yields_ip_placeholder_website():
 
     # The placeholder: hostname is the IP, the canonical key the
     # pre-migration normalizers and burpsuite's IP case write.
-    assert [str(o.primary_key) for o in results] == [
-        f"Website|internet|{ip}|tcp|443|https|internet|{ip}"
-    ]
+    assert [str(o.primary_key) for o in results] == [f"Website|internet|{ip}|tcp|443|https|internet|{ip}"]
 
 
 def test_non_web_service_yields_nothing():
@@ -81,6 +81,4 @@ def test_http_service_yields_website():
 
     results = list(run(_address(ip), [ipservice, his], {}))
 
-    assert [str(o.primary_key) for o in results] == [
-        f"Website|internet|{ip}|tcp|80|http|internet|plain.example.com"
-    ]
+    assert [str(o.primary_key) for o in results] == [f"Website|internet|{ip}|tcp|80|http|internet|plain.example.com"]

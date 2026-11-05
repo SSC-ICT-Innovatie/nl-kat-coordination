@@ -86,6 +86,4 @@ def test_discovery_handles_ipv6():
     results = list(run(ip_address, [ip_service, resolved], {}))
 
     assert len(results) == 1
-    assert results[0].primary_key == (
-        "HostnameIPService|internet|2001:db8::10|tcp|443|https|internet|example.com"
-    )
+    assert results[0].primary_key == ("HostnameIPService|internet|2001:db8::10|tcp|443|https|internet|example.com")

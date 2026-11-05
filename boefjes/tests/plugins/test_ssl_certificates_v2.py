@@ -20,10 +20,7 @@ HOSTNAME_SERVICE_INPUT = {
     "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|example.com",
 }
 
-IP_SERVICE_INPUT = {
-    "object_type": "IPService",
-    "primary_key": "IPService|internet|192.0.2.10|tcp|443|https",
-}
+IP_SERVICE_INPUT = {"object_type": "IPService", "primary_key": "IPService|internet|192.0.2.10|tcp|443|https"}
 
 
 def make_cert(common_name: str, issuer_name: str | None = None, issuer_key=None, dns_names: list[str] | None = None):
@@ -184,8 +181,7 @@ def test_identical_presentations_share_identity(root_and_leaf):
 def test_malformed_entry_yields_finding_with_proof(root_and_leaf):
     root_cert, _, leaf_cert = root_and_leaf
     raw = sni_output(leaf_cert).decode() + (
-        " 1 s:CN = broken\n   i:CN = nobody\n"
-        "-----BEGIN CERTIFICATE-----\nZm9vYmFy\n-----END CERTIFICATE-----\n"
+        " 1 s:CN = broken\n   i:CN = nobody\n-----BEGIN CERTIFICATE-----\nZm9vYmFy\n-----END CERTIFICATE-----\n"
     )
     output = list(run(HOSTNAME_SERVICE_INPUT, raw.encode()))
 
@@ -197,15 +193,15 @@ def test_malformed_entry_yields_finding_with_proof(root_and_leaf):
     assert len(chains) == 1
     assert len(chains[0].presented_certificates) == 1
     # The leaf-only presentation is also incomplete (its issuer is neither
-    # presented nor trusted); the unparseable finding is about entry 1.
+    # presented nor trusted); the unparsable finding is about entry 1.
     assert len(findings) == 2
-    unparseable = [f for f in findings if str(f.finding_type) == "KATFindingType|KAT-UNPARSEABLE-CERTIFICATE"]
-    assert len(unparseable) == 1
-    assert unparseable[0].ooi == chains[0].reference
+    unparsable = [f for f in findings if str(f.finding_type) == "KATFindingType|KAT-UNPARSEABLE-CERTIFICATE"]
+    assert len(unparsable) == 1
+    assert unparsable[0].ooi == chains[0].reference
     # No dynamic description; the predefined finding type carries the text.
-    assert unparseable[0].description is None
-    assert "position=1" in unparseable[0].proof
-    assert "raw_hash=" in unparseable[0].proof
+    assert unparsable[0].description is None
+    assert "position=1" in unparsable[0].proof
+    assert "raw_hash=" in unparsable[0].proof
 
 
 def test_certificate_v2_fields(root_and_leaf):

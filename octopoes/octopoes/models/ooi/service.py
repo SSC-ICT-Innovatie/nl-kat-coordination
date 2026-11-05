@@ -88,11 +88,7 @@ class TLSCipher(OOI):
 
     _natural_key_attrs = ["ip_service"]
 
-    _reverse_relation_names = {
-        "ip_service": "ciphers",
-        "hostname": "ciphers",
-        "hostname_ip_service": "ciphers",
-    }
+    _reverse_relation_names = {"ip_service": "ciphers", "hostname": "ciphers", "hostname_ip_service": "ciphers"}
 
     @property
     def natural_key(self) -> str:

@@ -432,7 +432,7 @@
     "recommendation": "Replace the certificate with a valid one."
   },
   "KAT-UNPARSEABLE-CERTIFICATE": {
-    "name": "Unparseable certificate in chain",
+    "name": "Unparsable certificate in chain",
     "description": "An entry in the certificate chain presented by this service could not be parsed as an X.509 certificate.",
     "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1",
     "risk": "high",

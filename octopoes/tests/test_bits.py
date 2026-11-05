@@ -6,7 +6,7 @@ from bits.oois_in_headers.oois_in_headers import run as run_oois_in_headers
 
 from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import IPAddressV4, IPPort
-from octopoes.models.ooi.web import URL, HTTPHeader, HTTPHeaderURL, Website
+from octopoes.models.ooi.web import URL, HTTPHeader, HTTPHeaderURL
 
 
 def test_url_extracted_by_oois_in_headers_url():
@@ -67,7 +67,9 @@ def test_https_not_available_is_described_in_the_registry():
     the kat-finding-types normalizer hydrates the stored object from it,
     and the description is undefined otherwise."""
     registry = json.loads(
-        (Path(__file__).parent.parent.parent / "boefjes/boefjes/plugins/kat_kat_finding_types/kat_finding_types.json").read_text()
+        (
+            Path(__file__).parent.parent.parent / "boefjes/boefjes/plugins/kat_kat_finding_types/kat_finding_types.json"
+        ).read_text()  # codespell-ignore
     )
 
     entry = registry["KAT-HTTPS-NOT-AVAILABLE"]

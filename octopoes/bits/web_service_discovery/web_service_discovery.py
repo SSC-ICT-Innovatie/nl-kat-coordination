@@ -1,7 +1,7 @@
 from collections.abc import Iterator
 from typing import Any
 
-from octopoes.models import OOI, Reference
+from octopoes.models import OOI, PrimaryKeyToken, Reference
 from octopoes.models.ooi.network import IPAddress
 from octopoes.models.ooi.service import HostnameIPService, IPService
 from octopoes.models.ooi.web import Website
@@ -44,7 +44,7 @@ def run(
     A non-web HostnameIPService (imaps, smtp, ...) yields nothing: it binds
     a name to a service, it does not make the service a website."""
     ip_services = {ooi.reference: ooi for ooi in additional_oois if isinstance(ooi, IPService)}
-    hostnames_by_service = {}
+    hostnames_by_service: dict[str, list[PrimaryKeyToken]] = {}
     for ooi in additional_oois:
         if isinstance(ooi, HostnameIPService):
             tokenized = ooi.reference.tokenized

@@ -14,6 +14,7 @@ from boefjes.plugins.kat_ssl_certificates.normalize import run
 from octopoes.models.ooi.certificate import TLSCertificateChain, X509CertificateV2
 from octopoes.models.ooi.findings import Finding
 
+
 def host_input(name: str) -> dict:
     return {
         "object_type": "HostnameIPService",
@@ -23,10 +24,7 @@ def host_input(name: str) -> dict:
 
 HOSTNAME_SERVICE_INPUT = host_input("example.com")
 
-IP_SERVICE_INPUT = {
-    "object_type": "IPService",
-    "primary_key": "IPService|internet|192.0.2.10|tcp|443|https",
-}
+IP_SERVICE_INPUT = {"object_type": "IPService", "primary_key": "IPService|internet|192.0.2.10|tcp|443|https"}
 
 
 def make_cert(
@@ -56,7 +54,9 @@ def make_cert(
         .not_valid_after(not_after or now + timedelta(days=30))
     )
     if dns_names:
-        builder = builder.add_extension(x509.SubjectAlternativeName([x509.DNSName(n) for n in dns_names]), critical=False)
+        builder = builder.add_extension(
+            x509.SubjectAlternativeName([x509.DNSName(n) for n in dns_names]), critical=False
+        )
     return builder.sign(issuer_key, SHA256()), key
 
 
@@ -198,9 +198,7 @@ def test_no_trust_store_assesses_nothing(no_trust_store):
 
 def test_expired_certificate_fires_on_the_certificate(trust_store):
     now = datetime.now(UTC)
-    expired_cert, _ = make_cert(
-        "example.com", not_before=now - timedelta(days=200), not_after=now - timedelta(days=1)
-    )
+    expired_cert, _ = make_cert("example.com", not_before=now - timedelta(days=200), not_after=now - timedelta(days=1))
 
     findings = finding_types(oois_for(expired_cert))
 

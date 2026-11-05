@@ -1,13 +1,14 @@
 from boefjes.plugins.kat_ssl_scan.normalize import run
 
-INPUT_HOSTNAME_SERVICE = {"object_type": "HostnameIPService", "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|example.com"}
+INPUT_HOSTNAME_SERVICE = {
+    "object_type": "HostnameIPService",
+    "primary_key": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|example.com",
+}
 INPUT_IP_SERVICE = {"object_type": "IPService", "primary_key": "IPService|internet|192.0.2.10|tcp|443|https"}
 
 
 def _xml(protocols: list[tuple[str, str, bool]], fallback: str | None = None) -> bytes:
-    entries = "".join(
-        f'<protocol type="{t}" version="{v}" enabled="{1 if e else 0}"/>' for t, v, e in protocols
-    )
+    entries = "".join(f'<protocol type="{t}" version="{v}" enabled="{1 if e else 0}"/>' for t, v, e in protocols)
     fallback_entry = f'<fallback supported="{fallback}"/>' if fallback is not None else ""
     return (
         '<?xml version="1.0" encoding="UTF-8"?>\n<document><ssltest>'
@@ -21,7 +22,14 @@ def _finding_ids(oois) -> set[str]:
 
 
 def test_modern_server_raises_nothing():
-    protocols = [("ssl", "2", False), ("ssl", "3", False), ("tls", "1.0", False), ("tls", "1.1", False), ("tls", "1.2", True), ("tls", "1.3", True)]
+    protocols = [
+        ("ssl", "2", False),
+        ("ssl", "3", False),
+        ("tls", "1.0", False),
+        ("tls", "1.1", False),
+        ("tls", "1.2", True),
+        ("tls", "1.3", True),
+    ]
 
     assert _finding_ids(run(INPUT_HOSTNAME_SERVICE, _xml(protocols, fallback="1"))) == set()
 
@@ -47,9 +55,7 @@ def test_tls10_with_tls11_disabled_raises_tls10():
 def test_tls10_and_tls11_both_enabled_raises_combined():
     protocols = [("tls", "1.0", True), ("tls", "1.1", True), ("tls", "1.2", True), ("tls", "1.3", True)]
 
-    assert _finding_ids(run(INPUT_HOSTNAME_SERVICE, _xml(protocols))) == {
-        "KATFindingType|KAT-TLS-1.0-AND-1.1-SUPPORT"
-    }
+    assert _finding_ids(run(INPUT_HOSTNAME_SERVICE, _xml(protocols))) == {"KATFindingType|KAT-TLS-1.0-AND-1.1-SUPPORT"}
 
 
 def test_missing_tls12_raises_no_tls_1_2():
@@ -59,9 +65,7 @@ def test_missing_tls12_raises_no_tls_1_2():
     # protocol finding.
     protocols = [("tls", "1.0", True), ("tls", "1.1", False), ("tls", "1.2", False), ("tls", "1.3", True)]
 
-    assert _finding_ids(run(INPUT_HOSTNAME_SERVICE, _xml(protocols))) == {
-        "KATFindingType|KAT-TLS-1.0-SUPPORT"
-    }
+    assert _finding_ids(run(INPUT_HOSTNAME_SERVICE, _xml(protocols))) == {"KATFindingType|KAT-TLS-1.0-SUPPORT"}
 
     # Without 1.0 enabled, the NO-TLS-1.2 finding is reachable.
     protocols = [("tls", "1.1", True), ("tls", "1.2", False), ("tls", "1.3", True)]

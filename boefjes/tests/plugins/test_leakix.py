@@ -277,9 +277,7 @@ def test_hostdetails_capture_keeps_newest_certificate_per_endpoint():
     assert certificates["5ec5563e"].issuer == "R13"
 
     # The wildcard SAN from the live certificate becomes a qualifier
-    assert any(
-        o.name == "*.example.org" for o in output if isinstance(o, SubjectAlternativeNameQualifierV2)
-    )
+    assert any(o.name == "*.example.org" for o in output if isinstance(o, SubjectAlternativeNameQualifierV2))
 
 
 def test_hostdetails_capture_emits_conflicting_as_but_no_netblocks():

@@ -27,6 +27,7 @@ def _meta(ip: str, port: int = 443, service_name: str = "https", input_type: str
 
 def _fake_run(returncode: int = 0, stdout: bytes = b"", stderr: bytes = b""):
     """Fake subprocess.run that accepts the timeout kwarg."""
+
     def fake_run(cmd, capture_output=False, timeout=None):
         assert capture_output is True
         return subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr=stderr)
@@ -142,9 +143,7 @@ def test_non_tls_service_records_info_message(monkeypatch):
     """A service that answers but presents no certificate (no TLS,
     tcpwrapped) yields info/boefje: expected and non-actionable, the
     normalizer is skipped, nothing is deleted."""
-    monkeypatch.setattr(
-        main.subprocess, "run", _fake_run(1, stdout=b"", stderr=b"alert handshake failure")
-    )
+    monkeypatch.setattr(main.subprocess, "run", _fake_run(1, stdout=b"", stderr=b"alert handshake failure"))
 
     output = main.run(_meta("192.0.2.1", service_name="tcpwrapped"))
 
@@ -203,7 +202,7 @@ def test_tls_capable_service_names_are_attempted(monkeypatch):
 
     for service_name in ("imaps", "smtps", "ftps", "ldaps", "some-future-tls-service"):
         output = main.run(_meta("192.0.2.1", service_name=service_name))
-        # attempted and returned, not descheduled
+        # every service is attempted and yields its outcome, without descheduling
         assert output[0][0] == {"openkat/ssl-certificates-output"}
         assert "-host 192.0.2.1" in " ".join(output and calls[-1])
     assert len(calls) == 5

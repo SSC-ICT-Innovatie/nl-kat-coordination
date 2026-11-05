@@ -119,7 +119,9 @@ def test_non_tls_service_deschedules(mocker):
 
 
 def test_success_returns_xml(mocker):
-    mocker.patch.object(main.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=XML_BODY, stderr=b""))
+    mocker.patch.object(
+        main.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=XML_BODY, stderr=b"")
+    )
 
     mime_types, content = main.run(_meta(_hostname_service()))[0]
 
@@ -135,7 +137,9 @@ def test_connection_failure_without_ssltest_is_error_boefje(mocker):
         b"<error><![CDATA[Could not open a connection to host 192.0.2.10 (Connection refused).]]></error>"
         b"</document>"
     )
-    mocker.patch.object(main.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=failed, stderr=b""))
+    mocker.patch.object(
+        main.subprocess, "run", return_value=subprocess.CompletedProcess([], 0, stdout=failed, stderr=b"")
+    )
 
     mime_types, content = main.run(_meta(_hostname_service()))[0]
 
@@ -155,7 +159,9 @@ def test_timeout_returns_error_timeout(mocker):
 
 
 def test_nonzero_exit_is_error_boefje(mocker):
-    mocker.patch.object(main.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, stdout=b"", stderr=b"boom"))
+    mocker.patch.object(
+        main.subprocess, "run", return_value=subprocess.CompletedProcess([], 1, stdout=b"", stderr=b"boom")
+    )
 
     mime_types, content = main.run(_meta(_hostname_service()))[0]
 

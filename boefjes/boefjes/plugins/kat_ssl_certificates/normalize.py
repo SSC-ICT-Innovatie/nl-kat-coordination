@@ -26,7 +26,6 @@ from octopoes.models.ooi.findings import Finding, KATFindingType
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from octopoes.models.ooi.service import HostnameIPService
 
-
 CERTIFICATE_RE = re.compile(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", flags=re.DOTALL)
 HOSTNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.?$")
 
@@ -60,10 +59,7 @@ def _issued_by(certificate: x509.Certificate, issuer: x509.Certificate) -> bool:
 
 
 def _anchored(
-    certificate: x509.Certificate,
-    presented: list[x509.Certificate],
-    anchor_fingerprints: set[bytes],
-    visiting: tuple,
+    certificate: x509.Certificate, presented: list[x509.Certificate], anchor_fingerprints: set[bytes], visiting: tuple
 ) -> bool:
     """Whether a client can reach a trust anchor from this certificate using
     the presentation and the trust store. A certificate is anchored when it
@@ -91,6 +87,7 @@ def is_part_of_wildcard(hostname: str, wildcard: str) -> bool:
     wildcard_domain = wildcard[2:].rstrip(".")
     higher_level_domain = ".".join(hostname.split(".")[1:])
     return wildcard_domain == higher_level_domain
+
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     """Parse openssl s_client output into certificates and certificate chains.
@@ -168,15 +165,13 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     expired = []
     expiring = []
     for ooi, parsed_cert in pairs:
+        assert ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
         valid_until = parsed_cert.not_valid_after_utc
         lifetime = valid_until - parsed_cert.not_valid_before_utc
         remaining = valid_until - now
         if remaining <= timedelta(0):
             expired.append(
-                (
-                    ooi.reference,
-                    f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until.isoformat()}.",
-                )
+                (ooi.reference, f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until.isoformat()}.")
             )
             continue
         renewal_point = lifetime / RENEWAL_FRACTION - DETECTION_LAG
@@ -184,9 +179,9 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             expiring.append(
                 (
                     ooi.reference,
-                    f"TLS certificate {ooi.fingerprint[:16]} is past its renewal point: it expires "
-                    f"at {ooi.valid_until.isoformat()}, in {remaining.days} days. If renewal is automated, the automation "
-                    "has not replaced it.",
+                    f"TLS certificate {ooi.fingerprint[:16]} is past its renewal point: it expires at"
+                    f" {ooi.valid_until.isoformat()}, in {remaining.days} days. If renewal is automated, the"
+                    " automation has not replaced it.",
                 )
             )
     for finding_id, targets in (("KAT-CERTIFICATE-EXPIRED", expired), ("KAT-CERTIFICATE-EXPIRING-SOON", expiring)):
@@ -212,6 +207,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         ]
         if len(leaf_pairs) == 1:
             leaf_ooi, leaf = leaf_pairs[0]
+            assert leaf_ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
             if leaf.subject == leaf.issuer and leaf.fingerprint(hashes.SHA256()) not in anchor_fingerprints:
                 ft = KATFindingType(id="KAT-SELF-SIGNED-CERTIFICATE")
                 yield ft
@@ -251,6 +247,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         ]
         if len(leaf_pairs) == 1:
             leaf_ooi, leaf = leaf_pairs[0]
+            assert leaf_ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
             # The names a client may match against are the SAN's DNS names
             # (RFC 6125 6.4.4 permits a CN fallback only for legacy clients;
             # modern clients ignore the common name, so a SAN-less
@@ -399,9 +396,14 @@ def verify_certificate_signature(
             issuer_public_key.verify(
                 certificate.signature, certificate.tbs_certificate_bytes, ec.ECDSA(certificate.signature_hash_algorithm)
             )
-        elif isinstance(issuer_public_key, ed25519.Ed25519PublicKey | ed448.Ed448PublicKey):
-            issuer_public_key.verify(certificate.signature, certificate.tbs_certificate_bytes)
-        elif isinstance(issuer_public_key, mldsa.MLDSA44PublicKey | mldsa.MLDSA65PublicKey | mldsa.MLDSA87PublicKey):
+        elif isinstance(
+            issuer_public_key,
+            ed25519.Ed25519PublicKey
+            | ed448.Ed448PublicKey
+            | mldsa.MLDSA44PublicKey
+            | mldsa.MLDSA65PublicKey
+            | mldsa.MLDSA87PublicKey,
+        ):
             issuer_public_key.verify(certificate.signature, certificate.tbs_certificate_bytes)
         else:
             return SignatureVerificationStatus.UNSUPPORTED_KEY_TYPE

@@ -195,9 +195,7 @@ def test_cipher_links_to_hostname_ip_service_on_sni_input():
     cipher = list(run(input_ooi, get_dummy_data("inputs/testssl-sh-ciphered.json")))[0]
 
     assert cipher.hostname_ip_service is not None
-    assert str(cipher.hostname_ip_service) == (
-        "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|a.example"
-    )
+    assert str(cipher.hostname_ip_service) == ("HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|a.example")
 
 
 def test_cipher_hostname_ip_service_is_none_for_ip_service_input():

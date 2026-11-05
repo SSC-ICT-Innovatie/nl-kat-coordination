@@ -325,10 +325,12 @@ class TLSCertificateChain(OOI):
     # The endpoint this presentation was observed on. SNI-qualified endpoints
     # reference the HostnameIPService; connections without a server name
     # reference the IPService. Exactly one of the two is set.
-    hostname_ip_service: Reference | None = ReferenceField(HostnameIPService, default=None,
-                                                           max_issue_scan_level=0, max_inherit_scan_level=4)
-    ip_service: Reference | None = ReferenceField(IPService, default=None,
-                                                  max_issue_scan_level=0, max_inherit_scan_level=4)
+    hostname_ip_service: Reference | None = ReferenceField(
+        HostnameIPService, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
+    )
+    ip_service: Reference | None = ReferenceField(
+        IPService, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
+    )
 
     # Full chain hash: SHA-256 over length-prefixed SHA-256 hashes of every raw
     # presented entry, in wire order — including entries that failed to parse.
@@ -353,6 +355,7 @@ class TLSCertificateChain(OOI):
         # IPService itself.
         if self.hostname_ip_service is not None:
             return f"{self.hostname_ip_service.natural_key}|{self.presentation_hash}"
+        assert self.ip_service is not None  # exactly one of the two references is set
         return f"{self.ip_service.natural_key}|{self.presentation_hash}"
 
     @classmethod

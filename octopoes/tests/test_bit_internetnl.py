@@ -11,6 +11,7 @@ the same construction the parameter registration performs
 """
 
 from bits.definitions import get_bit_definitions
+
 from octopoes.models.path import Path
 
 

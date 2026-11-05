@@ -1,9 +1,10 @@
-from octopoes.models.path import Path
 from reports.report_types.web_system_report.report import (
-    CHAIN_FINDING_TYPES_QUERY,
     CERTIFICATE_FINDING_TYPES_QUERY,
+    CHAIN_FINDING_TYPES_QUERY,
     WebSystemReport,
 )
+
+from octopoes.models.path import Path
 
 
 def test_chain_queries_parse_against_the_model():
@@ -33,9 +34,7 @@ def test_web_report_no_findings(mock_octopoes_api_connector, valid_time, hostnam
             hostname.reference: []
         },
         "Hostname.<hostname[is Website].certificate.<ooi[is Finding].finding_type": {hostname.reference: []},
-        f"{CERTIFICATE_FINDING_TYPES_QUERY}": {
-            hostname.reference: []
-        },
+        f"{CERTIFICATE_FINDING_TYPES_QUERY}": {hostname.reference: []},
         f"{CHAIN_FINDING_TYPES_QUERY}": {hostname.reference: []},
     }
 
@@ -62,9 +61,7 @@ def test_web_report_all_findings(
         },
         "Hostname.<hostname[is Website].<ooi[is Finding].finding_type": {hostname.reference: web_report_finding_types},
         "Hostname.<hostname[is Website].<website[is SecurityTXT]": {hostname.reference: []},
-        f"{CERTIFICATE_FINDING_TYPES_QUERY}": {
-            hostname.reference: web_report_finding_types
-        },
+        f"{CERTIFICATE_FINDING_TYPES_QUERY}": {hostname.reference: web_report_finding_types},
         f"{CHAIN_FINDING_TYPES_QUERY}": {hostname.reference: web_report_finding_types},
         "Hostname.<hostname[is ResolvedHostname].address.<address[is IPPort].<ooi[is Finding].finding_type": {
             hostname.reference: web_report_finding_types

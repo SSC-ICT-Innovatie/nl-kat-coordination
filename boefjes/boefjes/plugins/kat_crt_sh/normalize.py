@@ -60,15 +60,12 @@ def _pk_algorithm(public_key) -> str:
 
 def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     results = json.loads(raw)
-    fqdn = input_ooi["hostname"]["name"]
 
     network = Network(name="internet")  # crt.sh only ever sees the Internet
     network_reference = network.reference
 
     unique_domains = set()
     for certificate in results:
-        common_name = certificate["common_name"].lower().lstrip(".*")
-
         # walk over all name_value parts (possibly just one, possibly more)
         names = certificate["name_value"].lower().splitlines()
         for name in names:
@@ -94,7 +91,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         try:
             parsed = _load_certificate(pem)
         except (ValueError, TypeError):
-            logger.warning("Skipping unparseable certificate body for crt.sh entry %s", certificate.get("id"))
+            logger.warning("Skipping unparsable certificate body for crt.sh entry %s", certificate.get("id"))
             continue
 
         der = parsed.public_bytes(serialization.Encoding.DER)
