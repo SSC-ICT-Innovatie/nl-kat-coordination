@@ -1,5 +1,7 @@
 import pytest
+from httpx import HTTPError
 from pytest_django.asserts import assertContains, assertNotContains
+from tools.forms.paste_objects import MAX_PASTE_OBJECTS
 
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.network import Network
@@ -403,3 +405,71 @@ def test_paste_objects_clearance_choices_limited_by_max_level(rf, redteam_member
     assert response.status_code == 200
     choices = [value for value, _label in response.context_data["form"].fields["clearance_level"].choices]
     assert choices == ["", "0", "1"]
+
+
+def test_paste_objects_too_many_values(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """A paste larger than the cap is rejected by form validation, in both steps (L3)."""
+    blob = "\n".join(f"host-{i}.example.com" for i in range(MAX_PASTE_OBJECTS + 1))
+
+    request = paste_request(
+        rf, redteam_member, blob, step="2", mock_organization_view_octopoes=mock_organization_view_octopoes
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 200
+    assertContains(response, "too many values")
+    mock_organization_view_octopoes().save_many_declarations.assert_not_called()
+    mock_bytes_client().add_manual_proof.assert_not_called()
+
+
+def test_paste_objects_bytes_failure(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client):
+    """A failing Bytes call is reported to the user instead of a 500 (L2)."""
+    mock_bytes_client().add_manual_proof.side_effect = HTTPError("bytes down")
+
+    request = paste_request(
+        rf, redteam_member, "example.com", step="2", mock_organization_view_octopoes=mock_organization_view_octopoes
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    mock_organization_view_octopoes().save_many_declarations.assert_called_once()
+    messages = list(request._messages)
+    assert "Failed to save data" in messages[0].message
+
+
+def test_paste_objects_no_evidence_for_failed_save(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """When saving the declarations fails, no evidence is stored in Bytes (L2)."""
+    mock_organization_view_octopoes().save_many_declarations.side_effect = HTTPError("octopoes down")
+
+    request = paste_request(
+        rf, redteam_member, "example.com", step="2", mock_organization_view_octopoes=mock_organization_view_octopoes
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    mock_bytes_client().add_manual_proof.assert_not_called()
+    messages = list(request._messages)
+    assert "Failed to save data" in messages[0].message
+
+
+def test_paste_objects_clearance_failure_message(
+    rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client
+):
+    """A failing scan-profile save reports the failure instead of a 500; the objects stay added."""
+    mock_organization_view_octopoes().save_many_scan_profiles.side_effect = HTTPError("octopoes down")
+
+    request = paste_request(
+        rf,
+        redteam_member,
+        "example.com",
+        step="2",
+        clearance_level="2",
+        mock_organization_view_octopoes=mock_organization_view_octopoes,
+    )
+    response = PasteObjects.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    messages = list(request._messages)
+    assert "Could not set the requested clearance level." in messages[0].message

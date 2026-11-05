@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-05 10:14+0000\n"
+"POT-Creation-Date: 2026-11-05 12:02+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1209,8 +1209,8 @@ msgstr ""
 #: rocky/templates/admin/delete_confirmation.html
 #: rocky/templates/admin/delete_selected_confirmation.html
 #: rocky/templates/dashboard_client.html rocky/templates/dashboard_redteam.html
-#: rocky/templates/header.html rocky/templates/paste_objects.html
-#: rocky/views/ooi_add.py rocky/views/ooi_add_subnet.py rocky/views/ooi_list.py
+#: rocky/templates/header.html rocky/views/ooi_add.py
+#: rocky/views/ooi_add_subnet.py rocky/views/ooi_list.py
 #: rocky/views/ooi_view.py rocky/views/paste_objects.py
 #: rocky/views/upload_csv.py rocky/views/upload_raw.py
 msgid "Objects"
@@ -4974,6 +4974,13 @@ msgstr ""
 msgid "Requested scan level for the new objects. Other values are ignored."
 msgstr ""
 
+#: tools/forms/paste_objects.py
+#, python-format
+msgid ""
+"The paste contains too many values: at most %(max)s objects can be added at "
+"once."
+msgstr ""
+
 #: tools/forms/scheduler.py
 msgid "From"
 msgstr ""
@@ -6980,6 +6987,13 @@ msgstr ""
 
 #: rocky/templates/paste_objects.html
 #, python-format
+msgid "Objects — %(num)s object will be added:"
+msgid_plural "Objects — %(num)s objects will be added:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: rocky/templates/paste_objects.html
+#, python-format
 msgid "interpreted as %(network_address)s/%(mask)s"
 msgstr ""
 
@@ -7779,6 +7793,28 @@ msgstr ""
 
 #: rocky/views/paste_objects.py
 msgid "Object(s) successfully added: "
+msgstr ""
+
+#: rocky/views/paste_objects.py
+#, python-format
+msgid ""
+"Could not declare clearance level L%(level)s: indemnification not present at "
+"%(org)s."
+msgstr ""
+
+#: rocky/views/paste_objects.py
+#, python-format
+msgid ""
+"Could not declare clearance level L%(level)s: you were trusted a clearance "
+"level of L%(max)s. Contact your administrator to receive a higher clearance."
+msgstr ""
+
+#: rocky/views/paste_objects.py
+#, python-format
+msgid ""
+"Could not declare clearance level L%(level)s: you acknowledged a clearance "
+"level of L%(acknowledged)s. Please accept the clearance level first on your "
+"profile page to proceed."
 msgstr ""
 
 #: rocky/views/paste_objects.py

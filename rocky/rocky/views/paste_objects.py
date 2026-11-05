@@ -17,6 +17,11 @@ from octopoes.api.models import Declaration
 from octopoes.connector import ConnectorException
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.ooi.network import Network
+from rocky.exceptions import (
+    AcknowledgedClearanceLevelTooLowException,
+    IndemnificationNotPresentException,
+    TrustedClearanceLevelTooLowException,
+)
 
 PASTE_OBJECTS_MIME_TYPE = "manual/txt"
 
@@ -135,12 +140,13 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
                 declarations.append(Declaration(ooi=dependency, valid_time=valid_time, task_id=task_id))
             declarations.append(Declaration(ooi=entry.ooi, valid_time=valid_time, task_id=task_id))
 
-        # The raw paste is stored as evidence so it stays auditable,
-        # mirroring the CSV upload flow.
-        self.bytes_client.add_manual_proof(task_id, raw_input, manual_mime_types={PASTE_OBJECTS_MIME_TYPE})
-
         try:
             self.octopoes_api_connector.save_many_declarations(declarations, sync=True)
+            # The raw paste is stored as evidence so it stays auditable,
+            # mirroring the CSV upload flow. Only after the save, so a
+            # failed save does not leave evidence for objects that were
+            # never added.
+            self.bytes_client.add_manual_proof(task_id, raw_input, manual_mime_types={PASTE_OBJECTS_MIME_TYPE})
         except (HTTPError, ConnectorException):
             return self.add_error_notification(_("Failed to save data from the pasted objects"))
 
@@ -166,5 +172,26 @@ class PasteObjects(OrganizationPermissionRequiredMixin, OrganizationView, FormVi
             return
         try:
             self.raise_clearance_levels([entry.ooi.reference for entry in parsed], int(level))
-        except Exception:  # noqa: BLE001 - a failing clearance request should not block object creation
+        except IndemnificationNotPresentException:
+            self.add_error_notification(
+                _("Could not declare clearance level L%(level)s: indemnification not present at %(org)s.")
+                % {"level": level, "org": self.organization.name}
+            )
+        except TrustedClearanceLevelTooLowException:
+            self.add_error_notification(
+                _(
+                    "Could not declare clearance level L%(level)s: you were trusted a clearance level of "
+                    "L%(max)s. Contact your administrator to receive a higher clearance."
+                )
+                % {"level": level, "max": self.organization_member.max_clearance_level}
+            )
+        except AcknowledgedClearanceLevelTooLowException:
+            self.add_error_notification(
+                _(
+                    "Could not declare clearance level L%(level)s: you acknowledged a clearance level of "
+                    "L%(acknowledged)s. Please accept the clearance level first on your profile page to proceed."
+                )
+                % {"level": level, "acknowledged": self.organization_member.acknowledged_clearance_level}
+            )
+        except (HTTPError, ConnectorException):
             self.add_error_notification(_("Could not set the requested clearance level."))

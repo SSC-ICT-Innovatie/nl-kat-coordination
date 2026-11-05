@@ -2,9 +2,14 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from tools.forms.base import BaseRockyForm
+from tools.ooi_blob import split_blob
 
 CLEARANCE_LEVEL_EMPTY_LABEL = _("--- Unchanged (no scan level requested) ----")
 CLEARANCE_LEVEL_CHOICES = [(str(level), f"L{level}") for level in range(5)]
+
+# Upper bound for one paste: every value becomes at least one declaration
+# plus a row on the review page.
+MAX_PASTE_OBJECTS = 1000
 
 
 class PasteObjectsForm(BaseRockyForm):
@@ -30,3 +35,12 @@ class PasteObjectsForm(BaseRockyForm):
         help_text=_("Requested scan level for the new objects. Other values are ignored."),
         required=False,
     )
+
+    def clean_objects(self):
+        objects = self.cleaned_data["objects"]
+        if len(split_blob(objects)) > MAX_PASTE_OBJECTS:
+            raise forms.ValidationError(
+                _("The paste contains too many values: at most %(max)s objects can be added at once."),
+                params={"max": MAX_PASTE_OBJECTS},
+            )
+        return objects

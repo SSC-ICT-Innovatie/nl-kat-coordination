@@ -44,7 +44,9 @@
                         {% endif %}
                         <fieldset>
                             <div>
-                                <label>{% translate "Objects" %}</label>
+                                <label>
+                                    {% blocktranslate count num=parsed|length %}Objects — {{ num }} object will be added:{% plural %}Objects — {{ num }} objects will be added:{% endblocktranslate %}
+                                </label>
                                 <ul>
                                     {% for entry in parsed %}
                                         <li>
