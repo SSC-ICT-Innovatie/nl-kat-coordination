@@ -115,7 +115,7 @@ def test_missing_intermediate_fires_on_chain(trust_store):
     # the presentation is incomplete.
     assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" in findings
     description = findings["KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN"][0].description
-    assert "example.com" in description  # codeql[py/incomplete-url-substring-sanitization]
+    assert leaf.subject.rfc4514_string() in description
 
 
 def test_full_chain_with_trusted_root_is_complete(trust_store):
