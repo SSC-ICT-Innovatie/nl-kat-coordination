@@ -11,7 +11,6 @@ from django.views.generic.edit import FormView
 from pydantic import ValidationError as PydanticValidationError
 from tools.forms.subnet import MIN_SCANNABLE_PREFIXLEN_V4, MIN_SCANNABLE_PREFIXLEN_V6, SubnetAddForm
 from tools.ooi_helpers import create_oois
-from tools.view_helpers import get_ooi_url
 
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPV4NetBlock, IPV6NetBlock, Network
 
@@ -152,7 +151,16 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
             self.can_raise_clearance_level(netblock, int(level))
 
         messages.success(self.request, _("Subnet added."))
-        return redirect(get_ooi_url("ooi_detail", netblock.primary_key, self.organization.code))
+        return redirect(
+            reverse(
+                "ooi_detail",
+                kwargs={
+                    "ooi": netblock.primary_key,
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                },
+            )
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

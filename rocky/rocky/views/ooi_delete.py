@@ -1,4 +1,3 @@
-
 from account.mixins import OrganizationPermissionRequiredMixin
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
