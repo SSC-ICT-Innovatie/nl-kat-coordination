@@ -1,5 +1,7 @@
 from datetime import UTC, datetime
 
+DATETIME_FORMAT = "%Y%m%dT%H%M%SZ"
+
 
 class TemporalContextConverter:
     regex = r"now|at-\d{8}T\d{6}Z"
@@ -9,11 +11,11 @@ class TemporalContextConverter:
             return None
 
         observed_at = value[len("at-") :]
-        return datetime.strptime(observed_at, "%Y%m%dT%H%M%SZ").replace(tzinfo=UTC)
+        return datetime.strptime(observed_at, DATETIME_FORMAT).replace(tzinfo=UTC)
 
     def to_url(self, value):
         if isinstance(value, datetime):
-            return f"at-{value.astimezone(UTC):%Y%m%dT%H%M%SZ}"
+            return f"at-{value.astimezone(UTC):{DATETIME_FORMAT}}"
 
         if value is None or value == "now":
             return "now"
