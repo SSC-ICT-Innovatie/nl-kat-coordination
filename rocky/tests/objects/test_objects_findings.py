@@ -1,10 +1,11 @@
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 import pytest
 from django.core.exceptions import PermissionDenied
+from django.template.loader import render_to_string
 from pytest_django.asserts import assertContains, assertNotContains
 
-from octopoes.models.ooi.findings import Finding, RiskLevelSeverity
+from octopoes.models.ooi.findings import Finding, KATFindingType, RiskLevelSeverity
 from octopoes.models.pagination import Paginated
 from octopoes.models.tree import ReferenceTree
 from rocky.views.finding_list import FindingListView
@@ -52,6 +53,9 @@ MUTED_FINDING_TREE_DATA = {
         },
     },
 }
+
+
+HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
 
 
 def test_ooi_finding_list(rf, client_member, mock_organization_view_octopoes):
@@ -357,9 +361,6 @@ def test_findings_list_filtering(
     assert mock_organization_view_octopoes().list_findings.mock_calls[1].kwargs["severities"] == {RiskLevelSeverity.LOW}
 
 
-HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
-
-
 def test_mute_findings_bulk_writes_at_the_viewed_time(rf, redteam_member, mock_organization_view_octopoes, mocker):
     """Muting while viewing a moment in the past records the mute at that moment."""
     create_oois = mocker.patch("rocky.views.ooi_mute.create_oois")
@@ -389,3 +390,22 @@ def test_unmute_findings_bulk_deletes_at_the_viewed_time(rf, redteam_member, moc
 
     assert response.status_code == 302
     assert mock_organization_view_octopoes().delete_many.call_args.args[1] == HISTORIC_MOMENT
+
+
+def test_findings_list_shows_current_proof_for_merged_cipher_finding(client_member, network):
+    """A re-inferred cipher finding keeps its old description next to the new proof; the table shows the proof."""
+    finding = Finding(
+        finding_type="KATFindingType|KAT-MEDIUM-TLS-CIPHER",
+        ooi=network.reference,
+        description="One or more of the cipher suites should not be used because:\nCipher A - removed suite (Medium).",
+        proof="One or more of the cipher suites should not be used because:\nCipher B - current suite.",
+    )
+    finding_type = KATFindingType(id="KAT-MEDIUM-TLS-CIPHER", risk_severity=RiskLevelSeverity.MEDIUM)
+
+    html = render_to_string(
+        "oois/ooi_detail_findings_list.html",
+        {"findings": [(finding, finding_type)], "ooi": network, "organization": client_member.organization},
+    )
+
+    assert "Cipher B - current suite." in html
+    assert "Cipher A - removed suite" not in html

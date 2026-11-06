@@ -16,6 +16,7 @@ from rocky.views.health import GlobalHealthChecks, GlobalHealthView, Health, Hea
 from rocky.views.indemnification_add import IndemnificationAddView
 from rocky.views.landing_page import LandingPageView
 from rocky.views.ooi_add import OOIAddTypeSelectView, OOIAddView
+from rocky.views.ooi_add_subnet import SubnetAddView
 from rocky.views.ooi_delete import OOIDeleteView
 from rocky.views.ooi_detail import OOIDetailView
 from rocky.views.ooi_detail_related_object import OOIRelatedObjectAddView
@@ -159,10 +160,22 @@ urlpatterns += i18n_patterns(
         OOIAddTypeSelectView.as_view(),
         name="ooi_add_type_select",
     ),
+    path(
+        "<organization_code>/<tc:temporal_context>/objects/add-subnet/", SubnetAddView.as_view(), name="ooi_add_subnet"
+    ),
     path("<organization_code>/<tc:temporal_context>/objects/add/<ooi_type>", OOIAddView.as_view(), name="ooi_add"),
     path(
         "<organization_code>/<tc:temporal_context>/objects/export", OOIListExportView.as_view(), name="ooi_list_export"
     ),
+    path("<organization_code>/<tc:temporal_context>/objects/scans/", ScanListView.as_view(), name="scan_list"),
+    path("<organization_code>/<tc:temporal_context>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),
+    path("<organization_code>/<tc:temporal_context>/objects/upload/raw/", UploadRaw.as_view(), name="upload_raw"),
+    path(
+        "<organization_code>/<tc:temporal_context>/objects/upload/raw/<mime_type>",
+        UploadRaw.as_view(),
+        name="upload_raw_typed",
+    ),
+    path("<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>", OOIDetailView.as_view(), name="ooi_detail"),
     path(
         "<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>/add-related/",
         OOIRelatedObjectAddView.as_view(),
@@ -177,15 +190,6 @@ urlpatterns += i18n_patterns(
         ScanProfileDetailView.as_view(),
         name="scan_profile_detail",
     ),
-    path("<organization_code>/<tc:temporal_context>/objects/scans/", ScanListView.as_view(), name="scan_list"),
-    path("<organization_code>/<tc:temporal_context>/objects/upload/csv/", UploadCSV.as_view(), name="upload_csv"),
-    path("<organization_code>/<tc:temporal_context>/objects/upload/raw/", UploadRaw.as_view(), name="upload_raw"),
-    path(
-        "<organization_code>/<tc:temporal_context>/objects/upload/raw/<mime_type>",
-        UploadRaw.as_view(),
-        name="upload_raw_typed",
-    ),
-    path("<organization_code>/<tc:temporal_context>/objects/<ooi:ooi>", OOIDetailView.as_view(), name="ooi_detail"),
     path("<organization_code>/tasks/", BoefjesTaskListView.as_view(), name="task_list"),
     path("<organization_code>/tasks/boefjes", BoefjesTaskListView.as_view(), name="boefjes_task_list"),
     path("<organization_code>/tasks/boefjes/<task_id>", BoefjeTaskDetailView.as_view(), name="boefje_task_view"),

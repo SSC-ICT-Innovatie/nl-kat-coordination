@@ -1,5 +1,5 @@
 import json
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from typing import Any
 
 from account.models import KATUser
@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 
 from octopoes.models import OOI, Reference, ScanLevel
 from octopoes.models.ooi.findings import Finding, FindingType
+from tools.ooi_helpers import finding_display_proof, is_legacy_tls_cipher_finding
 
 register = template.Library()
 
@@ -50,7 +51,7 @@ def parse_observed_at(observed_at):
     try:
         observed_at = datetime.fromisoformat(observed_at)
         if not observed_at.tzinfo:
-            observed_at = observed_at.replace(tzinfo=timezone.utc)
+            observed_at = observed_at.replace(tzinfo=UTC)
 
         return observed_at
     except TypeError:
@@ -85,6 +86,16 @@ def ooi_types_to_strings(ooi_types: set[type[OOI]]) -> list["str"]:
 @register.filter()
 def get_type(x: Any) -> Any:
     return type(x)
+
+
+@register.filter()
+def display_proof(finding: Finding) -> str | None:
+    return finding_display_proof(finding)
+
+
+@register.filter()
+def is_legacy_cipher_finding(finding: Finding) -> bool:
+    return is_legacy_tls_cipher_finding(finding)
 
 
 @register.filter()
