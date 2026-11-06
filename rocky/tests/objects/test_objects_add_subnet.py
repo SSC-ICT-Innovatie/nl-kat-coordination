@@ -15,7 +15,9 @@ def test_subnet_add_review_step(rf, redteam_member, mock_organization_view_octop
         rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.0/24", "network": "internet", "name": "office-lan"}),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "192.168.5.0")
@@ -37,7 +39,9 @@ def test_subnet_add_review_step_normalizes_host_bits(
         rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.77/24", "network": "internet", "name": ""}),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "was interpreted as the subnet")
@@ -65,7 +69,9 @@ def test_subnet_add_confirm_saves_batch_and_clearance(
         ),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 302
     assert "IPV4NetBlock%7Cinternet%7Cinternet%7C192.168.5.0%7C24" in response.url
@@ -89,7 +95,9 @@ def test_subnet_add_confirm_without_clearance(rf, client_member, mock_organizati
         rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
         client_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=client_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 302
     mock_organization_view_octopoes().save_scan_profile.assert_not_called()
@@ -106,7 +114,9 @@ def test_subnet_add_relies_on_organization_indemnification(
         rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 302
     assert "IPV4NetBlock" in response.url
@@ -122,7 +132,9 @@ def test_subnet_add_blocks_post_without_organization_indemnification(
     request = setup_request(
         rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet"}), redteam_member.user
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 302
     assert (
@@ -138,7 +150,9 @@ def test_subnet_add_get_without_organization_indemnification_shows_disabled_form
     Indemnification.objects.filter(organization=redteam_member.organization).delete()
 
     request = setup_request(rf.get("ooi_add_subnet"), redteam_member.user)
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "indemnification")
@@ -155,7 +169,9 @@ def test_subnet_add_rejects_single_address(
     request = setup_request(
         rf.post("ooi_add_subnet", {"step": "2", "cidr": cidr, "network": "internet", "name": ""}), redteam_member.user
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "more than one address")
@@ -177,7 +193,9 @@ def test_subnet_add_review_step_shows_clearance_error(
         ),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     # Still on the review step, where the error is rendered
@@ -198,7 +216,9 @@ def test_subnet_add_review_step_no_notice_for_equivalent_notation(
         ),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertNotContains(response, "was interpreted as the subnet")
@@ -214,7 +234,9 @@ def test_subnet_add_review_step_warns_on_large_range(
         rf.post("ooi_add_subnet", {"step": "1", "cidr": "10.0.0.0/8", "network": "internet", "name": ""}),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "nmap boefjes skip ranges larger than a /22")
@@ -235,7 +257,9 @@ def test_subnet_add_clearance_capped_at_member_maximum(
         rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "L1")
@@ -249,7 +273,9 @@ def test_subnet_add_invalid_cidr(rf, redteam_member, mock_organization_view_octo
         rf.post("ooi_add_subnet", {"step": "1", "cidr": "not-a-cidr", "network": "internet", "name": ""}),
         redteam_member.user,
     )
-    response = SubnetAddView.as_view()(request, organization_code=redteam_member.organization.code)
+    response = SubnetAddView.as_view()(
+        request, organization_code=redteam_member.organization.code, temporal_context=None
+    )
 
     assert response.status_code == 200
     assertContains(response, "Enter a valid CIDR")
