@@ -1,4 +1,3 @@
-
 from uuid import uuid4
 
 from account.mixins import OrganizationView

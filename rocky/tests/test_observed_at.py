@@ -1,5 +1,4 @@
-
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from django.urls import resolve, reverse
 from tools.urlconverters import TemporalContextConverter

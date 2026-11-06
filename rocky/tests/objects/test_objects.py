@@ -1,7 +1,7 @@
 import csv
 import io
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import pytest
 from django.urls import resolve, reverse
@@ -492,7 +492,7 @@ def test_delete_perms_object_list_clients(rf, client_member, mock_organization_v
     assertNotContains(response, "Delete")
 
 
-HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=timezone.utc)
+HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
 
 
 def test_set_clearance_level_at_the_viewed_time(rf, client_member, mock_organization_view_octopoes, url_kwargs):
