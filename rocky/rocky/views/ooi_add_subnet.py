@@ -13,6 +13,7 @@ from tools.forms.subnet import MIN_SCANNABLE_PREFIXLEN_V4, MIN_SCANNABLE_PREFIXL
 from tools.ooi_helpers import create_oois
 
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPV4NetBlock, IPV6NetBlock, Network
+from rocky.views.mixins import ObservedAtMixin
 
 
 def _try_parse_ip(cidr: str):
@@ -23,7 +24,7 @@ def _try_parse_ip(cidr: str):
         return None
 
 
-class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
+class SubnetAddView(ObservedAtMixin, OrganizationPermissionRequiredMixin, OrganizationView, FormView):
     """Add a subnet (NetBlock) in two steps.
 
     Step 1: enter a CIDR, network and optional name.
