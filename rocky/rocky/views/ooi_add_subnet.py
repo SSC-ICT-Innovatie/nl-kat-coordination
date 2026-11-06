@@ -168,9 +168,18 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
         context["indemnification_required"] = not self.indemnification_present
         context["can_set_clearance_level"] = self.can_set_clearance_level
         context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
-                "url": reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": _("Objects"),
+            },
+            {
+                "url": reverse(
+                    "ooi_add_subnet",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Add subnet"),
             },
         ]
