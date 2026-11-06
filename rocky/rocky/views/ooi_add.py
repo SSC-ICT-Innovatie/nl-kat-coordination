@@ -82,7 +82,12 @@ class OOIAddView(BaseOOIFormView):
         # NetBlocks cannot be added through the generic form (required start
         # IP relation); route them to the dedicated subnet flow.
         if kwargs.get("ooi_type") in SUBNET_OOI_TYPES:
-            return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
+            return redirect(
+                reverse(
+                    "ooi_add_subnet",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                )
+            )
         return super().get(request, *args, **kwargs)
 
     def setup(self, request, *args, **kwargs):
