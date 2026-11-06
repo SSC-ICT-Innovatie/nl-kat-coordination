@@ -1,5 +1,4 @@
 import ipaddress
-from datetime import UTC, datetime
 
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django import forms
@@ -46,7 +45,7 @@ class SubnetAddView(ObservedAtMixin, OrganizationPermissionRequiredMixin, Organi
     def get_form(self, form_class=None) -> SubnetAddForm:
         form = super().get_form(form_class)
 
-        networks = self.octopoes_api_connector.list_objects({Network}, datetime.now(UTC)).items
+        networks = self.octopoes_api_connector.list_objects({Network}, self.observed_at).items
         form.fields["network"].choices = sorted({("internet", "internet")} | {(n.name, n.name) for n in networks})
 
         if self.can_set_clearance_level:
@@ -141,9 +140,7 @@ class SubnetAddView(ObservedAtMixin, OrganizationPermissionRequiredMixin, Organi
                 name=data["name"] or None,
             )
 
-        create_oois(
-            self.octopoes_api_connector, self.bytes_client, [network_ooi, start_ip, netblock], datetime.now(UTC)
-        )
+        create_oois(self.octopoes_api_connector, self.bytes_client, [network_ooi, start_ip, netblock], self.observed_at)
 
         level = data.get("clearance_level")
         if level is not None and self.can_set_clearance_level:

@@ -161,7 +161,7 @@ urlpatterns += i18n_patterns(
         name="ooi_add_type_select",
     ),
     path(
-        "<organization_code>/<tc:temporal_context>/objects/add-subnet/", SubnetAddView.as_view(), name="ooi_add_subnet"
+        "<organization_code>/<tc:temporal_context>/objects/add/subnet/", SubnetAddView.as_view(), name="ooi_add_subnet"
     ),
     path("<organization_code>/<tc:temporal_context>/objects/add/<ooi_type>", OOIAddView.as_view(), name="ooi_add"),
     path(

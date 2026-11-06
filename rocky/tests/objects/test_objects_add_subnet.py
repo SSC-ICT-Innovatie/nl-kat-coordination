@@ -12,7 +12,16 @@ def test_subnet_add_review_step(rf, redteam_member, mock_organization_view_octop
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.0/24", "network": "internet", "name": "office-lan"}),
+        rf.post(
+            "ooi_add_subnet",
+            {
+                "temporal_context": "now",
+                "step": "1",
+                "cidr": "192.168.5.0/24",
+                "network": "internet",
+                "name": "office-lan",
+            },
+        ),
         redteam_member.user,
     )
     response = SubnetAddView.as_view()(
@@ -36,7 +45,10 @@ def test_subnet_add_review_step_normalizes_host_bits(
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.77/24", "network": "internet", "name": ""}),
+        rf.post(
+            "ooi_add_subnet",
+            {"temporal_context": "now", "step": "1", "cidr": "192.168.5.77/24", "network": "internet", "name": ""},
+        ),
         redteam_member.user,
     )
     response = SubnetAddView.as_view()(
@@ -60,6 +72,7 @@ def test_subnet_add_confirm_saves_batch_and_clearance(
         rf.post(
             "ooi_add_subnet",
             {
+                "temporal_context": "now",
                 "step": "2",
                 "cidr": "192.168.5.0/24",
                 "network": "internet",
@@ -92,7 +105,10 @@ def test_subnet_add_confirm_without_clearance(rf, client_member, mock_organizati
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
+        rf.post(
+            "ooi_add_subnet",
+            {"temporal_context": "now", "step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""},
+        ),
         client_member.user,
     )
     response = SubnetAddView.as_view()(
@@ -111,7 +127,10 @@ def test_subnet_add_relies_on_organization_indemnification(
     Indemnification.objects.filter(user=redteam_member.user, organization=redteam_member.organization).delete()
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
+        rf.post(
+            "ooi_add_subnet",
+            {"temporal_context": "now", "step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": ""},
+        ),
         redteam_member.user,
     )
     response = SubnetAddView.as_view()(
@@ -130,7 +149,10 @@ def test_subnet_add_blocks_post_without_organization_indemnification(
     Indemnification.objects.filter(organization=redteam_member.organization).delete()
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "2", "cidr": "192.168.5.0/24", "network": "internet"}), redteam_member.user
+        rf.post(
+            "ooi_add_subnet", {"temporal_context": "now", "step": "2", "cidr": "192.168.5.0/24", "network": "internet"}
+        ),
+        redteam_member.user,
     )
     response = SubnetAddView.as_view()(
         request, organization_code=redteam_member.organization.code, temporal_context=None
@@ -167,7 +189,10 @@ def test_subnet_add_rejects_single_address(
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "2", "cidr": cidr, "network": "internet", "name": ""}), redteam_member.user
+        rf.post(
+            "ooi_add_subnet", {"temporal_context": "now", "step": "2", "cidr": cidr, "network": "internet", "name": ""}
+        ),
+        redteam_member.user,
     )
     response = SubnetAddView.as_view()(
         request, organization_code=redteam_member.organization.code, temporal_context=None
@@ -189,7 +214,14 @@ def test_subnet_add_review_step_shows_clearance_error(
     request = setup_request(
         rf.post(
             "ooi_add_subnet",
-            {"step": "2", "cidr": "192.168.5.0/24", "network": "internet", "name": "", "clearance_level": "2"},
+            {
+                "temporal_context": "now",
+                "step": "2",
+                "cidr": "192.168.5.0/24",
+                "network": "internet",
+                "name": "",
+                "clearance_level": "2",
+            },
         ),
         redteam_member.user,
     )
@@ -212,7 +244,14 @@ def test_subnet_add_review_step_no_notice_for_equivalent_notation(
 
     request = setup_request(
         rf.post(
-            "ooi_add_subnet", {"step": "1", "cidr": "192.168.5.0/255.255.255.0", "network": "internet", "name": ""}
+            "ooi_add_subnet",
+            {
+                "temporal_context": "now",
+                "step": "1",
+                "cidr": "192.168.5.0/255.255.255.0",
+                "network": "internet",
+                "name": "",
+            },
         ),
         redteam_member.user,
     )
@@ -231,7 +270,10 @@ def test_subnet_add_review_step_warns_on_large_range(
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "1", "cidr": "10.0.0.0/8", "network": "internet", "name": ""}),
+        rf.post(
+            "ooi_add_subnet",
+            {"temporal_context": "now", "step": "1", "cidr": "10.0.0.0/8", "network": "internet", "name": ""},
+        ),
         redteam_member.user,
     )
     response = SubnetAddView.as_view()(
@@ -254,7 +296,10 @@ def test_subnet_add_clearance_capped_at_member_maximum(
     redteam_member.save()
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "1", "cidr": "192.168.5.0/24", "network": "internet", "name": ""}),
+        rf.post(
+            "ooi_add_subnet",
+            {"temporal_context": "now", "step": "1", "cidr": "192.168.5.0/24", "network": "internet", "name": ""},
+        ),
         redteam_member.user,
     )
     response = SubnetAddView.as_view()(
@@ -270,7 +315,10 @@ def test_subnet_add_invalid_cidr(rf, redteam_member, mock_organization_view_octo
     mock_organization_view_octopoes().list_objects.return_value.items = []
 
     request = setup_request(
-        rf.post("ooi_add_subnet", {"step": "1", "cidr": "not-a-cidr", "network": "internet", "name": ""}),
+        rf.post(
+            "ooi_add_subnet",
+            {"temporal_context": "now", "step": "1", "cidr": "not-a-cidr", "network": "internet", "name": ""},
+        ),
         redteam_member.user,
     )
     response = SubnetAddView.as_view()(
