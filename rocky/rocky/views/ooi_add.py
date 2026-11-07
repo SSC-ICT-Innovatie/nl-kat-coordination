@@ -36,7 +36,15 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
     def get(self, request, *args, **kwargs):
         if "add_ooi_type" in request.GET and existing_ooi_type(request.GET["add_ooi_type"]):
             if request.GET["add_ooi_type"] in SUBNET_OOI_TYPES:
-                return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
+                return redirect(
+                    reverse(
+                        "ooi_add_subnet",
+                        kwargs={
+                            "organization_code": self.organization.code,
+                            "temporal_context": self.kwargs.get("temporal_context"),
+                        },
+                    )
+                )
             return redirect(
                 reverse(
                     "ooi_add",
