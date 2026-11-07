@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:02+0000\n"
+"POT-Creation-Date: 2026-11-07 15:28+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -809,7 +809,7 @@ msgstr ""
 #: rocky/templates/partials/ooi_report_findings_block.html
 #: rocky/templates/partials/ooi_report_findings_block_table.html
 #: rocky/views/finding_list.py rocky/views/finding_type_add.py
-#: rocky/views/ooi_view.py
+#: rocky/views/mixins.py rocky/views/ooi_view.py
 msgid "Findings"
 msgstr ""
 
@@ -1207,7 +1207,7 @@ msgstr ""
 #: tools/view_helpers.py rocky/templates/admin/delete_confirmation.html
 #: rocky/templates/admin/delete_selected_confirmation.html
 #: rocky/templates/dashboard_client.html rocky/templates/dashboard_redteam.html
-#: rocky/templates/header.html rocky/views/ooi_add.py
+#: rocky/templates/header.html rocky/views/mixins.py rocky/views/ooi_add.py
 #: rocky/views/ooi_add_subnet.py rocky/views/ooi_list.py
 #: rocky/views/ooi_view.py rocky/views/upload_csv.py rocky/views/upload_raw.py
 msgid "Objects"
@@ -4826,10 +4826,6 @@ msgid "Finding type already exists"
 msgstr ""
 
 #: tools/forms/finding_type.py
-msgid "Click to select one of the available options"
-msgstr ""
-
-#: tools/forms/finding_type.py
 #: rocky/templates/partials/finding_occurrence_definition_list.html
 msgid "Proof"
 msgstr ""
@@ -4852,14 +4848,6 @@ msgstr ""
 
 #: tools/forms/finding_type.py tools/forms/upload_raw.py
 msgid "Date/Time (UTC)"
-msgstr ""
-
-#: tools/forms/finding_type.py tools/forms/upload_raw.py
-msgid "Doc! I'm from the future, I'm here to take you back!"
-msgstr ""
-
-#: tools/forms/finding_type.py
-msgid "OOI doesn't exist"
 msgstr ""
 
 #: tools/forms/findings.py
@@ -5244,6 +5232,10 @@ msgstr ""
 
 #: tools/forms/upload_raw.py
 msgid "Click to select one of the available options, or type one yourself"
+msgstr ""
+
+#: tools/forms/upload_raw.py
+msgid "Doc! I'm from the future, I'm here to take you back!"
 msgstr ""
 
 #: tools/forms/upload_raw.py
@@ -5775,6 +5767,7 @@ msgid "Go to Objects"
 msgstr ""
 
 #: rocky/templates/indemnification_present.html
+#: rocky/templates/scan_profiles/scan_profile_detail.html
 msgid "Go to"
 msgstr ""
 
@@ -5982,6 +5975,16 @@ msgid "Here you can delete the %(display_type)s."
 msgstr ""
 
 #: rocky/templates/oois/ooi_delete.html
+#, python-format
+msgid ""
+"\n"
+"                        Deletion will take place at the current timestamp "
+"(%(observed_at)s). If the object has been observed at a later date, it will "
+"still exists from that point on.\n"
+"                    "
+msgstr ""
+
+#: rocky/templates/oois/ooi_delete.html
 msgid "To be deleted object(s)"
 msgstr ""
 
@@ -6076,6 +6079,10 @@ msgstr ""
 msgid "to find and enable boefjes that can scan within the current level."
 msgstr ""
 
+#: rocky/templates/oois/ooi_detail.html
+msgid "No scans can be started on historic or future views."
+msgstr ""
+
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/ooi_detail_related_object.html
 msgid "Add related object"
@@ -6099,6 +6106,10 @@ msgstr ""
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
 msgid "Select an object type to add."
+msgstr ""
+
+#: rocky/templates/oois/ooi_detail_add_related_object.html
+msgid "No related object types are known for this Object type."
 msgstr ""
 
 #: rocky/templates/oois/ooi_detail_findings_list.html
@@ -6231,7 +6242,7 @@ msgstr ""
 
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
-msgid "Edit %(type)s: %(ooi_human_readable)s"
+msgid "Edit: %(ooi_human_readable)s"
 msgstr ""
 
 #: rocky/templates/oois/ooi_edit.html
@@ -6240,7 +6251,7 @@ msgstr ""
 
 #: rocky/templates/oois/ooi_edit.html
 #, python-format
-msgid "Save %(display_type)s"
+msgid "Save %(ooi_human_readable)s"
 msgstr ""
 
 #: rocky/templates/oois/ooi_findings.html
@@ -6282,32 +6293,6 @@ msgstr ""
 msgid "List of views for OOI"
 msgstr ""
 
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "You are looking at a historic view of this object."
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You are looking at a historic view of this object which has been deleted in "
-"the current timeline"
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-#: rocky/templates/partials/hyperlink_ooi_id.html
-#, python-format
-msgid "Show details for %(name)s"
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid "View the current state"
-msgstr ""
-
-#: rocky/templates/oois/ooi_past_due_warning.html
-msgid ""
-"You will not be able to add Findings or other OOI's, this object has been "
-"deleted and is no longer available."
-msgstr ""
-
 #: rocky/templates/oois/ooi_summary.html
 msgid "Summary for"
 msgstr ""
@@ -6334,6 +6319,36 @@ msgstr ""
 
 #: rocky/templates/oois/ooi_summary.html
 msgid "shows the same objects."
+msgstr ""
+
+#: rocky/templates/oois/ooi_temporal_warning.html
+msgid "You are looking at a historic view of this object."
+msgstr ""
+
+#: rocky/templates/oois/ooi_temporal_warning.html
+msgid ""
+"You are looking at a historic view of this object which has been deleted in "
+"the current timeline"
+msgstr ""
+
+#: rocky/templates/oois/ooi_temporal_warning.html
+msgid "You are looking at a future view of this object."
+msgstr ""
+
+#: rocky/templates/oois/ooi_temporal_warning.html
+#: rocky/templates/partials/hyperlink_ooi_id.html
+#, python-format
+msgid "Show details for %(name)s"
+msgstr ""
+
+#: rocky/templates/oois/ooi_temporal_warning.html
+msgid "View the current state"
+msgstr ""
+
+#: rocky/templates/oois/ooi_temporal_warning.html
+msgid ""
+"You will not be able to add Findings or other OOI's, this object has been "
+"deleted and is no longer available."
 msgstr ""
 
 #: rocky/templates/organizations/organization_add.html
@@ -6910,6 +6925,18 @@ msgid ""
 msgstr ""
 
 #: rocky/templates/scan_profiles/scan_profile_detail.html
+msgid ""
+"Clearance levels of objects cannot be changed in the past. Changing a "
+"clearance level in the past cannot and should not produce tasks that cannot "
+"be executed in that timeframe. Any change to a clearance level should be set "
+"in the 'now'."
+msgstr ""
+
+#: rocky/templates/scan_profiles/scan_profile_detail.html
+msgid "now"
+msgstr ""
+
+#: rocky/templates/scan_profiles/scan_profile_detail.html
 msgid "Empty clearance level explanation"
 msgstr ""
 
@@ -7404,11 +7431,7 @@ msgid "Indemnification successfully set."
 msgstr ""
 
 #: rocky/views/mixins.py
-msgid "The selected date is in the future."
-msgstr ""
-
-#: rocky/views/mixins.py
-msgid "Can not parse date, falling back to show current date."
+msgid "Now"
 msgstr ""
 
 #: rocky/views/mixins.py
@@ -7451,6 +7474,10 @@ msgid "Subnet added."
 msgstr ""
 
 #: rocky/views/ooi_detail.py
+msgid "Clearance levels cannot be set on historic views."
+msgstr ""
+
+#: rocky/views/ooi_detail.py
 msgid ""
 "Cannot set clearance level. It must be provided and must be a valid number."
 msgstr ""
@@ -7461,6 +7488,10 @@ msgstr ""
 
 #: rocky/views/ooi_detail.py
 msgid "Question has been answered."
+msgstr ""
+
+#: rocky/views/ooi_detail.py
+msgid "Boefje tasks cannot be started from historic views."
 msgstr ""
 
 #: rocky/views/ooi_detail_related_object.py
