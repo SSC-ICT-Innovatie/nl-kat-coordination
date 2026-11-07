@@ -1,4 +1,5 @@
 from unittest.mock import ANY, call
+from urllib.parse import unquote
 
 from django.urls import resolve, reverse
 from pytest_django.asserts import assertContains
@@ -24,15 +25,21 @@ TREE_DATA = {
     },
 }
 
+OOI_ID = "Network|testnetwork"
+
+
+def _url_kwargs(organization_code):
+    return {"organization_code": organization_code, "temporal_context": "now", "ooi": OOI_ID}
+
 
 def test_ooi_graph(rf, client_member, mock_organization_view_octopoes):
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
-    request = setup_request(rf.get("ooi_graph", {"ooi_id": "Network|testnetwork"}), client_member.user)
-    request.resolver_match = resolve(
-        reverse("ooi_graph", kwargs={"organization_code": client_member.organization.code})
+    request = setup_request(rf.get("ooi_graph"), client_member.user)
+    request.resolver_match = resolve(unquote(reverse("ooi_graph", kwargs=_url_kwargs(client_member.organization.code))))
+    response = OOIGraphView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=None, ooi=OOI_ID
     )
-    response = OOIGraphView.as_view()(request, organization_code=client_member.organization.code)
 
     assert response.status_code == 200
     mock_organization_view_octopoes().get_tree.assert_has_calls(
@@ -52,11 +59,11 @@ def test_ooi_graph_tree_is_hydrated_with_display_name(rf, client_member, mock_or
     # and the d3 render crashes in truncateText(undefined).
     mock_organization_view_octopoes().get_tree.return_value = ReferenceTree.model_validate(TREE_DATA)
 
-    request = setup_request(rf.get("ooi_graph", {"ooi_id": "Network|testnetwork"}), client_member.user)
-    request.resolver_match = resolve(
-        reverse("ooi_graph", kwargs={"organization_code": client_member.organization.code})
+    request = setup_request(rf.get("ooi_graph"), client_member.user)
+    request.resolver_match = resolve(unquote(reverse("ooi_graph", kwargs=_url_kwargs(client_member.organization.code))))
+    response = OOIGraphView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=None, ooi=OOI_ID
     )
-    response = OOIGraphView.as_view()(request, organization_code=client_member.organization.code)
 
     # hydrate_branch adds display_name (from human_readable), name and graph_url to
     # every node; without the hydrated tree in the context these keys are missing and

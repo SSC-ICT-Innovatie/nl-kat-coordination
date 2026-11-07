@@ -1,7 +1,7 @@
 {% load i18n %}
 
 {% if perms.tools.can_enable_disable_boefje %}
-    <form action="{% url "plugin_enable_disable" organization_code=organization.code plugin_type=plugin.type plugin_id=plugin.id plugin_state=plugin.enabled %}"
+    <form action="{% app_url "plugin_enable_disable" plugin_type=plugin.type plugin_id=plugin.id plugin_state=plugin.enabled temporal_context=None %}"
           method="post"
           class="inline">
         {% csrf_token %}

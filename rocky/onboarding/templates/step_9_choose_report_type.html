@@ -23,19 +23,14 @@
                     {% endblocktranslate %}
                 </p>
                 <form method="post"
-                      action="{% url "step_9a_setup_scan_ooi_detail" organization.code %}?{{ request.GET.urlencode }}"
+                      action="{% app_url "step_9a_setup_scan_ooi_detail" ooi=request.GET.ooi %}"
                       class="inline">
                     {% csrf_token %}
                     <div class="button-container">
-                        {% if organization %}
-                            <button name="report_type" value="dns-report" type="submit" class="button">
-                                {% translate "Generate DNS Report" %}
-                            </button>
-                        {% endif %}
-                        {% if organization %}
-                            <a href="{% url "complete_onboarding" organization.code %}"
-                               class="button ghost">{% translate "Skip onboarding" %}</a>
-                        {% endif %}
+                        <button name="report_type" value="dns-report" type="submit" class="button">
+                            {% translate "Generate DNS Report" %}
+                        </button>
+                        <a href="{% app_url "complete_onboarding" %}" class="button ghost">{% translate "Skip onboarding" %}</a>
                     </div>
                 </form>
             </div>

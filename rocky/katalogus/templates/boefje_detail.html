@@ -54,7 +54,7 @@
                     </p>
                     <p>
                         {% for ooi_type in plugin.consumes %}
-                            <a href="{% url "ooi_add" organization_code=organization.code ooi_type=ooi_type %}">{{ ooi_type }}</a>
+                            <a href="{% app_url "ooi_add" ooi_type=ooi_type %}">{{ ooi_type }}</a>
                             {% if not forloop.last %}-{% endif %}
                         {% endfor %}
                     </p>

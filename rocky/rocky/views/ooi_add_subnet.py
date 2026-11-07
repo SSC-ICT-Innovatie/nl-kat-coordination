@@ -1,5 +1,4 @@
 import ipaddress
-from datetime import UTC, datetime
 
 from account.mixins import OrganizationPermissionRequiredMixin, OrganizationView
 from django import forms
@@ -11,9 +10,9 @@ from django.views.generic.edit import FormView
 from pydantic import ValidationError as PydanticValidationError
 from tools.forms.subnet import MIN_SCANNABLE_PREFIXLEN_V4, MIN_SCANNABLE_PREFIXLEN_V6, SubnetAddForm
 from tools.ooi_helpers import create_oois
-from tools.view_helpers import get_ooi_url
 
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPV4NetBlock, IPV6NetBlock, Network
+from rocky.views.mixins import ObservedAtMixin
 
 
 def _try_parse_ip(cidr: str):
@@ -24,7 +23,7 @@ def _try_parse_ip(cidr: str):
         return None
 
 
-class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormView):
+class SubnetAddView(ObservedAtMixin, OrganizationPermissionRequiredMixin, OrganizationView, FormView):
     """Add a subnet (NetBlock) in two steps.
 
     Step 1: enter a CIDR, network and optional name.
@@ -46,7 +45,7 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
     def get_form(self, form_class=None) -> SubnetAddForm:
         form = super().get_form(form_class)
 
-        networks = self.octopoes_api_connector.list_objects({Network}, datetime.now(UTC)).items
+        networks = self.octopoes_api_connector.list_objects({Network}, self.observed_at).items
         form.fields["network"].choices = sorted({("internet", "internet")} | {(n.name, n.name) for n in networks})
 
         if self.can_set_clearance_level:
@@ -141,9 +140,7 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
                 name=data["name"] or None,
             )
 
-        create_oois(
-            self.octopoes_api_connector, self.bytes_client, [network_ooi, start_ip, netblock], datetime.now(UTC)
-        )
+        create_oois(self.octopoes_api_connector, self.bytes_client, [network_ooi, start_ip, netblock], self.observed_at)
 
         level = data.get("clearance_level")
         if level is not None and self.can_set_clearance_level:
@@ -152,7 +149,16 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
             self.can_raise_clearance_level(netblock, int(level))
 
         messages.success(self.request, _("Subnet added."))
-        return redirect(get_ooi_url("ooi_detail", netblock.primary_key, self.organization.code))
+        return redirect(
+            reverse(
+                "ooi_detail",
+                kwargs={
+                    "ooi": netblock.primary_key,
+                    "organization_code": self.organization.code,
+                    "temporal_context": self.temporal_context,
+                },
+            )
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -160,9 +166,18 @@ class SubnetAddView(OrganizationPermissionRequiredMixin, OrganizationView, FormV
         context["indemnification_required"] = not self.indemnification_present
         context["can_set_clearance_level"] = self.can_set_clearance_level
         context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
-                "url": reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": _("Objects"),
+            },
+            {
+                "url": reverse(
+                    "ooi_add_subnet",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Add subnet"),
             },
         ]

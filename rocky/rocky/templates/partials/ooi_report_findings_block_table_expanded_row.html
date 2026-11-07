@@ -26,7 +26,7 @@
             <div>
                 <dt>{% translate "Finding" %}</dt>
                 <dd>
-                    <a href="{% ooi_url 'ooi_detail' finding_type.ooi_type|add:'|'|add:finding_type.id organization.code %}">{{ finding_type.id }}</a>
+                    <a href="{% app_url 'ooi_detail' ooi=finding_type.ooi_type|add:'|'|add:finding_type.id %}">{{ finding_type.id }}</a>
                 </dd>
             </div>
             {% include "partials/elements/definition_list_item.html" with label="Description" description=finding_type.description %}
@@ -66,7 +66,7 @@
             <div>
                 <h3>{% translate "Occurrence" %}</h3>
                 {% for finding in findings.list %}
-                    <a href="{% ooi_url "ooi_detail" finding.ooi.id organization.code %}">{{ finding.ooi.human_readable }}</a>
+                    <a href="{% app_url "ooi_detail" ooi=finding.ooi.id %}">{{ finding.ooi.human_readable }}</a>
                     <div id="{{ findings.grouper.id }}-{{ finding.ooi.id }}">
                         {% include "partials/finding_occurrence_definition_list.html" %}
 

@@ -69,7 +69,7 @@
 
                         {% endif %}
                         <button type="submit">{% translate "Add subnet" %}</button>
-                        <a href="{% url "ooi_add_subnet" organization_code=organization.code %}">{% translate "Back" %}</a>
+                        <a href="{% app_url "ooi_add_subnet" %}">{% translate "Back" %}</a>
                     {% else %}
                         <fieldset>
                             {% for field in form %}
