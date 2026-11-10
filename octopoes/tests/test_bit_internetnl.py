@@ -32,5 +32,17 @@ def test_internetnl_covers_the_re_anchored_findings():
     bit = get_bit_definitions()["internet-nl"]
 
     paths = [p.relation_path for p in bit.parameters if p.ooi_type.get_object_type() == "Finding"]
-    assert "ooi [is IPAddress]" in paths
+    assert "ooi [is IPAddress].<address [is ResolvedHostname].hostname" in paths
     assert "ooi [is TLSCertificateChain].hostname_ip_service.hostname" in paths
+
+
+def test_internetnl_parameter_paths_end_at_the_consumed_hostname():
+    # A parameter path that ends anywhere else attaches the parameter to a
+    # bit instance that never exists (instances are keyed on the Hostname).
+    # hasecon, #5585 round 2: a path ending at the IPAddress delivered
+    # HTTPS-NOT-AVAILABLE to an origin no bit instance ever uses.
+    bit = get_bit_definitions()["internet-nl"]
+
+    for parameter in bit.parameters:
+        path = Path.parse(f"{parameter.ooi_type.get_object_type()}.{parameter.relation_path}")
+        assert path.segments[-1].target_type is bit.consumes, parameter.relation_path
