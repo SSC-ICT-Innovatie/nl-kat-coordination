@@ -3,7 +3,6 @@ import hashlib
 import re
 import ssl
 from collections.abc import Iterable
-from datetime import UTC, datetime, timedelta
 from functools import cache
 
 from cryptography import x509
@@ -28,13 +27,6 @@ from octopoes.models.ooi.service import HostnameIPService
 
 CERTIFICATE_RE = re.compile(r"-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----", flags=re.DOTALL)
 HOSTNAME_RE = re.compile(r"^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*\.?$")
-
-# Renewal practice: a certificate should be renewed at two-thirds of its
-# lifetime. "Expiring soon" means the un-renewed certificate is past that
-# point. The detection lag (about a scan interval) is subtracted so the
-# finding is only raised when it is observable in time.
-RENEWAL_FRACTION = 3
-DETECTION_LAG = timedelta(days=2)
 
 
 @cache
@@ -154,42 +146,6 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         **{("hostname_ip_service" if object_type == "HostnameIPService" else "ip_service"): endpoint},
     )
     yield chain
-
-    # --- Assessment of the presentation. These findings are properties of
-    # what was just observed, and only a live observation knows which
-    # certificates the endpoint currently presents: a bit would also fire on
-    # objects from renewals long past. Bound to the chain per the
-    # capability-variant rule, except expiry, which is about the certificate
-    # itself. ---
-    now = datetime.now(UTC)
-    expired = []
-    expiring = []
-    for ooi, parsed_cert in pairs:
-        assert ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
-        valid_until = parsed_cert.not_valid_after_utc
-        lifetime = valid_until - parsed_cert.not_valid_before_utc
-        remaining = valid_until - now
-        if remaining <= timedelta(0):
-            expired.append(
-                (ooi.reference, f"TLS certificate {ooi.fingerprint[:16]} expired at {ooi.valid_until.isoformat()}.")
-            )
-            continue
-        renewal_point = lifetime / RENEWAL_FRACTION - DETECTION_LAG
-        if renewal_point > timedelta(0) and remaining < renewal_point:
-            expiring.append(
-                (
-                    ooi.reference,
-                    f"TLS certificate {ooi.fingerprint[:16]} is past its renewal point: it expires at"
-                    f" {ooi.valid_until.isoformat()}, in {remaining.days} days. If renewal is automated, the"
-                    " automation has not replaced it.",
-                )
-            )
-    for finding_id, targets in (("KAT-CERTIFICATE-EXPIRED", expired), ("KAT-CERTIFICATE-EXPIRING-SOON", expiring)):
-        if targets:
-            ft = KATFindingType(id=finding_id)
-            yield ft
-            for ooi_reference, description in targets:
-                yield Finding(ooi=ooi_reference, finding_type=ft.reference, description=description)
 
     anchors = _trust_anchors()
     if anchors:

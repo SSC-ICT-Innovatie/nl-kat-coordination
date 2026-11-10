@@ -196,52 +196,6 @@ def test_no_trust_store_assesses_nothing(no_trust_store):
     assert findings == {}
 
 
-def test_expired_certificate_fires_on_the_certificate(trust_store):
-    now = datetime.now(UTC)
-    expired_cert, _ = make_cert("example.com", not_before=now - timedelta(days=200), not_after=now - timedelta(days=1))
-
-    findings = finding_types(oois_for(expired_cert))
-
-    assert "KATFindingType|KAT-CERTIFICATE-EXPIRED" in findings
-    finding = findings["KATFindingType|KAT-CERTIFICATE-EXPIRED"][0]
-    # About the certificate, not the chain.
-    assert str(finding.ooi).startswith("X509CertificateV2|")
-
-
-def test_certificate_past_renewal_point_fires_expiring_soon(trust_store):
-    now = datetime.now(UTC)
-    # A 90-day lifetime: the renewal point is 30 days before expiry, minus
-    # the 2-day detection lag, so it fires under 28 days remaining.
-    cert, _ = make_cert("example.com", not_before=now - timedelta(days=70), not_after=now + timedelta(days=20))
-
-    findings = finding_types(oois_for(cert))
-
-    assert "KATFindingType|KAT-CERTIFICATE-EXPIRING-SOON" in findings
-    description = findings["KATFindingType|KAT-CERTIFICATE-EXPIRING-SOON"][0].description
-    assert "renewal point" in description
-
-
-def test_certificate_before_renewal_point_does_not_fire(trust_store):
-    now = datetime.now(UTC)
-    cert, _ = make_cert("example.com", not_before=now - timedelta(days=50), not_after=now + timedelta(days=40))
-
-    findings = finding_types(oois_for(cert))
-
-    assert "KATFindingType|KAT-CERTIFICATE-EXPIRING-SOON" not in findings
-    assert "KATFindingType|KAT-CERTIFICATE-EXPIRED" not in findings
-
-
-def test_certificate_shorter_than_detection_lag_never_fires_expiring_soon(trust_store):
-    now = datetime.now(UTC)
-    # A six-day certificate: the renewal point is inside the detection lag,
-    # so it can never be observed in time; expiry itself is the signal.
-    cert, _ = make_cert("example.com", not_before=now - timedelta(days=3), not_after=now + timedelta(days=2, hours=23))
-
-    findings = finding_types(oois_for(cert))
-
-    assert "KATFindingType|KAT-CERTIFICATE-EXPIRING-SOON" not in findings
-
-
 def test_hostname_mismatch_fires_on_chain(no_trust_store):
     # The leaf covers api.example.com; the presentation claims example.com.
     leaf, _ = make_cert("api.example.com", dns_names=["api.example.com"])
