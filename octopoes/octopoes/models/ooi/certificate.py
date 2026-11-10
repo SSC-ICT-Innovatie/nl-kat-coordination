@@ -308,16 +308,17 @@ class TLSCertificateChain(OOI):
     (exactly one of the two references is set): it is valid for the null
     server name only, not for the service's other hostnames.
 
-    presented_certificates is ordered leaf-first as received. Entries that
-    failed to parse produce no certificate object; the normalizer emits a
-    Finding on the chain for each, with position and raw hash as proof.
+    presented_certificates is ordered leaf-first as received, and the
+    order is durable: XTDB stores vector values as ordered lists, so the
+    first entry is the leaf wherever the chain is read — through the
+    entity API, an indexed pull or a reverse-relation join alike.
+    Entries that failed to parse produce no certificate object; the
+    normalizer emits a Finding on the chain for each, with position and
+    raw hash as proof.
 
-    Note: XTDB stores multi-valued attributes as sets, so the transmitted
-    order is not guaranteed to survive traversal. The order is preserved in
-    the presentation_hash (computed over the ordered entries at observation
-    time) and the wire order is re-derivable from raw scanner output in
-    Bytes. Chain-completeness assessment does not depend on intermediate
-    ordering; the leaf is always the first entry presented.
+    The presentation_hash (computed over the ordered entries at
+    observation time) anchors the identity, and the wire order is
+    re-derivable from raw scanner output in Bytes.
     """
 
     object_type: Literal["TLSCertificateChain"] = "TLSCertificateChain"
