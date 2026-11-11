@@ -29,7 +29,21 @@ The following always need that decision before any code is written:
 When in doubt, treat it as a design decision. Write the proposal in an issue,
 link it from the PR, and wait.
 
-## 2. Other people's branches: hands off
+## 2. New features need an approved issue
+
+Do not introduce a new feature unless an issue for it exists, has been refined,
+and has been approved for implementation by the maintainer. An idea, a review
+remark or a request in chat is not an approval.
+
+- No approved issue yet? Write the proposal as an issue and stop there.
+- Link the approved issue in the PR description.
+- Build what the issue describes. Extra functionality you thought of along the
+  way goes into a new issue, not into the PR.
+
+Fixing a defect in existing behaviour is not a new feature. A fix that changes
+the design still falls under section 1.
+
+## 3. Other people's branches: hands off
 
 A pull request belongs to its author until it is merged.
 
@@ -43,7 +57,7 @@ A pull request belongs to its author until it is merged.
 - Never revert, rewrite, squash or force-push someone else's commits. If you
   think a commit is wrong, say so in the thread.
 
-## 3. Open review threads are questions, not tasks
+## 4. Open review threads are questions, not tasks
 
 - If the reviewer and the author have not agreed, implement neither side. Wait
   for a decision, and link to it when you implement it.
@@ -51,13 +65,33 @@ A pull request belongs to its author until it is merged.
 - Do not approve, dismiss reviews, merge, or close other people's issues and
   pull requests.
 
-## 4. One pull request, one concern
+## 5. One pull request, one concern
 
 - No unrelated fixes, no reformatting of code you did not change, no renames
   outside the scope of the PR. Open a separate issue or PR for those.
-- Follow the existing patterns of the component you touch.
+- Follow the existing patterns of the component you touch, except the
+  deprecated ones listed in section 6.
 
-## 5. Before every push
+## 6. Deprecated patterns: do not copy them
+
+Some patterns are still all over the code but are not wanted in new code. An
+agent copies what it sees, so these are spelled out. Do not rewrite existing
+code to match unless that is the purpose of the PR (section 5).
+
+Findings:
+
+- Every finding type you yield has its own entry in
+  `boefjes/boefjes/plugins/kat_kat_finding_types/kat_finding_types.json`. Do
+  not yield a `KATFindingType` id that is not in that catalog: it ends up with
+  unknown severity and no description. Finding types imported from an external
+  database (CVE and the like) are the exception.
+- Do not set `description` on a `Finding` in code. The text comes from the
+  finding type. Put what is specific to this occurrence in `proof`.
+- If the finding type is too generic to describe the problem, add a more
+  specific finding type instead of a custom description. Reports group and
+  explain findings per type.
+
+## 7. Before every push
 
 Tests run in Docker. There is no supported local virtualenv.
 
@@ -75,7 +109,7 @@ Tests run in Docker. There is no supported local virtualenv.
 - After the push, check CI on that exact commit. A red check you caused is
   yours to fix before you ask for review.
 
-## 6. Report truthfully
+## 8. Report truthfully
 
 - Do not write "fixed" or "verified" unless you ran the check. Name the test or
   command and the commit you ran it on.
