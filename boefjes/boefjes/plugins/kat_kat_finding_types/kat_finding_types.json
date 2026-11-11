@@ -447,6 +447,14 @@
     "impact": "Clients cannot build a trusted path from the certificates the server sent, so connections fail certificate validation or rely on the client chasing the missing issuer (which many clients, and non-HTTP clients in particular, do not do).",
     "recommendation": "Configure the service to present the full chain: the leaf certificate followed by every intermediate, up to (but excluding) the root."
   },
+  "KAT-MALFORMED-CERTIFICATE-CHAIN": {
+    "name": "Malformed certificate chain",
+    "description": "The certificate chain presented by this service does not hold together: it contains a certificate that does not certify the certificate before it.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc8446#section-4.4.2",
+    "risk": "medium",
+    "impact": "Clients may fail to build a trusted path, or may ignore the extra certificates — but the served chain is not the chain the operator believes it is, and the handshake carries dead weight.",
+    "recommendation": "Rebuild the served chain from the files the CA issued: the leaf certificate followed by each intermediate that certifies the one before it, up to but excluding the root."
+  },
   "KAT-HTTPS-NOT-AVAILABLE": {
     "name": "HTTPS is not available",
     "description": "HTTP port is open, but HTTPS port is not open.",

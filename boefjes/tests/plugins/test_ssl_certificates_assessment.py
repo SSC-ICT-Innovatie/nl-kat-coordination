@@ -1,4 +1,3 @@
-import base64
 import hashlib
 from datetime import UTC, datetime, timedelta
 
@@ -11,7 +10,7 @@ from cryptography.x509.oid import NameOID
 
 from boefjes.plugins.kat_ssl_certificates import normalize
 from boefjes.plugins.kat_ssl_certificates.normalize import run
-from octopoes.models.ooi.certificate import TLSCertificateChain, X509CertificateV2
+from octopoes.models.ooi.certificate import TLSCertificateChain
 from octopoes.models.ooi.findings import Finding
 
 
@@ -92,6 +91,14 @@ def no_trust_store(monkeypatch):
 
 
 @pytest.fixture
+def unrelated_store(monkeypatch):
+    """A store whose only root is unrelated to the chains under test:
+    name checks run; links verify but never terminate at a root."""
+    unrelated, _ = make_cert("Unrelated Root CA")
+    monkeypatch.setattr(normalize, "_trust_anchors", lambda: (unrelated,))
+
+
+@pytest.fixture
 def trust_store(monkeypatch):
     """A trust store holding exactly the root the tests build."""
     store = {}
@@ -114,8 +121,6 @@ def test_missing_intermediate_fires_on_chain(trust_store):
     # The intermediate is not presented and the root only anchors itself:
     # the presentation is incomplete.
     assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" in findings
-    description = findings["KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN"][0].description
-    assert leaf.subject.rfc4514_string() in description
 
 
 def test_full_chain_with_trusted_root_is_complete(trust_store):
@@ -129,24 +134,43 @@ def test_full_chain_with_trusted_root_is_complete(trust_store):
     assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" not in findings
 
 
-def test_extra_cross_sign_by_retired_root_does_not_flag_the_presentation(trust_store):
-    # hasecon's M2 (#5585): leaf -> intermediate -> trusted root, PLUS a
-    # cross-sign by a root that is not (or no longer) trusted. Every client
-    # validates the leaf and silently ignores the extra certificate; only
-    # the leaf's path to a root decides incompleteness.
+def test_cross_sign_without_its_issuer_leaves_the_chain_incomplete(trust_store):
+    # Per the chain-validation rule (#5585 round 2 discussion): each
+    # presented certificate must certify its predecessor, and the
+    # sequence must terminate at a trusted root. A cross-sign whose
+    # root is absent certifies nothing that precedes it and never
+    # reaches a root — the chain is incomplete.
     trusted_root, trusted_root_key = make_cert("Trusted Root CA")
     trust_store[hashlib.sha256(trusted_root.public_bytes(serialization.Encoding.DER)).hexdigest()] = trusted_root
-    intermediate, intermediate_key = make_cert(
-        "Test Intermediate CA", issuer_cert=trusted_root, issuer_key=trusted_root_key
-    )
-    leaf, _ = make_cert("example.com", issuer_cert=intermediate, issuer_key=intermediate_key)
 
     retired_root, retired_root_key = make_cert("Retired Root CA")
-    cross_sign, _ = make_cert("Test Intermediate CA", issuer_cert=retired_root, issuer_key=retired_root_key)
+    cross_sign, cross_sign_key = make_cert(
+        "Test Intermediate CA", issuer_cert=retired_root, issuer_key=retired_root_key
+    )
+    leaf, _ = make_cert("example.com", issuer_cert=cross_sign, issuer_key=cross_sign_key)
 
     findings = finding_types(oois_for(leaf, cross_sign))
 
+    # The link leaf<-cross verifies (cross signed the leaf); the chain
+    # is well-formed but never reaches a trusted root.
+    assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" in findings
+    assert findings["KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN"][0].description is None
+
+
+def test_junk_after_leaf_is_malformed(trust_store):
+    # A presentation containing a certificate that does not certify its
+    # predecessor is malformed — a broken link, not a missing one.
+    unrelated, unrelated_key = make_cert("Unrelated Root CA")
+    trust_store[hashlib.sha256(unrelated.public_bytes(serialization.Encoding.DER)).hexdigest()] = unrelated
+    intermediate, intermediate_key = make_cert("Test Intermediate CA", issuer_cert=unrelated, issuer_key=unrelated_key)
+    leaf, _ = make_cert("example.com", issuer_cert=intermediate, issuer_key=intermediate_key)
+    junk, _ = make_cert("Some Other CA")
+
+    findings = finding_types(oois_for(leaf, junk))
+
+    assert "KATFindingType|KAT-MALFORMED-CERTIFICATE-CHAIN" in findings
     assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" not in findings
+    assert findings["KATFindingType|KAT-MALFORMED-CERTIFICATE-CHAIN"][0].description is None
 
 
 def test_root_in_store_anchors_directly(trust_store):
@@ -187,16 +211,17 @@ def test_trusted_root_presented_alone_fires_nothing(trust_store):
     assert findings == {}
 
 
-def test_no_trust_store_assesses_nothing(no_trust_store):
-    root, root_key = make_cert("Test Root CA")
-    leaf, _ = make_cert("example.com", issuer_cert=root, issuer_key=root_key, dns_names=["example.com"])
+def test_no_trust_store_raises(no_trust_store):
+    # An empty trust store is a broken worker image: every assessment
+    # after it would be void, so the run fails loudly instead of
+    # silently assessing nothing.
+    import pytest
 
-    findings = finding_types(oois_for(leaf, root))
+    with pytest.raises(RuntimeError, match="No trust anchors"):
+        list(oois_for(make_cert("example.com")[0]))
 
-    assert findings == {}
 
-
-def test_hostname_mismatch_fires_on_chain(no_trust_store):
+def test_hostname_mismatch_fires_on_chain(unrelated_store):
     # The leaf covers api.example.com; the presentation claims example.com.
     leaf, _ = make_cert("api.example.com", dns_names=["api.example.com"])
 
@@ -207,7 +232,7 @@ def test_hostname_mismatch_fires_on_chain(no_trust_store):
     assert str(finding.ooi).startswith("TLSCertificateChain|")
 
 
-def test_hostname_covered_by_wildcard_does_not_fire(no_trust_store):
+def test_hostname_covered_by_wildcard_does_not_fire(unrelated_store):
     # RFC 6125: a wildcard covers exactly one label, so *.example.com
     # covers www.example.com but not example.com itself.
     leaf, _ = make_cert("example.com", dns_names=["*.example.com"])
@@ -221,7 +246,7 @@ def test_hostname_covered_by_wildcard_does_not_fire(no_trust_store):
     assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings
 
 
-def test_hostname_covered_by_san_does_not_fire(no_trust_store):
+def test_hostname_covered_by_san_does_not_fire(unrelated_store):
     leaf, _ = make_cert("example.com", dns_names=["example.com", "www.example.com"])
 
     findings = finding_types(oois_for(leaf))
@@ -229,7 +254,7 @@ def test_hostname_covered_by_san_does_not_fire(no_trust_store):
     assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" not in findings
 
 
-def test_sanless_certificate_fires_mismatch(no_trust_store):
+def test_sanless_certificate_fires_mismatch(unrelated_store):
     # Modern clients ignore the common name (RFC 6125 leaves the CN to
     # legacy clients), so a certificate without a SAN is rejected regardless
     # of its CN — matching V1, where a SAN-less certificate fired the
@@ -240,7 +265,7 @@ def test_sanless_certificate_fires_mismatch(no_trust_store):
         assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings, cn
 
 
-def test_non_wildcard_san_does_not_cover_sibling_subdomains(no_trust_store):
+def test_non_wildcard_san_does_not_cover_sibling_subdomains(unrelated_store):
     # A SAN without the * prefix is not a wildcard: before the check, a SAN
     # m.example.com matched www.example.com (wildcard[2:] on a non-wildcard
     # happens to equal the parent domain) and suppressed the mismatch.
@@ -251,7 +276,7 @@ def test_non_wildcard_san_does_not_cover_sibling_subdomains(no_trust_store):
     assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" in findings
 
 
-def test_null_sni_presentation_is_never_assessed_for_mismatch(no_trust_store):
+def test_null_sni_presentation_is_never_assessed_for_mismatch(unrelated_store):
     # A connection without a server name claims nothing about a name.
     leaf, _ = make_cert("example.com", dns_names=["*.other.example.com"])
 
@@ -260,7 +285,7 @@ def test_null_sni_presentation_is_never_assessed_for_mismatch(no_trust_store):
     assert "KATFindingType|KAT-SSL-CERT-HOSTNAME-MISMATCH" not in findings
 
 
-def test_findings_reference_the_built_objects(no_trust_store):
+def test_findings_reference_the_built_objects(unrelated_store):
     # The findings bind to the same OOI objects the normalizer built.
     root, root_key = make_cert("Test Root CA")
     intermediate, intermediate_key = make_cert("Test Intermediate CA", issuer_cert=root, issuer_key=root_key)
@@ -268,11 +293,10 @@ def test_findings_reference_the_built_objects(no_trust_store):
 
     output = oois_for(leaf)
     chains = [o for o in output if isinstance(o, TLSCertificateChain)]
-    certs = [o for o in output if isinstance(o, X509CertificateV2)]
     findings = [o for o in output if isinstance(o, Finding)]
 
     mismatch = next(f for f in findings if "HOSTNAME-MISMATCH" in str(f.finding_type))
     assert mismatch.ooi == chains[0].reference
-    # The leaf's reference equals the emitted certificate's.
-    leaf_ooi = next(c for c in certs if base64.b64decode(c.raw) == leaf.public_bytes(serialization.Encoding.DER))
-    assert leaf_ooi.fingerprint[:16] in mismatch.description
+    # Findings carry no dynamic description: the text comes from the
+    # finding-type registry (kat_finding_types.json).
+    assert mismatch.description is None

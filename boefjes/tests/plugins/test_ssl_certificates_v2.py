@@ -158,13 +158,20 @@ def test_signed_by_set_on_verified_issuer(root_and_leaf):
     assert certs["CN=Test Root CA"].signed_by is None
 
 
-def test_duplicate_entries_dedup(root_and_leaf):
+def test_duplicate_entries_are_malformed(root_and_leaf):
     root_cert, _, leaf_cert = root_and_leaf
-    # The same certificate presented twice in one handshake.
+    # The same certificate presented twice in one handshake: a
+    # certificate that does not certify its predecessor — the chain
+    # does not hold together.
     output = list(run(HOSTNAME_SERVICE_INPUT, sni_output(leaf_cert, root_cert, leaf_cert)))
 
-    assert len([o for o in output if isinstance(o, X509CertificateV2)]) == 2
-    assert len([o for o in output if isinstance(o, TLSCertificateChain)][0].presented_certificates) == 2
+    findings = [o for o in output if isinstance(o, Finding)]
+    assert "KATFindingType|KAT-MALFORMED-CERTIFICATE-CHAIN" in [str(f.finding_type) for f in findings]
+
+    # The wire is preserved: three entries, the duplicate included.
+    chain = [o for o in output if isinstance(o, TLSCertificateChain)][0]
+    assert len(chain.presented_certificates) == 3
+    assert len([o for o in output if isinstance(o, X509CertificateV2)]) == 3
 
 
 def test_identical_presentations_share_identity(root_and_leaf):

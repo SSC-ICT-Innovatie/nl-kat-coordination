@@ -3,6 +3,7 @@ import hashlib
 import re
 import ssl
 from collections.abc import Iterable
+from datetime import UTC, datetime
 from functools import cache
 
 from cryptography import x509
@@ -48,28 +49,6 @@ def _issued_by(certificate: x509.Certificate, issuer: x509.Certificate) -> bool:
         return True
     except (ValueError, TypeError, InvalidSignature, UnsupportedAlgorithm):
         return False
-
-
-def _anchored(
-    certificate: x509.Certificate, presented: list[x509.Certificate], anchor_fingerprints: set[bytes], visiting: tuple
-) -> bool:
-    """Whether a client can reach a trust anchor from this certificate using
-    the presentation and the trust store. A certificate is anchored when it
-    is a trust anchor, verifies against one, or verifies against another
-    presented certificate that is itself anchored (recursively, with cycle
-    protection for cross-signed intermediates). Issuing itself does not
-    count: that is what makes a self-signed leaf incomplete."""
-    if certificate.fingerprint(hashes.SHA256()) in anchor_fingerprints:
-        return True
-    if any(_issued_by(certificate, anchor) for anchor in _trust_anchors()):
-        return True
-    return any(
-        other is not certificate
-        and other not in visiting
-        and _issued_by(certificate, other)
-        and _anchored(other, presented, anchor_fingerprints, visiting + (certificate,))
-        for other in presented
-    )
 
 
 def is_part_of_wildcard(hostname: str, wildcard: str) -> bool:
@@ -118,116 +97,99 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
     parsed_entries = [(position, der, parsed) for position, der, parsed in entries if parsed is not None]
 
-    # Content-addressed certificates: identical certificates dedup via the
-    # fingerprint key; every presented position keeps its own reference.
-    certificates: dict[str, X509CertificateV2] = {}
-    parsed_by_ooi: dict[str, x509.Certificate] = {}
-    for _position, der, parsed in parsed_entries:
-        fingerprint = hashlib.sha256(der).hexdigest()
-        if fingerprint not in certificates:
-            certificates[fingerprint] = certificate_ooi(der, parsed)
-            parsed_by_ooi[fingerprint] = parsed
-
-    # Issuer relationships within this presentation: verify each candidate
-    # and set signed_by on the first verified issuer in wire order.
-    pairs = [(certificates[f], parsed_by_ooi[f]) for f in certificates]
-    ordered_references = [ooi.reference for ooi, _ in pairs]
-    for ooi, parsed in pairs:
-        for candidate_ooi, candidate_parsed in pairs:
-            if candidate_ooi is ooi:
-                continue
-            if verify_certificate_signature(parsed, candidate_parsed) == SignatureVerificationStatus.VERIFIED:
-                ooi.signed_by = candidate_ooi.reference
-                break
+    # Every certificate in the wire order — duplicates included. The
+    # graph dedups at save (same fingerprint = same primary key), and
+    # a duplicated certificate is itself a malformation the walk
+    # should see, not launder.
+    oois: list[X509CertificateV2] = [certificate_ooi(der, parsed) for _, der, parsed in parsed_entries]
+    parsed_certs: list[x509.Certificate] = [parsed for _, _, parsed in parsed_entries]
 
     chain = TLSCertificateChain(
         presentation_hash=presentation_hash(entries),
-        presented_certificates=ordered_references,
+        presented_certificates=[ooi.reference for ooi in oois],
         **{("hostname_ip_service" if object_type == "HostnameIPService" else "ip_service"): endpoint},
     )
     yield chain
 
     anchors = _trust_anchors()
-    if anchors:
-        anchor_fingerprints = {anchor.fingerprint(hashes.SHA256()) for anchor in anchors}
-        parsed_certs = [parsed for _, parsed in pairs]
+    if not anchors:
+        # No trust store in the worker image: every assessment after
+        # this is void, and the endpoint would silently look healthy.
+        # An empty store is a broken image, not a scanning condition.
+        raise RuntimeError("No trust anchors available: /etc/ssl/certs is empty or unreadable in the worker image")
 
-        # The leaf is the certificate that issues nobody else in the
-        # presentation. A self-signed leaf gets its own finding (one meaning
-        # per type) and is not counted as an incomplete chain: it is not a
-        # CA-issued chain missing something, it is not a chain at all.
-        leaf_pairs = [
-            (ooi, parsed)
-            for ooi, parsed in pairs
-            if not any(_issued_by(other_parsed, parsed) for other_ooi, other_parsed in pairs if other_ooi is not ooi)
-        ]
-        if len(leaf_pairs) == 1:
-            leaf_ooi, leaf = leaf_pairs[0]
-            assert leaf_ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
-            if leaf.subject == leaf.issuer and leaf.fingerprint(hashes.SHA256()) not in anchor_fingerprints:
-                ft = KATFindingType(id="KAT-SELF-SIGNED-CERTIFICATE")
+    # The validation walks the wire order: position 0 is the leaf, each
+    # following certificate certifies its predecessor (RFC 8446 4.4.2),
+    # and the sequence must terminate at a root of the system trust
+    # store (RFC 5280 6.1). Per the review disposition: a signature
+    # mismatch on the next certificate, any garbage, and a sequence
+    # that ends without reaching a root are all the same finding —
+    # the chain is incomplete.
+    leaf = parsed_certs[0]
+    if leaf.subject == leaf.issuer and leaf.fingerprint(hashes.SHA256()).hex() not in {
+        a.fingerprint(hashes.SHA256()).hex() for a in anchors
+    }:
+        ft = KATFindingType(id="KAT-SELF-SIGNED-CERTIFICATE")
+        yield ft
+        yield Finding(ooi=oois[0].reference, finding_type=ft.reference)
+
+    now = datetime.now(UTC)
+    for index, current in enumerate(parsed_certs):
+        not_after = current.not_valid_after_utc
+        if not_after <= now:
+            ft = KATFindingType(id="KAT-CERTIFICATE-EXPIRED")
+            yield ft
+            yield Finding(ooi=oois[index].reference, finding_type=ft.reference)
+
+        if index + 1 < len(parsed_certs):
+            nxt = parsed_certs[index + 1]
+            if not _issued_by(current, nxt):
+                # The chain does not hold together: cert[index+1] does
+                # not certify cert[index] — junk after the leaf, two
+                # end-entity certificates, or broken order. A client
+                # cannot build a path from the leaf through this
+                # sequence.
+                ft = KATFindingType(id="KAT-MALFORMED-CERTIFICATE-CHAIN")
                 yield ft
-                yield Finding(
-                    ooi=chain.reference,
-                    finding_type=ft.reference,
-                    description=f"The certificate presented for this service is self-signed: "
-                    f"{leaf_ooi.fingerprint[:16]} (subject {leaf.subject.rfc4514_string()}).",
-                )
-            elif not _anchored(leaf, parsed_certs, anchor_fingerprints, ()):
-                # Only the leaf's path to a root matters: extra presented
-                # certificates (cross-signs, alternate chains) are means,
-                # not obligations. A client validates the leaf; an
-                # unanchored cross-sign does not make the presentation
-                # incomplete (the classic LE long-chain shape).
-                ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
-                yield ft
-                yield Finding(
-                    ooi=chain.reference,
-                    finding_type=ft.reference,
-                    description="The presented certificate chain does not verifiably terminate at a trusted "
-                    f"root for: {leaf.subject.rfc4514_string()} ({leaf_ooi.fingerprint[:16]}).",
-                )
+                yield Finding(ooi=chain.reference, finding_type=ft.reference)
+                break
+            # The signature verified: the neighbor is the issuer.
+            oois[index].signed_by = oois[index + 1].reference
+        # else: the top of the presented sequence. It must be issued
+        # by a root of the trust store; a top that does not verify
+        # against one leaves the chain incomplete — unless the chain
+        # is a lone self-signed certificate, which got its own
+        # finding above and is not a chain at all.
+        elif not any(_issued_by(current, anchor) for anchor in anchors) and current.subject != current.issuer:
+            ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
+            yield ft
+            yield Finding(ooi=chain.reference, finding_type=ft.reference)
 
     # Hostname mismatch: the server name of the presentation against the
     # leaf's SAN names. A connection without a server name claims nothing
     # and is never assessed; the finding binds to the chain because a
     # HostnameIPService has a presentation per client capability variant.
-    if input_hostname is not None and pairs:
+    if input_hostname is not None and oois:
         hostname = input_hostname.rstrip(".")
-        # The leaf is the certificate that issues nobody else in the
-        # presentation.
-        leaf_pairs = [
-            (ooi, parsed)
-            for ooi, parsed in pairs
-            if not any(_issued_by(other_parsed, parsed) for other_ooi, other_parsed in pairs if other_ooi is not ooi)
-        ]
-        if len(leaf_pairs) == 1:
-            leaf_ooi, leaf = leaf_pairs[0]
-            assert leaf_ooi.fingerprint is not None  # every parsed entry carries its computed fingerprint
-            # The names a client may match against are the SAN's DNS names
-            # (RFC 6125 6.4.4 permits a CN fallback only for legacy clients;
-            # modern clients ignore the common name, so a SAN-less
-            # certificate is rejected regardless of its CN). A certificate
-            # without a SAN therefore never matches — matching V1's
-            # behavior, where a SAN-less certificate fired the mismatch.
-            try:
-                names = {
-                    name.value.rstrip(".").lower()
-                    for name in leaf.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
-                    if isinstance(name, x509.DNSName)
-                }
-            except x509.ExtensionNotFound:
-                names = set()
-            host = hostname.lower()
-            if host not in names and not any(is_part_of_wildcard(host, wildcard) for wildcard in names):
-                ft = KATFindingType(id="KAT-SSL-CERT-HOSTNAME-MISMATCH")
-                yield ft
-                yield Finding(
-                    ooi=chain.reference,
-                    finding_type=ft.reference,
-                    description=f"The hostname {hostname} does not match the certificate "
-                    f"{leaf_ooi.fingerprint[:16]} presented for it (names: {', '.join(sorted(names)) or 'none'}).",
-                )
+        # The names a client may match against are the SAN's DNS names
+        # (RFC 6125 6.4.4 permits a CN fallback only for legacy clients;
+        # modern clients ignore the common name, so a SAN-less
+        # certificate is rejected regardless of its CN). A certificate
+        # without a SAN therefore never matches — matching V1's
+        # behavior, where a SAN-less certificate fired the mismatch.
+        try:
+            names = {
+                name.value.rstrip(".").lower()
+                for name in leaf.extensions.get_extension_for_class(x509.SubjectAlternativeName).value
+                if isinstance(name, x509.DNSName)
+            }
+        except x509.ExtensionNotFound:
+            names = set()
+        host = hostname.lower()
+        if host not in names and not any(is_part_of_wildcard(host, wildcard) for wildcard in names):
+            ft = KATFindingType(id="KAT-SSL-CERT-HOSTNAME-MISMATCH")
+            yield ft
+            yield Finding(ooi=chain.reference, finding_type=ft.reference)
 
     network = Reference.from_str(f"Network|{network_name}")
 
@@ -237,7 +199,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # yielded from the presentation itself: the server at this IP claimed
     # this name; it converges with the discovery bit's DNS-derived pair
     # via the natural key.
-    for ooi, parsed in pairs:
+    for index, (ooi, parsed) in enumerate(zip(oois, parsed_certs)):
         for name in subject_alternative_names(parsed):
             if isinstance(name, x509.DNSName):
                 if "*" not in name.value and HOSTNAME_RE.fullmatch(name.value):
@@ -255,7 +217,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 )
                 yield SubjectAlternativeNameIPV2(certificate=ooi.reference, address=ip_ooi.reference)
 
-    yield from certificates.values()
+    yield from oois
 
     # A malformed entry produces no certificate; the finding carries its
     # position and raw hash as proof.
@@ -265,8 +227,8 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         yield finding_type
         for position, der in malformed:
             yield Finding(
-                finding_type=finding_type.reference,
                 ooi=chain.reference,
+                finding_type=finding_type.reference,
                 proof=f"position={position};raw_hash={hashlib.sha256(der).hexdigest()}",
             )
 
