@@ -357,6 +357,12 @@ class AggregateOrganisationReport(AggregateReport):
                             all(w["web_checks"].certificates_not_expiring_soon for w in web_report_data[ip])
                             for ip in web_report_data
                         ),
+                        "Certificate chain is complete": sum(
+                            all(w["web_checks"].chain_complete for w in web_report_data[ip]) for ip in web_report_data
+                        ),
+                        "Certificate matches the server name": sum(
+                            all(w["web_checks"].names_match for w in web_report_data[ip]) for ip in web_report_data
+                        ),
                     },
                     "ips": {
                         ip: sorted(
