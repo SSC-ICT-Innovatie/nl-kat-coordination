@@ -21,6 +21,7 @@ from octopoes.models import OOI, DeclaredScanProfile, Reference, ScanLevel
 from rocky.bytes_client import BytesClient, get_bytes_client
 from rocky.exceptions import (
     AcknowledgedClearanceLevelTooLowException,
+    CannotChangeHistoricClearanceLevels,
     IndemnificationNotPresentException,
     TrustedClearanceLevelTooLowException,
 )
@@ -167,6 +168,8 @@ class OrganizationView(ContextMixin, View):
                 raise AcknowledgedClearanceLevelTooLowException()
 
     def raise_clearance_level(self, ooi_reference: Reference, level: int) -> bool:
+        if self.is_historic_view:
+            raise CannotChangeHistoricClearanceLevels()
         self.verify_raise_clearance_level(level)
         self.octopoes_api_connector.save_scan_profile(
             DeclaredScanProfile(reference=ooi_reference, level=ScanLevel(level), user_id=self.request.user.id),
@@ -178,6 +181,8 @@ class OrganizationView(ContextMixin, View):
         return True
 
     def raise_clearance_levels(self, ooi_references: list[Reference], level: int) -> bool:
+        if self.is_historic_view:
+            raise CannotChangeHistoricClearanceLevels()
         self.verify_raise_clearance_level(level)
         self.octopoes_api_connector.save_many_scan_profiles(
             [

@@ -2,6 +2,7 @@ import json
 import threading
 import uuid
 from collections.abc import Callable
+from datetime import datetime
 
 import pika
 import structlog
@@ -27,6 +28,7 @@ class ScanProfileMutation(BaseModel):
     primary_key: str
     value: AbstractOOI | None = None
     client_id: str
+    valid_time: datetime | None = None
 
 
 thread_local = threading.local()
@@ -100,13 +102,16 @@ class EventManager:
 
         # publish mutations
         mutation = ScanProfileMutation(
-            operation=event.operation_type, primary_key=event.primary_key, client_id=event.client
+            operation=event.operation_type,
+            primary_key=event.primary_key,
+            client_id=event.client,
+            valid_time=event.valid_time,
         )
 
         if event.operation_type != OperationType.DELETE:
             mutation.value = AbstractOOI(
-                primary_key=event.new_data.reference,  # type: ignore[union-attr]
-                object_type=event.new_data.reference.class_,  # type: ignore[union-attr]
+                primary_key=event.new_data.reference,
+                object_type=event.new_data.reference.class_,
                 scan_profile=event.new_data,
             )
 
@@ -121,10 +126,11 @@ class EventManager:
 
         level = mutation.value.scan_profile.level if mutation.value is not None else None
         logger.debug(
-            "Published scan profile mutation [operation_type=%s] [primary_key=%s] [level=%s]",
+            "Published scan profile mutation [operation_type=%s] [primary_key=%s] [level=%s] [valid_time=%s]",
             mutation.operation,
             format_id_short(event.primary_key),
             level,
+            event.valid_time,
         )
 
     def _try_connect(self):

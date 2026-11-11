@@ -30,6 +30,7 @@ class OOIEditView(BaseOOIFormView, SchedulerView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
+        # override any OOI's user_id to ourselves, we are the 'new owner'
         kwargs["user_id"] = self.request.user.id
 
         return kwargs
