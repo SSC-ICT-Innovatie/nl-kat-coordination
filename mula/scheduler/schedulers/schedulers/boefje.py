@@ -110,9 +110,10 @@ class BoefjeScheduler(Scheduler):
         # Convert body into a ScanProfileMutation
         mutation = models.ScanProfileMutation.model_validate_json(body)
         self.logger.debug(
-            "Received scan level mutation %s for: %s",
+            "Received scan level mutation %s for: %s @ %s",
             mutation.operation,
             mutation.primary_key,
+            mutation.valid_time,
             ooi_primary_key=mutation.primary_key,
             scheduler_id=self.scheduler_id,
         )
@@ -538,7 +539,7 @@ class BoefjeScheduler(Scheduler):
                     caller=caller,
                 )
 
-    @override
+    @override  # type: ignore[misc]
     def push_item_to_queue(self, item: models.Task, create_schedule: bool = True) -> models.Task:
         """Some boefje scheduler specific logic before pushing the item to the
         queue.
@@ -856,7 +857,7 @@ class BoefjeScheduler(Scheduler):
 
         return tasks
 
-    @override
+    @override  # type: ignore[misc]
     def calculate_deadline(self, schedule: models.Schedule) -> models.Schedule:
         """Override Scheduler.calculate_deadline() to calculate the deadline
         for a task and based on the boefje interval."""

@@ -200,7 +200,7 @@ class NormalizerScheduler(Scheduler):
             caller=caller,
         )
 
-    @override
+    @override  # type: ignore[misc]
     def push_item_to_queue(self, item: models.Task, create_schedule: bool = True) -> models.Task:
         """Some normalizer scheduler specific logic before pushing the item to the
         queue.
