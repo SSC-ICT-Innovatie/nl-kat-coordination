@@ -300,3 +300,67 @@ def test_findings_reference_the_built_objects(unrelated_store):
     # Findings carry no dynamic description: the text comes from the
     # finding-type registry (kat_finding_types.json).
     assert mismatch.description is None
+
+
+def test_cross_signed_root_after_a_trusted_path_is_complete(trust_store):
+    trusted_root, trusted_root_key = make_cert("Trusted Root CA")
+    trust_store[hashlib.sha256(trusted_root.public_bytes(serialization.Encoding.DER)).hexdigest()] = trusted_root
+    retired_root, retired_root_key = make_cert("Retired Root CA")
+    now = datetime.now(UTC)
+    cross_sign = (
+        x509.CertificateBuilder()
+        .subject_name(trusted_root.subject)
+        .issuer_name(retired_root.subject)
+        .public_key(trusted_root_key.public_key())
+        .serial_number(x509.random_serial_number())
+        .not_valid_before(now - timedelta(days=1))
+        .not_valid_after(now + timedelta(days=30))
+        .sign(retired_root_key, SHA256())
+    )
+    intermediate, intermediate_key = make_cert(
+        "Test Intermediate CA", issuer_cert=trusted_root, issuer_key=trusted_root_key
+    )
+    leaf, _ = make_cert("example.com", issuer_cert=intermediate, issuer_key=intermediate_key, dns_names=["example.com"])
+
+    findings = finding_types(oois_for(leaf, intermediate, cross_sign))
+
+    assert findings == {}
+
+
+def test_untrusted_private_root_presented_is_incomplete(unrelated_store):
+    private_root, private_root_key = make_cert("Private Root CA")
+    leaf, _ = make_cert("example.com", issuer_cert=private_root, issuer_key=private_root_key, dns_names=["example.com"])
+
+    findings = finding_types(oois_for(leaf, private_root))
+
+    assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" in findings
+
+
+def test_presentation_of_only_unparsable_entries(unrelated_store):
+    raw = (
+        b"Certificate chain\n---\nServer certificate\n"
+        b"-----BEGIN CERTIFICATE-----\nZm9vYmFy\n-----END CERTIFICATE-----\n---\n"
+    )
+
+    findings = finding_types(run(HOSTNAME_SERVICE_INPUT, raw))
+
+    assert "KATFindingType|KAT-UNPARSEABLE-CERTIFICATE" in findings
+
+
+def test_expired_intermediate_fires_on_the_intermediate(trust_store):
+    root, root_key = make_cert("Test Root CA")
+    trust_store[hashlib.sha256(root.public_bytes(serialization.Encoding.DER)).hexdigest()] = root
+    now = datetime.now(UTC)
+    intermediate, intermediate_key = make_cert(
+        "Test Intermediate CA",
+        issuer_cert=root,
+        issuer_key=root_key,
+        not_before=now - timedelta(days=100),
+        not_after=now - timedelta(days=1),
+    )
+    leaf, _ = make_cert("example.com", issuer_cert=intermediate, issuer_key=intermediate_key, dns_names=["example.com"])
+
+    output = oois_for(leaf, intermediate)
+    expired = finding_types(output)["KATFindingType|KAT-CERTIFICATE-EXPIRED"]
+
+    assert [str(f.ooi) for f in expired] == [f"X509CertificateV2|{intermediate.fingerprint(SHA256()).hex()}"]

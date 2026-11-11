@@ -14,6 +14,7 @@ from octopoes.models.ooi.certificate import TLSCertificateChain, X509Certificate
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import Finding
 from octopoes.models.ooi.service import HostnameIPService
+from tests.loading import get_dummy_data
 
 HOSTNAME_SERVICE_INPUT = {
     "object_type": "HostnameIPService",
@@ -272,3 +273,18 @@ def test_mldsa_certificate_verifies_and_sets_signed_by():
 
     assert certs["CN=pq.example.com"].signed_by == certs["CN=PQ Root"].reference
     assert certs["CN=PQ Root"].pk_algorithm == "ML-DSA-65"
+
+
+def test_recorded_s_client_output_is_one_presentation():
+    # The boefje runs s_client with -prexit, which prints the session again on
+    # exit, so real output holds the chain twice. It is one presentation of
+    # three certificates: LE's long chain, ending in ISRG Root X1 cross-signed
+    # by the retired DST Root CA X3.
+    output = list(run(HOSTNAME_SERVICE_INPUT, get_dummy_data("ssl-certificates.txt")))
+
+    chain = next(o for o in output if isinstance(o, TLSCertificateChain))
+    finding_types = {str(o.finding_type) for o in output if isinstance(o, Finding)}
+
+    assert len(chain.presented_certificates) == 3
+    assert "KATFindingType|KAT-MALFORMED-CERTIFICATE-CHAIN" not in finding_types
+    assert "KATFindingType|KAT-INCOMPLETE-CERTIFICATE-CHAIN" not in finding_types

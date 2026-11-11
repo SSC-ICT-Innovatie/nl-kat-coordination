@@ -86,6 +86,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     input_hostname = tokenized.hostname.name if object_type == "HostnameIPService" else None
 
     contents = raw.decode(errors="replace")
+    # The boefje runs s_client with -prexit, which prints the session again
+    # on exit: the presentation is the first "Certificate chain" section only.
+    sections = contents.split("Certificate chain")
+    if len(sections) > 2:
+        contents = sections[1]
 
     # Entries in wire order: (position, raw bytes, parsed certificate or None).
     entries = [
@@ -125,16 +130,30 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # mismatch on the next certificate, any garbage, and a sequence
     # that ends without reaching a root are all the same finding —
     # the chain is incomplete.
-    leaf = parsed_certs[0]
-    if leaf.subject == leaf.issuer and leaf.fingerprint(hashes.SHA256()).hex() not in {
-        a.fingerprint(hashes.SHA256()).hex() for a in anchors
-    }:
+    anchor_fingerprints = {anchor.fingerprint(hashes.SHA256()) for anchor in anchors}
+    # Every entry may have failed to parse: then there is no leaf to assess,
+    # only the unparsable findings below.
+    leaf = parsed_certs[0] if parsed_certs else None
+    if (
+        leaf is not None
+        and leaf.subject == leaf.issuer
+        and leaf.fingerprint(hashes.SHA256()) not in anchor_fingerprints
+    ):
         ft = KATFindingType(id="KAT-SELF-SIGNED-CERTIFICATE")
         yield ft
         yield Finding(ooi=oois[0].reference, finding_type=ft.reference)
 
     now = datetime.now(UTC)
+    reached_store = False
     for index, current in enumerate(parsed_certs):
+        if reached_store:
+            # The path ended at the trust store with the previous
+            # certificate: what follows (the root itself, a cross-sign by
+            # a retired root) is not part of any path a client validates.
+            break
+        reached_store = current.fingerprint(hashes.SHA256()) in anchor_fingerprints or any(
+            _issued_by(current, anchor) for anchor in anchors
+        )
         not_after = current.not_valid_after_utc
         if not_after <= now:
             ft = KATFindingType(id="KAT-CERTIFICATE-EXPIRED")
@@ -143,7 +162,10 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
 
         if index + 1 < len(parsed_certs):
             nxt = parsed_certs[index + 1]
-            if not _issued_by(current, nxt):
+            if _issued_by(current, nxt):
+                # The signature verified: the neighbor is the issuer.
+                oois[index].signed_by = oois[index + 1].reference
+            elif not reached_store:
                 # The chain does not hold together: cert[index+1] does
                 # not certify cert[index] — junk after the leaf, two
                 # end-entity certificates, or broken order. A client
@@ -153,14 +175,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 yield ft
                 yield Finding(ooi=chain.reference, finding_type=ft.reference)
                 break
-            # The signature verified: the neighbor is the issuer.
-            oois[index].signed_by = oois[index + 1].reference
         # else: the top of the presented sequence. It must be issued
         # by a root of the trust store; a top that does not verify
         # against one leaves the chain incomplete — unless the chain
         # is a lone self-signed certificate, which got its own
         # finding above and is not a chain at all.
-        elif not any(_issued_by(current, anchor) for anchor in anchors) and current.subject != current.issuer:
+        elif not reached_store and (index > 0 or current.subject != current.issuer):
             ft = KATFindingType(id="KAT-INCOMPLETE-CERTIFICATE-CHAIN")
             yield ft
             yield Finding(ooi=chain.reference, finding_type=ft.reference)
@@ -169,7 +189,7 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     # leaf's SAN names. A connection without a server name claims nothing
     # and is never assessed; the finding binds to the chain because a
     # HostnameIPService has a presentation per client capability variant.
-    if input_hostname is not None and oois:
+    if input_hostname is not None and leaf is not None:
         hostname = input_hostname.rstrip(".")
         # The names a client may match against are the SAN's DNS names
         # (RFC 6125 6.4.4 permits a CN fallback only for legacy clients;
