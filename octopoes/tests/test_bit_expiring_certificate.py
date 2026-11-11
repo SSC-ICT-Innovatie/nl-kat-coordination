@@ -20,13 +20,15 @@ def _certificate(**overrides) -> X509CertificateV2:
 
 
 def _chain(certificate: X509CertificateV2, **endpoint) -> TLSCertificateChain:
+    endpoint = endpoint or {
+        "ip_service": "IPService|internet|192.0.2.10|tcp|443|https",
+        "hostname": "example.com",
+        "hostname_ip_service": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|example.com",
+    }
     return TLSCertificateChain(
         presentation_hash="abc123",
         presented_certificates=[certificate.reference],
-        **(
-            endpoint
-            or {"hostname_ip_service": "HostnameIPService|internet|192.0.2.10|tcp|443|https|internet|example.com"}
-        ),
+        **endpoint,
     )
 
 

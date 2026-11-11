@@ -303,10 +303,10 @@ class TLSCertificateChain(OOI):
     """A certificate presentation observed at a TLS endpoint.
 
     Records what the server actually transmitted for a specific server name —
-    not a reconstructed trust path. The endpoint is a HostnameIPService; a
-    connection made without SNI is a presentation of the IPService itself
-    (exactly one of the two references is set): it is valid for the null
-    server name only, not for the service's other hostnames.
+    not a reconstructed trust path. A connection is made for a HostnameIPService
+    (the endpoint, referenced and named in `hostname`); a connection without a
+    server name is a presentation of the IPService itself: it is valid for the
+    null server name only, not for the service's other hostnames.
 
     presented_certificates is ordered leaf-first as received, and the
     order is durable: XTDB stores vector values as ordered lists, so the
@@ -323,15 +323,23 @@ class TLSCertificateChain(OOI):
 
     object_type: Literal["TLSCertificateChain"] = "TLSCertificateChain"
 
-    # The endpoint this presentation was observed on. SNI-qualified endpoints
-    # reference the HostnameIPService; connections without a server name
-    # reference the IPService. Exactly one of the two is set.
+    # The HostnameIPService a named connection was made for; None for a
+    # connection without a server name. Traversal only, not part of the key.
     hostname_ip_service: Reference | None = ReferenceField(
         HostnameIPService, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
     )
-    ip_service: Reference | None = ReferenceField(
-        IPService, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
-    )
+
+    # The IPService the connection was made to. Always set: it is part of the
+    # natural key, and the tokenizer requires every key attribute present on
+    # every instance.
+    ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
+
+    # The server name as presented in the handshake (SNI), or None for a
+    # connection without one. A plain string, not a Hostname reference: the
+    # network is already in the key via the IPService, and a nullable
+    # reference in the natural key would give the type two key shapes, which
+    # the tokenizer cannot parse.
+    hostname: str | None = None
 
     # Full chain hash: SHA-256 over length-prefixed SHA-256 hashes of every raw
     # presented entry, in wire order — including entries that failed to parse.
@@ -346,32 +354,16 @@ class TLSCertificateChain(OOI):
         X509CertificateV2, default_factory=list, max_issue_scan_level=1, max_inherit_scan_level=0
     )
 
-    _natural_key_attrs = ["ip_service", "presentation_hash"]
-
-    @property
-    def natural_key(self) -> str:
-        # Mirror TLSCipher: the key is the endpoint's key plus the presentation
-        # hash. SNI-qualified endpoints key on the HostnameIPService (which
-        # embeds the IPService key); null-SNI presentations key on the
-        # IPService itself.
-        if self.hostname_ip_service is not None:
-            return f"{self.hostname_ip_service.natural_key}|{self.presentation_hash}"
-        assert self.ip_service is not None  # exactly one of the two references is set
-        return f"{self.ip_service.natural_key}|{self.presentation_hash}"
+    _natural_key_attrs = ["ip_service", "hostname", "presentation_hash"]
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
-        # The reference is a tokenized natural key of an IPService (which is
-        # network|address|protocol|port|service) plus the presentation hash:
-        #   network|address|protocol|port|service|presentation_hash
-        # or, SNI-qualified, with the hostname's network|hostname appended
-        # before the presentation hash:
-        #   network|address|protocol|port|service|hn_network|hostname|presentation_hash
+        # The reference is a tokenized natural key:
+        #   network|address|protocol|port|service|hostname|presentation_hash
         parts = reference.natural_key.split("|")
-        address = parts[1]
-        port = parts[3]
-        if len(parts) == 8:
-            return f"Certificate chain of {parts[6]}:{port} @ {address}"
+        _network, address, _protocol, port, _service, hostname, _presentation_hash = parts
+        if hostname:
+            return f"Certificate chain of {hostname}:{port} @ {address}"
         return f"Certificate chain of {address}:{port}"
 
 

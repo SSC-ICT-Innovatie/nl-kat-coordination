@@ -110,9 +110,11 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
     parsed_certs: list[x509.Certificate] = [parsed for _, _, parsed in parsed_entries]
 
     chain = TLSCertificateChain(
+        ip_service=ip_service_reference,
+        hostname=input_hostname,
+        hostname_ip_service=endpoint if object_type == "HostnameIPService" else None,
         presentation_hash=presentation_hash(entries),
         presented_certificates=[ooi.reference for ooi in oois],
-        **{("hostname_ip_service" if object_type == "HostnameIPService" else "ip_service"): endpoint},
     )
     yield chain
 

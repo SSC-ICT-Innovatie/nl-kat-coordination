@@ -83,7 +83,8 @@ def test_sni_chain_and_certificates_emitted(root_and_leaf):
     assert len(chains) == 1
     assert len(certs) == 2
     assert str(chains[0].hostname_ip_service) == HOSTNAME_SERVICE_INPUT["primary_key"]
-    assert chains[0].ip_service is None
+    assert str(chains[0].ip_service) == "IPService|internet|192.0.2.10|tcp|443|https"
+    assert chains[0].hostname == "example.com"
     assert chains[0].presented_certificates == [c.reference for c in certs]
 
 
