@@ -104,7 +104,7 @@
                                         {% for occurrence in info.occurrences %}
                                             <tr>
                                                 <td>
-                                                    <a href="{% ooi_url 'ooi_detail' occurrence.finding.ooi organization.code %}">{{ occurrence.finding.ooi|human_readable }}</a>
+                                                    <a href="{% ooi_url 'ooi_detail' occurrence.affected_ooi organization.code %}">{{ occurrence.affected_ooi|human_readable }}</a>
                                                 </td>
                                                 <td title="{{ occurrence.first_seen }} UTC">{{ occurrence.first_seen|get_datetime|naturaltime }}</td>
                                             </tr>
