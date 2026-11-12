@@ -493,7 +493,7 @@ def test_delete_perms_object_list_clients(rf, client_member, mock_organization_v
 
 
 HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
-FUTURE_MOMENT = datetime.now(datetime.UTC) + datetime.timedelta(days=1)
+FUTURE_MOMENT = datetime.now(UTC) + datetime.timedelta(days=1)
 
 
 def test_set_clearance_level_at_a_historic_time(rf, client_member, mock_organization_view_octopoes, url_kwargs):
