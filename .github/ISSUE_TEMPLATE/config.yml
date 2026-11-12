@@ -1,16 +1,16 @@
 blank_issues_enabled: false
 contact_links:
   - name: KAT coordination repository
-    url: https://github.com/minvws/nl-kat-coordination
+    url: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination
   - name: KAT security issue reporting
     url: https://github.com/underdarknl
     about: If you find any serious security issues, please contact Jan Klopper (@underdarknl) directly and do NOT create a public issue.
   - name: KAT documentation
-    url: https://minvws.github.io/nl-kat-coordination
+    url: https://docs.openkat.nl
     about: You can find all (developer) documentation on this webpage.
   - name: KAT security policy
-    url: https://github.com/minvws/nl-kat-coordination/security/policy
+    url: https://github.com/SSC-ICT-Innovatie/nl-kat-coordination/security/policy
   - name: KAT code of conduct
-    url: https://github.com/minvws/.github/blob/master/CODE_OF_CONDUCT.md
+    url: https://github.com/SSC-ICT-Innovatie/.github/blob/master/CODE_OF_CONDUCT.md
   - name: KAT contributor agreement
-    url: https://github.com/minvws/.github/blob/master/CONTRIBUTING.md
+    url: https://github.com/SSC-ICT-Innovatie/.github/blob/master/CONTRIBUTING.md
