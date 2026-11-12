@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-11-03 16:02+0000\n"
+"POT-Creation-Date: 2026-11-05 08:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -3713,6 +3713,14 @@ msgstr ""
 
 #: reports/report_types/web_system_report/report.html
 msgid "Certificate is not expiring soon"
+msgstr ""
+
+#: reports/report_types/web_system_report/report.html
+msgid "Certificate chain complete"
+msgstr ""
+
+#: reports/report_types/web_system_report/report.html
+msgid "Certificate matches the server name"
 msgstr ""
 
 #: reports/report_types/web_system_report/report.html

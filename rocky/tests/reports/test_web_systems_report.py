@@ -1,4 +1,21 @@
-from reports.report_types.web_system_report.report import WebSystemReport
+from reports.report_types.web_system_report.report import (
+    CERTIFICATE_FINDING_TYPES_QUERY,
+    CHAIN_FINDING_TYPES_QUERY,
+    WebSystemReport,
+)
+
+from octopoes.models.path import Path
+
+
+def test_chain_queries_parse_against_the_model():
+    """A wrong reverse name in these queries 400s query-many and takes down
+    every web, aggregate and multi report (hasecon, #5585 H2). Parse them
+    against the real model so the mock keys cannot hide a typo."""
+    for query in (CERTIFICATE_FINDING_TYPES_QUERY, CHAIN_FINDING_TYPES_QUERY):
+        parsed = Path.parse(query)
+        # second hop traverses the chain's singular reverse name
+        assert parsed.segments[1].target_type.__name__ == "TLSCertificateChain"
+        assert parsed.segments[1].property_name == "hostname_ip_service"
 
 
 def test_web_report_no_findings(mock_octopoes_api_connector, valid_time, hostname, security_txt):
@@ -17,6 +34,8 @@ def test_web_report_no_findings(mock_octopoes_api_connector, valid_time, hostnam
             hostname.reference: []
         },
         "Hostname.<hostname[is Website].certificate.<ooi[is Finding].finding_type": {hostname.reference: []},
+        f"{CERTIFICATE_FINDING_TYPES_QUERY}": {hostname.reference: []},
+        f"{CHAIN_FINDING_TYPES_QUERY}": {hostname.reference: []},
     }
 
     report = WebSystemReport(mock_octopoes_api_connector)
@@ -42,10 +61,9 @@ def test_web_report_all_findings(
         },
         "Hostname.<hostname[is Website].<ooi[is Finding].finding_type": {hostname.reference: web_report_finding_types},
         "Hostname.<hostname[is Website].<website[is SecurityTXT]": {hostname.reference: []},
+        f"{CERTIFICATE_FINDING_TYPES_QUERY}": {hostname.reference: web_report_finding_types},
+        f"{CHAIN_FINDING_TYPES_QUERY}": {hostname.reference: web_report_finding_types},
         "Hostname.<hostname[is ResolvedHostname].address.<address[is IPPort].<ooi[is Finding].finding_type": {
-            hostname.reference: web_report_finding_types
-        },
-        "Hostname.<hostname[is Website].certificate.<ooi[is Finding].finding_type": {
             hostname.reference: web_report_finding_types
         },
     }

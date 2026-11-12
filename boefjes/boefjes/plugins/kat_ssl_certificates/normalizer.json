@@ -1,13 +1,18 @@
 {
   "id": "kat_ssl_certificates_normalize",
   "name": "SSL certificates",
-  "description": "Parses SSL certificates data into X509 certificates.",
+  "description": "Parses openssl s_client output into X.509 certificates (fingerprint-identified) and certificate chains per presentation.",
   "consumes": [
-    "boefje/ssl-certificates",
     "openkat/ssl-certificates-output"
   ],
   "produces": [
-    "X509Certificate",
-    "CertificateIssuerCandidate"
+    "X509CertificateV2",
+    "TLSCertificateChain",
+    "SubjectAlternativeNameHostnameV2",
+    "SubjectAlternativeNameIPV2",
+    "SubjectAlternativeNameQualifierV2",
+    "Hostname",
+    "HostnameIPService",
+    "Finding"
   ]
 }

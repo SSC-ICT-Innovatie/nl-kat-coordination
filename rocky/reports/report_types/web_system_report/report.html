@@ -121,6 +121,28 @@
                         {{ data.web_checks.checks|sum_attribute:"certificates_not_expiring_soon" }}/{{ data.web_checks.checks|length }} {% translate "webservers compliant" %}
                     </td>
                 </tr>
+                <tr>
+                    <td>{% translate "Certificate chain complete" %}</td>
+                    <td>
+                        {% if data.web_checks.checks|sum_attribute:"chain_complete" != data.web_checks.checks|length %}
+                            <span class="icon incomplete"></span>
+                        {% else %}
+                            <span class="icon positive"></span>
+                        {% endif %}
+                        {{ data.web_checks.checks|sum_attribute:"chain_complete" }}/{{ data.web_checks.checks|length }} {% translate "webservers compliant" %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>{% translate "Certificate matches the server name" %}</td>
+                    <td>
+                        {% if data.web_checks.checks|sum_attribute:"names_match" != data.web_checks.checks|length %}
+                            <span class="icon incomplete"></span>
+                        {% else %}
+                            <span class="icon positive"></span>
+                        {% endif %}
+                        {{ data.web_checks.checks|sum_attribute:"names_match" }}/{{ data.web_checks.checks|length }} {% translate "webservers compliant" %}
+                    </td>
+                </tr>
             </tbody>
         </table>
     </div>

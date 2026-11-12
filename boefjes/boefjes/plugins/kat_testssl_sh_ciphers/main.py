@@ -27,8 +27,8 @@ OUTPUT_MEDIA_TYPE = "openkat/testssl-sh-ciphers-output"
 
 
 def _input_target(input_: dict) -> tuple[str | None, str, int, str]:
-    """Return hostname, address, port and service name from a HostnameService/IPService input."""
-    if input_.get("object_type") == "HostnameService":
+    """Return hostname, address, port and service name from a HostnameIPService/IPService input."""
+    if input_.get("object_type") == "HostnameIPService":
         ip_service = input_["ip_service"]
         address = ip_service["ip_port"]["address"]["address"]
         port = int(ip_service["ip_port"]["port"])
