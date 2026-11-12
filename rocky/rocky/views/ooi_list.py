@@ -21,6 +21,7 @@ from octopoes.models import EmptyScanProfile, Reference, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
 from rocky.exceptions import (
     AcknowledgedClearanceLevelTooLowException,
+    CannotChangeHistoricClearanceLevels,
     IndemnificationNotPresentException,
     TrustedClearanceLevelTooLowException,
 )
@@ -99,9 +100,16 @@ class OOIListView(BreadcrumbsMixin, BaseOOIListView, OctopoesView, AddDashboardI
     ) -> HttpResponse:
         try:
             self.raise_clearance_levels([Reference.from_str(ooi) for ooi in selected_oois], level.value)
+        except CannotChangeHistoricClearanceLevels:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                _("Could not raise clearance levels to L%s on historic timelines") % level.value,
+            )
+            return self.get(request, status=400, *args, **kwargs)
         except IndemnificationNotPresentException:
             messages.add_message(
-                self.request,
+                request,
                 messages.ERROR,
                 _("Could not raise clearance levels to L%s. Indemnification not present at organization %s.")
                 % (level.value, self.organization.name),
@@ -109,7 +117,7 @@ class OOIListView(BreadcrumbsMixin, BaseOOIListView, OctopoesView, AddDashboardI
             return self.get(request, status=403, *args, **kwargs)
         except TrustedClearanceLevelTooLowException:
             messages.add_message(
-                self.request,
+                request,
                 messages.ERROR,
                 _(
                     "Could not raise clearance level to L%s. "
@@ -121,7 +129,7 @@ class OOIListView(BreadcrumbsMixin, BaseOOIListView, OctopoesView, AddDashboardI
             return self.get(request, status=403, *args, **kwargs)
         except AcknowledgedClearanceLevelTooLowException:
             messages.add_message(
-                self.request,
+                request,
                 messages.ERROR,
                 _(
                     "Could not raise clearance level to L%s. "
@@ -158,6 +166,11 @@ class OOIListView(BreadcrumbsMixin, BaseOOIListView, OctopoesView, AddDashboardI
 
         try:
             self.octopoes_api_connector.save_many_scan_profiles(scan_profiles, valid_time=self.observed_at)
+        except CannotChangeHistoricClearanceLevels:
+            messages.add_message(
+                request, messages.ERROR, _("Could reset clearance levels to inherit on historic timelines")
+            )
+            return self.get(request, status=400, *args, **kwargs)
         except (HTTPError, RemoteException, ConnectionError):
             messages.add_message(
                 request, messages.ERROR, _("An error occurred while setting clearance levels to inherit.")

@@ -53,7 +53,7 @@
                     </div>
                     {% if ooi_list %}
                         <div class="horizontal-view toolbar">
-                            {% if may_update_clearance_level and perms.tools.can_set_clearance_level %}
+                            {% if !historic_view and may_update_clearance_level and perms.tools.can_set_clearance_level %}
                                 <button class="button ghost" data-modal-id="edit-clearance-level-modal">
                                     <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit clearance level" %}
                                 </button>

@@ -493,9 +493,10 @@ def test_delete_perms_object_list_clients(rf, client_member, mock_organization_v
 
 
 HISTORIC_MOMENT = datetime(2026, 1, 2, 3, 4, 5, tzinfo=UTC)
+FUTURE_MOMENT = datetime.now(datetime.UTC) + datetime.timedelta(days=1)
 
 
-def test_set_clearance_level_at_the_viewed_time(rf, client_member, mock_organization_view_octopoes, url_kwargs):
+def test_set_clearance_level_at_a_historic_time(rf, client_member, mock_organization_view_octopoes, url_kwargs):
     """Setting a clearance level while viewing the past records it at that moment (#5227).
 
     Both the transaction time and the valid time are kept, so a boefje run after the fact is
@@ -514,11 +515,33 @@ def test_set_clearance_level_at_the_viewed_time(rf, client_member, mock_organiza
         request, organization_code=client_member.organization.code, temporal_context=HISTORIC_MOMENT
     )
 
+    assert response.status_code == 400
+
+
+def test_set_clearance_level_at_the_viewed_time(rf, client_member, mock_organization_view_octopoes, url_kwargs):
+    """Setting a clearance level while viewing the past records it at that moment (#5227).
+
+    Both the transaction time and the valid time are kept, so a boefje run after the fact is
+    still explainable -- see underdarknl on the PR.
+    """
+    client_member.trusted_clearance_level = 4
+    client_member.acknowledged_clearance_level = 4
+    client_member.save()
+
+    request = rf.post(
+        reverse("ooi_list", kwargs=url_kwargs),
+        data={"ooi": ["Network|internet"], "clearance_type": "declared", "level": "1", "action": "update-scan-profile"},
+    )
+    setup_request(request, client_member.user)
+    response = OOIListView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=FUTURE_MOMENT
+    )
+
     assert response.status_code == 302
-    assert mock_organization_view_octopoes().save_many_scan_profiles.call_args.args[1] == HISTORIC_MOMENT
+    assert mock_organization_view_octopoes().save_many_scan_profiles.call_args.args[1] == FUTURE_MOMENT
 
 
-def test_set_clearance_level_to_inherit_at_the_viewed_time(
+def test_set_clearance_level_to_inherit_at_a_historic_time(
     rf, client_member, mock_organization_view_octopoes, url_kwargs
 ):
     """Resetting a clearance level to inherited follows the viewed time as well."""
@@ -535,8 +558,28 @@ def test_set_clearance_level_to_inherit_at_the_viewed_time(
         request, organization_code=client_member.organization.code, temporal_context=HISTORIC_MOMENT
     )
 
+    assert response.status_code == 400
+
+
+def test_set_clearance_level_to_inherit_at_the_viewed_time(
+    rf, client_member, mock_organization_view_octopoes, url_kwargs
+):
+    """Resetting a clearance level to inherited follows the viewed time as well."""
+    client_member.trusted_clearance_level = 4
+    client_member.acknowledged_clearance_level = 4
+    client_member.save()
+
+    request = rf.post(
+        reverse("ooi_list", kwargs=url_kwargs),
+        data={"ooi": ["Network|internet"], "clearance_type": "inherited", "action": "update-scan-profile"},
+    )
+    setup_request(request, client_member.user)
+    response = OOIListView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=FUTURE_MOMENT
+    )
+
     assert response.status_code == 302
-    assert mock_organization_view_octopoes().save_many_scan_profiles.call_args.kwargs["valid_time"] == HISTORIC_MOMENT
+    assert mock_organization_view_octopoes().save_many_scan_profiles.call_args.kwargs["valid_time"] == FUTURE_MOMENT
 
 
 def test_delete_oois_at_the_viewed_time(rf, redteam_member, mock_organization_view_octopoes):
