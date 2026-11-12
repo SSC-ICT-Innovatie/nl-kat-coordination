@@ -34,4 +34,4 @@ class ScanProfileMutation(BaseModel):
     primary_key: str
     value: OOI | None
     client_id: str
-    valid_time: datetime | None
+    valid_time: datetime | None = None
