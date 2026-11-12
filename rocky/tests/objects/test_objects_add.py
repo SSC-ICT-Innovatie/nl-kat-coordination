@@ -1,5 +1,6 @@
 import json
 import uuid
+from datetime import UTC, datetime
 from unittest.mock import Mock
 
 from django import forms
@@ -7,7 +8,7 @@ from pytest_django.asserts import assertContains
 from tools.forms.ooi_form import OOIForm, generate_select_ooi_field
 
 from octopoes.models.ooi.dns.records import DNSTXTRecord
-from rocky.views.ooi_add import OOIAddView
+from rocky.views.ooi_add import OOIAddTypeSelectView, OOIAddView
 from tests.conftest import setup_request
 
 
@@ -17,7 +18,7 @@ def test_add_ooi(rf, client_member, mock_organization_view_octopoes, mock_bytes_
     response = OOIAddView.as_view()(request, organization_code=client_member.organization.code, ooi_type="Network")
 
     assert response.status_code == 302
-    assert response.url == "/en/test/objects/detail/?ooi_id=Network%7Ctestnetwork"
+    assert response.url == "/en/test/now/objects/Network%7Ctestnetwork"
 
     mock_bytes_client().add_manual_proof.assert_called_once()
     call_args = mock_bytes_client().add_manual_proof.call_args[0]
@@ -65,8 +66,33 @@ def test_add_config_ooi_with_empty_dict(rf, client_member, mock_organization_vie
     response = OOIAddView.as_view()(request, organization_code=client_member.organization.code, ooi_type="Config")
 
     assert response.status_code == 302
-    assert response.url == "/en/test/objects/detail/?ooi_id=Config%7Cinternet%7Ctest-bit"
+    assert response.url == "/en/test/now/objects/Config%7Cinternet%7Ctest-bit"
     mock_bytes_client().add_manual_proof.assert_called_once()
+
+
+def test_add_netblock_redirects_to_subnet_flow(rf, client_member):
+    """NetBlocks cannot be added through the generic form (required start IP
+    relation); the add view redirects to the dedicated subnet flow, keeping
+    the temporal context in the url."""
+    request = setup_request(rf.get("ooi_add"), client_member.user)
+    response = OOIAddView.as_view()(
+        request, organization_code=client_member.organization.code, ooi_type="IPV4NetBlock", temporal_context=None
+    )
+
+    assert response.status_code == 302
+    assert response.url == "/en/test/now/objects/add/subnet/"
+
+
+def test_type_select_redirects_netblock_to_subnet_flow(rf, client_member):
+    """Picking a NetBlock in the type select redirects to the subnet flow
+    instead of the generic add form, preserving the temporal context."""
+    request = setup_request(rf.get("ooi_add_type_select", {"add_ooi_type": "IPV6NetBlock"}), client_member.user)
+    response = OOIAddTypeSelectView.as_view()(
+        request, organization_code=client_member.organization.code, temporal_context=datetime(2024, 1, 1, tzinfo=UTC)
+    )
+
+    assert response.status_code == 302
+    assert response.url == "/en/test/at-20240101T000000Z/objects/add/subnet/"
 
 
 def test_add_ooi_keeps_integer_zero(client_member, mock_organization_view_octopoes):

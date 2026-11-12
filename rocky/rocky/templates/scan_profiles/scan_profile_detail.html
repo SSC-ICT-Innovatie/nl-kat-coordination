@@ -24,7 +24,17 @@
                         </p>
                     </div>
                     <div>
-                        {% if indemnification_present and perms.tools.can_set_clearance_level and organization_member.max_clearance_level >= ooi.scan_profile.level %}
+                        {% if historic_view %}
+                            <p class="explanation">
+                                {% blocktranslate trimmed %}
+                                    Clearance levels of objects cannot be changed in the past.
+                                    Changing a clearance level in the past cannot and should not produce
+                                    tasks that cannot be executed in that timeframe.
+                                    Any change to a clearance level should be set in the 'now'.
+                                {% endblocktranslate %}
+                                {% translate "Go to" %} <a href="{{ now_url }}">{% translate "now" %}</a>
+                            </p>
+                        {% elif indemnification_present and perms.tools.can_set_clearance_level and organization_member.max_clearance_level >= ooi.scan_profile.level %}
                             <button class="button ghost" data-modal-id="edit-clearance-level-modal">
                                 <icon aria-hidden="true" class="icon ti-paw"></icon>{% translate "Edit clearance level" %}
                             </button>

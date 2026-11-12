@@ -84,6 +84,7 @@ def test_event_manager_create_empty_scan_profile(mocker, empty_scan_profile):
     expected_body = {
         "operation": "create",
         "primary_key": "test|reference",
+        "valid_time": "2023-01-01T00:00:00",
         "value": {
             "primary_key": "test|reference",
             "object_type": "test",
@@ -149,6 +150,7 @@ def test_event_manager_create_declared_scan_profile(mocker, declared_scan_profil
     expected_body = {
         "operation": "create",
         "primary_key": "test|reference",
+        "valid_time": "2023-01-01T00:00:00",
         "value": {
             "primary_key": "test|reference",
             "object_type": "test",
@@ -206,6 +208,12 @@ def test_event_manager_delete_empty_scan_profile(mocker, empty_scan_profile):
 
     actual_body = json.loads(kwargs["body"])
 
-    assert actual_body == {"operation": "delete", "primary_key": "test|reference", "value": None, "client_id": "test"}
+    assert actual_body == {
+        "operation": "delete",
+        "primary_key": "test|reference",
+        "value": None,
+        "client_id": "test",
+        "valid_time": "2023-01-01T00:00:00",
+    }
 
     assert kwargs["properties"] == pika.BasicProperties(delivery_mode=pika.DeliveryMode.Persistent)

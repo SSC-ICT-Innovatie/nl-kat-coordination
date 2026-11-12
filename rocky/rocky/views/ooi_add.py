@@ -36,11 +36,23 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
     def get(self, request, *args, **kwargs):
         if "add_ooi_type" in request.GET and existing_ooi_type(request.GET["add_ooi_type"]):
             if request.GET["add_ooi_type"] in SUBNET_OOI_TYPES:
-                return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
+                return redirect(
+                    reverse(
+                        "ooi_add_subnet",
+                        kwargs={
+                            "organization_code": self.organization.code,
+                            "temporal_context": self.kwargs.get("temporal_context"),
+                        },
+                    )
+                )
             return redirect(
                 reverse(
                     "ooi_add",
-                    kwargs={"organization_code": self.organization.code, "ooi_type": request.GET["add_ooi_type"]},
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.kwargs.get("temporal_context"),
+                        "ooi_type": request.GET["add_ooi_type"],
+                    },
                 )
             )
 
@@ -49,11 +61,21 @@ class OOIAddTypeSelectView(OrganizationView, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
+        temporal_context = self.kwargs.get("temporal_context")
         context["ooi_types"] = ooi_type_input_choices()
         context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
-                "url": reverse("ooi_add_type_select", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": temporal_context},
+                ),
+                "text": _("Objects"),
+            },
+            {
+                "url": reverse(
+                    "ooi_add_type_select",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": temporal_context},
+                ),
                 "text": _("Type select"),
             },
         ]
@@ -68,7 +90,12 @@ class OOIAddView(BaseOOIFormView):
         # NetBlocks cannot be added through the generic form (required start
         # IP relation); route them to the dedicated subnet flow.
         if kwargs.get("ooi_type") in SUBNET_OOI_TYPES:
-            return redirect(reverse("ooi_add_subnet", kwargs={"organization_code": self.organization.code}))
+            return redirect(
+                reverse(
+                    "ooi_add_subnet",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                )
+            )
         return super().get(request, *args, **kwargs)
 
     def setup(self, request, *args, **kwargs):
@@ -96,15 +123,28 @@ class OOIAddView(BaseOOIFormView):
 
         context["type"] = self.ooi_class.get_ooi_type()
         context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")},
             {
-                "url": reverse("ooi_add_type_select", kwargs={"organization_code": self.organization.code}),
+                "url": reverse(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": _("Objects"),
+            },
+            {
+                "url": reverse(
+                    "ooi_add_type_select",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
                 "text": _("Type select"),
             },
             {
                 "url": reverse(
                     "ooi_add",
-                    kwargs={"organization_code": self.organization.code, "ooi_type": self.ooi_class.get_ooi_type()},
+                    kwargs={
+                        "organization_code": self.organization.code,
+                        "temporal_context": self.temporal_context,
+                        "ooi_type": self.ooi_class.get_ooi_type(),
+                    },
                 ),
                 "text": _("Add %(ooi_type)s") % {"ooi_type": self.ooi_class.get_ooi_type()},
             },

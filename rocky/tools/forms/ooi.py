@@ -47,13 +47,13 @@ class SelectOOIForm(BaseRockyForm):
     def __init__(
         self,
         oois: list[tuple[OOI, ScheduleResponse | None]],
-        organization_code: str,
+        organization: str,
         mandatory_fields: list | None = None,
         *args,
         **kwargs,
     ):
         super().__init__(*args, **kwargs)
-        self.fields["ooi"].widget.attrs["organization_code"] = organization_code
+        self.fields["ooi"].widget.attrs["organization"] = organization
         if mandatory_fields:
             self.fields["ooi"].widget.attrs["mandatory_fields"] = mandatory_fields
         self.set_choices_for_field("ooi", [self._to_choice(ooi) for ooi in oois])

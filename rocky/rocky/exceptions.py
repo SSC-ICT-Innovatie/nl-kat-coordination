@@ -5,11 +5,15 @@ class RockyError(Exception):
     pass
 
 
-class IndemnificationNotPresentException(Exception):
+class IndemnificationNotPresentException(RockyError):
     pass
 
 
-class ClearanceLevelTooLowException(Exception):
+class ClearanceLevelTooLowException(RockyError):
+    pass
+
+
+class CannotChangeHistoricClearanceLevels(RockyError):
     pass
 
 

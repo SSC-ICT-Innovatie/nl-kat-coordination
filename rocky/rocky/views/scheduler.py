@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from typing import Any
 
 import structlog
-from account.mixins import UnboundOrganizationView
+from account.mixins import OrganizationView, UnboundOrganizationView
 from django.contrib import messages
 from django.http import Http404, JsonResponse
 from django.utils.translation import gettext_lazy as _
@@ -34,7 +34,6 @@ from rocky.scheduler import (
     scheduler_client,
 )
 from rocky.scheduler import Normalizer as SchedulerNormalizer
-from rocky.views.mixins import OctopoesView
 
 logger = structlog.get_logger(__name__)
 
@@ -107,6 +106,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
         return {k: v for k, v in form.cleaned_data.items() if v}
 
     def _build_task_filters(self, formdata: dict[str, Any], filters: dict[str, Any]) -> dict[str, Any]:
+        # pull the plugin id from the request scope if available when the form is empty
         plugin_id = formdata.get("plugin_id", self.plugin.id if hasattr(self, "plugin") else None)
         if plugin_id:
             if formdata.get("plugin_id", False):
@@ -116,9 +116,11 @@ class UnboundSchedulerView(UnboundOrganizationView):
             elif self.task_type == "boefje":
                 filters["filters"]["and"].append(self.get_plugin_specific_tasks_for_boefjes(plugin_id))
 
-        ooi_id = formdata.get("ooi_id")
+        # pull the OOI from the request scope if available when the form is empty
+        ooi_id = formdata.get("ooi_id", str(self.ooi) if hasattr(self, "ooi") else None)
         if ooi_id:
-            del formdata["ooi_id"]
+            if formdata.get("ooi_id", False):
+                del formdata["ooi_id"]
             filters["filters"]["and"].append(self.get_ooi_specific_tasks(ooi_id))
 
         ooi_search = formdata.get("ooi_search")
@@ -323,7 +325,7 @@ class UnboundSchedulerView(UnboundOrganizationView):
         return ""
 
 
-class SchedulerView(UnboundSchedulerView, OctopoesView):
+class SchedulerView(UnboundSchedulerView, OrganizationView):
     task_filter_form = OrganizationTaskFilterForm
 
     def setup(self, request, *args, **kwargs):

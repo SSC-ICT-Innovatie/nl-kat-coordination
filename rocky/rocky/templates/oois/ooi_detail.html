@@ -10,7 +10,7 @@
     <main id="main-content">
         <section>
             {% if historic_view %}
-                {% include "oois/ooi_past_due_warning.html" with ooi_current=ooi_current %}
+                {% include "oois/ooi_temporal_warning.html" with ooi_current=ooi_current %}
 
             {% endif %}
             {% include "partials/ooi_head.html" with ooi=ooi view="ooi_detail" %}
@@ -93,48 +93,52 @@
                         {% endblocktranslate %}
                     </p>
                 {% endif %}
-                {% if boefjes %}
-                    <div class="horizontal-scroll">
-                        <table>
-                            <caption class="visually-hidden">{% translate "Boefjes overview" %}</caption>
-                            <thead>
-                                <tr>
-                                    <th>{% translate "Boefje" %}</th>
-                                    <th>{% translate "Description" %}</th>
-                                    <th>{% translate "Scan profile" %}</th>
-                                    <th>{% translate "Scan" %}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for boefje in boefjes %}
+                {% if not historic_view %}
+                    {% if boefjes %}
+                        <div class="horizontal-scroll">
+                            <table>
+                                <caption class="visually-hidden">{% translate "Boefjes overview" %}</caption>
+                                <thead>
                                     <tr>
-                                        <td class="nowrap">
-                                            <a href="{% url "boefje_detail" organization_code=organization.code plugin_id=boefje.id %}?ooi_id={{ ooi }}">{{ boefje.name }}</a>
-                                        </td>
-                                        <td>{{ boefje.description }}</td>
-                                        <td class="nowrap">
-                                            {% include "partials/scan_level_indicator.html" with value=boefje.scan_level.value scan_level_label=True %}
-
-                                        </td>
-                                        <td class="nowrap">
-                                            {% if not indemnification_present or not perms.tools.can_scan_organization or organization_member.max_clearance_level < ooi.scan_profile.level %}
-                                                {% translate "Unable to start scan. See the warning for more details." %}
-                                            {% elif ooi.scan_profile.level < boefje.scan_level.value %}
-                                                <button type="button" class="disabled">{% translate "Start scan" %}</button>
-                                            {% else %}
-                                                {% include "partials/single_action_form.html" with btn_text="Start Scan" action="start_scan" key="boefje_id" value=boefje.id %}
-
-                                            {% endif %}
-                                        </td>
+                                        <th>{% translate "Boefje" %}</th>
+                                        <th>{% translate "Description" %}</th>
+                                        <th>{% translate "Scan profile" %}</th>
+                                        <th>{% translate "Scan" %}</th>
                                     </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {% for boefje in boefjes %}
+                                        <tr>
+                                            <td class="nowrap">
+                                                <a href="{% app_url "boefje_detail" plugin_id=boefje.id temporal_context=None %}?ooi_id={{ ooi }}">{{ boefje.name }}</a>
+                                            </td>
+                                            <td>{{ boefje.description }}</td>
+                                            <td class="nowrap">
+                                                {% include "partials/scan_level_indicator.html" with value=boefje.scan_level.value scan_level_label=True %}
+
+                                            </td>
+                                            <td class="nowrap">
+                                                {% if not indemnification_present or not perms.tools.can_scan_organization or organization_member.max_clearance_level < ooi.scan_profile.level %}
+                                                    {% translate "Unable to start scan. See the warning for more details." %}
+                                                {% elif ooi.scan_profile.level < boefje.scan_level.value %}
+                                                    <button type="button" class="disabled">{% translate "Start scan" %}</button>
+                                                {% else %}
+                                                    {% include "partials/single_action_form.html" with btn_text="Start Scan" action="start_scan" key="boefje_id" value=boefje.id %}
+
+                                                {% endif %}
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p>
+                            {% translate "There are no boefjes enabled to scan an OOI of type" %} "{{ ooi.get_ooi_type }}". {% translate "See" %} <a href="{% url "katalogus" organization.code %}">KAT-alogus</a> {% translate "to find and enable boefjes that can scan within the current level." %}
+                        </p>
+                    {% endif %}
                 {% else %}
-                    <p>
-                        {% translate "There are no boefjes enabled to scan an OOI of type" %} "{{ ooi.get_ooi_type }}". {% translate "See" %} <a href="{% url "katalogus" organization.code %}">KAT-alogus</a> {% translate "to find and enable boefjes that can scan within the current level." %}
-                    </p>
+                    <p>{% translate "No scans can be started on historic or future views." %}</p>
                 {% endif %}
             </div>
         </section>

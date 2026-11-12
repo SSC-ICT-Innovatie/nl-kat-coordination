@@ -1,6 +1,5 @@
 import csv
 import json
-from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -15,13 +14,14 @@ from httpx import HTTPError
 from tools.enums import CUSTOM_SCAN_LEVEL, SCAN_LEVEL
 from tools.forms.ooi import SetClearanceLevelForm
 from tools.forms.ooi_form import OOISearchForm, OOITypeMultiCheckboxForm
-from tools.view_helpers import get_mandatory_fields
+from tools.view_helpers import Breadcrumb, BreadcrumbsMixin, get_mandatory_fields
 
 from octopoes.connector import RemoteException
 from octopoes.models import EmptyScanProfile, Reference, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
 from rocky.exceptions import (
     AcknowledgedClearanceLevelTooLowException,
+    CannotChangeHistoricClearanceLevels,
     IndemnificationNotPresentException,
     TrustedClearanceLevelTooLowException,
 )
@@ -35,10 +35,20 @@ class PageActions(Enum):
     ADD_TO_DASHBOARD = "add_to_dashboard"
 
 
-class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
-    breadcrumbs = [{"url": reverse_lazy("ooi_list"), "text": gettext_lazy("Objects")}]
+class OOIListView(BreadcrumbsMixin, BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
     template_name = "oois/ooi_list.html"
     add_dashboard_item_form = AddObjectListDashboardItemForm
+
+    def build_breadcrumbs(self) -> list[Breadcrumb]:
+        return [
+            {
+                "url": reverse_lazy(
+                    "ooi_list",
+                    kwargs={"organization_code": self.organization.code, "temporal_context": self.temporal_context},
+                ),
+                "text": gettext_lazy("Objects"),
+            }
+        ]
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -48,10 +58,6 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         context["edit_clearance_level_form"] = SetClearanceLevelForm
         context["mandatory_fields"] = get_mandatory_fields(self.request, params=["observed_at"])
         context["scan_levels"] = [alias for _, alias in CUSTOM_SCAN_LEVEL.choices]
-        context["breadcrumbs"] = [
-            {"url": reverse("ooi_list", kwargs={"organization_code": self.organization.code}), "text": _("Objects")}
-        ]
-
         return context
 
     def get(self, request: HttpRequest, *args: Any, status: int = 200, **kwargs: Any) -> HttpResponse:
@@ -94,9 +100,16 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
     ) -> HttpResponse:
         try:
             self.raise_clearance_levels([Reference.from_str(ooi) for ooi in selected_oois], level.value)
+        except CannotChangeHistoricClearanceLevels:
+            messages.add_message(
+                request,
+                messages.ERROR,
+                _("Could not raise clearance levels to L%s on historic timelines") % level.value,
+            )
+            return self.get(request, status=400, *args, **kwargs)
         except IndemnificationNotPresentException:
             messages.add_message(
-                self.request,
+                request,
                 messages.ERROR,
                 _("Could not raise clearance levels to L%s. Indemnification not present at organization %s.")
                 % (level.value, self.organization.name),
@@ -104,7 +117,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             return self.get(request, status=403, *args, **kwargs)
         except TrustedClearanceLevelTooLowException:
             messages.add_message(
-                self.request,
+                request,
                 messages.ERROR,
                 _(
                     "Could not raise clearance level to L%s. "
@@ -116,7 +129,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             return self.get(request, status=403, *args, **kwargs)
         except AcknowledgedClearanceLevelTooLowException:
             messages.add_message(
-                self.request,
+                request,
                 messages.ERROR,
                 _(
                     "Could not raise clearance level to L%s. "
@@ -144,7 +157,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             messages.SUCCESS,
             _("Successfully set scan profile to %s for %d OOIs.") % (level.name, len(selected_oois)),
         )
-        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(self.build_breadcrumbs()[0]["url"])
 
     def _set_oois_to_inherit(
         self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any
@@ -152,7 +165,12 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         scan_profiles = [EmptyScanProfile(reference=Reference.from_str(ooi)) for ooi in selected_oois]
 
         try:
-            self.octopoes_api_connector.save_many_scan_profiles(scan_profiles, valid_time=datetime.now(UTC))
+            self.octopoes_api_connector.save_many_scan_profiles(scan_profiles, valid_time=self.observed_at)
+        except CannotChangeHistoricClearanceLevels:
+            messages.add_message(
+                request, messages.ERROR, _("Could reset clearance levels to inherit on historic timelines")
+            )
+            return self.get(request, status=400, *args, **kwargs)
         except (HTTPError, RemoteException, ConnectionError):
             messages.add_message(
                 request, messages.ERROR, _("An error occurred while setting clearance levels to inherit.")
@@ -169,11 +187,11 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
         messages.add_message(
             request, messages.SUCCESS, _("Successfully set %d OOI(s) clearance level to inherit.") % len(selected_oois)
         )
-        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(self.build_breadcrumbs()[0]["url"])
 
     def _delete_oois(self, selected_oois: list[str], request: HttpRequest, *args: Any, **kwargs: Any) -> HttpResponse:
         connector = self.octopoes_api_connector
-        valid_time = datetime.now(UTC)
+        valid_time = self.observed_at
 
         try:
             connector.delete_many([Reference.from_str(ooi) for ooi in selected_oois], valid_time)
@@ -192,7 +210,7 @@ class OOIListView(BaseOOIListView, OctopoesView, AddDashboardItemFormMixin):
             _("Successfully deleted %d ooi(s). Note: Bits can recreate objects automatically.") % len(selected_oois),
         )
 
-        return redirect(reverse("ooi_list", kwargs={"organization_code": self.organization.code}))
+        return redirect(self.build_breadcrumbs()[0]["url"])
 
 
 class OOIListExportView(BaseOOIListView):

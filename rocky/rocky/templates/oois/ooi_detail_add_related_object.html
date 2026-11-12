@@ -13,7 +13,6 @@
                 <div>
                     <h3>{% translate "Add related object" %}</h3>
                     <form method="get" class="help">
-                        {% if ooi_id %}<input type="hidden" name="ooi_id" value="{{ ooi_id }}" />{% endif %}
                         <fieldset>
                             <legend>{% translate "Object details" %}</legend>
                             <div class="required">
@@ -36,6 +35,15 @@
                             <input class="button" type="submit" value="{% translate "Add object" %}" />
                         </form>
                     </div>
+                </div>
+            </section>
+        </main>
+    {% elif not ooi_types %}
+        <main id="main-content">
+            <section>
+                <div>
+                    <h3>{% translate "Add related object" %}</h3>
+                    <p>{% translate "No related object types are known for this Object type." %}</p>
                 </div>
             </section>
         </main>
