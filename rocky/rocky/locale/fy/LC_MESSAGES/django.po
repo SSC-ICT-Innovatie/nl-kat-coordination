@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 14:16+0000\n"
-"PO-Revision-Date: 2026-10-16 14:51+0000\n"
+"POT-Creation-Date: 2026-11-05 08:12+0000\n"
+"PO-Revision-Date: 2026-11-04 09:51+0000\n"
 "Last-Translator: Wim Benes <fryskefirefox@users.noreply.hosted.weblate.org>\n"
 "Language-Team: Frisian <https://hosted.weblate.org/projects/openkat/nl-kat-"
 "coordination/fy/>\n"
@@ -20,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 2026.11.dev0\n"
+"X-Generator: Weblate 2026.11.1.dev0\n"
 
 #: account/admin.py
 msgid "Permissions"
@@ -43,7 +43,8 @@ msgstr "Wichtige datums"
 #: reports/templates/report_overview/report_history_table.html
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/report_overview/subreports_table.html
-#: tools/forms/boefje.py rocky/templates/organizations/organization_list.html
+#: tools/forms/boefje.py tools/forms/subnet.py
+#: rocky/templates/organizations/organization_list.html
 #: rocky/templates/organizations/organization_settings.html
 #: rocky/templates/partials/ooi_detail_related_object.html
 msgid "Name"
@@ -452,6 +453,7 @@ msgstr "Ferstjoere"
 
 #: account/templates/password_reset.html
 #: account/templates/password_reset_confirm.html
+#: rocky/templates/oois/ooi_add_subnet.html
 msgid "Back"
 msgstr "Tebek"
 
@@ -1288,7 +1290,8 @@ msgstr "Item tafoegje"
 #: tools/view_helpers.py rocky/templates/admin/delete_confirmation.html
 #: rocky/templates/admin/delete_selected_confirmation.html
 #: rocky/templates/dashboard_client.html rocky/templates/dashboard_redteam.html
-#: rocky/templates/header.html rocky/views/ooi_add.py rocky/views/ooi_list.py
+#: rocky/templates/header.html rocky/views/ooi_add.py
+#: rocky/views/ooi_add_subnet.py rocky/views/ooi_list.py
 #: rocky/views/ooi_view.py rocky/views/upload_csv.py rocky/views/upload_raw.py
 msgid "Objects"
 msgstr "Objekten"
@@ -1408,7 +1411,8 @@ msgstr "Objecttypes"
 #: katalogus/templates/change_clearance_level.html onboarding/forms.py
 #: reports/templates/partials/report_ooi_list.html
 #: reports/templates/summary/ooi_selection.html tools/forms/boefje.py
-#: tools/forms/ooi.py rocky/templates/oois/ooi_page_tabs.html
+#: tools/forms/ooi.py tools/forms/subnet.py
+#: rocky/templates/oois/ooi_page_tabs.html
 #: rocky/templates/partials/explanations.html
 #: rocky/templates/scan_profiles/scan_profile_detail.html rocky/views/mixins.py
 msgid "Clearance level"
@@ -4120,6 +4124,14 @@ msgid "Certificate is not expiring soon"
 msgstr "Sertifikaat ferrint ynkoarten net"
 
 #: reports/report_types/web_system_report/report.html
+msgid "Certificate chain complete"
+msgstr ""
+
+#: reports/report_types/web_system_report/report.html
+msgid "Certificate matches the server name"
+msgstr ""
+
+#: reports/report_types/web_system_report/report.html
 msgid "No webservers have been found on this system."
 msgstr "Der binne gjin webservers op dit systeem fûn."
 
@@ -5519,6 +5531,11 @@ msgstr "Yn de wachtrige"
 msgid "Running"
 msgstr "Rint no"
 
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
+msgid "Timeout"
+msgstr "Time-out"
+
 #: tools/forms/scheduler.py
 msgid "Search (in OOI)"
 msgstr "Sykje (yn OOI)"
@@ -5712,6 +5729,30 @@ msgstr ""
 #: tools/forms/settings.py
 msgid "Depth of the tree."
 msgstr "Djipte fan de beam."
+
+#: tools/forms/subnet.py rocky/templates/oois/ooi_add_subnet.html
+msgid "Subnet (CIDR)"
+msgstr "Subnet (CIDR)"
+
+#: tools/forms/subnet.py
+msgid "For example 192.168.5.0/24."
+msgstr "Bygelyks 192.168.5.0/24."
+
+#: tools/forms/subnet.py rocky/templates/oois/ooi_add_subnet.html
+msgid "Network"
+msgstr "Netwurk"
+
+#: tools/forms/subnet.py
+msgid "Enter a valid CIDR, e.g. 192.168.5.0/24."
+msgstr "Fier in jildich CIDR yn, byg. 192.168.5.0/24."
+
+#: tools/forms/subnet.py
+msgid ""
+"A subnet must contain more than one address. Add a single IP address as an "
+"IP address object."
+msgstr ""
+"In subnet moat mear as ien adres befetsje. Foegje in inkeld IP-adres as in "
+"IP-adresobjekt ta."
 
 #: tools/forms/upload_csv.py
 msgid "Only CSV file supported"
@@ -6491,6 +6532,80 @@ msgstr ""
 #, python-format
 msgid "Add %(display_type)s"
 msgstr "%(display_type)s tafoegje"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Add a subnet"
+msgstr "In subnet tafoegje"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid ""
+"Step 2 of 2: review the computed IP range and optionally set a clearance "
+"level. The subnet is added on submit."
+msgstr ""
+"Stap 2 fan 2: beoardielje de berekkene IP-rige en stel opsjoneel in "
+"frijwarringsnivo yn. It subnet wurdt by yntsjinjen tafoege."
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Step 1 of 2: enter the subnet in CIDR notation."
+msgstr "Stap 1 fan 2: fier it subnet yn CIDR-notaasje yn."
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"You must accept indemnification for organization %(organization_name)s "
+"before you can add subnets."
+msgstr ""
+"Eardat jo subnetten tafoegje kinne moatte jo de frijwarring foar "
+"organisaasje %(organization_name)s akseptearje."
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Go to indemnification settings"
+msgstr "Nei frijwarringsynstellingen"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"Your input \"%(cidr)s\" was interpreted as the subnet %(normalized)s/"
+"%(mask)s."
+msgstr ""
+"Jo ynfier ‘%(cidr)s’ is ynterpretearre as it subnet %(normalized)s/%(mask)s."
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"With their default settings the nmap boefjes skip ranges larger than a /"
+"%(min_mask)s. Consider adding smaller blocks instead."
+msgstr ""
+"Mei harren standertynstellingen bewarje de nmap-Boefkes berikken grutter as "
+"ien /%(min_mask)s oer. Oerweagje yn stee dêrfan lytsere blokken ta te "
+"foegjen."
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Start IP"
+msgstr "Start-IP"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "End IP"
+msgstr "Ein-IP"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Number of IPs added"
+msgstr "Oantal tafoege IP’s"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid "%(counter)s address"
+msgid_plural "%(counter)s addresses"
+msgstr[0] "%(counter)s adres"
+msgstr[1] "%(counter)s adressen"
+
+#: rocky/templates/oois/ooi_add_subnet.html rocky/views/ooi_add_subnet.py
+msgid "Add subnet"
+msgstr "Subnet tafoegje"
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Next — review"
+msgstr "Folgjende — beoardiele"
 
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
@@ -8080,7 +8195,7 @@ msgstr "Kin gjin boarne foar OOI lade: %s út Oktopoes"
 
 #: rocky/views/mixins.py
 msgid "Could not load normalizer metas from bytes"
-msgstr "Kin gjin Normalizer-metagegevens út bytes lade"
+msgstr "Kin Normalizer-metagegevens út bytes net lade"
 
 #: rocky/views/mixins.py
 #, python-format
@@ -8103,6 +8218,14 @@ msgstr "Type selektearje"
 #, python-format
 msgid "Add %(ooi_type)s"
 msgstr "%(ooi_type)s tafoegje"
+
+#: rocky/views/ooi_add_subnet.py
+msgid "You must accept indemnification before adding subnets."
+msgstr "Eardat jo subnetten tafoegje, moatte jo de frijwarring akseptearje."
+
+#: rocky/views/ooi_add_subnet.py
+msgid "Subnet added."
+msgstr "Subnet tafoege."
 
 #: rocky/views/ooi_detail.py
 msgid ""
@@ -8934,9 +9057,6 @@ msgstr "Rûge bestân mei sukses tafoege."
 
 #~ msgid "scheme"
 #~ msgstr "skema"
-
-#~ msgid "Network"
-#~ msgstr "Netwurk"
 
 #~ msgid "Start scanning"
 #~ msgstr "Begjin mei scannen"
