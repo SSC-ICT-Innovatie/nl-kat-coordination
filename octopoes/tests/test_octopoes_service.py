@@ -158,3 +158,71 @@ def test_recalculate_bits_deletes_origins_of_removed_bits(octopoes_service, vali
     # the origin of the still-existing bit is rerun, not deleted
     rerun_origins = [call.args[0] for call in octopoes_service._run_inference.call_args_list]
     assert rerun_origins == [kept_origin]
+
+
+def test_origin_id_includes_source_method_and_raw_file():
+    base = dict(
+        origin_type=OriginType.OBSERVATION,
+        method="normalizer",
+        source=Reference.from_str("Hostname|internet|example.com"),
+    )
+
+    assert Origin(**base).id == "Origin|observation|normalizer|Hostname|internet|example.com"
+    assert (
+        Origin(**base, source_method="boefje").id
+        == "Origin|observation|normalizer|boefje|Hostname|internet|example.com"
+    )
+    assert (
+        Origin(**base, source_method="boefje", raw_file="0").id
+        == "Origin|observation|normalizer|boefje|0|Hostname|internet|example.com"
+    )
+
+    # Two observations of the same normalizer for the same input, but different raw files,
+    # produce different origins (#5581)
+    assert Origin(**base, source_method="boefje", raw_file="0").id != Origin(
+        **base, source_method="boefje", raw_file="1"
+    ).id
+
+
+def test_delete_origins_collects_origins_rooted_at_results(octopoes_service, valid_time):
+    input_ref = Reference.from_str("Hostname|internet|example.com")
+    produced_ref = Reference.from_str("IPAddress|internet|1.1.1.1")
+
+    observation = Origin(
+        origin_type=OriginType.OBSERVATION,
+        method="normalizer",
+        source=input_ref,
+        source_method="boefje",
+        result=[produced_ref],
+    )
+    # Declarations and affirmations are rooted at the OOI they produced, not at the input OOI
+    declaration = Origin(
+        origin_type=OriginType.DECLARATION,
+        method="normalizer",
+        source=produced_ref,
+        source_method="boefje",
+        result=[produced_ref],
+    )
+
+    def list_by_source(valid_time, source=None, source_method=None, **kwargs):
+        assert source_method == "boefje"
+        return {input_ref: [observation], produced_ref: [declaration]}.get(source, [])
+
+    octopoes_service.origin_repository.list_origins = MagicMock(side_effect=list_by_source)
+    octopoes_service.origin_repository.delete = MagicMock()
+
+    deleted = octopoes_service.delete_origins(valid_time, source=input_ref, source_method="boefje")
+
+    assert deleted == 2
+    deleted_ids = {call.args[0].id for call in octopoes_service.origin_repository.delete.call_args_list}
+    assert deleted_ids == {observation.id, declaration.id}
+
+
+def test_delete_origins_leaves_other_source_methods(octopoes_service, valid_time):
+    input_ref = Reference.from_str("Hostname|internet|example.com")
+
+    octopoes_service.origin_repository.list_origins = MagicMock(return_value=[])
+    octopoes_service.origin_repository.delete = MagicMock()
+
+    assert octopoes_service.delete_origins(valid_time, source=input_ref, source_method="boefje") == 0
+    octopoes_service.origin_repository.delete.assert_not_called()

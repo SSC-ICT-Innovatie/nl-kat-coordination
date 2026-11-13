@@ -211,6 +211,37 @@ class OctopoesService:
         if not origin.result and origin.origin_type != OriginType.INFERENCE:
             self.origin_repository.delete(origin, valid_time=valid_time)
 
+    def delete_origins(self, valid_time: datetime, source: Reference, source_method: str) -> int:
+        """Delete all origins reachable through `source_method` starting from `source`.
+
+        Used to garbage-collect the origins of a previous boefje run on an input OOI before
+        the normalizers of a new run produce new origins (#5581). Observations have the input
+        OOI as source, but declarations and affirmations are rooted at the OOIs they produced,
+        so we follow result references to collect those as well. Deleting an origin fires a
+        delete event which in turn cleans up the dereferenced result OOIs.
+        """
+        origins: dict[str, Origin] = {}
+        visited: set[Reference] = set()
+        frontier = {source}
+
+        while frontier:
+            reference = frontier.pop()
+            if reference in visited:
+                continue
+            visited.add(reference)
+
+            for origin in self.origin_repository.list_origins(
+                valid_time, source=reference, source_method=source_method
+            ):
+                if origin.id not in origins:
+                    origins[origin.id] = origin
+                    frontier.update(origin.result)
+
+        for origin in origins.values():
+            self.origin_repository.delete(origin, valid_time=valid_time)
+
+        return len(origins)
+
     def _run_inference(self, origin: Origin, valid_time: datetime) -> None:
         bit_definition = get_bit_definitions().get(origin.method, None)
 
