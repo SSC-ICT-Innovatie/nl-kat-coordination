@@ -6,12 +6,12 @@ from uuid import UUID
 
 import httpx
 import structlog
-from httpx import HTTPError, Response
+from httpx import Response
 from pydantic import Field, TypeAdapter, ValidationError
 
 from octopoes.api.models import Affirmation, Declaration, Observation, ServiceHealth
 from octopoes.config.settings import DEFAULT_LIMIT, DEFAULT_OFFSET
-from octopoes.connector import DecodeException, RemoteException
+from octopoes.connector import DecodeException, OctopoesAPIHTTPError, RemoteException
 from octopoes.models import OOI, Reference, ScanLevel, ScanProfile, ScanProfileType
 from octopoes.models.exception import ObjectNotFoundException
 from octopoes.models.explanation import InheritanceSection
@@ -61,14 +61,14 @@ class OctopoesAPIConnector:
         try:
             response.read()  # read the response body before raising an exception
             response.raise_for_status()
-        except HTTPError as error:
+        except OctopoesAPIHTTPError as error:
             if response.status_code == 404:
                 data = response.json()
                 raise ObjectNotFoundException(data["detail"]) from error
             if 500 <= response.status_code < 600:
                 data = response.content  # handles unicode issues
                 raise RemoteException(value=data) from error
-            raise
+            raise OctopoesAPIHTTPError(error)
         except json.decoder.JSONDecodeError as error:
             raise DecodeException("JSON decode error") from error
 
