@@ -1,4 +1,5 @@
 import json
+from datetime import UTC, datetime
 from os import getenv
 
 import requests
@@ -34,6 +35,10 @@ SEARCH_TYPES = (
 )
 
 
+def crt_sh_timeout() -> tuple[int, int]:
+    return (int(getenv("CONNECT_TIMEOUT", str(CONNECT_TIMEOUT))), int(getenv("READ_TIMEOUT", str(READ_TIMEOUT))))
+
+
 def request_certs(
     search_string: str,
     search_type: str = "Identity",
@@ -56,13 +61,24 @@ def request_certs(
     if deduplicate:
         query["deduplicate"] = "Y"
 
-    # The timeout consists of two values, a connection timeout and an inactivity timeout.
-    timeout = (int(getenv("CONNECT_TIMEOUT", str(CONNECT_TIMEOUT))), int(getenv("READ_TIMEOUT", str(READ_TIMEOUT))))
-    response = requests.get(CRT_SH_API, params=query, timeout=timeout)
+    response = requests.get(CRT_SH_API, params=query, timeout=crt_sh_timeout())
     if response.status_code != 200:
         response.raise_for_status()
     if json_output:
         return json.dumps(response.json())
+    return response.text
+
+
+def request_cert(cert_id: str) -> str | None:
+    """Download one certificate by its crt.sh id (the /?d=<id> endpoint,
+    which serves the PEM). None on any failure — the entry is then skipped
+    by the normalizer, never replaced by a placeholder."""
+    try:
+        response = requests.get(CRT_SH_API, params={"d": cert_id}, timeout=crt_sh_timeout())
+    except requests.exceptions.RequestException:
+        return None
+    if response.status_code != 200:
+        return None
     return response.text
 
 
@@ -77,5 +93,24 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         # ConnectionError (DNS failure, refused connection) and SSLError are failures,
         # not timeouts, and should surface as error/boefje instead.
         return [({"error/timeout"}, f"crt.sh timed out for {fqdn}: {type(exc).__name__}")]
+    except requests.exceptions.RequestException as exc:
+        # The request itself failed (refused, DNS, HTTP error status such as
+        # crt.sh's aggressive 429 rate limiting): the reason is carried in the
+        # raw bytes, normalizers skip error mimes.
+        return [({"error/boefje"}, f"crt.sh request failed for {fqdn}: {exc}")]
 
-    return [(set(), results)]
+    entries = json.loads(results)
+
+    # crt.sh rate-limits aggressively and a large domain lists thousands of
+    # entries, so the per-certificate download is limited to currently valid
+    # certificates. Historical entries still contribute their identities
+    # (hostnames); their certificate is simply not emitted.
+    now = datetime.now(UTC).replace(tzinfo=None)
+    for entry in entries:
+        try:
+            current = datetime.fromisoformat(entry["not_after"]) >= now
+        except (TypeError, ValueError):
+            current = False
+        entry["pem"] = request_cert(entry["id"]) if current else None
+
+    return [(set(), json.dumps(entries))]

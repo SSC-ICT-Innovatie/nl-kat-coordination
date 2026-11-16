@@ -13,6 +13,19 @@ from octopoes.models.ooi.findings import KATFindingType, RiskLevelSeverity
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6
 from reports.report_types.definitions import Report
 
+# Certificate findings bind to the certificate (expiry) and the presented
+# chain (incompleteness, name mismatch) of services named by this hostname.
+# Named constants so tests can pin them against the model: a wrong reverse
+# name here 400s every web, aggregate and multi report.
+CERTIFICATE_FINDING_TYPES_QUERY = (
+    "Hostname.<hostname[is HostnameIPService].<hostname_ip_service[is TLSCertificateChain]"
+    ".presented_certificates[is X509CertificateV2].<ooi[is Finding].finding_type"
+)
+CHAIN_FINDING_TYPES_QUERY = (
+    "Hostname.<hostname[is HostnameIPService].<hostname_ip_service[is TLSCertificateChain]"
+    ".<ooi[is Finding].finding_type"
+)
+
 
 @dataclass
 class WebCheck:
@@ -25,6 +38,8 @@ class WebCheck:
     has_certificates: bool = False
     certificates_not_expired: bool = False
     certificates_not_expiring_soon: bool = False
+    chain_complete: bool = False
+    names_match: bool = False
 
     def __bool__(self):
         return (
@@ -37,6 +52,8 @@ class WebCheck:
             and self.has_certificates
             and self.certificates_not_expired
             and self.certificates_not_expiring_soon
+            and self.chain_complete
+            and self.names_match
         )
 
 
@@ -71,6 +88,14 @@ class WebChecks:
     @property
     def has_certificates(self):
         return sum([check.has_certificates for check in self.checks])
+
+    @property
+    def chain_complete(self):
+        return sum([check.chain_complete for check in self.checks])
+
+    @property
+    def names_match(self):
+        return sum([check.names_match for check in self.checks])
 
     @property
     def certificates_not_expired(self):
@@ -142,10 +167,16 @@ class WebSystemReport(Report):
             self.octopoes_api_connector.query_many(query, valid_time, all_hostnames),
             ["KAT-UNCOMMON-OPEN-PORT", "KAT-OPEN-SYSADMIN-PORT", "KAT-OPEN-DATABASE-PORT"],
         )
-        query = "Hostname.<hostname[is Website].certificate.<ooi[is Finding].finding_type"
+        # Certificate findings bind to the certificate (expiry) and the
+        # presented chain (incompleteness, name mismatch) of services named
+        # by this hostname.
         certificate_finding_types = self.group_finding_types_by_source(
-            self.octopoes_api_connector.query_many(query, valid_time, all_hostnames),
+            self.octopoes_api_connector.query_many(CERTIFICATE_FINDING_TYPES_QUERY, valid_time, all_hostnames),
             ["KAT-CERTIFICATE-EXPIRED", "KAT-CERTIFICATE-EXPIRING-SOON"],
+        )
+        chain_finding_types = self.group_finding_types_by_source(
+            self.octopoes_api_connector.query_many(CHAIN_FINDING_TYPES_QUERY, valid_time, all_hostnames),
+            ["KAT-INCOMPLETE-CERTIFICATE-CHAIN", "KAT-SSL-CERT-HOSTNAME-MISMATCH"],
         )
 
         result = {ooi: {"input_ooi": ooi, "web_checks": WebChecks(), "finding_types": []} for ooi in input_oois}
@@ -182,6 +213,12 @@ class WebSystemReport(Report):
                     and "KAT-CERTIFICATE-EXPIRING-SOON"
                     not in [x.id for x in certificate_finding_types.get(hostname, [])]
                 )
+                check.chain_complete = check.has_certificates and not any(
+                    "KAT-INCOMPLETE-CERTIFICATE-CHAIN" in x.id for x in chain_finding_types.get(hostname, [])
+                )
+                check.names_match = check.has_certificates and not any(
+                    "KAT-SSL-CERT-HOSTNAME-MISMATCH" in x.id for x in chain_finding_types.get(hostname, [])
+                )
 
                 checks.checks.append(check)
                 new_types = (
@@ -191,6 +228,7 @@ class WebSystemReport(Report):
                     + no_certificate_finding_types.get(hostname, [])
                     + port_finding_types.get(hostname, [])
                     + certificate_finding_types.get(hostname, [])
+                    + chain_finding_types.get(hostname, [])
                     + security_txt_finding_types
                 )
 
