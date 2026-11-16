@@ -39,21 +39,24 @@ class IPService(OOI):
         return f"{t.service.name}://{ip_address}:{t.ip_port.port}/{t.ip_port.protocol}"
 
 
-class HostnameService(OOI):
+class HostnameIPService(OOI):
     """A named service exposed by an IP service.
 
     This is the generic hostname-to-IPService relationship used when a
     protocol may depend on the hostname (for example TLS SNI). It is not
     specific to HTTP.
+
+    Formerly named HostnameService; renamed because the object captures the
+    full (hostname, IP, port, service) tuple, symmetric with IPService.
     """
 
-    object_type: Literal["HostnameService"] = "HostnameService"
+    object_type: Literal["HostnameIPService"] = "HostnameIPService"
 
     ip_service: Reference = ReferenceField(IPService, max_issue_scan_level=0, max_inherit_scan_level=4)
     hostname: Reference = ReferenceField(Hostname, max_issue_scan_level=0, max_inherit_scan_level=4)
 
     _natural_key_attrs = ["ip_service", "hostname"]
-    _reverse_relation_names = {"ip_service": "hostname_services", "hostname": "services"}
+    _reverse_relation_names = {"ip_service": "hostname_ip_services", "hostname": "services"}
 
     @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
@@ -74,12 +77,18 @@ class TLSCipher(OOI):
     hostname: Reference | None = ReferenceField(
         Hostname, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
     )
+    # Link to the HostnameIPService when the observation was made for a
+    # specific server name. Additive: not part of the natural key, so
+    # existing TLSCipher identities are unaffected.
+    hostname_ip_service: Reference | None = ReferenceField(
+        HostnameIPService, default=None, max_issue_scan_level=0, max_inherit_scan_level=4
+    )
     suites: dict
     server_preference: dict[str, str] = Field(default_factory=dict)
 
     _natural_key_attrs = ["ip_service"]
 
-    _reverse_relation_names = {"ip_service": "ciphers", "hostname": "ciphers"}
+    _reverse_relation_names = {"ip_service": "ciphers", "hostname": "ciphers", "hostname_ip_service": "ciphers"}
 
     @property
     def natural_key(self) -> str:
@@ -102,3 +111,6 @@ class TLSCipher(OOI):
             return f"Ciphers of {hostname}:{address}:{port}"
 
         return f"Ciphers of {address}:{port}"
+
+
+TLSCipher.model_rebuild()

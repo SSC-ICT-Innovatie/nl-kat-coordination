@@ -1,9 +1,10 @@
 {
   "id": "ssl-certificates",
   "name": "SSLCertificates",
-  "description": "Scan SSL certificates of websites. Checks if certificates are valid and/or expired.",
+  "description": "Collects the certificate chain presented by TLS services, per server name and per client signature capability. Attempts every service: a failed handshake is recorded as raw output, not a task failure.",
   "consumes": [
-    "Website"
+    "HostnameIPService",
+    "IPService"
   ],
   "scan_level": 2,
   "oci_image": "docker.underdark.nl/librekat/openkat-ssl-certificates:latest",
