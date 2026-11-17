@@ -85,22 +85,30 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     search_mode = getenv("LEAKIX_SEARCH_MODE", "strict")
 
-    if pk.startswith("IPAddressV4|") or pk.startswith("IPAddressV6|"):
-        ip = pk.split("|")[-1]
-        if search_mode == "strict":
-            # Use /host endpoint for exact IP match (no netblock pollution)
-            results = get_host_results(ip)
-        else:
-            # Permissive mode: use /search (may include related IPs in netblock)
-            query = quote_plus(f"+ip:{ip}")
+    try:
+        if pk.startswith("IPAddressV4|") or pk.startswith("IPAddressV6|"):
+            ip = pk.split("|")[-1]
+            if search_mode == "strict":
+                # Use /host endpoint for exact IP match (no netblock pollution)
+                results = get_host_results(ip)
+            else:
+                # Permissive mode: use /search (may include related IPs in netblock)
+                query = quote_plus(f"+ip:{ip}")
+                results = get_search_results(query)
+        elif pk.startswith("Hostname|"):
+            hostname = pk.split("|")[-1]
+            query = quote_plus(f'+host:"{hostname}"')
             results = get_search_results(query)
-    elif pk.startswith("Hostname|"):
-        hostname = pk.split("|")[-1]
-        query = quote_plus(f'+host:"{hostname}"')
-        results = get_search_results(query)
-        # Filtering for hostname happens in normalizer based on search_mode
-    else:
-        raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')
+            # Filtering for hostname happens in normalizer based on search_mode
+        else:
+            raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')
+    except requests.exceptions.Timeout as exc:
+        # Rerunnable state: the scheduler marks the task TIMEOUT and tries again.
+        return [({"error/timeout"}, f"LeakIX timed out for {pk}: {type(exc).__name__}")]
+    except requests.exceptions.RequestException as exc:
+        # The request itself failed (refused, DNS, HTTP error status): the
+        # reason is carried in the raw bytes, normalizers skip error mimes.
+        return [({"error/boefje"}, f"LeakIX request failed for {pk}: {exc}")]
 
     # Include search_mode and the extraction component toggles in the output so
     # the normalizer can filter and extract accordingly

@@ -59,10 +59,6 @@ def get_ip_ports_and_service(
     for port, protocol in open_ports:
         service: NmapService = host.get_service(port, protocol)
 
-        # If service is tcpwrapped we should consider the port closed
-        if service.service == "tcpwrapped":
-            continue
-
         if not ip_yielded:
             yield ip
             ip_yielded = True
