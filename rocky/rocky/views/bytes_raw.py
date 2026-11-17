@@ -23,6 +23,7 @@ class BytesRawView(OrganizationView):
         boefje_meta_id = kwargs["boefje_meta_id"]
         try:
             raw_metas = self.bytes_client.get_raw_metas(boefje_meta_id, self.organization.code)
+            _strip_environment_secrets(raw_metas, self.katalogus_client)
             is_json_format = request.GET.get("format") == "json"
             if is_json_format:
                 size_limit = int(request.GET.get("size_limit", RAW_FILE_LIMIT))
@@ -57,6 +58,28 @@ class BytesRawView(OrganizationView):
         logger.info("Raw files have been downloaded", boefje_meta_id=boefje_meta_id, event_code="700001")
 
         return response
+
+
+def _strip_environment_secrets(raw_metas: list[dict], katalogus_client) -> None:
+    """Strip only secret-marked fields from the boefje environment, not the entire
+    environment (#4508). If the schema can't be retrieved, strip everything as a
+    fail-safe."""
+    if not raw_metas:
+        return
+    boefje_id = raw_metas[0]["boefje_meta"]["boefje"]["id"]
+    try:
+        plugin = katalogus_client.get_plugin(boefje_id)
+        secret_fields = (getattr(plugin, "boefje_schema", None) or {}).get("secret", [])
+    except Exception:
+        logger.exception("Could not retrieve boefje schema; stripping entire environment")
+        for raw_meta in raw_metas:
+            raw_meta["boefje_meta"].pop("environment", None)
+        return
+    for raw_meta in raw_metas:
+        env = raw_meta["boefje_meta"].get("environment")
+        if env:
+            for key in secret_fields:
+                env.pop(key, None)
 
 
 def zip_data(raws: dict[str, bytes], raw_metas: list[dict]) -> BytesIO:
