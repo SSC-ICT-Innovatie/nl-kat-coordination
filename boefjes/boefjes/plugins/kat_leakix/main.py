@@ -4,7 +4,7 @@ from urllib.parse import quote_plus
 
 import requests
 
-API_TIMEOUT = 30
+from boefjes.plugins.helpers import get_connect_and_read_timeout, is_request_timeout
 
 # Extraction components the normalizer supports; each can be disabled through a
 # boefje setting. The resolved booleans travel with the raw output because
@@ -26,7 +26,9 @@ def get_api_headers() -> dict:
 def get_host_results(ip: str) -> list[dict]:
     """Use /host/{ip} endpoint for specific IP lookups (no netblock pollution)."""
     results: list[dict] = []
-    response = requests.get(f"https://leakix.net/host/{ip}", headers=get_api_headers(), timeout=API_TIMEOUT)
+    response = requests.get(
+        f"https://leakix.net/host/{ip}", headers=get_api_headers(), timeout=get_connect_and_read_timeout()
+    )
     response.raise_for_status()
     if not response.content:
         return results
@@ -59,7 +61,7 @@ def get_search_results(query: str) -> list[dict]:
             response = requests.get(
                 f"https://leakix.net/search?scope={scope}&q={query}&page={page_counter}",
                 headers=get_api_headers(),
-                timeout=API_TIMEOUT,
+                timeout=get_connect_and_read_timeout(),
             )
             response.raise_for_status()
             page_counter += 1
@@ -87,17 +89,31 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     if pk.startswith("IPAddressV4|") or pk.startswith("IPAddressV6|"):
         ip = pk.split("|")[-1]
-        if search_mode == "strict":
-            # Use /host endpoint for exact IP match (no netblock pollution)
-            results = get_host_results(ip)
-        else:
-            # Permissive mode: use /search (may include related IPs in netblock)
-            query = quote_plus(f"+ip:{ip}")
-            results = get_search_results(query)
+        try:
+            if search_mode == "strict":
+                # Use /host endpoint for exact IP match (no netblock pollution)
+                results = get_host_results(ip)
+            else:
+                # Permissive mode: use /search (may include related IPs in netblock)
+                query = quote_plus(f"+ip:{ip}")
+                results = get_search_results(query)
+        except requests.exceptions.RequestException as exc:
+            # Deliberately narrow: only a genuine timeout (including the wrapped
+            # body-read variant) is error/timeout; other failures propagate.
+            if is_request_timeout(exc):
+                return [({"error/timeout"}, f"LeakIX request timed out for {pk}: {type(exc).__name__}")]
+            raise
     elif pk.startswith("Hostname|"):
         hostname = pk.split("|")[-1]
         query = quote_plus(f'+host:"{hostname}"')
-        results = get_search_results(query)
+        try:
+            results = get_search_results(query)
+        except requests.exceptions.RequestException as exc:
+            # Deliberately narrow: only a genuine timeout (including the wrapped
+            # body-read variant) is error/timeout; other failures propagate.
+            if is_request_timeout(exc):
+                return [({"error/timeout"}, f"LeakIX request timed out for {pk}: {type(exc).__name__}")]
+            raise
         # Filtering for hostname happens in normalizer based on search_mode
     else:
         raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')

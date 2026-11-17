@@ -1,5 +1,6 @@
 import re
 import subprocess
+from os import getenv
 
 # ldns exit code for LDNS_STATUS_NETWORK_ERR ("Could not send or receive, because of network error").
 # drill -T queries the root and authoritative nameservers directly, so this is what drill exits with
@@ -8,13 +9,19 @@ LDNS_NETWORK_ERR = 20
 DRILL_TIMEOUT_SECONDS = 30
 
 
+class DrillTimeout(Exception):
+    """Raised when drill does not finish within its time budget."""
+
+
 def run_drill(domain: str, record_type: str) -> bytes:
     cmd = ["/usr/bin/drill", "-DT", domain, record_type]
 
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(getenv("TIMEOUT", str(DRILL_TIMEOUT_SECONDS)))
     try:
-        output = subprocess.run(cmd, capture_output=True, timeout=DRILL_TIMEOUT_SECONDS)
+        output = subprocess.run(cmd, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError(f"drill timed out for {domain} ({record_type})") from exc
+        raise DrillTimeout(f"drill timed out for {domain} ({record_type})") from exc
     if output.returncode != 0:
         stderr = output.stderr.decode(errors="replace").strip()
         message = f"drill exited with status {output.returncode} for {domain} ({record_type})"
@@ -38,11 +45,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     domain = normalize_hostname(domain)
 
-    output = run_drill(domain, "A")
-    if is_no_data(output, domain, "A"):
-        output = run_drill(domain, "CNAME")
-        if is_no_data(output, domain, "CNAME"):
-            output = run_drill(domain, "AAAA")
+    try:
+        output = run_drill(domain, "A")
+        if is_no_data(output, domain, "A"):
+            output = run_drill(domain, "CNAME")
+            if is_no_data(output, domain, "CNAME"):
+                output = run_drill(domain, "AAAA")
+    except DrillTimeout as exc:
+        return [({"error/timeout"}, str(exc))]
 
     return [({"openkat/dnssec-output"}, output)]
 

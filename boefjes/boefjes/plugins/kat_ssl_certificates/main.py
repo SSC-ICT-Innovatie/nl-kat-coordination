@@ -1,5 +1,8 @@
 import subprocess
 from ipaddress import ip_address as parse_ip
+from os import getenv
+
+SCAN_TIMEOUT = 300
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -21,7 +24,16 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         + ["-host", host, "-port", str(port), "-servername", hostname]
     )
 
-    output = subprocess.run(cmd, capture_output=True)
+    # Can be overridden through the plugin settings, see schema.json. A hard
+    # wall-clock budget, so a target that black-holes the connection cannot
+    # stall the worker indefinitely.
+    timeout = int(getenv("TIMEOUT", str(SCAN_TIMEOUT)))
+    try:
+        output = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return [
+            ({"error/timeout"}, f"openssl s_client timed out for {hostname} ({host}:{port}) after {timeout} seconds")
+        ]
 
     # openssl exits non-zero when the TLS handshake fails (e.g. rc4.badssl.com),
     # but still prints the received certificate chain. That output is valid and

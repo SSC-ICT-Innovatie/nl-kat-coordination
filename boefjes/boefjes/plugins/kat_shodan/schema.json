@@ -7,6 +7,14 @@
       "maxLength": 128,
       "type": "string",
       "description": "A Shodan API key (see https://developer.shodan.io/api/requirements)."
+    },
+    "TIMEOUT": {
+      "title": "TIMEOUT",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 30,
+      "description": "Timeout in seconds for requests to the Shodan API. Defaults to 30. When exceeded the boefje reports a timeout."
     }
   },
   "required": [

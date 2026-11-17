@@ -57,22 +57,53 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     resolver.use_edns(options=[EDEOption(15)])
     nameserver = getenv("REMOTE_NS", "1.1.1.1")
     resolver.nameservers = [nameserver]
+    # Can be overridden through the plugin settings, see schema.json.
+    resolver.timeout = float(getenv("DNS_TIMEOUT", "5"))
+    resolver.lifetime = float(getenv("DNS_LIFETIME", "30"))
 
     record_types = get_record_types()
-    answers = [get_parent_zone_soa(resolver, requested_dns_name)] if "SOA" in record_types else []
 
+    # Two separate ledgers, per review finding 2.4 (round 4):
+    # - `answers` holds records that belong in the raw output (metadata and
+    #   directly-owned records); a foreign-owner SOA is resolved but excluded.
+    # - `outcomes` tracks the per-type result of every scan-subject query; the
+    #   parent-zone SOA metadata walk is *not* scan-subject and never counts,
+    #   even when it succeeds.
+    answers: list[Answer] = []
+    if "SOA" in record_types:
+        # The parent-zone SOA is metadata the normalizer uses for zone
+        # attribution, not part of the scan result: a timeout here weakens
+        # attribution but must not gate (or discard) the record lookups below,
+        # which may well succeed.
+        try:  # noqa: SIM105 (deliberate swallow, see comment above)
+            answers.append(get_parent_zone_soa(resolver, requested_dns_name))
+        except dns.resolver.Timeout:
+            pass
+
+    # outcome per scan-subject record type: "answer", "noanswer", "nxdomain"
+    # or "timeout". A foreign-owner SOA (CNAME follow) belongs to another zone
+    # and is not conclusive evidence for this hostname.
+    outcomes: dict[str, str] = {}
     for type_ in record_types:
         try:
             answer: Answer = resolver.resolve(hostname, type_)
-            # An SOA lookup can follow a CNAME into a different DNS zone.
-            # Only treat a directly-owned SOA as a record for this hostname.
             if type_ == "SOA" and (answer.rrset is None or answer.rrset.name != requested_dns_name):
+                outcomes[type_] = "timeout"  # inconclusive for this hostname
                 continue
+            outcomes[type_] = "answer"
             answers.append(answer)
-        except (dns.resolver.NoAnswer, dns.resolver.Timeout):
-            pass
+        except dns.resolver.Timeout:
+            # Inconclusive: does not count as either answer or negative.
+            outcomes[type_] = "timeout"
+        except dns.resolver.NoAnswer:
+            # Definitive negative from the nameserver: not inconclusive.
+            outcomes[type_] = "noanswer"
         except dns.resolver.NXDOMAIN:
             return [(set(), "NXDOMAIN")]
+
+    # Vacuously true when record_types is empty, so an all-timeout of the
+    # email-security lookups below can still produce error/timeout.
+    all_record_queries_inconclusive = all(outcome == "timeout" for outcome in outcomes.values())
 
     answers_formatted = [f"RESOLVER: {answer.nameserver}\n{answer.response}" for answer in answers]
 
@@ -81,8 +112,22 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         "dmarc_response": get_email_security_records(resolver, hostname, "_dmarc"),
         "dkim_response": get_email_security_records(resolver, hostname, "_domainkey"),
     }
-    if not answers_formatted and results["dmarc_response"] == "Timeout" and results["dmarc_response"] == "Timeout":
-        raise TimeoutException("No answers from DNS-Server due to timeouts.")
+    # All-or-nothing: only report a scan-wide timeout when nothing at all was
+    # resolved definitively (no answer, no NoAnswer, no NXDOMAIN) and every
+    # scan-subject record query was inconclusive. The parent-zone SOA is
+    # metadata and does not count in either direction. Partial timeouts still
+    # produce a result; the individual timeouts of the record queries are
+    # visible in it through the missing answers.
+    everything_timed_out = (
+        not any(o in ("answer", "noanswer") for o in outcomes.values())
+        and all_record_queries_inconclusive
+        and results["dmarc_response"] == "Timeout"
+        and results["dkim_response"] == "Timeout"
+    )
+    if everything_timed_out:
+        # Not a hard failure: the nameserver simply did not answer in time, so
+        # report the timeout mime-type (task ends in the TIMEOUT state).
+        return [({"error/timeout"}, "No answers from DNS-Server due to timeouts.")]
     return [(set(), json.dumps(results))]
 
 

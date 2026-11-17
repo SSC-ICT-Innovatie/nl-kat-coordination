@@ -13,6 +13,8 @@ from pathlib import Path
 import maxminddb
 import requests
 
+from boefjes.plugins.helpers import is_request_timeout
+
 BASE_PATH = Path(getenv("OPENKAT_CACHE_PATH", Path(__file__).parent))
 
 if BASE_PATH.name != Path(__file__).parent.name:
@@ -37,7 +39,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         return [(set(), json.dumps("IP address is private, no location possible"))]
 
     if not geoip_file_exists() or cache_out_of_date():
-        geoip_meta = refresh_geoip(hash_algorithm)
+        try:
+            geoip_meta = refresh_geoip(hash_algorithm)
+        except requests.exceptions.RequestException as exc:
+            # Deliberately narrow: only a genuine timeout (including the wrapped
+            # body-read variant) is error/timeout; other failures propagate.
+            if is_request_timeout(exc):
+                return [({"error/timeout"}, f"Downloading the GeoIP database timed out: {type(exc).__name__}")]
+            raise
     else:
         with GEOIP_META_PATH.open() as json_meta_file:
             geoip_meta = json.load(json_meta_file)

@@ -4,6 +4,7 @@ import json
 from os import getenv
 
 import dns
+import dns.exception
 import dns.message
 import dns.query
 
@@ -28,13 +29,16 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
     ]
 
     results = []
-    for query in queries:
-        response = method(query, where=ip, timeout=timeout, port=port)
+    try:
+        for query in queries:
+            response = method(query, where=ip, timeout=timeout, port=port)
 
-        try:
-            answer = response.answer[0]
-            results.append(answer.to_rdataset().pop().strings[0].decode())
-        except IndexError:
-            pass
+            try:
+                answer = response.answer[0]
+                results.append(answer.to_rdataset().pop().strings[0].decode())
+            except IndexError:
+                pass
+    except dns.exception.Timeout:
+        return [({"error/timeout"}, f"DNS query to {ip}:{port} timed out after {timeout} seconds")]
 
     return [(set(), json.dumps(results))]

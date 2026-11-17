@@ -93,7 +93,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     cmd.extend(["-oX", "-", str(input_ips)])
 
-    output = subprocess.run(cmd, capture_output=True)
+    # The timeout consists of the whole nmap scan; it can be overridden through the
+    # plugin settings, see schema.json. A scan can legitimately take a while, so the
+    # default is generous.
+    timeout = int(os.getenv("TIMEOUT", "3600"))
+    try:
+        output = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return [({"error/timeout"}, f"nmap timed out for {input_ips} after {timeout} seconds")]
     output.check_returncode()
 
     return [({"openkat/nmap-output"}, output.stdout.decode())]

@@ -1,7 +1,9 @@
 import subprocess
+from os import getenv
 
 TLS_CAPABLE_SERVICES = ("https", "ftps", "smtp", "smtps", "imaps", "pop3s", "ms-wbt-server")
 STARTTLS_CAPABLE_SERVICES = ("pop3", "ftp", "imap", "smtp", "mysql", "ldap", "xmpp")
+SCAN_TIMEOUT = 300
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -34,7 +36,13 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     target = f"[{ip}]:{port}"
 
     command.extend(["--xml=-", target])
-    output = subprocess.run(command, capture_output=True)
+
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(getenv("TIMEOUT", str(SCAN_TIMEOUT)))
+    try:
+        output = subprocess.run(command, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return [({"error/timeout"}, f"sslscan timed out for {target} after {timeout} seconds")]
     output.check_returncode()
 
     return [({"openkat/ssl-scan-output"}, output.stdout.decode())]

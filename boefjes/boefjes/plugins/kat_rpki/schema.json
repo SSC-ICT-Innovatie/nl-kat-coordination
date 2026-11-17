@@ -31,6 +31,20 @@
         "sha3_512"
       ],
       "description": "The hashing function used to compute the hash over the downloaded source data."
+    },
+    "CONNECT_TIMEOUT": {
+      "title": "CONNECT_TIMEOUT",
+      "minimum": 1,
+      "maximum": 60,
+      "type": "integer",
+      "description": "Timeout in seconds for establishing a connection to the RPKI and BGP sources. Defaults to 10."
+    },
+    "READ_TIMEOUT": {
+      "title": "READ_TIMEOUT",
+      "minimum": 1,
+      "maximum": 300,
+      "type": "integer",
+      "description": "Timeout in seconds between bytes received from the RPKI and BGP sources. Defaults to 30."
     }
   }
 }

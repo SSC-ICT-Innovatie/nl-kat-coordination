@@ -1,7 +1,10 @@
 import json
 import logging
+from os import getenv
 
 from pynetdicom import AE
+
+CONNECT_TIMEOUT = 30
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -13,6 +16,11 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     # An AE is an Application Entity, a DICOM specific thing
     ae = AE()
+
+    # pynetdicom leaves the TCP connect at the OS default (which can hang for
+    # minutes on filtered ports); bound it explicitly. Can be overridden
+    # through the plugin settings, see schema.json.
+    ae.connection_timeout = int(getenv("CONNECT_TIMEOUT", str(CONNECT_TIMEOUT)))
 
     # Context is a DICOM term used to define the content and encoding of data (like a DICOM dataset)
     # This specific context is used to verify a Service-Object Pair (SOP) class - basically connection establishment

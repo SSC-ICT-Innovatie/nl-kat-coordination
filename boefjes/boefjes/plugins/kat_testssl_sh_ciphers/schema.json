@@ -5,9 +5,16 @@
     "TIMEOUT": {
       "title": "TIMEOUT",
       "type": "integer",
-      "description": "Timeout for requests in the test ssl script",
+      "description": "Timeout in seconds for individual connections and OpenSSL operations in the testssl.sh scan. Defaults to 30.",
       "default": 30,
-      "minimum": 0
+      "minimum": 1
+    },
+    "SCAN_TIMEOUT": {
+      "title": "SCAN_TIMEOUT",
+      "type": "integer",
+      "description": "Maximum time in seconds the whole testssl.sh scan may run. Defaults to 600. When exceeded the boefje reports a timeout.",
+      "default": 600,
+      "minimum": 1
     }
   }
 }

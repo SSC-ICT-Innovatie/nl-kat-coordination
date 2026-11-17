@@ -26,6 +26,13 @@
       "minimum": 60,
       "maximum": 3600,
       "description": "Maximum scan duration in seconds. Default: 600 (10 minutes)"
+    },
+    "TIMEOUT": {
+      "title": "TIMEOUT",
+      "type": "integer",
+      "minimum": 1,
+      "default": 660,
+      "description": "Hard wall-clock budget in seconds for the whole nikto run; when exceeded the process is killed and the boefje reports a timeout. Defaults to MAX_TIME + 60 so it always outlives nikto's own -maxtime."
     }
   },
   "required": []

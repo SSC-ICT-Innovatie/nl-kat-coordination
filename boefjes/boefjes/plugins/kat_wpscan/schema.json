@@ -7,6 +7,13 @@
       "maxLength": 128,
       "type": "string",
       "description": "An optional WordPress Vulnerability Database API token to retrieve WordPress vulnerability data in real time. See https://wpscan.com/api and https://github.com/wpscanteam/wpscan/wiki/WPScan-User-Documentation#optional-wordpress-vulnerability-database-api for more information."
+    },
+    "TIMEOUT": {
+      "title": "TIMEOUT",
+      "type": "integer",
+      "minimum": 1,
+      "default": 1800,
+      "description": "Maximum time in seconds the wpscan may run. Defaults to 1800. When exceeded the boefje reports a timeout."
     }
   },
   "secret": [

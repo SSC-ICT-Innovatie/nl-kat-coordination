@@ -1,0 +1,27 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "USERAGENT": {
+      "title": "USERAGENT",
+      "type": "string",
+      "default": "OpenKAT",
+      "maxLength": 1024,
+      "description": "Optional HTTP user-agent."
+    },
+    "CONNECT_TIMEOUT": {
+      "title": "CONNECT_TIMEOUT",
+      "minimum": 1,
+      "maximum": 60,
+      "type": "integer",
+      "description": "Timeout in seconds for establishing a connection to the target. Defaults to 10."
+    },
+    "READ_TIMEOUT": {
+      "title": "READ_TIMEOUT",
+      "minimum": 1,
+      "maximum": 300,
+      "type": "integer",
+      "description": "Timeout in seconds between bytes received from the target. Defaults to 30."
+    }
+  }
+}

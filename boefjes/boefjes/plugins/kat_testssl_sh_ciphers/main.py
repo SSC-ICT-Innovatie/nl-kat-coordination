@@ -93,7 +93,15 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         env["OPENSSL_TIMEOUT"] = str(timeout)
         env["CONNECT_TIMEOUT"] = str(timeout)
 
-        output = subprocess.run(cmd, capture_output=True, env=env)
+        # The scan-level wall-clock budget is separate from the per-connection
+        # TIMEOUT above: a full testssl.sh scan legitimately takes longer than
+        # a single connection. Can be overridden through the plugin settings,
+        # see schema.json.
+        scan_timeout = int(os.getenv("SCAN_TIMEOUT", "600"))
+        try:
+            output = subprocess.run(cmd, capture_output=True, env=env, timeout=scan_timeout)
+        except subprocess.TimeoutExpired:
+            return [({"error/timeout"}, f"testssl.sh timed out for {target} after {scan_timeout} seconds")]
 
         # A non-zero exit is not automatically a discard: testssl can produce a
         # useful JSON report for a partially completed scan. Only fail when no

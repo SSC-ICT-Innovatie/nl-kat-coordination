@@ -18,7 +18,7 @@ def _meta(oci_args=None) -> dict:
 
 
 def _fake_run(returncode: int, stdout: bytes = b"", stderr: bytes = b""):
-    def fake_run(cmd, capture_output):
+    def fake_run(cmd, capture_output, timeout=None):
         return subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr=stderr)
 
     return fake_run

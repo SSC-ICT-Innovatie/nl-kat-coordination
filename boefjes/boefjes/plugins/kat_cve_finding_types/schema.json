@@ -8,6 +8,20 @@
       "type": "string",
       "description": "URL of the CVE API, defaults to https://cve.openkat.dev/v1",
       "default": "https://cve.openkat.dev/v1"
+    },
+    "CONNECT_TIMEOUT": {
+      "title": "CONNECT_TIMEOUT",
+      "minimum": 1,
+      "maximum": 60,
+      "type": "integer",
+      "description": "Timeout in seconds for establishing a connection to the CVE API. Defaults to 10."
+    },
+    "READ_TIMEOUT": {
+      "title": "READ_TIMEOUT",
+      "minimum": 1,
+      "maximum": 300,
+      "type": "integer",
+      "description": "Timeout in seconds between bytes received from the CVE API. Defaults to 30."
     }
   }
 }

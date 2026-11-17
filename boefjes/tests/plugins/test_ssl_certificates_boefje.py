@@ -29,7 +29,7 @@ def _meta(ip: str, port: int = 443, scheme: str = "https") -> dict:
 
 
 def _fake_run(returncode: int, stdout: bytes = b"", stderr: bytes = b""):
-    def fake_run(cmd, capture_output):
+    def fake_run(cmd, capture_output, timeout=None):
         return subprocess.CompletedProcess(cmd, returncode, stdout=stdout, stderr=stderr)
 
     return fake_run
@@ -38,7 +38,7 @@ def _fake_run(returncode: int, stdout: bytes = b"", stderr: bytes = b""):
 def test_ipv6_address_wrapped_in_brackets(monkeypatch):
     captured = {}
 
-    def fake_run(cmd, capture_output):
+    def fake_run(cmd, capture_output, timeout=None):
         captured["cmd"] = cmd
         return subprocess.CompletedProcess(cmd, 0, stdout=b"cert output", stderr=b"")
 
@@ -54,7 +54,7 @@ def test_ipv6_address_wrapped_in_brackets(monkeypatch):
 def test_ipv4_address_not_wrapped(monkeypatch):
     captured = {}
 
-    def fake_run(cmd, capture_output):
+    def fake_run(cmd, capture_output, timeout=None):
         captured["cmd"] = cmd
         return subprocess.CompletedProcess(cmd, 0, stdout=b"cert output", stderr=b"")
 
@@ -102,3 +102,34 @@ def test_non_tls_scheme_deschedules():
     output = main.run(_meta("192.0.2.1", scheme="http"))
 
     assert output == [({"openkat/deschedule"}, "Skipping check due to non-TLS scheme")]
+
+
+def test_timeout_reports_timeout_mimetype(monkeypatch):
+    """A black-holed connection is a timeout, not a hard failure: the boefje
+    reports error/timeout so the task ends up in the TIMEOUT state."""
+
+    def slow_run(cmd, capture_output, timeout=None):
+        raise subprocess.TimeoutExpired(cmd, timeout)
+
+    monkeypatch.setattr(main.subprocess, "run", slow_run)
+
+    mime_types, message = main.run(_meta("192.0.2.1"))[0]
+
+    assert mime_types == {"error/timeout"}
+    assert "timed out for example.com" in message
+
+
+def test_timeout_setting_reaches_subprocess(monkeypatch):
+    monkeypatch.setenv("TIMEOUT", "77")
+
+    captured = {}
+
+    def fake_run(cmd, capture_output, timeout=None):
+        captured["timeout"] = timeout
+        return subprocess.CompletedProcess(cmd, 0, stdout=b"cert output", stderr=b"")
+
+    monkeypatch.setattr(main.subprocess, "run", fake_run)
+
+    main.run(_meta("192.0.2.1"))
+
+    assert captured["timeout"] == 77
