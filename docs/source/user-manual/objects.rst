@@ -22,6 +22,24 @@ The search functionality can also be used to search for specific objects, such a
 
 More information on objects is provided by clicking on the object. This will give an overview page with all information for the specific object. The object details page is further described below.
 
+Adding a subnet
+---------------
+
+Subnets are added through a dedicated two-step form. On the Add object page, select *IPV4NetBlock* or
+*IPV6NetBlock*; both open the same form, and the address family follows from the CIDR you enter.
+
+In the first step, enter the subnet in CIDR notation (for example ``192.168.5.0/24``), a network, and an optional name.
+An address with host bits set, such as ``192.168.1.5/24``, is automatically normalized to its subnet (``192.168.1.0/24``).
+The second step shows the computed range: the start IP, the end IP, and the number of addresses that will be added.
+If the range is larger than a /22 (IPv4) or /118 (IPv6), a notice explains that nmap will skip it by default.
+
+On this page you can also set the clearance level directly, up to your own maximum. Submitting adds the network,
+the start IP and the netblock in one go. Adding a subnet requires that you have accepted indemnification for
+your organization; without it the form is disabled. See :doc:`basic-concepts/scan-levels-and-indemnification`.
+
+.. note:: Ranges larger than a /22 (IPv4) or /118 (IPv6) are skipped by the nmap boefjes by default. To have such
+   a range scanned, add smaller blocks instead.
+
 
 Object details
 --------------

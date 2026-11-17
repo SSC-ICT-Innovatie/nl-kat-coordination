@@ -79,7 +79,9 @@ class TLSReport(Report):
                     suite.setdefault("key_exchange_bits", suite.get("key_size"))
 
                     for finding in findings:
-                        if finding.description and suite["cipher_suite_name"] in finding.description:
+                        # Newer findings store cipher evidence in `proof`, older ones in `description`.
+                        evidence = finding.proof or finding.description
+                        if evidence and suite["cipher_suite_name"] in evidence:
                             suites_with_findings.append(suite["cipher_suite_name"])
 
             results[service] = {

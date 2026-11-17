@@ -15,6 +15,7 @@ from rocky.views.health import GlobalHealthChecks, GlobalHealthView, Health, Hea
 from rocky.views.indemnification_add import IndemnificationAddView
 from rocky.views.landing_page import LandingPageView
 from rocky.views.ooi_add import OOIAddTypeSelectView, OOIAddView
+from rocky.views.ooi_add_subnet import SubnetAddView
 from rocky.views.ooi_delete import OOIDeleteView
 from rocky.views.ooi_detail import OOIDetailView
 from rocky.views.ooi_detail_related_object import OOIRelatedObjectAddView
@@ -124,6 +125,7 @@ urlpatterns += i18n_patterns(
     path("<organization_code>/objects/add/", OOIAddTypeSelectView.as_view(), name="ooi_add_type_select"),
     path("<organization_code>/objects/add-related/", OOIRelatedObjectAddView.as_view(), name="ooi_add_related"),
     path("<organization_code>/objects/add/<ooi_type>/", OOIAddView.as_view(), name="ooi_add"),
+    path("<organization_code>/objects/add-subnet/", SubnetAddView.as_view(), name="ooi_add_subnet"),
     path("<organization_code>/objects/edit/", OOIEditView.as_view(), name="ooi_edit"),
     path("<organization_code>/objects/delete/", OOIDeleteView.as_view(), name="ooi_delete"),
     path("<organization_code>/objects/detail/", OOIDetailView.as_view(), name="ooi_detail"),

@@ -9,7 +9,7 @@ from katalogus.client import Boefje, KATalogusError
 from reports.report_types.helpers import get_report_types_for_ooi
 from tools.forms.ooi import PossibleBoefjesFilterForm
 from tools.forms.scheduler import OOIDetailTaskFilterForm
-from tools.ooi_helpers import format_display
+from tools.ooi_helpers import finding_display_proof, format_display, is_legacy_tls_cipher_finding, is_tls_cipher_finding
 
 from octopoes.models import Reference
 from octopoes.models.ooi.question import Question
@@ -137,7 +137,18 @@ class OOIDetailView(BaseOOIDetailView, OOIRelatedObjectManager, OOIFindingManage
             context["inference_origin_params"] = None
 
         # TODO: generic solution to render ooi fields properly: https://github.com/minvws/nl-kat-coordination/issues/145
-        context["object_details"] = format_display(self.get_ooi_properties(self.ooi), ignore=["json_schema"])
+
+        object_properties = self.get_ooi_properties(self.ooi)
+        if is_tls_cipher_finding(self.ooi):
+            if is_legacy_tls_cipher_finding(self.ooi):
+                # Historical findings stored their evidence in Description.
+                object_properties.pop("description", None)
+            # Also normalize evidence already stored in Proof by earlier classifiers.
+            # This only affects display; stored data and finding severity stay intact.
+            if proof := finding_display_proof(self.ooi):
+                object_properties["proof"] = proof
+
+        context["object_details"] = format_display(object_properties, ignore=["json_schema"])
         context["ooi_types"] = self.get_ooi_types_input_values(self.ooi)
 
         context["is_question"] = isinstance(self.ooi, Question)
