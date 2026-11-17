@@ -10,8 +10,8 @@ httpx==0.28.1
 idna==3.15
 jsonschema==4.24.0
 jsonschema-specifications==2025.4.1
-pydantic==2.11.7
-pydantic_core==2.33.2
+pydantic==2.14.3
+pydantic_core>=2.33.2
 python-dateutil==2.9.0.post0
 pytz==2025.2
 referencing==0.36.2
