@@ -39,9 +39,11 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         response = requests.request(request_verb, endpoint_uri, **kwargs)  # noqa: S113
     except requests.exceptions.RequestException as exc:
         # Deliberately narrow: only a genuine timeout (including the wrapped
-        # body-read variant) is error/timeout; other failures propagate.
+        # body-read variant) is error/timeout; other failures propagate. The
+        # URL is deliberately omitted: endpoints may carry tokens (see
+        # kat_external_db, which omits it for the same reason).
         if is_request_timeout(exc):
-            return [({"error/timeout"}, f"Export to {endpoint_uri} timed out: {type(exc).__name__}")]
+            return [({"error/timeout"}, "Export to the external HTTP API timed out")]
         raise
     response.raise_for_status()
 

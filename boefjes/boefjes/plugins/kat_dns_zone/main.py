@@ -37,10 +37,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 def get_parent_zone_soa(name: Name) -> Answer:
     # An explicit resolver (instead of the module-level default) so the
     # nameserver and timeouts are configurable like in the other DNS boefjes.
+    # The system resolver (/etc/resolv.conf) is kept as-is unless REMOTE_NS
+    # is configured: installs behind an internal resolver or with restricted
+    # DNS egress must keep working (per review M3).
     resolver = dns.resolver.Resolver()
     # https://dnspython.readthedocs.io/en/stable/_modules/dns/edns.html
     resolver.use_edns(options=[EDEOption(15)])
-    resolver.nameservers = [getenv("REMOTE_NS", "1.1.1.1")]
+    if remote_ns := getenv("REMOTE_NS"):
+        resolver.nameservers = [remote_ns]
     # Can be overridden through the plugin settings, see schema.json.
     resolver.timeout = float(getenv("DNS_TIMEOUT", "5"))
     resolver.lifetime = float(getenv("DNS_LIFETIME", "30"))

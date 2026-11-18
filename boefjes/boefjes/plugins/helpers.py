@@ -69,17 +69,22 @@ class TimeoutAdapter(requests.adapters.HTTPAdapter):
 
 
 def _is_wrapped_timeout(exc: Exception) -> bool:
-    """True if the exception chain bottoms out in a timeout (urllib3 or socket)."""
+    """True if the exception chain bottoms out in a timeout (urllib3 or socket).
+
+    Only the explicit urllib3/socket timeout classes are recognized (not a
+    name-substring heuristic), and an exception raised with ``raise ... from
+    None`` ends the walk: __suppress_context__ means the author declared the
+    context irrelevant.
+    """
     seen = set()
-    current = exc.__cause__ or exc.__context__
+    current = exc.__cause__ or (None if exc.__suppress_context__ else exc.__context__)
     while current is not None and id(current) not in seen:
         if isinstance(current, TimeoutError | socket.timeout):
             return True
-        name = type(current).__name__
-        if "Timeout" in name or name == "ReadTimeoutError":
+        if type(current).__name__ in ("ReadTimeoutError", "ConnectTimeoutError"):
             return True
         seen.add(id(current))
-        current = current.__cause__ or current.__context__
+        current = current.__cause__ or (None if current.__suppress_context__ else current.__context__)
     return False
 
 

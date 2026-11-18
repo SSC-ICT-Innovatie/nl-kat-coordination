@@ -7,7 +7,7 @@
       "type": "integer",
       "minimum": 1,
       "default": 30,
-      "description": "Maximum time in seconds each SSH connection attempt may take. Defaults to 30. A timed-out attempt simply does not count as a successful key."
+      "description": "Maximum time in seconds each SSH connection attempt may take. Defaults to 30. A timed-out attempt is inconclusive and reruns as a task timeout when every attempt times out."
     }
   }
 }

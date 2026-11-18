@@ -13,54 +13,74 @@
       "minimum": 1,
       "maximum": 60,
       "type": "integer",
-      "description": "Timeout in seconds for establishing a connection to LeakIX. Defaults to 10."
+      "description": "Timeout in seconds for establishing a connection to LeakIX. Defaults to 10.",
+      "default": 10
     },
     "READ_TIMEOUT": {
       "title": "READ_TIMEOUT",
       "minimum": 1,
       "maximum": 300,
       "type": "integer",
-      "description": "Timeout in seconds between bytes received from LeakIX. Defaults to 30."
+      "description": "Timeout in seconds between bytes received from LeakIX. Defaults to 30.",
+      "default": 30
     },
     "LEAKIX_SEARCH_MODE": {
       "title": "LEAKIX_SEARCH_MODE",
       "type": "string",
-      "enum": ["strict", "permissive"],
+      "enum": [
+        "strict",
+        "permissive"
+      ],
       "default": "strict",
       "description": "Search mode: 'strict' (default) returns only exact matches for the scanned asset. 'permissive' returns all results from the netblock/AS (may include thousands of unrelated assets)."
     },
     "LEAKIX_EXTRACT_ASN": {
       "title": "LEAKIX_EXTRACT_ASN",
       "type": "string",
-      "enum": ["enabled", "disabled"],
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
       "default": "enabled",
       "description": "Extract the autonomous system (AS number and organization) reported by LeakIX."
     },
     "LEAKIX_EXTRACT_CERTIFICATES": {
       "title": "LEAKIX_EXTRACT_CERTIFICATES",
       "type": "string",
-      "enum": ["enabled", "disabled"],
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
       "default": "enabled",
       "description": "Extract TLS certificates (X509Certificate) and their SAN hostnames from LeakIX events."
     },
     "LEAKIX_EXTRACT_SOFTWARE": {
       "title": "LEAKIX_EXTRACT_SOFTWARE",
       "type": "string",
-      "enum": ["enabled", "disabled"],
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
       "default": "enabled",
       "description": "Extract detected software (service software, modules, HTTP Server and X-Powered-By headers, operating system) from LeakIX events."
     },
     "LEAKIX_EXTRACT_SSH": {
       "title": "LEAKIX_EXTRACT_SSH",
       "type": "string",
-      "enum": ["enabled", "disabled"],
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
       "default": "enabled",
       "description": "Extract SSH server software from SSH banners in LeakIX events."
     },
     "LEAKIX_EXTRACT_TLS": {
       "title": "LEAKIX_EXTRACT_TLS",
       "type": "string",
-      "enum": ["enabled", "disabled"],
+      "enum": [
+        "enabled",
+        "disabled"
+      ],
       "default": "enabled",
       "description": "Report findings for outdated TLS/SSL protocol versions (SSLv2/SSLv3/TLS 1.0/TLS 1.1) observed by LeakIX."
     }

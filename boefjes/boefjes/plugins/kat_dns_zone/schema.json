@@ -6,8 +6,7 @@
       "title": "REMOTE_NS",
       "maxLength": 45,
       "type": "string",
-      "description": "The IP address of the DNS resolver you want to use.",
-      "default": "1.1.1.1"
+      "description": "The IP address of the DNS resolver you want to use. When unset, the system resolver (/etc/resolv.conf) is used."
     },
     "DNS_TIMEOUT": {
       "title": "DNS_TIMEOUT",

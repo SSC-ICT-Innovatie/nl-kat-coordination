@@ -31,8 +31,7 @@
       "title": "TIMEOUT",
       "type": "integer",
       "minimum": 1,
-      "default": 660,
-      "description": "Hard wall-clock budget in seconds for the whole nikto run; when exceeded the process is killed and the boefje reports a timeout. Defaults to MAX_TIME + 60 so it always outlives nikto's own -maxtime."
+      "description": "Hard wall-clock budget in seconds for the whole nikto run; when exceeded the process is killed and the boefje reports a timeout. When unset, it is derived as MAX_TIME + 60 so it always outlives nikto's own -maxtime."
     }
   },
   "required": []

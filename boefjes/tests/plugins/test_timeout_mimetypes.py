@@ -53,7 +53,7 @@ class RecordingAdapter(requests.adapters.HTTPAdapter):
 
 
 def test_session_request_passes_timeout_none_to_adapter(mocker):
-    """Documents the requests behavior behind review finding 3: without an
+    """Documents the requests behavior that makes the None-check necessary: without an
     explicit timeout, Session.request() still passes timeout=None to
     adapter.send() — so setdefault() would keep None. This is why the adapter
     must treat None as 'apply mine'."""
@@ -69,7 +69,7 @@ def test_session_request_passes_timeout_none_to_adapter(mocker):
 
 
 def test_timeout_adapter_enforces_timeout_through_real_session(mocker):
-    """Regression (review finding 3): Session.request() always passes an
+    """Session.request() always passes an
     explicit timeout (None by default), so a setdefault-based adapter kept
     None and never enforced anything. The adapter must replace a None."""
     # Call the adapter exactly the way Session.request() does: timeout always
@@ -108,7 +108,7 @@ def test_timeout_adapter_leaves_explicit_timeout_alone(mocker):
 
 
 def test_timeout_adapter_records_timeout_state(mocker):
-    """Regression (review finding 7): the adapter must record whether the last
+    """The adapter must record whether the last
     failure was a genuine timeout, so clients that erase exception types
     (shodan) can still classify correctly."""
     adapter = helpers.TimeoutAdapter(timeout=42)
@@ -170,7 +170,7 @@ def _stalled_body_server(responses: list):
 
 
 def test_timeout_adapter_send_phase_timeout_live():
-    """Integration (review finding 3, round 2): a real session with the mounted
+    """Integration: a real session with the mounted
     adapter must enforce the timeout on the send/connect phase."""
     port, _ = _stalled_body_server([])  # accept nothing
 
@@ -182,7 +182,7 @@ def test_timeout_adapter_send_phase_timeout_live():
 
 
 def test_body_read_timeout_is_recognized_as_timeout_live():
-    """Integration (review finding 1, round 3): headers + partial body, then a
+    """Integration: headers + partial body, then a
     stall. The read timeout fires while consuming the body — after
     HTTPAdapter.send() returned — so the adapter flag stays False, but the
     exception chain must still be recognized as a timeout. This is exactly the
@@ -204,7 +204,7 @@ def test_body_read_timeout_is_recognized_as_timeout_live():
 
 
 def test_is_wrapped_timeout_detects_streamed_read_timeout():
-    """Regression (review finding 6): requests wraps urllib3's ReadTimeoutError
+    """requests wraps urllib3's ReadTimeoutError
     in a plain ConnectionError for streamed body reads."""
     ReadTimeoutError = type("ReadTimeoutError", (Exception,), {})
     wrapped = requests.exceptions.ConnectionError("wrapper")
@@ -307,7 +307,7 @@ def test_security_txt_downloader_request_uses_configured_timeout(mocker, monkeyp
 
 
 def test_security_txt_streamed_read_timeout_is_not_a_connection_error(mocker):
-    """Regression (review finding 6): requests wraps a streamed-body read
+    """requests wraps a streamed-body read
     timeout (urllib3 ReadTimeoutError) in a plain ConnectionError. The
     redirect-following path reads .content from a stream=True response, so the
     handler must classify that wrapped exception as a timeout — while a genuine
@@ -382,7 +382,7 @@ def test_shodan_timeout_returns_timeout_mimetype(mocker):
 
 
 def test_shodan_client_wrapped_timeout_returns_timeout_mimetype(mocker):
-    """Regression (review finding 6, round 1 + finding 7, round 2): the real
+    """The real
     shodan client converts every connection problem into
     shodan.APIError("Unable to connect to Shodan"). The boefje must ask the
     mounted adapter whether a genuine timeout occurred — only then classify
@@ -412,7 +412,7 @@ def test_shodan_client_wrapped_timeout_returns_timeout_mimetype(mocker):
 
 
 def test_shodan_wrapped_connection_error_is_not_a_timeout(mocker):
-    """Regression (review finding 7): APIError('Unable to connect to Shodan')
+    """APIError('Unable to connect to Shodan')
     wraps every network failure. Without a recorded timeout (DNS failure,
     refusal) it must stay a hard failure, not become TIMEOUT."""
     pytest.importorskip("shodan")
@@ -428,7 +428,7 @@ def test_shodan_wrapped_connection_error_is_not_a_timeout(mocker):
 
 
 def test_shodan_body_read_timeout_returns_timeout_mimetype(mocker):
-    """Regression (review finding 1, round 3): a read timeout while consuming
+    """A read timeout while consuming
     the response body happens after HTTPAdapter.send() returned, so the adapter
     flag is False — but the original exception survives in the APIError's
     __context__ and must be recognized."""
@@ -459,7 +459,7 @@ def test_shodan_body_read_timeout_returns_timeout_mimetype(mocker):
 
 
 def test_shodan_body_read_timeout_unwrapped_returns_timeout_mimetype(mocker):
-    """Regression (review finding 1, round 3): the client reads the response
+    """The client reads the response
     body outside its try block, so a body-phase timeout can also surface from
     api.host() as a plain requests exception — it must be classified, not
     fail the task."""
@@ -533,33 +533,37 @@ def test_binaryedge_timeout_returns_timeout_mimetype(mocker):
     assert "1.2.3.4" in message
 
 
-def test_binaryedge_timeout_reaches_client_session(mocker):
-    """Regression (review finding 5): the configured timeout must be applied to
-    the client's own requests session — no global socket.setdefaulttimeout()."""
+def test_binaryedge_timeout_reaches_client_request(mocker):
+    """The configured timeout must reach the HTTP request pybinaryedge makes,
+    without a global socket.setdefaulttimeout(). Runs against the real client."""
     pytest.importorskip("pybinaryedge")
     main = _main("kat_binaryedge")
-    mounted = {}
-
-    class FakeSession:
-        def mount(self, prefix, adapter):
-            mounted[prefix] = adapter
-
-    be = mocker.MagicMock()
-    be.requests = FakeSession()
-    mocker.patch.object(main, "BinaryEdge", return_value=be)
-    mocker.patch.dict("os.environ", {"TIMEOUT": "55"})
-
-    be.host.side_effect = requests.exceptions.ReadTimeout("timed out")
+    get = mocker.patch.object(main.requests, "get", side_effect=requests.exceptions.ReadTimeout("timed out"))
+    mocker.patch.dict("os.environ", {"TIMEOUT": "55", "BINARYEDGE_API": "dummy"})
 
     mime_types, _ = main.run({"arguments": {"input": {"object_type": "IPAddressV4", "address": "1.2.3.4"}}})[0]
 
     assert mime_types == {"error/timeout"}
-    assert set(mounted) == {"http://", "https://"}
-    assert mounted["https://"]._timeout == 55
+    assert get.call_args.kwargs["timeout"] == 55
+
+
+def test_binaryedge_success_path_with_real_client(mocker):
+    """A normal scan must not crash before the request (pybinaryedge has no session)."""
+    pytest.importorskip("pybinaryedge")
+    main = _main("kat_binaryedge")
+    response = mocker.Mock(status_code=200)
+    response.json.return_value = {"events": [{"results": [{"port": 443}]}]}
+    mocker.patch.object(main.requests, "get", return_value=response)
+    mocker.patch.dict("os.environ", {"BINARYEDGE_API": "dummy"})
+
+    mime_types, raw = main.run({"arguments": {"input": {"object_type": "IPAddressV4", "address": "1.2.3.4"}}})[0]
+
+    assert mime_types == set()
+    assert json.loads(raw) == {"results": [{"port": 443}]}
 
 
 def test_shodan_no_global_socket_timeout():
-    """Regression (review finding 5): no boefje may touch the process-wide
+    """No boefje may touch the process-wide
     socket default anymore."""
     for name in ("kat_shodan", "kat_binaryedge"):
         source = (Path(helpers.__file__).parent / name / "main.py").read_text()
@@ -589,7 +593,7 @@ def test_dns_zone_timeout_returns_timeout_mimetype(mocker):
 
 
 def test_dns_zone_resolver_settings_applied(mocker):
-    """Regression (review finding 9): dns_zone must use the configurable
+    """dns_zone must use the configurable
     resolver (REMOTE_NS + DNS_TIMEOUT/DNS_LIFETIME) instead of the system
     default. It used the module-level resolver, ignoring both."""
     main = _main("kat_dns_zone")
@@ -614,6 +618,36 @@ def test_dns_zone_resolver_settings_applied(mocker):
     assert captured["lifetime"] == 45.0
 
 
+def test_dns_zone_keeps_system_resolver_when_remote_ns_unset(mocker, monkeypatch):
+    """Without REMOTE_NS the resolver keeps /etc/resolv.conf's nameservers:
+    installs behind an internal resolver or with restricted DNS egress must
+    keep working (per review M3)."""
+    main = _main("kat_dns_zone")
+    seen = {}
+
+    class TrackingResolver(main.dns.resolver.Resolver):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            seen["after_init"] = list(self.nameservers)
+
+        nameservers = main.dns.resolver.Resolver.nameservers  # plain attribute, no property games
+
+    def fake_resolve(self, name, record_type, **kwargs):
+        seen["at_resolve"] = list(self.nameservers)
+        response = mocker.Mock()
+        response.answer = [mocker.Mock()]
+        return mocker.MagicMock(nameserver="10.0.0.53", response=response, rrset=response.answer[0])
+
+    monkeypatch.setenv("REMOTE_NS", "")  # explicitly unset
+    mocker.patch.object(main.dns.resolver, "Resolver", TrackingResolver)
+    mocker.patch.object(TrackingResolver, "resolve", fake_resolve)
+
+    mime_types, _ = main.run({"arguments": {"input": {"hostname": {"name": "example.com"}}}})[0]
+
+    assert mime_types == set()
+    assert seen["at_resolve"] == seen["after_init"]  # the boefje left the system resolver untouched
+
+
 def test_dns_all_timeouts_returns_timeout_mimetype(mocker):
     """When every query times out the boefje reports error/timeout instead of raising."""
     main = _main("kat_dns")
@@ -628,7 +662,7 @@ def test_dns_all_timeouts_returns_timeout_mimetype(mocker):
 
 
 def test_dns_partial_timeout_is_not_a_scan_timeout(mocker):
-    """Regression (review finding 7, row 2): a definitive answer for some queries
+    """A definitive answer for some queries
     plus timeouts elsewhere must not be reported as a scan-wide timeout, nor
     discard the successful answers."""
     main = _main("kat_dns")
@@ -647,7 +681,7 @@ def test_dns_partial_timeout_is_not_a_scan_timeout(mocker):
 
 
 def test_dns_definitive_noanswer_with_timeout_lookups_is_not_a_timeout(mocker):
-    """Regression (review finding 7, row 1): the duplicated dmarc condition used to
+    """The duplicated dmarc condition used to
     report error/timeout even though DMARC answered definitively."""
     main = _main("kat_dns")
 
@@ -666,7 +700,7 @@ def test_dns_definitive_noanswer_with_timeout_lookups_is_not_a_timeout(mocker):
 
 
 def test_dns_resolver_timeout_settings_applied(mocker):
-    """Regression (review finding 9): the configurable DNS timeouts must reach
+    """The configurable DNS timeouts must reach
     dnspython's resolver."""
     main = _main("kat_dns")
     captured = {}
@@ -687,7 +721,7 @@ def test_dns_resolver_timeout_settings_applied(mocker):
 
 
 def test_dns_soa_metadata_timeout_does_not_gate_the_scan(mocker):
-    """Regression (review finding 2, round 3): a parent-zone SOA timeout is
+    """A parent-zone SOA timeout is
     metadata, not scan subject — it must not abort the scan while the record
     lookups would succeed."""
     main = _main("kat_dns")
@@ -725,7 +759,7 @@ def test_dns_soa_metadata_timeout_does_not_gate_the_scan(mocker):
 
 
 def test_dns_soa_metadata_success_does_not_mask_record_timeouts(mocker):
-    """Regression (review finding 2.4 row 2, round 4): a successful parent-zone
+    """A successful parent-zone
     SOA (metadata) must not prevent the scan-wide timeout when every
     scan-subject record query timed out."""
     main = _main("kat_dns")
@@ -747,7 +781,7 @@ def test_dns_soa_metadata_success_does_not_mask_record_timeouts(mocker):
 
 
 def test_dns_foreign_owner_soa_is_not_definitive_evidence(mocker):
-    """Regression (review finding 2.4 row 3, round 4): a foreign-owner SOA
+    """A foreign-owner SOA
     (CNAME follow) is not a definitive answer for this hostname and must not
     stop the scan-wide timeout."""
     main = _main("kat_dns")
@@ -774,7 +808,7 @@ def test_dns_foreign_owner_soa_is_not_definitive_evidence(mocker):
 
 
 def test_dns_mixed_noanswer_and_timeout_is_not_a_timeout(mocker):
-    """Regression (review finding 2, round 2): a definitive NoAnswer for one
+    """A definitive NoAnswer for one
     record plus a timeout for another must not produce error/timeout — a
     definitive negative is conclusive evidence."""
     main = _main("kat_dns")
@@ -807,7 +841,7 @@ def test_dns_mixed_noanswer_and_timeout_is_not_a_timeout(mocker):
 
 
 def test_dns_schema_uses_integer_seconds():
-    """Regression (review finding 5): the katalogus UI only supports integer
+    """The katalogus UI only supports integer
     settings; DNS timeout fields must be integers, not numbers."""
     plugins_dir = Path(helpers.__file__).parent
     for name in ("kat_dns", "kat_rdns", "kat_dns_zone"):
@@ -819,7 +853,7 @@ def test_dns_schema_uses_integer_seconds():
 
 
 def test_api_client_schemas_keep_credentials():
-    """Regression (review findings 1 and 4): adding a TIMEOUT field must not
+    """Adding a TIMEOUT field must not
     drop the credential properties, required lists, or secret declarations."""
     plugins_dir = Path(helpers.__file__).parent
     expectations = {
@@ -863,7 +897,7 @@ def test_subfinder_timeout_returns_timeout_mimetype(mocker):
 
 
 def test_cve_2023_34039_all_timeouts_is_not_a_false_negative(mocker, tmp_path):
-    """Regression (review finding 4): when every SSH attempt times out, the
+    """When every SSH attempt times out, the
     boefje must not claim 'No known keys allowed' — that would be a definitive
     negative no key ever earned."""
     main = _main("kat_cve_2023_34039")
@@ -887,7 +921,7 @@ def test_cve_2023_34039_all_timeouts_is_not_a_false_negative(mocker, tmp_path):
 
 
 def test_cve_2023_34039_ssh_exit_255_connection_timeout_is_inconclusive(mocker, tmp_path):
-    """Regression (review finding 3, round 3): ssh itself times out and exits
+    """ssh itself times out and exits
     255 with 'Connection timed out' on stderr — long before the Python
     subprocess timeout fires. That is inconclusive, not a rejection."""
     main = _main("kat_cve_2023_34039")
@@ -943,7 +977,7 @@ def test_cve_2023_34039_ssh_permission_denied_is_a_definitive_rejection(mocker, 
 
 
 def test_cve_2023_34039_missing_ssh_executable_is_error_boefje(mocker, tmp_path):
-    """Regression (review finding 2.3, round 4): a missing ssh executable is a
+    """A missing ssh executable is a
     boefje/config problem — not a scan result and not a timeout."""
     main = _main("kat_cve_2023_34039")
 
@@ -964,10 +998,11 @@ def test_cve_2023_34039_missing_ssh_executable_is_error_boefje(mocker, tmp_path)
 
 
 def test_cve_2023_34039_connection_refused_is_inconclusive_not_timeout(mocker, tmp_path):
-    """Regression (review finding 2.3, round 4): 'Connection refused' is a
-    network failure (inconclusive), not a timeout — but it still prevents the
-    definitive negative, so error/timeout is the pragmatic carrier. It is
-    distinguished from ssh-tool failure by message, not mimetype."""
+    """'Connection refused' is a network
+    failure (inconclusive): the key was never tested, so it prevents the
+    definitive negative — but it is not a timeout and must not claim the
+    rerunnable TIMEOUT state (per review M2: refused connections are answered
+    decisively, unlike a blackhole)."""
     main = _main("kat_cve_2023_34039")
 
     (tmp_path / "k1").touch()
@@ -988,8 +1023,8 @@ def test_cve_2023_34039_connection_refused_is_inconclusive_not_timeout(mocker, t
         }
     )[0]
 
-    assert mime_types == {"error/timeout"}
-    assert "inconclusive" in message
+    assert mime_types == {"error/boefje"}
+    assert "failed to connect" in message
 
 
 def test_cve_2023_34039_mixed_timeout_and_rejection_still_negative(mocker, tmp_path):
@@ -1030,9 +1065,11 @@ def test_service_banner_connect_timeout_returns_timeout_mimetype(mocker):
     assert "1.2.3.4:22" in message
 
 
-def test_service_banner_read_timeout_returns_timeout_mimetype(mocker):
-    """Regression (review finding 2): a timeout during recv() used to be swallowed
-    by get_banner's generic handler and misreported as error/boefje."""
+def test_service_banner_read_timeout_is_not_a_timeout(mocker):
+    """A timeout during recv() is NOT a task timeout: many services (HTTP,
+    TLS) accept the connection and wait for the client to speak first, so a
+    server that sends no banner is normal. Like on base, it is error/boefje —
+    reporting TIMEOUT would rerun every silent service forever."""
     main = _main("kat_service_banner")
 
     sock = mocker.Mock()
@@ -1042,8 +1079,8 @@ def test_service_banner_read_timeout_returns_timeout_mimetype(mocker):
 
     mime_types, message = main.run({"arguments": {"input": {"port": 22, "address": {"address": "1.2.3.4"}}}})[0]
 
-    assert mime_types == {"error/timeout"}
-    assert "1.2.3.4:22" in message
+    assert mime_types == {"error/boefje"}
+    assert "no banner" in message
     sock.close.assert_called_once()
 
 
@@ -1075,7 +1112,11 @@ def test_service_banner_connection_refused_is_not_a_timeout(mocker):
 SUBPROCESS_TIMEOUT_BOEFJES = {
     "kat_ssl_scan": {
         "arguments": {
-            "input": {"ip_port": {"address": {"address": "1.2.3.4"}, "port": 443}, "service": {"name": "https"}}
+            "input": {
+                "object_type": "IPService",
+                "ip_port": {"address": {"address": "1.2.3.4"}, "port": 443},
+                "service": {"name": "https"},
+            }
         }
     },
     "kat_masscan": {"arguments": {"input": {"start_ip": {"address": "1.2.3.4"}, "mask": 24}}},
@@ -1155,15 +1196,17 @@ def test_every_boefje_schema_is_valid_json_schema():
 
 
 def test_timeout_settings_reject_non_positive_values():
-    """The UI sends settings as integers; 0 or negative timeouts make no sense."""
+    """A timeout strictly below its schema minimum must be rejected. Note 0 is
+    deliberately still valid where minimum is 0 (e.g. kat_dns_version):
+    rejecting it would break orgs that stored TIMEOUT=0 before the minimum
+    existed (per review L4)."""
     for name, schema in _schemas():
         for key, property_schema in schema.get("properties", {}).items():
             if "TIMEOUT" not in key or "minimum" not in property_schema:
                 continue
 
-            for value in [0, property_schema["minimum"] - 1]:
-                with pytest.raises(jsonschema.ValidationError):
-                    jsonschema.validate({key: value}, schema)
+            with pytest.raises(jsonschema.ValidationError):
+                jsonschema.validate({key: property_schema["minimum"] - 1}, schema)
 
 
 def _wrapped_body_read_timeout() -> requests.exceptions.ConnectionError:
@@ -1196,7 +1239,7 @@ WRAPPED_BODY_TIMEOUT_BOEFJES = {
 
 @pytest.mark.parametrize("boefje,meta_and_target", sorted(WRAPPED_BODY_TIMEOUT_BOEFJES.items()), ids=str)
 def test_requests_boefje_wrapped_body_read_timeout_returns_timeout_mimetype(mocker, boefje, meta_and_target):
-    """Regression (review finding 2.1, round 4): a read timeout while consuming
+    """A read timeout while consuming
     the response body arrives as ConnectionError-wrapping-ReadTimeoutError and
     must be classified as error/timeout by every requests-based boefje."""
     boefje_meta, target = meta_and_target
@@ -1256,7 +1299,7 @@ def test_dns_version_timeout_returns_timeout_mimetype(mocker):
 
 
 def test_testssl_sh_ciphers_scan_timeout_setting_reaches_subprocess(mocker):
-    """Regression (review finding 2.2, round 4): the whole-scan budget is a
+    """The whole-scan budget is a
     separate setting (SCAN_TIMEOUT, default 600) and must reach
     subprocess.run — the per-connection TIMEOUT keeps its original meaning."""
     main = _main("kat_testssl_sh_ciphers")
@@ -1300,7 +1343,7 @@ def test_testssl_sh_ciphers_scan_timeout_setting_reaches_subprocess(mocker):
 
 
 def test_all_timeout_boefjes_are_covered_by_the_suite():
-    """Regression (review finding 4, round 4): every boefje that reports
+    """Every boefje that reports
     error/timeout must appear in this test module's coverage lists, so future
     boefjes cannot silently miss the functionality. DICOM is excluded by name
     (documented known limitation)."""

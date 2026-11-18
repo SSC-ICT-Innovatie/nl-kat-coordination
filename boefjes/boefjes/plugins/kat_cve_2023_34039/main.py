@@ -30,10 +30,14 @@ SSH_TIMEOUT = 30
 
 
 # ssh exit code 255 covers everything from "connection timed out" to "permission
-# denied"; only the network-failure wording below is inconclusive. Match against
-# lowercase stderr.
+# denied". Match against lowercase stderr:
+# - "timed out" wording is a TIMEOUT (rerunnable task state);
+# - other network-failure wording (refused, unreachable, ...) is INCONCLUSIVE:
+#   the key was never tested, so it is error/boefje — not a rejection, not a
+#   timeout (per review M2: only genuine timeouts get the TIMEOUT state);
+# - anything else on exit 255 ("Permission denied") is a definitive rejection.
+CONNECTION_TIMEOUT_MARKERS = ("connection timed out", "timed out")
 CONNECTION_FAILURE_MARKERS = (
-    "connection timed out",
     "connection refused",
     "network is unreachable",
     "network unreachable",
@@ -43,13 +47,18 @@ CONNECTION_FAILURE_MARKERS = (
     "broken pipe",
     "connection closed",
     "connection lost",
-    "timed out",
 )
 
 
+def _connection_timed_out(stderr: str) -> bool:
+    lowered = stderr.lower()
+    return any(marker in lowered for marker in CONNECTION_TIMEOUT_MARKERS)
+
+
 def _connection_failed(stderr: str) -> bool:
-    """True if ssh's stderr reports a network failure rather than an
-    authentication rejection. Such a failure says nothing about the key."""
+    """True if ssh's stderr reports a network failure other than a timeout.
+    Such a failure says nothing about the key, but it is not a timeout
+    either: the connection was answered (or decisively not routable)."""
     lowered = stderr.lower()
     return any(marker in lowered for marker in CONNECTION_FAILURE_MARKERS)
 
@@ -64,6 +73,7 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
     port = ip_port["port"]
 
     inconclusive_attempts = 0
+    timed_out_attempts = 0
     for key_file in sorted(p for p in KEYS_DIR.rglob("*") if p.is_file()):
         # The keys are committed world-readable (mode 0755) and Docker COPY
         # preserves that mode; OpenSSH refuses a private key with group/world
@@ -98,8 +108,9 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
                     timeout=int(getenv("TIMEOUT", str(SSH_TIMEOUT))),
                 )
             except subprocess.TimeoutExpired:
-                # Inconclusive: the key was never tested.
+                # Inconclusive, and a genuine timeout: rerunnable state.
                 inconclusive_attempts += 1
+                timed_out_attempts += 1
                 continue
             except FileNotFoundError:
                 # The ssh executable itself is missing: a boefje/config problem,
@@ -125,10 +136,15 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
                 ]
 
             stderr_text = result.stderr.decode(errors="replace") if isinstance(result.stderr, bytes) else ""
-            if coutput == 255 and _connection_failed(stderr_text):
-                # ssh reports a network failure (timeout, refused, unreachable,
-                # closed): the key was not tested, so this is not evidence of
-                # either kind.
+            if coutput == 255 and _connection_timed_out(stderr_text):
+                # ssh itself reports the connection timed out: a genuine
+                # timeout, rerunnable state.
+                inconclusive_attempts += 1
+                timed_out_attempts += 1
+            elif coutput == 255 and _connection_failed(stderr_text):
+                # ssh reports a network failure (refused, unreachable,
+                # closed): the key was not tested, so this is not evidence
+                # of either kind — but it is not a timeout either.
                 inconclusive_attempts += 1
             else:
                 # e.g. "Permission denied": ssh reached the host and
@@ -140,12 +156,25 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
                 pass
 
     if inconclusive_attempts:
+        if timed_out_attempts:
+            # At least one attempt genuinely timed out: rerunnable state.
+            return [
+                (
+                    {"error/timeout"},
+                    (
+                        f"Unable to complete testing of all SSH keys: {timed_out_attempts} of {inconclusive_attempts} "
+                        f"attempt(s) to {ip}:{port} timed out, so no definitive result is possible"
+                    ),
+                )
+            ]
+        # Every inconclusive attempt was a decisive network failure
+        # (refused/unreachable/closed): a task failure, not a timeout.
         return [
             (
-                {"error/timeout"},
+                {"error/boefje"},
                 (
                     f"Unable to complete testing of all SSH keys: {inconclusive_attempts} attempt(s) to {ip}:{port} "
-                    "were inconclusive (connection failure or timeout), so no definitive result is possible"
+                    "failed to connect (refused, unreachable or closed), so no definitive result is possible"
                 ),
             )
         ]

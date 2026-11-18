@@ -63,7 +63,7 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     record_types = get_record_types()
 
-    # Two separate ledgers, per review finding 2.4 (round 4):
+    # Two separate ledgers:
     # - `answers` holds records that belong in the raw output (metadata and
     #   directly-owned records); a foreign-owner SOA is resolved but excluded.
     # - `outcomes` tracks the per-type result of every scan-subject query; the
@@ -111,6 +111,13 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         "dns_records": "\n\n".join(answers_formatted),
         "dmarc_response": get_email_security_records(resolver, hostname, "_dmarc"),
         "dkim_response": get_email_security_records(resolver, hostname, "_domainkey"),
+        # Per-type outcome of every scan-subject query: "answer", "noanswer",
+        # "nxdomain" or "timeout". A missing record is only meaningful when
+        # its query actually got an answer: downstream absence checks (SPF,
+        # DMARC, CAA) must not fire off a timeout. The normalizer currently
+        # ignores this key; it is carried in the raw so they can start
+        # consulting it without another raw-format change.
+        "record_outcomes": outcomes,
     }
     # All-or-nothing: only report a scan-wide timeout when nothing at all was
     # resolved definitively (no answer, no NoAnswer, no NXDOMAIN) and every

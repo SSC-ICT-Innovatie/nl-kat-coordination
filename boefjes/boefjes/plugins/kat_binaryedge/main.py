@@ -4,22 +4,37 @@ from os import getenv
 
 import requests
 from pybinaryedge import BinaryEdge
+from pybinaryedge.api import BinaryEdgeException, BinaryEdgeNotFound
 
-from boefjes.plugins.helpers import is_request_timeout, set_session_timeout
+from boefjes.plugins.helpers import is_request_timeout
 
 DEFAULT_TIMEOUT = 30
 
 
+class TimeoutBinaryEdge(BinaryEdge):
+    """pybinaryedge 0.5 calls requests.get() without a timeout and has no session
+    to mount an adapter on, so bound its one request method here."""
+
+    def __init__(self, key: str | None, timeout: int):
+        super().__init__(key)
+        self.timeout = timeout
+
+    def _get(self, url, params=None):
+        headers = {"X-Key": self.key, "User-Agent": self.ua}
+        r = requests.get(self.base_url + url, params=params or {}, headers=headers, timeout=self.timeout)
+        if r.status_code == 200:
+            return r.json()
+        if r.status_code == 404:
+            raise BinaryEdgeNotFound()
+        raise BinaryEdgeException(f"Invalid return code {r.status_code}")
+
+
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
-    be = BinaryEdge(getenv("BINARYEDGE_API"))
+    # Can be overridden through the plugin settings, see schema.json.
+    be = TimeoutBinaryEdge(getenv("BINARYEDGE_API"), int(getenv("TIMEOUT", str(DEFAULT_TIMEOUT))))
     results: dict[str, list] = {"results": []}
 
     input_ = boefje_meta["arguments"]["input"]
-
-    # pybinaryedge does not expose a request timeout; inject one into the
-    # session its client uses. Can be overridden through the plugin settings,
-    # see schema.json.
-    set_session_timeout(be.requests, int(getenv("TIMEOUT", str(DEFAULT_TIMEOUT))))
 
     if input_["object_type"] in ["IPAddressV4", "IPAddressV6"]:
         ip = input_["address"]
@@ -38,12 +53,10 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     elif input_["object_type"] in ["IPV4NetBlock", "IPV6NetBlock"]:
         netblock = input_["mask"]
         dork = f'ip:"{netblock}"'
-
-        # iterate through partial results
-        page_counter = 0
-        total_pages = 1  # set real value after first request
-
         try:
+            page_counter = 0
+            total_pages = 1  # set real value after first request
+
             while page_counter < total_pages:
                 page_counter += 1
                 result = be.host_search(dork, page_counter)

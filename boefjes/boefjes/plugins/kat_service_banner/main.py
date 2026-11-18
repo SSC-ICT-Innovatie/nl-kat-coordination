@@ -22,14 +22,17 @@ def get_banner(sock, bytescount):
     """Tries to get the banner using the supplied socket,
     reading as many bytes as requested.
 
-    A read timeout propagates to the caller so it can be reported as
-    error/timeout; any other read error is returned as error/boefje. The socket
+    A read timeout is NOT a task timeout: many services (HTTP, TLS, and
+    others) accept the connection and wait for the client to speak first,
+    so a server that sends no banner is normal. Like on base, it is
+    reported as error/boefje; only the connect phase (see run) reports
+    error/timeout. Any other read error is error/boefje too. The socket
     is always closed, so the caller never has to clean it up.
     """
     try:
         banner = sock.recv(bytescount)
     except TimeoutError:
-        raise
+        return [({"error/boefje"}, "Unable to get banner. The service sent no banner")]
     except Exception as e:
         return [({"error/boefje"}, f"Unable to get banner. {str(e)}")]
     finally:
@@ -58,5 +61,5 @@ def run(boefje_meta: dict) -> list[tuple[set, str | bytes]]:
 
     try:
         return get_banner(sock, int(getenv("READ_BYTES", str(READ_BYTES))))
-    except TimeoutError:
-        return [({"error/timeout"}, f"Reading the banner from {ip}:{port} timed out after {timeout} seconds")]
+    except TimeoutError:  # pragma: no cover - get_banner handles its own read timeout
+        return [({"error/boefje"}, "Unable to get banner. The service sent no banner")]
