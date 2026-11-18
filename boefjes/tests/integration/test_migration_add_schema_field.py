@@ -112,6 +112,24 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
                 "description": "The IP address of the DNS resolver you want to use.",
                 "default": "1.1.1.1",
             },
+            "DNS_TIMEOUT": {
+                "title": "DNS_TIMEOUT",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 60,
+                "default": 5,
+                "description": "Timeout in whole seconds dnspython waits per query attempt to the nameserver. "
+                "Defaults to 5. When exceeded the boefje reports a timeout.",
+            },
+            "DNS_LIFETIME": {
+                "title": "DNS_LIFETIME",
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 300,
+                "default": 30,
+                "description": "Total time in whole seconds dnspython may spend on one resolution, including "
+                "retries. Defaults to 30. When exceeded the boefje reports a timeout.",
+            },
         },
     }
 
@@ -145,6 +163,14 @@ def test_fail_on_wrong_plugin_ids(migration_f9de6eb7824b):
                 "default": 118,
                 "description": "Minimum variable-length subnet mask for IPv6-ranges. Defaults to 118. Use this value to"
                 " prevent scanning large ranges.",
+            },
+            "TIMEOUT": {
+                "title": "TIMEOUT",
+                "type": "integer",
+                "minimum": 1,
+                "default": 3600,
+                "description": "Maximum time in seconds the nmap scan may run. Defaults to 3600. When exceeded "
+                "the boefje reports a timeout.",
             },
         },
         "required": [],
