@@ -290,6 +290,7 @@ def test_security_txt_downloader_timeout_returns_timeout_mimetype(mocker):
     mime_types, message = main.run(boefje_meta)[0]
 
     assert mime_types == {"error/timeout"}
+    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
@@ -323,6 +324,7 @@ def test_security_txt_streamed_read_timeout_is_not_a_connection_error(mocker):
     redirect.raw._connection = None
 
     def fake_get(uri, **kwargs):
+        # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
         if uri.startswith("https://other.example.com"):
             response = redirect
             # Simulate: response.content raises the wrapped urllib3 timeout.
@@ -338,6 +340,7 @@ def test_security_txt_streamed_read_timeout_is_not_a_connection_error(mocker):
     mime_types, message = main.run({"arguments": {"input": input_website}})[0]
 
     assert mime_types == {"error/timeout"}
+    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
@@ -570,6 +573,19 @@ def test_shodan_no_global_socket_timeout():
     for name in ("kat_shodan", "kat_binaryedge"):
         source = (Path(helpers.__file__).parent / name / "main.py").read_text()
         assert "setdefaulttimeout" not in source, name
+
+
+def test_binaryedge_is_unchanged_from_main():
+    """kat_binaryedge is scheduled for removal in #4500 (maintainer decision);
+    until then this PR must not change it."""
+    import subprocess
+
+    diff = subprocess.run(
+        ["git", "diff", "origin/main", "HEAD", "--", "boefjes/plugins/kat_binaryedge"],
+        capture_output=True,
+        cwd=Path(__file__).resolve().parents[2],
+    )
+    assert diff.stdout == b"", diff.stdout.decode()
 
 
 def test_rdns_timeout_returns_timeout_mimetype(mocker):
@@ -856,10 +872,11 @@ def test_dns_schema_uses_integer_seconds():
 
 def test_api_client_schemas_keep_credentials():
     """Adding a TIMEOUT field must not
-    drop the credential properties, required lists, or secret declarations."""
+    drop the credential properties, required lists, or secret declarations.
+    (kat_binaryedge is excluded: scheduled for removal in #4500, schema
+    stays as on main.)"""
     plugins_dir = Path(helpers.__file__).parent
     expectations = {
-        "kat_binaryedge": (["BINARYEDGE_API"], ["BINARYEDGE_API"]),
         "kat_censys": (["CENSYS_API_ID", "CENSYS_API_SECRET"], ["CENSYS_API_SECRET"]),
         "kat_shodan": (["SHODAN_API"], ["SHODAN_API"]),
     }
@@ -880,10 +897,12 @@ def test_adr_validator_timeout_returns_timeout_mimetype(mocker):
     )
 
     mime_types, message = main.run(
+        # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
         {"arguments": {"input": {"api_url": {"netloc": {"name": "example.com"}, "path": "", "scheme": "https"}}}}
     )[0]
 
     assert mime_types == {"error/timeout"}
+    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
@@ -895,6 +914,7 @@ def test_subfinder_timeout_returns_timeout_mimetype(mocker):
     mime_types, message = main.run({"arguments": {"input": {"hostname": {"name": "example.com"}}}})[0]
 
     assert mime_types == {"error/timeout"}
+    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
