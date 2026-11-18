@@ -36,6 +36,8 @@ def test_web_report(octopoes_api_connector: OctopoesAPIConnector, valid_time):
         "has_certificates": True,
         "certificates_not_expired": True,
         "certificates_not_expiring_soon": True,
+        "chain_complete": True,
+        "names_match": True,
     }
 
     finding = Finding(
@@ -210,6 +212,8 @@ def test_aggregate_report(octopoes_api_connector: OctopoesAPIConnector, valid_ti
                 "Has a certificate": 2,
                 "Certificate is not expired": 2,
                 "Certificate is not expiring soon": 2,
+                "Certificate chain is complete": 2,
+                "Certificate matches the server name": 2,
             },
             "ips": {
                 "IPAddressV4|test|192.0.2.3": [security_txt_finding_type],
@@ -359,6 +363,8 @@ def test_multi_report(
                 "CSP Present": 4,
                 "Certificate is not expired": 4,
                 "Certificate is not expiring soon": 4,
+                "Certificate chain is complete": 4,
+                "Certificate matches the server name": 4,
                 "Has a Security.txt": 4,
                 "Has a certificate": 4,
                 "No unnecessary ports open": 4,

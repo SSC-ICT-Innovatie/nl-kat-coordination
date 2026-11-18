@@ -13,9 +13,9 @@
     "Hostname",
     "Software",
     "SoftwareInstance",
-    "X509Certificate",
-    "SubjectAlternativeNameHostname",
-    "SubjectAlternativeNameQualifier",
+    "X509CertificateV2",
+    "SubjectAlternativeNameHostnameV2",
+    "SubjectAlternativeNameQualifierV2",
     "KATFindingType",
     "CVEFindingType",
     "Finding"

@@ -21,4 +21,9 @@
         </fieldset>
         <input class="button" type="submit" value="{% translate "Add object" %}" />
     </form>
+    <p>
+        {% blocktranslate trimmed with url=paste_objects_url %}
+            Want to add multiple objects at once? <a href="{{ url }}">Paste a list of objects</a> and let OpenKAT detect the types.
+        {% endblocktranslate %}
+    </p>
 {% endspaceless %}
