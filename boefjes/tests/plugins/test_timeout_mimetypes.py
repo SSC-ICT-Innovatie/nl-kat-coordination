@@ -442,13 +442,15 @@ def test_shodan_body_read_timeout_returns_timeout_mimetype(mocker):
     def body_read_timeout(*args, **kwargs):
         # Exactly what shodan's client produces for a body-phase failure:
         # the urllib3 timeout wrapped in ConnectionError, re-raised as a
-        # generic APIError with implicit context chaining.
+        # generic APIError with implicit context chaining (raise, NOT
+        # raise ... from None: the client does not suppress __context__,
+        # and _is_wrapped_timeout honours suppression per review L2).
         read_error = requests.exceptions.ConnectionError("wrapped")
         read_error.__cause__ = type("ReadTimeoutError", (Exception,), {})("Read timed out. (read timeout=30)")
         try:
             raise read_error
         except Exception:
-            raise main.shodan.APIError("Unable to connect to Shodan") from None
+            raise main.shodan.APIError("Unable to connect to Shodan")  # noqa: B904 (implicit chaining is the point)
 
     api.host.side_effect = body_read_timeout
 
