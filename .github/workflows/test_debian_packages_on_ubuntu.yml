@@ -254,10 +254,10 @@ jobs:
           for i in {1..15}; do curl -s http://localhost:8001/_dev/health | jq .healthy | grep true -q && s=0 && break || s=$? && sleep 1 ; done
           if [ $s != 0 ]; then echo $(curl -v http://localhost:8001/_dev/health) || true && journalctl --no-pager -u kat-octopoes.service && exit $s ; fi
 
-      - name: Set up Python 3.13
+      - name: Set up Python 3.14
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
-          python-version: "3.13"
+          python-version: "3.14"
           cache: pip
 
       - name: Install Robot Framework
