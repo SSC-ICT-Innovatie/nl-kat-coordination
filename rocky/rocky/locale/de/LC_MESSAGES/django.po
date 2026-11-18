@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 14:16+0000\n"
+"POT-Creation-Date: 2026-11-05 12:02+0000\n"
 "PO-Revision-Date: 2026-09-30 19:11+0000\n"
 "Last-Translator: Ettore Atalan <atalanttore@googlemail.com>\n"
 "Language-Team: German <https://hosted.weblate.org/projects/openkat/nl-kat-"
@@ -42,7 +42,8 @@ msgstr "Wichtige Daten"
 #: reports/templates/report_overview/report_history_table.html
 #: reports/templates/report_overview/scheduled_reports_table.html
 #: reports/templates/report_overview/subreports_table.html
-#: tools/forms/boefje.py rocky/templates/organizations/organization_list.html
+#: tools/forms/boefje.py tools/forms/subnet.py
+#: rocky/templates/organizations/organization_list.html
 #: rocky/templates/organizations/organization_settings.html
 #: rocky/templates/partials/ooi_detail_related_object.html
 msgid "Name"
@@ -446,6 +447,7 @@ msgstr "Absenden"
 
 #: account/templates/password_reset.html
 #: account/templates/password_reset_confirm.html
+#: rocky/templates/oois/ooi_add_subnet.html rocky/templates/paste_objects.html
 msgid "Back"
 msgstr "Zurück"
 
@@ -891,6 +893,7 @@ msgid ""
 msgstr ""
 
 #: crisis_room/templates/organization_crisis_room_dashboard_items.html
+#: rocky/templates/paste_objects.html
 msgid "Add objects"
 msgstr ""
 
@@ -1232,11 +1235,14 @@ msgstr ""
 #: reports/templates/partials/report_ooi_list.html
 #: reports/templates/report_overview/report_history_table.html
 #: reports/templates/summary/ooi_selection.html tools/forms/ooi.py
-#: tools/view_helpers.py rocky/templates/admin/delete_confirmation.html
+#: tools/forms/paste_objects.py tools/view_helpers.py
+#: rocky/templates/admin/delete_confirmation.html
 #: rocky/templates/admin/delete_selected_confirmation.html
 #: rocky/templates/dashboard_client.html rocky/templates/dashboard_redteam.html
-#: rocky/templates/header.html rocky/views/ooi_add.py rocky/views/ooi_list.py
-#: rocky/views/ooi_view.py rocky/views/upload_csv.py rocky/views/upload_raw.py
+#: rocky/templates/header.html rocky/views/ooi_add.py
+#: rocky/views/ooi_add_subnet.py rocky/views/ooi_list.py
+#: rocky/views/ooi_view.py rocky/views/paste_objects.py
+#: rocky/views/upload_csv.py rocky/views/upload_raw.py
 msgid "Objects"
 msgstr ""
 
@@ -1338,7 +1344,8 @@ msgstr ""
 #: katalogus/templates/change_clearance_level.html onboarding/forms.py
 #: reports/templates/partials/report_ooi_list.html
 #: reports/templates/summary/ooi_selection.html tools/forms/boefje.py
-#: tools/forms/ooi.py rocky/templates/oois/ooi_page_tabs.html
+#: tools/forms/ooi.py tools/forms/paste_objects.py tools/forms/subnet.py
+#: rocky/templates/oois/ooi_page_tabs.html
 #: rocky/templates/partials/explanations.html
 #: rocky/templates/scan_profiles/scan_profile_detail.html rocky/views/mixins.py
 msgid "Clearance level"
@@ -3752,6 +3759,14 @@ msgid "Certificate is not expiring soon"
 msgstr ""
 
 #: reports/report_types/web_system_report/report.html
+msgid "Certificate chain complete"
+msgstr ""
+
+#: reports/report_types/web_system_report/report.html
+msgid "Certificate matches the server name"
+msgstr ""
+
+#: reports/report_types/web_system_report/report.html
 msgid "No webservers have been found on this system."
 msgstr ""
 
@@ -4983,6 +4998,37 @@ msgstr ""
 msgid "Filter by clearance type"
 msgstr ""
 
+#: tools/forms/paste_objects.py
+msgid "--- Unchanged (no scan level requested) ----"
+msgstr ""
+
+#: tools/forms/paste_objects.py
+msgid ""
+"One object per line, or separated by commas. Each value may be an IPv4 or "
+"IPv6 address, a subnet, a hostname or a URL. The type of each value is "
+"detected automatically."
+msgstr ""
+
+#: tools/forms/paste_objects.py tools/forms/subnet.py
+#: rocky/templates/oois/ooi_add_subnet.html rocky/templates/paste_objects.html
+msgid "Network"
+msgstr ""
+
+#: tools/forms/paste_objects.py
+msgid "Created objects belong to this network."
+msgstr ""
+
+#: tools/forms/paste_objects.py
+msgid "Requested scan level for the new objects. Other values are ignored."
+msgstr ""
+
+#: tools/forms/paste_objects.py
+#, python-format
+msgid ""
+"The paste contains too many values: at most %(max)s objects can be added at "
+"once."
+msgstr ""
+
 #: tools/forms/scheduler.py
 msgid "From"
 msgstr ""
@@ -5019,6 +5065,11 @@ msgstr ""
 #: tools/forms/scheduler.py rocky/scheduler.py
 #: rocky/templates/tasks/partials/stats.html
 msgid "Running"
+msgstr ""
+
+#: tools/forms/scheduler.py rocky/scheduler.py
+#: rocky/templates/tasks/partials/stats.html
+msgid "Timeout"
 msgstr ""
 
 #: tools/forms/scheduler.py
@@ -5183,6 +5234,24 @@ msgstr ""
 
 #: tools/forms/settings.py
 msgid "Depth of the tree."
+msgstr ""
+
+#: tools/forms/subnet.py rocky/templates/oois/ooi_add_subnet.html
+msgid "Subnet (CIDR)"
+msgstr ""
+
+#: tools/forms/subnet.py
+msgid "For example 192.168.5.0/24."
+msgstr ""
+
+#: tools/forms/subnet.py
+msgid "Enter a valid CIDR, e.g. 192.168.5.0/24."
+msgstr ""
+
+#: tools/forms/subnet.py
+msgid ""
+"A subnet must contain more than one address. Add a single IP address as an "
+"IP address object."
 msgstr ""
 
 #: tools/forms/upload_csv.py
@@ -5899,6 +5968,72 @@ msgstr ""
 msgid "Add %(display_type)s"
 msgstr ""
 
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Add a subnet"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid ""
+"Step 2 of 2: review the computed IP range and optionally set a clearance "
+"level. The subnet is added on submit."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Step 1 of 2: enter the subnet in CIDR notation."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"You must accept indemnification for organization %(organization_name)s "
+"before you can add subnets."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Go to indemnification settings"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"Your input \"%(cidr)s\" was interpreted as the subnet %(normalized)s/"
+"%(mask)s."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid ""
+"With their default settings the nmap boefjes skip ranges larger than a /"
+"%(min_mask)s. Consider adding smaller blocks instead."
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Start IP"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "End IP"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+msgid "Number of IPs added"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html
+#, python-format
+msgid "%(counter)s address"
+msgid_plural "%(counter)s addresses"
+msgstr[0] ""
+msgstr[1] ""
+
+#: rocky/templates/oois/ooi_add_subnet.html rocky/views/ooi_add_subnet.py
+msgid "Add subnet"
+msgstr ""
+
+#: rocky/templates/oois/ooi_add_subnet.html rocky/templates/paste_objects.html
+msgid "Next — review"
+msgstr ""
+
 #: rocky/templates/oois/ooi_add_type_select.html
 #: rocky/templates/oois/ooi_detail_add_related_object.html
 #: rocky/templates/partials/elements/ooi_add_type_select_form.html
@@ -6471,6 +6606,13 @@ msgid ""
 "clearance levels."
 msgstr ""
 
+#: rocky/templates/partials/elements/ooi_add_type_select_form.html
+#, python-format
+msgid ""
+"Want to add multiple objects at once? <a href=\"%(url)s\">Paste a list of "
+"objects</a> and let OpenKAT detect the types."
+msgstr ""
+
 #: rocky/templates/partials/elements/ooi_detail_settings.html
 msgid "Observed at"
 msgstr ""
@@ -6726,6 +6868,11 @@ msgid "Upload CSV"
 msgstr ""
 
 #: rocky/templates/partials/ooi_list_toolbar.html
+#: rocky/templates/paste_objects.html rocky/views/paste_objects.py
+msgid "Paste objects"
+msgstr ""
+
+#: rocky/templates/partials/ooi_list_toolbar.html
 msgid "Export"
 msgstr ""
 
@@ -6842,6 +6989,65 @@ msgstr ""
 
 #: rocky/templates/partials/skip-to-content.html
 msgid "Go to content"
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid ""
+"Step 2 of 2: review the detected object types and optionally set a clearance "
+"level. The objects are added on submit."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid ""
+"Step 1 of 2: paste your objects. Each line may contain an IPv4 or IPv6 "
+"address, a subnet, a hostname, or a URL — the type is detected automatically."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid "These are the criteria for adding objects:"
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid ""
+"One object per line, or separated by commas. A single line may contain "
+"multiple values."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid "A value starting with http:// or https:// is added as a URL."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid "A subnet in CIDR notation (e.g. 192.0.2.0/24) is added as a netblock."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid "An IPv4 or IPv6 address is added as an IP address."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid "Anything else must be a valid hostname and is added as a hostname."
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+msgid "These lines could not be interpreted and will not be added:"
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+#, python-format
+msgid "Objects — %(num)s object will be added:"
+msgid_plural "Objects — %(num)s objects will be added:"
+msgstr[0] ""
+msgstr[1] ""
+
+#: rocky/templates/paste_objects.html
+#, python-format
+msgid "interpreted as %(network_address)s/%(mask)s"
+msgstr ""
+
+#: rocky/templates/paste_objects.html
+#, python-format
+msgid "nmap skips ranges larger than a /%(min_mask)s by default"
 msgstr ""
 
 #: rocky/templates/scan_profiles/scan_profile_detail.html
@@ -7385,6 +7591,14 @@ msgstr ""
 msgid "Add %(ooi_type)s"
 msgstr ""
 
+#: rocky/views/ooi_add_subnet.py
+msgid "You must accept indemnification before adding subnets."
+msgstr ""
+
+#: rocky/views/ooi_add_subnet.py
+msgid "Subnet added."
+msgstr ""
+
 #: rocky/views/ooi_detail.py
 msgid ""
 "Cannot set clearance level. It must be provided and must be a valid number."
@@ -7615,6 +7829,44 @@ msgstr ""
 
 #: rocky/views/page_actions.py
 msgid "Could not process your request, action required."
+msgstr ""
+
+#: rocky/views/paste_objects.py
+msgid "Object(s) could not be created for line number(s): "
+msgstr ""
+
+#: rocky/views/paste_objects.py
+msgid "Failed to save data from the pasted objects"
+msgstr ""
+
+#: rocky/views/paste_objects.py
+msgid "Object(s) successfully added: "
+msgstr ""
+
+#: rocky/views/paste_objects.py
+#, python-format
+msgid ""
+"Could not declare clearance level L%(level)s: indemnification not present at "
+"%(org)s."
+msgstr ""
+
+#: rocky/views/paste_objects.py
+#, python-format
+msgid ""
+"Could not declare clearance level L%(level)s: you were trusted a clearance "
+"level of L%(max)s. Contact your administrator to receive a higher clearance."
+msgstr ""
+
+#: rocky/views/paste_objects.py
+#, python-format
+msgid ""
+"Could not declare clearance level L%(level)s: you acknowledged a clearance "
+"level of L%(acknowledged)s. Please accept the clearance level first on your "
+"profile page to proceed."
+msgstr ""
+
+#: rocky/views/paste_objects.py
+msgid "Could not set the requested clearance level."
 msgstr ""
 
 #: rocky/views/scan_profile.py
