@@ -3,8 +3,8 @@
 # is immutable and Dependabot-trackable (a plain tag can't be, see #3261). The
 # digest is authoritative (Docker ignores the tag when a digest is present), so on
 # a version bump update the base tag, the digest and PLAYWRIGHT_VERSION together.
-ARG PLAYWRIGHT_VERSION=1.64.1
-FROM mcr.microsoft.com/playwright:v1.64.1-noble@sha256:2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f
+ARG PLAYWRIGHT_VERSION=1.65.0
+FROM mcr.microsoft.com/playwright:v1.65.0-noble@sha256:6e3fb709361521eb27161606e6da6d2674e5e89fa16516cb37d6fdd91372273d
 
 # Redeclare so the RUN below (a new build stage scope) can use it.
 ARG PLAYWRIGHT_VERSION
