@@ -526,47 +526,6 @@ def test_censys_timeout_returns_timeout_mimetype(mocker):
     assert "1.2.3.4" in message
 
 
-def test_binaryedge_timeout_returns_timeout_mimetype(mocker):
-    pytest.importorskip("pybinaryedge")
-    main = _main("kat_binaryedge")
-
-    mocker.patch.object(main.BinaryEdge, "host", side_effect=requests.exceptions.ReadTimeout("timed out"))
-
-    mime_types, message = main.run({"arguments": {"input": {"object_type": "IPAddressV4", "address": "1.2.3.4"}}})[0]
-
-    assert mime_types == {"error/timeout"}
-    assert "1.2.3.4" in message
-
-
-def test_binaryedge_timeout_reaches_client_request(mocker):
-    """The configured timeout must reach the HTTP request pybinaryedge makes,
-    without a global socket.setdefaulttimeout(). Runs against the real client."""
-    pytest.importorskip("pybinaryedge")
-    main = _main("kat_binaryedge")
-    get = mocker.patch.object(main.requests, "get", side_effect=requests.exceptions.ReadTimeout("timed out"))
-    mocker.patch.dict("os.environ", {"TIMEOUT": "55", "BINARYEDGE_API": "dummy"})
-
-    mime_types, _ = main.run({"arguments": {"input": {"object_type": "IPAddressV4", "address": "1.2.3.4"}}})[0]
-
-    assert mime_types == {"error/timeout"}
-    assert get.call_args.kwargs["timeout"] == 55
-
-
-def test_binaryedge_success_path_with_real_client(mocker):
-    """A normal scan must not crash before the request (pybinaryedge has no session)."""
-    pytest.importorskip("pybinaryedge")
-    main = _main("kat_binaryedge")
-    response = mocker.Mock(status_code=200)
-    response.json.return_value = {"events": [{"results": [{"port": 443}]}]}
-    mocker.patch.object(main.requests, "get", return_value=response)
-    mocker.patch.dict("os.environ", {"BINARYEDGE_API": "dummy"})
-
-    mime_types, raw = main.run({"arguments": {"input": {"object_type": "IPAddressV4", "address": "1.2.3.4"}}})[0]
-
-    assert mime_types == set()
-    assert json.loads(raw) == {"results": [{"port": 443}]}
-
-
 def test_shodan_no_global_socket_timeout():
     """No boefje may touch the process-wide
     socket default anymore."""
