@@ -86,7 +86,6 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-bytes \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -94,12 +93,23 @@ debian12:
 	kat-debian12-build-image \
 	packaging/scripts/build-debian-package.sh
 
-ubuntu22.04:
+debian13:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-bytes \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--workdir /app \
+	kat-debian13-build-image \
+	packaging/scripts/build-debian-package.sh
+
+ubuntu24.04:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-bytes \
+	--env BUILD_DIR=./build \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
