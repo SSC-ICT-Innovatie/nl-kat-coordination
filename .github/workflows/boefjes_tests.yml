@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version: ["3.11", "3.12", "3.13"]
+        version: ["3.11", "3.12", "3.13", "3.14"]
 
     runs-on: ubuntu-24.04
     env:
@@ -46,7 +46,15 @@ jobs:
         working-directory: ./boefjes
 
       - name: Install requirements
-        run: find . -name requirements.txt | xargs -L 1 pip install -r
+        run: >
+          find . -name requirements.txt -print0 |
+          while IFS= read -r -d '' file; do
+            echo ">>> Installing $file"
+            pip install -r "$file" || {
+              echo "FAILED: $file"
+              exit 1
+            }
+          done
         working-directory: ./boefjes
 
       - name: Install Octopoes
