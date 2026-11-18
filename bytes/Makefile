@@ -11,6 +11,7 @@ MAKEFLAGS += --no-builtin-rules
 # use HIDE to run commands invisibly, unless VERBOSE defined
 export VERBOSE
 HIDE:=$(if $(VERBOSE),,@)
+REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's#^(https://github.com/|git@github.com:)##; s#\.git$$##'))
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -86,7 +87,8 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
-	--env RELEASE_VERSION=${RELEASE_VERSION} \
+    --env REPOSITORY=$(REPOSITORY) \
+    --env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
 	--workdir /app \
@@ -98,6 +100,7 @@ debian13:
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
+    --env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -110,6 +113,7 @@ ubuntu24.04:
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
+    --env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
