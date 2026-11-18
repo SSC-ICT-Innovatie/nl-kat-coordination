@@ -13,19 +13,6 @@ debian12:
 	kat-debian12-build-image \
 	packaging/scripts/build-debian-package.sh
 
-ubuntu22.04:
-	mkdir -p build
-	docker run --rm \
-	--env PKG_NAME=kat-octopoes \
-	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
-	--env RELEASE_VERSION=${RELEASE_VERSION} \
-	--env RELEASE_TAG=${RELEASE_TAG} \
-	--mount type=bind,src=${CURDIR},dst=/app \
-	--workdir /app \
-	kat-ubuntu22.04-build-image \
-	packaging/scripts/build-debian-package.sh
-
 debian13:
 	mkdir -p build
 	docker run --rm \
