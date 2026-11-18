@@ -6,7 +6,7 @@
       "title": "TIMEOUT",
       "type": "integer",
       "minimum": 1,
-      "default": 300,
+      "default": 30,
       "description": "Maximum time in seconds the openssl s_client handshake may run. Defaults to 300. When exceeded the boefje reports a timeout."
     }
   }

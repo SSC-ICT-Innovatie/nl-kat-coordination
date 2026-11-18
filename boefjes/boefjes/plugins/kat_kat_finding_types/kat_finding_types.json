@@ -431,6 +431,46 @@
     "impact": "Expired certificates could result in compromise of confidentiality and integrity of clients that connect to the service. Modern clients also refuse to connect to sites using expired certificates.",
     "recommendation": "Replace the certificate with a valid one."
   },
+  "KAT-UNPARSEABLE-CERTIFICATE": {
+    "name": "Unparsable certificate in chain",
+    "description": "An entry in the certificate chain presented by this service could not be parsed as an X.509 certificate.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-4.1",
+    "risk": "high",
+    "impact": "A broken certificate presentation can prevent clients from validating the service's certificate. If the entry is a corrupted transmission it may be transient; if the server consistently presents malformed data, TLS connections may fail or be vulnerable to downgrade attacks.",
+    "recommendation": "Inspect the certificate chain served by this endpoint and reissue or correctly deploy its certificates."
+  },
+  "KAT-INCOMPLETE-CERTIFICATE-CHAIN": {
+    "name": "Incomplete certificate chain",
+    "description": "The certificate chain presented by this service does not verifiably terminate at a certificate authority trusted by clients.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280#section-6",
+    "risk": "high",
+    "impact": "Clients cannot build a trusted path from the certificates the server sent, so connections fail certificate validation or rely on the client chasing the missing issuer (which many clients, and non-HTTP clients in particular, do not do).",
+    "recommendation": "Configure the service to present the full chain: the leaf certificate followed by every intermediate, up to (but excluding) the root."
+  },
+  "KAT-MALFORMED-CERTIFICATE-CHAIN": {
+    "name": "Malformed certificate chain",
+    "description": "The certificate chain presented by this service does not hold together: it contains a certificate that does not certify the certificate before it.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc8446#section-4.4.2",
+    "risk": "medium",
+    "impact": "Clients may fail to build a trusted path, or may ignore the extra certificates — but the served chain is not the chain the operator believes it is, and the handshake carries dead weight.",
+    "recommendation": "Rebuild the served chain from the files the CA issued: the leaf certificate followed by each intermediate that certifies the one before it, up to but excluding the root."
+  },
+  "KAT-HTTPS-NOT-AVAILABLE": {
+    "name": "HTTPS is not available",
+    "description": "HTTP port is open, but HTTPS port is not open.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc7231#section-2.7.2",
+    "risk": "medium",
+    "impact": "Users may not connect over a secured connection to your server; traffic is sent in cleartext and is readable by anyone with the ability to intercept it.",
+    "recommendation": "Enable HTTPS on the web server and redirect plain HTTP to it."
+  },
+  "KAT-SELF-SIGNED-CERTIFICATE": {
+    "name": "Self-signed certificate",
+    "description": "The certificate presented by this service is self-signed: it issues nothing else in the presentation and is its own issuer.",
+    "source": "https://datatracker.ietf.org/doc/html/rfc5280",
+    "risk": "low",
+    "impact": "Common for internal services and admin interfaces. No third party has verified the identity behind the certificate, and clients that do not have the certificate distributed explicitly see certificate warnings.",
+    "recommendation": "For user-facing services, obtain a certificate from a certificate authority clients trust; for internal services where it is intentional, distribute the certificate to the clients that need it."
+  },
   "KAT-NO-DMARC": {
     "name": "No DMARC records found",
     "description": "This hostname does not have a DMARC record.",

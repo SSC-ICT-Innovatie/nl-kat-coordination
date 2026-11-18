@@ -154,14 +154,19 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.selected_oois = self.get_ooi_pks()
+        # In live set mode the object list is resolved by the report runner, so
+        # the wizard only carries `ooi=all` and the filter querystring forward.
+        self.selected_oois = [] if self.is_live_set_selection() else self.get_ooi_pks()
         self.selected_report_types = self.get_report_type_ids()
 
     def get_ooi_selection(self) -> list[str]:
         return sorted(set(self.request.POST.getlist("ooi", [])))
 
+    def is_live_set_selection(self) -> bool:
+        return self.request.POST.get("object_selection", "") == "query"
+
     def all_oois_selected(self) -> bool:
-        return "all" in self.request.GET.getlist("ooi", [])
+        return "all" in self.request.GET.getlist("ooi", []) or "all" in self.get_ooi_selection()
 
     def get_ooi_pks(self) -> list[str]:
         if self.all_oois_selected():
@@ -169,6 +174,8 @@ class BaseReportView(OOIFilterView, ReportBreadcrumbs):
         return self.get_ooi_selection()
 
     def get_total_oois(self):
+        if self.all_oois_selected():
+            return OOIList(self.octopoes_api_connector, **self.get_queryset_params()).count
         return len(self.selected_oois)
 
     def get_report_ooi_types(self) -> set[type[OOI]]:
@@ -378,7 +385,8 @@ class ReportTypeSelectionView(BaseReportView, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["oois"] = self.get_oois()  # show listed oois in report type view.
+        if not self.all_oois_selected():
+            context["oois"] = self.get_oois()  # show listed oois in report type view.
         context["total_oois"] = self.get_total_oois()  # adds counter to the heading
 
         context["available_report_types"] = self.available_report_types  # shows tiles of report types
@@ -388,9 +396,6 @@ class ReportTypeSelectionView(BaseReportView, TemplateView):
         context["all_report_types_checked"] = len(self.get_report_type_ids()) == self.counted_report_types
 
         return context
-
-    def all_oois_selected(self) -> bool:
-        return "all" in self.request.POST.getlist("ooi", [])
 
 
 class ReportPluginView(BaseReportView, TemplateView):

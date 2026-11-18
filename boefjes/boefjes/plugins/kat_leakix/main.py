@@ -87,9 +87,9 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     search_mode = getenv("LEAKIX_SEARCH_MODE", "strict")
 
-    if pk.startswith("IPAddressV4|") or pk.startswith("IPAddressV6|"):
-        ip = pk.split("|")[-1]
-        try:
+    try:
+        if pk.startswith("IPAddressV4|") or pk.startswith("IPAddressV6|"):
+            ip = pk.split("|")[-1]
             if search_mode == "strict":
                 # Use /host endpoint for exact IP match (no netblock pollution)
                 results = get_host_results(ip)
@@ -97,26 +97,21 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
                 # Permissive mode: use /search (may include related IPs in netblock)
                 query = quote_plus(f"+ip:{ip}")
                 results = get_search_results(query)
-        except requests.exceptions.RequestException as exc:
-            # Deliberately narrow: only a genuine timeout (including the wrapped
-            # body-read variant) is error/timeout; other failures propagate.
-            if is_request_timeout(exc):
-                return [({"error/timeout"}, f"LeakIX request timed out for {pk}: {type(exc).__name__}")]
-            raise
-    elif pk.startswith("Hostname|"):
-        hostname = pk.split("|")[-1]
-        query = quote_plus(f'+host:"{hostname}"')
-        try:
+        elif pk.startswith("Hostname|"):
+            hostname = pk.split("|")[-1]
+            query = quote_plus(f'+host:"{hostname}"')
             results = get_search_results(query)
-        except requests.exceptions.RequestException as exc:
-            # Deliberately narrow: only a genuine timeout (including the wrapped
-            # body-read variant) is error/timeout; other failures propagate.
-            if is_request_timeout(exc):
-                return [({"error/timeout"}, f"LeakIX request timed out for {pk}: {type(exc).__name__}")]
-            raise
-        # Filtering for hostname happens in normalizer based on search_mode
-    else:
-        raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')
+            # Filtering for hostname happens in normalizer based on search_mode
+        else:
+            raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')
+    except requests.exceptions.RequestException as exc:
+        # Rerunnable state: only a genuine timeout (including the wrapped
+        # body-read variant) marks the task TIMEOUT; every other request
+        # failure (refused, DNS, HTTP error status) is carried in the raw
+        # bytes, and normalizers skip error mimes.
+        if is_request_timeout(exc):
+            return [({"error/timeout"}, f"LeakIX timed out for {pk}: {type(exc).__name__}")]
+        return [({"error/boefje"}, f"LeakIX request failed for {pk}: {exc}")]
 
     # Include search_mode and the extraction component toggles in the output so
     # the normalizer can filter and extract accordingly
