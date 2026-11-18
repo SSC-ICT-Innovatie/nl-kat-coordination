@@ -27,6 +27,9 @@ For this demonstration we will add a hostname. Click on "Add object" to continue
 .. note:: To add a subnet, select *IPV4NetBlock* or *IPV6NetBlock* in the type list. Both open a dedicated
    two-step form that shows the computed IP range before adding; see :doc:`objects`.
 
+.. note:: To add multiple objects at once, use the *Paste objects* option in the Add menu. It detects the type of
+   each pasted value (IP address, subnet, hostname or URL) and shows a review before adding; see :doc:`objects`.
+
 .. image:: img/add-object-02.png
   :alt: Select object type
 
