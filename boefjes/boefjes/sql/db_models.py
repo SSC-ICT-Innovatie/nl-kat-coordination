@@ -52,6 +52,7 @@ class OrganisationInDB(SQL_BASE):
     id = Column(String(length=32), unique=True, nullable=False)
     name = Column(String(length=64), nullable=False)
     deduplicate = Column(Boolean, nullable=False, server_default="true")
+    indemnification = Column(Boolean, nullable=False, server_default="false")
 
 
 class BoefjeConfigInDB(SQL_BASE):
