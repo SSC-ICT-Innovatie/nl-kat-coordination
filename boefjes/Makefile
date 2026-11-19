@@ -117,7 +117,7 @@ ci-docker-compose := docker compose --project-directory . -f .ci/docker-compose.
 test: itest ## Run all tests.
 
 itest: ## Run the integration tests.
-	$(ci-docker-compose) build
+	$(ci-docker-compose) build $(build_args)
 	$(ci-docker-compose) down --remove-orphans
 	$(ci-docker-compose) run --rm katalogus_integration
 	$(ci-docker-compose) stop
@@ -159,20 +159,6 @@ debian13:
 	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
 	--workdir /app \
 	kat-debian13-build-image \
-	packaging/scripts/build-debian-package.sh
-
-ubuntu22.04:
-	mkdir -p build
-	docker run --rm \
-	--env PKG_NAME=kat-boefjes \
-	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
-	--env RELEASE_VERSION=${RELEASE_VERSION} \
-	--env RELEASE_TAG=${RELEASE_TAG} \
-	--mount type=bind,src=${CURDIR},dst=/app \
-	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
-	--workdir /app \
-	kat-ubuntu22.04-build-image \
 	packaging/scripts/build-debian-package.sh
 
 ubuntu24.04:

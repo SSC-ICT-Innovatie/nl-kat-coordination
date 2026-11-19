@@ -1,5 +1,5 @@
 .PHONY: build build-rocky build-rocky-frontend run test export_migrations debian clean
-
+REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's#^(https://github.com/|git@github.com:)##; s#\.git$$##'))
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -76,7 +76,7 @@ debian12:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-rocky \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -85,24 +85,11 @@ debian12:
 	kat-debian12-build-image \
 	packaging/scripts/build-debian-package.sh
 
-ubuntu22.04:
-	mkdir -p build
-	docker run --rm \
-	--env PKG_NAME=kat-rocky \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
-	--env RELEASE_VERSION=${RELEASE_VERSION} \
-	--env RELEASE_TAG=${RELEASE_TAG} \
-	--mount type=bind,src=${CURDIR},dst=/app \
-	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
-	--workdir /app \
-	kat-ubuntu22.04-build-image \
-	packaging/scripts/build-debian-package.sh
-
 debian13:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-rocky \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -115,7 +102,7 @@ ubuntu24.04:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-rocky \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \

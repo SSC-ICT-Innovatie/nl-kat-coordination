@@ -1,4 +1,5 @@
-FROM python:3.13-slim
+ARG PYTHON_VERSION=3.13
+FROM python:$PYTHON_VERSION-slim
 
 RUN mkdir -p /app /var/lib/kat-cveapi/v1
 
