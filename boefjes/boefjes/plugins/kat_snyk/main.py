@@ -4,6 +4,7 @@ import logging
 import requests
 from bs4 import BeautifulSoup
 
+from boefjes.plugins.helpers import get_connect_and_read_timeout, is_request_timeout
 from boefjes.plugins.kat_snyk.check_version import check_version_in
 
 logger = logging.getLogger(__name__)
@@ -123,7 +124,7 @@ def _fetch_package_data(software_name: str, version: str | None, cpe: str | None
     first_parseable = None
     range_match = None
     for ecosystem in ecosystems:
-        page = requests.get(f"https://snyk.io/vuln/{ecosystem}:{slug}", timeout=30)
+        page = requests.get(f"https://snyk.io/vuln/{ecosystem}:{slug}", timeout=get_connect_and_read_timeout())
         if page.status_code == 404:
             continue
         page.raise_for_status()
@@ -144,7 +145,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     input_ = boefje_meta["arguments"]["input"]
     software_name = input_["name"]
 
-    pkg = _fetch_package_data(software_name, input_.get("version"), input_.get("cpe"))
+    try:
+        pkg = _fetch_package_data(software_name, input_.get("version"), input_.get("cpe"))
+    except requests.exceptions.RequestException as exc:
+        # Deliberately narrow: only a genuine timeout (including the wrapped
+        # body-read variant) is error/timeout; other failures propagate.
+        if is_request_timeout(exc):
+            return [({"error/timeout"}, f"Request to snyk.io timed out for {software_name}: {type(exc).__name__}")]
+        raise
     if pkg is None:
         logger.warning("No snyk.io vulnerability data found for %s", software_name)
         return [(set(), json.dumps({"vulnerabilities": [], "latest_version": None}))]

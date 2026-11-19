@@ -107,8 +107,9 @@ def test_dnssec_timeout(monkeypatch):
         raise subprocess.TimeoutExpired(cmd, timeout)
 
     monkeypatch.setattr(dnssec_main.subprocess, "run", timeout)
-    with pytest.raises(RuntimeError, match="timed out"):
-        dnssec_main.run({"arguments": {"input": {"name": "example.org"}}})
+    results = dnssec_main.run({"arguments": {"input": {"name": "example.org"}}})
+
+    assert results == [({"error/timeout"}, "drill timed out for example.org (A)")]
 
 
 @pytest.mark.parametrize("domain", ["bad_name.org", "-bad.org", "bad-.org", "example..org", "https://example.org"])

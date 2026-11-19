@@ -176,7 +176,7 @@ def test_timeout_records_timeout_message(monkeypatch):
         raise subprocess.TimeoutExpired(cmd, timeout, output=b"partial output before hang")
 
     monkeypatch.setattr(main.subprocess, "run", hanging_run)
-    monkeypatch.setattr(main, "BOEFJE_TIMEOUT_SECONDS", 1)
+    monkeypatch.setattr(main, "TIMEOUT", 1)
 
     started = time.monotonic()
     output = main.run(_meta("192.0.2.1"))
@@ -206,3 +206,20 @@ def test_tls_capable_service_names_are_attempted(monkeypatch):
         assert output[0][0] == {"openkat/ssl-certificates-output"}
         assert "-host 192.0.2.1" in " ".join(output and calls[-1])
     assert len(calls) == 5
+
+
+def test_timeout_setting_reaches_subprocess(monkeypatch):
+    """The TIMEOUT plugin setting is honoured by subprocess.run."""
+    monkeypatch.setenv("TIMEOUT", "77")
+
+    captured = {}
+
+    def fake_run(cmd, capture_output=False, timeout=None):
+        captured["timeout"] = timeout
+        return subprocess.CompletedProcess(cmd, 0, stdout=PEM_OUTPUT, stderr=b"")
+
+    monkeypatch.setattr(main.subprocess, "run", fake_run)
+
+    main.run(_meta("192.0.2.1"))
+
+    assert captured["timeout"] == 77

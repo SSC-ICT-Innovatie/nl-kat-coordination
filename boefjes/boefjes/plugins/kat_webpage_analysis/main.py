@@ -8,6 +8,8 @@ import requests
 from forcediphttpsadapter.adapters import ForcedIPHTTPSAdapter
 from requests import Session
 
+from boefjes.plugins.helpers import get_connect_and_read_timeout, is_request_timeout
+
 # TODO: refactor
 from boefjes.plugins.kat_webpage_analysis.har.requests import create_har_object
 
@@ -43,7 +45,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
             uri = urlunsplit([url_parts.scheme, url_parts.netloc, url_parts.path, url_parts.query, url_parts.fragment])
 
     body_mimetypes = {"openkat-http/body"}
-    response = do_request(hostname, session, uri, useragent)
+    try:
+        response = do_request(hostname, session, uri, useragent, get_connect_and_read_timeout())
+    except requests.exceptions.RequestException as exc:
+        # Deliberately narrow: only a genuine timeout (including the wrapped
+        # body-read variant) is error/timeout; other failures propagate.
+        if is_request_timeout(exc):
+            return [({"error/timeout"}, f"Requesting {uri} timed out: {type(exc).__name__}")]
+        raise
 
     if "content-type" in response.headers:
         content_type = response.headers["content-type"]
@@ -78,9 +87,9 @@ def get_header_pairs(response) -> list[list[str]]:
     return [[key, value] for key in dict.fromkeys(raw_headers) for value in raw_headers.getlist(key)]
 
 
-def do_request(hostname: str, session: Session, uri: str, useragent: str):
+def do_request(hostname: str, session: Session, uri: str, useragent: str, timeout: tuple[int, int]):
     response = session.get(
-        uri, headers={"Host": hostname, "User-Agent": useragent}, verify=False, allow_redirects=False
+        uri, headers={"Host": hostname, "User-Agent": useragent}, verify=False, allow_redirects=False, timeout=timeout
     )
 
     return response

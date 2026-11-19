@@ -1,9 +1,11 @@
 import subprocess
+from os import getenv
 
 # nuclei exits 1 when it finds no vulnerabilities or when no templates are
 # available for the scan. These are not real errors — the scan ran fine, there
 # was just nothing to report.
 _BENIGN_STDERR_MARKERS = ("No results found", "no templates provided for scan")
+SCAN_TIMEOUT = 3600
 
 
 def get_target_url(input_ooi: dict) -> str:
@@ -15,7 +17,12 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     url = get_target_url(boefje_meta["arguments"]["input"])
     cmd = ["/usr/local/bin/nuclei"] + boefje_meta["arguments"]["oci_arguments"] + ["-u", url]
 
-    output = subprocess.run(cmd, capture_output=True)
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(getenv("TIMEOUT", str(SCAN_TIMEOUT)))
+    try:
+        output = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return [({"error/timeout"}, f"nuclei timed out for {url} after {timeout} seconds")]
 
     if output.returncode != 0:
         stderr = output.stderr.decode().strip()

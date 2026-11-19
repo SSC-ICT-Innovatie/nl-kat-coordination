@@ -12,6 +12,8 @@ from pathlib import Path
 import requests
 from netaddr import IPAddress, IPNetwork
 
+from boefjes.plugins.helpers import get_connect_and_read_timeout, is_request_timeout
+
 # Paths and URLs for RPKI
 BASE_PATH = Path(getenv("OPENKAT_CACHE_PATH", Path(__file__).parent))
 
@@ -43,15 +45,29 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     # RPKI cache check and refresh
     if not RPKI_PATH.exists() or not RPKI_META_PATH.exists() or cache_out_of_date(RPKI_META_PATH):
-        rpki_json, rpki_meta = refresh_cache(RPKI_SOURCE_URL, RPKI_PATH, RPKI_META_PATH, hash_algorithm)
+        try:
+            rpki_json, rpki_meta = refresh_cache(RPKI_SOURCE_URL, RPKI_PATH, RPKI_META_PATH, hash_algorithm)
+        except requests.exceptions.RequestException as exc:
+            # Deliberately narrow: only a genuine timeout (including the wrapped
+            # body-read variant) is error/timeout; other failures propagate.
+            if is_request_timeout(exc):
+                return [({"error/timeout"}, f"Downloading the RPKI cache timed out: {type(exc).__name__}")]
+            raise
     else:
         rpki_json = load_json(RPKI_PATH)
         rpki_meta = load_json(RPKI_META_PATH)
 
     if not BGP_PATH.exists() or not BGP_META_PATH.exists() or cache_out_of_date(BGP_META_PATH):
-        bgp_data, bgp_meta = refresh_cache(
-            BGP_SOURCE_URL, BGP_PATH, BGP_META_PATH, hash_algorithm, file_extension="jsonl"
-        )
+        try:
+            bgp_data, bgp_meta = refresh_cache(
+                BGP_SOURCE_URL, BGP_PATH, BGP_META_PATH, hash_algorithm, file_extension="jsonl"
+            )
+        except requests.exceptions.RequestException as exc:
+            # Deliberately narrow: only a genuine timeout (including the wrapped
+            # body-read variant) is error/timeout; other failures propagate.
+            if is_request_timeout(exc):
+                return [({"error/timeout"}, f"Downloading the BGP cache timed out: {type(exc).__name__}")]
+            raise
     else:
         bgp_data = load_jsonl(BGP_PATH)
         bgp_meta = load_json(BGP_META_PATH)
@@ -121,7 +137,7 @@ def refresh_cache(
 ) -> tuple[dict | list, dict]:
     """Refreshes the cache for either RPKI or BGP data. Handles both JSON and JSON Lines formats."""
     headers = {"User-Agent": getenv("USERAGENT", default="OpenKAT")}
-    response = requests.get(source_url, headers=headers, allow_redirects=True, timeout=30)
+    response = requests.get(source_url, headers=headers, allow_redirects=True, timeout=get_connect_and_read_timeout())
     response.raise_for_status()
 
     with tempfile.NamedTemporaryFile(mode="wb", dir=data_path.parent, delete=False) as temp_file:

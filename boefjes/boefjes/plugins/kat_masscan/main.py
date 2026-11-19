@@ -3,11 +3,15 @@ import os
 import subprocess
 from pathlib import Path
 
+MASSCAN_TIMEOUT = 3600
+
 
 def run_masscan(target_ip: str):
     # Scan according to arguments.
     port_range = os.getenv("PORTS", "53,80,443")
     max_rate = os.getenv("MAX_RATE", "100")
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(os.getenv("TIMEOUT", str(MASSCAN_TIMEOUT)))
     logging.info("Running masscan...")
     cmd = [
         "/app/boefje/masscan/bin/masscan",
@@ -19,7 +23,7 @@ def run_masscan(target_ip: str):
         "/tmp/out.json",
         target_ip,
     ]
-    output = subprocess.run(cmd, capture_output=True)
+    output = subprocess.run(cmd, capture_output=True, timeout=timeout)  # noqa: S108
     output.check_returncode()
 
 
@@ -27,8 +31,11 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     """Creates webpage and takes capture using Playwright container."""
     input_ = boefje_meta["arguments"]["input"]
     ip_range = f"{input_['start_ip']['address']}/{str(input_['mask'])}"
-    run_masscan(target_ip=ip_range)
-    m_run = Path("/tmp/out.json").read_bytes()
+    try:
+        run_masscan(target_ip=ip_range)
+    except subprocess.TimeoutExpired:
+        return [({"error/timeout"}, f"masscan timed out for {ip_range}")]
+    m_run = Path("/tmp/out.json").read_bytes()  # noqa: S108
     logging.info("Received a response with length %d", len(m_run))
 
     return [({"openkat/masscan-output"}, m_run)]

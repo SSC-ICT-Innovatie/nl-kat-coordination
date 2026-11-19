@@ -1,4 +1,7 @@
 import subprocess
+from os import getenv
+
+SCAN_TIMEOUT = 300
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -12,7 +15,12 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     url = f"{scheme}://{hostname}{path}"
     cmd = ["/usr/local/bin/adr-validator", "-format", "json", url]
 
-    output = subprocess.run(cmd, capture_output=True)
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(getenv("TIMEOUT", str(SCAN_TIMEOUT)))
+    try:
+        output = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return [({"error/timeout"}, f"adr-validator timed out for {url} after {timeout} seconds")]
     output.check_returncode()
 
     return [({"openkat/adr-validator-output"}, output.stdout.decode())]

@@ -5,7 +5,7 @@
     "TIMEOUT": {
       "title": "TIMEOUT",
       "type": "integer",
-      "description": "Timeout for requests to the targeted dns servers",
+      "description": "Timeout in seconds for requests to the targeted dns servers. Defaults to 30. When exceeded the boefje reports a timeout.",
       "default": 30,
       "minimum": 0
     }

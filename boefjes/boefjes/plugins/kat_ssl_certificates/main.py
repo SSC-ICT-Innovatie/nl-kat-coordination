@@ -1,6 +1,10 @@
 import subprocess
+from os import getenv
 
-BOEFJE_TIMEOUT_SECONDS = 30
+# Can be overridden through the plugin settings, see schema.json. A hard
+# wall-clock budget, so a target that black-holes the connection cannot
+# stall the worker indefinitely.
+TIMEOUT = 30
 
 
 def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
@@ -46,11 +50,12 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     # The timeout catches silent blackholes (no SYN-ACK, no response at
     # all): without it, s_client hangs forever and the worker never
     # completes.
+    timeout = int(getenv("TIMEOUT", str(TIMEOUT)))
     try:
-        output = subprocess.run(cmd, capture_output=True, timeout=BOEFJE_TIMEOUT_SECONDS)
+        output = subprocess.run(cmd, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as e:
         partial = (e.stdout or b"").decode(errors="replace")
-        message = f"TLS handshake with {host}:{port} timed out after {BOEFJE_TIMEOUT_SECONDS}s"
+        message = f"TLS handshake with {host}:{port} timed out after {timeout}s"
         return [({"error/timeout"}, f"{message}\n{partial}".strip())]
 
     if b"-----BEGIN CERTIFICATE-----" not in output.stdout:

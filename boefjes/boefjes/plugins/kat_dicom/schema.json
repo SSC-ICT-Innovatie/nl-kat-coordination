@@ -1,0 +1,14 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "CONNECT_TIMEOUT": {
+      "title": "CONNECT_TIMEOUT",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 30,
+      "description": "Timeout in seconds for each DICOM association attempt. Defaults to 30. A timed-out port is reported as closed, not as a boefje failure."
+    }
+  }
+}

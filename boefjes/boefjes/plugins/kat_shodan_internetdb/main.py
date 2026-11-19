@@ -11,9 +11,13 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     ip = boefje_meta["arguments"]["input"]["address"]
     if ip_address(ip).is_private:
         return [({"openkat/deschedule"}, "Private IP requested, I will not forward this to Shodan.")]
-    response = httpx.get(
-        f"https://internetdb.shodan.io/{ip}", timeout=int(getenv("REQUEST_TIMEOUT", str(REQUEST_TIMEOUT)))
-    )
+    try:
+        response = httpx.get(
+            f"https://internetdb.shodan.io/{ip}", timeout=int(getenv("REQUEST_TIMEOUT", str(REQUEST_TIMEOUT)))
+        )
+    except httpx.TimeoutException as exc:
+        # Deliberately narrow: connection problems other than a timeout surface as error/boefje.
+        return [({"error/timeout"}, f"Request to Shodan InternetDB timed out for {ip}: {type(exc).__name__}")]
     if response.status_code != httpx.codes.NOT_FOUND:
         response.raise_for_status()
 

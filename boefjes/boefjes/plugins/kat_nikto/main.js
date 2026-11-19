@@ -66,12 +66,31 @@ export default function (boefje_meta) {
   );
   fs.writeFileSync("./nikto.conf", config_contents);
 
-  // Running nikto and outputting to a file
+  // Running nikto and outputting to a file. nikto's -maxtime only fires
+  // between requests, so a target that stalls mid-request would block the
+  // worker forever: bound the whole run with a hard kill (SIGKILL, perl may
+  // trap SIGTERM) and report it through error/timeout. The TIMEOUT setting
+  // defaults to MAX_TIME + 60 so it always outlives nikto's own budget.
+  const MAX_TIME = parseInt(process.env.MAX_TIME || "600", 10);
+  const hard_timeout = parseInt(
+    process.env.TIMEOUT || String(MAX_TIME + 60),
+    10,
+  );
   try {
     execSync(`./nikto/program/nikto.pl -h ${hostname} -config ./nikto.conf`, {
       stdio: "inherit",
+      timeout: hard_timeout * 1000,
+      killSignal: "SIGKILL",
     });
   } catch (e) {
+    if (e.status === null && e.signal === "SIGKILL") {
+      return [
+        [
+          ["error/timeout"],
+          `nikto timed out for ${hostname} after ${hard_timeout} seconds; no partial results were collected`,
+        ],
+      ];
+    }
     throw new Error(
       "Something went wrong running the nikto command.\n" +
         e +

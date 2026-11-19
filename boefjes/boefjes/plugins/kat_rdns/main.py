@@ -14,6 +14,9 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     # enable EDE to get the ServFail return values if the server supports it # codespell-ignore
     resolver.use_edns(options=[EDEOption(15)])
     resolver.nameservers = [getenv("REMOTE_NS", "1.1.1.1")]
+    # Can be overridden through the plugin settings, see schema.json.
+    resolver.timeout = float(getenv("DNS_TIMEOUT", "5"))
+    resolver.lifetime = float(getenv("DNS_LIFETIME", "30"))
     reverse_ip = dns.reversename.from_address(ip)
     try:
         answer: Answer = resolver.resolve(reverse_ip, "PTR")
@@ -33,5 +36,9 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
                     return [(set(), "NoAuthServersReachable:" + ede_error.text)]
                     # returned when the resolver indicates a Lame delegation.
         return [(set(), "NoAnswer")]
-    except (dns.resolver.Timeout, dns.resolver.NoAnswer):
+    except dns.resolver.Timeout:
+        # The resolver did not answer in time: report a timeout instead of
+        # pretending there is no PTR record.
+        return [({"error/timeout"}, f"Reverse lookup for {ip} timed out")]
+    except dns.resolver.NoAnswer:
         return [(set(), "NoAnswer")]
