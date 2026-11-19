@@ -34,7 +34,7 @@ SSH_TIMEOUT = 30
 # - "timed out" wording is a TIMEOUT (rerunnable task state);
 # - other network-failure wording (refused, unreachable, ...) is INCONCLUSIVE:
 #   the key was never tested, so it is error/boefje — not a rejection, not a
-#   timeout (per review M2: only genuine timeouts get the TIMEOUT state);
+#   timeout (only genuine timeouts get the rerunnable TIMEOUT state);
 # - anything else on exit 255 ("Permission denied") is a definitive rejection.
 CONNECTION_TIMEOUT_MARKERS = ("connection timed out", "timed out")
 CONNECTION_FAILURE_MARKERS = (

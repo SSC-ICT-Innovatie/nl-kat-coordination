@@ -39,7 +39,7 @@ def get_parent_zone_soa(name: Name) -> Answer:
     # nameserver and timeouts are configurable like in the other DNS boefjes.
     # The system resolver (/etc/resolv.conf) is kept as-is unless REMOTE_NS
     # is configured: installs behind an internal resolver or with restricted
-    # DNS egress must keep working (per review M3).
+    # DNS egress must keep working.
     resolver = dns.resolver.Resolver()
     # https://dnspython.readthedocs.io/en/stable/_modules/dns/edns.html
     resolver.use_edns(options=[EDEOption(15)])

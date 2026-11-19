@@ -80,15 +80,15 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         except dns.resolver.Timeout:
             pass
 
-    # outcome per scan-subject record type: "answer", "noanswer", "nxdomain"
-    # or "timeout". A foreign-owner SOA (CNAME follow) belongs to another zone
-    # and is not conclusive evidence for this hostname.
+    # outcome per scan-subject record type: "answer", "noanswer", "nxdomain",
+    # "timeout" or "foreign". A foreign-owner SOA (CNAME follow) belongs to
+    # another zone and is not conclusive evidence for this hostname.
     outcomes: dict[str, str] = {}
     for type_ in record_types:
         try:
             answer: Answer = resolver.resolve(hostname, type_)
             if type_ == "SOA" and (answer.rrset is None or answer.rrset.name != requested_dns_name):
-                outcomes[type_] = "timeout"  # inconclusive for this hostname
+                outcomes[type_] = "foreign"  # inconclusive for this hostname
                 continue
             outcomes[type_] = "answer"
             answers.append(answer)
@@ -102,8 +102,12 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
             return [(set(), "NXDOMAIN")]
 
     # Vacuously true when record_types is empty, so an all-timeout of the
-    # email-security lookups below can still produce error/timeout.
-    all_record_queries_inconclusive = all(outcome == "timeout" for outcome in outcomes.values())
+    # email-security lookups below can still produce error/timeout. A
+    # "foreign" outcome is inconclusive for this hostname like a timeout, but
+    # it does prove the resolver answered; only a scan that is inconclusive
+    # for *every* scan-subject type reaches the gate below, where the
+    # email-security lookups still get the final say.
+    all_record_queries_inconclusive = all(o in ("timeout", "foreign") for o in outcomes.values())
 
     answers_formatted = [f"RESOLVER: {answer.nameserver}\n{answer.response}" for answer in answers]
 
@@ -112,11 +116,11 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
         "dmarc_response": get_email_security_records(resolver, hostname, "_dmarc"),
         "dkim_response": get_email_security_records(resolver, hostname, "_domainkey"),
         # Per-type outcome of every scan-subject query: "answer", "noanswer",
-        # "nxdomain" or "timeout". A missing record is only meaningful when
-        # its query actually got an answer: downstream absence checks (SPF,
-        # DMARC, CAA) must not fire off a timeout. The normalizer currently
-        # ignores this key; it is carried in the raw so they can start
-        # consulting it without another raw-format change.
+        # "nxdomain", "timeout" or "foreign". A missing record is only
+        # meaningful when its query actually got an answer: downstream
+        # absence checks (SPF, DMARC, CAA) must not fire off a timeout. The
+        # normalizer currently ignores this key; it is carried in the raw so
+        # they can start consulting it without another raw-format change.
         "record_outcomes": outcomes,
     }
     # All-or-nothing: only report a scan-wide timeout when nothing at all was

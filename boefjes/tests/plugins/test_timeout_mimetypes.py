@@ -290,7 +290,6 @@ def test_security_txt_downloader_timeout_returns_timeout_mimetype(mocker):
     mime_types, message = main.run(boefje_meta)[0]
 
     assert mime_types == {"error/timeout"}
-    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
@@ -308,40 +307,29 @@ def test_security_txt_downloader_request_uses_configured_timeout(mocker, monkeyp
 
 
 def test_security_txt_streamed_read_timeout_is_not_a_connection_error(mocker):
-    """requests wraps a streamed-body read
-    timeout (urllib3 ReadTimeoutError) in a plain ConnectionError. The
-    redirect-following path reads .content from a stream=True response, so the
-    handler must classify that wrapped exception as a timeout — while a genuine
-    connection error still raises."""
+    """requests wraps a streamed-body read timeout (urllib3 ReadTimeoutError) in a
+    plain ConnectionError. The redirect-following path reads .content from a
+    stream=True response, so the handler must classify that wrapped exception as
+    a timeout. No real network: both the forced-IP request and the redirect
+    request are mocked."""
     main = _main("kat_security_txt_downloader")
 
-    # First path: 200 with content. Second path: 301 redirect; the follow-up
-    # request succeeds but reading the streamed body times out.
-    first = mocker.Mock(status_code=200)
-    first.content = b"contact: mailto:security@example.com\n"
-
     redirect = mocker.Mock(status_code=301, headers={"Location": "https://other.example.com/x"})
-    redirect.raw._connection = None
+    followed = mocker.Mock(status_code=200, url="https://other.example.com/x")
+    followed.raw._connection = None
+    cause = type("ReadTimeoutError", (Exception,), {})("Read timed out. (read timeout=45)")
+    error = requests.exceptions.ConnectionError("wrapped")
+    error.__cause__ = cause
+    type(followed).content = mocker.PropertyMock(side_effect=error)
 
-    def fake_get(uri, **kwargs):
-        # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
-        if uri.startswith("https://other.example.com"):
-            response = redirect
-            # Simulate: response.content raises the wrapped urllib3 timeout.
-            cause = type("ReadTimeoutError", (Exception,), {})("Read timed out. (read timeout=45)")
-            error = requests.exceptions.ConnectionError("wrapped")
-            error.__cause__ = cause
-            mocker.patch.object(type(response), "content", property(lambda self: (_ for _ in ()).throw(error)))
-            return response
-        return first
-
-    mocker.patch.object(main.requests, "get", side_effect=fake_get)
+    mocker.patch.object(main, "do_request", return_value=redirect)
+    get = mocker.patch.object(main.requests, "get", return_value=followed)
 
     mime_types, message = main.run({"arguments": {"input": input_website}})[0]
 
     assert mime_types == {"error/timeout"}
-    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
-    assert "example.com" in message
+    assert message == "Requesting security.txt timed out for example.com: ConnectionError"
+    assert get.call_args.args[0] == "https://other.example.com/x"
 
 
 def test_security_txt_connection_error_is_not_a_timeout(mocker):
@@ -446,8 +434,8 @@ def test_shodan_body_read_timeout_returns_timeout_mimetype(mocker):
         # Exactly what shodan's client produces for a body-phase failure:
         # the urllib3 timeout wrapped in ConnectionError, re-raised as a
         # generic APIError with implicit context chaining (raise, NOT
-        # raise ... from None: the client does not suppress __context__,
-        # and _is_wrapped_timeout honours suppression per review L2).
+        # raise ... from None: the client does not suppress __context__, and
+        # _is_wrapped_timeout honours that suppression).
         read_error = requests.exceptions.ConnectionError("wrapped")
         read_error.__cause__ = type("ReadTimeoutError", (Exception,), {})("Read timed out. (read timeout=30)")
         try:
@@ -534,19 +522,6 @@ def test_shodan_no_global_socket_timeout():
         assert "setdefaulttimeout" not in source, name
 
 
-def test_binaryedge_is_unchanged_from_main():
-    """kat_binaryedge is scheduled for removal in #4500 (maintainer decision);
-    until then this PR must not change it."""
-    import subprocess
-
-    diff = subprocess.run(
-        ["git", "diff", "origin/main", "HEAD", "--", "boefjes/plugins/kat_binaryedge"],
-        capture_output=True,
-        cwd=Path(__file__).resolve().parents[2],
-    )
-    assert diff.stdout == b"", diff.stdout.decode()
-
-
 def test_rdns_timeout_returns_timeout_mimetype(mocker):
     main = _main("kat_rdns")
 
@@ -598,7 +573,7 @@ def test_dns_zone_resolver_settings_applied(mocker):
 def test_dns_zone_keeps_system_resolver_when_remote_ns_unset(mocker, monkeypatch):
     """Without REMOTE_NS the resolver keeps /etc/resolv.conf's nameservers:
     installs behind an internal resolver or with restricted DNS egress must
-    keep working (per review M3)."""
+    keep working."""
     main = _main("kat_dns_zone")
     seen = {}
 
@@ -856,12 +831,10 @@ def test_adr_validator_timeout_returns_timeout_mimetype(mocker):
     )
 
     mime_types, message = main.run(
-        # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
         {"arguments": {"input": {"api_url": {"netloc": {"name": "example.com"}, "path": "", "scheme": "https"}}}}
     )[0]
 
     assert mime_types == {"error/timeout"}
-    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
@@ -873,7 +846,6 @@ def test_subfinder_timeout_returns_timeout_mimetype(mocker):
     mime_types, message = main.run({"arguments": {"input": {"hostname": {"name": "example.com"}}}})[0]
 
     assert mime_types == {"error/timeout"}
-    # codeql[py/incomplete-url-substring-sanitization] (test fixture, not a URL check)
     assert "example.com" in message
 
 
@@ -982,8 +954,8 @@ def test_cve_2023_34039_connection_refused_is_inconclusive_not_timeout(mocker, t
     """'Connection refused' is a network
     failure (inconclusive): the key was never tested, so it prevents the
     definitive negative — but it is not a timeout and must not claim the
-    rerunnable TIMEOUT state (per review M2: refused connections are answered
-    decisively, unlike a blackhole)."""
+    rerunnable TIMEOUT state: refused connections are answered decisively,
+    unlike a blackhole."""
     main = _main("kat_cve_2023_34039")
 
     (tmp_path / "k1").touch()
@@ -1180,7 +1152,7 @@ def test_timeout_settings_reject_non_positive_values():
     """A timeout strictly below its schema minimum must be rejected. Note 0 is
     deliberately still valid where minimum is 0 (e.g. kat_dns_version):
     rejecting it would break orgs that stored TIMEOUT=0 before the minimum
-    existed (per review L4)."""
+    existed."""
     for name, schema in _schemas():
         for key, property_schema in schema.get("properties", {}).items():
             if "TIMEOUT" not in key or "minimum" not in property_schema:
