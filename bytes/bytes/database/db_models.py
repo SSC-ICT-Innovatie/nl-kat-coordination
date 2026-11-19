@@ -44,6 +44,8 @@ class RawFileInDB(SQL_BASE):
 
     id = Column(UUID, primary_key=True)
 
+    name = Column(String(length=1024), nullable=True)
+
     secure_hash = Column(String(length=256), nullable=True)
     hash_retrieval_link = Column(String(length=2048), nullable=True)
 

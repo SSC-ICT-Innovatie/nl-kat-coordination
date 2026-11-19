@@ -247,14 +247,27 @@ def delete_object(
 
 @router.delete("/origins", tags=["Origins"])
 def delete_origin(
-    origin_id: str,
     octopoes: OctopoesService = Depends(octopoes_service),
     valid_time: datetime = Depends(extract_valid_time),
+    origin_id: str | None = None,
+    source: Reference | None = Query(None),
+    source_method: str | None = None,
     sync: bool = False,
-) -> None:
-    origin = octopoes.origin_repository.get(origin_id, valid_time)
-    octopoes.origin_repository.delete(origin, valid_time)
-    octopoes.commit(sync=sync)
+) -> int | None:
+    if origin_id:
+        origin = octopoes.origin_repository.get(origin_id, valid_time)
+        octopoes.origin_repository.delete(origin, valid_time)
+        octopoes.commit(sync=sync)
+        return None
+
+    if source and source_method:
+        deleted = octopoes.delete_origins(valid_time, source=source, source_method=source_method)
+        octopoes.commit(sync=sync)
+        return deleted
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST, detail="Provide origin_id or both source and source_method"
+    )
 
 
 @router.post("/objects/delete_many", tags=["Objects"])
@@ -289,6 +302,7 @@ def list_origins(
     offset: int = 0,
     limit: int | None = None,
     source: Reference | None = Query(None),
+    source_method: str | None = Query(None),
     result: Reference | None = Query(None),
     method: str | list[str] | None = Query(None),
     task_id: uuid.UUID | None = Query(None),
@@ -300,6 +314,7 @@ def list_origins(
         offset=offset,
         limit=limit,
         source=source,
+        source_method=source_method,
         result=result,
         method=method,
         origin_type=origin_type,
@@ -324,6 +339,7 @@ def save_observation(
         method=observation.method,
         source=observation.source,
         source_method=observation.source_method,
+        raw_file=observation.raw_file,
         result=[ooi.reference for ooi in observation.result],
         task_id=observation.task_id,
     )

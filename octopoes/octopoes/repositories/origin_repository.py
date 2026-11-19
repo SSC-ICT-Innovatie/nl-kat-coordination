@@ -35,6 +35,7 @@ class OriginRepository(Repository):
         offset: int = 0,
         limit: int | None = None,
         source: Reference | None = None,
+        source_method: str | None = None,
         result: Reference | None = None,
         method: str | list[str] | None = None,
         origin_type: OriginType | list[OriginType] | set[OriginType] | None = None,
@@ -75,6 +76,7 @@ class XTDBOriginRepository(OriginRepository):
         offset: int = 0,
         limit: int | None = None,
         source: Reference | None = None,
+        source_method: str | None = None,
         result: Reference | None = None,
         method: str | list[str] | None = None,
         origin_type: OriginType | list[OriginType] | set[OriginType] | None = None,
@@ -86,6 +88,9 @@ class XTDBOriginRepository(OriginRepository):
 
         if source:
             where_parameters["source"] = str(source)
+
+        if source_method:
+            where_parameters["source_method"] = source_method
 
         if result:
             where_parameters["result"] = str(result)

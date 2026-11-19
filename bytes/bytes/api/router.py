@@ -193,7 +193,9 @@ async def create_raw(
 
         try:
             meta = meta_repository.get_boefje_meta_by_id(boefje_meta_id)
-            raw_data = RawData(value=b64decode(raw.content.encode()), boefje_meta=meta, mime_types=parsed_mime_types)
+            raw_data = RawData(
+                value=b64decode(raw.content.encode()), boefje_meta=meta, mime_types=parsed_mime_types, name=raw.name
+            )
 
             with meta_repository:
                 raw_id = meta_repository.save_raw(raw_data)
@@ -203,7 +205,12 @@ async def create_raw(
 
             event = RawFileReceived(
                 organization=meta.organization,
-                raw_data=RawDataMeta(id=raw_id, boefje_meta=raw_data.boefje_meta, mime_types=raw_data.mime_types),
+                raw_data=RawDataMeta(
+                    id=raw_id,
+                    boefje_meta=raw_data.boefje_meta,
+                    mime_types=raw_data.mime_types,
+                    name=raw_data.name,
+                ),
             )
             await event_manager.publish(event)
         except Exception as error:
@@ -297,7 +304,11 @@ def get_raws(
     return BoefjeOutput(
         status=status,
         files=[
-            File(name=str(raw_id), content=b64encode(raw.value).decode(), tags=[m.value for m in raw.mime_types])
+            File(
+                name=raw.name or str(raw_id),
+                content=b64encode(raw.value).decode(),
+                tags=[m.value for m in raw.mime_types],
+            )
             for raw_id, raw in raws
         ],
     )

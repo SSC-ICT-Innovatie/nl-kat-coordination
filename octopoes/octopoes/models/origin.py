@@ -20,6 +20,7 @@ class Origin(BaseModel):
     method: str
     source: Reference
     source_method: str | None = None  # None for bits and normalizers
+    raw_file: str | None = None  # Name of the raw file the method consumed, if applicable
     result: list[Reference] = Field(default_factory=list)
     task_id: UUID | None = None
 
@@ -31,12 +32,13 @@ class Origin(BaseModel):
 
     @property
     def id(self) -> str:
+        parts = [self.__class__.__name__, self.origin_type.value, self.method]
         if self.source_method is not None:
-            return (
-                f"{self.__class__.__name__}|{self.origin_type.value}|{self.method}|{self.source_method}|{self.source}"
-            )
-
-        return f"{self.__class__.__name__}|{self.origin_type.value}|{self.method}|{self.source}"
+            parts.append(self.source_method)
+        if self.raw_file is not None:
+            parts.append(self.raw_file)
+        parts.append(str(self.source))
+        return "|".join(parts)
 
     def __eq__(self, other):
         if isinstance(other, Origin):
@@ -44,6 +46,7 @@ class Origin(BaseModel):
                 self.origin_type == other.origin_type
                 and self.method == other.method
                 and self.source_method == other.source_method
+                and self.raw_file == other.raw_file
                 and self.source == other.source
                 and set(self.result) == set(other.result)
             )
