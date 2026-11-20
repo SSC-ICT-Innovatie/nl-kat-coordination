@@ -1,8 +1,10 @@
 from io import BytesIO
 
 import pytest
+from httpx import HTTPError
 from pytest_django.asserts import assertContains
 
+from octopoes.connector import RemoteException
 from rocky.views.upload_csv import UploadCSV
 from tests.conftest import setup_request
 
@@ -156,3 +158,28 @@ FE80:CD00:0000:0CDE:1257:0000:211E:729C,internet"""
 
     messages = list(request._messages)
     assert "successfully added" in messages[0].message
+
+
+@pytest.mark.parametrize("error", [HTTPError("boom"), RemoteException(value="boom")])
+def test_upload_csv_connector_error(rf, redteam_member, mock_organization_view_octopoes, mock_bytes_client, error):
+    """A failing Octopoes API surfaces as a friendly message, not a 500.
+
+    The connector raises RemoteException (a ConnectorException subclass)
+    on 5xx responses and DecodeException on malformed responses;
+    HTTPError only covers transport errors.
+    """
+    example_file = BytesIO(b"name\nexample.com")
+    example_file.name = "Hostname.csv"
+
+    mock_organization_view_octopoes().save_many_declarations.side_effect = error
+
+    request = setup_request(
+        rf.post("upload_csv", {"object_type": "Hostname", "csv_file": example_file}), redteam_member.user
+    )
+    response = UploadCSV.as_view()(request, organization_code=redteam_member.organization.code)
+
+    assert response.status_code == 302
+    messages = list(request._messages)
+    # Note: process_csv adds its success message before saving, so the
+    # error is appended after it (pre-existing ordering quirk).
+    assert "Failed to save data from the CSV" in [message.message for message in messages]
