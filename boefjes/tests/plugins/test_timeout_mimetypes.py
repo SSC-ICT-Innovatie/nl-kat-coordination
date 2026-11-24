@@ -672,124 +672,29 @@ def test_dns_resolver_timeout_settings_applied(mocker):
     assert captured == {"timeout": 7.5, "lifetime": 60.0}
 
 
-def test_dns_soa_metadata_timeout_does_not_gate_the_scan(mocker):
-    """A parent-zone SOA timeout is
-    metadata, not scan subject — it must not abort the scan while the record
-    lookups would succeed."""
+def test_dns_soa_walk_timeout_reports_timeout(mocker):
+    """On main a timeout while walking the parent zones propagates out of
+    run() and fails the task; here it must surface as error/timeout so the
+    task ends rerunnable TIMEOUT instead of FAILED."""
     main = _main("kat_dns")
 
-    def fake_resolve(self, name, record_type, **kwargs):
-        # Only record-type queries reach this fake; the SOA metadata walk is
-        # patched separately (fake_soa_walk) and raises Timeout.
-        response = mocker.Mock()
-        return mocker.MagicMock(nameserver="1.1.1.1", response=response, rrset=mocker.Mock())
+    def fake_soa_walk(*args, **kwargs):
+        raise main.dns.resolver.Timeout("timed out")
 
     resolve_calls = []
-
-    def fake_soa_walk(*args, **kwargs):
-        resolve_calls.append("soa")
-        raise main.dns.resolver.Timeout("timed out")
 
     def fake_record_resolve(self, name, record_type, **kwargs):
         resolve_calls.append(str(record_type))
         raise main.dns.resolver.NoAnswer
 
-    # get_parent_zone_soa times out; the record queries answer definitively.
     mocker.patch.object(main, "get_record_types", lambda: {"SOA", "TXT"})
     mocker.patch.object(main, "get_parent_zone_soa", side_effect=fake_soa_walk)
     mocker.patch.object(main.dns.resolver.Resolver, "resolve", fake_record_resolve)
-    mocker.patch.object(main, "get_email_security_records", lambda *args: "NXDOMAIN")
 
-    mime_types, raw = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
-
-    # Scan completed — no error/timeout — and the record queries ran.
-    assert mime_types == set()
-    assert resolve_calls.count("soa") == 1
-    assert "TXT" in resolve_calls
-    result = json.loads(raw)
-    assert result["dmarc_response"] == "NXDOMAIN"
-
-
-def test_dns_soa_metadata_success_does_not_mask_record_timeouts(mocker):
-    """A successful parent-zone
-    SOA (metadata) must not prevent the scan-wide timeout when every
-    scan-subject record query timed out."""
-    main = _main("kat_dns")
-
-    def fake_soa_walk(*args, **kwargs):
-        answer = mocker.MagicMock()
-        answer.nameserver = "1.1.1.1"
-        answer.response = mocker.MagicMock()
-        return answer
-
-    mocker.patch.object(main, "get_record_types", lambda: ["SOA", "A", "AAAA"])
-    mocker.patch.object(main, "get_parent_zone_soa", side_effect=fake_soa_walk)
-    mocker.patch.object(main.dns.resolver.Resolver, "resolve", side_effect=main.dns.resolver.Timeout("timed out"))
-    mocker.patch.object(main, "get_email_security_records", lambda *args: "Timeout")
-
-    mime_types, _ = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
+    mime_types, message = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
 
     assert mime_types == {"error/timeout"}
-
-
-def test_dns_foreign_owner_soa_is_not_definitive_evidence(mocker):
-    """A foreign-owner SOA
-    (CNAME follow) is not a definitive answer for this hostname and must not
-    stop the scan-wide timeout."""
-    main = _main("kat_dns")
-
-    def fake_soa_walk(*args, **kwargs):
-        raise main.dns.resolver.Timeout("timed out")
-
-    def fake_resolve(self, name, record_type, **kwargs):
-        if record_type == "SOA":
-            answer = mocker.MagicMock()
-            answer.rrset = mocker.Mock()
-            answer.rrset.name = "alias.other.net."  # not the requested name
-            return answer
-        raise main.dns.resolver.Timeout("timed out")
-
-    mocker.patch.object(main, "get_record_types", lambda: ["SOA", "A", "AAAA"])  # SOA first
-    mocker.patch.object(main, "get_parent_zone_soa", side_effect=fake_soa_walk)
-    mocker.patch.object(main.dns.resolver.Resolver, "resolve", fake_resolve)
-    mocker.patch.object(main, "get_email_security_records", lambda *args: "Timeout")
-
-    mime_types, _ = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
-
-    assert mime_types == {"error/timeout"}
-
-
-def test_dns_mixed_noanswer_and_timeout_is_not_a_timeout(mocker):
-    """A definitive NoAnswer for one
-    record plus a timeout for another must not produce error/timeout — a
-    definitive negative is conclusive evidence."""
-    main = _main("kat_dns")
-
-    outcomes = iter(
-        [
-            main.dns.resolver.NoAnswer(),  # A
-            main.dns.resolver.Timeout("timed out"),  # AAAA
-        ]
-    )
-
-    def fake_resolve(self, name, record_type, **kwargs):
-        outcome = next(outcomes)
-        if isinstance(outcome, Exception):
-            raise outcome
-        return outcome
-
-    mocker.patch.object(main, "get_record_types", lambda: {"A", "AAAA"})
-    mocker.patch.object(main.dns.resolver.Resolver, "resolve", fake_resolve)
-    # DMARC and DKIM time out too — yet the scan is not a timeout, because the
-    # A query answered definitively.
-    mocker.patch.object(main, "get_email_security_records", side_effect=["Timeout", "Timeout"])
-
-    mime_types, raw = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
-
-    assert mime_types == set()
-    result = json.loads(raw)
-    assert result["dmarc_response"] == "Timeout"
-    assert result["dkim_response"] == "Timeout"
+    assert "timeouts" in message
 
 
 def test_dns_schema_uses_integer_seconds():
@@ -1353,10 +1258,9 @@ def test_nikto_hard_timeout_is_wired_through():
 
 
 def test_dns_no_record_types_with_email_timeouts_is_a_timeout(mocker):
-    """Edge case: with no configured record types there are no record queries,
-    so the outcomes ledger is empty. The all-timeout decision must not depend
-    on it being non-empty: the timed-out email-security lookups alone make the
-    scan inconclusive."""
+    """Edge case: with no configured record types there are no record queries
+    and no answers, so the timed-out email-security lookups alone make the
+    scan inconclusive — main raises on this, the PR reports error/timeout."""
     main = _main("kat_dns")
 
     mocker.patch.object(main, "get_record_types", lambda: set())
