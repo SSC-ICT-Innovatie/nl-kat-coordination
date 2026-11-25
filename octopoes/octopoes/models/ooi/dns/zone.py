@@ -47,7 +47,7 @@ class Hostname(OOI):
     network: Reference = ReferenceField(Network)
     name: Annotated[str, StringConstraints(to_lower=True)]
 
-    dns_zone: Reference | None = ReferenceField(DNSZone, max_issue_scan_level=1, max_inherit_scan_level=2, default=None)
+    dns_zone: Reference | None = ReferenceField(DNSZone, max_issue_scan_level=0, max_inherit_scan_level=2, default=None)
 
     registered_domain: Reference | None = ReferenceField(
         "Hostname", max_issue_scan_level=1, max_inherit_scan_level=2, default=None
