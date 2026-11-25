@@ -1,0 +1,11 @@
+RESOLVER: 1.1.1.1
+id 38032
+opcode QUERY
+rcode NOERROR
+flags QR RD RA
+;QUESTION
+1.2.0.192.in-addr.arpa. IN PTR
+;ANSWER
+1.2.0.192.in-addr.arpa. 86400 IN PTR example.com.
+;AUTHORITY
+;ADDITIONAL
