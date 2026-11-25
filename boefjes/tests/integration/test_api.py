@@ -26,7 +26,7 @@ def test_filter_plugins(test_client, organisation):
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins")
     assert len(response.json()) >= 100
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"plugin_type": "boefje"})
-    assert len(response.json()) > 10
+    assert len(response.json()) >= 20
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"state": "true"})
     assert len(response.json()) > 10
     response = test_client.get(f"/v1/organisations/{organisation.id}/plugins", params={"limit": 10})

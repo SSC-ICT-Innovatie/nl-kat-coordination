@@ -1,0 +1,9 @@
+{
+  "id": "CVE-2024-45519",
+  "name": "CVE-2024-45519 - Zimbra remote code execution",
+  "description": "CVE-2024-45519 is a remote command injection vulnerability in Zimbra’s postjournal service, a component responsible for handling SMTP messages. This vulnerability allows attackers to execute arbitrary commands on vulnerable servers by exploiting the improper handling of user input. Critically, it requires no authentication, meaning that anyone with network access to the service could exploit it. Once exploited, an attacker could gain full control over the Zimbra server, leading to data theft, system compromise, and potential lateral movement within the target network.",
+  "consumes": [
+    "IPService"
+  ],
+  "scan_level": 4
+}
