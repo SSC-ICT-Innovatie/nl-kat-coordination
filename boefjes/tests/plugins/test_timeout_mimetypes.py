@@ -610,18 +610,46 @@ def test_dns_all_timeouts_returns_timeout_mimetype(mocker):
     mime_types, message = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
 
     assert mime_types == {"error/timeout"}
-    assert "timeouts" in message
+    assert "timed out" in message
 
 
-def test_dns_partial_timeout_is_not_a_scan_timeout(mocker):
-    """A definitive answer for some queries
-    plus timeouts elsewhere must not be reported as a scan-wide timeout, nor
-    discard the successful answers."""
+def test_dns_partial_timeout_reports_timeout_without_output(mocker):
+    """A timeout on one record type while others answer must discard the
+    whole scan: forwarding a partial result would garbage-collect records
+    that merely timed out, because the normalizer treats records missing
+    from the output as gone."""
     main = _main("kat_dns")
 
-    # Main record queries time out, but the email security lookups succeed.
+    outcomes = iter(
+        [
+            mocker.MagicMock(nameserver="1.1.1.1", response=mocker.Mock(), rrset=mocker.Mock()),  # A answers
+            main.dns.resolver.Timeout("timed out"),  # AAAA times out
+        ]
+    )
+
+    def fake_resolve(self, name, record_type, **kwargs):
+        outcome = next(outcomes)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    mocker.patch.object(main, "get_record_types", lambda: {"A", "AAAA"})
+    mocker.patch.object(main.dns.resolver.Resolver, "resolve", fake_resolve)
+    mocker.patch.object(main, "get_email_security_records", lambda *args: "NXDOMAIN")
+
+    mime_types, message = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
+
+    assert mime_types == {"error/timeout"}
+    assert "timed out" in message
+
+
+def test_dns_definitive_noanswer_is_forwarded(mocker):
+    """A definitive NoAnswer from the nameserver is a conclusive negative,
+    not a timeout: the scan completes and is forwarded as usual."""
+    main = _main("kat_dns")
+
     mocker.patch.object(main, "get_record_types", lambda: {"TXT"})
-    mocker.patch.object(main.dns.resolver.Resolver, "resolve", side_effect=main.dns.resolver.Timeout("timed out"))
+    mocker.patch.object(main.dns.resolver.Resolver, "resolve", side_effect=main.dns.resolver.NoAnswer)
     mocker.patch.object(main, "get_email_security_records", side_effect=["NXDOMAIN", "NXDOMAIN"])
 
     mime_types, raw = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
@@ -632,23 +660,23 @@ def test_dns_partial_timeout_is_not_a_scan_timeout(mocker):
     assert result["dkim_response"] == "NXDOMAIN"
 
 
-def test_dns_definitive_noanswer_with_timeout_lookups_is_not_a_timeout(mocker):
-    """The duplicated dmarc condition used to
-    report error/timeout even though DMARC answered definitively."""
+def test_dns_email_security_timeout_is_not_forwarded(mocker):
+    """Even with records in hand, a timed-out DMARC or DKIM lookup makes the
+    result incomplete: nothing is forwarded, so absence-derived findings
+    (KAT-NO-SPF, KAT-NO-DMARC) cannot fire off a timeout."""
     main = _main("kat_dns")
 
-    # No SOA requested; the record queries answer definitively with no answer.
-    mocker.patch.object(main, "get_record_types", lambda: {"TXT"})
-    mocker.patch.object(main.dns.resolver.Resolver, "resolve", side_effect=main.dns.resolver.NoAnswer)
-    # DMARC answers "no answer", DKIM times out: still a partial result.
+    def fake_resolve(self, name, record_type, **kwargs):
+        return mocker.MagicMock(nameserver="1.1.1.1", response=mocker.Mock(), rrset=mocker.Mock())
+
+    mocker.patch.object(main, "get_record_types", lambda: {"A"})
+    mocker.patch.object(main.dns.resolver.Resolver, "resolve", fake_resolve)
     mocker.patch.object(main, "get_email_security_records", side_effect=["NXDOMAIN", "Timeout"])
 
-    mime_types, raw = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
+    mime_types, message = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
 
-    assert mime_types == set()
-    result = json.loads(raw)
-    assert result["dmarc_response"] == "NXDOMAIN"
-    assert result["dkim_response"] == "Timeout"
+    assert mime_types == {"error/timeout"}
+    assert "timed out" in message
 
 
 def test_dns_resolver_timeout_settings_applied(mocker):
@@ -694,7 +722,7 @@ def test_dns_soa_walk_timeout_reports_timeout(mocker):
     mime_types, message = main.run({"arguments": {"input": {"name": "example.com"}}})[0]
 
     assert mime_types == {"error/timeout"}
-    assert "timeouts" in message
+    assert "timed out" in message
 
 
 def test_dns_schema_uses_integer_seconds():

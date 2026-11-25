@@ -29,10 +29,6 @@ DEFAULT_RECORD_TYPES = {
 }
 
 
-class TimeoutException(Exception):
-    pass
-
-
 class ZoneNotFoundException(Exception):
     pass
 
@@ -63,43 +59,49 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
 
     record_types = get_record_types()
 
-    answers_formatted = []
-    try:
-        # A timeout while walking the parent zones fails the scan on main
-        # (the exception used to propagate out of run()): report it through
-        # error/timeout instead, so the task ends rerunnable TIMEOUT instead
-        # of FAILED. No output either way, so scan semantics are unchanged.
-        answers = [get_parent_zone_soa(resolver, requested_dns_name)] if "SOA" in record_types else []
+    # Any timeout discards the whole scan: forwarding a partial result would
+    # garbage-collect records that merely timed out, because the normalizer
+    # treats records missing from the output as gone. A timeout therefore
+    # yields no output at all and the task ends in the rerunnable TIMEOUT
+    # state, so the data from the previous scan stays intact until the retry.
+    def timed_out() -> list[tuple[set[str], bytes | str]]:
+        return [
+            ({"error/timeout"}, f"DNS queries for {hostname} timed out; nothing reported, the scan will be retried.")
+        ]
 
-        for type_ in record_types:
-            try:
-                answer: Answer = resolver.resolve(hostname, type_)
-                # An SOA lookup can follow a CNAME into a different DNS zone.
-                # Only treat a directly-owned SOA as a record for this hostname.
-                if type_ == "SOA" and (answer.rrset is None or answer.rrset.name != requested_dns_name):
-                    continue
-                answers.append(answer)
-            except (dns.resolver.NoAnswer, dns.resolver.Timeout):
-                pass
-            except dns.resolver.NXDOMAIN:
-                return [(set(), "NXDOMAIN")]
+    answers: list[Answer] = []
+    if "SOA" in record_types:
+        try:
+            answers.append(get_parent_zone_soa(resolver, requested_dns_name))
+        except dns.resolver.Timeout:
+            return timed_out()
 
-        answers_formatted = [f"RESOLVER: {answer.nameserver}\n{answer.response}" for answer in answers]
+    for type_ in record_types:
+        try:
+            answer: Answer = resolver.resolve(hostname, type_)
+            # An SOA lookup can follow a CNAME into a different DNS zone.
+            # Only treat a directly-owned SOA as a record for this hostname.
+            if type_ == "SOA" and (answer.rrset is None or answer.rrset.name != requested_dns_name):
+                continue
+            answers.append(answer)
+        except dns.resolver.Timeout:
+            return timed_out()
+        except dns.resolver.NoAnswer:
+            pass
+        except dns.resolver.NXDOMAIN:
+            return [(set(), "NXDOMAIN")]
 
-        results = {
-            "dns_records": "\n\n".join(answers_formatted),
-            "dmarc_response": get_email_security_records(resolver, hostname, "_dmarc"),
-            "dkim_response": get_email_security_records(resolver, hostname, "_domainkey"),
-        }
-    except dns.resolver.Timeout:
-        return [({"error/timeout"}, "No answers from DNS-Server due to timeouts.")]
+    dmarc_response = get_email_security_records(resolver, hostname, "_dmarc")
+    dkim_response = get_email_security_records(resolver, hostname, "_domainkey")
+    if dmarc_response == "Timeout" or dkim_response == "Timeout":
+        return timed_out()
 
-    # Same condition main raises TimeoutException on, kept verbatim (including
-    # the duplicated dmarc check) so scan semantics are unchanged; only the
-    # reporting differs: error/timeout ends the task in the rerunnable TIMEOUT
-    # state instead of a FAILED traceback.
-    if not answers_formatted and results["dmarc_response"] == "Timeout" and results["dmarc_response"] == "Timeout":
-        return [({"error/timeout"}, "No answers from DNS-Server due to timeouts.")]
+    answers_formatted = [f"RESOLVER: {answer.nameserver}\n{answer.response}" for answer in answers]
+    results = {
+        "dns_records": "\n\n".join(answers_formatted),
+        "dmarc_response": dmarc_response,
+        "dkim_response": dkim_response,
+    }
     return [(set(), json.dumps(results))]
 
 
