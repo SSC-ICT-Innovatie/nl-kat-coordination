@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$id": "/bit/check-csp-policy",
+  "type": "object",
+  "default": {},
+  "Content Security Policy Configuration": "Root Schema",
+  "required": [],
+  "properties": {
+    "required_directives": {
+      "description": "Comma separated list of CSP directives that must be present in every policy",
+      "type": "string",
+      "default": "base-uri,frame-ancestors,default-src"
+    },
+    "deprecated_directives": {
+      "description": "Comma separated list of CSP directives that are reported as deprecated when present",
+      "type": "string",
+      "default": "block-all-mixed-content,prefetch-src,report-uri"
+    },
+    "forbidden_keywords": {
+      "description": "Comma separated list of CSP source keywords that are not accepted (without quotes)",
+      "type": "string",
+      "default": "unsafe-inline,unsafe-eval,unsafe-hashes"
+    },
+    "allowed_hosts": {
+      "description": "Comma separated allowlist of hosts that are accepted as CSP sources, e.g. cdn.example.com,*.trusted.example. Any other host in a policy is reported. Leave empty to accept every host.",
+      "type": "string",
+      "default": ""
+    }
+  }
+}

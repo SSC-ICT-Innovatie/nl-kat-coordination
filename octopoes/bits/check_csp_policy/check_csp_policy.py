@@ -42,6 +42,37 @@ def _is_host_wildcard(source: str) -> bool:
     return source == "*" or source.startswith("*.") or "://*" in source
 
 
+def _source_host(source: str) -> str | None:
+    """The lowercased host part of a host-source, or None for anything that is not a host-source:
+    quoted keywords/nonces/hashes (`'self'`, `'nonce-…'`), bare scheme sources (`https:`, `data:`)."""
+
+
+    if source.startswith("'"):
+        return None
+    if source.endswith(":") and "//" not in source:
+        return None
+    host = source
+    if "://" in host:
+        host = host.split("://", 1)[1]
+    host = host.split("/", 1)[0]
+    if ":" in host:
+        host = host.split(":", 1)[0]
+    return host.lower() if host else None
+
+
+def _host_is_allowed(host: str, allowed_hosts: list[str]) -> bool:
+    """True when the host matches an allowlist entry: exact, or a `*.suffix` entry matching the bare
+    suffix and any subdomain of it."""
+    for entry in allowed_hosts:
+        entry = entry.lower()
+        if entry.startswith("*."):
+            if host == entry[2:] or host.endswith(entry[1:]):
+                return True
+        elif host == entry:
+            return True
+    return False
+
+
 def _ip_is_global(source: str) -> bool:
     """False when the source contains a non-global (private/loopback/reserved/…) IP; True otherwise."""
     ip_str = NON_DECIMAL_FILTER.sub("", source)
@@ -60,8 +91,9 @@ def run(input_ooi: HTTPResource, additional_oois: list, config: dict[str, Any]) 
     Consumes an HTTPResource plus its headers and the structured CSPDirective/CSPSource OOIs produced by
     the parse-csp bit, so every check is a plain set/string operation — no backtracking regex and no
     whole-string substring matching, unlike the retired check_csp_header bit. Like that bit it skips
-    non-XSS-capable resources. The required/deprecated directive lists and forbidden keywords are
-    overridable by a Config OOI on the Network; the defaults reproduce the previous checks.
+    non-XSS-capable resources. The required/deprecated directive lists, forbidden keywords and an
+    optional host allowlist are configurable by a Config OOI on the Network (the ask-csp-policy
+    question); the defaults reproduce the previous checks, with no allowlist enforced.
     """
     header_by_key = {ooi.key.lower(): ooi for ooi in additional_oois if isinstance(ooi, HTTPHeader)}
 
@@ -111,6 +143,22 @@ def run(input_ooi: HTTPResource, additional_oois: list, config: dict[str, Any]) 
         findings.append(f"Forbidden CSP source keyword(s) used: {', '.join(forbidden_used)}.")
     if any(not _ip_is_global(source) for source in all_sources):
         findings.append("Private, local, reserved, multicast, loopback ips should not be allowed in the CSP settings.")
+
+    # Host allowlist (only when configured): any host-source outside the allowlist is reported.
+    # Wildcard sources are left to the wildcard check above so they are not reported twice.
+    allowed_hosts = [entry.lower() for entry in _as_list(config, "allowed_hosts", [])]
+    if allowed_hosts:
+        disallowed = sorted(
+            {
+                host
+                for source in all_sources
+                if not _is_host_wildcard(source)
+                and (host := _source_host(source)) is not None
+                and not _host_is_allowed(host, allowed_hosts)
+            }
+        )
+        if disallowed:
+            findings.append(f"CSP source host(s) not in the configured allowlist: {', '.join(disallowed)}.")
 
     # Required directives, plus the two fallback groups.
     for directive in required:
