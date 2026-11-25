@@ -8,6 +8,7 @@ OOI_TYPE_CHOICES = [
     BLANK_CHOICE,
     ("URL", "URL"),
     ("Hostname", "Hostname"),
+    ("IPAddress", "IPAddress"),
     ("IPAddressV4", "IPAddressV4"),
     ("IPAddressV6", "IPAddressV6"),
 ]

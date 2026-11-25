@@ -13,8 +13,8 @@ if [ "$ID" != "debian" ]; then
 fi
 
 # Check Debian version
-if [ "$VERSION_ID" != "12" ]; then
-    echo "Only Debian version 12 is supported"
+if [ "$VERSION_ID" != "12" ] && [ "$VERSION_ID" != "13" ]; then
+    echo "Only Debian versions 12 and 13 are supported"
     exit 1
 fi
 
@@ -40,7 +40,7 @@ fi
 sudo apt-get -y update
 sudo apt-get -y install curl
 
-rm -f kat-*.deb kat-debian1[12]-*.tar.gz xtdb-*.deb
+rm -f kat-*.deb kat-debian1[123]-*.tar.gz xtdb-*.deb
 
 echo "Step 1 - Get latest release of OpenKAT"
 
@@ -87,6 +87,11 @@ sudo systemctl restart xtdb-http-multinode kat-rocky kat-mula kat-bytes kat-boef
 # Kat-rocky-worker service was introduced in OpenKAT 1.18
 if [ -f /usr/lib/systemd/system/kat-rocky-worker.service ]; then
     sudo systemctl restart kat-rocky-worker
+fi
+
+# Kat-octopoes-scanlevels service was introduced in OpenKAT 1.23
+if [ -f /usr/lib/systemd/system/kat-octopoes-scanlevels.service ]; then
+    sudo systemctl restart kat-octopoes-scanlevels
 fi
 
 echo "End of OpenKAT update script"

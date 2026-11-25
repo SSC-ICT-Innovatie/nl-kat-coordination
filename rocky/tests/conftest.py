@@ -4,7 +4,7 @@ import json
 import logging
 import uuid
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import IPv4Address, IPv6Address
 from os import urandom
 from pathlib import Path
@@ -82,7 +82,7 @@ def fixture_configure_structlog(log_output):
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 @pytest.fixture(params=LANG_LIST)
@@ -997,9 +997,10 @@ def query_data_tls_findings_and_suites(cipher):
             description="Fake description with cipher_suite_name ECDHE-RSA-AES128-SHA",
             finding_type=KATFindingType(id="KAT-RECOMMENDATION-TLS-CIPHER").reference,
         ),
+        # Newer findings store cipher evidence in `proof` instead of `description`.
         Finding(
             ooi=cipher.reference,
-            description="Fake description with cipher_suite_name ECDHE-RSA-AES256-SHA",
+            proof="Fake proof with cipher_suite_name ECDHE-RSA-AES256-SHA",
             finding_type=KATFindingType(id="KAT-MEDIUM-TLS-CIPHER").reference,
         ),
         Finding(

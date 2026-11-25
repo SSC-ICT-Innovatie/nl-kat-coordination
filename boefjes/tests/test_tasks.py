@@ -2,7 +2,7 @@ import base64
 import os
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from unittest import mock
 from uuid import UUID
@@ -41,8 +41,8 @@ sys.path.append(str(Path(__file__).parent))
 
 def test_parse_normalizer_meta_to_json():
     meta = NormalizerMeta.model_validate_json(get_dummy_data("snyk-normalizer.json"))
-    meta.started_at = datetime(2023, 10, 10, 10, tzinfo=timezone.utc)
-    meta.ended_at = datetime(2023, 10, 10, 12, tzinfo=timezone.utc)
+    meta.started_at = datetime(2023, 10, 10, 10, tzinfo=UTC)
+    meta.ended_at = datetime(2023, 10, 10, 12, tzinfo=UTC)
     results = meta.model_dump(mode="json")
 
     assert results["started_at"] == "2023-10-10T10:00:00Z"
@@ -90,6 +90,25 @@ def test_handle_boefje_with_exception(mocker):
     assert "RuntimeError: dummy error" in contents
     # default mime-types are added through the API
     assert set(raw_call_args[0][1].files[0].tags) == {"error/boefje", "boefje/dummy_boefje_runtime_exception"}
+
+
+def test_handle_boefje_with_timeout_returned_by_boefje(mocker):
+    """A boefje that catches its own timeout returns the error/timeout mime-type with a clean message. The run
+    does not raise, so the output is saved to Bytes, but the task should end up in the TIMEOUT state."""
+    mocker.patch("boefjes.clients.scheduler_client.get_environment_settings", return_value={})
+    mock_bytes_api_client = mocker.patch("boefjes.job_handler.bytes_api_client")
+
+    task = get_task(boefje_id="dummy_boefje_timeout")
+
+    output = LocalBoefjeHandler(LocalPluginRepository(Path(__file__).parent / "modules"), mock_bytes_api_client).handle(
+        task
+    )
+
+    assert output is not None
+    assert mock_bytes_api_client.save_output.call_args[0][1].status == StatusEnum.TIMEOUT
+    contents = base64.b64decode(output[1].files[0].content).decode()
+    assert contents == "Timed out after 30 seconds"
+    assert "error/timeout" in output[1].files[0].tags
 
 
 def test_exception_raised_unsupported_return_type_normalizer(mock_normalizer_runner):

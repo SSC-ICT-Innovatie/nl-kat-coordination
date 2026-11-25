@@ -1,3 +1,4 @@
+from django.template.loader import render_to_string
 from reports.report_types.tls_report.report import TLSReport
 
 
@@ -53,3 +54,19 @@ def test_tls_report_multiple_findings_and_suites(
     assert len(data["suites_with_findings"]) == 2
     assert data["suites_with_findings"][0] == "ECDHE-RSA-AES128-SHA"
     assert data["suites_with_findings"][1] == "ECDHE-RSA-AES256-SHA"
+
+
+def test_tls_report_template_renders_proof_and_legacy_description(
+    cipher, mock_octopoes_api_connector, valid_time, ip_service, query_data_tls_findings_and_suites
+):
+    mock_octopoes_api_connector.queries = {
+        "IPService.<ip_service[is TLSCipher]": {ip_service.reference: [cipher]},
+        "TLSCipher.<ooi[is Finding]": {cipher.reference: query_data_tls_findings_and_suites},
+    }
+
+    data = TLSReport(mock_octopoes_api_connector).generate_data(str(ip_service.reference), valid_time)
+    html = render_to_string(TLSReport.template_path, {"data": data})
+
+    # New cipher findings carry their reasoning in `proof`, stored legacy findings in `description`.
+    assert "Fake proof with cipher_suite_name ECDHE-RSA-AES256-SHA" in html
+    assert "Fake description with cipher_suite_name ECDHE-RSA-AES128-SHA" in html

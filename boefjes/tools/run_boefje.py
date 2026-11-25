@@ -5,7 +5,7 @@ import logging
 import pdb
 import sys
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -54,8 +54,8 @@ def run_boefje(start_pdb, organization_code, boefje_id, input_ooi):
         status=TaskStatus.RUNNING,
         type="boefje",
         data=meta,
-        created_at=meta.started_at or datetime.now(timezone.utc),
-        modified_at=meta.started_at or datetime.now(timezone.utc),
+        created_at=meta.started_at or datetime.now(UTC),
+        modified_at=meta.started_at or datetime.now(UTC),
     )
     try:
         result = handler.handle(task)

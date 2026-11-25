@@ -66,7 +66,7 @@
         </p>
         {% for finding in data.findings %}
             <h4>{{ finding.finding_type.tokenized.id }}</h4>
-            <p>{{ finding.description|linebreaks }}</p>
+            <p>{{ finding.proof|default:finding.description|linebreaks }}</p>
         {% endfor %}
     {% endif %}
 {% endfor %}

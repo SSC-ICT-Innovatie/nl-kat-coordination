@@ -1,7 +1,7 @@
 import os
 import traceback
 from base64 import b64encode
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from typing import Literal
 
 import structlog
@@ -13,6 +13,11 @@ from .repository import BoefjeResource, LocalPluginRepository, _default_mime_typ
 logger = structlog.get_logger(__name__)
 
 MIMETYPE_MIN_LENGTH = 5  # two chars before, and 2 chars after the slash ought to be reasonable
+
+# The error mime-type added to the raw output when a boefje crashed with an exception
+ERROR_MIMETYPE = "error/boefje"
+# Mime-type a boefje can return itself (with a human readable message as raw content) to signal it caught a timeout
+TIMEOUT_MIMETYPE = "error/timeout"
 
 
 class TemporaryEnvironment:
@@ -77,16 +82,16 @@ class LocalBoefjeHandler(BoefjeHandler):
             if not boefje_resource.module:
                 raise JobRuntimeError("No runnable module found")
 
-            boefje_meta.started_at = datetime.now(timezone.utc)
+            boefje_meta.started_at = datetime.now(UTC)
 
             with TemporaryEnvironment(boefje_meta.environment or {}):
                 boefje_results = boefje_resource.module.run(boefje_meta.model_dump())
 
-            boefje_meta.ended_at = datetime.now(timezone.utc)
+            boefje_meta.ended_at = datetime.now(UTC)
         except BaseException as e:
             logger.exception("Error running boefje %s[%s]", boefje_meta.boefje.id, str(boefje_meta.id))
-            boefje_meta.ended_at = datetime.now(timezone.utc)
-            boefje_results = [({"error/boefje"}, traceback.format_exc())]
+            boefje_meta.ended_at = datetime.now(UTC)
+            boefje_results = [({ERROR_MIMETYPE}, traceback.format_exc())]
             error = e
 
         logger.info("Saving to Bytes for boefje %s[%s]", boefje_meta.boefje.id, str(boefje_meta.id))
@@ -119,9 +124,19 @@ class LocalBoefjeHandler(BoefjeHandler):
                 )
             )
 
-        boefje_output = BoefjeOutput(
-            status=StatusEnum.FAILED if error is not None else StatusEnum.COMPLETED, files=files
-        )
+        # A boefje can signal it caught a timeout itself by returning raw output with the error/timeout mime-type.
+        # Such a run is not completed (its results may be incomplete), but the boefje can provide a clean message
+        # about what happened, so it is not treated as a hard failure either.
+        timed_out = any(TIMEOUT_MIMETYPE in (file.tags or ()) for file in files)
+
+        if error is not None:
+            status = StatusEnum.FAILED
+        elif timed_out:
+            status = StatusEnum.TIMEOUT
+        else:
+            status = StatusEnum.COMPLETED
+
+        boefje_output = BoefjeOutput(status=status, files=files)
         raw_file_ids = self.boefje_storage.save_output(boefje_meta, boefje_output)
 
         logger.info("Saved %s raw files for boefje %s[%s]", len(raw_file_ids), boefje_meta.boefje.id, boefje_meta.id)

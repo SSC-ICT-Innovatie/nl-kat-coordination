@@ -121,7 +121,7 @@ class SchedulerAPIClient(SchedulerClientInterface):
         if input_ooi:
             reference = Reference.from_str(input_ooi)
             try:
-                ooi = octopoes_api_connector.get(reference, valid_time=datetime.datetime.now(datetime.timezone.utc))
+                ooi = octopoes_api_connector.get(reference, valid_time=datetime.datetime.now(datetime.UTC))
                 boefje_meta.arguments["input"] = ooi.serialize()
             except ObjectNotFoundException:
                 logger.info(

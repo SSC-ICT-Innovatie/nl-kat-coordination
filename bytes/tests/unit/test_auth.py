@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import jwt
 from fastapi.testclient import TestClient
@@ -21,7 +21,7 @@ def test_login_get_token(test_client: TestClient) -> None:
     data = response.json()
     assert data["token_type"] == "bearer"
     assert authenticate_token(data["access_token"]) == "test"
-    assert datetime.fromisoformat(data["expires_at"]) > datetime.now(timezone.utc)
+    assert datetime.fromisoformat(data["expires_at"]) > datetime.now(UTC)
 
 
 def test_login_get_token_not_authorized(test_client: TestClient) -> None:
@@ -44,7 +44,7 @@ def test_protected_endpoint_with_malformed_token(test_client: TestClient) -> Non
 
 def test_protected_endpoint_with_expired_token(test_client: TestClient, settings: Settings) -> None:
     expired = jwt.encode(
-        {"sub": "test", "exp": datetime.now(timezone.utc) - timedelta(hours=1)}, settings.secret, algorithm=ALGORITHM
+        {"sub": "test", "exp": datetime.now(UTC) - timedelta(hours=1)}, settings.secret, algorithm=ALGORITHM
     )
     response = test_client.get(PROTECTED_PATH, headers={"Authorization": f"bearer {expired}"})
     assert response.status_code == 401
@@ -52,7 +52,7 @@ def test_protected_endpoint_with_expired_token(test_client: TestClient, settings
 
 def test_protected_endpoint_with_token_signed_by_wrong_secret(test_client: TestClient) -> None:
     forged = jwt.encode(
-        {"sub": "test", "exp": datetime.now(timezone.utc) + timedelta(minutes=5)},
+        {"sub": "test", "exp": datetime.now(UTC) + timedelta(minutes=5)},
         "definitely-not-the-real-secret",
         algorithm=ALGORITHM,
     )
@@ -61,8 +61,6 @@ def test_protected_endpoint_with_token_signed_by_wrong_secret(test_client: TestC
 
 
 def test_protected_endpoint_with_token_missing_sub_claim(test_client: TestClient, settings: Settings) -> None:
-    no_sub = jwt.encode(
-        {"exp": datetime.now(timezone.utc) + timedelta(minutes=5)}, settings.secret, algorithm=ALGORITHM
-    )
+    no_sub = jwt.encode({"exp": datetime.now(UTC) + timedelta(minutes=5)}, settings.secret, algorithm=ALGORITHM)
     response = test_client.get(PROTECTED_PATH, headers={"Authorization": f"bearer {no_sub}"})
     assert response.status_code == 401

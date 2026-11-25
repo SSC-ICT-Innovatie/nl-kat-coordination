@@ -1,0 +1,96 @@
+{% extends "layouts/base.html" %}
+
+{% load static %}
+{% load i18n %}
+{% load ooi_extra %}
+
+{% block content %}
+    {% include "header.html" %}
+
+    <main id="main-content">
+        <section>
+            <div class="layout-form">
+                <h1>{% translate "Paste objects" %}</h1>
+                <p>
+                    {% if step == 2 %}
+                        {% translate "Step 2 of 2: review the detected object types and optionally set a clearance level. The objects are added on submit." %}
+                    {% else %}
+                        {% translate "Step 1 of 2: paste your objects. Each line may contain an IPv4 or IPv6 address, a subnet, a hostname, or a URL — the type is detected automatically." %}
+                    {% endif %}
+                </p>
+                {% if step == 1 %}
+                    <p>{% translate "These are the criteria for adding objects:" %}</p>
+                    <ul>
+                        <li>{% translate "One object per line, or separated by commas. A single line may contain multiple values." %}</li>
+                        <li>{% translate "A value starting with http:// or https:// is added as a URL." %}</li>
+                        <li>{% translate "A subnet in CIDR notation (e.g. 192.0.2.0/24) is added as a netblock." %}</li>
+                        <li>{% translate "An IPv4 or IPv6 address is added as an IP address." %}</li>
+                        <li>{% translate "Anything else must be a valid hostname and is added as a hostname." %}</li>
+                    </ul>
+                {% endif %}
+                <form novalidate method="post" class="help">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}<div class="warning">{{ form.non_field_errors }}</div>{% endif %}
+                    {% if step == 2 %}
+                        {% if errors %}
+                            <div class="warning">
+                                {% translate "These lines could not be interpreted and will not be added:" %}
+                                <ul>
+                                    {% for line_number, line_errors in errors.items %}
+                                        {% for error in line_errors %}<li>{{ line_number }}. {{ error }}</li>{% endfor %}
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                        <fieldset>
+                            <div>
+                                <label>
+                                    {% blocktranslate count num=parsed|length %}Objects — {{ num }} object will be added:{% plural %}Objects — {{ num }} objects will be added:{% endblocktranslate %}
+                                </label>
+                                <ul>
+                                    {% for entry in parsed %}
+                                        <li>
+                                            {{ entry.line_number }}. <code>{{ entry.value }}</code> → {{ entry.ooi.object_type }}
+                                            {% if notices|get_item:entry.line_number %}
+                                                {% with notice=notices|get_item:entry.line_number %}
+                                                    {% if notice.normalized %}
+                                                        ({% blocktranslate with network_address=notice.network_address mask=notice.mask %}interpreted as {{ network_address }}/{{ mask }}{% endblocktranslate %})
+                                                    {% endif %}
+                                                    {% if notice.range_skipped_by_nmap %}
+                                                        <span class="warning">{% blocktranslate with min_mask=notice.min_scannable_prefixlen %}nmap skips ranges larger than a /{{ min_mask }} by default{% endblocktranslate %}</span>
+                                                    {% endif %}
+                                                {% endwith %}
+                                            {% endif %}
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            <div>
+                                <label>{% translate "Network" %}</label>
+                                <p>{{ form.network.value }}</p>
+                            </div>
+                        </fieldset>
+                        {{ form.objects }}
+                        {{ form.network }}
+                        <input type="hidden" name="step" value="2">
+                        {% include "partials/form/field_input_wrapper.html" with field=form.clearance_level %}
+
+                        <button type="submit">{% translate "Add objects" %}</button>
+                        <a href="{% url "paste_objects" organization_code=organization.code %}">{% translate "Back" %}</a>
+                    {% else %}
+                        <fieldset>
+                            {% for field in form %}
+                                {% if field.name != "clearance_level" %}
+                                    {% include "partials/form/field_input_wrapper.html" %}
+
+                                {% endif %}
+                            {% endfor %}
+                        </fieldset>
+                        <input type="hidden" name="step" value="1">
+                        <button type="submit">{% translate "Next — review" %}</button>
+                    {% endif %}
+                </form>
+            </div>
+        </section>
+    </main>
+{% endblock content %}

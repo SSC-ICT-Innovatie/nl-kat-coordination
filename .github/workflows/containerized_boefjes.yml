@@ -87,8 +87,8 @@ jobs:
           load: true
           push: true
           tags: localhost:5000/openkat/boefje-base:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=boefje-base
+          cache-to: type=gha,scope=boefje-base,mode=max
 
       - name: Docker meta
         id: meta
@@ -103,7 +103,7 @@ jobs:
 
       - name: Login to librekat Container Registry
         if: github.event_name == 'push' || github.event.pull_request.head.repo.owner.login == github.event.pull_request.base.repo.owner.login
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
         with:
           registry: docker.underdark.nl
           username: ${{ secrets.librekat_user }}
@@ -121,5 +121,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           build-contexts: |
             openkat/boefje-base:latest=docker-image://localhost:5000/openkat/boefje-base:latest
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ matrix.image }}
+          cache-to: type=gha,scope=${{ matrix.image }},mode=max

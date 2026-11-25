@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest import mock
 
@@ -196,10 +196,10 @@ class StoreTestCase(unittest.TestCase):
 
     def test_get_status_counts(self):
         # Arrange
-        one_hour = datetime.now(timezone.utc) - timedelta(hours=1)
-        four_hours = datetime.now(timezone.utc) - timedelta(hours=4)
-        twenty_three_hours = datetime.now(timezone.utc) - timedelta(hours=23)
-        twenty_five_hours = datetime.now(timezone.utc) - timedelta(hours=25)
+        one_hour = datetime.now(UTC) - timedelta(hours=1)
+        four_hours = datetime.now(UTC) - timedelta(hours=4)
+        twenty_three_hours = datetime.now(UTC) - timedelta(hours=23)
+        twenty_five_hours = datetime.now(UTC) - timedelta(hours=25)
 
         for r, status, modified_at in zip(
             (range(2), range(2), range(2), range(2), range(2)),
@@ -237,10 +237,10 @@ class StoreTestCase(unittest.TestCase):
 
     def test_get_status_count_per_hour(self):
         # Arrange
-        one_hour = datetime.now(timezone.utc) - timedelta(hours=1)
-        four_hours = datetime.now(timezone.utc) - timedelta(hours=4)
-        twenty_three_hours = datetime.now(timezone.utc) - timedelta(hours=23)
-        twenty_five_hours = datetime.now(timezone.utc) - timedelta(hours=25)
+        one_hour = datetime.now(UTC) - timedelta(hours=1)
+        four_hours = datetime.now(UTC) - timedelta(hours=4)
+        twenty_three_hours = datetime.now(UTC) - timedelta(hours=23)
+        twenty_five_hours = datetime.now(UTC) - timedelta(hours=25)
 
         for r, status, modified_at in zip(
             (range(2), range(2), range(2), range(2), range(2)),
@@ -269,7 +269,7 @@ class StoreTestCase(unittest.TestCase):
 
         # Act
         results = self.mock_ctx.datastores.task_store.get_status_count_per_hour()
-        keys = [k for k in results]
+        keys = [*results]
 
         # Assert
         self.assertEqual(len(results), 3)

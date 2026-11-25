@@ -162,7 +162,10 @@ class SQLMetaDataRepository(MetaDataRepository):
         query = self.session.query(RawFileInDB)
         query = query_filter.apply(query)
 
-        raw_metas_pairs = [(raw_meta.id, to_boefje_meta(raw_meta.boefje_meta)) for raw_meta in query]
+        raw_metas_pairs = [
+            (raw_meta.id, to_boefje_meta(raw_meta.boefje_meta), [to_mime_type(m) for m in raw_meta.mime_types])
+            for raw_meta in query
+        ]
 
         return self.raw_repository.get_raws(raw_metas_pairs)
 

@@ -1,9 +1,16 @@
+import json
 import uuid
 from ipaddress import IPv4Address, IPv6Address
+from types import SimpleNamespace
 
+import dns.message
+import dns.rdatatype
+import dns.resolver
+import dns.rrset
 import pytest
 from pydantic import BaseModel
 
+from boefjes.plugins.kat_dns import main as dns_boefje
 from boefjes.plugins.kat_dns.normalize import run as dns_normalize_run
 from boefjes.worker.job_models import (
     Boefje,
@@ -423,3 +430,64 @@ def test_dkim_unparsable_response_does_not_crash():
 
     # No DKIMExists finding should be yielded for an unparsable response
     assert not any(ooi.object_type == "DKIMExists" for ooi in output)
+
+
+# DNS zone ownership regressions: CNAME targets must not redefine the source zone.
+def _dns_response(name: str, record_type: str, *records: str) -> dns.message.Message:
+    response = dns.message.make_response(dns.message.make_query(name, record_type))
+    if records:
+        response.answer.append(dns.rrset.from_text(name.rstrip(".") + ".", 60, "IN", record_type, *records))
+    return response
+
+
+def _normalize_dns_responses(hostname: str, *responses: dns.message.Message) -> list:
+    input_hostname = Hostname(network=Network(name="internet").reference, name=hostname)
+    dns_records = "\n\n".join(f"RESOLVER: 1.1.1.1\n{response.to_text()}" for response in responses)
+    raw = json.dumps({"dns_records": dns_records, "dmarc_response": "NXDOMAIN", "dkim_response": "NXDOMAIN"})
+    return list(dns_normalize_run(input_hostname.serialize(), raw.encode()))
+
+
+def test_dns_external_cname_soa_does_not_change_parent_zone(monkeypatch):
+    """A CNAME target's SOA must not replace the original hostname's parent zone."""
+
+    def fake_resolve(self, name, record_type, **kwargs):
+        assert record_type in ("SOA", dns.rdatatype.SOA)
+        requested_name = str(name).rstrip(".")
+        soa_owner = "alias.other.net" if requested_name == "www.example.org" else "example.org"
+        response = _dns_response(soa_owner, "SOA", "ns1.example.org. admin.example.org. 1 7200 3600 1209600 3600")
+        return SimpleNamespace(nameserver="1.1.1.1", response=response, rrset=response.answer[0])
+
+    monkeypatch.setattr(dns.resolver.Resolver, "resolve", fake_resolve)
+    monkeypatch.setattr(dns_boefje, "get_record_types", lambda: {"SOA"})
+    monkeypatch.setattr(dns_boefje, "get_email_security_records", lambda *args: "NXDOMAIN")
+
+    result = json.loads(dns_boefje.run({"arguments": {"input": {"name": "www.example.org"}}})[0][1])
+    assert "example.org. 60 IN SOA" in result["dns_records"]
+    assert "alias.other.net. 60 IN SOA" not in result["dns_records"]
+    assert result["dns_records"].count(" IN SOA ") == 1
+
+
+def test_dns_normalizer_does_not_link_external_cname_soa():
+    """Raw results with multiple SOAs must link input only to its own suffix zone."""
+    external = _dns_response("alias.other.net", "SOA", "ns.other.net. admin.other.net. 1 7200 3600 1209600 3600")
+    actual = _dns_response("example.org", "SOA", "ns.example.org. admin.example.org. 1 7200 3600 1209600 3600")
+
+    results = _normalize_dns_responses("www.example.org", actual, external)
+    original = next(obj for obj in results if isinstance(obj, Hostname) and obj.name == "www.example.org")
+    expected_zone = DNSZone(hostname=Hostname(network=Network(name="internet").reference, name="example.org").reference)
+
+    assert original.dns_zone == expected_zone.reference
+    assert {obj.hostname.tokenized.name for obj in results if isinstance(obj, DNSZone)} == {
+        "alias.other.net",
+        "example.org",
+    }
+
+
+def test_dns_normalizer_external_soa_alone_does_not_assign_input_zone():
+    """An unrelated SOA by itself cannot define the queried hostname's zone."""
+    external = _dns_response("alias.other.net", "SOA", "ns.other.net. admin.other.net. 1 7200 3600 1209600 3600")
+
+    results = _normalize_dns_responses("www.example.org", external)
+    original = next(obj for obj in results if isinstance(obj, Hostname) and obj.name == "www.example.org")
+
+    assert original.dns_zone is None

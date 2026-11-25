@@ -60,6 +60,13 @@
                                     <a href="{{ request.path }}{% querystring status='cancelled' %}"
                                        title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
                                 </th>
+                                <th scope="col">
+                                    {% translate "Timeout" %}
+                                    <a href="{{ request.path }}?status=timeout"
+                                       title="{% translate "Filter on this status" %}"><i class="icon filter"></i></a>
+                                    <a href="{{ request.path }}{% querystring status='timeout' %}"
+                                       title="{% translate "Add filter on this status" %}"><i class="icon filteradd"></i></a>
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
@@ -86,6 +93,9 @@
                                     </td>
                                     <td>
                                         <span class="data">{{ values.cancelled }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="data">{{ values.timeout }}</span>
                                     </td>
                                 </tr>
                             {% endfor %}
