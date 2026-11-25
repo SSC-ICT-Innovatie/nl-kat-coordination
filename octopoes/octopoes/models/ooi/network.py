@@ -28,6 +28,12 @@ class Network(OOI):
     _traversable = False
 
     @classmethod
+    def create(cls, **kwargs):
+        if "name" in kwargs:
+            kwargs["name"] = kwargs["name"].lower()
+        return super().create(**kwargs)
+    
+    @classmethod
     def format_reference_human_readable(cls, reference: Reference) -> str:
         return reference.tokenized.name
 
@@ -158,7 +164,7 @@ class AutonomousSystem(OOI):
 
     Example value
     -------------
-    AS1000
+    AS1000, Organisation Y
     """
 
     object_type: Literal["AutonomousSystem"] = "AutonomousSystem"
