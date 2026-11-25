@@ -5,6 +5,7 @@ from octopoes.models.tree import ReferenceTree
 
 def test_dns_report_no_findings(mock_octopoes_api_connector, valid_time, hostname, tree_data_no_findings):
     mock_octopoes_api_connector.tree = {hostname.reference: ReferenceTree.model_validate(tree_data_no_findings)}
+    mock_octopoes_api_connector.oois = {}
 
     report = DNSReport(mock_octopoes_api_connector)
     data = report.generate_data(str(hostname.reference), valid_time)

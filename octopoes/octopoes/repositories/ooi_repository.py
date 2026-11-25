@@ -35,6 +35,10 @@ from octopoes.xtdb.related_field_generator import RelatedFieldNode
 logger = structlog.get_logger(__name__)
 settings = Settings()
 
+# Upper bound for list_findings_by_ooi depth, to cap the cost of the recursive reachability query.
+# Matches Rocky's DEPTH_MAX for the tree view.
+MAX_FINDINGS_BY_OOI_DEPTH = 15
+
 
 def merge_ooi(ooi_new: OOI, ooi_old: OOI) -> tuple[OOI, bool]:
     data_old = ooi_old.model_dump()
@@ -138,6 +142,9 @@ class OOIRepository(Repository):
         depth: int = 1,
         include_scan_levels: bool = True,
     ) -> ReferenceTree:
+        raise NotImplementedError
+
+    def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> list[Finding]:
         raise NotImplementedError
 
     def list_oois_without_scan_profile(self, valid_time: datetime) -> set[Reference]:
@@ -593,6 +600,22 @@ class XTDBOOIRepository(OOIRepository):
 
         store = self.load_bulk(reference_node.collect_references(), valid_time, include_scan_levels=include_scan_levels)
         return ReferenceTree(root=reference_node, store=store)
+
+    def list_findings_by_ooi(self, reference: Reference, valid_time: datetime, depth: int = 9) -> list[Finding]:
+        """Return all Findings reachable from ``reference`` within ``depth`` reference hops.
+
+        Uses ``get_tree(search_types={Finding})``: ``_get_tree_level`` keeps intermediate levels
+        unfiltered, so a finding at any depth <= ``depth`` is still reached, while the path-preserving
+        filter (#5213, restoring the pre-#5088 ``filter_children`` semantics) keeps only the branches that
+        lead to a finding. The finding set is identical to loading the whole subtree, but only the
+        finding-paths are loaded instead of every descendant OOI - see #5202.
+
+        ``depth`` is clamped to ``MAX_FINDINGS_BY_OOI_DEPTH``; the default of 9 matches
+        ``findings_report.TREE_DEPTH`` and is intentionally below that clamp ceiling.
+        """
+        depth = max(1, min(depth, MAX_FINDINGS_BY_OOI_DEPTH))
+        tree = self.get_tree(reference, valid_time, search_types={Finding}, depth=depth, include_scan_levels=False)
+        return [ooi for ooi in tree.store.values() if isinstance(ooi, Finding)]
 
     def _get_related_objects(
         self, references: set[Reference], valid_time: datetime | None, search_types: set[type[OOI]] | None = None

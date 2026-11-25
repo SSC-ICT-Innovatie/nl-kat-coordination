@@ -102,6 +102,36 @@ def test_get_tree_search_types_returns_descendant_findings(
     assert str(deep_finding.reference) in finding_references
 
 
+def test_list_findings_by_ooi(xtdb_ooi_repository: XTDBOOIRepository, valid_time: datetime):
+    """The dedicated findings query (#5202 part C) must return findings on descendant OOIs, scoped
+    the same way as the tree builder: never traversing *through* a non-traversable type, so findings
+    on unrelated OOIs that merely share a Network or a FindingType do not leak in."""
+    network = Network(name="testnet")
+    root = Hostname(network=network.reference, name="root.example.com")
+    address = IPAddressV4(network=network.reference, address="192.0.2.10")
+    resolved = ResolvedHostname(hostname=root.reference, address=address.reference)
+    finding_type = KATFindingType(id="KAT-DEEP")
+
+    deep_finding = Finding(ooi=address.reference, finding_type=finding_type.reference)  # 3 hops from root
+    direct_finding = Finding(ooi=root.reference, finding_type=finding_type.reference)  # 1 hop from root
+
+    # A sibling hostname in the same network with its own finding of the same type. It is reachable
+    # only via the shared Network or the shared (non-traversable) FindingType, so it must NOT leak in.
+    sibling = Hostname(network=network.reference, name="sibling.example.com")
+    sibling_finding = Finding(ooi=sibling.reference, finding_type=finding_type.reference)
+
+    for ooi in [network, root, address, resolved, finding_type, deep_finding, direct_finding, sibling, sibling_finding]:
+        xtdb_ooi_repository.save(ooi, valid_time)
+    xtdb_ooi_repository.session.commit()
+
+    findings = xtdb_ooi_repository.list_findings_by_ooi(root.reference, valid_time, depth=9)
+    found = {finding.reference for finding in findings}
+
+    assert direct_finding.reference in found
+    assert deep_finding.reference in found
+    assert sibling_finding.reference not in found
+
+
 def test_complex_query(xtdb_ooi_repository: XTDBOOIRepository, valid_time: datetime):
     network = Network(name="testnetwork")
     network2 = Network(name="testnetwork2")
