@@ -43,7 +43,10 @@ jobs:
               - '.github/workflows/debian_package.yml'
 
   prepare-images:
-    # Fetches the various build-imges from the registry and stores them locally.
+    # Fetches the various build-images from the registry and stores them locally.
+    permissions: {}
+    needs: changes
+    if: ${{ github.event_name == 'push' || (needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '') }}
     runs-on: ubuntu-24.04
     strategy:
       matrix:
@@ -173,7 +176,7 @@ jobs:
           tar -cvzf kat-ubuntu24.04-${{ env.RELEASE_VERSION }}.tar.gz -C kat-ubuntu24.04-${{ env.RELEASE_VERSION }} .
 
       - name: Add Release Assets
-        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           generate_release_notes: true
           files: |

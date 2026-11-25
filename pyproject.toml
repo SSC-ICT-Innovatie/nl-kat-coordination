@@ -73,7 +73,7 @@ extend-exclude = [
 
 line-length = 120
 
-# Support Python 3.10 and higher
+# Support Python 3.11 and higher
 target-version = "py311"
 
 [tool.ruff.format]
