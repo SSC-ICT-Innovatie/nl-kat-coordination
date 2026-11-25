@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from factory import Factory, Faker
@@ -21,5 +21,5 @@ class BoefjeMetaFactory(Factory):
     id: str = Faker("uuid4")
     arguments: dict[str, Any] = {}
     organization: str = Faker("company")
-    started_at: datetime = datetime.now(timezone.utc) - timedelta(days=2)
-    ended_at: datetime = datetime.now(timezone.utc) - timedelta(days=2)
+    started_at: datetime = datetime.now(UTC) - timedelta(days=2)
+    ended_at: datetime = datetime.now(UTC) - timedelta(days=2)

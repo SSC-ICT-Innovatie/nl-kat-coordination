@@ -1,6 +1,7 @@
 import os
+import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import ip_address
 
 import pytest
@@ -194,10 +195,10 @@ def test_list_object_clients(
 
 def test_history(octopoes_api_connector: OctopoesAPIConnector):
     network = Network(name="test")
-    first_seen = datetime(year=2020, month=10, day=10, tzinfo=timezone.utc)  # XTDB only returns a precision of seconds
+    first_seen = datetime(year=2020, month=10, day=10, tzinfo=UTC)  # XTDB only returns a precision of seconds
     octopoes_api_connector.save_declaration(Declaration(ooi=network, valid_time=first_seen))
-    octopoes_api_connector.delete(network.reference, datetime(year=2020, month=10, day=11, tzinfo=timezone.utc))
-    last_seen = datetime(year=2020, month=10, day=12, tzinfo=timezone.utc)
+    octopoes_api_connector.delete(network.reference, datetime(year=2020, month=10, day=11, tzinfo=UTC))
+    last_seen = datetime(year=2020, month=10, day=12, tzinfo=UTC)
     octopoes_api_connector.save_declaration(Declaration(ooi=network, valid_time=last_seen))
 
     history = octopoes_api_connector.get_history(network.reference, with_docs=True)
@@ -326,8 +327,7 @@ def test_query(octopoes_api_connector: OctopoesAPIConnector, valid_time: datetim
 
 
 def test_no_disappearing_ports(octopoes_api_connector: OctopoesAPIConnector):
-    first_valid_time = datetime.now(timezone.utc)
-    import time
+    first_valid_time = datetime.now(UTC)
 
     network = Network(name="test")
     octopoes_api_connector.save_declaration(Declaration(ooi=network, valid_time=first_valid_time))
@@ -350,13 +350,13 @@ def test_no_disappearing_ports(octopoes_api_connector: OctopoesAPIConnector):
         [DeclaredScanProfile(reference=ooi.reference, level=ScanLevel.L2) for ooi in [ip, tcp_port, network]],
         first_valid_time,
     )
-    second_valid_time = datetime.now(timezone.utc)
+    second_valid_time = datetime.now(UTC)
 
     time.sleep(2)
     octopoes_api_connector.recalculate_bits()
     time.sleep(2)
 
-    findings = octopoes_api_connector.list_findings({severity for severity in RiskLevelSeverity}, second_valid_time)
+    findings = octopoes_api_connector.list_findings({*RiskLevelSeverity}, second_valid_time)
 
     assert findings.items == [
         Finding(
@@ -388,11 +388,11 @@ def test_no_disappearing_ports(octopoes_api_connector: OctopoesAPIConnector):
     octopoes_api_connector.recalculate_bits()
     time.sleep(2)
 
-    third_valid_time = datetime.now(timezone.utc)
+    third_valid_time = datetime.now(UTC)
 
     assert octopoes_api_connector.get(udp_port.reference, third_valid_time)
 
-    findings = octopoes_api_connector.list_findings({severity for severity in RiskLevelSeverity}, third_valid_time)
+    findings = octopoes_api_connector.list_findings({*RiskLevelSeverity}, third_valid_time)
     assert octopoes_api_connector.get(tcp_port.reference, third_valid_time)
 
     assert findings.items == [

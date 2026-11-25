@@ -1,6 +1,6 @@
 {% load i18n %}
 
-{% if task.status.value in "completed,failed" %}
+{% if task.status.value in "completed,failed,timeout" %}
     <section>
         <p class="explanation">{% translate "Loading..." %}</p>
         <div id="yielded-objects-{{ task.id }}">
@@ -20,7 +20,7 @@
 {% endif %}
 <section>
     <div class="button-container">
-        {% if task.status.value in "completed,failed" %}
+        {% if task.status.value in "completed,failed,timeout" %}
             {% if task.type == "normalizer" %}
                 <a class="button"
                    href="{% url 'bytes_raw' organization_code=task.data.raw_data.boefje_meta.organization boefje_meta_id=task.data.raw_data.boefje_meta.id %}"><span class="icon ti-download"></span>{% translate "Download meta and raw data" %}</a>

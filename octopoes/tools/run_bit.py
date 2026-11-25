@@ -4,7 +4,7 @@
 import logging
 import pdb
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 import click
@@ -32,7 +32,7 @@ def run_bit(start_pdb, organization_code, bit_id, ooi):
     """Run bit"""
     settings = Settings()
 
-    valid_time = datetime.now(timezone.utc)
+    valid_time = datetime.now(UTC)
 
     session = XTDBSession(get_xtdb_client(str(settings.xtdb_uri), organization_code))
     octopoes_service = bootstrap_octopoes(settings, organization_code, session)

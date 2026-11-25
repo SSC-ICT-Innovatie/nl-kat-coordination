@@ -19,7 +19,7 @@
             {% for asset_report in asset_reports %}
                 <tr>
                     <td>
-                        <a href="{% url "view_report" organization.code %}?asset_report_id={{ asset_report.reference }}&observed_at={{ asset_report.observed_at|date:"Y-m-d H:i:s:u" }}"
+                        <a href="{% url "view_report" organization.code %}?asset_report_id={{ asset_report.reference }}&observed_at={{ asset_report.observed_at|date:"Y-m-d H:i:s.u" }}"
                            title="{% translate "Shows report details" %}">{{ asset_report.name }}</a>
                     </td>
                     <td>

@@ -10,7 +10,7 @@ from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.email import EmailAddress, EmailAddressInstance
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network
-from octopoes.models.ooi.service import IPService, Service
+from octopoes.models.ooi.service import HostnameIPService, IPService, Service
 from octopoes.models.ooi.web import URL, SecurityTXT, Website
 
 URL_FIELDS = {"hiring", "policy", "acknowledgments", "canonical"}
@@ -87,6 +87,12 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
             ip_service = IPService(ip_port=ip_port.reference, service=service.reference)
             yield ip_service
 
+            # The redirect target gets its own name binding AND its own
+            # Website: the SecurityTXT references it, so it must be yielded
+            # here — it cannot dangle on the discovery bit. The
+            # HostnameIPService accompanies it (same roots).
+            hostname_ip_service = HostnameIPService(ip_service=ip_service.reference, hostname=hostname.reference)
+            yield hostname_ip_service
             website = Website(hostname=hostname.reference, ip_service=ip_service.reference)
             yield website
             security_txt = SecurityTXT(

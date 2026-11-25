@@ -307,7 +307,7 @@ def build_token_tree(ooi_class: type[OOI]) -> dict[str, dict | str]:
         field = ooi_class.model_fields[attribute]
 
         if field.annotation in (Reference, Reference | None):
-            from octopoes.models.types import related_object_type
+            from octopoes.models.types import related_object_type  # noqa: PLC0415
 
             related_class = related_object_type(field)
             trees = [build_token_tree(related_class) for related_class in get_leaf_subclasses(related_class)]

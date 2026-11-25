@@ -1,4 +1,4 @@
-Developer documentation
+Develop OpenKAT
 ###########################
 
 Contains documentation for developers and contributors.
@@ -19,6 +19,7 @@ Contains documentation for developers and contributors.
    octopoes
    octopoes-models
    octopoes-research
+   observability
    reports
    development-tutorial/index
    qa-test-plan

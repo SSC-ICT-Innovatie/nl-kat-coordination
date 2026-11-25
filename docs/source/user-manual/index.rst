@@ -1,21 +1,25 @@
-User manual
-###########
+Use OpenKAT
+===========
 
-Welcome to the user manual of OpenKAT! In this user manual, all information about the use of OpenKAT in the user interface can be found.
-Technical information has been left out, and can be found in de :doc:`../developer-documentation/index`.
+This part of the guide explains the various pages and functionality that can be found within OpenKAT.
 
-The user manual is divided into four parts:
-
-- **Getting started**: Do you want to get started with OpenKAT? Start here! Learn step-by-step how to begin scanning and generating reports with OpenKAT.
-- **Basic concepts**: Learn more about the basic concepts of OpenKAT (in simple terms).
-- **Navigation**: See how you can navigate through OpenKAT. All pages of the user interface are explained here.
-- **Glossary**: A summary with the most used terms and their definitions.
 
 .. toctree::
    :maxdepth: 2
    :caption: Contents
 
-   getting-started/index
+   overview
+   crisis-room
+   katalogus
+   findings
+   generate-report
+   reports
+   login-and-registration
+   objects
+   tasks
+   members
+   settings
+   user-settings
+   start-scanning
+   onboarding
    basic-concepts/index
-   navigation/index
-   glossary

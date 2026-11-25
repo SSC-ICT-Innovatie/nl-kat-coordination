@@ -41,4 +41,4 @@ COPY --chown=nonroot boefjes/plugins/__init__.py boefjes/plugins/__init__.py
 COPY --chown=nonroot boefjes/__init__.py boefjes/__init__.py
 
 RUN find ./boefjes -name 'requirements.txt' -execdir sh -c "cat {} && echo" \; | sort -u > /tmp/boefjes-requirements.txt
-RUN --mount=type=cache,target=/root/.cache pip install setuptools==78.1.0 && pip install -r /tmp/boefjes-requirements.txt
+RUN --mount=type=cache,target=/root/.cache pip install setuptools==84.1.0 && pip install -r /tmp/boefjes-requirements.txt

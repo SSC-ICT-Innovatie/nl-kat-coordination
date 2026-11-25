@@ -1,5 +1,5 @@
 import uuid
-from datetime import date, datetime, timezone
+from datetime import UTC, date, datetime
 from typing import Any, TypedDict
 from urllib.parse import urlencode, urlparse, urlunparse
 
@@ -15,7 +15,7 @@ from tools.models import Organization
 
 def convert_date_to_datetime(d: date) -> datetime:
     # returning 23:59 of date_object in UTC timezone
-    return datetime.combine(d, datetime.max.time(), tzinfo=timezone.utc)
+    return datetime.combine(d, datetime.max.time(), tzinfo=UTC)
 
 
 def get_mandatory_fields(request: HttpRequest, params: list[str] | None = None) -> list:

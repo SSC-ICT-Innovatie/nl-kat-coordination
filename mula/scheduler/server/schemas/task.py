@@ -5,7 +5,7 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
-class TaskStatus(str, enum.Enum):
+class TaskStatus(enum.StrEnum):
     # Task has been created but not yet queued
     PENDING = "pending"
 
@@ -27,6 +27,9 @@ class TaskStatus(str, enum.Enum):
 
     # Task has been cancelled
     CANCELLED = "cancelled"
+
+    # The boefje caught a timeout itself and returned it through the error/timeout mime-type
+    TIMEOUT = "timeout"
 
 
 class Task(BaseModel):

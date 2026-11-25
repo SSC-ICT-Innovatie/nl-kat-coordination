@@ -43,8 +43,8 @@
                                 <td>{{ protocol }}</td>
                                 <td>{{ suite.cipher_suite_alias }}</td>
                                 <td>{{ suite.encryption_algorithm }}</td>
-                                <td>{{ suite.bits }}</td>
-                                <td>{{ suite.key_size }}</td>
+                                <td>{{ suite.encryption_bits|default_if_none:"" }}</td>
+                                <td>{{ suite.key_exchange_bits|default_if_none:"" }}</td>
                                 <td>{{ suite.cipher_suite_code }}</td>
                             </tr>
                         {% endfor %}
@@ -66,7 +66,7 @@
         </p>
         {% for finding in data.findings %}
             <h4>{{ finding.finding_type.tokenized.id }}</h4>
-            <p>{{ finding.description|linebreaks }}</p>
+            <p>{{ finding.proof|default:finding.description|linebreaks }}</p>
         {% endfor %}
     {% endif %}
 {% endfor %}

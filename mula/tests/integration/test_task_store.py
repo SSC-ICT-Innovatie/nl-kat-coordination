@@ -1,5 +1,5 @@
 import unittest
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
 from unittest import mock
 
@@ -26,6 +26,7 @@ class StoreTestCase(unittest.TestCase):
             **{
                 stores.PriorityQueueStore.name: stores.PriorityQueueStore(self.dbconn),
                 stores.TaskStore.name: stores.TaskStore(self.dbconn),
+                stores.ScheduleStore.name: stores.ScheduleStore(self.dbconn),
             }
         )
 
@@ -126,12 +127,60 @@ class StoreTestCase(unittest.TestCase):
         created_task = self.mock_ctx.datastores.task_store.create_task(task)
 
         # Act
-        created_task.status = models.TaskStatus.COMPLETED
-        self.mock_ctx.datastores.task_store.update_task(created_task)
+        self.mock_ctx.datastores.task_store.update_task(created_task.id, {"status": models.TaskStatus.COMPLETED.name})
 
         # Assert
         updated_task = self.mock_ctx.datastores.task_store.get_task(created_task.id)
         self.assertEqual(updated_task.status, models.TaskStatus.COMPLETED)
+
+    def test_update_task_only_writes_given_fields(self):
+        # Arrange: a task linked to a schedule
+        task = functions.create_task(scheduler_id=self.organisation.id, organisation=self.organisation.id)
+        schedule = self.mock_ctx.datastores.schedule_store.create_schedule(
+            models.Schedule(
+                scheduler_id=self.organisation.id,
+                organisation=self.organisation.id,
+                hash=task.hash,
+                data=task.model_dump(),
+            )
+        )
+        created_task = self.mock_ctx.datastores.task_store.create_task(task)
+        self.mock_ctx.datastores.task_store.update_task(created_task.id, {"schedule_id": schedule.id})
+
+        # Act: update only the status
+        self.mock_ctx.datastores.task_store.update_task(created_task.id, {"status": models.TaskStatus.COMPLETED.name})
+
+        # Assert: the schedule link is not overwritten by the targeted update
+        updated_task = self.mock_ctx.datastores.task_store.get_task(created_task.id)
+        self.assertEqual(updated_task.status, models.TaskStatus.COMPLETED)
+        self.assertEqual(updated_task.schedule_id, schedule.id)
+
+    def test_update_task_with_deleted_schedule_is_skipped(self):
+        """Regression test for a write-after-delete race: tasks.schedule_id has
+        ON DELETE SET NULL, so a schedule can be deleted after a caller resolved
+        it. Writing back the stale schedule_id must not violate the foreign
+        key; the write is skipped instead."""
+        # Arrange
+        task = functions.create_task(scheduler_id=self.organisation.id, organisation=self.organisation.id)
+        schedule = self.mock_ctx.datastores.schedule_store.create_schedule(
+            models.Schedule(
+                scheduler_id=self.organisation.id,
+                organisation=self.organisation.id,
+                hash=task.hash,
+                data=task.model_dump(),
+            )
+        )
+        created_task = self.mock_ctx.datastores.task_store.create_task(task)
+
+        # The schedule is deleted before the stale schedule_id is written
+        self.mock_ctx.datastores.schedule_store.delete_schedule(schedule.id)
+
+        # Act
+        self.mock_ctx.datastores.task_store.update_task(created_task.id, {"schedule_id": schedule.id})
+
+        # Assert: no foreign key violation, task is untouched
+        updated_task = self.mock_ctx.datastores.task_store.get_task(created_task.id)
+        self.assertIsNone(updated_task.schedule_id)
 
     def test_cancel_task(self):
         # Arrange
@@ -147,10 +196,10 @@ class StoreTestCase(unittest.TestCase):
 
     def test_get_status_counts(self):
         # Arrange
-        one_hour = datetime.now(timezone.utc) - timedelta(hours=1)
-        four_hours = datetime.now(timezone.utc) - timedelta(hours=4)
-        twenty_three_hours = datetime.now(timezone.utc) - timedelta(hours=23)
-        twenty_five_hours = datetime.now(timezone.utc) - timedelta(hours=25)
+        one_hour = datetime.now(UTC) - timedelta(hours=1)
+        four_hours = datetime.now(UTC) - timedelta(hours=4)
+        twenty_three_hours = datetime.now(UTC) - timedelta(hours=23)
+        twenty_five_hours = datetime.now(UTC) - timedelta(hours=25)
 
         for r, status, modified_at in zip(
             (range(2), range(2), range(2), range(2), range(2)),
@@ -188,10 +237,10 @@ class StoreTestCase(unittest.TestCase):
 
     def test_get_status_count_per_hour(self):
         # Arrange
-        one_hour = datetime.now(timezone.utc) - timedelta(hours=1)
-        four_hours = datetime.now(timezone.utc) - timedelta(hours=4)
-        twenty_three_hours = datetime.now(timezone.utc) - timedelta(hours=23)
-        twenty_five_hours = datetime.now(timezone.utc) - timedelta(hours=25)
+        one_hour = datetime.now(UTC) - timedelta(hours=1)
+        four_hours = datetime.now(UTC) - timedelta(hours=4)
+        twenty_three_hours = datetime.now(UTC) - timedelta(hours=23)
+        twenty_five_hours = datetime.now(UTC) - timedelta(hours=25)
 
         for r, status, modified_at in zip(
             (range(2), range(2), range(2), range(2), range(2)),
@@ -220,7 +269,7 @@ class StoreTestCase(unittest.TestCase):
 
         # Act
         results = self.mock_ctx.datastores.task_store.get_status_count_per_hour()
-        keys = [k for k in results]
+        keys = [*results]
 
         # Assert
         self.assertEqual(len(results), 3)

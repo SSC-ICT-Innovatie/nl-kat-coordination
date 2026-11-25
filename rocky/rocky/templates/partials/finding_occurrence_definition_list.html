@@ -1,20 +1,28 @@
 {% load i18n %}
+{% load ooi_extra %}
 
 <dl>
     {% include "partials/elements/definition_list_item.html" with label="Time of testing" %}
 
-    {% if finding.proof %}
-        {% translate "Proof" as label %}
-        {% include "partials/elements/definition_list_item.html" with label=label description=finding.proof %}
+    {% with proof=finding|display_proof %}
+        {% if proof %}
+            {% translate "Proof" as label %}
+            {% include "partials/elements/definition_list_item.html" with label=label description=proof preserve_linebreaks=True %}
 
-    {% endif %}
+        {% endif %}
+    {% endwith %}
     {% if finding.reproduce %}
         {% translate "Reproduction" as label %}
         {% include "partials/elements/definition_list_item.html" with label=label description=finding.reproduce %}
 
     {% endif %}
     {% if finding.items %}
-        {% include "partials/elements/definition_list_items.html" with items=finding.items exclude_keys="id,human_readable,ooi_type,ooi,finding_type,proof,reproduce" %}
+        {% if finding|is_legacy_cipher_finding %}
+            {% include "partials/elements/definition_list_items.html" with items=finding.items exclude_keys="id,human_readable,ooi_type,ooi,finding_type,description,proof,reproduce" %}
 
+        {% else %}
+            {% include "partials/elements/definition_list_items.html" with items=finding.items exclude_keys="id,human_readable,ooi_type,ooi,finding_type,proof,reproduce" %}
+
+        {% endif %}
     {% endif %}
 </dl>

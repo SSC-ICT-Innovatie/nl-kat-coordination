@@ -1,16 +1,17 @@
 import base64
 from collections.abc import Iterable
-from ipaddress import IPv4Address, IPv6Address, ip_address
+from ipaddress import IPv4Address, ip_address
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 from defusedxml import minidom
 
 from boefjes.normalizer_models import NormalizerOutput
+from octopoes.models import Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.findings import CAPECFindingType, CVEFindingType, CWEFindingType, Finding
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, IPPort, Network, Protocol
-from octopoes.models.ooi.service import IPService, Service
+from octopoes.models.ooi.service import HostnameIPService, IPService, Service
 from octopoes.models.ooi.web import URL, HostnameHTTPURL, HTTPHeader, HTTPResource, IPAddressHTTPURL, WebScheme, Website
 
 
@@ -40,28 +41,30 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
         host_element = issue.getElementsByTagName("host")[0]
         host = host_element.firstChild.nodeValue
 
-        ip = ip_address(host_element.attributes["ip"].value)
         path = issue.getElementsByTagName("path")[0].firstChild.nodeValue
 
         yield URL(network=network.reference, raw=f"{host}{path}")
 
         url = urlparse(f"{host}{path}")
 
+        address = ip_address(host_element.attributes["ip"].value)
+
         hostname = None
         # we might be dealing with a request to an IP-address
-        if url.netloc != ip:
+        if url.netloc != str(address):
             hostname = Hostname(name=url.netloc, network=network.reference)
             yield hostname
 
         port = 443 if url.scheme == "https" else 80
 
-        address = ip_address(ip)
         if isinstance(address, IPv4Address):
-            ip = IPAddressV4(address=address, network=network.reference)
-        elif isinstance(address, IPv6Address):
-            ip = IPAddressV6(address=address, network=network.reference)
+            ip_ooi = IPAddressV4(address=address, network=network.reference)
+        else:
+            ip_ooi = IPAddressV6(address=address, network=network.reference)
 
-        ip_port = IPPort(address=ip.reference, protocol=tcp_protocol, port=port)
+        yield ip_ooi
+
+        ip_port = IPPort(address=ip_ooi.reference, protocol=tcp_protocol, port=port)
         yield ip_port
 
         service = Service(name=url.scheme)
@@ -79,14 +82,34 @@ def run(input_ooi: dict, raw: bytes) -> Iterable[NormalizerOutput]:
                 path=url.path,
                 netloc=hostname.reference,
             )
+            # The name binding is yielded (the general rule), and the
+            # Website too: HTTPResource references it, so it must be
+            # yielded here rather than left to the discovery bit.
+            hostname_ip_service = HostnameIPService(ip_service=ip_service.reference, hostname=hostname.reference)
+            yield hostname_ip_service
             website = Website(hostname=hostname.reference, ip_service=ip_service.reference)
             yield website
             http_resource = HTTPResource(website=website.reference, web_url=http_url.reference)
             yield http_resource
         else:
+            # The request targeted the bare IP: no name was bound, so no
+            # HostnameIPService — but the endpoint is still web-served.
+            # The placeholder Website (hostname = the IP) is what
+            # HTTPResource and the header-analysis ecosystem reference;
+            # the discovery bit dedups on the same canonical key.
             http_url = IPAddressHTTPURL(
-                network=network.reference, scheme=WebScheme(url.scheme), port=port, path=url.path, netloc=url.netloc
+                network=network.reference,
+                scheme=WebScheme(url.scheme),
+                port=port,
+                path=url.path,
+                netloc=ip_ooi.reference,
             )
+            website = Website(
+                ip_service=ip_service.reference, hostname=Reference.from_str(f"Hostname|{network.name}|{address}")
+            )
+            yield website
+            http_resource = HTTPResource(website=website.reference, web_url=http_url.reference)
+            yield http_resource
 
         if issue.getElementsByTagName("vulnerabilityClassifications"):
             vulnerability_classifications = issue.getElementsByTagName("vulnerabilityClassifications")[

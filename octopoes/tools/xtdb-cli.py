@@ -322,7 +322,7 @@ def evict_by_objecttype(ctx: click.Context, objecttype: str):
     transactions = []
 
     for ooi in objects:
-        transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
+        transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.UTC).isoformat()))
 
     client.submit_tx(transactions)
     click.echo(f"Evicted all objects of type: {objecttype}")
@@ -337,7 +337,7 @@ def evict_ooi(ctx: click.Context, key: str):
     ooi = client.entity(key)
     click.echo(f"OOI Content was: {ooi}")
     transactions = []
-    transactions.append(("evict", key, datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
+    transactions.append(("evict", key, datetime.datetime.now(tz=datetime.UTC).isoformat()))
 
     client.submit_tx(transactions)
     click.echo("Evicted OOI")
@@ -368,7 +368,7 @@ def evict_from_search(ctx: click.Context, wetrun: bool, searchtype, searchstring
     transactions = []
     for ooi in oois:
         click.echo(f"Object Content was: {ooi[0]}")
-        transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.timezone.utc).isoformat()))
+        transactions.append(("evict", ooi[0], datetime.datetime.now(tz=datetime.UTC).isoformat()))
     if wetrun:
         client.submit_tx(transactions)
         click.echo(f"Evicted {len(transactions)} objects")
@@ -394,7 +394,7 @@ def put_function(ctx: click.Context, name: str, body: str):
 def call_function(ctx: click.Context, name: str, entity: str, arguments: str):
     client: XTDBClient = ctx.obj["client"]
     transactions = [("fn", name, entity, *arguments.split())]
-    click.echo(json.dumps(client.submit_tx(transactions, datetime.datetime.now(tz=datetime.timezone.utc))))
+    click.echo(json.dumps(client.submit_tx(transactions, datetime.datetime.now(tz=datetime.UTC))))
 
 
 if __name__ == "__main__":

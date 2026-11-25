@@ -98,13 +98,14 @@ class TaskAPI:
         if task_db is None:
             raise NotFoundError(f"task not found, by task_id: {task_id}")
 
-        patch_data = item.model_dump(exclude_unset=True)
+        patch_data = item.model_dump(mode="json", exclude_unset=True, exclude={"id"})
         if len(patch_data) == 0:
             raise BadRequestError("no data to patch")
 
-        # Update task
+        # Update only the patched fields, so a stale snapshot cannot write back
+        # values that changed concurrently.
         updated_task = task_db.model_copy(update=patch_data)
-        self.ctx.datastores.task_store.update_task(updated_task)
+        self.ctx.datastores.task_store.update_task(task_id, patch_data)
 
         return updated_task
 

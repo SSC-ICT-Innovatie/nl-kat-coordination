@@ -2,7 +2,7 @@ import base64
 import multiprocessing
 import time
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from ipaddress import ip_address
 from pathlib import Path
 from typing import Any, Literal
@@ -226,7 +226,7 @@ def manager(item_handler: MockHandler, tmp_path: Path) -> SchedulerWorkerManager
 
 @pytest.fixture
 def api(tmp_path):
-    from boefjes.api import app
+    from boefjes.api import app  # noqa: PLC0415
 
     return TestClient(app)
 
@@ -358,7 +358,7 @@ def bytes_client(request) -> BytesAPIClient:
 
 @pytest.fixture
 def valid_time():
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def seed_system(

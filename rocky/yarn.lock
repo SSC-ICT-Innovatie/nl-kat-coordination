@@ -1715,9 +1715,9 @@ semver@^5.7.0, semver@^5.7.1:
   integrity sha512-cBznnQ9KjJqU67B52RMC65CMarK2600WFnbkcaiwWq3xy/5haFJlshgnpjovMVJ+Hff49d8GEn0b87C5pDQ10g==
 
 "source-map-js@>=0.6.2 <2.0.0":
-  version "1.0.2"
-  resolved "https://registry.npmjs.org/source-map-js/-/source-map-js-1.0.2.tgz"
-  integrity sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.2.2.tgz#79fb88d97535a21cb27162cb05d211b67acea4ab"
+  integrity sha512-KGj/8Y43x35aZVDtt+J4mK1hoLGHULMYfSkODJNQjNDC3oW1PqPoxMwo0pLUsWM/UEGzON/NxeHywEfNXNP3Vw==
 
 source-map-support@~0.5.20:
   version "0.5.21"
@@ -1752,9 +1752,9 @@ supports-color@^7.1.0:
     has-flag "^4.0.0"
 
 svgo@^2.4.0:
-  version "2.8.3"
-  resolved "https://registry.yarnpkg.com/svgo/-/svgo-2.8.3.tgz#8de2fa579f3f7429dec3fb86471005cf46fb483a"
-  integrity sha512-5EZD0pafXX6PphdwOGCiVLDSaV1xyuQao2blHajHLsPxr07q4mmEjdtXEWgG07ae2mIz8Ex2CDXNCTiXhy3Khw==
+  version "2.8.4"
+  resolved "https://registry.yarnpkg.com/svgo/-/svgo-2.8.4.tgz#f159feb39b061f0e5a5e670bee3af044049bfbc1"
+  integrity sha512-2GJ4h3rl13qYTdwllaK6QlL8tG+UrM8626V2Ylcd/yBUv2Y/EwLsYisVV6UDCRmlk+C74G8nMpxJCk0RWPdDCw==
   dependencies:
     commander "^7.2.0"
     css-select "^4.1.3"

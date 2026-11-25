@@ -1,0 +1,11 @@
+{
+  "id": "kat_links_in_capture_normalize",
+  "name": "Webpage capture find linked hostnames",
+  "description": "Finds hostnames in the links on a captured page that belong to the same registrable domain as the page itself, so subdomains that are linked but not yet known become visible.",
+  "consumes": [
+    "application/har+json"
+  ],
+  "produces": [
+    "Hostname"
+  ]
+}

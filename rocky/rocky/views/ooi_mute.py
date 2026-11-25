@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from account.mixins import OrganizationPermissionRequiredMixin
 from django.contrib import messages
@@ -44,7 +44,7 @@ class MuteFindingsBulkView(OrganizationPermissionRequiredMixin, SingleOOIMixin):
         reason = request.POST.get("reason", None)
         end_valid_time = request.POST.get("end_valid_time", None)
         if end_valid_time:
-            end_valid_time = datetime.strptime(end_valid_time, "%Y-%m-%dT%H:%M").replace(tzinfo=timezone.utc)
+            end_valid_time = datetime.strptime(end_valid_time, "%Y-%m-%dT%H:%M").replace(tzinfo=UTC)
         else:
             end_valid_time = None
 
@@ -53,7 +53,7 @@ class MuteFindingsBulkView(OrganizationPermissionRequiredMixin, SingleOOIMixin):
             return redirect(reverse("finding_list", kwargs={"organization_code": self.organization.code}))
         if unmute:
             mutes_finding_refs = [MutedFinding(finding=finding).reference for finding in selected_findings]
-            self.octopoes_api_connector.delete_many(mutes_finding_refs, datetime.now(timezone.utc))
+            self.octopoes_api_connector.delete_many(mutes_finding_refs, datetime.now(UTC))
 
             messages.add_message(self.request, messages.SUCCESS, _("Finding(s) successfully unmuted."))
             return redirect(reverse("finding_list", kwargs={"organization_code": self.organization.code}))
@@ -62,9 +62,7 @@ class MuteFindingsBulkView(OrganizationPermissionRequiredMixin, SingleOOIMixin):
                 self.ooi_class.model_validate({"finding": finding, "reason": reason}) for finding in selected_findings
             ]
 
-            create_oois(
-                self.octopoes_api_connector, self.bytes_client, oois, datetime.now(timezone.utc), end_valid_time
-            )
+            create_oois(self.octopoes_api_connector, self.bytes_client, oois, datetime.now(UTC), end_valid_time)
 
             messages.add_message(self.request, messages.SUCCESS, _("Finding(s) successfully muted."))
             return redirect(reverse("finding_list", kwargs={"organization_code": self.organization.code}))

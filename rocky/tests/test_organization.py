@@ -199,7 +199,8 @@ def test_organization_list(rf, superuser_member, bulk_organizations, django_asse
         response = OrganizationListView.as_view()(request)
 
         assertContains(response, "Organizations")
-        assertContains(response, "Add new organization")
+        # once on the page itself, once in the header's organization dropdown
+        assertContains(response, "Add new organization", count=2)
         assertContains(response, superuser_member.organization.name)
 
         for org in bulk_organizations:
@@ -471,7 +472,8 @@ def test_organization_list_perms(rf, superuser_member, admin_member, client_memb
         organization_code=client_member.organization.code,
     )
 
-    assertContains(response_superuser, "Add new organization")
+    # once on the page itself, once in the header's organization dropdown
+    assertContains(response_superuser, "Add new organization", count=2)
 
     # Non-superuser can not add organization
     assertNotContains(response_admin, "Add new organization")
@@ -512,3 +514,24 @@ def test_organization_edit_perms_on_settings_view(request, member, rf):
         OrganizationSettingsView.as_view()(
             setup_request(rf.get("organization_settings"), member.user), organization_code=member.organization.code
         )
+
+
+def _organization_dropdown(response) -> str:
+    html = response.rendered_content
+    start = html.index('id="change-organization"')
+    return html[start : html.index("</ul>", start)]
+
+
+def test_organization_dropdown_add_link(rf, superuser_member, admin_member, client_member):
+    """The header's organization switcher offers 'Add new organization' only to users who may add one."""
+    responses = {
+        member: OrganizationListView.as_view()(
+            setup_request(rf.get("organization_list"), member.user), organization_code=member.organization.code
+        )
+        for member in (superuser_member, admin_member, client_member)
+    }
+
+    assert reverse("organization_add") in _organization_dropdown(responses[superuser_member])
+    assert "Add new organization" in _organization_dropdown(responses[superuser_member])
+    for member in (admin_member, client_member):
+        assert reverse("organization_add") not in _organization_dropdown(responses[member])

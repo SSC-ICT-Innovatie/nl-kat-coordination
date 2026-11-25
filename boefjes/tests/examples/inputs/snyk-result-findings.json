@@ -1,45 +1,29 @@
 {
-  "table_versions": [],
-  "table_vulnerabilities": [
+  "vulnerabilities": [
     {
-      "Vuln_href": "SNYK-JS-LODASH-608086",
-      "Vuln_text": "Prototype Pollution",
-      "Vuln_versions": "<4.17.17"
+      "id": "SNYK-JS-LODASH-15869625",
+      "title": "Arbitrary Code Injection",
+      "severity": "high",
+      "cvss_score": 8.6,
+      "affected_versions": "<4.18.1",
+      "cve": "CVE-2026-4800"
     },
     {
-      "Vuln_href": "SNYK-JS-LODASH-590103",
-      "Vuln_text": "Prototype Pollution",
-      "Vuln_versions": "<4.17.20"
+      "id": "SNYK-JS-LODASH-15869619",
+      "title": "Prototype Pollution",
+      "severity": "medium",
+      "cvss_score": 6.9,
+      "affected_versions": ">=4.0.0,<4.18.1",
+      "cve": "CVE-2026-2950"
+    },
+    {
+      "id": "SNYK-JS-LODASH-73638",
+      "title": "Prototype Pollution",
+      "severity": "high",
+      "cvss_score": 7.4,
+      "affected_versions": "<4.17.11",
+      "cve": null
     }
   ],
-  "cve_vulnerabilities": [
-    {
-      "cve_code": "CVE-2021-23337",
-      "Vuln_text": "Command Injection"
-    },
-    {
-      "cve_code": "CVE-2020-28500",
-      "Vuln_text": "Regular Expression Denial of Service (ReDoS)"
-    },
-    {
-      "cve_code": "CVE-2020-8203",
-      "Vuln_text": "Prototype Pollution"
-    },
-    {
-      "cve_code": "CVE-2019-10744",
-      "Vuln_text": "Prototype Pollution"
-    },
-    {
-      "cve_code": "CVE-2019-1010266",
-      "Vuln_text": "Regular Expression Denial of Service (ReDoS)"
-    },
-    {
-      "cve_code": "CVE-2018-16487",
-      "Vuln_text": "Prototype Pollution"
-    },
-    {
-      "cve_code": "CVE-2018-3721",
-      "Vuln_text": "Prototype Pollution"
-    }
-  ]
+  "latest_version": "4.18.1"
 }

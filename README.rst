@@ -16,6 +16,10 @@ OpenKAT is useful if you want to monitor a complex system and know whether it co
 Documentation
 =============
 
+.. image:: https://deepwiki.com/badge.svg
+   :target: https://deepwiki.com/SSC-ICT-Innovatie/nl-kat-coordination
+   :alt: Ask DeepWiki
+
 `The full documentation of OpenKAT can be found here: https://docs.openkat.nl <https://docs.openkat.nl>`_. It includes information such as:
 
 - Introduction to the system
