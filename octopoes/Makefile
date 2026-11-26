@@ -1,6 +1,6 @@
 .PHONY: debian ubuntu clean
 
-REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's#^(https://github.com/|git@github.com:)##; s#\.git$$##'))
+REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's%^(https://github.com/|git@github.com:)%%; s%\.git$$%%'),SSC-ICT-Innovatie/nl-kat-coordination)
 
 debian12:
 	mkdir -p build
