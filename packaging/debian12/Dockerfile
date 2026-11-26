@@ -17,4 +17,4 @@ RUN apt-get update && apt-get -y upgrade && \
     libssl-dev dh-virtualenv libpq-dev \
     build-essential nodejs git openssh-client \
     libfreetype-dev zlib1g-dev libjpeg-dev libffi-dev
-RUN corepack enable
+RUN npm install --global corepack && corepack enable
