@@ -1,21 +1,24 @@
+import structlog
 from django import forms
+from django.conf import settings
 from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import AbstractUser, Group
 from django.contrib.auth.password_validation import validate_password
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.db.utils import IntegrityError
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django.utils.translation import gettext_lazy as _
-from tools.enums import SCAN_LEVEL
+from tools.enums import MAX_SCAN_LEVEL, SCAN_LEVEL
 from tools.forms.base import BaseRockyForm, BaseRockyModelForm
-from tools.models import (
-    GROUP_ADMIN,
-    GROUP_CLIENT,
-    GROUP_REDTEAM,
-    ORGANIZATION_CODE_LENGTH,
-    Organization,
-    OrganizationMember,
-)
+from tools.models import GROUP_ADMIN, GROUP_REDTEAM, ORGANIZATION_CODE_LENGTH, Organization, OrganizationMember
 
 from account.validators import get_password_validators_help_texts
+
+logger = structlog.get_logger(__name__)
 
 User = get_user_model()
 
@@ -25,6 +28,10 @@ class UserRegistrationForm(forms.Form):
     Basic User form fields, name, email and password.
     With fields validation.
     """
+
+    def __init__(self, *args, **kwargs):
+        self.request = kwargs.pop("request")
+        super().__init__(*args, **kwargs)
 
     name = forms.CharField(
         label=_("Name"),
@@ -46,51 +53,56 @@ class UserRegistrationForm(forms.Form):
             attrs={"autocomplete": "off", "placeholder": "name@example.com", "aria-describedby": "explanation-email"}
         ),
     )
-    password = forms.CharField(
-        label=_("Password"),
-        widget=forms.PasswordInput(
-            attrs={
-                "autocomplete": "off",
-                "placeholder": _("Choose a super secret password"),
-                "aria-describedby": "explanation-password",
-            }
-        ),
-        help_text=get_password_validators_help_texts(),
-        validators=[validate_password],
-    )
 
-    def clean_email(self):
-        email = self.cleaned_data["email"]
-        if User.objects.filter(email=email).exists():
-            self.add_error("email", _("Choose another email."))
-        return email
+    @staticmethod
+    def send_password_reset_email(user, organization: Organization):
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        token = default_token_generator.make_token(user)
 
-    def register_user(self):
-        user = User.objects.create_user(
-            full_name=self.cleaned_data.get("name"),
-            email=self.cleaned_data.get("email"),
-            password=self.cleaned_data.get("password"),
+        subject = _("Set password for your new account.")
+        message = render_to_string(
+            "registration_email.html",
+            {"organization": organization, "host": self.request._current_scheme_host(), "uid": uid, "token": token},
         )
-        return user
+
+        send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
+
+    def register_user(self) -> AbstractUser:
+        return User.objects.create_user(
+            full_name=self.cleaned_data.get("name", ""), email=self.cleaned_data.get("email"), password=None
+        )
 
 
 class AccountTypeSelectForm(forms.Form):
-    """
-    Shows a dropdown list of account types
-    """
-
-    ACCOUNT_TYPE_CHOICES = [
-        ("", _("--- Please select one of the available options ----")),
-        (GROUP_ADMIN, GROUP_ADMIN),
-        (GROUP_REDTEAM, GROUP_REDTEAM),
-        (GROUP_CLIENT, GROUP_CLIENT),
-    ]
-
-    account_type = forms.CharField(
+    account_type = forms.ModelChoiceField(
+        queryset=Group.objects.none(),
+        empty_label=_("--- Please select one of the available options ----"),
         label=_("Account type"),
-        error_messages={"group": {"required": _("Please select an account type to proceed.")}},
-        widget=forms.Select(choices=ACCOUNT_TYPE_CHOICES, attrs={"aria-describedby": "explanation-account-type"}),
+        widget=forms.Select(attrs={"aria-describedby": "explanation-account-type"}),
+        error_messages={"required": _("Please select an account type to proceed.")},
     )
+
+    def __init__(self, *args, user, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.fields["account_type"].queryset = get_allowed_groups(user)
+
+
+def get_allowed_groups(user):
+    """Lists all groups that are the same, or a subset of the current users group based on
+    the permissions associated with it.
+    This allows users to create users with less or similar permissions to
+    themselves but no higher."""
+    user_perms = user.get_all_permissions()
+    allowed_groups = []
+
+    for group in Group.objects.all().prefetch_related("permissions"):
+        group_perms = {f"{perm.content_type.app_label}.{perm.codename}" for perm in group.permissions.all()}
+
+        if group_perms.issubset(user_perms):
+            allowed_groups.append(group)
+
+    return Group.objects.filter(id__in=[g.id for g in allowed_groups])
 
 
 class TrustedClearanceLevelRadioPawsForm(forms.Form):
@@ -106,7 +118,7 @@ class TrustedClearanceLevelRadioPawsForm(forms.Form):
 
 
 class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPawsForm):
-    field_order = ["name", "email", "password", "trusted_clearance_level"]
+    field_order = ["name", "email", "trusted_clearance_level"]
 
     def __init__(self, *args, **kwargs):
         self.organization = kwargs.pop("organization")
@@ -115,18 +127,31 @@ class MemberRegistrationForm(UserRegistrationForm, TrustedClearanceLevelRadioPaw
         if self.account_type != GROUP_REDTEAM:
             self.fields.pop("trusted_clearance_level")
 
-    def register_member(self):
-        user = self.register_user()
-        member = OrganizationMember.objects.create(user=user, organization=self.organization)
-        member.groups.add(Group.objects.get(name=self.account_type))
+    def get_or_create_user(self, email) -> AbstractUser:
+        try:
+            user = self.register_user()
+        except IntegrityError as error:
+            logger.error("User already existed by Email: %s", error)
+            return User.objects.get(email=email)
+        # new registered user must set a password through the password reset form.
+        self.send_password_reset_email(user, self.organization)
+        return user
 
-        if self.account_type == GROUP_REDTEAM:
-            member.trusted_clearance_level = self.cleaned_data.get("trusted_clearance_level")
-
+    def get_or_create_member(self, user: AbstractUser) -> bool:
+        member, _ = OrganizationMember.objects.get_or_create(user=user, organization=self.organization)
+        member.groups.add(self.account_type)
+        member.trusted_clearance_level = max(
+            -1, min(self.cleaned_data.get("trusted_clearance_level", -1), MAX_SCAN_LEVEL)
+        )
         if self.account_type == GROUP_ADMIN:
-            member.trusted_clearance_level = 4
-            member.acknowledged_clearance_level = 4
+            member.trusted_clearance_level = MAX_SCAN_LEVEL
         member.save()
+        return True
+
+    def register_member(self) -> bool:
+        email = self.cleaned_data.get("email")
+        user = self.get_or_create_user(email)
+        return self.create_new_member(user)
 
     def is_valid(self):
         is_valid = super().is_valid()

@@ -1,11 +1,15 @@
 import pytest
+from django.contrib.auth import authenticate, get_user_model
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from pytest_django.asserts import assertContains, assertNotContains
+from tools.models import OrganizationMember
 
 from rocky.views.organization_member_add import OrganizationMemberAddAccountTypeView, OrganizationMemberAddView
 from rocky.views.organization_member_edit import OrganizationMemberEditView
 from tests.conftest import setup_request
+
+User = get_user_model()
 
 
 def test_admin_can_edit_itself(rf, admin_member):
@@ -215,3 +219,85 @@ def test_check_add_admin_client_form(rf, admin_member, account_type):
         '<input type="radio" name="trusted_clearance_level" value="4" id="id_trusted_clearance_level_5">',
         html=True,
     )
+
+
+@pytest.mark.parametrize("account_type", ["admin", "client"])
+def test_add_existing_user(rf, superuser_member, admin_member, account_type):
+    # Super user adds an admin member that is already user and member.
+    request = setup_request(
+        rf.post("organization_member_add", {"name": "Some name", "email": admin_member.user.email}),
+        superuser_member.user,
+    )
+
+    response = OrganizationMemberAddView.as_view()(
+        request, organization_code=superuser_member.organization.code, account_type=account_type
+    )
+
+    assert response.status_code == 302
+
+    messages = list(request._messages)
+
+    # Even though member is already a member of this organization. It will tell that is has been added.
+    assert "Member added successfully." in messages[0].message
+
+
+def test_add_member_from_another_org(rf, superuser_member_b, redteam_member):
+    # Super user from org B tries to add a redteam user from org A and assign a new role as a client
+    request = setup_request(
+        rf.post("organization_member_add", {"name": "Clientella", "email": redteam_member.user.email}),
+        superuser_member_b.user,
+    )
+
+    response = OrganizationMemberAddView.as_view()(
+        request, organization_code=superuser_member_b.organization.code, account_type="clients"
+    )
+
+    assert response.status_code == 302
+
+    members = OrganizationMember.objects.filter(user=redteam_member.user)
+
+    assert len(members) == 2
+
+    member_organizations = [member.organization.name for member in members]
+
+    # Member is also part now of superuser organization
+    assert superuser_member_b.organization.name in member_organizations
+
+    member_groups = [group.name for member in members for group in member.groups.all()]
+
+    # member is both redteamer and client in each specific org
+    assert member_groups == ["redteam", "clients"]
+
+
+def test_add_new_user(rf, superuser_member):
+    email_new_member = "test@example.com"
+
+    request = setup_request(
+        rf.post("organization_member_add", {"name": "New member", "email": email_new_member}), superuser_member.user
+    )
+
+    response = OrganizationMemberAddView.as_view()(
+        request, organization_code=superuser_member.organization.code, account_type="clients"
+    )
+
+    assert response.status_code == 302
+
+    messages = list(request._messages)
+    assert "Member added successfully." in messages[0].message
+
+    # User and member exists
+    new_user = User.objects.get(email=email_new_member)
+    new_member = OrganizationMember.objects.get(user=new_user)
+
+    # New user is part of superuser org and is client
+    assert new_member.organization.name == superuser_member.organization.name
+    assert new_member.groups.filter(name="clients").exists()
+
+    # user cannot be active yet, after logging in, they must reset there password first and login
+    assert new_member.status != "active"
+
+    # Check if user is immediately authenticated
+    auth_user = authenticate(email=email_new_member)
+
+    # user is not authenticated, till it resets password
+    assert auth_user is None
