@@ -37,9 +37,9 @@ jobs:
         working-directory: ./mula
 
       - name: Run unit tests
-        run: make utest
+        run: make utest build_args='--build-arg PYTHON_VERSION=${{ matrix.version }}'
         working-directory: ./mula
 
       - name: Run integration tests
-        run: make itest
+        run: make itest build_args='--build-arg PYTHON_VERSION=${{ matrix.version }}'
         working-directory: ./mula
