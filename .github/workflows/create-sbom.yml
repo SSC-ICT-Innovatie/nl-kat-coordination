@@ -1,0 +1,129 @@
+name: SBOM
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - "main"
+      - "release-*"
+    paths:
+      - "**/requirements*"
+      - "**/uv.lock"
+      - "**/pyproject.toml"
+      - "**/package.json"
+      - "**/package-lock.json"
+      - "**/Dockerfile*"
+      - "**/*.Dockerfile"
+      - "**/yarn.lock"
+      - ".github/workflows/create-sbom.yml"
+  pull_request:
+    paths:
+      - "**/requirements*"
+      - "**/uv.lock"
+      - "**/pyproject.toml"
+      - "**/package.json"
+      - "**/package-lock.json"
+      - "**/Dockerfile*"
+      - "**/*.Dockerfile"
+      - "**/yarn.lock"
+      - ".github/workflows/create-sbom.yml"
+  release:
+    types:
+      - published
+
+permissions:
+  contents: read
+
+jobs:
+  generate-sbom:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Generate SBOM
+        run: |
+          curl -fsSL \
+            -o "$RUNNER_TEMP/sbom-tool" \
+            https://github.com/microsoft/sbom-tool/releases/latest/download/sbom-tool-linux-x64
+
+          chmod +x "$RUNNER_TEMP/sbom-tool"
+
+          VERSION="$GITHUB_SHA"
+          if [[ "$GITHUB_REF_TYPE" == "tag" ]]; then
+            VERSION="$GITHUB_REF_NAME"
+          fi
+
+          "$RUNNER_TEMP/sbom-tool" generate \
+            -b . \
+            -bc . \
+            -pn "$GITHUB_REPOSITORY" \
+            -pv "$VERSION" \
+            -ps "$GITHUB_REPOSITORY_OWNER" \
+            -nsb "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY" \
+            -mi SPDX:2.2 \
+            -V Verbose
+
+      - name: Prepare SBOM
+        run: |
+          cp _manifest/spdx_2.2/manifest.spdx.json \
+            openkat.spdx.json
+
+      - name: Store SBOM artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: openkat.spdx.json
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 60 }}
+          if-no-files-found: error
+
+  publish-sbom:
+    needs: generate-sbom
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sbom
+
+      - name: Attach SBOM to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          gh release upload "$TAG" \
+            openkat.spdx.json \
+            --repo "$GITHUB_REPOSITORY"
+
+  submit-sbom:
+    needs: generate-sbom
+    runs-on: ubuntu-latest
+    if: >-
+      github.ref_type == 'branch' &&
+      (github.event_name == 'push' ||
+       github.event_name == 'workflow_dispatch')
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: sbom
+          path: sbom
+
+      - name: Submit SBOM to dependency graph
+        uses: advanced-security/spdx-dependency-submission-action@8b97fad313c1af2c5c490e1f72ab338371eb92f6 # v0.3.2
+        with:
+          filePath: "sbom/"
+          filePattern: "openkat.spdx.json"
