@@ -1,0 +1,28 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "REMOTE_NS": {
+      "title": "REMOTE_NS",
+      "maxLength": 45,
+      "type": "string",
+      "description": "The IP address of the DNS resolver you want to use. When unset, the system resolver (/etc/resolv.conf) is used."
+    },
+    "DNS_TIMEOUT": {
+      "title": "DNS_TIMEOUT",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 60,
+      "default": 5,
+      "description": "Timeout in whole seconds dnspython waits per query attempt to the nameserver. Defaults to 5. When exceeded the boefje reports a timeout."
+    },
+    "DNS_LIFETIME": {
+      "title": "DNS_LIFETIME",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 30,
+      "description": "Total time in whole seconds dnspython may spend on one resolution, including retries. Defaults to 30. When exceeded the boefje reports a timeout."
+    }
+  }
+}

@@ -1,7 +1,13 @@
 import subprocess
+from os import getenv
 from pathlib import Path
 
 BROWSER = "chromium"
+CAPTURE_TIMEOUT = 300
+
+
+class WebpageCaptureTimeout(Exception):
+    """Raised when the Playwright capture exceeds its time budget."""
 
 
 class WebpageCaptureException(Exception):
@@ -51,7 +57,12 @@ def run_playwright(webpage: str, browser: str) -> tuple[bytes, bytes, bytes]:
     """Run Playwright in Docker."""
     tmp_path = "/tmp/output"  # noqa: S108
     command = build_playwright_command(webpage=webpage, browser=browser, tmp_path=tmp_path)
-    output = subprocess.run(command, capture_output=True)
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(getenv("TIMEOUT", str(CAPTURE_TIMEOUT)))
+    try:
+        output = subprocess.run(command, capture_output=True, timeout=timeout)  # noqa: S603
+    except subprocess.TimeoutExpired:
+        raise WebpageCaptureTimeout(f"Playwright timed out for {webpage} after {timeout} seconds") from None
 
     # Not check_returncode(): its CalledProcessError renders neither stream, so the traceback
     # says a command exited 1 and nothing about why. Playwright's own explanation is in stderr.
@@ -79,7 +90,10 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     input_ = boefje_meta["arguments"]["input"]
     webpage = f"{input_['scheme']}://{input_['netloc']['name']}{input_['path']}"
 
-    image_png, har_zip, storage_json = run_playwright(webpage=webpage, browser=BROWSER)
+    try:
+        image_png, har_zip, storage_json = run_playwright(webpage=webpage, browser=BROWSER)
+    except WebpageCaptureTimeout as exc:
+        return [({"error/timeout"}, str(exc))]
 
     return [
         ({"image/png"}, image_png),

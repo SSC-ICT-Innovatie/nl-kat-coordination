@@ -4,7 +4,7 @@ from urllib.parse import quote_plus
 
 import requests
 
-API_TIMEOUT = 30
+from boefjes.plugins.helpers import get_connect_and_read_timeout, is_request_timeout
 
 # Extraction components the normalizer supports; each can be disabled through a
 # boefje setting. The resolved booleans travel with the raw output because
@@ -26,7 +26,9 @@ def get_api_headers() -> dict:
 def get_host_results(ip: str) -> list[dict]:
     """Use /host/{ip} endpoint for specific IP lookups (no netblock pollution)."""
     results: list[dict] = []
-    response = requests.get(f"https://leakix.net/host/{ip}", headers=get_api_headers(), timeout=API_TIMEOUT)
+    response = requests.get(
+        f"https://leakix.net/host/{ip}", headers=get_api_headers(), timeout=get_connect_and_read_timeout()
+    )
     response.raise_for_status()
     if not response.content:
         return results
@@ -59,7 +61,7 @@ def get_search_results(query: str) -> list[dict]:
             response = requests.get(
                 f"https://leakix.net/search?scope={scope}&q={query}&page={page_counter}",
                 headers=get_api_headers(),
-                timeout=API_TIMEOUT,
+                timeout=get_connect_and_read_timeout(),
             )
             response.raise_for_status()
             page_counter += 1
@@ -102,12 +104,13 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
             # Filtering for hostname happens in normalizer based on search_mode
         else:
             raise NameError(f'Expected an IPAddress or Hostname, but got pk "{pk}"')
-    except requests.exceptions.Timeout as exc:
-        # Rerunnable state: the scheduler marks the task TIMEOUT and tries again.
-        return [({"error/timeout"}, f"LeakIX timed out for {pk}: {type(exc).__name__}")]
     except requests.exceptions.RequestException as exc:
-        # The request itself failed (refused, DNS, HTTP error status): the
-        # reason is carried in the raw bytes, normalizers skip error mimes.
+        # Rerunnable state: only a genuine timeout (including the wrapped
+        # body-read variant) marks the task TIMEOUT; every other request
+        # failure (refused, DNS, HTTP error status) is carried in the raw
+        # bytes, and normalizers skip error mimes.
+        if is_request_timeout(exc):
+            return [({"error/timeout"}, f"LeakIX timed out for {pk}: {type(exc).__name__}")]
         return [({"error/boefje"}, f"LeakIX request failed for {pk}: {exc}")]
 
     # Include search_mode and the extraction component toggles in the output so

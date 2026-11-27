@@ -1,0 +1,14 @@
+{
+  "title": "Arguments",
+  "type": "object",
+  "properties": {
+    "TIMEOUT": {
+      "title": "TIMEOUT",
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 300,
+      "default": 30,
+      "description": "Maximum time in seconds each drill trace may run. Defaults to 30. When exceeded the boefje reports a timeout."
+    }
+  }
+}

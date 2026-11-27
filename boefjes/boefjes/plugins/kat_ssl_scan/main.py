@@ -1,6 +1,10 @@
 import subprocess
+from os import getenv
 
-BOEFJE_TIMEOUT_SECONDS = 120
+# Can be overridden through the plugin settings, see schema.json. A hard
+# wall-clock budget, so a target that black-holes the connection cannot
+# stall the worker indefinitely.
+TIMEOUT = 120
 
 # Services sslscan can probe: directly TLS-capable, STARTTLS-capable, and
 # RDP (probed with the RDP preamble).
@@ -47,11 +51,14 @@ def run(boefje_meta: dict) -> list[tuple[set, bytes | str]]:
     target = f"[{ip}]:{port}"
 
     command.extend(["--xml=-", target])
+
+    # Can be overridden through the plugin settings, see schema.json.
+    timeout = int(getenv("TIMEOUT", str(TIMEOUT)))
     try:
-        output = subprocess.run(command, capture_output=True, timeout=BOEFJE_TIMEOUT_SECONDS)
+        output = subprocess.run(command, capture_output=True, timeout=timeout)
     except subprocess.TimeoutExpired as e:
         partial = (e.stdout or b"").decode(errors="replace")
-        message = f"sslscan of [{ip}]:{port} timed out after {BOEFJE_TIMEOUT_SECONDS}s"
+        message = f"sslscan of [{ip}]:{port} timed out after {timeout}s"
         return [({"error/timeout"}, f"{message}\n{partial}".strip())]
 
     # sslscan writes an XML document even when the connection fails: the
