@@ -22,25 +22,28 @@ jobs:
         with:
           filters: |
             boefjes:
+              - &shared
+                - '.github/workflows/debian_package.yml'
+                - '.github/actions/generate-deb-sbom/**'
+                - 'packaging/**'
               - 'boefjes/**'
               - 'octopoes/**'
-              - '.github/workflows/debian_package.yml'
             bytes:
+              - *shared
               - 'bytes/**'
-              - '.github/workflows/debian_package.yml'
             cveapi:
+              - *shared
               - 'cveapi/**'
-              - '.github/workflows/debian_package.yml'
             mula:
+              - *shared
               - 'mula/**'
-              - '.github/workflows/debian_package.yml'
             octopoes:
+              - *shared
               - 'octopoes/**'
-              - '.github/workflows/debian_package.yml'
             rocky:
+              - *shared
               - 'rocky/**'
               - 'octopoes/**'
-              - '.github/workflows/debian_package.yml'
 
   prepare-images:
     # Fetches the various build-images from the registry and stores them locally.
@@ -124,11 +127,21 @@ jobs:
             "docker.underdark.nl/librekat/openkat-${DIST}-build-image:latest" \
             packaging/scripts/build-debian-package.sh
 
-      - name: Upload .deb to artifacts
+      - name: Generate Debian package SBOM
+        uses: ./.github/actions/generate-deb-sbom
+        with:
+          package: ${{ matrix.package }}/build/${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.package == 'cveapi' && 'all' || 'amd64' }}.deb
+          distribution: ${{ matrix.dist }}
+
+      - name: Upload .deb and SBOM to artifacts
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: ${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
-          path: ${{matrix.package}}/build/${{env.PKG_NAME}}_${{ env.RELEASE_VERSION }}_${{ matrix.package == 'cveapi' && 'all' || 'amd64' }}.deb
+          name: ${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.dist }}.deb
+          path: |
+            ${{ matrix.package }}/build/${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.package == 'cveapi' && 'all' || 'amd64' }}.deb
+            ${{ matrix.package }}/build/${{ env.PKG_NAME }}_${{ env.RELEASE_VERSION }}_${{ matrix.package == 'cveapi' && 'all' || 'amd64' }}.deb.spdx.json
+          retention-days: ${{ github.event_name == 'pull_request' && 7 || 60 }}
+          if-no-files-found: error
 
   add-debian-packages-to-release:
     permissions:
@@ -166,8 +179,10 @@ jobs:
           merge-multiple: true
           pattern: kat-*_ubuntu24.04.deb
 
-      - name: Move cve-api asset to add it as a separate artifact
-        run: mv kat-debian12-${{ env.RELEASE_VERSION }}/kat-cveapi_${{ env.RELEASE_VERSION }}_all.deb .
+      - name: Move cve-api assets to add them separately
+        run: |
+          mv "kat-debian12-${RELEASE_VERSION}/kat-cveapi_${RELEASE_VERSION}_all.deb" .
+          mv "kat-debian12-${RELEASE_VERSION}/kat-cveapi_${RELEASE_VERSION}_all.deb.spdx.json" .
 
       - name: Bundle assets
         run: |
@@ -179,8 +194,10 @@ jobs:
         uses: softprops/action-gh-release@8a0cd651e5b2365bd640854a3fa5dfc70e4875f3 # v3.0.4
         with:
           generate_release_notes: true
+          fail_on_unmatched_files: true
           files: |
             kat-debian12-${{ env.RELEASE_VERSION }}.tar.gz
             kat-debian13-${{ env.RELEASE_VERSION }}.tar.gz
             kat-ubuntu24.04-${{ env.RELEASE_VERSION }}.tar.gz
             kat-cveapi_${{ env.RELEASE_VERSION }}_all.deb
+            kat-cveapi_${{ env.RELEASE_VERSION }}_all.deb.spdx.json

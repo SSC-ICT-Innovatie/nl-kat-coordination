@@ -1,0 +1,47 @@
+name: Generate Debian package SBOM
+description: Generate an SPDX SBOM from a built Debian package
+
+inputs:
+  package:
+    description: Path to the Debian package
+    required: true
+  distribution:
+    description: Target Linux distribution
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Install Syft
+      shell: bash
+      env:
+        SYFT_VERSION: "1.57.2"
+        SYFT_SHA256: ad92bd3ec1b94a3df01d4d0aec199afa9c42b72e86da436ff5f837914d32706b
+      run: |
+        ARCHIVE="syft_${SYFT_VERSION}_linux_amd64.tar.gz"
+        INSTALL_DIR="$RUNNER_TEMP/syft"
+
+        mkdir -p "$INSTALL_DIR"
+
+        curl -fsSL \
+          -o "$INSTALL_DIR/$ARCHIVE" \
+          "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/${ARCHIVE}"
+
+        echo "${SYFT_SHA256}  $INSTALL_DIR/$ARCHIVE" | sha256sum -c -
+
+        tar -xzf "$INSTALL_DIR/$ARCHIVE" \
+          -C "$INSTALL_DIR" syft
+
+        echo "$INSTALL_DIR" >> "$GITHUB_PATH"
+
+    - name: Generate SBOM
+      shell: bash
+      env:
+        DEB_FILE: ${{ inputs.package }}
+        DISTRIBUTION: ${{ inputs.distribution }}
+        SYFT_CHECK_FOR_APP_UPDATE: "false"
+      run: |
+        syft version
+
+        bash "$GITHUB_WORKSPACE/packaging/scripts/generate-deb-sbom.sh" \
+          "$DEB_FILE" "$DISTRIBUTION"

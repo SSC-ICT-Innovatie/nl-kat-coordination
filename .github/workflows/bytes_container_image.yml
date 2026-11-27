@@ -10,10 +10,12 @@ on:
     paths:
       - bytes/**
       - .github/workflows/bytes_container_image.yml
+      - ".github/actions/generate-deb-sbom/**"
   pull_request:
     paths:
       - bytes/**
       - .github/workflows/bytes_container_image.yml
+      - ".github/actions/generate-deb-sbom/**"
 
 jobs:
   create_container_image:
@@ -65,3 +67,5 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          sbom: true
+          provenance: mode=max

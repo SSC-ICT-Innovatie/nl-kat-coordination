@@ -8,10 +8,12 @@ on:
     paths:
       - "packaging"
       - ".github/workflows/build-debian-docker-image.yml"
+      - ".github/actions/generate-deb-sbom/**"
   pull_request:
     paths:
       - "packaging/**"
       - ".github/workflows/build-debian-docker-image.yml"
+      - ".github/actions/generate-deb-sbom/**"
 
 env:
   REGISTRY: docker.underdark.nl
@@ -57,3 +59,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          sbom: true
+          provenance: mode=max
