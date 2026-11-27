@@ -758,6 +758,7 @@ protobuf==7.36.2 \
     --hash=sha256:e11e1f0180583a2af89db6a2ecd9e8dc40aa6d2988ca175bfd0e6d12ea72d74e \
     --hash=sha256:f4fee11ec330d238b34a05c9b675f693c20415d1c5bd7d5320cc2f8a798eb9cf
     # via
+    #   boefjes
     #   googleapis-common-protos
     #   opentelemetry-proto
 psycopg2-binary==2.9.11 \

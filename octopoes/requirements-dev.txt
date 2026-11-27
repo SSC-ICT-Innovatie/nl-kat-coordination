@@ -548,6 +548,7 @@ protobuf==7.36.2 \
     --hash=sha256:f4fee11ec330d238b34a05c9b675f693c20415d1c5bd7d5320cc2f8a798eb9cf
     # via
     #   googleapis-common-protos
+    #   octopoes
     #   opentelemetry-proto
 pydantic==2.14.3 \
     --hash=sha256:1054f237f4d4733e5a30e1e2333bd33a2004ab9ab1510bd053a9a31bb48e232d \

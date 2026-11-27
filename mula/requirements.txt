@@ -450,6 +450,7 @@ protobuf==7.36.2 \
     --hash=sha256:f4fee11ec330d238b34a05c9b675f693c20415d1c5bd7d5320cc2f8a798eb9cf
     # via
     #   googleapis-common-protos
+    #   mula
     #   opentelemetry-proto
 psycopg2-binary==2.9.11 \
     --hash=sha256:00ce1830d971f43b667abe4a56e42c1e2d594b32da4802e44a73bacacb25535f \

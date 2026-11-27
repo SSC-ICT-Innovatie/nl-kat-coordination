@@ -565,6 +565,7 @@ protobuf==7.36.2 \
     --hash=sha256:f4fee11ec330d238b34a05c9b675f693c20415d1c5bd7d5320cc2f8a798eb9cf
     # via
     #   googleapis-common-protos
+    #   mula
     #   opentelemetry-proto
 psutil==7.2.2 \
     --hash=sha256:0746f5f8d406af344fd547f1c8daa5f5c33dbc293bb8d6a16d80b4bb88f59372 \
