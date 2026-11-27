@@ -11,6 +11,7 @@ MAKEFLAGS += --no-builtin-rules
 # use HIDE to run commands invisibly, unless VERBOSE defined
 export VERBOSE
 HIDE:=$(if $(VERBOSE),,@)
+REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's%^(https://github.com/|git@github.com:)%%; s%\.git$$%%'),SSC-ICT-Innovatie/nl-kat-coordination)
 
 # Export Docker buildkit options
 export DOCKER_BUILDKIT=1
@@ -86,7 +87,7 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-bytes \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -94,17 +95,30 @@ debian12:
 	kat-debian12-build-image \
 	packaging/scripts/build-debian-package.sh
 
-ubuntu22.04:
+debian13:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-bytes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=minvws/nl-kat-bytes \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
 	--workdir /app \
-	kat-ubuntu22.04-build-image \
+	kat-debian13-build-image \
+	packaging/scripts/build-debian-package.sh
+
+ubuntu24.04:
+	mkdir -p build
+	docker run --rm \
+	--env PKG_NAME=kat-bytes \
+	--env BUILD_DIR=./build \
+	--env REPOSITORY=$(REPOSITORY) \
+	--env RELEASE_VERSION=${RELEASE_VERSION} \
+	--env RELEASE_TAG=${RELEASE_TAG} \
+	--mount type=bind,src=${CURDIR},dst=/app \
+	--workdir /app \
+	kat-ubuntu24.04-build-image \
 	packaging/scripts/build-debian-package.sh
 
 clean:

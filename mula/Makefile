@@ -10,6 +10,7 @@ MAKEFLAGS += --no-builtin-rules
 
 # use HIDE to run commands invisibly, unless VERBOSE defined
 HIDE:=$(if $(VERBOSE),,@)
+REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's%^(https://github.com/|git@github.com:)%%; s%\.git$$%%'),SSC-ICT-Innovatie/nl-kat-coordination)
 
 # Export cmd line args:
 export VERBOSE
@@ -128,7 +129,7 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-mula \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -136,25 +137,12 @@ debian12:
 	kat-debian12-build-image \
 	packaging/scripts/build-debian-package.sh
 
-ubuntu22.04:
-	mkdir -p build
-	docker run --rm \
-	--env PKG_NAME=kat-mula \
-	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
-	--env RELEASE_VERSION=${RELEASE_VERSION} \
-	--env RELEASE_TAG=${RELEASE_TAG} \
-	--mount type=bind,src=${CURDIR},dst=/app \
-	--workdir /app \
-	kat-ubuntu22.04-build-image \
-	packaging/scripts/build-debian-package.sh
-
 debian13:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-mula \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -167,7 +155,7 @@ ubuntu24.04:
 	docker run --rm \
 	--env PKG_NAME=kat-mula \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \

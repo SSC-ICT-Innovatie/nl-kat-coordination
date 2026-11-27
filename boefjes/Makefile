@@ -11,6 +11,8 @@ MAKEFLAGS += --no-builtin-rules
 # use HIDE to run commands invisibly, unless VERBOSE defined
 HIDE:=$(if $(VERBOSE),,@)
 
+REPOSITORY ?= $(or $(GITHUB_REPOSITORY),$(shell git remote get-url origin 2>/dev/null | sed -E 's%^(https://github.com/|git@github.com:)%%; s%\.git$$%%'),SSC-ICT-Innovatie/nl-kat-coordination)
+
 export m		# Message for alembic migration
 export revid	# Revision id to generate raw sql for
 export rev1		# Previous revision id for generating migrations
@@ -117,7 +119,7 @@ ci-docker-compose := docker compose --project-directory . -f .ci/docker-compose.
 test: itest ## Run all tests.
 
 itest: ## Run the integration tests.
-	$(ci-docker-compose) build
+	$(ci-docker-compose) build $(build_args)
 	$(ci-docker-compose) down --remove-orphans
 	$(ci-docker-compose) run --rm katalogus_integration
 	$(ci-docker-compose) stop
@@ -139,7 +141,7 @@ debian12:
 	docker run --rm \
 	--env PKG_NAME=kat-boefjes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -152,7 +154,7 @@ debian13:
 	docker run --rm \
 	--env PKG_NAME=kat-boefjes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
@@ -161,26 +163,12 @@ debian13:
 	kat-debian13-build-image \
 	packaging/scripts/build-debian-package.sh
 
-ubuntu22.04:
-	mkdir -p build
-	docker run --rm \
-	--env PKG_NAME=kat-boefjes \
-	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
-	--env RELEASE_VERSION=${RELEASE_VERSION} \
-	--env RELEASE_TAG=${RELEASE_TAG} \
-	--mount type=bind,src=${CURDIR},dst=/app \
-	--mount type=bind,src=${CURDIR}/../octopoes,dst=/octopoes \
-	--workdir /app \
-	kat-ubuntu22.04-build-image \
-	packaging/scripts/build-debian-package.sh
-
 ubuntu24.04:
 	mkdir -p build
 	docker run --rm \
 	--env PKG_NAME=kat-boefjes \
 	--env BUILD_DIR=./build \
-	--env REPOSITORY=SSC-ICT-Innovatie/nl-kat-coordination \
+	--env REPOSITORY=$(REPOSITORY) \
 	--env RELEASE_VERSION=${RELEASE_VERSION} \
 	--env RELEASE_TAG=${RELEASE_TAG} \
 	--mount type=bind,src=${CURDIR},dst=/app \
