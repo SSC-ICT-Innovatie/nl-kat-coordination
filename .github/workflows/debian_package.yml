@@ -127,6 +127,9 @@ jobs:
             "docker.underdark.nl/librekat/openkat-${DIST}-build-image:latest" \
             packaging/scripts/build-debian-package.sh
 
+          # Allow the runner to write SBOMs alongside the built packages.
+          sudo chown "$(id -u):$(id -g)" "$PACKAGE/build"
+
       - name: Generate Debian package SBOM
         uses: ./.github/actions/generate-deb-sbom
         with:
