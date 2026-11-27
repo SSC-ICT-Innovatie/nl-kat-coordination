@@ -15,6 +15,7 @@ from boefjes.clients.bytes_client import BytesAPIClient
 from boefjes.clients.scheduler_client import SchedulerAPIClient
 from boefjes.config import settings
 from boefjes.dependencies.plugins import get_plugin_service
+from boefjes.worker.boefje_handler import sweep_boefje_origins
 from boefjes.worker.interfaces import BoefjeInput, BoefjeOutput, StatusEnum, Task, TaskStatus, WorkerManager
 from boefjes.worker.repository import _default_mime_types
 
@@ -99,7 +100,8 @@ def boefje_output(
             for file in boefje_output.files:
                 file.tags = set(mime_types.union(file.tags)) if file.tags else set(mime_types)
 
-            # when supported, also save file.name to Bytes
+            # Garbage-collect origins of superseded runs before the new raws trigger normalizers
+            sweep_boefje_origins(boefje_meta, boefje_output)
             bytes_response = bytes_client.save_raws(task_id, boefje_output)
     except HTTPError:
         scheduler_client.patch_task(task_id, TaskStatus.FAILED)

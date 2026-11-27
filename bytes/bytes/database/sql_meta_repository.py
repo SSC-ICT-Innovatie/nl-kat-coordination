@@ -163,7 +163,12 @@ class SQLMetaDataRepository(MetaDataRepository):
         query = query_filter.apply(query)
 
         raw_metas_pairs = [
-            (raw_meta.id, to_boefje_meta(raw_meta.boefje_meta), [to_mime_type(m) for m in raw_meta.mime_types])
+            (
+                raw_meta.id,
+                to_boefje_meta(raw_meta.boefje_meta),
+                [to_mime_type(m) for m in raw_meta.mime_types],
+                raw_meta.name,
+            )
             for raw_meta in query
         ]
 
@@ -321,6 +326,7 @@ def to_normalizer_meta(normalizer_meta_in_db: NormalizerMetaInDB) -> NormalizerM
 def to_raw_file_in_db(raw_data: RawData, signing_provider: SigningProviderInDB | None) -> RawFileInDB:
     return RawFileInDB(
         id=str(uuid.uuid4()),
+        name=raw_data.name,
         boefje_meta_id=str(raw_data.boefje_meta.id),
         secure_hash=raw_data.secure_hash,
         signing_provider=signing_provider if signing_provider else None,
@@ -332,6 +338,7 @@ def to_raw_file_in_db(raw_data: RawData, signing_provider: SigningProviderInDB |
 def raw_meta_to_raw_file_in_db(raw_data_meta: RawDataMeta, signing_provider_id: int | None) -> RawFileInDB:
     return RawFileInDB(
         id=str(raw_data_meta.id),
+        name=raw_data_meta.name,
         boefje_meta_id=raw_data_meta.boefje_meta.id,
         secure_hash=raw_data_meta.secure_hash,
         signing_provider_id=signing_provider_id if signing_provider_id else None,
@@ -344,6 +351,7 @@ def to_raw_data(raw_file_in_db: RawFileInDB, raw: bytes) -> RawData:
     return RawData(
         value=raw,
         boefje_meta=to_boefje_meta(raw_file_in_db.boefje_meta),
+        name=raw_file_in_db.name,
         secure_hash=raw_file_in_db.secure_hash,
         signing_provider_url=raw_file_in_db.signing_provider.url if raw_file_in_db.signing_provider else None,
         hash_retrieval_link=raw_file_in_db.hash_retrieval_link,
@@ -355,6 +363,7 @@ def to_raw_meta(raw_file_in_db: RawFileInDB) -> RawDataMeta:
     return RawDataMeta(
         id=raw_file_in_db.id,
         boefje_meta=to_boefje_meta(raw_file_in_db.boefje_meta),
+        name=raw_file_in_db.name,
         secure_hash=raw_file_in_db.secure_hash,
         signing_provider_url=raw_file_in_db.signing_provider.url if raw_file_in_db.signing_provider else None,
         hash_retrieval_link=raw_file_in_db.hash_retrieval_link,

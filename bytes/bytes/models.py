@@ -79,6 +79,7 @@ class RawDataMeta(BaseModel):
     id: UUID
     boefje_meta: BoefjeMeta
     mime_types: set[MimeType] = Field(default_factory=set)
+    name: str | None = None  # Should be unique per boefje output set (issue #5581)
 
     # These are set once the raw is saved
     secure_hash: SecureHash | None = None
@@ -90,6 +91,7 @@ class RawData(BaseModel):
     value: bytes
     boefje_meta: BoefjeMeta
     mime_types: set[MimeType] = Field(default_factory=set)
+    name: str | None = None
 
     # These are set once the raw is saved
     secure_hash: SecureHash | None = None

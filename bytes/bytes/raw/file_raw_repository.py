@@ -75,11 +75,13 @@ class FileRawRepository(RawRepository):
         contents = file_path.read_bytes()
         return RawData(value=self.file_middleware.decode(contents), boefje_meta=boefje_meta)
 
-    def get_raws(self, raw_metas_pairs: list[tuple[UUID, BoefjeMeta, list[MimeType]]]) -> list[tuple[UUID, RawData]]:
+    def get_raws(
+        self, raw_metas_pairs: list[tuple[UUID, BoefjeMeta, list[MimeType], str | None]]
+    ) -> list[tuple[UUID, RawData]]:
         try:
             raws = [
-                (raw_id, self._raw_file_path(raw_id, boefje_meta).read_bytes(), boefje_meta, mime_types)
-                for raw_id, boefje_meta, mime_types in raw_metas_pairs
+                (raw_id, self._raw_file_path(raw_id, boefje_meta).read_bytes(), boefje_meta, mime_types, name)
+                for raw_id, boefje_meta, mime_types, name in raw_metas_pairs
             ]
         except FileNotFoundError:
             raise BytesFileNotFoundException()
@@ -87,9 +89,14 @@ class FileRawRepository(RawRepository):
         return [
             (
                 raw_id,
-                RawData(value=self.file_middleware.decode(raw), boefje_meta=boefje_meta, mime_types=set(mime_types)),
+                RawData(
+                    value=self.file_middleware.decode(raw),
+                    boefje_meta=boefje_meta,
+                    mime_types=set(mime_types),
+                    name=name,
+                ),
             )
-            for raw_id, raw, boefje_meta, mime_types in raws
+            for raw_id, raw, boefje_meta, mime_types, name in raws
         ]
 
     def _raw_file_path(self, raw_id: UUID, boefje_meta: BoefjeMeta) -> Path:

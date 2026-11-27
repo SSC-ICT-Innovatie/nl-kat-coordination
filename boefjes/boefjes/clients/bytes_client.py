@@ -7,6 +7,7 @@ from typing import Any
 
 import structlog
 from httpx import Client, HTTPStatusError, HTTPTransport, Response
+from pydantic import TypeAdapter
 
 from boefjes.config import settings
 from boefjes.worker.interfaces import BoefjeOutput, BoefjeStorageInterface
@@ -83,6 +84,21 @@ class BytesAPIClient(BoefjeStorageInterface):
         self._verify_response(response)
 
         return BoefjeMeta.model_validate_json(response.content)
+
+    @retry_with_login
+    def get_boefje_metas(
+        self, organization: str, boefje_id: str | None = None, input_ooi: str | None = None, limit: int = 1
+    ) -> list[BoefjeMeta]:
+        params = {"organization": organization, "limit": limit}
+        if boefje_id is not None:
+            params["boefje_id"] = boefje_id
+        if input_ooi is not None:
+            params["input_ooi"] = input_ooi
+
+        response = self._session.get("/bytes/boefje_meta", headers=self.headers, params=params)
+        self._verify_response(response)
+
+        return TypeAdapter(list[BoefjeMeta]).validate_json(response.content)
 
     @retry_with_login
     def save_normalizer_meta(self, normalizer_meta: NormalizerMeta) -> None:
