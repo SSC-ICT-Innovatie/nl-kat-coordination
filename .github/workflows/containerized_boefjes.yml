@@ -11,6 +11,7 @@ on:
       - boefjes/boefjes/plugins/**
       - boefjes/images/**
       - .github/workflows/containerized_boefjes.yml
+      - ".github/actions/generate-deb-sbom/**"
   pull_request:
     paths:
       - boefjes/boefjes/plugins/kat_nmap_tcp/**
@@ -24,6 +25,7 @@ on:
       - boefjes/boefjes/plugins/kat_webpage_capture/**
       - boefjes/images/**
       - .github/workflows/containerized_boefjes.yml
+      - ".github/actions/generate-deb-sbom/**"
 
 jobs:
   build_containerized_boefjes:
@@ -89,6 +91,8 @@ jobs:
           tags: localhost:5000/openkat/boefje-base:latest
           cache-from: type=gha,scope=boefje-base
           cache-to: type=gha,scope=boefje-base,mode=max
+          sbom: false
+          provenance: false
 
       - name: Docker meta
         id: meta
@@ -123,3 +127,5 @@ jobs:
             openkat/boefje-base:latest=docker-image://localhost:5000/openkat/boefje-base:latest
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,scope=${{ matrix.image }},mode=max
+          sbom: true
+          provenance: mode=max
