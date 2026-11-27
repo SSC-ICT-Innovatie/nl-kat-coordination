@@ -211,7 +211,7 @@ requires-dist = [
     { name = "python-libnmap", specifier = "==0.7.3" },
     { name = "requests", specifier = ">=2.33.0,<3" },
     { name = "setuptools", specifier = ">=84.1.0" },
-    { name = "sqlalchemy", specifier = ">=1.4.48" },
+    { name = "sqlalchemy", specifier = ">=2.0.49,<3" },
     { name = "starlette", specifier = ">=1.3.1" },
     { name = "structlog", specifier = ">=25.2.0,<26" },
     { name = "tanimachi", specifier = ">=0.0.6,<0.0.7" },
