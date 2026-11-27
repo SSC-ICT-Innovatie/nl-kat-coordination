@@ -87,7 +87,7 @@ relative_files = true
 markers = ["slow: marks tests as slow"]
 addopts = "--cov --cov-report xml --cov-branch --cov-report=term-missing:skip-covered -m 'not slow'"
 env = [
-    "D:KATALOGUS_DB_URI=postgresql://postgres:postgres@ci_katalogus-db:5432/ci_katalogus",
+    "D:KATALOGUS_DB_URI=postgresql+psycopg2://postgres:postgres@ci_katalogus-db:5432/ci_katalogus",
     "D:BOEFJES_API=http://placeholder:8006",
     "D:KATALOGUS_API=http://placeholder:8000",
     "D:OCTOPOES_API=http://placeholder:8001",
