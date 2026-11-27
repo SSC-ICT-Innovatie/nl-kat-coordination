@@ -5,6 +5,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from tools.forms.settings import SCAN_LEVEL_CHOICES
+from tools.models import Organization
 
 from onboarding.view_helpers import DNS_REPORT_LEAST_CLEARANCE_LEVEL
 
@@ -68,3 +69,23 @@ class OnboardingCreateObjectURLForm(forms.Form):
                 _("The onboarding DNS report requires a hostname, not an IP address or localhost.")
             )
         return url
+
+
+class OrganizationSelectForm(forms.Form):
+    """
+    Lets an onboarding user pick an existing organization to onboard into,
+    instead of being forced to create a new one.
+    """
+
+    organization = forms.ModelChoiceField(
+        queryset=Organization.objects.none(),
+        label=_("Organization"),
+        empty_label=_("--- Select an organization ---"),
+        error_messages={"required": _("Please select an organization to proceed.")},
+        widget=forms.Select(attrs={"aria-describedby": _("explanation-organization-select")}),
+    )
+
+    def __init__(self, *args, organizations=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if organizations is not None:
+            self.fields["organization"].queryset = organizations
