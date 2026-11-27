@@ -61,6 +61,7 @@ dependencies = [
     "anyio>=4.15.1",
     "certifi>=2026.10.19",
     "filelock>=4.2.1",
+    "protobuf>=7.36.2",
 ]
 
 [dependency-groups]
