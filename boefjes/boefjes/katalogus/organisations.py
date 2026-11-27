@@ -35,6 +35,21 @@ def upsert_organisation(organisation: Organisation, storage: OrganisationStorage
         store.update(organisation)
 
 
+@router.patch("/{organisation_id}/indemnification", status_code=status.HTTP_204_NO_CONTENT)
+def set_organisation_indemnification(
+    organisation_id: str,
+    indemnification: bool,
+    storage: OrganisationStorage = Depends(get_organisations_store),
+):
+    try:
+        with storage as store:
+            organisation = store.get_by_id(organisation_id)
+            organisation.indemnification = indemnification
+            store.update(organisation)
+    except (KeyError, ObjectNotFoundException):
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Unknown organisation")
+
+
 @router.delete("/{organisation_id}")
 def remove_organisation(organisation_id: str, storage: OrganisationStorage = Depends(get_organisations_store)):
     with storage as store:

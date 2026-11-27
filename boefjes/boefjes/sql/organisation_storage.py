@@ -39,6 +39,7 @@ class SQLOrganisationStorage(SessionMixin, OrganisationStorage):
         instance = self._db_instance_by_id(organisation.id)
         instance.name = organisation.name
         instance.deduplicate = organisation.deduplicate
+        instance.indemnification = organisation.indemnification
 
     def delete_by_id(self, organisation_id: str) -> None:
         instance = self._db_instance_by_id(organisation_id)
@@ -57,12 +58,20 @@ class SQLOrganisationStorage(SessionMixin, OrganisationStorage):
 
     @staticmethod
     def to_organisation_in_db(organisation: Organisation) -> OrganisationInDB:
-        return OrganisationInDB(id=organisation.id, name=organisation.name, deduplicate=organisation.deduplicate)
+        return OrganisationInDB(
+            id=organisation.id,
+            name=organisation.name,
+            deduplicate=organisation.deduplicate,
+            indemnification=organisation.indemnification,
+        )
 
     @staticmethod
     def to_organisation(organisation_in_db: OrganisationInDB) -> Organisation:
         return Organisation(
-            id=organisation_in_db.id, name=organisation_in_db.name, deduplicate=organisation_in_db.deduplicate
+            id=organisation_in_db.id,
+            name=organisation_in_db.name,
+            deduplicate=organisation_in_db.deduplicate,
+            indemnification=organisation_in_db.indemnification,
         )
 
 

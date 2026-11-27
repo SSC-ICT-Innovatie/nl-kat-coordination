@@ -202,6 +202,12 @@ class KATalogusClient:
 
         logger.info("Created organization", name=organization.name)
 
+    def update_organization(self, organization_code: str, indemnification: bool) -> None:
+        """Update the indemnification flag for an organization in the KAT-alogus."""
+        self.session.patch(
+            f"/v1/organisations/{quote(organization_code)}/indemnification", params={"indemnification": indemnification}
+        )
+
     def delete_organization(self, organization_code: str):
         self.session.delete(f"/v1/organisations/{quote(organization_code)}")
 
