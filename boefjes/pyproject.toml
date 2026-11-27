@@ -14,7 +14,7 @@ dependencies = [
     "uvicorn>=0.29.0,<0.30",
     "psycopg2-binary>=2.9.10",
     "pynacl>=1.5.0,<2",
-    "sqlalchemy>=1.4.48",
+    "sqlalchemy>=2.1.9,<3",
     "python-dateutil>=2.8.2,<3",
     "pydantic-settings>=2.14.2,<3",
     "opentelemetry-sdk",
@@ -88,7 +88,7 @@ relative_files = true
 markers = ["slow: marks tests as slow"]
 addopts = "--cov --cov-report xml --cov-branch --cov-report=term-missing:skip-covered -m 'not slow'"
 env = [
-    "D:KATALOGUS_DB_URI=postgresql://postgres:postgres@ci_katalogus-db:5432/ci_katalogus",
+    "D:KATALOGUS_DB_URI=postgresql+psycopg2://postgres:postgres@ci_katalogus-db:5432/ci_katalogus",
     "D:BOEFJES_API=http://placeholder:8006",
     "D:KATALOGUS_API=http://placeholder:8000",
     "D:OCTOPOES_API=http://placeholder:8001",
