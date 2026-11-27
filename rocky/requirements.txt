@@ -806,6 +806,7 @@ protobuf==6.32.1 \
     # via
     #   googleapis-common-protos
     #   opentelemetry-proto
+    #   rocky
 psycopg2-binary==2.9.11 \
     --hash=sha256:00ce1830d971f43b667abe4a56e42c1e2d594b32da4802e44a73bacacb25535f \
     --hash=sha256:04195548662fa544626c8ea0f06561eb6203f1984ba5b4562764fbeb4c3d14b1 \

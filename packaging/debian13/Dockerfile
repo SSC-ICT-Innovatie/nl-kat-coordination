@@ -3,7 +3,7 @@ FROM debian:trixie
 ENV DEBIAN_FRONTEND=noninteractive
 
 SHELL ["/bin/bash", "-c"]
-ARG NODE_VERSION=20.11.1
+ARG NODE_VERSION=26.13.1
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl ca-certificates xz-utils
 RUN curl -fsSL https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-x64.tar.xz \
@@ -17,4 +17,4 @@ RUN apt-get update && apt-get -y upgrade && \
     dh-virtualenv libpq-dev libssl-dev \
     build-essential nodejs git openssh-client \
     libfreetype-dev zlib1g-dev libjpeg-dev libffi-dev
-RUN corepack enable
+RUN npm install --global corepack && corepack enable

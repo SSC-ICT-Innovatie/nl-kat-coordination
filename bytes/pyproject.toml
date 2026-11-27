@@ -50,6 +50,7 @@ dependencies = [
     "multidict>=6.91",
     "anyio>=4.14.2",
     "certifi>=2026.10.19",
+    "protobuf>=7.36.2",
 ]
 
 [tool.uv]
