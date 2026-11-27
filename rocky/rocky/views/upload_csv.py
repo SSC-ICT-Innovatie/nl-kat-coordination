@@ -18,6 +18,7 @@ from tools.forms.upload_csv import CSV_ERRORS
 from tools.forms.upload_oois import UploadOOICSVForm
 
 from octopoes.api.models import Declaration
+from octopoes.connector import ConnectorException
 from octopoes.models import OOI, Reference
 from octopoes.models.ooi.dns.zone import Hostname
 from octopoes.models.ooi.network import IPAddressV4, IPAddressV6, Network
@@ -201,5 +202,5 @@ class UploadCSV(OrganizationPermissionRequiredMixin, OrganizationView, FormView)
 
         try:
             self.octopoes_api_connector.save_many_declarations(oois, sync=True)
-        except HTTPError:
+        except (HTTPError, ConnectorException):
             return self.add_error_notification("Failed to save data from the CSV")
