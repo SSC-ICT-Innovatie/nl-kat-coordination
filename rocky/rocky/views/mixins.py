@@ -181,6 +181,7 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
         plugins = {}
         normalizer_datas = {}
         bytes_origins = []
+        seen_observation_keys: set[tuple[str, str]] = set()
         for origin in origins:
             origin = OriginData(origin=origin)
             if origin.origin.origin_type != OriginType.OBSERVATION or not origin.origin.task_id:
@@ -189,6 +190,15 @@ class OctopoesView(ObservedAtMixin, OrganizationView):
                 elif origin.origin.origin_type == OriginType.INFERENCE:
                     inferences.append(origin)
                 continue
+
+            # Deduplicate observations: when both an old origin (source_method=None)
+            # and a new origin (source_method=<boefje-id>) exist for the same
+            # (method, source), only keep the one with source_method set.
+            obs_key = (origin.origin.method, str(origin.origin.source))
+            if origin.origin.source_method is None and obs_key in seen_observation_keys:
+                continue
+            seen_observation_keys.add(obs_key)
+
             bytes_origins.append(origin.origin.task_id)
             observations.append(origin)
 
